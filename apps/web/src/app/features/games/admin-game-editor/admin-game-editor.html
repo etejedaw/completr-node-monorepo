@@ -1,20 +1,37 @@
-<div class="bg-sidebar border border-line rounded-card p-5 mb-6">
-	<div class="mb-5 pb-5 border-b border-line">
+<div class="bg-sidebar border border-line rounded-card mb-6">
+	<header class="px-5 pt-5 pb-4 md:px-6 border-b border-line">
+		<span
+			class="block text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+			>Admin</span
+		>
+		<h3
+			class="m-0 mt-1 font-display text-lg md:text-xl font-bold tracking-tight text-fg"
+		>
+			{{ isEditMode() ? 'Edit game' : 'New game' }}
+		</h3>
+	</header>
+
+	<div class="px-5 py-5 md:px-6 border-b border-line">
 		<h4
-			class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider"
+			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
 		>
 			RAWG Lookup
 		</h4>
-		<div class="flex gap-2">
+		<div class="flex flex-col gap-2 sm:flex-row">
 			<input
+				uiInput
 				type="text"
-				class="flex-1 py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
+				class="sm:flex-1"
+				aria-label="RAWG slug"
 				placeholder="RAWG slug (e.g. resident-evil-4)"
 				[formField]="form.rawgSlug"
 				(keydown.enter)="fetchRawg()"
 			/>
 			<button
-				class="flex items-center gap-1.5 py-2 px-3.5 bg-brand-subtle border border-brand rounded text-brand text-[0.8125rem] font-semibold cursor-pointer whitespace-nowrap transition hover:bg-brand hover:text-white disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-brand-subtle disabled:hover:text-brand"
+				uiButton
+				variant="secondary"
+				type="button"
+				class="shrink-0"
 				(click)="fetchRawg()"
 				[disabled]="fetchingRawg() || !rawgSlug().trim()"
 			>
@@ -25,191 +42,173 @@
 			</button>
 		</div>
 		@if (rawgError()) {
-		<span class="block mt-1.5 text-xs text-danger">{{ rawgError() }}</span>
+		<span class="block mt-2 text-xs text-danger">{{ rawgError() }}</span>
 		} @if (rawgId()) {
-		<span class="block mt-1.5 text-xs text-brand"
-			>RAWG ID: {{ rawgId() }}</span
-		>
+		<span class="block mt-2 text-xs text-brand">RAWG ID: {{ rawgId() }}</span>
 		}
 	</div>
 
-	<div class="mb-5">
+	<div class="px-5 py-5 md:px-6 border-b border-line">
 		<h4
-			class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider"
+			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
 		>
 			Game Info
 		</h4>
 
-		<div class="mb-3">
-			<label
-				for="editor-title"
-				class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
-				>Title</label
-			>
-			<input
-				id="editor-title"
-				type="text"
-				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-				[formField]="form.title"
-			/>
-		</div>
-
-		<div class="mb-3">
-			<label
-				for="editor-description"
-				class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
-				>Description</label
-			>
-			<textarea
-				uiTextarea
-				id="editor-description"
-				rows="4"
-				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition resize-y focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-				[formField]="form.description"
-			></textarea>
-		</div>
-
-		<div class="grid grid-cols-2 gap-3">
-			<div class="mb-3">
-				<label
-					for="editor-release-date"
-					class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
-					>Release date</label
-				>
+		<div class="grid gap-4 md:grid-cols-2">
+			<div class="md:col-span-2">
+				<label uiFieldLabel for="editor-title">Title</label>
 				<input
+					uiInput
+					id="editor-title"
+					type="text"
+					[formField]="form.title"
+				/>
+			</div>
+
+			<div class="md:col-span-2">
+				<label uiFieldLabel for="editor-description">Description</label>
+				<textarea
+					uiTextarea
+					id="editor-description"
+					rows="4"
+					class="resize-y"
+					[formField]="form.description"
+				></textarea>
+			</div>
+
+			<div>
+				<label uiFieldLabel for="editor-release-date">Release date</label>
+				<input
+					uiInput
 					id="editor-release-date"
 					type="date"
-					class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
 					[formField]="form.releaseAt"
 				/>
 			</div>
-			<div class="mb-3">
-				<label
-					for="editor-background-url"
-					class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
+
+			<div>
+				<label uiFieldLabel for="editor-background-url"
 					>Background URL</label
 				>
 				<input
+					uiInput
 					id="editor-background-url"
 					type="text"
-					class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-					[formField]="form.backgroundUrl"
 					placeholder="https://..."
+					[formField]="form.backgroundUrl"
 				/>
 			</div>
-		</div>
 
-		@if (backgroundUrl()) {
-		<div class="mb-3 rounded overflow-hidden max-h-[120px]">
-			<img
-				class="w-full h-[120px] object-cover block"
-				[src]="backgroundUrl()"
-				alt="Preview"
-				loading="lazy"
-			/>
-		</div>
-		}
-
-		<div class="mb-3">
-			<label class="flex items-center gap-2 cursor-pointer">
-				<input
-					type="checkbox"
-					class="w-auto"
-					[formField]="form.isDlc"
-				/>
-				DLC
-			</label>
-		</div>
-
-		<div class="mb-3">
-			<label
-				for="editor-variant"
-				class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
-				>Variant label</label
-			>
-			<input
-				id="editor-variant"
-				type="text"
-				class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-				placeholder="e.g. Pearl (required when siblings share an external id)"
-				[formField]="form.variant"
-			/>
-		</div>
-
-		@if (isDlc()) {
-		<div class="mb-3">
-			<span
-				class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
-				>Parent Game</span
-			>
-			@if (parentGame()) {
+			@if (backgroundUrl()) {
 			<div
-				class="flex items-center gap-2.5 py-2 px-3 bg-input-bg border border-line rounded"
+				class="md:col-span-2 rounded-card overflow-hidden border border-line h-28 md:h-40"
 			>
-				@if (parentGame()!.backgroundUrl) {
 				<img
-					class="w-7 h-7 object-cover rounded-[3px] shrink-0"
-					[src]="parentGame()!.backgroundUrl"
-					[alt]="parentGame()!.title"
+					class="w-full h-full object-cover block"
+					[src]="backgroundUrl()"
+					alt="Preview"
 					loading="lazy"
 				/>
-				}
-				<span class="flex-1 text-[0.8125rem] font-medium"
-					>{{ parentGame()!.title }}</span
-				>
-				<button
-					class="bg-none border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg"
-					(click)="clearParentGame()"
-				>
-					<span aria-hidden="true" class="material-icons text-base"
-						>close</span
-					>
-				</button>
 			</div>
-			} @else {
-			<div class="flex gap-2">
+			}
+
+			<div class="md:col-span-2">
+				<label uiFieldLabel for="editor-variant">Variant label</label>
 				<input
+					uiInput
+					id="editor-variant"
 					type="text"
-					class="flex-1 py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-					[formField]="form.parentSlug"
-					(keydown.enter)="fetchParentGame()"
-					placeholder="Completr slug (e.g. resident-evil-4)"
+					placeholder="e.g. Pearl (required when siblings share an external id)"
+					[formField]="form.variant"
 				/>
-				<button
-					class="py-2 px-3 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] cursor-pointer whitespace-nowrap transition hover:border-brand hover:text-brand disabled:opacity-40 disabled:cursor-not-allowed"
-					(click)="fetchParentGame()"
-					[disabled]="fetchingParent() || !parentSlug().trim()"
-				>
-					{{ fetchingParent() ? '...' : 'Search' }}
-				</button>
 			</div>
-			@if (parentError()) {
-			<span class="block mt-1 text-xs text-danger"
-				>{{ parentError() }}</span
-			>
-			} }
+
+			<div class="md:col-span-2">
+				<label
+					class="flex items-center gap-3 min-h-11 cursor-pointer text-[0.8125rem] font-medium text-fg"
+				>
+					<input
+						type="checkbox"
+						class="size-5 shrink-0 accent-brand cursor-pointer"
+						[formField]="form.isDlc"
+					/>
+					DLC
+				</label>
+			</div>
+
+			@if (isDlc()) {
+			<div class="md:col-span-2">
+				<span uiFieldLabel>Parent Game</span>
+				@if (parentGame()) {
+				<div
+					class="flex items-center gap-3 py-2 pl-3 pr-2 min-h-11 bg-input-bg border border-line rounded-card"
+				>
+					@if (parentGame()!.backgroundUrl) {
+					<img
+						class="size-9 object-cover rounded shrink-0"
+						[src]="parentGame()!.backgroundUrl"
+						[alt]="parentGame()!.title"
+						loading="lazy"
+					/>
+					}
+					<span class="flex-1 min-w-0 truncate text-[0.8125rem] font-medium"
+						>{{ parentGame()!.title }}</span
+					>
+					<button
+						uiIconButton
+						type="button"
+						aria-label="Clear parent game"
+						(click)="clearParentGame()"
+					>
+						<span aria-hidden="true" class="material-icons text-base"
+							>close</span
+						>
+					</button>
+				</div>
+				} @else {
+				<div class="flex flex-col gap-2 sm:flex-row">
+					<input
+						uiInput
+						type="text"
+						class="sm:flex-1"
+						aria-label="Parent game slug"
+						[formField]="form.parentSlug"
+						(keydown.enter)="fetchParentGame()"
+						placeholder="Completr slug (e.g. resident-evil-4)"
+					/>
+					<button
+						uiButton
+						variant="secondary"
+						type="button"
+						class="shrink-0"
+						(click)="fetchParentGame()"
+						[disabled]="fetchingParent() || !parentSlug().trim()"
+					>
+						{{ fetchingParent() ? '...' : 'Search' }}
+					</button>
+				</div>
+				@if (parentError()) {
+				<span class="block mt-2 text-xs text-danger">{{ parentError() }}</span>
+				} }
+			</div>
+			}
 		</div>
-		}
 	</div>
 
-	<div class="mb-5">
+	<div class="px-5 py-5 md:px-6 border-b border-line">
 		<h4
-			class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider"
+			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
 		>
 			Platforms
 		</h4>
-		<div class="flex flex-wrap gap-1">
+		<div class="flex flex-wrap gap-2">
 			@for (p of allPlatforms(); track p.id) {
 			<button
-				class="py-1 px-2 rounded-full text-[0.6875rem] font-semibold cursor-pointer transition border"
-				[class.bg-brand-subtle]="selectedPlatforms().has(p.code)"
-				[class.border-brand]="selectedPlatforms().has(p.code)"
-				[class.text-brand]="selectedPlatforms().has(p.code)"
-				[class.bg-input-bg]="!selectedPlatforms().has(p.code)"
-				[class.border-line]="!selectedPlatforms().has(p.code)"
-				[class.text-fg-muted]="!selectedPlatforms().has(p.code)"
-				[class.hover:border-line-hover]="!selectedPlatforms().has(p.code)"
-				[class.hover:text-fg]="!selectedPlatforms().has(p.code)"
+				type="button"
+				class="inline-flex items-center justify-center min-h-8 tap:min-h-11 px-3 rounded-full text-xs font-semibold cursor-pointer transition border focus-visible:outline-2 focus-visible:outline-brand"
+				[class]="selectedPlatforms().has(p.code) ? 'bg-brand-subtle border-brand text-brand' : 'bg-input-bg border-line text-fg-muted hover:border-line-hover hover:text-fg'"
+				[attr.aria-pressed]="selectedPlatforms().has(p.code)"
 				(click)="togglePlatform(p.code)"
 			>
 				{{ p.abbreviation }}
@@ -218,24 +217,19 @@
 		</div>
 	</div>
 
-	<div class="mb-5">
+	<div class="px-5 py-5 md:px-6 border-b border-line">
 		<h4
-			class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider"
+			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
 		>
 			Genres
 		</h4>
-		<div class="flex flex-wrap gap-1">
+		<div class="flex flex-wrap gap-2">
 			@for (g of allGenres(); track g.id) {
 			<button
-				class="py-1 px-2 rounded-full text-[0.6875rem] font-semibold cursor-pointer transition border"
-				[class.bg-brand-subtle]="selectedGenres().has(g.code)"
-				[class.border-brand]="selectedGenres().has(g.code)"
-				[class.text-brand]="selectedGenres().has(g.code)"
-				[class.bg-input-bg]="!selectedGenres().has(g.code)"
-				[class.border-line]="!selectedGenres().has(g.code)"
-				[class.text-fg-muted]="!selectedGenres().has(g.code)"
-				[class.hover:border-line-hover]="!selectedGenres().has(g.code)"
-				[class.hover:text-fg]="!selectedGenres().has(g.code)"
+				type="button"
+				class="inline-flex items-center justify-center min-h-8 tap:min-h-11 px-3 rounded-full text-xs font-semibold cursor-pointer transition border focus-visible:outline-2 focus-visible:outline-brand"
+				[class]="selectedGenres().has(g.code) ? 'bg-brand-subtle border-brand text-brand' : 'bg-input-bg border-line text-fg-muted hover:border-line-hover hover:text-fg'"
+				[attr.aria-pressed]="selectedGenres().has(g.code)"
 				(click)="toggleGenre(g.code)"
 			>
 				{{ g.name }}
@@ -244,15 +238,15 @@
 		</div>
 	</div>
 
-	<div class="mb-5">
+	<div class="px-5 py-5 md:px-6 border-b border-line">
 		<h4
-			class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider"
+			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
 		>
 			Franchise
 		</h4>
 		<select
 			uiSelect
-			class="w-full"
+			aria-label="Franchise"
 			[value]="selectedFranchiseId()"
 			(change)="selectedFranchiseId.set($any($event.target).value)"
 		>
@@ -263,592 +257,582 @@
 		</select>
 	</div>
 
-	<div class="mb-5">
-		<h4
-			class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider"
-		>
-			Scores
-		</h4>
-		@for (s of scores(); track s.source; let i = $index) {
-		<div class="mb-1.5">
-		<div class="flex items-center gap-2">
-			<span
-				class="min-w-[80px] text-xs font-semibold text-fg-secondary uppercase"
-				>{{ s.source }}</span
+	<div class="grid lg:grid-cols-2 lg:divide-x lg:divide-line">
+		<div class="px-5 py-5 md:px-6 border-b border-line">
+			<h4
+				class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
 			>
-			<input
-				type="number"
-				class="w-[100px] py-1.5 px-2 bg-input-bg border rounded text-fg text-[0.8125rem] outline-none focus:border-brand"
-				[class.border-line]="!scoreErrors()[i]"
-				[class.border-danger]="!!scoreErrors()[i]"
-				[value]="s.score"
-				(input)="updateScoreValue(i, +$any($event.target).value)"
-				step="0.01"
-				min="0"
-				[attr.max]="scaleOf(s.source)"
-				[attr.aria-label]="s.source + ' score'"
-				[attr.aria-invalid]="scoreErrors()[i] ? 'true' : null"
-				[attr.aria-describedby]="scoreErrors()[i] ? 'score-error-' + s.source : null"
-			/>
-			<button
-				class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-danger"
-				(click)="removeScore(i)"
-			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>close</span
+				Scores
+			</h4>
+			@for (s of scores(); track s.source; let i = $index) {
+			<div class="mb-2">
+				<div class="flex items-center gap-2">
+					<span
+						class="w-24 shrink-0 truncate text-xs font-semibold text-fg-secondary uppercase tracking-wider"
+						>{{ s.source }}</span
+					>
+					<div class="flex-1 min-w-0 max-w-40">
+						<input
+							uiInput
+							type="number"
+							[class.border-danger]="!!scoreErrors()[i]"
+							[value]="s.score"
+							(input)="updateScoreValue(i, +$any($event.target).value)"
+							step="0.01"
+							min="0"
+							[attr.max]="scaleOf(s.source)"
+							[attr.aria-label]="s.source + ' score'"
+							[attr.aria-invalid]="scoreErrors()[i] ? 'true' : null"
+							[attr.aria-describedby]="scoreErrors()[i] ? 'score-error-' + s.source : null"
+						/>
+					</div>
+					<button
+						uiIconButton
+						tone="danger"
+						type="button"
+						class="shrink-0"
+						[attr.aria-label]="'Remove ' + s.source + ' score'"
+						(click)="removeScore(i)"
+					>
+						<span aria-hidden="true" class="material-icons text-base"
+							>close</span
+						>
+					</button>
+				</div>
+				@if (scoreErrors()[i]) {
+				<p
+					class="m-0 mt-1 text-xs text-danger"
+					[id]="'score-error-' + s.source"
 				>
-			</button>
-		</div>
-		@if (scoreErrors()[i]) {
-		<p
-			class="m-0 mt-1 text-xs text-danger"
-			[id]="'score-error-' + s.source"
-		>
-			{{ scoreErrors()[i] }}
-		</p>
-		}
-		</div>
-		} @if (availableScoreSources.length > 0) {
-		<div class="flex items-center gap-2 mt-2">
-			<select
-				uiSelect
-				size="sm"
-				class="min-w-[80px]"
-				[value]="newScoreSource()"
-				(change)="newScoreSource.set($any($event.target).value)"
-			>
-				<option value="">Source...</option>
-				@for (src of availableScoreSources; track src) {
-				<option [value]="src">{{ src }}</option>
+					{{ scoreErrors()[i] }}
+				</p>
 				}
-			</select>
-			<input
-				type="number"
-				class="w-[100px] py-1.5 px-2 bg-input-bg border rounded text-fg text-[0.8125rem] outline-none focus:border-brand"
-				[class.border-line]="!newScoreError()"
-				[class.border-danger]="!!newScoreError()"
-				placeholder="Value"
-				[value]="newScoreValue()"
-				(input)="newScoreValue.set($any($event.target).value === '' ? null : +$any($event.target).value)"
-				step="0.01"
-				min="0"
-				[attr.max]="newScoreSource() ? scaleOf(newScoreSource()) : null"
-				aria-label="New score value"
-				[attr.aria-invalid]="newScoreError() ? 'true' : null"
-				[attr.aria-describedby]="newScoreError() ? 'new-score-error' : null"
-			/>
-			<button
-				class="bg-transparent border border-line text-fg-muted cursor-pointer p-1 rounded flex transition hover:border-brand hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
-				(click)="addScore()"
-				[disabled]="!newScoreSource() || newScoreValue() === null || !!newScoreError()"
-			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>add</span
+			</div>
+			} @if (availableScoreSources.length > 0) {
+			<div class="flex flex-wrap items-center gap-2 mt-3">
+				<div class="flex-1 min-w-28">
+					<select
+						uiSelect
+						aria-label="New score source"
+						[value]="newScoreSource()"
+						(change)="newScoreSource.set($any($event.target).value)"
+					>
+						<option value="">Source...</option>
+						@for (src of availableScoreSources; track src) {
+						<option [value]="src">{{ src }}</option>
+						}
+					</select>
+				</div>
+				<div class="w-28">
+					<input
+						uiInput
+						type="number"
+						[class.border-danger]="!!newScoreError()"
+						placeholder="Value"
+						[value]="newScoreValue()"
+						(input)="newScoreValue.set($any($event.target).value === '' ? null : +$any($event.target).value)"
+						step="0.01"
+						min="0"
+						[attr.max]="newScoreSource() ? scaleOf(newScoreSource()) : null"
+						aria-label="New score value"
+						[attr.aria-invalid]="newScoreError() ? 'true' : null"
+						[attr.aria-describedby]="newScoreError() ? 'new-score-error' : null"
+					/>
+				</div>
+				<button
+					uiIconButton
+					tone="accent"
+					type="button"
+					class="shrink-0 border border-line"
+					aria-label="Add score"
+					(click)="addScore()"
+					[disabled]="!newScoreSource() || newScoreValue() === null || !!newScoreError()"
 				>
-			</button>
+					<span aria-hidden="true" class="material-icons text-base"
+						>add</span
+					>
+				</button>
+			</div>
+			@if (newScoreError()) {
+			<p class="m-0 mt-1 text-xs text-danger" id="new-score-error">
+				{{ newScoreError() }}
+			</p>
+			}
+			}
 		</div>
-		@if (newScoreError()) {
-		<p class="m-0 mt-1 text-xs text-danger" id="new-score-error">
-			{{ newScoreError() }}
-		</p>
-		}
-		}
+
+		<div class="px-5 py-5 md:px-6 border-b border-line">
+			<h4
+				class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
+			>
+				Durations
+			</h4>
+			@for (t of times(); track t.source; let i = $index) {
+			<div class="mb-2">
+				<div class="flex items-center gap-2">
+					<span
+						class="w-24 shrink-0 truncate text-xs font-semibold text-fg-secondary uppercase tracking-wider"
+						>{{ t.source }}</span
+					>
+					<div class="flex-1 min-w-0 max-w-40">
+						<input
+							uiInput
+							type="number"
+							[class.border-danger]="!!timeErrors()[i]"
+							[value]="t.duration"
+							(input)="updateTimeValue(i, +$any($event.target).value)"
+							step="0.1"
+							min="0"
+							[attr.aria-label]="t.source + ' duration'"
+							[attr.aria-invalid]="timeErrors()[i] ? 'true' : null"
+							[attr.aria-describedby]="timeErrors()[i] ? 'time-error-' + t.source : null"
+						/>
+					</div>
+					<button
+						uiIconButton
+						tone="danger"
+						type="button"
+						class="shrink-0"
+						[attr.aria-label]="'Remove ' + t.source + ' duration'"
+						(click)="removeTime(i)"
+					>
+						<span aria-hidden="true" class="material-icons text-base"
+							>close</span
+						>
+					</button>
+				</div>
+				@if (timeErrors()[i]) {
+				<p
+					class="m-0 mt-1 text-xs text-danger"
+					[id]="'time-error-' + t.source"
+				>
+					{{ timeErrors()[i] }}
+				</p>
+				}
+			</div>
+			} @if (availableTimeSources.length > 0) {
+			<div class="flex flex-wrap items-center gap-2 mt-3">
+				<div class="flex-1 min-w-28">
+					<select
+						uiSelect
+						aria-label="New duration source"
+						[value]="newTimeSource()"
+						(change)="newTimeSource.set($any($event.target).value)"
+					>
+						<option value="">Source...</option>
+						@for (src of availableTimeSources; track src) {
+						<option [value]="src">{{ src }}</option>
+						}
+					</select>
+				</div>
+				<div class="w-28">
+					<input
+						uiInput
+						type="number"
+						[class.border-danger]="!!newTimeError()"
+						placeholder="Hours"
+						[value]="newTimeValue()"
+						(input)="newTimeValue.set($any($event.target).value === '' ? null : +$any($event.target).value)"
+						step="0.1"
+						min="0"
+						aria-label="New duration in hours"
+						[attr.aria-invalid]="newTimeError() ? 'true' : null"
+						[attr.aria-describedby]="newTimeError() ? 'new-time-error' : null"
+					/>
+				</div>
+				<button
+					uiIconButton
+					tone="accent"
+					type="button"
+					class="shrink-0 border border-line"
+					aria-label="Add duration"
+					(click)="addTime()"
+					[disabled]="!newTimeSource() || newTimeValue() === null || !!newTimeError()"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>add</span
+					>
+				</button>
+			</div>
+			@if (newTimeError()) {
+			<p class="m-0 mt-1 text-xs text-danger" id="new-time-error">
+				{{ newTimeError() }}
+			</p>
+			}
+			}
+		</div>
 	</div>
 
-	<div class="mb-5">
+	@if (isEditMode()) {
+	<div class="px-5 py-5 md:px-6 border-b border-line">
 		<h4
-			class="font-display m-0 mb-2 text-xs font-semibold text-fg-muted uppercase tracking-wider"
+			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
 		>
-			Durations
+			Structure
 		</h4>
-		@for (t of times(); track t.source; let i = $index) {
-		<div class="mb-1.5">
-		<div class="flex items-center gap-2">
-			<span
-				class="min-w-[80px] text-xs font-semibold text-fg-secondary uppercase"
-				>{{ t.source }}</span
+		<div class="grid gap-3 md:grid-cols-2">
+			<div
+				class="flex flex-col items-start gap-3 rounded-card border border-line bg-surface p-4"
 			>
-			<input
-				type="number"
-				class="w-[100px] py-1.5 px-2 bg-input-bg border rounded text-fg text-[0.8125rem] outline-none focus:border-brand"
-				[class.border-line]="!timeErrors()[i]"
-				[class.border-danger]="!!timeErrors()[i]"
-				[value]="t.duration"
-				(input)="updateTimeValue(i, +$any($event.target).value)"
-				step="0.1"
-				min="0"
-				[attr.aria-label]="t.source + ' duration'"
-				[attr.aria-invalid]="timeErrors()[i] ? 'true' : null"
-				[attr.aria-describedby]="timeErrors()[i] ? 'time-error-' + t.source : null"
-			/>
-			<button
-				class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-danger"
-				(click)="removeTime(i)"
-			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>close</span
+				<p class="m-0 text-[0.8125rem] text-fg-secondary text-pretty">
+					Split this game into multiple variants (e.g. Pokemon Pearl/Diamond
+					→ Pearl + Diamond).
+				</p>
+				<button
+					uiButton
+					variant="secondary"
+					type="button"
+					class="max-md:w-full"
+					(click)="openSplitModal()"
+					[disabled]="saving()"
 				>
-			</button>
-		</div>
-		@if (timeErrors()[i]) {
-		<p
-			class="m-0 mt-1 text-xs text-danger"
-			[id]="'time-error-' + t.source"
-		>
-			{{ timeErrors()[i] }}
-		</p>
-		}
-		</div>
-		} @if (availableTimeSources.length > 0) {
-		<div class="flex items-center gap-2 mt-2">
-			<select
-				uiSelect
-				size="sm"
-				class="min-w-[80px]"
-				[value]="newTimeSource()"
-				(change)="newTimeSource.set($any($event.target).value)"
+					<span aria-hidden="true" class="material-icons text-base"
+						>call_split</span
+					>
+					Split game
+				</button>
+			</div>
+			<div
+				class="flex flex-col items-start gap-3 rounded-card border border-line bg-surface p-4"
 			>
-				<option value="">Source...</option>
-				@for (src of availableTimeSources; track src) {
-				<option [value]="src">{{ src }}</option>
-				}
-			</select>
-			<input
-				type="number"
-				class="w-[100px] py-1.5 px-2 bg-input-bg border rounded text-fg text-[0.8125rem] outline-none focus:border-brand"
-				[class.border-line]="!newTimeError()"
-				[class.border-danger]="!!newTimeError()"
-				placeholder="Hours"
-				[value]="newTimeValue()"
-				(input)="newTimeValue.set($any($event.target).value === '' ? null : +$any($event.target).value)"
-				step="0.1"
-				min="0"
-				aria-label="New duration in hours"
-				[attr.aria-invalid]="newTimeError() ? 'true' : null"
-				[attr.aria-describedby]="newTimeError() ? 'new-time-error' : null"
-			/>
-			<button
-				class="bg-transparent border border-line text-fg-muted cursor-pointer p-1 rounded flex transition hover:border-brand hover:text-brand disabled:opacity-30 disabled:cursor-not-allowed"
-				(click)="addTime()"
-				[disabled]="!newTimeSource() || newTimeValue() === null || !!newTimeError()"
-			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>add</span
+				<p class="m-0 text-[0.8125rem] text-fg-secondary text-pretty">
+					Mark this game as a compilation that bundles other games (e.g. Mass
+					Effect Legendary Edition).
+				</p>
+				<button
+					uiButton
+					variant="secondary"
+					type="button"
+					class="max-md:w-full"
+					(click)="openCompilationModal()"
+					[disabled]="saving()"
 				>
-			</button>
+					<span aria-hidden="true" class="material-icons text-base"
+						>library_books</span
+					>
+					{{ game()?.isCompilation ? 'Edit compilation' : 'Mark as compilation' }}
+				</button>
+			</div>
 		</div>
-		@if (newTimeError()) {
-		<p class="m-0 mt-1 text-xs text-danger" id="new-time-error">
-			{{ newTimeError() }}
-		</p>
-		}
-		}
-	</div>
-
-	@if (saveError()) {
-	<div
-		role="alert"
-		class="bg-danger/[0.08] border border-danger/20 text-red-300 py-2 px-3 rounded mb-3 text-[0.8125rem]"
-	>
-		{{ saveError() }}
 	</div>
 	}
+
 	<div
-		class="flex justify-between items-center pt-4 border-t border-line gap-2"
+		class="sticky z-10 bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] md:bottom-0 flex flex-col gap-3 px-5 py-3 md:px-6 md:py-4 bg-sidebar/90 backdrop-blur-xl border-t border-line rounded-b-card"
 	>
-		@if (isEditMode()) {
-		<div class="flex items-center gap-2 flex-wrap">
+		@if (saveError()) {
+		<ui-alert tone="danger">{{ saveError() }}</ui-alert>
+		}
+		<div class="flex justify-end">
 			<button
-				class="flex items-center gap-1.5 py-2 px-3.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] font-semibold cursor-pointer transition hover:border-warning hover:text-warning"
-				(click)="openSplitModal()"
-				[disabled]="saving()"
-				title="Split this game into multiple variants (e.g. Pokemon Pearl/Diamond → Pearl + Diamond)"
+				uiButton
+				type="button"
+				class="max-sm:w-full"
+				(click)="save()"
+				[disabled]="saving() || !title().trim()"
 			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>call_split</span
-				>
-				Split game
-			</button>
-			<button
-				class="flex items-center gap-1.5 py-2 px-3.5 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] font-semibold cursor-pointer transition hover:border-brand hover:text-brand"
-				(click)="openCompilationModal()"
-				[disabled]="saving()"
-				title="Mark this game as a compilation that bundles other games (e.g. Mass Effect Legendary Edition)"
-			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>library_books</span
-				>
-				{{ game()?.isCompilation ? 'Edit compilation' : 'Mark as
-				compilation' }}
+				{{ saving() ? 'Saving...' : isEditMode() ? 'Save Changes' : 'Create Game' }}
 			</button>
 		</div>
-		} @else {
-		<span></span>
-		}
-		<button
-			class="py-2 px-5 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-			style="
-				background: linear-gradient(
-					135deg,
-					var(--color-brand),
-					var(--color-brand-deep)
-				);
-			"
-			(click)="save()"
-			[disabled]="saving() || !title().trim()"
-		>
-			{{ saving() ? 'Saving...' : isEditMode() ? 'Save Changes' : 'Create
-			Game' }}
-		</button>
 	</div>
 </div>
 
 @if (splitOpen()) {
-<div
-	class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]"
+<ui-dialog
+	heading="Split game into variants"
+	eyebrow="Admin"
+	subheading="Use this when an external source (e.g. RAWG) bundles distinct titles in one record. The first variant overwrites the current game; the rest are created as new games sharing platforms, genres, scores, times and external ids."
+	size="lg"
+	[dismissible]="!splitting()"
+	(closed)="closeSplitModal()"
 >
-	<div
-		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[640px] max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]"
-	>
-		<div class="flex justify-between items-center mb-3">
-			<h2 class="font-display m-0 text-lg font-bold">
-				Split game into variants
-			</h2>
-			<button
-				class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg"
-				(click)="closeSplitModal()"
-			>
-				<span aria-hidden="true" class="material-icons">close</span>
-			</button>
-		</div>
-		<p class="text-[0.8125rem] text-fg-secondary mb-4">
-			Use this when an external source (e.g. RAWG) bundles distinct titles
-			in one record. The first variant overwrites the current game; the
-			rest are created as new games sharing platforms, genres, scores,
-			times and external ids.
-		</p>
+	@if (splitError()) {
+	<ui-alert tone="danger" class="mb-4">{{ splitError() }}</ui-alert>
+	}
 
-		@if (splitError()) {
-		<div
-			class="bg-danger/10 border border-danger/20 text-red-300 px-3 py-2 rounded mb-3 text-[0.8125rem]"
-		>
-			{{ splitError() }}
-		</div>
-		}
-
-		<div class="flex flex-col gap-2 mb-4">
-			@for (v of splitVariants(); track $index; let i = $index) {
-			<div class="flex items-start gap-2">
-				<div class="flex-1 grid grid-cols-[2fr_1fr] gap-2">
-					<div>
-						<label
-							[attr.for]="'editor-variant-title-' + i"
-							class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
-							>Title #{{ i + 1 }}</label
-						>
-						<input
-							[attr.id]="'editor-variant-title-' + i"
-							type="text"
-							class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-							placeholder="e.g. Pokemon Pearl"
-							[value]="v.title"
-							(input)="updateSplitVariantTitle(i, $any($event.target).value)"
-							maxlength="200"
-						/>
-						@if (v.title.trim()) {
-						<div class="text-xs text-fg-muted mt-1">
-							slug →
-							<span class="text-fg-secondary"
-								>{{ previewSlug(v.title) }}</span
-							>
-						</div>
-						}
-					</div>
-					<div>
-						<label
-							[attr.for]="'editor-variant-label-' + i"
-							class="block mb-1 text-[0.6875rem] font-semibold text-fg-secondary uppercase tracking-wider"
-							>Variant label</label
-						>
-						<input
-							[attr.id]="'editor-variant-label-' + i"
-							type="text"
-							class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-							placeholder="Pearl"
-							[value]="v.variant"
-							(input)="updateSplitVariantLabel(i, $any($event.target).value)"
-							maxlength="100"
-						/>
-					</div>
-				</div>
+	<div class="flex flex-col gap-3 mb-4">
+		@for (v of splitVariants(); track $index; let i = $index) {
+		<div class="rounded-card border border-line bg-surface p-3">
+			<div class="flex items-center justify-between gap-2 mb-2">
+				<span
+					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.16em]"
+					>Variant {{ i + 1 }}</span
+				>
 				<button
-					class="mt-[22px] bg-transparent border border-line rounded p-1.5 text-fg-muted cursor-pointer transition hover:border-danger hover:text-danger disabled:opacity-30 disabled:cursor-not-allowed"
+					uiIconButton
+					tone="danger"
+					type="button"
+					[attr.aria-label]="'Remove variant ' + (i + 1)"
 					(click)="removeSplitVariant(i)"
 					[disabled]="splitVariants().length <= 2"
-					title="Remove this variant"
 				>
-					<span aria-hidden="true" class="material-icons text-sm"
+					<span aria-hidden="true" class="material-icons text-base"
 						>close</span
 					>
 				</button>
 			</div>
-			}
-		</div>
-
-		<button
-			class="flex items-center gap-1.5 py-1.5 px-3 bg-input-bg border border-line rounded text-fg-secondary text-xs font-semibold cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-40 disabled:cursor-not-allowed mb-5"
-			(click)="addSplitVariant()"
-			[disabled]="splitVariants().length >= 10"
-		>
-			<span aria-hidden="true" class="material-icons text-sm">add</span>
-			Add variant
-		</button>
-
-		<div class="flex justify-end gap-2 pt-4 border-t border-line">
-			<button
-				class="py-2 px-4 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] font-semibold cursor-pointer transition hover:border-line-hover hover:text-fg disabled:opacity-40 disabled:cursor-not-allowed"
-				(click)="closeSplitModal()"
-				[disabled]="splitting()"
-			>
-				Cancel
-			</button>
-			<button
-				class="py-2 px-5 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-				style="
-					background: linear-gradient(
-						135deg,
-						var(--color-brand),
-						var(--color-brand-deep)
-					);
-				"
-				(click)="submitSplit()"
-				[disabled]="splitting()"
-			>
-				{{ splitting() ? 'Splitting...' : 'Split' }}
-			</button>
-		</div>
-	</div>
-</div>
-} @if (compilationOpen()) {
-<div
-	class="fixed inset-0 bg-black/60 flex justify-center items-center z-[100] backdrop-blur-[4px]"
->
-	<div
-		class="bg-sidebar border border-line rounded-[12px] p-7 w-full max-w-[720px] max-h-[90vh] overflow-y-auto shadow-[0_20px_60px_-12px_rgba(0,0,0,0.6)]"
-	>
-		<div class="flex justify-between items-center mb-3">
-			<h2 class="font-display m-0 text-lg font-bold">
-				{{ game()?.isCompilation ? 'Edit compilation' : 'Mark as
-				compilation' }}
-			</h2>
-			<button
-				class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg"
-				(click)="closeCompilationModal()"
-			>
-				<span aria-hidden="true" class="material-icons">close</span>
-			</button>
-		</div>
-		<p class="text-[0.8125rem] text-fg-secondary mb-4">
-			Define the games that this compilation contains. Use
-			<strong>Link existing</strong> when the title is already in the
-			catalog (e.g. classic Mass Effect 1 inside Mass Effect Trilogy). Use
-			<strong>Create new</strong> when the bundled title doesn't exist
-			standalone (e.g. Mass Effect 1 Legendary Edition inside MEL) — a new
-			game page will be created, inheriting cover/description from this
-			compilation, editable later.
-		</p>
-
-		@if (compilationError()) {
-		<div
-			class="bg-danger/10 border border-danger/20 text-red-300 px-3 py-2 rounded mb-3 text-[0.8125rem]"
-		>
-			{{ compilationError() }}
+			<div class="grid gap-3 sm:grid-cols-[2fr_1fr]">
+				<div>
+					<label uiFieldLabel [attr.for]="'editor-variant-title-' + i"
+						>Title #{{ i + 1 }}</label
+					>
+					<input
+						uiInput
+						[attr.id]="'editor-variant-title-' + i"
+						type="text"
+						placeholder="e.g. Pokemon Pearl"
+						[value]="v.title"
+						(input)="updateSplitVariantTitle(i, $any($event.target).value)"
+						maxlength="200"
+					/>
+					@if (v.title.trim()) {
+					<div class="text-xs text-fg-muted mt-1.5 break-all">
+						slug →
+						<span class="text-fg-secondary">{{ previewSlug(v.title) }}</span>
+					</div>
+					}
+				</div>
+				<div>
+					<label uiFieldLabel [attr.for]="'editor-variant-label-' + i"
+						>Variant label</label
+					>
+					<input
+						uiInput
+						[attr.id]="'editor-variant-label-' + i"
+						type="text"
+						placeholder="Pearl"
+						[value]="v.variant"
+						(input)="updateSplitVariantLabel(i, $any($event.target).value)"
+						maxlength="100"
+					/>
+				</div>
+			</div>
 		</div>
 		}
+	</div>
 
-		<div class="flex flex-col gap-3 mb-4">
-			@for (row of compilationRows(); track $index; let i = $index) {
-			<div class="border border-line rounded p-3 bg-input-bg/40">
-				<div class="flex items-center gap-2 mb-2">
-					<span
-						class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-wider"
-						>#{{ i + 1 }}</span
-					>
-					<div class="flex gap-1 ml-1">
-						<button
-							class="py-1 px-2 rounded-full text-[0.6875rem] font-semibold cursor-pointer transition border"
-							[class.bg-brand-subtle]="row.mode === 'link'"
-							[class.border-brand]="row.mode === 'link'"
-							[class.text-brand]="row.mode === 'link'"
-							[class.bg-transparent]="row.mode !== 'link'"
-							[class.border-line]="row.mode !== 'link'"
-							[class.text-fg-muted]="row.mode !== 'link'"
-							(click)="setCompilationRowMode(i, 'link')"
-						>
-							Link existing
-						</button>
-						<button
-							class="py-1 px-2 rounded-full text-[0.6875rem] font-semibold cursor-pointer transition border"
-							[class.bg-brand-subtle]="row.mode === 'create'"
-							[class.border-brand]="row.mode === 'create'"
-							[class.text-brand]="row.mode === 'create'"
-							[class.bg-transparent]="row.mode !== 'create'"
-							[class.border-line]="row.mode !== 'create'"
-							[class.text-fg-muted]="row.mode !== 'create'"
-							(click)="setCompilationRowMode(i, 'create')"
-						>
-							Create new
-						</button>
-					</div>
+	<button
+		uiButton
+		variant="secondary"
+		type="button"
+		class="max-sm:w-full"
+		(click)="addSplitVariant()"
+		[disabled]="splitVariants().length >= 10"
+	>
+		<span aria-hidden="true" class="material-icons text-base">add</span>
+		Add variant
+	</button>
+
+	<button
+		uiButton
+		dialogFooter
+		variant="secondary"
+		type="button"
+		(click)="closeSplitModal()"
+		[disabled]="splitting()"
+	>
+		Cancel
+	</button>
+	<button
+		uiButton
+		dialogFooter
+		type="button"
+		(click)="submitSplit()"
+		[disabled]="splitting()"
+	>
+		{{ splitting() ? 'Splitting...' : 'Split' }}
+	</button>
+</ui-dialog>
+} @if (compilationOpen()) {
+<ui-dialog
+	eyebrow="Admin"
+	size="lg"
+	[heading]="game()?.isCompilation ? 'Edit compilation' : 'Mark as compilation'"
+	subheading="Define the games that this compilation contains. Link existing when the title is already in the catalog (e.g. classic Mass Effect 1 inside Mass Effect Trilogy). Create new when the bundled title doesn't exist standalone (e.g. Mass Effect 1 Legendary Edition inside MEL): a new game page will be created, inheriting cover and description from this compilation, editable later."
+	[dismissible]="!compilationSaving() && !compilationClearing()"
+	(closed)="closeCompilationModal()"
+>
+	@if (compilationError()) {
+	<ui-alert tone="danger" class="mb-4">{{ compilationError() }}</ui-alert>
+	}
+
+	<div class="flex flex-col gap-3 mb-4">
+		@for (row of compilationRows(); track $index; let i = $index) {
+		<div class="rounded-card border border-line bg-surface p-3">
+			<div class="flex items-center gap-2 mb-3">
+				<span
+					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.16em]"
+					>#{{ i + 1 }}</span
+				>
+				<div class="flex flex-wrap gap-1.5 ml-1">
 					<button
-						class="ml-auto bg-transparent border border-line rounded p-1 text-fg-muted cursor-pointer transition hover:border-danger hover:text-danger disabled:opacity-30 disabled:cursor-not-allowed"
-						(click)="removeCompilationRow(i)"
-						[disabled]="compilationRows().length <= 1"
-						title="Remove this item"
+						type="button"
+						class="inline-flex items-center justify-center min-h-8 tap:min-h-11 px-3 rounded-full text-xs font-semibold cursor-pointer transition border focus-visible:outline-2 focus-visible:outline-brand"
+						[class]="row.mode === 'link' ? 'bg-brand-subtle border-brand text-brand' : 'bg-transparent border-line text-fg-muted hover:border-line-hover hover:text-fg'"
+						[attr.aria-pressed]="row.mode === 'link'"
+						(click)="setCompilationRowMode(i, 'link')"
 					>
-						<span aria-hidden="true" class="material-icons text-sm"
-							>close</span
-						>
+						Link existing
+					</button>
+					<button
+						type="button"
+						class="inline-flex items-center justify-center min-h-8 tap:min-h-11 px-3 rounded-full text-xs font-semibold cursor-pointer transition border focus-visible:outline-2 focus-visible:outline-brand"
+						[class]="row.mode === 'create' ? 'bg-brand-subtle border-brand text-brand' : 'bg-transparent border-line text-fg-muted hover:border-line-hover hover:text-fg'"
+						[attr.aria-pressed]="row.mode === 'create'"
+						(click)="setCompilationRowMode(i, 'create')"
+					>
+						Create new
 					</button>
 				</div>
-
-				@if (row.mode === 'link') { @if (row.linkedGame) {
-				<div
-					class="flex items-center gap-2.5 py-2 px-3 bg-input-bg border border-line rounded"
+				<button
+					uiIconButton
+					tone="danger"
+					type="button"
+					class="ml-auto shrink-0"
+					[attr.aria-label]="'Remove item ' + (i + 1)"
+					(click)="removeCompilationRow(i)"
+					[disabled]="compilationRows().length <= 1"
 				>
-					@if (row.linkedGame.backgroundUrl) {
+					<span aria-hidden="true" class="material-icons text-base"
+						>close</span
+					>
+				</button>
+			</div>
+
+			@if (row.mode === 'link') { @if (row.linkedGame) {
+			<div
+				class="flex items-center gap-3 py-2 pl-3 pr-2 min-h-11 bg-input-bg border border-line rounded-card"
+			>
+				@if (row.linkedGame.backgroundUrl) {
+				<img
+					class="size-9 object-cover rounded shrink-0"
+					[src]="row.linkedGame.backgroundUrl"
+					[alt]="row.linkedGame.title"
+					loading="lazy"
+				/>
+				}
+				<span class="flex-1 min-w-0 truncate text-[0.8125rem] font-medium"
+					>{{ row.linkedGame.title }}</span
+				>
+				<span class="hidden sm:inline text-xs text-fg-muted"
+					>{{ row.linkedGame.code }}</span
+				>
+				<button
+					uiIconButton
+					type="button"
+					class="shrink-0"
+					aria-label="Clear linked game"
+					(click)="clearCompilationRowGame(i)"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>close</span
+					>
+				</button>
+			</div>
+			} @else {
+			<input
+				uiInput
+				type="text"
+				aria-label="Search existing game"
+				placeholder="Search existing game..."
+				[value]="row.searchQuery"
+				(input)="updateCompilationRowQuery(i, $any($event.target).value)"
+			/>
+			@if (row.searching) {
+			<div class="text-xs text-fg-muted mt-2">Searching...</div>
+			} @if (row.searchResults.length > 0) {
+			<div
+				class="border border-line rounded-card mt-2 max-h-56 overflow-y-auto bg-input-bg divide-y divide-line"
+			>
+				@for (g of row.searchResults; track g.id) {
+				<button
+					type="button"
+					class="w-full min-h-11 flex items-center gap-3 px-3 py-2 text-left hover:bg-brand-subtle transition border-0 cursor-pointer bg-transparent text-fg focus-visible:outline-2 focus-visible:outline-brand"
+					(click)="pickCompilationRowGame(i, g)"
+				>
+					@if (g.backgroundUrl) {
 					<img
-						class="w-9 h-9 object-cover rounded-[3px] shrink-0"
-						[src]="row.linkedGame.backgroundUrl"
-						[alt]="row.linkedGame.title"
+						class="size-8 object-cover rounded shrink-0"
+						[src]="g.backgroundUrl"
+						[alt]="g.title"
 						loading="lazy"
 					/>
 					}
-					<span class="flex-1 text-[0.8125rem] font-medium"
-						>{{ row.linkedGame.title }}</span
+					<span class="flex-1 min-w-0 truncate text-[0.8125rem]"
+						>{{ g.title }}</span
 					>
-					<span class="text-xs text-fg-muted"
-						>{{ row.linkedGame.code }}</span
+					<span class="hidden sm:inline text-[0.6875rem] text-fg-muted"
+						>{{ g.code }}</span
 					>
-					<button
-						class="bg-transparent border-0 text-fg-muted cursor-pointer p-0 flex transition hover:text-fg"
-						(click)="clearCompilationRowGame(i)"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
-							>close</span
-						>
-					</button>
-				</div>
-				} @else {
+				</button>
+				}
+			</div>
+			} } } @else {
+			<div>
 				<input
+					uiInput
 					type="text"
-					class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-					placeholder="Search existing game..."
-					[value]="row.searchQuery"
-					(input)="updateCompilationRowQuery(i, $any($event.target).value)"
+					aria-label="Title for the new game"
+					placeholder="Title for the new game (e.g. Mass Effect 1 Legendary Edition)"
+					[value]="row.title"
+					(input)="updateCompilationRowTitle(i, $any($event.target).value)"
+					maxlength="200"
 				/>
-				@if (row.searching) {
-				<div class="text-xs text-fg-muted mt-1">Searching...</div>
-				} @if (row.searchResults.length > 0) {
-				<div
-					class="border border-line rounded mt-1 max-h-[180px] overflow-y-auto bg-input-bg"
-				>
-					@for (g of row.searchResults; track g.id) {
-					<button
-						class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-brand-subtle transition border-0 cursor-pointer bg-transparent"
-						(click)="pickCompilationRowGame(i, g)"
-					>
-						@if (g.backgroundUrl) {
-						<img
-							class="w-7 h-7 object-cover rounded-[3px] shrink-0"
-							[src]="g.backgroundUrl"
-							[alt]="g.title"
-							loading="lazy"
-						/>
-						}
-						<span class="flex-1 text-[0.8125rem]"
-							>{{ g.title }}</span
-						>
-						<span class="text-[0.6875rem] text-fg-muted"
-							>{{ g.code }}</span
-						>
-					</button>
-					}
-				</div>
-				} } } @else {
-				<div>
-					<input
-						type="text"
-						class="w-full py-2 px-3 bg-input-bg border border-line rounded text-fg text-[0.8125rem] outline-none transition focus:border-brand focus:shadow-[0_0_0_3px_var(--color-brand-subtle)] placeholder:text-fg-muted"
-						placeholder="Title for the new game (e.g. Mass Effect 1 Legendary Edition)"
-						[value]="row.title"
-						(input)="updateCompilationRowTitle(i, $any($event.target).value)"
-						maxlength="200"
-					/>
-					@if (row.title.trim()) {
-					<div class="text-xs text-fg-muted mt-1">
-						slug →
-						<span class="text-fg-secondary"
-							>{{ previewSlug(row.title) }}</span
-						>
-					</div>
-					}
+				@if (row.title.trim()) {
+				<div class="text-xs text-fg-muted mt-1.5 break-all">
+					slug →
+					<span class="text-fg-secondary">{{ previewSlug(row.title) }}</span>
 				</div>
 				}
 			</div>
 			}
 		</div>
-
-		<button
-			class="flex items-center gap-1.5 py-1.5 px-3 bg-input-bg border border-line rounded text-fg-secondary text-xs font-semibold cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-40 disabled:cursor-not-allowed mb-5"
-			(click)="addCompilationRow()"
-			[disabled]="compilationRows().length >= 50"
-		>
-			<span aria-hidden="true" class="material-icons text-sm">add</span>
-			Add item
-		</button>
-
-		<div
-			class="flex justify-between items-center pt-4 border-t border-line gap-2"
-		>
-			@if (game()?.isCompilation) {
-			<button
-				class="py-2 px-4 bg-transparent border border-danger/40 rounded text-danger text-[0.8125rem] font-semibold cursor-pointer transition hover:bg-danger/10 disabled:opacity-40 disabled:cursor-not-allowed"
-				(click)="clearCompilation()"
-				[disabled]="compilationSaving() || compilationClearing()"
-			>
-				{{ compilationClearing() ? 'Clearing...' : 'Clear compilation'
-				}}
-			</button>
-			} @else {
-			<span></span>
-			}
-			<div class="flex gap-2">
-				<button
-					class="py-2 px-4 bg-input-bg border border-line rounded text-fg-secondary text-[0.8125rem] font-semibold cursor-pointer transition hover:border-line-hover hover:text-fg disabled:opacity-40 disabled:cursor-not-allowed"
-					(click)="closeCompilationModal()"
-					[disabled]="compilationSaving() || compilationClearing()"
-				>
-					Cancel
-				</button>
-				<button
-					class="py-2 px-5 text-white border-0 rounded text-[0.8125rem] font-semibold cursor-pointer transition hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-					style="
-						background: linear-gradient(
-							135deg,
-							var(--color-brand),
-							var(--color-brand-deep)
-						);
-					"
-					(click)="submitCompilation()"
-					[disabled]="compilationSaving() || compilationClearing()"
-				>
-					{{ compilationSaving() ? 'Saving...' : 'Save' }}
-				</button>
-			</div>
-		</div>
+		}
 	</div>
-</div>
+
+	<button
+		uiButton
+		variant="secondary"
+		type="button"
+		class="max-sm:w-full"
+		(click)="addCompilationRow()"
+		[disabled]="compilationRows().length >= 50"
+	>
+		<span aria-hidden="true" class="material-icons text-base">add</span>
+		Add item
+	</button>
+
+	@if (game()?.isCompilation) {
+	<button
+		uiButton
+		dialogFooter
+		variant="danger"
+		type="button"
+		class="md:mr-auto"
+		(click)="clearCompilation()"
+		[disabled]="compilationSaving() || compilationClearing()"
+	>
+		{{ compilationClearing() ? 'Clearing...' : 'Clear compilation' }}
+	</button>
+	}
+	<button
+		uiButton
+		dialogFooter
+		variant="secondary"
+		type="button"
+		(click)="closeCompilationModal()"
+		[disabled]="compilationSaving() || compilationClearing()"
+	>
+		Cancel
+	</button>
+	<button
+		uiButton
+		dialogFooter
+		type="button"
+		(click)="submitCompilation()"
+		[disabled]="compilationSaving() || compilationClearing()"
+	>
+		{{ compilationSaving() ? 'Saving...' : 'Save' }}
+	</button>
+</ui-dialog>
 }

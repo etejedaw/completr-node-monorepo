@@ -15,7 +15,16 @@ import { type Game, type Genre, type Platform } from "../../../core/models";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { adminErrorMessage } from "../../../core/utils/admin-error-message";
-import { UiSelect, UiTextarea } from "../../../shared/ui";
+import {
+	UiAlert,
+	UiButton,
+	UiDialog,
+	UiFieldLabel,
+	UiIconButton,
+	UiInput,
+	UiSelect,
+	UiTextarea
+} from "../../../shared/ui";
 import { type Franchise, FranchisesService } from "../../franchises/franchises";
 import {
 	type CompilationItemInput,
@@ -38,7 +47,17 @@ interface CompilationRow {
 
 @Component({
 	selector: "app-admin-game-editor",
-	imports: [FormField, UiSelect, UiTextarea],
+	imports: [
+		FormField,
+		UiAlert,
+		UiButton,
+		UiDialog,
+		UiFieldLabel,
+		UiIconButton,
+		UiInput,
+		UiSelect,
+		UiTextarea
+	],
 	templateUrl: "./admin-game-editor.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
