@@ -112,10 +112,11 @@ export class AdminFranchises implements OnInit {
 				this.toast.success("Franchise deleted");
 				this.load();
 			},
-			error: () => {
+			error: (err: { status?: number }) => {
 				this.isDeleting.set(false);
 				this.franchiseToDelete.set(null);
 				this.toast.error("Failed to delete franchise");
+				if (err.status === 404) this.load();
 			}
 		});
 	}
