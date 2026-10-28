@@ -1,10 +1,12 @@
 import {
 	formatHours,
 	monthName,
+	monthRange,
 	parseRewindYear,
 	rewindImageFileName,
 	rewindSummarySentence,
-	shortDate
+	shortDate,
+	spokenMonthRange
 } from "./rewind-copy";
 
 const totals = (finished: number, abandoned: number, started: number) => ({
@@ -12,7 +14,11 @@ const totals = (finished: number, abandoned: number, started: number) => ({
 	abandoned,
 	started,
 	hoursPlayed: 0,
-	platinums: null
+	platinums: null,
+	finishRate: null,
+	averageRating: null,
+	genresPlayed: 0,
+	platformsPlayed: 0
 });
 
 describe("rewind copy", () => {
@@ -71,5 +77,11 @@ describe("rewind copy", () => {
 		expect(rewindImageFileName("ada", 2026)).toBe(
 			"completr-rewind-ada-2026.png"
 		);
+	});
+
+	it("writes a streak as a short month range and spells it out for screen readers", () => {
+		expect(monthRange(3, 7)).toBe("Mar–Jul");
+		expect(spokenMonthRange(3, 7)).toBe("March to July");
+		expect(monthRange(11, 12)).toBe("Nov–Dec");
 	});
 });

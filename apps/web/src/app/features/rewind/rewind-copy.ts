@@ -50,6 +50,18 @@ export function monthName(month: number): string {
 	return MONTH_NAMES[month - 1] ?? "";
 }
 
+export function shortMonthName(month: number): string {
+	return monthName(month).slice(0, 3);
+}
+
+export function monthRange(fromMonth: number, toMonth: number): string {
+	return `${shortMonthName(fromMonth)}–${shortMonthName(toMonth)}`;
+}
+
+export function spokenMonthRange(fromMonth: number, toMonth: number): string {
+	return `${monthName(fromMonth)} to ${monthName(toMonth)}`;
+}
+
 export function utcMonth(isoDate: string): number {
 	return new Date(isoDate).getUTCMonth() + 1;
 }
