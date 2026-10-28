@@ -43,7 +43,7 @@ export class ExportService {
 			})
 			.pipe(
 				map(response =>
-					this.save(
+					this.saveFile(
 						response.body ?? new Blob([]),
 						fileNameFrom(response, resource, format)
 					)
@@ -51,7 +51,7 @@ export class ExportService {
 			);
 	}
 
-	private save(file: Blob, fileName: string) {
+	saveFile(file: Blob, fileName: string) {
 		const objectUrl = URL.createObjectURL(file);
 		const link = this.document.createElement("a");
 		link.href = objectUrl;
