@@ -11,6 +11,7 @@ import { canView } from "../users/helpers/visibility.helper";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
 import * as usersService from "../users/users.service";
 import { type AddQueueDto } from "./dtos/add-queue.dto";
+import { type MoveQueueEntryDto } from "./dtos/move-queue-entry.dto";
 import { type ReplaceQueueDto } from "./dtos/replace-queue.dto";
 import * as queueDomainError from "./errors/queue.domain-error";
 import {
@@ -20,6 +21,7 @@ import {
 import { publicQueueSerializer, queueSerializer } from "./queue.serializer";
 import * as queueService from "./queue.service";
 import { type AddQueueQuery } from "./schemas/add-queue-query.schema";
+import { type QueueBacklogIdParams } from "./schemas/queue-backlog-id-params.schema";
 import { type QueueExportQuery } from "./schemas/queue-export-query.schema";
 
 export async function postQueue(request: Request, response: Response) {
@@ -46,14 +48,14 @@ export async function postQueue(request: Request, response: Response) {
 	return response.status(201).json({ data });
 }
 
-export async function putQueue(request: Request, response: Response) {
-	const body = request.locals.body as ReplaceQueueDto;
-	const user = request.locals.user as RequestUser;
-
-	const entries = await queueService.replaceQueue(user, body.backlogIds);
+async function respondWithQueue(
+	response: Response,
+	userId: string,
+	entries: Awaited<ReturnType<typeof queueService.replaceQueue>>
+) {
 	const entriesPlain = entries.map(e => e.get({ plain: true }));
 	const tagsByGame = await moodTagsService.findTagsForGames(
-		user.id,
+		userId,
 		entriesPlain
 			.map(e => e.Backlog?.gameId)
 			.filter((id): id is string => !!id)
@@ -68,6 +70,30 @@ export async function putQueue(request: Request, response: Response) {
 		)
 	};
 	return response.status(200).json({ data });
+}
+
+export async function putQueue(request: Request, response: Response) {
+	const body = request.locals.body as ReplaceQueueDto;
+	const user = request.locals.user as RequestUser;
+
+	const entries = await queueService.replaceQueue(user, body.backlogIds);
+	return respondWithQueue(response, user.id, entries);
+}
+
+export async function patchQueueEntryPosition(
+	request: Request,
+	response: Response
+) {
+	const params = request.locals.params as QueueBacklogIdParams;
+	const body = request.locals.body as MoveQueueEntryDto;
+	const user = request.locals.user as RequestUser;
+
+	const entries = await queueService.moveQueueEntry(
+		user,
+		params.backlogId,
+		body.position
+	);
+	return respondWithQueue(response, user.id, entries);
 }
 
 export async function getMeQueueBacklogIds(

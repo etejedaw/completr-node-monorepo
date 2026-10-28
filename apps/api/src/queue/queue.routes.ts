@@ -10,6 +10,8 @@ import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-q
 import * as queueController from "./queue.controller";
 import { AddQueueBodySchema } from "./schemas/add-queue-body.schema";
 import { AddQueueQuerySchema } from "./schemas/add-queue-query.schema";
+import { MoveQueueEntryBodySchema } from "./schemas/move-queue-entry-body.schema";
+import { QueueBacklogIdParamsSchema } from "./schemas/queue-backlog-id-params.schema";
 import { QueueExportQuerySchema } from "./schemas/queue-export-query.schema";
 import { ReplaceQueueSchema } from "./schemas/replace-queue.schema";
 
@@ -34,6 +36,17 @@ router.put(
 		validateSchemaMiddleware(ReplaceQueueSchema, "body")
 	],
 	queueController.putQueue
+);
+
+router.patch(
+	"/:backlogId/position",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("user", "premium", "moderator"),
+		validateSchemaMiddleware(QueueBacklogIdParamsSchema, "params"),
+		validateSchemaMiddleware(MoveQueueEntryBodySchema, "body")
+	],
+	queueController.patchQueueEntryPosition
 );
 
 router.get(

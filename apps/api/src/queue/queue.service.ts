@@ -13,6 +13,7 @@ import * as gamesService from "../games/games.service";
 import { Platform } from "../platforms/platform.model";
 import * as platformsService from "../platforms/platforms.service";
 import * as queueServiceError from "./errors/queue.service-error";
+import { moveInOrder } from "./move-in-order.util";
 import { Queue } from "./queue.model";
 import { type QueueExportQuery } from "./schemas/queue-export-query.schema";
 import { sortQueueExport } from "./sort-queue-export.util";
@@ -204,6 +205,58 @@ export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
 			["id", "ASC"]
 		]
 	});
+}
+
+async function applyOrder(
+	userId: string,
+	orderedQueueIds: string[],
+	transaction: Transaction
+) {
+	await sequelize.query(
+		`UPDATE "Queues" AS q
+		SET "position" = ordered."position", "updatedAt" = NOW()
+		FROM (
+			SELECT "id", "position"
+			FROM unnest(ARRAY[:queueIds]::uuid[]) WITH ORDINALITY AS t("id", "position")
+		) AS ordered
+		WHERE q."id" = ordered."id" AND q."userId" = :userId AND q."position" <> ordered."position"`,
+		{ replacements: { userId, queueIds: orderedQueueIds }, transaction }
+	);
+}
+
+export async function moveQueueEntry(
+	user: RequestUser,
+	backlogId: string,
+	position: number
+) {
+	await sequelize.transaction(async transaction => {
+		await lockUserQueue(user.id, transaction);
+		const entries = await Queue.findAll({
+			where: { userId: user.id },
+			attributes: ["id", "backlogId"],
+			order: [
+				["position", "ASC"],
+				["id", "ASC"]
+			],
+			transaction
+		});
+		const queueIdByBacklogId = new Map(
+			entries.map(entry => [entry.backlogId, entry.id])
+		);
+		const reordered = moveInOrder(
+			entries.map(entry => entry.backlogId),
+			backlogId,
+			position
+		);
+		if (!reordered) throw queueServiceError.backlogNotFoundError();
+		await applyOrder(
+			user.id,
+			reordered.map(id => queueIdByBacklogId.get(id)!),
+			transaction
+		);
+	});
+
+	return findQueueByUserId(user.id);
 }
 
 export async function findQueueBacklogIdsByUserId(userId: string) {
