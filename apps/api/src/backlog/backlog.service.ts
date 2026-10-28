@@ -1125,6 +1125,44 @@ export async function findLatestCompletedDurations(
 	return map;
 }
 
+const REWIND_GAME_ATTRS = ["id", "code", "title", "coverUrl", "backgroundUrl"];
+const REWIND_RUN_ATTRS = [
+	"id",
+	"gameId",
+	"status",
+	"startedAt",
+	"finishedAt",
+	"realDuration",
+	"duration",
+	"score",
+	"userRating"
+];
+
+export async function findDatedRunsByUserId(
+	userId: string,
+	visibility: { publicOnly: boolean }
+) {
+	return Backlog.findAll({
+		where: {
+			userId,
+			...(visibility.publicOnly && { isPublic: true }),
+			[Op.or]: [
+				{ startedAt: { [Op.ne]: null } },
+				{
+					status: ["completed", "abandoned"],
+					finishedAt: { [Op.ne]: null }
+				}
+			]
+		},
+		attributes: REWIND_RUN_ATTRS,
+		include: [
+			{ model: Game, attributes: REWIND_GAME_ATTRS },
+			{ model: Platform, attributes: BACKLOG_PLATFORM_ATTRS }
+		],
+		order: [["id", "ASC"]]
+	});
+}
+
 export async function removeBacklog(id: string, userId: string) {
 	const backlogEntry = await Backlog.findOne({
 		where: { id },

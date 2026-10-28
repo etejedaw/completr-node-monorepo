@@ -1,4 +1,4 @@
-import { literal, type Order, type Transaction } from "sequelize";
+import { literal, Op, type Order, type Transaction } from "sequelize";
 
 import { Backlog } from "../backlog/backlog.model";
 import * as backlogService from "../backlog/backlog.service";
@@ -203,5 +203,17 @@ export async function findPlatinumsForExport(
 			}
 		],
 		order: LATEST_PLATINUMS_FIRST
+	});
+}
+
+export async function countPlatinumsByUserIdAndYear(
+	userId: string,
+	year: number
+): Promise<number> {
+	return GamePlatinum.count({
+		where: {
+			userId,
+			platinumedAt: { [Op.between]: [`${year}-01-01`, `${year}-12-31`] }
+		}
 	});
 }
