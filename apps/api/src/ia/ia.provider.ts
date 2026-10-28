@@ -1,4 +1,4 @@
-import { environmentConfig } from "../common/config/environment.config";
+import { apiKeysConfig } from "../common/config/api-keys.config";
 import { DeepseekModel } from "./deepseek/deepseek.provider";
 import * as iaServiceError from "./errors/ia.service-error";
 import {
@@ -54,9 +54,5 @@ export class IaProvider {
 }
 
 export const iaProvider = new IaProvider(
-	DeepseekModel.create({
-		apiKey: environmentConfig.DEEPSEEK_API_KEY,
-		model: environmentConfig.DEEPSEEK_MODEL,
-		timeoutMs: environmentConfig.DEEPSEEK_TIMEOUT_MS
-	})
+	DeepseekModel.create(apiKeysConfig.DEEPSEEK_API_KEY)
 );

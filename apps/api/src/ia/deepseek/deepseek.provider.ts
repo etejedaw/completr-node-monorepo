@@ -4,10 +4,7 @@ import {
 	type GenerateTextResult,
 	type IaModel
 } from "../ia.interface";
-import {
-	type DeepseekChatCompletionResponse,
-	type DeepseekSettings
-} from "./deepseek.interface";
+import { type DeepseekChatCompletionResponse } from "./deepseek.interface";
 
 const CHAT_COMPLETIONS_URL = "https://api.deepseek.com/chat/completions";
 const TIMEOUT_ERROR_NAMES = new Set(["TimeoutError", "AbortError"]);
@@ -15,13 +12,9 @@ const TIMEOUT_ERROR_NAMES = new Set(["TimeoutError", "AbortError"]);
 export abstract class DeepseekModel implements IaModel {
 	abstract readonly isEnabled: boolean;
 
-	static create(
-		settings: Omit<DeepseekSettings, "apiKey"> & {
-			apiKey?: string;
-		}
-	): DeepseekModel {
-		if (!settings.apiKey) return new DisabledDeepseekProvider();
-		return new DeepseekProvider({ ...settings, apiKey: settings.apiKey });
+	static create(apiKey?: string): DeepseekModel {
+		if (!apiKey) return new DisabledDeepseekProvider();
+		return new DeepseekProvider(apiKey);
 	}
 
 	abstract generateText(
@@ -32,14 +25,17 @@ export abstract class DeepseekModel implements IaModel {
 export class DeepseekProvider extends DeepseekModel {
 	readonly isEnabled = true;
 
-	constructor(private readonly settings: DeepseekSettings) {
+	private readonly MODEL = "deepseek-flash";
+	private readonly TIMEOUT_MS = 30_000;
+
+	constructor(private readonly apiKey: string) {
 		super();
 	}
 
 	async generateText(
 		request: GenerateTextRequest
 	): Promise<GenerateTextResult> {
-		const timeoutMs = request.timeoutMs ?? this.settings.timeoutMs;
+		const timeoutMs = request.timeoutMs ?? this.TIMEOUT_MS;
 		const response = await this.fetchCompletion(request, timeoutMs);
 		this.handleErrors(response);
 		const body = await this.parseBody(response);
@@ -55,7 +51,7 @@ export class DeepseekProvider extends DeepseekModel {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${this.settings.apiKey}`
+					Authorization: `Bearer ${this.apiKey}`
 				},
 				body: JSON.stringify(this.buildPayload(request)),
 				signal: AbortSignal.timeout(timeoutMs)
@@ -67,7 +63,7 @@ export class DeepseekProvider extends DeepseekModel {
 
 	private buildPayload(request: GenerateTextRequest) {
 		return {
-			model: this.settings.model,
+			model: this.MODEL,
 			messages: [
 				{ role: "system", content: request.instructions },
 				{ role: "user", content: request.content }

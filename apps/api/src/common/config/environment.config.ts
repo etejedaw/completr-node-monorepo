@@ -36,19 +36,6 @@ const EnvironmentConfigSchema = z
 		REWIND_TODAY: z.preprocess(
 			value => value || undefined,
 			z.iso.date().optional()
-		),
-		DEEPSEEK_API_KEY: z
-			.string()
-			.trim()
-			.optional()
-			.transform(value => value || undefined),
-		DEEPSEEK_MODEL: z.preprocess(
-			value => value || undefined,
-			z.string().default("deepseek-flash")
-		),
-		DEEPSEEK_TIMEOUT_MS: z.preprocess(
-			value => value || undefined,
-			z.coerce.number().int().positive().default(30000)
 		)
 	})
 	.readonly();

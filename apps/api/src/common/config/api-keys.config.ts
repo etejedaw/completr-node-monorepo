@@ -8,7 +8,8 @@ const optionalApiKey = z
 
 const ApiKeysConfigSchema = z
 	.object({
-		RAWG_API_KEY: optionalApiKey
+		RAWG_API_KEY: optionalApiKey,
+		DEEPSEEK_API_KEY: optionalApiKey
 	})
 	.readonly();
 
