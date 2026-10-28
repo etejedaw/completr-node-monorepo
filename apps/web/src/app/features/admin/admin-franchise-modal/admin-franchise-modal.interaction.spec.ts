@@ -308,6 +308,14 @@ describe("AdminFranchiseModal interaction", () => {
 		await user.type(searchInput(), text);
 	}
 
+	async function addGame(user: User, query: string, title = query) {
+		await typeSearch(user, query);
+		await untilVisible(() => expect(rowWithTitle(title)).toBeDefined());
+		await user.click(
+			within(rowWithTitle(title)).getByRole("button", { name: "Add" })
+		);
+	}
+
 	async function closeDialogWithCancel(user: User) {
 		await user.click(
 			within(dialog()).getByRole("button", { name: "Cancel" })
@@ -421,6 +429,7 @@ describe("AdminFranchiseModal interaction", () => {
 
 			await user.click(nameInput());
 			await user.paste("n".repeat(101));
+			await addGame(user, "hades", "Hades");
 
 			expect(nameInput()).toHaveValue("n".repeat(100));
 			expect(submitButton()).toBeEnabled();
@@ -434,6 +443,7 @@ describe("AdminFranchiseModal interaction", () => {
 
 			await user.click(descriptionInput());
 			await user.paste("d".repeat(501));
+			await addGame(user, "hades", "Hades");
 
 			expect(descriptionInput()).toHaveValue("d".repeat(500));
 			expect(submitButton()).toBeEnabled();
@@ -443,6 +453,7 @@ describe("AdminFranchiseModal interaction", () => {
 			const user = userEvent.setup();
 			await renderHost();
 			await openCreate(user);
+			await addGame(user, "hades", "Hades");
 
 			await user.click(submitButton());
 			await user.type(nameInput(), "Metroid");
@@ -465,6 +476,7 @@ describe("AdminFranchiseModal interaction", () => {
 
 			await user.type(nameInput(), "  Pokémon 🎮 Ñandú  ");
 			await user.type(descriptionInput(), "   ");
+			await addGame(user, "hades", "Hades");
 			await user.click(submitButton());
 
 			await untilVisible(() =>
@@ -475,9 +487,41 @@ describe("AdminFranchiseModal interaction", () => {
 			expect(writes[0].body).toEqual({
 				name: "Pokémon 🎮 Ñandú",
 				description: null,
-				gameIds: []
+				gameIds: ["hades"]
 			});
 			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+		});
+
+		it("keeps Create disabled with a valid name and no games and sends nothing on Enter", async () => {
+			const user = userEvent.setup();
+			await renderHost();
+			await openCreate(user);
+
+			await user.type(nameInput(), "Metroid");
+			await user.type(descriptionInput(), "Bounty hunter");
+
+			expect(submitButton()).toBeDisabled();
+			expect(submitButton()).toHaveAttribute(
+				"aria-describedby",
+				"franchise-games-required"
+			);
+			await user.click(submitButton());
+			await user.click(nameInput());
+			await user.keyboard("{Enter}{Enter}");
+			await settle();
+
+			expect(writes).toEqual([]);
+			expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+			await addGame(user, "hades", "Hades");
+			expect(submitButton()).toBeEnabled();
+			await user.click(
+				within(dialog()).getByRole("button", { name: "Remove game" })
+			);
+			expect(submitButton()).toBeDisabled();
+			await user.keyboard("{Enter}");
+			await settle();
+			expect(writes).toEqual([]);
 		});
 
 		it("sends one POST when Enter is pressed repeatedly on the focused Create button", async () => {
@@ -485,6 +529,7 @@ describe("AdminFranchiseModal interaction", () => {
 			await renderHost();
 			await openCreate(user);
 			await user.type(nameInput(), "Metroid");
+			await addGame(user, "hades", "Hades");
 
 			held = req => req.method === "POST";
 			submitButton().focus();
@@ -531,6 +576,7 @@ describe("AdminFranchiseModal interaction", () => {
 			await renderHost();
 			await openCreate(user);
 			await user.type(nameInput(), "souls");
+			await addGame(user, "hades", "Hades");
 			await user.click(submitButton());
 
 			await appears("A franchise with that name already exists");
@@ -581,6 +627,7 @@ describe("AdminFranchiseModal interaction", () => {
 				await renderHost();
 				await openCreate(user);
 				await user.type(nameInput(), "Metroid");
+				await addGame(user, "hades", "Hades");
 				createFailure = response;
 
 				await user.click(submitButton());
@@ -603,6 +650,7 @@ describe("AdminFranchiseModal interaction", () => {
 			await renderHost();
 			await openCreate(user);
 			await user.type(nameInput(), "Metroid");
+			await addGame(user, "hades", "Hades");
 			createFailure = failure(500, "Server blew up");
 			await user.click(submitButton());
 			await appears("Server blew up");
@@ -697,6 +745,7 @@ describe("AdminFranchiseModal interaction", () => {
 			await renderHost();
 			await openCreate(user);
 			await user.type(nameInput(), "Metroid");
+			await addGame(user, "hades", "Hades");
 			held = req => req.method === "POST";
 			await user.click(submitButton());
 
@@ -710,6 +759,7 @@ describe("AdminFranchiseModal interaction", () => {
 			await renderHost();
 			await openCreate(user);
 			await user.type(nameInput(), "Metroid");
+			await addGame(user, "hades", "Hades");
 			held = req => req.method === "POST";
 			await user.click(submitButton());
 			await user.click(
@@ -891,6 +941,7 @@ describe("AdminFranchiseModal interaction", () => {
 			const user = userEvent.setup();
 			await renderHost();
 			await openCreate(user);
+			await user.type(nameInput(), "Metroid");
 			await user.type(searchInput(), "dark");
 			await untilVisible(() =>
 				expect(rowWithTitle("Dark Souls II")).toBeDefined()
@@ -908,6 +959,7 @@ describe("AdminFranchiseModal interaction", () => {
 			expect(
 				within(dialog()).getByText("2 games in this franchise")
 			).toBeInTheDocument();
+			expect(submitButton()).toBeEnabled();
 
 			for (const button of within(dialog()).getAllByRole("button", {
 				name: "Remove game"
@@ -915,8 +967,12 @@ describe("AdminFranchiseModal interaction", () => {
 				await user.click(button);
 
 			expect(
-				within(dialog()).getByText(/No games yet/)
+				within(dialog()).getByText(
+					"A saga needs at least one game. Search above to add some."
+				)
 			).toBeInTheDocument();
+			expect(submitButton()).toBeDisabled();
+			expect(writes).toEqual([]);
 		});
 
 		it("tells the user a search failed and keeps searching afterwards", async () => {
@@ -1077,6 +1133,62 @@ describe("AdminFranchiseModal interaction", () => {
 			);
 		});
 
+		it("disables Save when every game is removed, sends no PATCH and enables it again after adding a game", async () => {
+			const user = userEvent.setup();
+			await renderHost();
+			await openEdit(user, "Souls");
+			await user.clear(nameInput());
+			await user.type(nameInput(), "Soulslike");
+
+			for (const button of within(dialog()).getAllByRole("button", {
+				name: "Remove game"
+			}))
+				await user.click(button);
+
+			expect(submitButton()).toBeDisabled();
+			expect(
+				within(dialog()).getByText(
+					"A saga needs at least one game. Search above to add some."
+				)
+			).toBeInTheDocument();
+			await user.click(submitButton());
+			await user.click(nameInput());
+			await user.keyboard("{Enter}");
+			await settle();
+			expect(writes).toEqual([]);
+			expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+			await addGame(user, "hades", "Hades");
+			expect(submitButton()).toBeEnabled();
+			await user.click(submitButton());
+
+			await untilVisible(() => expect(writes).toHaveLength(1));
+			expect(writes[0].method).toBe("PATCH");
+			expect(writes[0].body.name).toBe("Soulslike");
+			expect(writes[0].body.gameIds).toEqual(["hades"]);
+		});
+
+		it("saves a rename when the games failed to load without sending any games", async () => {
+			const user = userEvent.setup();
+			await renderHost();
+			detailFailure = failure(500);
+			await openEdit(user, "Souls");
+			await appears("Could not load the games of this franchise.");
+
+			await user.clear(nameInput());
+			await user.type(nameInput(), "Soulslike");
+			expect(submitButton()).toBeEnabled();
+			await user.tripleClick(submitButton());
+
+			await untilVisible(() => expect(writes).toHaveLength(1));
+			expect(writes[0].method).toBe("PATCH");
+			expect(writes[0].body.name).toBe("Soulslike");
+			expect(writes[0].body.gameIds).toBeUndefined();
+			expect(games.filter(g => g.franchiseId === "f-souls")).toHaveLength(
+				2
+			);
+		});
+
 		it("loads the games after Try again when the first attempt failed", async () => {
 			const user = userEvent.setup();
 			await renderHost();
@@ -1174,6 +1286,7 @@ describe("AdminFranchiseModal interaction", () => {
 			await openCreate(user);
 			await user.type(nameInput(), "souls");
 			await user.type(descriptionInput(), "first");
+			await addGame(user, "hades", "Hades");
 			await user.click(submitButton());
 			await appears(DUPLICATE);
 		}

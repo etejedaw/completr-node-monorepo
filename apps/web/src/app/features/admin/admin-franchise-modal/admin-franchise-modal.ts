@@ -108,6 +108,10 @@ export class AdminFranchiseModal implements OnInit {
 			current.some(id => !initial.has(id))
 		);
 	});
+	protected readonly missingGames = computed(
+		() =>
+			this.games().length === 0 && (!this.isEdit() || this.gamesChanged())
+	);
 	protected readonly results = signal<SelectedGame[]>([]);
 
 	protected readonly model = signal({ name: "", description: "" });
@@ -232,7 +236,12 @@ export class AdminFranchiseModal implements OnInit {
 
 	onSubmit(event: Event) {
 		event.preventDefault();
-		if (this.form().invalid() || this.isLoading() || this.isLoadingGames())
+		if (
+			this.form().invalid() ||
+			this.missingGames() ||
+			this.isLoading() ||
+			this.isLoadingGames()
+		)
 			return;
 		this.isLoading.set(true);
 		this.error.set("");

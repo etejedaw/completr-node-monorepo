@@ -40,6 +40,20 @@ describe("AdminFranchiseModal", () => {
 		return view;
 	}
 
+	async function addGame(user: ReturnType<typeof userEvent.setup>) {
+		await user.type(
+			screen.getByRole("textbox", { name: "Search games to add" }),
+			"hades"
+		);
+		const search = await vi.waitFor(() =>
+			httpTesting.expectOne(r => r.url.includes("/games/search"))
+		);
+		search.flush({
+			data: { games: [{ id: "hades", title: "Hades", franchise: null }] }
+		});
+		await user.click(await screen.findByRole("button", { name: "Add" }));
+	}
+
 	beforeEach(() => {
 		dialogRef.close.mockClear();
 		vi.stubGlobal(
@@ -62,6 +76,7 @@ describe("AdminFranchiseModal", () => {
 		await renderModal();
 
 		await user.type(screen.getByLabelText(/name/i), "Zelda");
+		await addGame(user);
 		await user.click(screen.getByRole("button", { name: /create|save/i }));
 
 		const req = httpTesting.expectOne(franchisesUrl);
@@ -69,7 +84,7 @@ describe("AdminFranchiseModal", () => {
 		expect(req.request.body).toEqual({
 			name: "Zelda",
 			description: null,
-			gameIds: []
+			gameIds: ["hades"]
 		});
 		req.flush({ data: { franchise: { id: "f1" } } });
 		expect(dialogRef.close).toHaveBeenCalledWith("saved");
@@ -80,6 +95,7 @@ describe("AdminFranchiseModal", () => {
 		await renderModal();
 
 		await user.type(screen.getByLabelText(/name/i), "Zelda");
+		await addGame(user);
 		await user.click(screen.getByRole("button", { name: /create|save/i }));
 
 		httpTesting
