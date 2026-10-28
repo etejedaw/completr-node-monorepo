@@ -2,6 +2,7 @@ import { TestBed } from "@angular/core/testing";
 
 import { type RewindTotals } from "../../../../core/models/rewind.model";
 import {
+	formatTallyValue,
 	RewindTally,
 	type RewindTallyRow,
 	rewindTallyRows,
@@ -9,9 +10,11 @@ import {
 	TALLY_STAGGER_MS
 } from "./rewind-tally";
 
-const rows: RewindTallyRow[] = [
-	{ label: "Finished", value: 18, tone: "success" },
-	{ label: "Hours played", value: 212.5, tone: "neutral" }
+let rows: RewindTallyRow[];
+
+const baseRows: RewindTallyRow[] = [
+	{ label: "Finished", value: 18, tone: "success", unit: "count" },
+	{ label: "Hours played", value: 212.5, tone: "playing", unit: "hours" }
 ];
 
 describe("RewindTally", () => {
@@ -67,9 +70,9 @@ describe("RewindTally", () => {
 	}
 
 	function visibleNumbers(element: HTMLElement) {
-		return [...element.querySelectorAll("dd [aria-hidden='true']")].map(
-			node => node.textContent?.trim()
-		);
+		return [
+			...element.querySelectorAll("dd > span[aria-hidden='true']")
+		].map(node => node.textContent?.trim());
 	}
 
 	function spokenNumbers(element: HTMLElement) {
@@ -79,6 +82,7 @@ describe("RewindTally", () => {
 	}
 
 	beforeEach(() => {
+		rows = baseRows;
 		reducedMotion = false;
 		vi.spyOn(performance, "now").mockReturnValue(1000);
 	});
@@ -162,6 +166,37 @@ describe("RewindTally", () => {
 		]);
 	});
 
+	it("counts the finish rate as a percentage and the average rating with stars and one decimal", async () => {
+		rows = [
+			{ label: "Finish rate", value: 82, tone: "lists", unit: "percent" },
+			{ label: "Average rating", value: 4, tone: "brand", unit: "rating" }
+		];
+		stubBrowser();
+		const fixture = await render();
+		const element = fixture.nativeElement as HTMLElement;
+
+		expect(visibleNumbers(element)).toEqual(["0%", "0.0"]);
+		expect(spokenNumbers(element)).toEqual(["82%", "4.0 out of 5"]);
+		expect(element.querySelectorAll("app-star-rating")).toHaveLength(1);
+
+		observerCallback([{ isIntersecting: true }]);
+		runFrame(1000 + TALLY_DURATION_MS + TALLY_STAGGER_MS);
+		fixture.detectChanges();
+		expect(visibleNumbers(element)).toEqual(["82%", "4.0"]);
+	});
+
+	it("paints each row with its own colour token", async () => {
+		stubBrowser();
+		const fixture = await render();
+		const tones = [
+			...(
+				fixture.nativeElement as HTMLElement
+			).querySelectorAll<HTMLElement>("dl > div")
+		].map(row => row.style.getPropertyValue("--tone"));
+
+		expect(tones).toEqual(["var(--color-success)", "var(--color-playing)"]);
+	});
+
 	it("stops the animation when the page is left mid-count", async () => {
 		stubBrowser();
 		const fixture = await render();
@@ -181,7 +216,11 @@ describe("rewindTallyRows", () => {
 		abandoned: 4,
 		started: 23,
 		hoursPlayed: 212.5,
-		platinums: 2
+		platinums: 2,
+		finishRate: 82,
+		averageRating: 4.3,
+		genresPlayed: 6,
+		platformsPlayed: 2
 	};
 
 	const labels = (rows: RewindTallyRow[]) => rows.map(row => row.label);
@@ -192,20 +231,63 @@ describe("rewindTallyRows", () => {
 			"Left behind",
 			"Started",
 			"Hours played",
-			"Platinums"
+			"Platinums",
+			"Finish rate",
+			"Average rating"
 		]);
+	});
+
+	it("gives every row its colour and unit", () => {
+		expect(
+			rewindTallyRows(totals).map(row => [row.tone, row.unit])
+		).toEqual([
+			["success", "count"],
+			["danger", "count"],
+			["playing", "count"],
+			["playing", "hours"],
+			["platinum", "count"],
+			["lists", "percent"],
+			["brand", "rating"]
+		]);
+	});
+
+	it("hides Finish rate and Average rating when there is nothing to rate", () => {
+		expect(
+			labels(
+				rewindTallyRows({
+					...totals,
+					finishRate: null,
+					averageRating: null
+				})
+			)
+		).not.toEqual(expect.arrayContaining(["Finish rate"]));
+		expect(
+			labels(rewindTallyRows({ ...totals, averageRating: null }))
+		).not.toContain("Average rating");
+	});
+
+	it("keeps a 0% finish rate, which is still a result", () => {
+		expect(labels(rewindTallyRows({ ...totals, finishRate: 0 }))).toContain(
+			"Finish rate"
+		);
 	});
 
 	it("hides Started and Platinums when they are zero", () => {
 		expect(
 			labels(rewindTallyRows({ ...totals, started: 0, platinums: 0 }))
-		).toEqual(["Finished", "Left behind", "Hours played"]);
+		).toEqual([
+			"Finished",
+			"Left behind",
+			"Hours played",
+			"Finish rate",
+			"Average rating"
+		]);
 	});
 
 	it("hides Platinums when the viewer cannot see them", () => {
-		expect(labels(rewindTallyRows({ ...totals, platinums: null }))).toEqual(
-			["Finished", "Left behind", "Started", "Hours played"]
-		);
+		expect(
+			labels(rewindTallyRows({ ...totals, platinums: null }))
+		).not.toContain("Platinums");
 	});
 
 	it("keeps Finished, Left behind and Hours played even at zero", () => {
@@ -214,7 +296,11 @@ describe("rewindTallyRows", () => {
 			abandoned: 0,
 			started: 3,
 			hoursPlayed: 0,
-			platinums: null
+			platinums: null,
+			finishRate: null,
+			averageRating: null,
+			genresPlayed: 0,
+			platformsPlayed: 0
 		});
 
 		expect(rows.map(row => [row.label, row.value])).toEqual([
@@ -223,5 +309,15 @@ describe("rewindTallyRows", () => {
 			["Started", 3],
 			["Hours played", 0]
 		]);
+	});
+});
+
+describe("formatTallyValue", () => {
+	it("formats each unit", () => {
+		expect(formatTallyValue("count", 18)).toBe("18");
+		expect(formatTallyValue("hours", 212.5)).toBe("212.5");
+		expect(formatTallyValue("percent", 100)).toBe("100%");
+		expect(formatTallyValue("rating", 5)).toBe("5.0");
+		expect(formatTallyValue("rating", 3.5)).toBe("3.5");
 	});
 });

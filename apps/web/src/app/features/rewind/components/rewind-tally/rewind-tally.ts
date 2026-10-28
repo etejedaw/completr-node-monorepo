@@ -10,42 +10,91 @@ import {
 } from "@angular/core";
 
 import { type RewindTotals } from "../../../../core/models/rewind.model";
+import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { InView } from "../../../../shared/directives/in-view";
 import { formatHours } from "../../rewind-copy";
+import { canAnimateRewind } from "../../rewind-motion";
+import { type RewindTone, toneVar } from "../../rewind-tone";
 
-export type RewindTallyTone =
-	"success" | "danger" | "playing" | "platinum" | "neutral";
+export type RewindTallyUnit = "count" | "hours" | "percent" | "rating";
 
 export interface RewindTallyRow {
 	label: string;
 	value: number;
-	tone: RewindTallyTone;
+	tone: RewindTone;
+	unit: RewindTallyUnit;
 }
 
 export const TALLY_DURATION_MS = 900;
 export const TALLY_STAGGER_MS = 80;
 
-const TONE_CLASS: Record<RewindTallyTone, string> = {
-	success: "text-success",
-	danger: "text-danger",
-	playing: "text-playing",
-	platinum: "text-platinum",
-	neutral: "text-fg"
-};
+const RATING_SCALE = 5;
 
 export function rewindTallyRows(totals: RewindTotals): RewindTallyRow[] {
 	const rows: (RewindTallyRow | null)[] = [
-		{ label: "Finished", value: totals.finished, tone: "success" },
-		{ label: "Left behind", value: totals.abandoned, tone: "danger" },
+		{
+			label: "Finished",
+			value: totals.finished,
+			tone: "success",
+			unit: "count"
+		},
+		{
+			label: "Left behind",
+			value: totals.abandoned,
+			tone: "danger",
+			unit: "count"
+		},
 		totals.started > 0
-			? { label: "Started", value: totals.started, tone: "playing" }
+			? {
+					label: "Started",
+					value: totals.started,
+					tone: "playing",
+					unit: "count"
+				}
 			: null,
-		{ label: "Hours played", value: totals.hoursPlayed, tone: "neutral" },
+		{
+			label: "Hours played",
+			value: totals.hoursPlayed,
+			tone: "playing",
+			unit: "hours"
+		},
 		totals.platinums
-			? { label: "Platinums", value: totals.platinums, tone: "platinum" }
+			? {
+					label: "Platinums",
+					value: totals.platinums,
+					tone: "platinum",
+					unit: "count"
+				}
+			: null,
+		totals.finishRate !== null
+			? {
+					label: "Finish rate",
+					value: totals.finishRate,
+					tone: "lists",
+					unit: "percent"
+				}
+			: null,
+		totals.averageRating !== null
+			? {
+					label: "Average rating",
+					value: totals.averageRating,
+					tone: "brand",
+					unit: "rating"
+				}
 			: null
 	];
 	return rows.filter(row => row !== null);
+}
+
+export function formatTallyValue(unit: RewindTallyUnit, value: number): string {
+	if (unit === "percent") return `${value}%`;
+	if (unit === "rating") return value.toFixed(1);
+	return formatHours(value);
+}
+
+function spokenTallyValue(row: RewindTallyRow): string {
+	const value = formatTallyValue(row.unit, row.value);
+	return row.unit === "rating" ? `${value} out of ${RATING_SCALE}` : value;
 }
 
 function easeOutCubic(progress: number): number {
@@ -61,7 +110,7 @@ function countedValue(target: number, progress: number): number {
 
 @Component({
 	selector: "app-rewind-tally",
-	imports: [InView],
+	imports: [InView, StarRating],
 	template: `
 		<dl
 			class="m-0 flex flex-col"
@@ -70,25 +119,35 @@ function countedValue(target: number, progress: number): number {
 		>
 			@for (row of rows(); track row.label; let i = $index) {
 				<div
-					class="flex items-baseline gap-3 py-3 sm:py-3.5 border-b border-line last:border-b-0"
+					class="flex items-center gap-3 border-b border-l-4 border-b-line border-l-(--tone) py-3 pl-3 sm:py-4 sm:pl-4 last:border-b-0"
+					[style.--tone]="toneOf(row)"
 				>
 					<dt
-						class="flex-1 min-w-0 flex items-baseline gap-3 text-sm sm:text-base text-fg-secondary"
+						class="flex min-w-0 flex-1 items-baseline gap-3 text-sm sm:text-base text-fg-secondary"
 					>
 						<span class="shrink-0">{{ row.label }}</span>
 						<span
 							aria-hidden="true"
-							class="flex-1 min-w-4 border-b-2 border-dotted border-line-hover"
+							class="min-w-4 flex-1 border-b-2 border-dotted border-line-hover"
 						></span>
 					</dt>
 					<dd
-						class="m-0 shrink-0 font-display text-3xl sm:text-4xl font-semibold leading-none tabular-nums"
-						[class]="toneClass(row.tone)"
+						class="m-0 flex shrink-0 items-center gap-2.5 font-display text-4xl sm:text-5xl font-semibold leading-none tabular-nums text-(--tone)"
 					>
+						@if (row.unit === "rating") {
+							<app-star-rating
+								aria-hidden="true"
+								class="max-sm:hidden"
+								size="sm"
+								[value]="row.value"
+								[readonly]="true"
+								[showValue]="false"
+							/>
+						}
 						<span aria-hidden="true">{{
 							displayValue(row, i)
 						}}</span>
-						<span class="sr-only">{{ format(row.value) }}</span>
+						<span class="sr-only">{{ spoken(row) }}</span>
 					</dd>
 				</div>
 			}
@@ -133,26 +192,26 @@ export class RewindTally {
 	protected displayValue(row: RewindTallyRow, index: number): string {
 		const elapsed = this.elapsed();
 		if (elapsed === null) {
-			return this.animates ? "0" : this.format(row.value);
+			return formatTallyValue(row.unit, this.animates ? 0 : row.value);
 		}
 		const local = (elapsed - index * TALLY_STAGGER_MS) / TALLY_DURATION_MS;
 		const progress = Math.min(1, Math.max(0, local));
-		return this.format(countedValue(row.value, progress));
+		return formatTallyValue(row.unit, countedValue(row.value, progress));
 	}
 
-	protected format(value: number): string {
-		return formatHours(value);
+	protected spoken(row: RewindTallyRow): string {
+		return spokenTallyValue(row);
 	}
 
-	protected toneClass(tone: RewindTallyTone): string {
-		return TONE_CLASS[tone];
+	protected toneOf(row: RewindTallyRow): string {
+		return toneVar(row.tone);
 	}
 
 	private canAnimate(): boolean {
-		const win = this.window;
-		if (!win?.requestAnimationFrame || !win.matchMedia) return false;
-		if (typeof IntersectionObserver === "undefined") return false;
-		return !win.matchMedia("(prefers-reduced-motion: reduce)").matches;
+		return (
+			!!this.window?.requestAnimationFrame &&
+			canAnimateRewind(this.window)
+		);
 	}
 
 	private stopFrames() {
