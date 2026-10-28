@@ -18,11 +18,11 @@ settings:
 docs: |-
     ## Get User Franchises
 
-    Returns the franchises `:username` has **tracked** (opted in via `POST /franchises/:code/track`), with that user's progress in each. Powers the "Sagas" section on a profile. A tracked franchise appears even with `0` completed games.
+    Returns the franchises `:username` has **tracked** (opted in via `POST /franchises/:code/track`), each with its count of active games, sorted by name. Powers the "Sagas" section on a profile. The response carries no personal progress.
 
-    A game counts as completed when its backlog status is `completed`, `abandoned` or `endless`. For non-self viewers only the target's **public** backlog entries are counted, and the target's `backlog` section must be visible. Entries are sorted by `completed` descending.
+    For non-self viewers the target's `profile` and `backlog` sections must be visible.
 
-    **Authentication:** optional (Bearer token). Required to see another user's progress subject to their privacy.
+    **Authentication:** optional (Bearer token). Required to see a profile whose privacy needs it.
     **Rate Limit:** 100 requests per minute (public).
 
     ### Path Params
@@ -43,8 +43,7 @@ docs: |-
               "name": "Resident Evil",
               "code": "resident-evil"
             },
-            "completed": 3,
-            "total": 6
+            "gameCount": 6
           }
         ],
         "total": 1
@@ -52,7 +51,7 @@ docs: |-
     }
     ```
 
-    `completed` is the user's completed games in the franchise; `total` is all active games in it.
+    `gameCount` counts the active games in the franchise.
 
     ### Errors
 

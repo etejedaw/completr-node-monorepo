@@ -24,11 +24,11 @@ settings:
 docs: |-
     ## Get Franchise by Code
 
-    Returns a franchise, its games (paginated), and the viewer's progress across the whole franchise. Each game includes the viewer's `backlogStatus` for that game (`null` if not tracked, or when unauthenticated). Powers the `/franchises/:code` page.
+    Returns a franchise, its games (paginated) and its count of active games. Each game includes the viewer's `backlogStatus` for that game (`null` if not tracked, or when unauthenticated). Powers the `/franchises/:code` page.
 
-    `progress.total` is the count of all active games in the franchise; `progress.completed` counts the games the viewer has in status `completed`, `abandoned` or `endless`. When unauthenticated, `completed` is `0` and every `backlogStatus` is `null`.
+    `gameCount` is the count of all active games in the franchise. When unauthenticated every `backlogStatus` is `null`. The response carries no personal progress.
 
-    **Authentication:** optional (Bearer token). Progress and per-game status require auth.
+    **Authentication:** optional (Bearer token). Per-game status and `isTracked` require auth.
     **Rate Limit:** 100 requests per minute (public).
 
     ### Path Params
@@ -66,7 +66,7 @@ docs: |-
             "backlogStatus": "completed"
           }
         ],
-        "progress": { "completed": 3, "total": 6 },
+        "gameCount": 6,
         "isTracked": true,
         "hasMore": false
       }
