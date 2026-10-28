@@ -11,11 +11,31 @@ function compareByRatingThenRecency(
 	return ratingGap || compareRunsLatestFirst(first, second);
 }
 
+function withDistinctCoverArt(games: RewindGameRef[]): RewindGameRef[] {
+	const seenCoverUrls = new Set<string>();
+	return games.filter(game => {
+		if (!game.coverUrl) return true;
+		if (seenCoverUrls.has(game.coverUrl)) return false;
+		seenCoverUrls.add(game.coverUrl);
+		return true;
+	});
+}
+
+function coversFirst(games: RewindGameRef[]): RewindGameRef[] {
+	return [
+		...games.filter(game => game.coverUrl),
+		...games.filter(game => !game.coverUrl)
+	];
+}
+
 export function pickCoverGames(
 	latestFinishedRuns: ClosedRewindRun[]
 ): RewindGameRef[] {
-	return [...latestFinishedRuns]
+	const rankedGames = [...latestFinishedRuns]
 		.sort(compareByRatingThenRecency)
-		.slice(0, REWIND_COVERS_LIMIT)
 		.map(run => ({ ...run.game }));
+	return coversFirst(withDistinctCoverArt(rankedGames)).slice(
+		0,
+		REWIND_COVERS_LIMIT
+	);
 }

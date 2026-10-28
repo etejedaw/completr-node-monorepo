@@ -134,6 +134,26 @@ void describe("buildRewindYears", () => {
 		});
 	});
 
+	void it("prefers games with cover art and skips repeated cover images", () => {
+		const sharedCover = "https://img.test/shared.jpg";
+		const runs = [
+			finishedRun("re4", "2025-03-04", { userRating: 5 }),
+			finishedRun("re4-remake", "2025-03-16", { userRating: 5 }),
+			finishedRun("re2", "2025-04-01", { userRating: 4 }),
+			finishedRun("metro", "2025-05-01", { userRating: 3 })
+		];
+		runs[0]!.game.coverUrl = sharedCover;
+		runs[1]!.game.coverUrl = sharedCover;
+		runs[2]!.game.coverUrl = null;
+
+		const [summary] = buildRewindYears(runs, MID_2026).years;
+
+		assert.deepEqual(
+			summary?.covers.map(cover => cover.code),
+			["re4-remake", "metro", "re2"]
+		);
+	});
+
 	void it("shows a game finished twice once, with its latest rating", () => {
 		const runs = [
 			finishedRun("hades", "2025-01-01", { userRating: 5 }),
