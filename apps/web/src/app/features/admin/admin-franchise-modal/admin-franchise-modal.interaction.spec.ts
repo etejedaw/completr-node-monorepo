@@ -8,7 +8,13 @@ import {
 	type TestRequest
 } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { render, screen, waitFor, within } from "@testing-library/angular";
+import {
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within
+} from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
@@ -366,7 +372,6 @@ describe("AdminFranchiseModal interaction", () => {
 		listRequests.length = 0;
 		toast.success.mockClear();
 		toast.error.mockClear();
-		Element.prototype.getAnimations = () => [];
 	});
 
 	afterEach(() => {
@@ -376,7 +381,6 @@ describe("AdminFranchiseModal interaction", () => {
 			httpTesting.verify();
 		} finally {
 			vi.unstubAllGlobals();
-			Reflect.deleteProperty(Element.prototype, "getAnimations");
 		}
 	});
 
@@ -749,7 +753,8 @@ describe("AdminFranchiseModal interaction", () => {
 			await renderHost();
 			await openCreate(user);
 
-			await user.type(searchInput(), "dark");
+			for (const typed of ["d", "da", "dar", "dark"])
+				fireEvent.input(searchInput(), { target: { value: typed } });
 
 			await untilVisible(() =>
 				expect(rowWithTitle("Dark Souls II")).toBeDefined()
@@ -770,7 +775,10 @@ describe("AdminFranchiseModal interaction", () => {
 			await renderHost();
 			await openCreate(user);
 
-			await user.type(searchInput(), "z".repeat(150));
+			for (let length = 1; length <= 150; length++)
+				fireEvent.input(searchInput(), {
+					target: { value: "z".repeat(length) }
+				});
 
 			await untilVisible(() =>
 				expect(searches).toEqual(["z".repeat(150)])

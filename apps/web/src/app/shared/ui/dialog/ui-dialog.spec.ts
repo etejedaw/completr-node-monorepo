@@ -3,8 +3,11 @@ import "@testing-library/jest-dom/vitest";
 import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
 import { render, screen, waitFor } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
+import { type MockInstance } from "vitest";
 
 import { UiDialog } from "./ui-dialog";
+
+const OPENED_AT = 10_000;
 
 @Component({
 	imports: [UiDialog],
@@ -32,7 +35,10 @@ const pressBackdrop = (element: HTMLElement) =>
 	]);
 
 describe("UiDialog backdrop", () => {
+	let clock: MockInstance<() => number>;
+
 	beforeEach(() => {
+		clock = vi.spyOn(performance, "now").mockReturnValue(OPENED_AT);
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -79,11 +85,26 @@ describe("UiDialog backdrop", () => {
 			screen.getByRole("button", { name: "Open dialog" })
 		);
 		const opened = await screen.findByRole("dialog", { name: "Edit game" });
-		const openedAt = performance.now();
-		vi.spyOn(performance, "now").mockReturnValue(openedAt + 1000);
+		clock.mockReturnValue(OPENED_AT + 1000);
 
 		await pressBackdrop(opened);
 
+		await waitFor(() => expect(dialog()).toBeNull());
+	});
+
+	it("still ignores the backdrop 399 ms after opening and closes from 400 ms on", async () => {
+		await render(DialogHost);
+		await userEvent.click(
+			screen.getByRole("button", { name: "Open dialog" })
+		);
+		const opened = await screen.findByRole("dialog", { name: "Edit game" });
+
+		clock.mockReturnValue(OPENED_AT + 399);
+		await pressBackdrop(opened);
+		expect(dialog()).toBeInTheDocument();
+
+		clock.mockReturnValue(OPENED_AT + 400);
+		await pressBackdrop(opened);
 		await waitFor(() => expect(dialog()).toBeNull());
 	});
 
@@ -93,8 +114,7 @@ describe("UiDialog backdrop", () => {
 			screen.getByRole("button", { name: "Open dialog" })
 		);
 		const opened = await screen.findByRole("dialog", { name: "Edit game" });
-		const openedAt = performance.now();
-		vi.spyOn(performance, "now").mockReturnValue(openedAt + 1000);
+		clock.mockReturnValue(OPENED_AT + 1000);
 
 		await userEvent.pointer([
 			{ keys: "[MouseLeft>]", target: screen.getByText("Body") },

@@ -9,7 +9,13 @@ import {
 } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
 import { Router } from "@angular/router";
-import { render, screen, waitFor, within } from "@testing-library/angular";
+import {
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within
+} from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
@@ -579,11 +585,11 @@ describe("AdminGames interaction", () => {
 		});
 
 		it("waits for a pause in typing and sends a single search request", async () => {
-			const user = userEvent.setup();
 			await renderLoaded();
 			const before = gamesQueries.length;
 
-			await user.type(searchBox(), "zelda");
+			for (const typed of ["z", "ze", "zel", "zeld", "zelda"])
+				fireEvent.input(searchBox(), { target: { value: typed } });
 			await untilVisible(() =>
 				expect(titlesOnScreen()).toEqual(["Zelda: Breath of the Wild"])
 			);
