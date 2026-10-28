@@ -76,6 +76,25 @@ export default defineConfig(
 	},
 
 	{
+		files: ["apps/api/**/*.ts"],
+		ignores: ["apps/api/src/ia/**", "apps/api/test/ia/**"],
+		rules: {
+			"no-restricted-imports": [
+				"error",
+				{
+					patterns: [
+						{
+							regex: "(^|/)ia/deepseek(/|$)",
+							message:
+								"DeepSeek is internal to the ia module: import ia/ia.service instead."
+						}
+					]
+				}
+			]
+		}
+	},
+
+	{
 		files: ["apps/web/**/*.ts"],
 		extends: [angular.configs.tsRecommended],
 		processor: angular.processInlineTemplates,
