@@ -76,8 +76,7 @@ export default defineConfig(
 	},
 
 	{
-		files: ["apps/api/**/*.ts"],
-		ignores: ["apps/api/src/ia/**", "apps/api/test/ia/**"],
+		files: ["apps/api/src/**/*.ts"],
 		rules: {
 			"no-restricted-imports": [
 				"error",
@@ -87,6 +86,11 @@ export default defineConfig(
 							regex: "(^|/)ia/deepseek(/|$)",
 							message:
 								"DeepSeek is internal to the ia module: import ia/ia.provider instead."
+						},
+						{
+							regex: "(^|/)mail/(nodemailer|in-memory)(/|$)",
+							message:
+								"Mail models are internal to the mail module: import mail/mail.provider instead."
 						}
 					]
 				}

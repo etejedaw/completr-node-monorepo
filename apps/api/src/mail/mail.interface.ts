@@ -1,12 +1,3 @@
-export interface SmtpSettings {
-	host?: string;
-	port: number;
-	secure: boolean;
-	user?: string;
-	password?: string;
-	from: string;
-}
-
 export interface MailContent {
 	subject: string;
 	text: string;
@@ -15,4 +6,9 @@ export interface MailContent {
 
 export interface MailMessage extends MailContent {
 	to: string;
+}
+
+export interface MailModel {
+	readonly isEnabled: boolean;
+	send(message: MailMessage): Promise<void>;
 }

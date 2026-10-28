@@ -1,8 +1,6 @@
 import { environmentConfig } from "../common/config/environment.config";
-import { smtpSettings } from "../common/config/mail.config";
 import { PinoLogger } from "../common/logger/pino.logger";
-import * as mailServiceError from "../mail/errors/mail.service-error";
-import { MailClient } from "../mail/mail.provider";
+import { mailProvider } from "../mail/mail.provider";
 import * as userService from "../users/users.service";
 import { type LoginDto, type RegisterDto } from "./dtos";
 import * as authDomainError from "./errors/auth.domains-error";
@@ -14,8 +12,6 @@ import { buildPasswordResetEmail } from "./utils/password-reset-email.util";
 const RESET_PASSWORD_PATH = "/reset-password";
 
 const logger = new PinoLogger("Auth Service");
-
-const mail = MailClient.create(smtpSettings);
 
 export async function register(registerDto: RegisterDto, deviceInfo?: string) {
 	const userEmail = await userService.findUserByEmail(registerDto.email);
@@ -125,7 +121,7 @@ export async function revokeOtherSessions(
 }
 
 export function requestPasswordReset(email: string) {
-	if (!mail.isEnabled) throw mailServiceError.disabledError();
+	mailProvider.assertConfigured();
 
 	sendPasswordResetEmail(email).catch(error =>
 		logger.error("requestPasswordReset", "failed", {
@@ -149,7 +145,7 @@ async function sendPasswordResetEmail(email: string) {
 	);
 	resetUrl.searchParams.set("token", rawToken);
 
-	await mail.send({
+	await mailProvider.send({
 		to: user.email,
 		...buildPasswordResetEmail(
 			user.username,
