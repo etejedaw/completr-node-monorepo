@@ -20,6 +20,18 @@ import { type RewindStoryImage } from "../../rewind-story-image";
 
 export const REPEATED_ACTIVATION_WINDOW_MS = 800;
 
+export type RewindPreviewSize = "full" | "fit-row";
+
+const PREVIEW_HEIGHT_CLASS: Record<RewindPreviewSize, string> = {
+	full: "h-[min(70vh,34rem)]",
+	"fit-row": "h-[min(70vh,34rem)] lg:h-[24rem]"
+};
+
+const LAYOUT_CLASS: Record<RewindPreviewSize, string> = {
+	full: "md:items-end",
+	"fit-row": "md:items-end lg:items-start"
+};
+
 const SHARE_FAILED_MESSAGE = "Couldn't share the image. Download it instead.";
 
 function isAbortError(error: unknown): boolean {
@@ -46,12 +58,19 @@ export class RewindShareActions {
 
 	readonly image = input.required<RewindStoryImage>();
 	readonly previewAlt = input.required<string>();
+	readonly previewSize = input<RewindPreviewSize>("full");
 
 	protected readonly canShareFiles = supportsFileSharing(this.navigatorRef);
 	protected readonly sharing = signal(false);
 	protected readonly downloadPending = signal(false);
 	private readonly lastActivation = new Map<string, number>();
 
+	protected readonly previewHeightClass = computed(
+		() => PREVIEW_HEIGHT_CLASS[this.previewSize()]
+	);
+	protected readonly layoutClass = computed(
+		() => LAYOUT_CLASS[this.previewSize()]
+	);
 	protected readonly isReady = computed(() => !!this.image().blob());
 	protected readonly fileName = computed(() => {
 		const target = this.image().target();

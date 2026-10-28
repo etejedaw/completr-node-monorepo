@@ -87,8 +87,14 @@
 	</div>
 </header>
 
-<div class="mt-8 flex flex-col gap-14">
-	<section aria-labelledby="rewind-results-heading" class="max-w-[40rem]">
+<div
+	class="mt-8 grid grid-cols-1 gap-14 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-x-12 lg:[grid-template-areas:var(--rewind-areas)]"
+	[style.--rewind-areas]="sectionAreas()"
+>
+	<section
+		aria-labelledby="rewind-results-heading"
+		class="min-w-0 max-w-[40rem] lg:[grid-area:results]"
+	>
 		<app-profile-section-header
 			heading="Results"
 			headingId="rewind-results-heading"
@@ -97,7 +103,10 @@
 	</section>
 
 	@if (hasHighlights()) {
-	<section aria-labelledby="rewind-highlights-heading">
+	<section
+		aria-labelledby="rewind-highlights-heading"
+		class="min-w-0 lg:[grid-area:highlights]"
+	>
 		<app-profile-section-header
 			heading="Highlights"
 			headingId="rewind-highlights-heading"
@@ -108,7 +117,10 @@
 		/>
 	</section>
 	} @if (data.finishedGames.length > 0) {
-	<section aria-labelledby="rewind-finished-heading">
+	<section
+		aria-labelledby="rewind-finished-heading"
+		class="min-w-0 lg:[grid-area:finished]"
+	>
 		<app-profile-section-header
 			[heading]="'Finished in ' + data.year"
 			headingId="rewind-finished-heading"
@@ -116,31 +128,56 @@
 		@defer (on viewport; prefetch on idle) {
 		<app-rewind-finished-games [games]="data.finishedGames" />
 		} @placeholder {
-		<div class="poster-grid" aria-hidden="true">
-			@for (game of data.finishedGames.slice(0, 12); track game.gameId) {
-			<ui-skeleton variant="rect" class="aspect-[2/3] rounded-md" />
+		<div class="flex flex-col gap-10" aria-hidden="true">
+			@for (row of skeletonMonths; track row) {
+			<div
+				class="flex flex-col gap-3 md:grid md:grid-cols-[8rem_minmax(0,1fr)] md:gap-6"
+			>
+				<ui-skeleton variant="text" class="w-20" />
+				<div
+					class="grid grid-cols-4 gap-2.5 sm:grid-cols-6 md:grid-cols-[repeat(auto-fill,minmax(5.25rem,1fr))] md:gap-3"
+				>
+					@for (poster of skeletonPosters; track poster) {
+					<ui-skeleton
+						variant="rect"
+						class="aspect-[2/3] rounded-md"
+					/>
+					}
+				</div>
+			</div>
 			}
 		</div>
 		}
 	</section>
 	}
 
-	<section aria-labelledby="rewind-share-heading">
+	<section
+		aria-labelledby="rewind-share-heading"
+		class="min-w-0 lg:[grid-area:share] lg:self-start"
+	>
 		<app-profile-section-header
 			heading="Share"
 			headingId="rewind-share-heading"
 		/>
 		<app-rewind-share-actions
+			previewSize="fit-row"
 			[image]="storyImage"
 			[previewAlt]="previewAlt()"
 		/>
 	</section>
 
-	@if (data.otherYears.length > 0) { @defer (on viewport; prefetch on idle) {
-	<app-rewind-more-years [username]="username()" [currentYear]="data.year" />
-	} @placeholder {
-	<div class="h-40"></div>
-	} }
+	@if (data.otherYears.length > 0) {
+	<div class="min-w-0 lg:[grid-area:more]">
+		@defer (on viewport; prefetch on idle) {
+		<app-rewind-more-years
+			[username]="username()"
+			[currentYear]="data.year"
+		/>
+		} @placeholder {
+		<div class="h-40"></div>
+		}
+	</div>
+	}
 </div>
 
 @if (shareOpen()) {

@@ -29,32 +29,12 @@ import { RewindMoreYears } from "../components/rewind-more-years/rewind-more-yea
 import { RewindShareActions } from "../components/rewind-share-actions/rewind-share-actions";
 import {
 	RewindTally,
-	type RewindTallyRow
+	rewindTallyRows
 } from "../components/rewind-tally/rewind-tally";
 import { RewindService } from "../rewind";
 import { parseRewindYear, rewindSummarySentence } from "../rewind-copy";
 import { rewindLoadError } from "../rewind-errors";
 import { injectRewindStoryImage } from "../rewind-story-image";
-
-function tallyRows(rewind: Rewind): RewindTallyRow[] {
-	const { totals } = rewind;
-	const rows: RewindTallyRow[] = [
-		{ label: "Finished", value: totals.finished, tone: "success" },
-		{ label: "Left behind", value: totals.abandoned, tone: "danger" },
-		{ label: "Started", value: totals.started, tone: "playing" },
-		{ label: "Hours played", value: totals.hoursPlayed, tone: "neutral" }
-	];
-	return totals.platinums === null
-		? rows
-		: [
-				...rows,
-				{
-					label: "Platinums",
-					value: totals.platinums,
-					tone: "platinum"
-				}
-			];
-}
 
 function backdropOf(rewind: Rewind): string | null {
 	return (
@@ -150,7 +130,7 @@ export class RewindDetail {
 
 	protected readonly tally = computed(() => {
 		const rewind = this.rewind();
-		return rewind ? tallyRows(rewind) : [];
+		return rewind ? rewindTallyRows(rewind.totals) : [];
 	});
 
 	protected readonly backdropUrl = computed(() => {
@@ -183,8 +163,24 @@ export class RewindDetail {
 			: `@${this.username()}'s ${year} Rewind`;
 	});
 
+	protected readonly sectionAreas = computed(() => {
+		const rewind = this.rewind();
+		const rows = [
+			"results share",
+			this.hasHighlights() ? "highlights highlights" : null,
+			rewind?.finishedGames.length ? "finished finished" : null,
+			rewind?.otherYears.length ? "more more" : null
+		];
+		return rows
+			.filter(row => row !== null)
+			.map(row => `"${row}"`)
+			.join(" ");
+	});
+
 	protected readonly shareOpen = signal(false);
 	protected readonly skeletonRows = [0, 1, 2, 3, 4];
+	protected readonly skeletonMonths = [0, 1];
+	protected readonly skeletonPosters = [0, 1, 2, 3, 4, 5];
 
 	protected retry() {
 		this.resource.reload();
