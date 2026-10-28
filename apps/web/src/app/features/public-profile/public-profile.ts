@@ -11,6 +11,7 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 
 import { type PlatinumEntry } from "../../core/models/platinum.model";
 import { type QueueEntry } from "../../core/models/queue.model";
+import { type RewindYears } from "../../core/models/rewind.model";
 import { AuthService } from "../../core/services/auth";
 import { ToastService } from "../../core/services/toast";
 import { avatarRing } from "../../core/utils/premium";
@@ -20,6 +21,7 @@ import { BETA_SIGNUP_URL } from "../../shared/constants/beta-signup";
 import { UiAvatar, UiButton, UiDialog, UiSkeleton } from "../../shared/ui";
 import { FeedService } from "../feed/feed";
 import { type TrackedFranchise } from "../franchises/franchises";
+import { RewindService } from "../rewind/rewind";
 import { ProfileAccessState } from "./components/profile-access-state";
 import { ProfileActivity } from "./components/profile-activity";
 import { ProfileCollections } from "./components/profile-collections";
@@ -30,6 +32,8 @@ import { ProfileMonthReview } from "./components/profile-month-review";
 import { ProfilePlatinums } from "./components/profile-platinums";
 import { ProfilePlayingNow } from "./components/profile-playing-now";
 import { ProfileReviews } from "./components/profile-reviews";
+import { ProfileRewindSpotlight } from "./components/profile-rewind-spotlight";
+import { ProfileRewinds } from "./components/profile-rewinds";
 import { ProfileSagas } from "./components/profile-sagas";
 import { ProfileSectionHeader } from "./components/profile-section-header";
 import { ProfileStats } from "./components/profile-stats";
@@ -78,6 +82,8 @@ const PROFILE_PLATINUMS_LIMIT = 8;
 		ProfilePlatinums,
 		ProfilePlayingNow,
 		ProfileReviews,
+		ProfileRewindSpotlight,
+		ProfileRewinds,
 		ProfileSagas,
 		ProfileSectionHeader,
 		ProfileStats,
@@ -100,6 +106,7 @@ export class PublicProfileComponent implements OnInit {
 	private readonly authService = inject(AuthService);
 	private readonly toast = inject(ToastService);
 	private readonly feedService = inject(FeedService);
+	private readonly rewindService = inject(RewindService);
 
 	private static readonly HIGHLIGHTS_MONTH_PARAM = "highlightsMonth";
 
@@ -133,7 +140,8 @@ export class PublicProfileComponent implements OnInit {
 			wishlist: !!access?.wishlist,
 			feed: !!access?.feed,
 			platinums: !!access?.platinum,
-			sagas: !!access?.franchise
+			sagas: !!access?.franchise,
+			rewind: !!access?.rewind
 		};
 	});
 	protected readonly backdropUrl = computed(() =>
@@ -149,6 +157,19 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly platinumsData = signal<PlatinumEntry[] | null>(null);
 	protected readonly platinumsTotal = signal(0);
 	protected readonly sagas = signal<TrackedFranchise[]>([]);
+	protected readonly rewindYears = signal<RewindYears | null>(null);
+	protected readonly rewindSpotlight = computed(() => {
+		const rewinds = this.rewindYears();
+		if (rewinds?.spotlightYear == null) return null;
+		return (
+			rewinds.years.find(
+				summary => summary.year === rewinds.spotlightYear
+			) ?? null
+		);
+	});
+	protected readonly pastRewinds = computed(() =>
+		this.rewindSpotlight() ? [] : (this.rewindYears()?.years ?? [])
+	);
 	protected readonly comparison = signal<UserComparison | null>(null);
 	protected readonly comparisonBy = signal<ComparisonDimension>("completed");
 	protected readonly comparisonLoading = signal(false);
@@ -310,6 +331,15 @@ export class PublicProfileComponent implements OnInit {
 				},
 				error: () => this.platinumsData.set([])
 			});
+	}
+
+	private loadRewinds(username: string) {
+		this.rewindService.getYears(username).subscribe({
+			next: rewinds => {
+				if (this.username() === username) this.rewindYears.set(rewinds);
+			},
+			error: () => undefined
+		});
 	}
 
 	private ensureQueueLoaded(username: string) {
@@ -522,6 +552,7 @@ export class PublicProfileComponent implements OnInit {
 		this.comparisonBy.set("completed");
 		this.comparisonPrivate.set(false);
 		this.sagas.set([]);
+		this.rewindYears.set(null);
 		this.userReviews.set([]);
 		this.userReviewsTotal.set(0);
 
@@ -545,6 +576,9 @@ export class PublicProfileComponent implements OnInit {
 				}
 				if (this.visibility().queue) {
 					this.ensureQueueLoaded(username);
+				}
+				if (this.visibility().rewind) {
+					this.loadRewinds(username);
 				}
 				this.reviewsService
 					.getUserReviews(username, { limit: REVIEWS_SAMPLE_SIZE })

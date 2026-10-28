@@ -9,6 +9,7 @@ import { BehaviorSubject, of, Subject, throwError } from "rxjs";
 import { AuthService } from "../../core/services/auth";
 import { ToastService } from "../../core/services/toast";
 import { FeedService } from "../feed/feed";
+import { RewindService } from "../rewind/rewind";
 import { PublicProfileComponent } from "./public-profile";
 import {
 	type ProfileSectionAccess,
@@ -30,7 +31,8 @@ const openAccess: ProfileSectionAccess = {
 	shelf: true,
 	list: true,
 	platinum: true,
-	franchise: true
+	franchise: true,
+	rewind: true
 };
 
 const closedAccess: ProfileSectionAccess = {
@@ -43,7 +45,8 @@ const closedAccess: ProfileSectionAccess = {
 	shelf: false,
 	list: false,
 	platinum: false,
-	franchise: false
+	franchise: false,
+	rewind: false
 };
 
 const recentActivity = [
@@ -126,6 +129,7 @@ describe("PublicProfileComponent", () => {
 	const getComparison = vi.fn();
 	const getUserReviews = vi.fn();
 	const getHighlights = vi.fn();
+	const getRewindYears = vi.fn();
 	const toast = { success: vi.fn(), warning: vi.fn(), pending: vi.fn() };
 
 	beforeEach(() => {
@@ -158,7 +162,8 @@ describe("PublicProfileComponent", () => {
 			getUserFranchises,
 			getComparison,
 			getUserReviews,
-			getHighlights
+			getHighlights,
+			getRewindYears
 		]) {
 			fn.mockReset();
 		}
@@ -171,6 +176,7 @@ describe("PublicProfileComponent", () => {
 		getUserFranchises.mockReturnValue(of([]));
 		getUserReviews.mockReturnValue(of({ reviews: [], total: 0 }));
 		getHighlights.mockReturnValue(of(emptyHighlights));
+		getRewindYears.mockReturnValue(of({ spotlightYear: null, years: [] }));
 		getComparison.mockReturnValue(
 			of({ inCommon: [], counts: { inCommon: 0 } })
 		);
@@ -225,6 +231,10 @@ describe("PublicProfileComponent", () => {
 					useValue: { deleteActivity: vi.fn(() => of({})) }
 				},
 				{ provide: PublicProfileService, useValue: { getProfile } },
+				{
+					provide: RewindService,
+					useValue: { getYears: getRewindYears }
+				},
 				{
 					provide: PublicSocialService,
 					useValue: { follow, unfollow, cancelFollowRequest }
@@ -629,6 +639,101 @@ describe("PublicProfileComponent", () => {
 				await screen.findByLabelText("Profile stats");
 				expect(getUserFranchises).not.toHaveBeenCalled();
 				expect(screen.queryByText("Metroid")).not.toBeInTheDocument();
+			});
+		});
+
+		describe("rewind", () => {
+			const rewindYear = (year: number, finishedCount: number) => ({
+				year,
+				finishedCount,
+				startedCount: 7,
+				hoursPlayed: 212.5,
+				covers: [
+					{
+						gameId: `g-${year}`,
+						code: "hades",
+						title: "Hades",
+						coverUrl: null,
+						backgroundUrl: null
+					}
+				]
+			});
+
+			it("shows the spotlight of the open year to a visitor with a link to it and to past rewinds", async () => {
+				getRewindYears.mockReturnValue(
+					of({
+						spotlightYear: 2026,
+						years: [rewindYear(2026, 18), rewindYear(2025, 9)]
+					})
+				);
+				await renderProfile({ data: profile() });
+
+				expect(
+					await screen.findByRole("heading", { name: "Rewind 2026" })
+				).toBeInTheDocument();
+				expect(getRewindYears).toHaveBeenCalledWith("ada");
+				expect(
+					screen.getByRole("link", { name: "See @ada's Rewind" })
+				).toHaveAttribute("href", "/user/ada/rewind/2026");
+				expect(
+					screen.getByRole("link", { name: "Past rewinds" })
+				).toHaveAttribute("href", "/user/ada/rewind");
+			});
+
+			it("invites the owner to see their own Rewind", async () => {
+				getRewindYears.mockReturnValue(
+					of({ spotlightYear: 2026, years: [rewindYear(2026, 18)] })
+				);
+				await renderProfile({
+					data: profile(),
+					user: { id: "u-ada" }
+				});
+
+				expect(
+					await screen.findByRole("link", { name: "See your Rewind" })
+				).toBeInTheDocument();
+				expect(
+					screen.queryByRole("link", { name: "Past rewinds" })
+				).not.toBeInTheDocument();
+			});
+
+			it("hides the spotlight outside the December window", async () => {
+				getRewindYears.mockReturnValue(
+					of({ spotlightYear: null, years: [rewindYear(2025, 9)] })
+				);
+				await renderProfile({ data: profile() });
+
+				await waitFor(() =>
+					expect(getRewindYears).toHaveBeenCalledWith("ada")
+				);
+				expect(
+					screen.queryByRole("heading", { name: "Rewind 2025" })
+				).not.toBeInTheDocument();
+			});
+
+			it("neither requests nor shows the Rewind when its section is hidden", async () => {
+				await renderProfile({
+					data: profile({ access: { ...openAccess, rewind: false } })
+				});
+
+				await screen.findByLabelText("Profile stats");
+				expect(getRewindYears).not.toHaveBeenCalled();
+			});
+
+			it("keeps the profile working when the Rewind request fails", async () => {
+				getRewindYears.mockReturnValue(
+					throwError(() =>
+						Object.assign(new Error("down"), { status: 500 })
+					)
+				);
+				await renderProfile({ data: profile() });
+
+				expect(
+					await screen.findByLabelText("Profile stats")
+				).toBeInTheDocument();
+				expect(
+					screen.queryByRole("link", { name: /Rewind/ })
+				).not.toBeInTheDocument();
 			});
 		});
 

@@ -119,7 +119,15 @@
 	(listsOpened)="scrollToLists()"
 />
 
-@if (visibility().favorites && (favoritesData()?.length ?? 0) > 0) {
+@if (rewindSpotlight(); as spotlight) {
+<app-profile-rewind-spotlight
+	class="mt-10"
+	[username]="username()"
+	[summary]="spotlight"
+	[isSelf]="isSelf()"
+	[hasMoreYears]="(rewindYears()?.years?.length ?? 0) > 1"
+/>
+} @if (visibility().favorites && (favoritesData()?.length ?? 0) > 0) {
 <section class="mt-10" aria-labelledby="favorites-heading">
 	<app-profile-section-header
 		heading="Favorite games"
@@ -204,7 +212,12 @@
 		/>
 		}
 	</app-poster-shelf>
-	} } }
+	} } } @if (pastRewinds().length > 0) { @defer (on viewport; prefetch on
+	idle) {
+	<app-profile-rewinds [username]="username()" [years]="pastRewinds()" />
+	} @placeholder {
+	<div class="h-56"></div>
+	} }
 
 	<app-profile-reviews
 		[username]="username()"
