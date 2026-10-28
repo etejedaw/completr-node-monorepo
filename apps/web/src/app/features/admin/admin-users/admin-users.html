@@ -278,7 +278,7 @@
 				/>
 				@if (createForm.username().touched() &&
 				createForm.username().invalid()) { @for (error of
-				createForm.username().errors(); track error) {
+				createForm.username().errors(); track $index) {
 				<p class="mt-1.5 m-0 text-xs text-danger">
 					{{ error.message }}
 				</p>
@@ -299,7 +299,7 @@
 					placeholder="John Doe"
 				/>
 				@if (createForm.name().touched() && createForm.name().invalid())
-				{ @for (error of createForm.name().errors(); track error) {
+				{ @for (error of createForm.name().errors(); track $index) {
 				<p class="mt-1.5 m-0 text-xs text-danger">
 					{{ error.message }}
 				</p>
@@ -321,7 +321,7 @@
 				/>
 				@if (createForm.email().touched() &&
 				createForm.email().invalid()) { @for (error of
-				createForm.email().errors(); track error) {
+				createForm.email().errors(); track $index) {
 				<p class="mt-1.5 m-0 text-xs text-danger">
 					{{ error.message }}
 				</p>
@@ -361,7 +361,7 @@
 				</div>
 				@if (createForm.password().touched() &&
 				createForm.password().invalid()) { @for (error of
-				createForm.password().errors(); track error) {
+				createForm.password().errors(); track $index) {
 				<p class="mt-1.5 m-0 text-xs text-danger">
 					{{ error.message }}
 				</p>
@@ -425,7 +425,7 @@
 				[formField]="editForm.name"
 			/>
 			@if (editForm.name().touched() && editForm.name().invalid()) { @for
-			(error of editForm.name().errors(); track error) {
+			(error of editForm.name().errors(); track $index) {
 			<p class="mt-1.5 m-0 text-xs text-danger">{{ error.message }}</p>
 			} } @else if (visibleEditFieldErrors()['name']; as msg) {
 			<p class="mt-1.5 m-0 text-xs text-danger">{{ msg }}</p>
@@ -473,7 +473,7 @@
 				</div>
 				@if (editForm.password().touched() &&
 				editForm.password().invalid()) { @for (error of
-				editForm.password().errors(); track error) {
+				editForm.password().errors(); track $index) {
 				<p class="mt-1.5 m-0 text-xs text-danger">
 					{{ error.message }}
 				</p>
