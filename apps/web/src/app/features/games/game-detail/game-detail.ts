@@ -38,7 +38,7 @@ import {
 	type BacklogModalResult
 } from "../../backlog/backlog-modal/backlog-modal";
 import { FavoritesService } from "../../favorites/favorites";
-import { FranchisesService } from "../../franchises/franchises";
+import { injectFranchiseTracking } from "../../franchises/franchise-tracking";
 import { GameShelfService } from "../../game-shelf/game-shelf";
 import {
 	GameShelfModal,
@@ -139,7 +139,6 @@ export class GameDetail implements OnInit {
 	private readonly route = inject(ActivatedRoute);
 	private readonly router = inject(Router);
 	private readonly gamesService = inject(GamesService);
-	private readonly franchisesService = inject(FranchisesService);
 	private readonly authService = inject(AuthService);
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	private readonly favoritesService = inject(FavoritesService);
@@ -153,8 +152,27 @@ export class GameDetail implements OnInit {
 
 	protected readonly game = signal<Game | null>(null);
 	protected readonly isLoggedIn = this.authService.isLoggedIn;
-	protected readonly franchiseTracked = signal(false);
-	protected readonly togglingFranchise = signal(false);
+	private readonly franchiseTracking = injectFranchiseTracking({
+		onMissing: () => this.reloadGame()
+	});
+	private readonly trackableFranchise = computed(() => {
+		const current = this.game();
+		return current?.franchise
+			? {
+					code: current.franchise.code,
+					name: current.franchise.name,
+					isTracked: current.franchiseTracked ?? false
+				}
+			: undefined;
+	});
+	protected readonly franchiseTracked = computed(() => {
+		const franchise = this.trackableFranchise();
+		return franchise ? this.franchiseTracking.isTracked(franchise) : false;
+	});
+	protected readonly togglingFranchise = computed(() => {
+		const franchise = this.trackableFranchise();
+		return franchise ? this.franchiseTracking.isPending(franchise) : false;
+	});
 	protected readonly moodTags = signal<string[]>([]);
 	protected readonly moodTagsDraft = signal<string[]>([]);
 	protected readonly moodTagsSuggestions = signal<string[]>([]);
@@ -324,7 +342,6 @@ export class GameDetail implements OnInit {
 		this.gamesService.getByCode(code).subscribe({
 			next: game => {
 				this.game.set(game);
-				this.franchiseTracked.set(game.franchiseTracked ?? false);
 				this.moodTags.set(game.userMoodTags ?? []);
 				this.platinum.set(game.userPlatinum ?? null);
 				this.editingMoodTags.set(false);
@@ -400,20 +417,13 @@ export class GameDetail implements OnInit {
 	}
 
 	toggleFranchiseTrack() {
-		const code = this.game()?.franchise?.code;
-		if (!code || this.togglingFranchise()) return;
-		const next = !this.franchiseTracked();
-		this.togglingFranchise.set(true);
-		const req$ = next
-			? this.franchisesService.trackFranchise(code)
-			: this.franchisesService.untrackFranchise(code);
-		req$.subscribe({
-			next: () => {
-				this.franchiseTracked.set(next);
-				this.togglingFranchise.set(false);
-			},
-			error: () => this.togglingFranchise.set(false)
-		});
+		const franchise = this.trackableFranchise();
+		if (franchise) this.franchiseTracking.toggle(franchise);
+	}
+
+	private reloadGame() {
+		const code = this.game()?.code;
+		if (code) this.loadGame(code);
 	}
 
 	toggleWishlist() {

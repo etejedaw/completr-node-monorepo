@@ -53,6 +53,9 @@ const hades = {
 	externalLinks: []
 };
 
+const metroidSaga = { id: "f1", name: "Metroid", code: "metroid" };
+const NETWORK_ERROR = 0;
+
 describe("GameDetail interaction", () => {
 	let httpTesting: HttpTestingController;
 	let runs: BacklogEntry[];
@@ -64,6 +67,11 @@ describe("GameDetail interaction", () => {
 		isPublic: boolean;
 		contains: boolean;
 	}[];
+	let sagaTracked: boolean;
+	let sagaExists: boolean;
+	let sagaName: string;
+	let sagaTrackCalls: string[];
+	let sagaTrackFailures: number[];
 	const createdRuns: unknown[] = [];
 	const listUpdates: string[][] = [];
 	const wishlistAdds: unknown[] = [];
@@ -77,7 +85,30 @@ describe("GameDetail interaction", () => {
 		if (url === `${api}/users/me`)
 			return req.flush({ data: { user: viewer } });
 		if (method === "GET" && url === `${api}/games/hades`)
-			return req.flush({ data: { game: hades } });
+			return req.flush({
+				data: {
+					game: {
+						...hades,
+						franchise: sagaExists
+							? { ...metroidSaga, name: sagaName }
+							: null,
+						franchiseTracked: sagaExists && sagaTracked
+					}
+				}
+			});
+		if (url === `${api}/franchises/metroid/track`) {
+			sagaTrackCalls.push(method);
+			const failure = sagaTrackFailures.shift();
+			if (failure === NETWORK_ERROR)
+				return req.error(new ProgressEvent("error"));
+			if (failure !== undefined)
+				return req.flush(null, {
+					status: failure,
+					statusText: "Error"
+				});
+			sagaTracked = method === "POST";
+			return req.flush(null, { status: 204, statusText: "No Content" });
+		}
 		if (method === "PUT" && url === `${api}/games/g1/lists`) {
 			const listIds = body.listIds as string[];
 			listUpdates.push(listIds);
@@ -209,6 +240,11 @@ describe("GameDetail interaction", () => {
 			{ id: "l1", name: "Roguelikes", isPublic: true, contains: false },
 			{ id: "l2", name: "Couch co-op", isPublic: false, contains: false }
 		];
+		sagaTracked = false;
+		sagaExists = true;
+		sagaName = metroidSaga.name;
+		sagaTrackCalls = [];
+		sagaTrackFailures = [];
 		createdRuns.length = 0;
 		listUpdates.length = 0;
 		wishlistAdds.length = 0;
@@ -359,5 +395,83 @@ describe("GameDetail interaction", () => {
 		);
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 		expect(wishlistAdds).toEqual([{ gameId: "g1", platformId: "p1" }]);
+	});
+
+	describe("saga tracking from the hero", () => {
+		function sagaTrackButton() {
+			return screen.getByRole("button", { name: /^(Track|Tracking)$/ });
+		}
+
+		it("sends a single request when the user clicks Track several times", async () => {
+			const user = userEvent.setup();
+			await renderGame();
+
+			await user.tripleClick(sagaTrackButton());
+
+			await untilVisible(() =>
+				expect(sagaTrackButton()).toHaveAttribute(
+					"aria-pressed",
+					"true"
+				)
+			);
+			expect(sagaTrackCalls).toEqual(["POST"]);
+		});
+
+		it("explains the failure and keeps the saga untracked when tracking fails", async () => {
+			const user = userEvent.setup();
+			await renderGame();
+			sagaTrackFailures.push(500);
+
+			await user.click(sagaTrackButton());
+
+			await untilVisible(() =>
+				expect(
+					screen.getByText("Couldn't update Metroid. Try again.")
+				).toBeInTheDocument()
+			);
+			expect(sagaTrackButton()).toHaveAttribute("aria-pressed", "false");
+			expect(sagaTrackButton()).toBeEnabled();
+		});
+
+		it("keeps the saga tracked when stopping fails offline", async () => {
+			const user = userEvent.setup();
+			sagaTracked = true;
+			sagaName = "Super Metroid";
+			await renderGame();
+			sagaTrackFailures.push(NETWORK_ERROR);
+
+			await user.click(sagaTrackButton());
+
+			await untilVisible(() =>
+				expect(
+					screen.getByText(
+						"Couldn't update Super Metroid. Try again."
+					)
+				).toBeInTheDocument()
+			);
+			expect(sagaTrackButton()).toHaveAttribute("aria-pressed", "true");
+			expect(sagaTrackCalls).toEqual(["DELETE"]);
+		});
+
+		it("reloads the game without the saga link when the saga was removed", async () => {
+			const user = userEvent.setup();
+			await renderGame();
+			sagaExists = false;
+			sagaTrackFailures.push(404);
+
+			await user.click(sagaTrackButton());
+
+			await untilVisible(() => {
+				expect(
+					screen.getByText("Metroid is no longer in the catalog.")
+				).toBeInTheDocument();
+				expect(
+					screen.getByRole("heading", { level: 1, name: "Hades" })
+				).toBeInTheDocument();
+				expect(
+					screen.queryByRole("link", { name: /Metroid/ })
+				).not.toBeInTheDocument();
+			});
+		});
 	});
 });
