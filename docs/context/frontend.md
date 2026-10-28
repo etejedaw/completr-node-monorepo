@@ -123,6 +123,9 @@ Si una vista muestra lo mismo que otra, reutiliza los componentes de la vista du
 
 Los specs usan Vitest con jsdom a través de `@angular/build:unit-test`. Cada spec vive junto al archivo que prueba (`*.spec.ts`) y `describe`, `it`, `expect` y `vi` son globales.
 
+- **Entorno común.** `src/test-environment.ts` (opción `setupFiles` del target `test` en `angular.json`) completa lo que jsdom no implementa y la app necesita: `Element.prototype.getAnimations`, que `ng-primitives` llama al cerrar toasts, diálogos y menús. Ningún spec lo define ni lo borra por su cuenta: un toast que se cierra después de que su spec terminó (su temporizador sigue vivo) caería en otro archivo y rompería la corrida según el orden en que se ejecuten.
+- **Deterministas.** Un spec da el mismo resultado en cada corrida sin cambios en el código. No depende de cuánto tarda la máquina: el reloj se fija con `vi.spyOn(performance, "now").mockReturnValue(...)` cuando el componente mide tiempo (el margen de apertura de `UiDialog` y `UiBottomSheet`), y para probar un debounce las teclas se disparan en el mismo turno (`fireEvent.input` en un bucle) en vez de confiar en que `user.type` sea más rápido que el debounce. Las esperas fijas solo sirven para comprobar que algo no ocurre.
+
 | Comando                                     | Qué hace                                 |
 | ------------------------------------------- | ---------------------------------------- |
 | `npm run test -w apps/web`                  | Corre los specs en modo watch            |

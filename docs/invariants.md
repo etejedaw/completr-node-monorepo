@@ -6,6 +6,8 @@ Lo que el código hace cumplir, en forma atómica: enums, constraints, validacio
 
 Arquitectura en [`architecture.md`](./architecture.md), endpoints en [`api/`](./api/).
 
+Todo listado ordenado por un campo que puede repetirse (fechas, posición, nombre) desempata por `id` en la misma dirección, así que dos filas con el mismo valor salen siempre en el mismo orden y la paginación no repite ni salta filas.
+
 ---
 
 ## Roles
