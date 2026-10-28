@@ -2,12 +2,13 @@ import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
-	computed,
 	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
+import { type Subscription } from "rxjs";
 
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
@@ -67,6 +68,7 @@ const toPickerOptions = (
 })
 export class AdminAudit implements OnInit {
 	private readonly auditService = inject(AuditService);
+	private loadRequest?: Subscription;
 
 	protected readonly logs = signal<AuditLogEntry[]>([]);
 	protected readonly total = signal(0);
@@ -122,9 +124,10 @@ export class AdminAudit implements OnInit {
 	}
 
 	private loadLogs() {
+		this.loadRequest?.unsubscribe();
 		this.isLoading.set(true);
 		this.loadFailed.set(false);
-		this.auditService
+		this.loadRequest = this.auditService
 			.getAuditLog(this.limit, this.offset(), {
 				action: this.actionFilter() || undefined,
 				targetType: this.targetTypeFilter() || undefined
