@@ -146,7 +146,7 @@ import { Backlog } from "../backlog/backlog.model"; // ✗ no
 
 ### Excepción: tablas pivote
 
-Los módulos pivote (`game-platform/`, `game-shelf/`, `list-items/`, etc.) pueden importar **modelos** de otros módulos cuando los necesitan para asociaciones e `include` de Sequelize:
+La excepción es una lista cerrada, no un criterio abierto. Los únicos módulos pivote que pueden importar **modelos** de otros módulos son `game-platform/`, `game-genre/`, `game-shelf/`, `list-items/`, `game-reports/`, `user-followers/`, `user-follow-requests/` y `list-followers/`, y solo cuando los necesitan para asociaciones, `include` y `order` de Sequelize:
 
 ```ts
 // game-shelf.service.ts — válido
@@ -158,7 +158,7 @@ const shelf = await GameShelf.findAll({
 });
 ```
 
-Pero **solo para asociaciones e includes**. Para CRUD de Game o Platform, siguen importando el service respectivo.
+Pero **solo para `include`, asociaciones y `order`**. Nunca para CRUD (`find*`, `count`, `create`, `update`, `destroy`, `bulkCreate`) sobre el modelo ajeno: para eso, los pivotes también importan el service respectivo (`gamesService`, `platformsService`, `usersService`, `listsService`). Un módulo que no esté en la lista no tiene esta excepción, aunque sea una tabla de relación; si necesita una, se añade a la lista en este archivo.
 
 ## Cómo crear un módulo nuevo
 
