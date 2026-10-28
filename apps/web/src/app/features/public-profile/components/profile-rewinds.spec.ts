@@ -11,6 +11,7 @@ const year = (value: number): RewindYearSummary => ({
 	finishedCount: 3,
 	startedCount: 4,
 	hoursPlayed: 20,
+	persona: "steady-player" as const,
 	covers: []
 });
 

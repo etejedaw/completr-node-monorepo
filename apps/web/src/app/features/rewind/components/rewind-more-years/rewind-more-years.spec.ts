@@ -12,6 +12,7 @@ const summary = (year: number) => ({
 	finishedCount: 2,
 	startedCount: 3,
 	hoursPlayed: 10,
+	persona: "steady-player" as const,
 	covers: []
 });
 

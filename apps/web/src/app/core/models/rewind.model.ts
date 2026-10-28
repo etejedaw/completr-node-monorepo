@@ -18,6 +18,7 @@ export interface RewindYearSummary {
 	finishedCount: number;
 	startedCount: number;
 	hoursPlayed: number;
+	persona: RewindPersonaCode;
 	covers: RewindGameRef[];
 }
 
