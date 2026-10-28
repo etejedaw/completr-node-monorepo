@@ -1,0 +1,69 @@
+info:
+    name: Get Rewind Share Page
+    type: http
+    seq: 3
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/share/rewind/:username/:year"
+    params:
+        - name: username
+          type: path
+          value: ""
+        - name: year
+          type: path
+          value: "2026"
+    auth: none
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Rewind Share Page
+
+    Minimal HTML page meant to be the shared link of a Rewind, so social networks and messaging apps can build a link preview. It carries Open Graph and Twitter meta tags and immediately redirects the browser to the Rewind page of the web app with `<meta http-equiv="refresh">`, plus a visible link for clients that do not follow it.
+
+    The Rewind is always read as a guest (the token, if sent, is ignored), because link previews are fetched anonymously:
+
+    - Visible to guests: `og:title` is `@username's 2026 Rewind`, `og:description` is the summary sentence (`18 games finished, 4 left behind and 23 started.`), `og:image` is the absolute URL of `og.png` built from `API_PUBLIC_URL`, and `twitter:card` is `summary_large_image`.
+    - Not visible to guests (private, missing user or year without data): a generic page titled `Completr Rewind`, without data or image (`twitter:card` is `summary`), that redirects the same way.
+
+    The redirect target is `{WEB_APP_URL}/user/:username/rewind/:year`. Everything that comes from the request or the user is percent-encoded in URLs and HTML-escaped. The page has no scripts or inline styles, so the default Helmet CSP does not block it.
+
+    **Authentication:** Public, no auth required.
+    **Rate Limit:** 300 requests per minute (public).
+
+    ### Path Params
+
+    | Param    | Type   | Required | Description               |
+    |----------|--------|----------|---------------------------|
+    | username | string | Yes      | Profile username          |
+    | year     | int    | Yes      | Rewind year, 2000 to 2100 |
+
+    ### Response (200)
+
+    `Content-Type: text/html; charset=utf-8`, `Cache-Control: public, max-age=3600`.
+
+    ```html
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <title>@esteban&#39;s 2026 Rewind</title>
+    <meta property="og:title" content="@esteban&#39;s 2026 Rewind">
+    <meta property="og:description" content="18 games finished, 4 left behind and 23 started.">
+    <meta property="og:image" content="https://api.completr.app/users/esteban/rewinds/2026/og.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta http-equiv="refresh" content="0; url=https://www.completr.app/user/esteban/rewind/2026">
+    </head>
+    <body>
+    <p><a href="https://www.completr.app/user/esteban/rewind/2026">Continue to Completr</a></p>
+    </body>
+    </html>
+    ```
+
+    ### Errors
+
+    | Status | Code                  | Description                                    |
+    |--------|-----------------------|------------------------------------------------|
+    | 422    | COMMON_SCHEMA_INVALID | `year` is not an integer between 2000 and 2100 |

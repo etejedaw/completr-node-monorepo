@@ -31,6 +31,7 @@ El resto de este documento describe el backend.
 | Validación     | Zod v4                                   |
 | Logging        | Pino                                     |
 | Seguridad      | Helmet, CORS, rate-limiter-flexible      |
+| Imágenes       | satori (SVG) + @resvg/resvg-js (PNG)     |
 
 ## Estructura de carpetas
 
@@ -90,6 +91,15 @@ Ver [`context/errors.md`](./context/errors.md) para el detalle del sistema de er
 Los servicios externos (RAWG, HLTB, Metacritic, Steam) viven como **providers** en `apps/api/src/<nombre>/`. Son adapters: encapsulan HTTP/scraping y exponen una interfaz limpia. No contienen lógica de negocio.
 
 Ver [`context/providers.md`](./context/providers.md).
+
+## Imágenes para compartir
+
+`rewind-share/` dibuja en el servidor la imagen del Rewind (story 1080×1920 y og 1200×630) y la página HTML de vista previa de enlaces. No tiene modelo propio: pide los datos a `rewind.service` y por eso hereda su privacidad y sus errores.
+
+- **Render:** satori convierte un árbol de elementos (objetos `{ type, props }`, sin JSX; solo flexbox) en SVG con el texto ya trazado, y resvg lo pasa a PNG con `loadSystemFonts: false`. Las fuentes son los `.woff` estáticos de `@fontsource/chakra-petch` y `@fontsource/manrope` (satori no lee woff2 ni fuentes variables), resueltas con `require.resolve` y leídas una sola vez por proceso.
+- **Portadas:** se descargan del `coverUrl` con un timeout de 3 s y un tope de 5 MB, y se incrustan como data URI. Solo se aceptan PNG y JPEG (por firma de bytes) y URLs `http(s)`; las de RAWG se piden redimensionadas a 420 px. Si fallan, se dibuja un degradado con el título.
+- **Caché:** LRU en memoria de 100 PNG por proceso, con clave usuario, año, formato y hash SHA-256 del JSON del Rewind; un cambio en los datos genera otra entrada. Las peticiones simultáneas a la misma imagen comparten el render, y una imagen con portadas que no se pudieron descargar no se guarda. Se pierde al reiniciar la API.
+- **URLs absolutas:** el `og:image` se arma con `API_PUBLIC_URL` (URL pública de la API, por defecto `http://localhost:3000`) y la redirección con `WEB_APP_URL`.
 
 ## Decisiones clave
 
