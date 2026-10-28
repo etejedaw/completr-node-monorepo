@@ -20,7 +20,7 @@ docs: |-
 
     Returns the franchises `:username` has **tracked** (opted in via `POST /franchises/:code/track`), each with its count of active games, sorted by name. Powers the "Sagas" section on a profile. The response carries no personal progress.
 
-    For non-self viewers the target's `profile` and `backlog` sections must be visible.
+    For non-self viewers the target's `profile` and `franchise` sections must be visible (`profileVisibility` and `franchiseVisibility`): `friends` only for mutual followers, `private` only for the owner. The backlog visibility does not apply.
 
     **Authentication:** optional (Bearer token). Required to see a profile whose privacy needs it.
     **Rate Limit:** 100 requests per minute (public).
@@ -57,6 +57,6 @@ docs: |-
 
     | Status | Code                  | Description                                          |
     |--------|-----------------------|------------------------------------------------------|
-    | 403    | USER_PRIVATE          | Profile or its backlog section is not visible        |
+    | 403    | USER_PRIVATE          | Profile or its sagas section is not visible          |
     | 404    | USER_NOT_FOUND        | No user with that username                           |
     | 422    | COMMON_SCHEMA_INVALID | `username` fails validation                          |

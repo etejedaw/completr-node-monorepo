@@ -59,6 +59,7 @@ docs: |-
     | shelfVisibility       | `private` \| `friends` \| `public`  | No       | Shelf visibility                                                  |
     | listVisibility        | `private` \| `friends` \| `public`  | No       | Lists visibility                                                  |
     | platinumVisibility    | `private` \| `friends` \| `public`  | No       | Platinums visibility (page, profile section, backlog and feed)    |
+    | franchiseVisibility   | `private` \| `friends` \| `public`  | No       | Visibility of the tracked sagas on the profile                    |
     | acceptFollowRequests  | boolean                             | No       | If `false` on a `private` profile, the Follow button is hidden. Toggling from true to false deletes all pending requests. |
     | theme                 | string                              | No       | Theme id                                                          |
 

@@ -25,7 +25,7 @@ settings:
 docs: |-
     ## Create Franchise
 
-    Creates a franchise. The `code` slug is derived from `name`. When `gameIds` is sent, the franchise and the game links are created in a single transaction: if any game does not exist, nothing is applied.
+    Creates a franchise. The `code` slug is derived from `name`. A franchise always has games: `gameIds` is required with at least one id. The franchise and the game links are created in a single transaction: if any game does not exist, nothing is applied.
 
     **Authentication:** Bearer token required (role: moderator).
     **Rate Limit:** 50 requests per minute.
@@ -36,7 +36,7 @@ docs: |-
     |-------------|---------------|----------|--------------------|
     | name        | string        | Yes      | Max 100 characters |
     | description | string / null | No       | Max 500 characters |
-    | gameIds     | uuid[]        | No       | Final set of games of the franchise (max 500) |
+    | gameIds     | uuid[]        | Yes      | Games of the franchise (1 to 500)             |
 
     ### Response (201)
 
