@@ -38,7 +38,7 @@ class RewindHost {}
 const api = environment.apiUrl;
 const NETWORK_ERROR = 0;
 const rewindUrlPattern = /\/users\/([^/]+)\/rewinds\/(\d+)$/;
-const storyUrlPattern = /\/users\/([^/]+)\/rewinds\/(\d+)\/story\.png$/;
+const storyUrlPattern = /^\/share\/rewind\/([^/]+)\/(\d+)\/story\.png$/;
 
 const PERSONA_BY_YEAR: Record<number, RewindPersonaCode> = {
 	2026: "trophy-hunter",
@@ -608,7 +608,7 @@ describe("Rewind interaction", () => {
 
 			expect(await screen.findAllByText("Link copied")).toHaveLength(1);
 			expect(await navigator.clipboard.readText()).toBe(
-				`${api}/share/rewind/ada/2026`
+				`${window.location.origin}/share/rewind/ada/2026`
 			);
 		});
 

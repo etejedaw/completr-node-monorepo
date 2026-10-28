@@ -28,14 +28,21 @@ export class RewindService {
 		year: number,
 		format: RewindImageFormat
 	): Observable<Blob> {
-		return this.http.get(`${rewindsUrl(username)}/${year}/${format}.png`, {
-			responseType: "blob"
-		});
+		return this.http.get(
+			`${rewindSharePath(username, year)}/${format}.png`,
+			{
+				responseType: "blob"
+			}
+		);
 	}
 }
 
 export function rewindShareUrl(username: string, year: number): string {
-	return `${environment.apiUrl}/share/rewind/${encodeURIComponent(username)}/${year}`;
+	return `${window.location.origin}${rewindSharePath(username, year)}`;
+}
+
+function rewindSharePath(username: string, year: number): string {
+	return `/share/rewind/${encodeURIComponent(username)}/${year}`;
 }
 
 function rewindsUrl(username: string): string {

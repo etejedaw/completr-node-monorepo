@@ -65,7 +65,7 @@ describe("RewindService", () => {
 			.subscribe(value => (result = value));
 
 		const req = httpTesting.expectOne(
-			`${api}/users/ada/rewinds/2026/${format}.png`
+			`/share/rewind/ada/2026/${format}.png`
 		);
 		expect(req.request.method).toBe("GET");
 		expect(req.request.responseType).toBe("blob");
@@ -73,9 +73,19 @@ describe("RewindService", () => {
 		expect(result).toBe(png);
 	});
 
-	it("builds the public share link on the API host", () => {
+	it("builds the public share link on the web origin", () => {
 		expect(rewindShareUrl("ada", 2026)).toBe(
-			`${api}/share/rewind/ada/2026`
+			`${window.location.origin}/share/rewind/ada/2026`
 		);
+	});
+
+	it("encodes the username in the share link and the image path", () => {
+		expect(rewindShareUrl("a/b?c", 2026)).toBe(
+			`${window.location.origin}/share/rewind/a%2Fb%3Fc/2026`
+		);
+		service.getImage("a/b?c", 2026, "story").subscribe();
+		httpTesting
+			.expectOne("/share/rewind/a%2Fb%3Fc/2026/story.png")
+			.flush(new Blob());
 	});
 });
