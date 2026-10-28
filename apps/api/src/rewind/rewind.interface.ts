@@ -32,6 +32,10 @@ export interface RewindTotals {
 	started: number;
 	hoursPlayed: number;
 	platinums: number | null;
+	finishRate: number | null;
+	averageRating: number | null;
+	genresPlayed: number;
+	platformsPlayed: number;
 }
 
 export interface RewindRatedGame extends RewindFinishedGame {
@@ -64,6 +68,23 @@ export interface RewindMonth {
 	count: number;
 }
 
+export interface RewindStreak {
+	months: number;
+	fromMonth: number;
+	toMonth: number;
+}
+
+export const REWIND_PERSONA_CODES = [
+	"trophy-hunter",
+	"marathoner",
+	"short-and-sweet",
+	"finisher",
+	"genre-explorer",
+	"picky-player",
+	"steady-player"
+] as const;
+export type RewindPersonaCode = (typeof REWIND_PERSONA_CODES)[number];
+
 export interface RewindHighlights {
 	topRated: RewindRatedGame | null;
 	bestRatio: RewindRatioGame | null;
@@ -72,6 +93,11 @@ export interface RewindHighlights {
 	favoriteGenre: RewindGenre | null;
 	topPlatform: RewindPlatform | null;
 	busiestMonth: RewindMonth | null;
+	firstFinished: RewindFinishedGame | null;
+	lastFinished: RewindFinishedGame | null;
+	topGenres: RewindGenre[];
+	topPlatforms: RewindPlatform[];
+	longestStreak: RewindStreak | null;
 }
 
 export interface RewindOwner {
@@ -83,6 +109,7 @@ export interface RewindOwner {
 
 export interface Rewind {
 	year: number;
+	persona: RewindPersonaCode;
 	user: RewindOwner;
 	isSpotlight: boolean;
 	otherYears: number[];
