@@ -42,6 +42,10 @@
 		[url]="backdropUrl()"
 	/>
 	<div
+		aria-hidden="true"
+		class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_88%_35%,color-mix(in_oklab,var(--color-nav-queue)_22%,transparent),transparent_55%),radial-gradient(ellipse_at_60%_105%,color-mix(in_oklab,var(--color-nav-shelf)_16%,transparent),transparent_50%)]"
+	></div>
+	<div
 		class="bleed-inner pt-[calc(var(--topbar-height)+6rem)] lg:pt-[calc(var(--topbar-height)+9rem)] pb-8 flex flex-col gap-5"
 	>
 		<div class="flex flex-col gap-2 min-w-0">
@@ -51,12 +55,17 @@
 				>{{ eyebrow() }}</span
 			>
 			<h1
-				class="m-0 font-display font-bold leading-[0.85] tracking-[-0.04em] tabular-nums text-fg text-[clamp(5rem,22vw,11rem)]"
+				class="m-0 font-display font-bold leading-none tracking-[-0.04em] text-[clamp(5rem,22vw,11rem)]"
 			>
-				<span class="sr-only">{{ eyebrow() }}</span>{{ " " + data.year
-				}}
+				<span class="sr-only">{{ eyebrow() + " " + data.year }}</span>
+				<app-rewind-year-odometer [year]="data.year" />
 			</h1>
-			<p class="m-0 mt-2 max-w-xl text-base sm:text-lg text-fg-secondary">
+			<app-rewind-persona-rank
+				class="mt-3"
+				animate.enter="motion-safe:animate-[uiFadeUp_480ms_cubic-bezier(0.16,1,0.3,1)_1150ms_both]"
+				[code]="data.persona"
+			/>
+			<p class="m-0 mt-3 max-w-xl text-base text-fg-secondary">
 				{{ summary() }}
 			</p>
 		</div>
@@ -92,6 +101,7 @@
 	[style.--rewind-areas]="sectionAreas()"
 >
 	<section
+		appRewindReveal
 		aria-labelledby="rewind-results-heading"
 		class="min-w-0 max-w-[40rem] lg:[grid-area:results]"
 	>
@@ -111,13 +121,11 @@
 			heading="Highlights"
 			headingId="rewind-highlights-heading"
 		/>
-		<app-rewind-highlights
-			[highlights]="data.highlights"
-			[totals]="data.totals"
-		/>
+		<app-rewind-highlights [highlights]="data.highlights" />
 	</section>
 	} @if (data.finishedGames.length > 0) {
 	<section
+		appRewindReveal
 		aria-labelledby="rewind-finished-heading"
 		class="min-w-0 lg:[grid-area:finished]"
 	>
@@ -152,6 +160,8 @@
 	}
 
 	<section
+		appRewindReveal
+		[revealDelay]="120"
 		aria-labelledby="rewind-share-heading"
 		class="min-w-0 lg:[grid-area:share] lg:self-start"
 	>

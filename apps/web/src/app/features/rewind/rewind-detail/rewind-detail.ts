@@ -24,16 +24,22 @@ import {
 import { ProfileAccessState } from "../../public-profile/components/profile-access-state";
 import { ProfileSectionHeader } from "../../public-profile/components/profile-section-header";
 import { RewindFinishedGames } from "../components/rewind-finished-games/rewind-finished-games";
-import { RewindHighlights } from "../components/rewind-highlights/rewind-highlights";
+import {
+	presentHighlightKeys,
+	RewindHighlights
+} from "../components/rewind-highlights/rewind-highlights";
 import { RewindMoreYears } from "../components/rewind-more-years/rewind-more-years";
+import { RewindPersonaRank } from "../components/rewind-persona-rank/rewind-persona-rank";
 import { RewindShareActions } from "../components/rewind-share-actions/rewind-share-actions";
 import {
 	RewindTally,
 	rewindTallyRows
 } from "../components/rewind-tally/rewind-tally";
+import { RewindYearOdometer } from "../components/rewind-year-odometer/rewind-year-odometer";
 import { RewindService } from "../rewind";
 import { parseRewindYear, rewindSummarySentence } from "../rewind-copy";
 import { rewindLoadError } from "../rewind-errors";
+import { RewindReveal } from "../rewind-reveal";
 import { injectRewindStoryImage } from "../rewind-story-image";
 
 function backdropOf(rewind: Rewind): string | null {
@@ -55,8 +61,11 @@ function backdropOf(rewind: Rewind): string | null {
 		RewindFinishedGames,
 		RewindHighlights,
 		RewindMoreYears,
+		RewindPersonaRank,
+		RewindReveal,
 		RewindShareActions,
 		RewindTally,
+		RewindYearOdometer,
 		UiButton,
 		UiDialog,
 		UiPlainEmptyState,
@@ -106,10 +115,7 @@ export class RewindDetail {
 
 	protected readonly hasHighlights = computed(() => {
 		const highlights = this.rewind()?.highlights;
-		return (
-			!!highlights &&
-			Object.values(highlights).some(highlight => highlight !== null)
-		);
+		return !!highlights && presentHighlightKeys(highlights).length > 0;
 	});
 
 	protected readonly isOwner = computed(

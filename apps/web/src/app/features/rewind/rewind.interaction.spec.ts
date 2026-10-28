@@ -19,6 +19,7 @@ import userEvent from "@testing-library/user-event";
 import { environment } from "../../../environments/environment";
 import {
 	type Rewind,
+	type RewindPersonaCode,
 	type RewindYearSummary
 } from "../../core/models/rewind.model";
 import { ExportService } from "../../core/services/export";
@@ -39,6 +40,16 @@ const NETWORK_ERROR = 0;
 const rewindUrlPattern = /\/users\/([^/]+)\/rewinds\/(\d+)$/;
 const storyUrlPattern = /\/users\/([^/]+)\/rewinds\/(\d+)\/story\.png$/;
 
+const PERSONA_BY_YEAR: Record<number, RewindPersonaCode> = {
+	2026: "trophy-hunter",
+	2025: "marathoner",
+	2024: "picky-player"
+};
+
+function personaFor(year: number): RewindPersonaCode {
+	return PERSONA_BY_YEAR[year] ?? "steady-player";
+}
+
 function rewindFor(year: number, otherYears: number[]): Rewind {
 	const hades = {
 		gameId: `hades-${year}`,
@@ -49,8 +60,16 @@ function rewindFor(year: number, otherYears: number[]): Rewind {
 		finishedAt: `${year}-03-04T00:00:00.000Z`,
 		platformAbbreviation: "PS5"
 	};
+	const celeste = {
+		...hades,
+		gameId: `celeste-${year}`,
+		code: "celeste",
+		title: `Celeste ${year}`,
+		finishedAt: `${year}-11-20T00:00:00.000Z`
+	};
 	return {
 		year,
+		persona: personaFor(year),
 		user: { username: "ada", name: "Ada", avatarUrl: null, role: "user" },
 		isSpotlight: false,
 		otherYears,
@@ -59,17 +78,35 @@ function rewindFor(year: number, otherYears: number[]): Rewind {
 			abandoned: 4,
 			started: 23,
 			hoursPlayed: 212.5,
-			platinums: null
+			platinums: null,
+			finishRate: 82,
+			averageRating: 4.3,
+			genresPlayed: 4,
+			platformsPlayed: 2
 		},
-		finishedGames: [hades],
+		finishedGames: [hades, celeste],
 		highlights: {
 			topRated: { ...hades, userRating: 5 },
 			bestRatio: null,
 			longest: null,
 			fastest: null,
-			favoriteGenre: null,
-			topPlatform: null,
-			busiestMonth: { month: 3, count: 1 }
+			favoriteGenre: { code: "roguelike", name: "Roguelike", count: 7 },
+			topPlatform: {
+				name: "PlayStation 5",
+				abbreviation: "PS5",
+				count: 12
+			},
+			busiestMonth: { month: 3, count: 1 },
+			firstFinished: hades,
+			lastFinished: celeste,
+			topGenres: [
+				{ code: "roguelike", name: "Roguelike", count: 7 },
+				{ code: "platformer", name: "Platformer", count: 4 }
+			],
+			topPlatforms: [
+				{ name: "PlayStation 5", abbreviation: "PS5", count: 12 }
+			],
+			longestStreak: { months: 5, fromMonth: 3, toMonth: 7 }
 		}
 	};
 }
@@ -80,6 +117,7 @@ function summaryFor(year: number): RewindYearSummary {
 		finishedCount: 18,
 		startedCount: 23,
 		hoursPlayed: 212.5,
+		persona: personaFor(year),
 		covers: []
 	};
 }
@@ -344,9 +382,41 @@ describe("Rewind interaction", () => {
 			expect(
 				within(results).queryByText("Platinums")
 			).not.toBeInTheDocument();
+			expect(screen.getByText("Trophy Hunter")).toBeInTheDocument();
+			expect(
+				screen.getByText(
+					"You didn't just finish games, you emptied them."
+				)
+			).toBeInTheDocument();
+			expect(
+				within(results).getByText("82%", { selector: ".sr-only" })
+			).toBeInTheDocument();
+			expect(
+				within(results).getByText("4.3 out of 5", {
+					selector: ".sr-only"
+				})
+			).toBeInTheDocument();
 			expect(
 				screen.getByRole("link", { name: /Top rated.*Hades 2026/ })
 			).toHaveAttribute("href", "/games/hades");
+			expect(
+				screen.getByRole("link", {
+					name: /First of the year.*Hades 2026/
+				})
+			).toHaveAttribute("href", "/games/hades");
+			expect(
+				screen.getByRole("link", {
+					name: /Last of the year.*Celeste 2026/
+				})
+			).toHaveAttribute("href", "/games/celeste");
+			expect(
+				screen.getByText("months in a row", { exact: false })
+			).toBeInTheDocument();
+			expect(
+				within(
+					screen.getByRole("list", { name: "Top genres" })
+				).getAllByRole("listitem")
+			).toHaveLength(2);
 			await shareActions();
 			await untilVisible(() =>
 				expect(
@@ -408,6 +478,35 @@ describe("Rewind interaction", () => {
 				).toBeInTheDocument()
 			);
 			expect(screen.queryByText(/Hades 2025/)).not.toBeInTheDocument();
+			expect(screen.getByText("Picky Player")).toBeInTheDocument();
+			expect(screen.queryByText("Marathoner")).not.toBeInTheDocument();
+			expect(screen.queryByText("Trophy Hunter")).not.toBeInTheDocument();
+		});
+
+		it("restarts the year odometer on the new year when the user switches mid-roll", async () => {
+			await renderRewind();
+			const router = TestBed.inject(Router);
+			const odometerDigits = () =>
+				[
+					...document.querySelectorAll(
+						"app-rewind-year-odometer > span"
+					)
+				].map(reel => reel.textContent?.trim().at(-1));
+			expect(odometerDigits()).toEqual(["2", "0", "2", "6"]);
+
+			await router.navigateByUrl("/user/ada/rewind/2025");
+			await router.navigateByUrl("/user/ada/rewind/2024");
+
+			await untilVisible(() =>
+				expect(
+					screen.getByRole("heading", { level: 1, name: /2024/ })
+				).toBeInTheDocument()
+			);
+			expect(odometerDigits()).toEqual(["2", "0", "2", "4"]);
+			expect(
+				document.querySelectorAll("app-rewind-year-odometer")
+			).toHaveLength(1);
+			expect(screen.getByText("Picky Player")).toBeInTheDocument();
 		});
 
 		it("opens a single Share dialog on a double click and closes it while the image is still loading", async () => {
