@@ -23,7 +23,7 @@ docs: |-
 
     Returns the Rewind of `:username` for one calendar year: totals, every finished game and the highlights of the year. Powers the `/user/:username/rewind/:year` page and the share images.
 
-    The year must be open (a past year, or the current year from December 1, UTC) and have data for the viewer, as in `GET /users/:username/rewinds`. The owner sees every run; everyone else gets the Rewind built from public runs only. Notes are never returned. The platinum total is only sent to viewers who can see the platinums section (`platinumVisibility`); for everyone else it is `null`. For non-self viewers the target's `profile` and `rewind` sections must be visible.
+    The year must be open (a past year, or the current year from December 1, UTC), not earlier than the year the user signed up (`createdAt`, UTC), and have data for the viewer, as in `GET /users/:username/rewinds`. The owner sees every run; everyone else gets the Rewind built from public runs only. Notes are never returned. The platinum total is only sent to viewers who can see the platinums section (`platinumVisibility`); for everyone else it is `null`. For non-self viewers the target's `profile` and `rewind` sections must be visible.
 
     **Authentication:** optional (Bearer token). Required to see a Rewind whose privacy needs it.
     **Rate Limit:** 300 requests per minute (public).
@@ -41,6 +41,7 @@ docs: |-
     {
       "data": {
         "year": 2025,
+        "persona": "marathoner",
         "user": {
           "username": "johndoe",
           "name": "John Doe",
@@ -54,7 +55,11 @@ docs: |-
           "abandoned": 4,
           "started": 23,
           "hoursPlayed": 212.5,
-          "platinums": 3
+          "platinums": 3,
+          "finishRate": 82,
+          "averageRating": 4.2,
+          "genresPlayed": 9,
+          "platformsPlayed": 3
         },
         "finishedGames": [
           {
@@ -112,21 +117,54 @@ docs: |-
           },
           "favoriteGenre": { "code": "action", "name": "Action", "count": 7 },
           "topPlatform": { "name": "PlayStation 5", "abbreviation": "PS5", "count": 12 },
-          "busiestMonth": { "month": 3, "count": 5 }
+          "busiestMonth": { "month": 3, "count": 5 },
+          "firstFinished": {
+            "gameId": "uuid",
+            "code": "gris",
+            "title": "Gris",
+            "coverUrl": "https://media.example.com/gris.jpg",
+            "backgroundUrl": "https://media.example.com/gris-bg.jpg",
+            "finishedAt": "2025-02-14",
+            "platformAbbreviation": "NSW"
+          },
+          "lastFinished": {
+            "gameId": "uuid",
+            "code": "hades",
+            "title": "Hades",
+            "coverUrl": "https://media.example.com/hades.jpg",
+            "backgroundUrl": "https://media.example.com/hades-bg.jpg",
+            "finishedAt": "2025-12-20",
+            "platformAbbreviation": "PS5"
+          },
+          "topGenres": [
+            { "code": "action", "name": "Action", "count": 7 },
+            { "code": "rpg", "name": "RPG", "count": 5 },
+            { "code": "indie", "name": "Indie", "count": 4 }
+          ],
+          "topPlatforms": [
+            { "name": "PlayStation 5", "abbreviation": "PS5", "count": 12 },
+            { "name": "Nintendo Switch", "abbreviation": "NSW", "count": 5 },
+            { "name": "PC", "abbreviation": "PC", "count": 1 }
+          ],
+          "longestStreak": { "months": 5, "fromMonth": 3, "toMonth": 7 }
         }
       }
     }
     ```
 
+    - `persona`: the title of the year, the first rule that matches: `trophy-hunter` (`platinums` >= 3, never when `platinums` is `null`), `marathoner` (`finished` >= 3 and an average of 30 hours or more per finished game), `short-and-sweet` (`finished` >= 5 and an average of 8 hours or less), `finisher` (`finished` >= 10 and `finishRate` >= 80), `genre-explorer` (`genresPlayed` >= 6), `picky-player` (`abandoned` > `finished` and `abandoned` >= 3), otherwise `steady-player`. The average uses the hours of `longest` / `fastest` (real or estimated) of the latest run of each finished game, leaving out games without hours.
     - `isSpotlight`: `true` while today (UTC) is between December 1 of `year` and January 31 of the next year.
     - `otherYears`: the other years `GET /users/:username/rewinds` lists for the same viewer, newest first.
-    - `totals`: distinct games `finished` (`completed`) and `abandoned` with `finishedAt` in the year, distinct games `started` (`startedAt` in the year), `hoursPlayed` as in the years list, and `platinums` with `platinumedAt` in the year (`null` without access to the platinums).
+    - `totals`: distinct games `finished` (`completed`) and `abandoned` with `finishedAt` in the year, distinct games `started` (`startedAt` in the year), `hoursPlayed` as in the years list, and `platinums` with `platinumedAt` in the year (`null` without access to the platinums). `finishRate` is `round(finished / (finished + abandoned) * 100)`, `null` when both are 0. `averageRating` is the mean `userRating` of the rated finished runs, 1 decimal, `null` without ratings. `genresPlayed` / `platformsPlayed` count the distinct genres of the finished games and the distinct platforms of the finished runs.
     - `finishedGames`: one entry per finished game (its latest run of the year), by `finishedAt` ascending and then run id.
     - `topRated`: the finished run with the highest `userRating`; ties go to the latest `finishedAt`, then the run id.
     - `bestRatio`: the finished run with the highest personal ratio (`score` per hour of `realDuration`, same formula as the backlog); ties like `topRated`.
     - `longest` / `fastest`: by `realDuration`, or by the estimated `duration` (`isEstimate: true`) when the run has no real hours; ties go to the earliest `finishedAt`, then the run id. `fastest` is `null` when it would be the same game as `longest`.
     - `favoriteGenre`: the genre with the most distinct finished games; ties by name. `topPlatform`: the platform with the most finished runs; ties by name. `busiestMonth`: the month (1-12) with the most finished games; ties go to the earliest month.
-    - Every highlight is `null` when there is nothing to pick from.
+    - `firstFinished` / `lastFinished`: the first and last entries of `finishedGames` (the same game when only one was finished).
+    - `topGenres` / `topPlatforms`: up to 3, with the criteria and ties of `favoriteGenre` / `topPlatform`, which are their first entries; empty arrays when there is nothing to rank.
+    - `longestStreak`: the longest run of consecutive months of the year with at least one finished game (by the latest run of each game); ties go to the earliest; `null` when it is shorter than 2 months.
+    - Every other highlight is `null` when there is nothing to pick from.
 
     ### Errors
 
@@ -134,5 +172,5 @@ docs: |-
     |--------|-----------------------|-----------------------------------------------------------------|
     | 403    | USER_PRIVATE          | Profile or its rewind section is not visible                    |
     | 404    | USER_NOT_FOUND        | No active user with that username                               |
-    | 404    | REWIND_NOT_FOUND      | The year is not open yet or has no data for the viewer          |
+    | 404    | REWIND_NOT_FOUND      | The year is not open yet, is before the sign-up or has no data  |
     | 422    | COMMON_SCHEMA_INVALID | `year` is not an integer from 2000 to 2100, or bad `username`   |

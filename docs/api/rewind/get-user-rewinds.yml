@@ -20,7 +20,7 @@ docs: |-
 
     Lists the yearly Rewinds of `:username`: one summary per year with data, newest first, plus the year in the spotlight window. Powers the Rewind spotlight and the Rewind row of a profile, and the `/user/:username/rewind` archive.
 
-    A year is listed when it is open and has data. It is open when it is a past year, or the current year from December 1 (UTC). It has data when at least one run has `startedAt` in the year, or is `completed` / `abandoned` with `finishedAt` in the year. Years outside 2000-2100 are never listed.
+    A year is listed when it is open and has data. It is open when it is a past year, or the current year from December 1 (UTC), and it is not earlier than the year the user signed up (`createdAt`, UTC): years before the sign-up (imported history) are never listed. It has data when at least one run has `startedAt` in the year, or is `completed` / `abandoned` with `finishedAt` in the year. Years outside 2000-2100 are never listed. Outside production, the `REWIND_TODAY` environment variable (`YYYY-MM-DD`) replaces today in every Rewind calculation.
 
     The owner sees every run. Everyone else gets the summaries built from public runs only (`isPublic = true`), so a year that only has private runs is not listed for them. For non-self viewers the target's `profile` and `rewind` sections must be visible (`profileVisibility` and `rewindVisibility`): `friends` only for mutual followers, `private` only for the owner.
 
@@ -42,6 +42,7 @@ docs: |-
         "years": [
           {
             "year": 2026,
+            "persona": "marathoner",
             "finishedCount": 18,
             "startedCount": 23,
             "hoursPlayed": 212.5,
@@ -61,6 +62,7 @@ docs: |-
     ```
 
     - `spotlightYear`: the year whose spotlight window (December 1 of that year to January 31 of the next, UTC) contains today, only if that year is in `years`; `null` otherwise.
+    - `persona`: the title of the year, computed with the same rules as `persona` in `GET /users/:username/rewinds/:year` and the same data the viewer gets there (platinums only count for viewers who can see them).
     - `finishedCount` / `startedCount`: distinct games finished (`completed` with `finishedAt` in the year) and started (`startedAt` in the year).
     - `hoursPlayed`: sum of `realDuration` of the `completed` and `abandoned` runs with `finishedAt` in the year, rounded to 1 decimal.
     - `covers`: up to 5 finished games, best `userRating` first, then the most recently finished. A game finished twice counts once, with its latest run.
