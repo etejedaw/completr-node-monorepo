@@ -1,7 +1,8 @@
 import * as iaServiceError from "../errors/ia.service-error";
 import {
 	type GenerateTextRequest,
-	type GenerateTextResult
+	type GenerateTextResult,
+	type IaModel
 } from "../ia.interface";
 import {
 	type DeepseekChatCompletionResponse,
@@ -11,14 +12,14 @@ import {
 const CHAT_COMPLETIONS_URL = "https://api.deepseek.com/chat/completions";
 const TIMEOUT_ERROR_NAMES = new Set(["TimeoutError", "AbortError"]);
 
-export abstract class DeepseekClient {
+export abstract class DeepseekModel implements IaModel {
 	abstract readonly isEnabled: boolean;
 
 	static create(
 		settings: Omit<DeepseekSettings, "apiKey"> & {
 			apiKey?: string;
 		}
-	): DeepseekClient {
+	): DeepseekModel {
 		if (!settings.apiKey) return new DisabledDeepseekProvider();
 		return new DeepseekProvider({ ...settings, apiKey: settings.apiKey });
 	}
@@ -28,7 +29,7 @@ export abstract class DeepseekClient {
 	): Promise<GenerateTextResult>;
 }
 
-export class DeepseekProvider extends DeepseekClient {
+export class DeepseekProvider extends DeepseekModel {
 	readonly isEnabled = true;
 
 	constructor(private readonly settings: DeepseekSettings) {
@@ -129,7 +130,7 @@ export class DeepseekProvider extends DeepseekClient {
 	}
 }
 
-export class DisabledDeepseekProvider extends DeepseekClient {
+export class DisabledDeepseekProvider extends DeepseekModel {
 	readonly isEnabled = false;
 
 	generateText(): Promise<GenerateTextResult> {

@@ -10,3 +10,8 @@ export interface GenerateTextResult {
 	text: string;
 	truncated: boolean;
 }
+
+export interface IaModel {
+	readonly isEnabled: boolean;
+	generateText(request: GenerateTextRequest): Promise<GenerateTextResult>;
+}

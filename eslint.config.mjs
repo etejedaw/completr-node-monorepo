@@ -86,7 +86,7 @@ export default defineConfig(
 						{
 							regex: "(^|/)ia/deepseek(/|$)",
 							message:
-								"DeepSeek is internal to the ia module: import ia/ia.service instead."
+								"DeepSeek is internal to the ia module: import ia/ia.provider instead."
 						}
 					]
 				}
