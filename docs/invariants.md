@@ -249,11 +249,27 @@ Fórmulas y comportamiento en bordes.
 
 ---
 
+## Rewind
+
+Resumen anual de un usuario, calculado al vuelo a partir de sus runs y platinos; no tiene tabla propia. Vive en `apps/api/src/rewind/`: las consultas en `rewind.service.ts` (pide las runs a `backlog.service`, los géneros a `game-genre.service` y los platinos a `game-platinum.service`) y los cálculos, sin base de datos, en `utils/`, con la fecha de hoy como parámetro.
+
+- **Año abierto:** un año `Y` está abierto si es anterior al año actual, o si es el año actual y hoy es 1 de diciembre o después. Fechas en UTC (`rewind.constants.ts`: `REWIND_OPENING_MONTH = 12`).
+- **Año con datos:** al menos una run con `startedAt` en el año, o `completed` / `abandoned` con `finishedAt` en el año. Un año existe si está abierto, tiene datos para quien mira y cae entre 2000 y 2100.
+- **Ventana destacada:** del 1 de diciembre de `Y` al 31 de enero de `Y+1`, ambos incluidos, en UTC. `spotlightYear` es ese `Y` solo si el año está en la lista; `isSpotlight` es `true` mientras hoy esté en la ventana de su año.
+- **Quién ve qué:** el dueño ve el cálculo con todas sus runs; cualquier otro, solo con las runs `isPublic = true`, así que un año que solo tiene runs privadas no existe para él. `totals.platinums` cuenta los platinos con `platinumedAt` en el año y es `null` si quien mira no puede ver la sección `platinum`. Las `notes` nunca se devuelven.
+- **Totales:** `finished`, `abandoned` y `started` cuentan juegos distintos (`gameId`); `hoursPlayed` suma `realDuration` de las runs `completed` y `abandoned` con `finishedAt` en el año, redondeado a 1 decimal (0 sin datos).
+- **Juegos terminados:** uno por juego, con su última run `completed` del año, por `finishedAt` ascendente e `id` de la run.
+- **Highlights:** `topRated` (mayor `userRating`; desempata `finishedAt` más reciente e `id`), `bestRatio` (mayor `calculateRatio(score, realDuration)` con `realDuration > 0`; mismo desempate), `longest` / `fastest` (`realDuration` > 0 o, si no, `duration` > 0 con `isEstimate: true`; desempata `finishedAt` más antiguo e `id`; `fastest` es `null` si sería el mismo juego que `longest`), `favoriteGenre` (más juegos terminados distintos; desempata el nombre), `topPlatform` (más runs terminadas; desempata el nombre) y `busiestMonth` (más juegos terminados; desempata el mes más temprano). Cada uno es `null` si no hay de dónde elegir.
+- **Portadas de la lista de años:** hasta 5 juegos terminados, primero los de mayor `userRating` y luego por `finishedAt` descendente.
+- `GET /users/:username/rewinds` y `GET /users/:username/rewinds/:year` exigen `canView` de `profile` y de `rewind` (403 `USER_PRIVATE`) y responden 404 `USER_NOT_FOUND` para un usuario inexistente o desactivado. `:year` solo acepta dígitos entre 2000 y 2100 (422 `COMMON_SCHEMA_INVALID`); un año cerrado o sin datos para quien mira responde 404 `REWIND_NOT_FOUND`.
+
+---
+
 ## Privacidad
 
 ### Campos en `User`
 
-Diez secciones independientes, cada una con un `VisibilityLevel` (`apps/api/src/users/constants/visibility.constants.ts`): `private`, `friends`, `public`.
+Once secciones independientes, cada una con un `VisibilityLevel` (`apps/api/src/users/constants/visibility.constants.ts`): `private`, `friends`, `public`.
 
 | Sección   | Campo                 |
 | --------- | --------------------- |
@@ -267,8 +283,9 @@ Diez secciones independientes, cada una con un `VisibilityLevel` (`apps/api/src/
 | list      | `listVisibility`      |
 | platinum  | `platinumVisibility`  |
 | franchise | `franchiseVisibility` |
+| rewind    | `rewindVisibility`    |
 
-Todas arrancan en `public` para una cuenta nueva. `platinumVisibility` se agregó después que las demás: la migración `add-platinumvisibility-to-users` copió en cada cuenta existente su `backlogVisibility`, porque hasta entonces los platinos solo se veían a través del backlog. `franchiseVisibility` (las sagas que sigue el usuario) siguió el mismo camino con `add-franchisevisibility-to-users`: hasta entonces `GET /users/:username/franchises` exigía la sección `backlog`.
+Todas arrancan en `public` para una cuenta nueva. `platinumVisibility` se agregó después que las demás: la migración `add-platinumvisibility-to-users` copió en cada cuenta existente su `backlogVisibility`, porque hasta entonces los platinos solo se veían a través del backlog. `franchiseVisibility` (las sagas que sigue el usuario) siguió el mismo camino con `add-franchisevisibility-to-users`: hasta entonces `GET /users/:username/franchises` exigía la sección `backlog`. `rewindVisibility` (el Rewind anual) llegó con `add-rewindvisibility-to-users`, que también copió `backlogVisibility` en cada cuenta existente.
 
 Más `acceptFollowRequests` (boolean).
 
