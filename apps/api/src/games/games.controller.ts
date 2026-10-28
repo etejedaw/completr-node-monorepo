@@ -1,7 +1,6 @@
 import { type Request, type Response } from "express";
 
 import * as auditService from "../audit/audit.service";
-import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import * as franchiseService from "../franchises/franchises.service";
 import { gamePlatinumSerializer } from "../game-platinum/game-platinum.serializer";
@@ -42,53 +41,25 @@ export async function getGameByCode(request: Request, response: Response) {
 	if (!game) throw gameDomainError.gameNotFound();
 
 	const gamePlain = game.get({ plain: true });
-	const [userMoodTags, franchiseProgress, franchiseTracked, platinum] =
-		await Promise.all([
-			user ? moodTagsService.findTagsByGame(user.id, game.id) : [],
-			buildFranchiseProgress(game.franchiseId, user),
-			user && game.franchiseId
-				? franchiseService.isTrackingFranchise(
-						user.id,
-						game.franchiseId
-					)
-				: Promise.resolve(false),
-			user
-				? gamePlatinumService.findPlatinumByUserAndGame(
-						user.id,
-						game.id
-					)
-				: Promise.resolve(null)
-		]);
+	const [userMoodTags, franchiseTracked, platinum] = await Promise.all([
+		user ? moodTagsService.findTagsByGame(user.id, game.id) : [],
+		user && game.franchiseId
+			? franchiseService.isTrackingFranchise(user.id, game.franchiseId)
+			: Promise.resolve(false),
+		user
+			? gamePlatinumService.findPlatinumByUserAndGame(user.id, game.id)
+			: Promise.resolve(null)
+	]);
 
 	const data = {
 		game: {
 			...gameSerializer(gamePlain),
 			userMoodTags,
 			userPlatinum: platinum ? gamePlatinumSerializer(platinum) : null,
-			franchiseProgress,
 			franchiseTracked
 		}
 	};
 	return response.status(200).json({ data });
-}
-
-const FRANCHISE_COMPLETED_STATUSES = ["completed", "abandoned", "endless"];
-
-async function buildFranchiseProgress(
-	franchiseId: string | null | undefined,
-	user: RequestUser | undefined
-) {
-	if (!franchiseId) return null;
-
-	const gameIds = await gameService.findGameIdsByFranchiseId(franchiseId);
-	const completed = user
-		? await backlogService.countDistinctGamesByUserStatusAndGameIds(
-				user.id,
-				gameIds,
-				FRANCHISE_COMPLETED_STATUSES
-			)
-		: 0;
-	return { completed, total: gameIds.length };
 }
 
 export async function getAllGames(request: Request, response: Response) {

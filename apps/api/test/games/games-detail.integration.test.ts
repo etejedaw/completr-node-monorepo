@@ -14,7 +14,6 @@ import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
 import { useTestDatabase } from "../helpers/database.helper";
 import {
-	createBacklog,
 	createFranchise,
 	createGame,
 	createGameScore,
@@ -208,7 +207,6 @@ void describe("GET /games/:code game data", () => {
 		assert.deepEqual(game.partOfCompilations, []);
 		assert.equal(game.parentGame, null);
 		assert.equal(game.franchise, null);
-		assert.equal(game.franchiseProgress, null);
 		assert.equal(game.franchiseTracked, false);
 		assert.deepEqual(game.userMoodTags, []);
 	});
@@ -301,7 +299,7 @@ void describe("GET /games/:code game data", () => {
 });
 
 void describe("GET /games/:code viewer data", () => {
-	void it("returns the saga with progress counted over its active games", async () => {
+	void it("returns the saga without the viewer's progress", async () => {
 		const reader = await createUserWithSession();
 
 		const response = await getGame(
@@ -315,55 +313,8 @@ void describe("GET /games/:code viewer data", () => {
 			name: franchiseName,
 			code: franchiseCode
 		});
-		assert.deepEqual(game.franchiseProgress, { completed: 0, total: 2 });
+		assert.equal(game.franchiseProgress, undefined);
 		assert.equal(game.franchiseTracked, false);
-	});
-
-	void it("counts the viewer's finished games once each and ignores unfinished or foreign runs", async () => {
-		const viewer = await createUserWithSession();
-		const stranger = await createUserWithSession();
-		await createBacklog(viewer.user.id, catalog.main!.id, platform.id, {
-			status: "completed"
-		});
-		await createBacklog(viewer.user.id, catalog.main!.id, platform.id, {
-			status: "abandoned"
-		});
-		await createBacklog(viewer.user.id, catalog.sequel!.id, platform.id, {
-			status: "playing"
-		});
-		await createBacklog(stranger.user.id, catalog.sequel!.id, platform.id, {
-			status: "completed"
-		});
-
-		const response = await getGame(
-			viewer.authorization,
-			catalog.main!.code
-		);
-
-		assert.deepEqual(response.body.data.game.franchiseProgress, {
-			completed: 1,
-			total: 2
-		});
-	});
-
-	void it("counts endless and abandoned runs as finished", async () => {
-		const viewer = await createUserWithSession();
-		await createBacklog(viewer.user.id, catalog.main!.id, platform.id, {
-			status: "endless"
-		});
-		await createBacklog(viewer.user.id, catalog.sequel!.id, platform.id, {
-			status: "abandoned"
-		});
-
-		const response = await getGame(
-			viewer.authorization,
-			catalog.main!.code
-		);
-
-		assert.deepEqual(response.body.data.game.franchiseProgress, {
-			completed: 2,
-			total: 2
-		});
 	});
 
 	void it("flags the saga as tracked only for the viewer that tracks it", async () => {
