@@ -7,7 +7,7 @@ import {
 	type RewindRun
 } from "../../src/rewind/rewind-run.interface";
 import { buildRewind } from "../../src/rewind/utils/build-rewind.util";
-import { buildRun, finishedRun } from "./rewind-run.builder";
+import { buildRun, calendarOn, finishedRun } from "./rewind-run.builder";
 
 const OWNER: RewindOwner = {
 	username: "ana",
@@ -25,6 +25,7 @@ function rewindOf(
 		genres?: RewindGameGenre[];
 		platinums?: number | null;
 		today?: Date;
+		firstYear?: number;
 	} = {}
 ) {
 	return buildRewind({
@@ -33,7 +34,7 @@ function rewindOf(
 		runs,
 		genres: options.genres ?? [],
 		platinums: options.platinums === undefined ? 0 : options.platinums,
-		today: options.today ?? MID_2026
+		calendar: calendarOn(options.today ?? MID_2026, options.firstYear)
 	});
 }
 
@@ -477,6 +478,202 @@ void describe("buildRewind", () => {
 				]).highlights.busiestMonth,
 				null
 			);
+		});
+	});
+
+	void describe("header with the sign-up year", () => {
+		void it("lists only other years from the sign-up year on", () => {
+			const runs = [
+				finishedRun("imported", "2023-01-01"),
+				finishedRun("a", "2024-05-01"),
+				finishedRun("b", "2025-01-01")
+			];
+
+			assert.deepEqual(
+				rewindOf(runs, { firstYear: 2024 }).otherYears,
+				[2024]
+			);
+		});
+	});
+
+	void describe("new totals", () => {
+		void it("adds finish rate, average rating, genres and platforms played", () => {
+			const pc = { name: "PC", abbreviation: "PC" };
+			const runs = [
+				finishedRun("a", "2025-01-01", { userRating: 5 }),
+				finishedRun("a", "2025-03-01", { userRating: 3, platform: pc }),
+				finishedRun("b", "2025-02-01", { userRating: 4 }),
+				finishedRun("c", "2025-02-02"),
+				buildRun("d", {
+					status: "abandoned",
+					finishedAt: "2025-04-01"
+				}),
+				buildRun("e", { status: "abandoned", finishedAt: "2024-04-01" })
+			];
+			const genres = [
+				genre("a", "rpg", "RPG"),
+				genre("b", "action", "Action"),
+				genre("d", "puzzle", "Puzzle")
+			];
+
+			const { totals } = rewindOf(runs, { genres });
+
+			assert.equal(totals.finishRate, 75);
+			assert.equal(totals.averageRating, 4);
+			assert.equal(totals.genresPlayed, 2);
+			assert.equal(totals.platformsPlayed, 2);
+		});
+
+		void it("is empty for a year with nothing finished", () => {
+			const runs = [
+				buildRun("a", { status: "playing", startedAt: "2025-01-01" })
+			];
+
+			const rewind = rewindOf(runs);
+
+			assert.equal(rewind.totals.finishRate, null);
+			assert.equal(rewind.totals.averageRating, null);
+			assert.equal(rewind.totals.genresPlayed, 0);
+			assert.equal(rewind.totals.platformsPlayed, 0);
+			assert.equal(rewind.persona, "steady-player");
+			assert.deepEqual(
+				{
+					firstFinished: rewind.highlights.firstFinished,
+					lastFinished: rewind.highlights.lastFinished,
+					topGenres: rewind.highlights.topGenres,
+					topPlatforms: rewind.highlights.topPlatforms,
+					longestStreak: rewind.highlights.longestStreak
+				},
+				{
+					firstFinished: null,
+					lastFinished: null,
+					topGenres: [],
+					topPlatforms: [],
+					longestStreak: null
+				}
+			);
+		});
+
+		void it("is 0 percent when every closed game was abandoned", () => {
+			const runs = [
+				buildRun("a", { status: "abandoned", finishedAt: "2025-01-01" })
+			];
+
+			assert.equal(rewindOf(runs).totals.finishRate, 0);
+		});
+	});
+
+	void describe("new highlights", () => {
+		void it("keeps favoriteGenre and topPlatform as the head of their top lists", () => {
+			const pc = { name: "PC", abbreviation: "PC" };
+			const runs = [
+				finishedRun("a", "2025-01-01", { platform: pc }),
+				finishedRun("b", "2025-02-01", { platform: pc }),
+				finishedRun("c", "2025-03-01")
+			];
+			const genres = [
+				genre("a", "rpg", "RPG"),
+				genre("b", "rpg", "RPG"),
+				genre("c", "action", "Action")
+			];
+
+			const { highlights } = rewindOf(runs, { genres });
+
+			assert.deepEqual(highlights.favoriteGenre, highlights.topGenres[0]);
+			assert.deepEqual(
+				highlights.topGenres.map(entry => entry.code),
+				["rpg", "action"]
+			);
+			assert.deepEqual(
+				highlights.topPlatform,
+				highlights.topPlatforms[0]
+			);
+			assert.deepEqual(
+				highlights.topPlatforms.map(entry => entry.name),
+				["PC", "Switch"]
+			);
+		});
+
+		void it("takes first and last from the finished games, the same one if alone", () => {
+			const runs = [
+				finishedRun("late", "2025-11-01"),
+				finishedRun("early", "2025-01-15"),
+				finishedRun("early", "2025-06-01")
+			];
+
+			const { highlights, finishedGames } = rewindOf(runs);
+
+			assert.deepEqual(highlights.firstFinished, finishedGames[0]);
+			assert.equal(highlights.firstFinished?.code, "early");
+			assert.equal(highlights.firstFinished?.finishedAt, "2025-06-01");
+			assert.equal(highlights.lastFinished?.code, "late");
+
+			const solo = rewindOf([
+				finishedRun("solo", "2025-05-05")
+			]).highlights;
+			assert.deepEqual(solo.firstFinished, solo.lastFinished);
+		});
+
+		void it("finds the longest streak from the months of the finished games", () => {
+			const runs = [
+				finishedRun("a", "2025-03-01"),
+				finishedRun("b", "2025-04-30"),
+				finishedRun("c", "2025-05-15"),
+				finishedRun("d", "2025-09-01"),
+				finishedRun("e", "2025-10-01"),
+				buildRun("f", { status: "abandoned", finishedAt: "2025-06-01" })
+			];
+
+			assert.deepEqual(rewindOf(runs).highlights.longestStreak, {
+				months: 3,
+				fromMonth: 3,
+				toMonth: 5
+			});
+			assert.equal(
+				rewindOf([finishedRun("a", "2025-03-01")]).highlights
+					.longestStreak,
+				null
+			);
+		});
+	});
+
+	void describe("persona", () => {
+		void it("uses the latest hours of each finished game, estimates included", () => {
+			const runs = [
+				finishedRun("a", "2025-01-01", { realDuration: 40 }),
+				finishedRun("b", "2025-02-01", { duration: 35 }),
+				finishedRun("c", "2025-03-01", { realDuration: 1 }),
+				finishedRun("c", "2025-04-01", { realDuration: 30 })
+			];
+
+			assert.equal(
+				rewindOf(runs, { platinums: null }).persona,
+				"marathoner"
+			);
+		});
+
+		void it("turns into trophy-hunter only when platinums are visible", () => {
+			const runs = [finishedRun("a", "2025-01-01")];
+
+			assert.equal(
+				rewindOf(runs, { platinums: 3 }).persona,
+				"trophy-hunter"
+			);
+			assert.equal(
+				rewindOf(runs, { platinums: null }).persona,
+				"steady-player"
+			);
+		});
+
+		void it("counts the genres of finished games for genre-explorer", () => {
+			const codes = ["a", "b", "c"];
+			const runs = codes.map(code => finishedRun(code, "2025-02-02"));
+			const genres = codes.flatMap(code => [
+				genre(code, `${code}-1`, `${code} one`),
+				genre(code, `${code}-2`, `${code} two`)
+			]);
+
+			assert.equal(rewindOf(runs, { genres }).persona, "genre-explorer");
 		});
 	});
 });

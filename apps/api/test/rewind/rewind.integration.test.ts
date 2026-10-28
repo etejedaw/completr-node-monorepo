@@ -8,7 +8,7 @@ import { type Game } from "../../src/games/game.model";
 import { Genre } from "../../src/genres/genres.model";
 import { type Platform } from "../../src/platforms/platform.model";
 import { UserFollower } from "../../src/user-followers/user-follower.model";
-import { type User } from "../../src/users/user.model";
+import { User } from "../../src/users/user.model";
 import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
 import { useTestDatabase } from "../helpers/database.helper";
@@ -41,6 +41,8 @@ interface Fixture {
 	games: Record<"hades" | "celeste" | "tunic" | "outer" | "secret", Game>;
 }
 
+const SIGNED_UP_BEFORE_THE_DATA = new Date("2020-01-01T00:00:00.000Z");
+
 let fixture: Fixture;
 let playstation: Platform;
 let nintendo: Platform;
@@ -68,6 +70,11 @@ function addRun(userId: string, game: Game, fields: RunFields) {
 		platformId: platform.id,
 		...rest
 	});
+}
+
+async function backdateSignUp(user: User, createdAt: Date) {
+	await User.update({ createdAt }, { where: { id: user.id }, silent: true });
+	await user.reload();
 }
 
 async function makeMutual(first: User, second: User) {
@@ -193,6 +200,7 @@ async function seedFixture() {
 		createUserWithSession(),
 		createUserWithSession()
 	]);
+	await backdateSignUp(owner!.user, SIGNED_UP_BEFORE_THE_DATA);
 	await UserFollower.create({
 		followerId: follower!.user.id,
 		followingId: owner!.user.id
@@ -239,6 +247,7 @@ void describe("GET /users/:username/rewinds", () => {
 		assert.equal(latest.finishedCount, 3);
 		assert.equal(latest.startedCount, 1);
 		assert.equal(latest.hoursPlayed, 135);
+		assert.equal(latest.persona, "marathoner");
 	});
 
 	void it("builds the years of everyone else from public runs only", async () => {
@@ -253,6 +262,7 @@ void describe("GET /users/:username/rewinds", () => {
 		);
 		assert.equal(years[0].finishedCount, 2);
 		assert.equal(years[0].hoursPlayed, 35);
+		assert.equal(years[0].persona, "steady-player");
 		assert.deepEqual(years[0].covers, [
 			{
 				gameId: games.hades.id,
@@ -314,12 +324,17 @@ void describe("GET /users/:username/rewinds/:year", () => {
 			avatarUrl: null,
 			role: "user"
 		});
+		assert.equal(data.persona, "marathoner");
 		assert.deepEqual(data.totals, {
 			finished: 3,
 			abandoned: 1,
 			started: 1,
 			hoursPlayed: 135,
-			platinums: 1
+			platinums: 1,
+			finishRate: 75,
+			averageRating: 4.7,
+			genresPlayed: 2,
+			platformsPlayed: 2
 		});
 		assert.deepEqual(
 			data.finishedGames.map((game: { code: string }) => game.code),
@@ -334,6 +349,19 @@ void describe("GET /users/:username/rewinds/:year", () => {
 			count: 2
 		});
 		assert.deepEqual(data.highlights.busiestMonth, { month: 3, count: 1 });
+		assert.equal(data.highlights.firstFinished.code, games.hades.code);
+		assert.equal(data.highlights.lastFinished.code, games.celeste.code);
+		assert.deepEqual(data.highlights.topGenres, [
+			{ code: "rewind-action", name: "Action", count: 2 },
+			{ code: "rewind-rpg", name: "RPG", count: 2 }
+		]);
+		assert.deepEqual(
+			data.highlights.topPlatforms.map(
+				(platform: { count: number }) => platform.count
+			),
+			[2, 1]
+		);
+		assert.equal(data.highlights.longestStreak, null);
 		assert.equal(JSON.stringify(response.body).includes("notes"), false);
 	});
 
@@ -354,8 +382,17 @@ void describe("GET /users/:username/rewinds/:year", () => {
 				abandoned: 1,
 				started: 1,
 				hoursPlayed: 35,
-				platinums: 1
+				platinums: 1,
+				finishRate: 67,
+				averageRating: 4.5,
+				genresPlayed: 2,
+				platformsPlayed: 2
 			});
+			assert.equal(data.persona, "steady-player");
+			assert.deepEqual(data.highlights.topGenres, [
+				{ code: "rewind-action", name: "Action", count: 2 },
+				{ code: "rewind-rpg", name: "RPG", count: 1 }
+			]);
 			assert.equal(data.highlights.topRated.code, games.hades.code);
 			assert.equal(data.highlights.topRated.userRating, 5);
 			assert.equal(data.highlights.longest.code, games.hades.code);
@@ -500,6 +537,93 @@ void describe("GET /users/:username/rewinds/:year", () => {
 		});
 		assert.deepEqual(responses[0]!.body, responses[2]!.body);
 		assert.deepEqual(responses[1]!.body, responses[3]!.body);
+	});
+});
+
+void describe("rewind years and the sign-up date", () => {
+	async function createImporterSignedUpIn2024() {
+		const importer = await createUserWithSession();
+		await backdateSignUp(
+			importer.user,
+			new Date("2024-06-01T12:00:00.000Z")
+		);
+		const { games } = fixture;
+		await addRun(importer.user.id, games.hades, {
+			status: "completed",
+			startedAt: "2022-01-01",
+			finishedAt: "2023-03-03",
+			realDuration: 12
+		});
+		await addRun(importer.user.id, games.celeste, {
+			status: "completed",
+			finishedAt: "2024-02-02",
+			realDuration: 8
+		});
+		await addRun(importer.user.id, games.tunic, {
+			status: "abandoned",
+			finishedAt: "2025-05-05"
+		});
+		return importer;
+	}
+
+	void it("leaves the years before the sign-up out of the list and otherYears", async () => {
+		const importer = await createImporterSignedUpIn2024();
+
+		for (const authorization of [undefined, importer.authorization]) {
+			const list = await rewinds(
+				importer.user.username,
+				authorization
+			).expect(200);
+			assert.deepEqual(
+				list.body.data.years.map((year: { year: number }) => year.year),
+				[2025, 2024]
+			);
+
+			const detail = await rewind(
+				importer.user.username,
+				"2025",
+				authorization
+			).expect(200);
+			assert.deepEqual(detail.body.data.otherYears, [2024]);
+		}
+	});
+
+	void it("answers 404 REWIND_NOT_FOUND for a year before the sign-up, even to the owner", async () => {
+		const importer = await createImporterSignedUpIn2024();
+
+		for (const year of ["2023", "2022", "2000"]) {
+			const response = await rewind(
+				importer.user.username,
+				year,
+				importer.authorization
+			);
+			assert.equal(response.status, 404, `year ${year}`);
+			assert.equal(response.body.type, "REWIND_NOT_FOUND");
+		}
+		const signUpYear = await rewind(
+			importer.user.username,
+			"2024",
+			importer.authorization
+		).expect(200);
+		assert.equal(signUpYear.body.data.totals.finished, 1);
+	});
+
+	void it("answers an empty list to an account that only has imported years", async () => {
+		const newcomer = await createUserWithSession();
+		await addRun(newcomer.user.id, fixture.games.outer, {
+			status: "completed",
+			finishedAt: "2025-01-01"
+		});
+
+		const response = await rewinds(newcomer.user.username).expect(200);
+
+		assert.deepEqual(response.body.data, {
+			spotlightYear: null,
+			years: []
+		});
+		const detail = await rewind(newcomer.user.username, "2025");
+		assert.equal(detail.status, 404);
+		assert.equal(detail.body.type, "REWIND_NOT_FOUND");
 	});
 });
 

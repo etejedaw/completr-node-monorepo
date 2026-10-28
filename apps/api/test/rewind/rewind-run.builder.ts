@@ -1,4 +1,7 @@
-import { type RewindRun } from "../../src/rewind/rewind-run.interface";
+import {
+	type RewindCalendar,
+	type RewindRun
+} from "../../src/rewind/rewind-run.interface";
 
 let sequence = 0;
 
@@ -43,4 +46,8 @@ export function finishedRun(
 		finishedAt,
 		...overrides
 	});
+}
+
+export function calendarOn(today: Date, firstYear = 2000): RewindCalendar {
+	return { today, firstYear };
 }
