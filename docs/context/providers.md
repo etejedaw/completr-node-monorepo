@@ -250,19 +250,20 @@ Consecuencias:
 
 ```
 apps/api/src/ia/
-├── ia.interface.ts        GenerateTextRequest y GenerateTextResult
-├── ia.service.ts          Contrato público: isIaConfigured() y generateText()
+├── ia.interface.ts        GenerateTextRequest, GenerateTextResult y la interfaz IaModel
+├── ia.provider.ts         Contrato público: clase IaProvider y su instancia iaProvider
 ├── errors/                Errores en 3 capas (service "IA Provider", módulo "IA Provider")
 └── deepseek/
     ├── deepseek.interface.ts   Settings y forma de la respuesta de DeepSeek
-    └── deepseek.provider.ts    DeepseekClient (create), DeepseekProvider y DisabledDeepseekProvider
+    └── deepseek.provider.ts    DeepseekModel (create), DeepseekProvider y DisabledDeepseekProvider
 ```
 
-- **Contrato público:** el resto de la API solo importa `ia/ia.service`. `generateText({ instructions, content, maxTokens?, temperature?, timeoutMs? })` devuelve `{ text, truncated }`; `truncated` es `true` si el modelo se cortó por el límite de tokens. `isIaConfigured()` dice si hay proveedor, para que un consumidor pueda degradar en silencio.
-- **Validación:** el service rechaza con `IA_INVALID_INPUT` instrucciones o contenido en blanco, `maxTokens` y `timeoutMs` que no sean enteros positivos y `temperature` fuera de 0–2, antes de llamar a la red.
+- **Contrato público:** el resto de la API solo importa `iaProvider` de `ia/ia.provider`. `iaProvider.generateText({ instructions, content, maxTokens?, temperature?, timeoutMs? })` devuelve `{ text, truncated }`; `truncated` es `true` si el modelo se cortó por el límite de tokens. `iaProvider.isConfigured` dice si hay un modelo configurado, para que un consumidor pueda degradar en silencio.
+- **Modelo inyectado:** `IaProvider` recibe por constructor un `IaModel` (interfaz de `ia.interface.ts`: `isEnabled` y `generateText`). Hoy es `DeepseekModel.create(...)`; cambiar a otro proveedor (OpenAI u otro) es escribir otro submódulo que implemente `IaModel` y cambiar esa línea de `ia.provider.ts`, sin tocar a los consumidores.
+- **Validación:** `IaProvider` rechaza con `IA_INVALID_INPUT` instrucciones o contenido en blanco, `maxTokens` y `timeoutMs` que no sean enteros positivos y `temperature` fuera de 0–2, antes de llamar a la red.
 - **DeepSeek:** `fetch` nativo contra `https://api.deepseek.com/chat/completions` (compatible con OpenAI), con el modo de razonamiento desactivado (`thinking: { type: "disabled" }`) y `stream: false`. El timeout usa `AbortSignal.timeout`.
 - **Variables (todas opcionales):** `DEEPSEEK_API_KEY` (vacía o ausente = IA no configurada, la API arranca igual), `DEEPSEEK_MODEL` (por defecto `deepseek-flash`) y `DEEPSEEK_TIMEOUT_MS` (por defecto `30000`). Se leen en `environment.config.ts`; el provider las recibe por constructor.
-- **Errores:** todos con `service: "IA Provider"`. Registrarlos en los normalizers globales es tarea de la primera feature que exponga IA por HTTP.
+- **Errores:** todos con `service: "IA Provider"`, registrados en los normalizers globales de `common/errors/`.
 
 | Código                    | Status | Cuándo                                                                        |
 | ------------------------- | ------ | ----------------------------------------------------------------------------- |
@@ -275,7 +276,7 @@ apps/api/src/ia/
 
 ### Regla de imports
 
-Ningún archivo fuera de `apps/api/src/ia/` (y `apps/api/test/ia/`) puede importar `ia/deepseek`. Lo hace cumplir la regla `no-restricted-imports` de `eslint.config.mjs`. Un consumidor importa siempre `ia/ia.service`.
+Ningún archivo fuera de `apps/api/src/ia/` (y `apps/api/test/ia/`) puede importar `ia/deepseek`. Lo hace cumplir la regla `no-restricted-imports` de `eslint.config.mjs`. Un consumidor importa siempre `ia/ia.provider`.
 
 ## Extraer notas y duraciones de un provider
 
