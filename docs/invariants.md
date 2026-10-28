@@ -441,6 +441,18 @@ Toda búsqueda de texto de la API (el `search` de los listados paginados, `q` de
 - Si falta su credencial, el `create` de la clase base devuelve la implementación deshabilitada: el backend arranca igual y cada método lanza `<PROVIDER>_DISABLED`.
 - RAWG: `RAWG_API_KEY` es opcional (vacía o ausente = deshabilitado). Sus métodos deshabilitados devuelven una promesa rechazada con `RAWG_DISABLED`, no lanzan de forma síncrona.
 - Mail: `SMTP_HOST` es opcional (vacío o ausente = deshabilitado). Códigos: `MAIL_DISABLED` (503) y `MAIL_SEND_ERROR` (502).
+- IA: `DEEPSEEK_API_KEY` es opcional (vacía o ausente = IA no configurada). `DEEPSEEK_MODEL` (por defecto `deepseek-flash`) y `DEEPSEEK_TIMEOUT_MS` (por defecto `30000`) también. Un consumidor consulta `isIaConfigured()` de `ia/ia.service` antes de llamar si quiere degradar en silencio; si no, `generateText` rechaza con `IA_NOT_CONFIGURED`.
+
+### Códigos de error de IA
+
+| Código                    | Status | Cuándo                                                                                                          |
+| ------------------------- | ------ | --------------------------------------------------------------------------------------------------------------- |
+| `IA_NOT_CONFIGURED`       | 503    | `DEEPSEEK_API_KEY` ausente o vacía                                                                              |
+| `IA_INVALID_INPUT`        | 422    | Instrucciones o contenido en blanco, `maxTokens` o `timeoutMs` no enteros positivos, `temperature` fuera de 0–2 |
+| `IA_PROVIDER_UNAVAILABLE` | 502    | DeepSeek respondió con un status de error (401, 402, 429, 5xx) o falló la red                                   |
+| `IA_TIMEOUT`              | 504    | Se agotó el timeout de la petición                                                                              |
+| `IA_INVALID_RESPONSE`     | 502    | Cuerpo que no es JSON, sin `choices` o con texto vacío                                                          |
+| `IA_INTERNAL_ERROR`       | 500    | Código de `IA Provider` sin mapeo propio                                                                        |
 
 ### Códigos de error de RAWG
 

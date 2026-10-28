@@ -236,12 +236,46 @@ Consecuencias:
 
 ## Providers implementados
 
-| Provider             | Propósito                                                                    |
-| -------------------- | ---------------------------------------------------------------------------- |
-| `apps/api/src/rawg/` | RAWG API: géneros, descripciones, covers, scores                             |
-| `apps/api/src/mail/` | Correo transaccional por SMTP (`nodemailer`). Se deshabilita sin `SMTP_HOST` |
+| Provider             | Propósito                                                                                            |
+| -------------------- | ---------------------------------------------------------------------------------------------------- |
+| `apps/api/src/rawg/` | RAWG API: géneros, descripciones, covers, scores                                                     |
+| `apps/api/src/mail/` | Correo transaccional por SMTP (`nodemailer`). Se deshabilita sin `SMTP_HOST`                         |
+| `apps/api/src/ia/`   | Generación de texto con IA. Proveedor interno: `ia/deepseek/`. Se deshabilita sin `DEEPSEEK_API_KEY` |
 
 **Qué integraciones vienen después no se decide acá:** el roadmap de fuentes externas es planificación de producto, y varias dependen de revisiones de licencia todavía abiertas.
+
+## Módulo `ia` y su submódulo `deepseek`
+
+`apps/api/src/ia/` es la base de las features de IA. Es la excepción a "un provider por carpeta en `src/`": DeepSeek vive como submódulo interno, `apps/api/src/ia/deepseek/`, para que el proveedor pueda cambiarse sin tocar a los consumidores.
+
+```
+apps/api/src/ia/
+├── ia.interface.ts        GenerateTextRequest y GenerateTextResult
+├── ia.service.ts          Contrato público: isIaConfigured() y generateText()
+├── errors/                Errores en 3 capas (service "IA Provider", módulo "IA Provider")
+└── deepseek/
+    ├── deepseek.interface.ts   Settings y forma de la respuesta de DeepSeek
+    └── deepseek.provider.ts    DeepseekClient (create), DeepseekProvider y DisabledDeepseekProvider
+```
+
+- **Contrato público:** el resto de la API solo importa `ia/ia.service`. `generateText({ instructions, content, maxTokens?, temperature?, timeoutMs? })` devuelve `{ text, truncated }`; `truncated` es `true` si el modelo se cortó por el límite de tokens. `isIaConfigured()` dice si hay proveedor, para que un consumidor pueda degradar en silencio.
+- **Validación:** el service rechaza con `IA_INVALID_INPUT` instrucciones o contenido en blanco, `maxTokens` y `timeoutMs` que no sean enteros positivos y `temperature` fuera de 0–2, antes de llamar a la red.
+- **DeepSeek:** `fetch` nativo contra `https://api.deepseek.com/chat/completions` (compatible con OpenAI), con el modo de razonamiento desactivado (`thinking: { type: "disabled" }`) y `stream: false`. El timeout usa `AbortSignal.timeout`.
+- **Variables (todas opcionales):** `DEEPSEEK_API_KEY` (vacía o ausente = IA no configurada, la API arranca igual), `DEEPSEEK_MODEL` (por defecto `deepseek-flash`) y `DEEPSEEK_TIMEOUT_MS` (por defecto `30000`). Se leen en `environment.config.ts`; el provider las recibe por constructor.
+- **Errores:** todos con `service: "IA Provider"`. Registrarlos en los normalizers globales es tarea de la primera feature que exponga IA por HTTP.
+
+| Código                    | Status | Cuándo                                                                        |
+| ------------------------- | ------ | ----------------------------------------------------------------------------- |
+| `IA_NOT_CONFIGURED`       | 503    | `DEEPSEEK_API_KEY` ausente o vacía                                            |
+| `IA_INVALID_INPUT`        | 422    | La petición de generación no pasa la validación                               |
+| `IA_PROVIDER_UNAVAILABLE` | 502    | DeepSeek respondió con un status de error (401, 402, 429, 5xx) o la red falló |
+| `IA_TIMEOUT`              | 504    | Se agotó `timeoutMs`                                                          |
+| `IA_INVALID_RESPONSE`     | 502    | Cuerpo que no es JSON, sin `choices` o con texto vacío                        |
+| `IA_INTERNAL_ERROR`       | 500    | Código de `IA Provider` sin mapeo propio                                      |
+
+### Regla de imports
+
+Ningún archivo fuera de `apps/api/src/ia/` (y `apps/api/test/ia/`) puede importar `ia/deepseek`. Lo hace cumplir la regla `no-restricted-imports` de `eslint.config.mjs`. Un consumidor importa siempre `ia/ia.service`.
 
 ## Extraer notas y duraciones de un provider
 
