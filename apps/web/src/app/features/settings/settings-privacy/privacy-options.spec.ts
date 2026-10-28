@@ -51,7 +51,7 @@ describe("privacy options", () => {
 		}
 	});
 
-	it("covers the nine profile sections", () => {
+	it("covers the ten profile sections", () => {
 		expect([...SECTION_KEYS].sort()).toEqual([
 			"backlogVisibility",
 			"favoriteVisibility",
@@ -60,6 +60,7 @@ describe("privacy options", () => {
 			"listVisibility",
 			"platinumVisibility",
 			"queueVisibility",
+			"rewindVisibility",
 			"shelfVisibility",
 			"wishlistVisibility"
 		]);
@@ -92,6 +93,23 @@ describe("privacy options", () => {
 			title: "Sagas",
 			icon: "collections_bookmark",
 			iconColor: "text-nav-sagas"
+		});
+	});
+
+	it("lists Rewind in the Library group with its own icon", () => {
+		const library = PRIVACY_SECTION_GROUPS.find(
+			group => group.title === "Library"
+		)!;
+		const rewind = library.sections.find(
+			section => section.key === "rewindVisibility"
+		);
+
+		expect(rewind).toMatchObject({
+			title: "Rewind",
+			description:
+				"Your yearly Rewind: games finished, hours played and highlights.",
+			icon: "history",
+			iconColor: "text-brand"
 		});
 	});
 

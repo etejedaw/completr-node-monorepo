@@ -34,6 +34,7 @@ const publicUser = {
 	feedVisibility: "public",
 	platinumVisibility: "public",
 	franchiseVisibility: "public",
+	rewindVisibility: "public",
 	acceptFollowRequests: true
 } as unknown as User;
 
@@ -128,7 +129,8 @@ describe("SettingsPrivacy", () => {
 			favoriteVisibility: "friends",
 			feedVisibility: "friends",
 			platinumVisibility: "friends",
-			franchiseVisibility: "friends"
+			franchiseVisibility: "friends",
+			rewindVisibility: "friends"
 		});
 
 		expect(selectedOption(radioGroup("Privacy level"))).toContain(
@@ -230,6 +232,7 @@ describe("SettingsPrivacy", () => {
 			feedVisibility: "friends",
 			platinumVisibility: "friends",
 			franchiseVisibility: "friends",
+			rewindVisibility: "friends",
 			acceptFollowRequests: true
 		});
 		patch.flush({ data: { user: publicUser } });

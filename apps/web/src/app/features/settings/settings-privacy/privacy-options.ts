@@ -11,7 +11,8 @@ export type SectionVisibilityKey =
 	| "favoriteVisibility"
 	| "feedVisibility"
 	| "platinumVisibility"
-	| "franchiseVisibility";
+	| "franchiseVisibility"
+	| "rewindVisibility";
 
 export interface PrivacyDraft extends Record<
 	SectionVisibilityKey | "profileVisibility",
@@ -133,6 +134,16 @@ const PRIVACY_SECTION_CONFIG: PrivacySectionGroup<PrivacySectionConfig>[] = [
 				key: "franchiseVisibility",
 				route: "/franchises",
 				description: "The sagas you track, shown on your profile."
+			},
+			{
+				key: "rewindVisibility",
+				description:
+					"Your yearly Rewind: games finished, hours played and highlights.",
+				display: {
+					title: "Rewind",
+					icon: "history",
+					iconColor: "text-brand"
+				}
 			}
 		]
 	},
