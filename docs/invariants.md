@@ -78,6 +78,8 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - Auto-remove al borrar el backlog asociado (`ON DELETE CASCADE` en `Queues.backlogId`).
 - Unique `(user_id, backlog_id)`.
 - `position` sin huecos ni duplicados: toda salida de la queue (cambio de status fuera de `not_started`, borrado del backlog) renumera las restantes 1..n en la misma transacción, y el alta usa `MAX(position) + 1`. Las operaciones sobre la queue de un usuario se serializan con un advisory lock transaccional (`pg_advisory_xact_lock`).
+- `PATCH /users/me/queue/:backlogId/position` con `{ position }` mueve una sola entrada a esa posición (base 1) de la queue completa y desplaza las demás, en una transacción bajo el advisory lock; no depende de lo que el cliente tenga cargado, así que no pierde entradas ocultas por búsqueda o paginación. Una posición mayor que el tamaño de la queue se ajusta a la última; `position` no entero, menor que 1 o basura responde 422 `COMMON_SCHEMA_INVALID`; un backlog que no está en la queue del usuario (incluido el de otro usuario) responde 404 `QUEUE_BACKLOG_NOT_FOUND`. Devuelve la queue completa, como `PUT`.
+- `PUT /users/me/queue` reemplaza la queue entera (borra y recrea): solo es válido cuando el cliente envía el orden completo. Los movimientos individuales usan el `PATCH`.
 - `GET /users/:username/queue` omite `backlog.notes` y `backlog.moodTags`, y excluye las entradas cuyo backlog es privado (`isPublic = false`); el filtro va en la consulta, así que `total` y la paginación cuentan solo lo visible. `position` se numera sobre lo visible (`offset + índice + 1`) para no revelar huecos; en la DB no cambia. La queue propia (`GET /users/me/queue`) devuelve todo y con su `position` real.
 
 ---

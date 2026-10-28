@@ -1,0 +1,54 @@
+info:
+    name: Move Queue Entry
+    type: http
+    seq: 7
+
+http:
+    method: PATCH
+    url: "{{BASE_URL}}/users/me/queue/:backlogId/position"
+    params:
+        - name: backlogId
+          value: ""
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "position": 1
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Move Queue Entry
+
+    Moves one entry to the given position of the whole queue and shifts the others, in a single transaction. It does not depend on what the client has loaded, so it never drops entries hidden by a search or another page.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Path Parameters
+
+    | Field     | Type | Required | Description                          |
+    |-----------|------|----------|--------------------------------------|
+    | backlogId | uuid | Yes      | Backlog of an entry in your own queue |
+
+    ### Request Body
+
+    | Field    | Type    | Required | Description                                                                 |
+    |----------|---------|----------|-----------------------------------------------------------------------------|
+    | position | integer | Yes      | Target position, 1-based. Values above the queue size are clamped to the last place |
+
+    ### Response (200)
+
+    Same shape as Replace Queue: the whole queue in its new order, with `position` renumbered 1..n.
+
+    ### Errors
+
+    - 404 `QUEUE_BACKLOG_NOT_FOUND` — The backlog is not in your queue (also when it belongs to another user)
+    - 422 `COMMON_SCHEMA_INVALID` — `position` is not an integer between 1 and 2147483647, `backlogId` is not a UUID, or the body has extra fields
