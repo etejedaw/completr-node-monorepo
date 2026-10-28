@@ -60,9 +60,10 @@ docs: |-
     | listVisibility        | `private` \| `friends` \| `public`  | No       | Lists visibility                                                  |
     | platinumVisibility    | `private` \| `friends` \| `public`  | No       | Platinums visibility (page, profile section, backlog and feed)    |
     | franchiseVisibility   | `private` \| `friends` \| `public`  | No       | Visibility of the tracked sagas on the profile                    |
+    | rewindVisibility      | `private` \| `friends` \| `public`  | No       | Visibility of the yearly Rewind (summary, detail and share image) |
     | acceptFollowRequests  | boolean                             | No       | If `false` on a `private` profile, the Follow button is hidden. Toggling from true to false deletes all pending requests. |
     | theme                 | string                              | No       | Theme id                                                          |
 
     ### Response (200)
 
-    Returns the updated `userMe` payload (all 9 visibility enums included).
+    Returns the updated `userMe` payload (all 11 visibility enums included).

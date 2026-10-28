@@ -58,6 +58,7 @@ docs: |-
           "listVisibility": "public",
           "platinumVisibility": "public",
           "franchiseVisibility": "public",
+          "rewindVisibility": "public",
           "createdAt": "2026-01-01T00:00:00.000Z"
         },
         "followerCount": 12,
@@ -84,7 +85,8 @@ docs: |-
           "shelf": true,
           "list": true,
           "platinum": true,
-          "franchise": true
+          "franchise": true,
+          "rewind": true
         }
       }
     }

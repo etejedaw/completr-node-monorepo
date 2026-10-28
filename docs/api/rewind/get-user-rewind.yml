@@ -1,0 +1,138 @@
+info:
+    name: Get User Rewind
+    type: http
+    seq: 2
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/:username/rewinds/:year"
+    auth: inherit
+    params:
+        - name: username
+          value: ""
+          type: path
+        - name: year
+          value: "2025"
+          type: path
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get User Rewind
+
+    Returns the Rewind of `:username` for one calendar year: totals, every finished game and the highlights of the year. Powers the `/user/:username/rewind/:year` page and the share images.
+
+    The year must be open (a past year, or the current year from December 1, UTC) and have data for the viewer, as in `GET /users/:username/rewinds`. The owner sees every run; everyone else gets the Rewind built from public runs only. Notes are never returned. The platinum total is only sent to viewers who can see the platinums section (`platinumVisibility`); for everyone else it is `null`. For non-self viewers the target's `profile` and `rewind` sections must be visible.
+
+    **Authentication:** optional (Bearer token). Required to see a Rewind whose privacy needs it.
+    **Rate Limit:** 300 requests per minute (public).
+
+    ### Path Params
+
+    | Param    | Type    | Required | Description                                   |
+    |----------|---------|----------|-----------------------------------------------|
+    | username | string  | Yes      | Profile username                              |
+    | year     | integer | Yes      | Calendar year, digits only, from 2000 to 2100 |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "year": 2025,
+        "user": {
+          "username": "johndoe",
+          "name": "John Doe",
+          "avatarUrl": "https://example.com/avatar.png",
+          "role": "user"
+        },
+        "isSpotlight": false,
+        "otherYears": [2024, 2023],
+        "totals": {
+          "finished": 18,
+          "abandoned": 4,
+          "started": 23,
+          "hoursPlayed": 212.5,
+          "platinums": 3
+        },
+        "finishedGames": [
+          {
+            "gameId": "uuid",
+            "code": "hades",
+            "title": "Hades",
+            "coverUrl": "https://media.example.com/hades.jpg",
+            "backgroundUrl": "https://media.example.com/hades-bg.jpg",
+            "finishedAt": "2025-03-10",
+            "platformAbbreviation": "PS5"
+          }
+        ],
+        "highlights": {
+          "topRated": {
+            "gameId": "uuid",
+            "code": "hades",
+            "title": "Hades",
+            "coverUrl": "https://media.example.com/hades.jpg",
+            "backgroundUrl": "https://media.example.com/hades-bg.jpg",
+            "finishedAt": "2025-03-10",
+            "platformAbbreviation": "PS5",
+            "userRating": 5
+          },
+          "bestRatio": {
+            "gameId": "uuid",
+            "code": "celeste",
+            "title": "Celeste",
+            "coverUrl": "https://media.example.com/celeste.jpg",
+            "backgroundUrl": "https://media.example.com/celeste-bg.jpg",
+            "finishedAt": "2025-07-01",
+            "platformAbbreviation": "NSW",
+            "personalRatio": 9
+          },
+          "longest": {
+            "gameId": "uuid",
+            "code": "elden-ring",
+            "title": "Elden Ring",
+            "coverUrl": "https://media.example.com/elden-ring.jpg",
+            "backgroundUrl": "https://media.example.com/elden-ring-bg.jpg",
+            "finishedAt": "2025-05-01",
+            "platformAbbreviation": "PS5",
+            "hours": 100,
+            "isEstimate": false
+          },
+          "fastest": {
+            "gameId": "uuid",
+            "code": "gris",
+            "title": "Gris",
+            "coverUrl": "https://media.example.com/gris.jpg",
+            "backgroundUrl": "https://media.example.com/gris-bg.jpg",
+            "finishedAt": "2025-02-14",
+            "platformAbbreviation": "NSW",
+            "hours": 3.5,
+            "isEstimate": true
+          },
+          "favoriteGenre": { "code": "action", "name": "Action", "count": 7 },
+          "topPlatform": { "name": "PlayStation 5", "abbreviation": "PS5", "count": 12 },
+          "busiestMonth": { "month": 3, "count": 5 }
+        }
+      }
+    }
+    ```
+
+    - `isSpotlight`: `true` while today (UTC) is between December 1 of `year` and January 31 of the next year.
+    - `otherYears`: the other years `GET /users/:username/rewinds` lists for the same viewer, newest first.
+    - `totals`: distinct games `finished` (`completed`) and `abandoned` with `finishedAt` in the year, distinct games `started` (`startedAt` in the year), `hoursPlayed` as in the years list, and `platinums` with `platinumedAt` in the year (`null` without access to the platinums).
+    - `finishedGames`: one entry per finished game (its latest run of the year), by `finishedAt` ascending and then run id.
+    - `topRated`: the finished run with the highest `userRating`; ties go to the latest `finishedAt`, then the run id.
+    - `bestRatio`: the finished run with the highest personal ratio (`score` per hour of `realDuration`, same formula as the backlog); ties like `topRated`.
+    - `longest` / `fastest`: by `realDuration`, or by the estimated `duration` (`isEstimate: true`) when the run has no real hours; ties go to the earliest `finishedAt`, then the run id. `fastest` is `null` when it would be the same game as `longest`.
+    - `favoriteGenre`: the genre with the most distinct finished games; ties by name. `topPlatform`: the platform with the most finished runs; ties by name. `busiestMonth`: the month (1-12) with the most finished games; ties go to the earliest month.
+    - Every highlight is `null` when there is nothing to pick from.
+
+    ### Errors
+
+    | Status | Code                  | Description                                                     |
+    |--------|-----------------------|-----------------------------------------------------------------|
+    | 403    | USER_PRIVATE          | Profile or its rewind section is not visible                    |
+    | 404    | USER_NOT_FOUND        | No active user with that username                               |
+    | 404    | REWIND_NOT_FOUND      | The year is not open yet or has no data for the viewer          |
+    | 422    | COMMON_SCHEMA_INVALID | `year` is not an integer from 2000 to 2100, or bad `username`   |

@@ -1,0 +1,75 @@
+info:
+    name: Get User Rewinds
+    type: http
+    seq: 1
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/:username/rewinds"
+    auth: inherit
+    params:
+        - name: username
+          value: ""
+          type: path
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get User Rewinds
+
+    Lists the yearly Rewinds of `:username`: one summary per year with data, newest first, plus the year in the spotlight window. Powers the Rewind spotlight and the Rewind row of a profile, and the `/user/:username/rewind` archive.
+
+    A year is listed when it is open and has data. It is open when it is a past year, or the current year from December 1 (UTC). It has data when at least one run has `startedAt` in the year, or is `completed` / `abandoned` with `finishedAt` in the year. Years outside 2000-2100 are never listed.
+
+    The owner sees every run. Everyone else gets the summaries built from public runs only (`isPublic = true`), so a year that only has private runs is not listed for them. For non-self viewers the target's `profile` and `rewind` sections must be visible (`profileVisibility` and `rewindVisibility`): `friends` only for mutual followers, `private` only for the owner.
+
+    **Authentication:** optional (Bearer token). Required to see a Rewind whose privacy needs it.
+    **Rate Limit:** 300 requests per minute (public).
+
+    ### Path Params
+
+    | Param    | Type   | Required | Description      |
+    |----------|--------|----------|------------------|
+    | username | string | Yes      | Profile username |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "spotlightYear": 2026,
+        "years": [
+          {
+            "year": 2026,
+            "finishedCount": 18,
+            "startedCount": 23,
+            "hoursPlayed": 212.5,
+            "covers": [
+              {
+                "gameId": "uuid",
+                "code": "hades",
+                "title": "Hades",
+                "coverUrl": "https://media.example.com/hades.jpg",
+                "backgroundUrl": "https://media.example.com/hades-bg.jpg"
+              }
+            ]
+          }
+        ]
+      }
+    }
+    ```
+
+    - `spotlightYear`: the year whose spotlight window (December 1 of that year to January 31 of the next, UTC) contains today, only if that year is in `years`; `null` otherwise.
+    - `finishedCount` / `startedCount`: distinct games finished (`completed` with `finishedAt` in the year) and started (`startedAt` in the year).
+    - `hoursPlayed`: sum of `realDuration` of the `completed` and `abandoned` runs with `finishedAt` in the year, rounded to 1 decimal.
+    - `covers`: up to 5 finished games, best `userRating` first, then the most recently finished. A game finished twice counts once, with its latest run.
+    - `years` is empty when there is nothing to show.
+
+    ### Errors
+
+    | Status | Code                  | Description                                     |
+    |--------|-----------------------|-------------------------------------------------|
+    | 403    | USER_PRIVATE          | Profile or its rewind section is not visible    |
+    | 404    | USER_NOT_FOUND        | No active user with that username               |
+    | 422    | COMMON_SCHEMA_INVALID | `username` fails validation                     |
