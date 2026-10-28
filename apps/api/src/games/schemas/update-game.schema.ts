@@ -11,7 +11,7 @@ export const UpdateGameSchema = z
 		coverUrl: z.string().nonempty().optional(),
 		backgroundUrl: z.string().nonempty().optional(),
 		isDlc: z.boolean().optional(),
-		parentGameId: z.uuid().optional(),
+		parentGameId: z.uuid().nullable().optional(),
 		franchiseId: z.uuid().nullable().optional(),
 		variant: z.string().max(100).nullable().optional(),
 		genres: z.array(z.string().max(100).nonempty()).optional(),

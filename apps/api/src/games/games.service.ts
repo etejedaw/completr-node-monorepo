@@ -163,7 +163,13 @@ export async function updateGame(id: string, updateGameDto: UpdateGameDto) {
 		);
 	}
 
+	if (updateGameDto.parentGameId === game.id)
+		throw gamesServiceError.validationError(
+			new Error("A game cannot be its own parent")
+		);
+
 	const updateData: Record<string, unknown> = { ...gameDto };
+	if (updateGameDto.isDlc === false) updateData.parentGameId = null;
 	if (title) {
 		const code = titleToSlug(title);
 		if (!code)
