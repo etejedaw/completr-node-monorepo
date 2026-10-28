@@ -230,6 +230,13 @@ export const routes: Routes = [
 					)
 			},
 			{
+				path: "franchises",
+				loadComponent: () =>
+					import("./features/franchises/franchise-overview/franchise-overview").then(
+						m => m.FranchiseOverview
+					)
+			},
+			{
 				path: "franchises/:code",
 				loadComponent: () =>
 					import("./features/franchises/franchise-detail/franchise-detail").then(

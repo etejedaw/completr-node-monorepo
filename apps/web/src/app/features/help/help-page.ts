@@ -75,6 +75,10 @@ const COLLECTION_GUIDE: readonly { route: string; text: string }[] = [
 		text: "Curated collections you build and share: sagas, rankings, challenges. Other players can follow them."
 	},
 	{
+		route: "/franchises",
+		text: "Game sagas from the catalog, like Resident Evil or Zelda. Track the ones you follow and they show up on your profile."
+	},
+	{
 		route: "/tags",
 		text: "Your own labels, like cozy or co-op, to slice My Games however you like."
 	}

@@ -181,6 +181,7 @@ export class OnboardingTour {
 			items: [
 				tourItem("/games", "Full game catalog"),
 				tourItem("/lists", "Curated picks"),
+				tourItem("/franchises", "Sagas to track"),
 				tourItem("/feed", "What your friends are playing")
 			]
 		}

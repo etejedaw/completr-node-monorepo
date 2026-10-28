@@ -119,6 +119,13 @@ export const NAV_SECTIONS: readonly NavSection[] = [
 				tooltip: "Curated game lists, yours and from others"
 			},
 			{
+				route: "/franchises",
+				icon: "collections_bookmark",
+				label: "Sagas",
+				iconColorClass: "text-nav-sagas",
+				tooltip: "Game sagas from the catalog to track"
+			},
+			{
 				route: "/users",
 				icon: "groups",
 				label: "Users",
