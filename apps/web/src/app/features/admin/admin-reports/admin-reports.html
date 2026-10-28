@@ -100,6 +100,7 @@
 				uiButton
 				variant="primary"
 				size="sm"
+				[disabled]="isBusy(report.id)"
 				(click)="approve(report)"
 			>
 				<span aria-hidden="true" class="material-icons text-base"
@@ -111,6 +112,7 @@
 				uiButton
 				variant="danger"
 				size="sm"
+				[disabled]="isBusy(report.id)"
 				(click)="reject(report)"
 			>
 				<span aria-hidden="true" class="material-icons text-base"
