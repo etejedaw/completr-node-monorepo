@@ -13,6 +13,8 @@ apps/api/src/games/
 ├── games.controller.ts            Handlers de request/response
 ├── games.routes.ts                Router Express
 ├── games.serializer.ts            Transformación al formato del frontend
+├── games.interface.ts             Interfaces del módulo
+├── games.types.ts                 Alias type del módulo
 ├── dtos/                          DTOs (z.infer<typeof Schema>)
 │   ├── register-game.dto.ts
 │   └── update-game.dto.ts
@@ -91,6 +93,14 @@ apps/api/src/genres/
 - Función pura: recibe el `model.get({ plain: true })` y retorna el shape final del frontend.
 - **Aquí van los cálculos derivados** (ratio, estadísticas, banderas booleanas).
 - Si hay variantes de salida (tiny, full), se hacen archivos separados en `serializers/`.
+
+### `<modulo>.interface.ts` y `<modulo>.types.ts`
+
+- Toda declaración `interface` del módulo, exportada o de uso interno, vive en `<modulo>.interface.ts`; todo alias `type` (objetos, uniones, intersecciones, utilitarios, firmas de función), en `<modulo>.types.ts`. Nunca se declaran en services, controllers, routes, serializers, mappers, utils, helpers, templates, constants, errors ni middlewares.
+- Un `*.interface.ts` solo contiene interfaces y un `*.types.ts` solo alias `type`. Las constantes en tiempo de ejecución van a `<modulo>.constants.ts`, aunque solo existan para derivar un tipo.
+- Si mezclarlo con el contrato HTTP lo ensucia, el módulo separa sus tipos por tema: `<modulo>-<tema>.interface.ts` y `<modulo>-<tema>.types.ts` (por ejemplo `rewind-run.interface.ts`, `rewind-build.interface.ts`, `rewind-generation.types.ts`). En `common/`, las interfaces van en `common/interfaces/` o en un `*.interface.ts` junto a su carpeta (`common/errors/errors.interface.ts`), y los alias en `common/types/`.
+- Los tipos se exportan siempre desde su archivo y se importan con `import { type X }`.
+- **Excepciones**, que se quedan donde están: el tipo derivado de una constante en tiempo de ejecución, junto a ella (`type X = (typeof X_VALUES)[number]`, `keyof typeof X`, `ExportRow<(typeof COLUMNS)[number]>`); el `z.infer<typeof Schema>` junto a su schema o en su DTO, y los DTOs en general, que son su propio archivo de tipos; lo que un modelo Sequelize necesita para declarar su clase (atributos, `InferAttributes`, la forma de sus includes); los `*.d.ts` de augmentations.
 
 ### `dtos/`
 

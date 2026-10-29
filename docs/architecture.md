@@ -44,9 +44,9 @@ apps/api/src/
 │   ├── errors/             # Clases base (ServiceError, DomainError, HttpError) + normalizers globales
 │   ├── middlewares/        # correlation-id, logger, validate-schema, rate-limiter, error-handler
 │   ├── schemas/            # Schemas Zod reusables (paginación, búsqueda)
-│   ├── interfaces/         # Tipos compartidos (RequestUser, JwtPayload)
+│   ├── interfaces/         # Interfaces compartidas (RequestUser, JwtPayload)
 │   ├── logger/             # Pino + interface
-│   ├── types/              # Augmentations de tipos globales (express.d.ts)
+│   ├── types/              # Alias type compartidos (ExportRow, RangeWhere) y augmentations globales (express.d.ts)
 │   └── utils/              # Helpers genéricos
 ├── database/               # Conexión Sequelize, asociaciones, init
 ├── auth/  users/  games/   # Módulos de negocio
@@ -59,6 +59,8 @@ apps/api/src/
 ```
 
 Cada módulo de negocio sigue la **misma estructura interna**. Ver [`context/modules.md`](./context/modules.md).
+
+En `common/`, en los módulos y en las capacidades, los `*.interface.ts` solo declaran `interface` y los `*.types.ts` los alias `type`; la regla completa y sus excepciones están en la anatomía de [`context/modules.md`](./context/modules.md#modulointerfacets-y-modulotypests).
 
 ## Capas dentro de un módulo
 

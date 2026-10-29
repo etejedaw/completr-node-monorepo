@@ -20,6 +20,7 @@ Reglas de estilo, naming y workflow. Aplican a todo el repo.
 - `<accion>-<recurso>.dto.ts` — DTO (`z.infer<typeof Schema>`).
 - `<modulo>.service-error.ts`, `<modulo>.domain-error.ts` — constructores de errores.
 - `<modulo>.<algo>.mapper.ts` o `<modulo>.<algo>.normalizer.ts` — mappers/normalizers.
+- `<modulo>.interface.ts` y `<modulo>.types.ts` — las interfaces y los alias `type` del módulo, que no se declaran en ningún otro archivo. Regla y excepciones en [`modules.md`](./modules.md#modulointerfacets-y-modulotypests).
 
 Si una categoría tiene **1 archivo**, queda en la raíz del módulo. Si tiene **2+**, se mueve a su carpeta (`schemas/`, `dtos/`, `errors/`, etc.). Detalle en [`modules.md`](./modules.md).
 
