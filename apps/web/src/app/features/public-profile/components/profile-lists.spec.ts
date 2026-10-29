@@ -3,7 +3,6 @@ import "@testing-library/jest-dom/vitest";
 import { signal } from "@angular/core";
 import { provideRouter } from "@angular/router";
 import { render, screen, waitFor } from "@testing-library/angular";
-import userEvent from "@testing-library/user-event";
 import { of, Subject, throwError } from "rxjs";
 
 import { ViewportService } from "../../../core/services/viewport";
@@ -66,8 +65,10 @@ describe("ProfileLists", () => {
 
 		expect(await screen.findByText("Own list 1")).toBeInTheDocument();
 		expect(screen.getByText("Followed list 1")).toBeInTheDocument();
-		expect(getUserLists).toHaveBeenCalledWith("ada");
-		expect(getUserFollowingLists).toHaveBeenCalledWith("ada");
+		expect(getUserLists).toHaveBeenCalledWith("ada", { limit: 6 });
+		expect(getUserFollowingLists).toHaveBeenCalledWith("ada", {
+			limit: 6
+		});
 		expect(
 			screen.getByRole("heading", { name: "Created 2" })
 		).toBeInTheDocument();
@@ -118,26 +119,42 @@ describe("ProfileLists", () => {
 		expect(screen.getByLabelText("Loading lists")).toBeInTheDocument();
 	});
 
-	it("collapses long groups to six lists and expands them on request", async () => {
-		const user = userEvent.setup();
-		getUserLists.mockReturnValue(of({ items: lists("Own", 8), total: 8 }));
+	it("shows six lists, counts the real total and links to the full page", async () => {
+		getUserLists.mockReturnValue(of({ items: lists("Own", 6), total: 14 }));
 		await renderLists();
 
 		await screen.findByText("Own list 1");
 		expect(screen.getByText("Own list 6")).toBeInTheDocument();
-		expect(screen.queryByText("Own list 7")).not.toBeInTheDocument();
-
-		await user.click(
-			screen.getByRole("button", { name: /Show all lists/ })
-		);
-
-		expect(screen.getByText("Own list 8")).toBeInTheDocument();
 		expect(
-			screen.getByRole("button", { name: /Show fewer/ })
-		).toHaveAttribute("aria-expanded", "true");
+			screen.getByRole("heading", { name: "Created 14" })
+		).toBeInTheDocument();
+		expect(screen.getByRole("link", { name: /See all/ })).toHaveAttribute(
+			"href",
+			"/user/ada/lists"
+		);
+		expect(
+			screen.queryByRole("button", { name: /Show all lists|Show fewer/ })
+		).not.toBeInTheDocument();
 	});
 
-	it("collapses to three lists on mobile", async () => {
+	it("opens the Following tab when only the followed lists overflow", async () => {
+		getUserLists.mockReturnValue(of({ items: lists("Own", 2), total: 2 }));
+		getUserFollowingLists.mockReturnValue(
+			of({ items: lists("Followed", 6), total: 9 })
+		);
+		await renderLists();
+
+		await screen.findByText("Own list 1");
+		expect(
+			screen.getByRole("heading", { name: "Following 9" })
+		).toBeInTheDocument();
+		expect(screen.getByRole("link", { name: /See all/ })).toHaveAttribute(
+			"href",
+			"/user/ada/lists?tab=following"
+		);
+	});
+
+	it("shows three lists on mobile and links to the rest", async () => {
 		isMobile.set(true);
 		getUserLists.mockReturnValue(of({ items: lists("Own", 5), total: 5 }));
 		await renderLists();
@@ -145,15 +162,36 @@ describe("ProfileLists", () => {
 		await screen.findByText("Own list 1");
 		expect(screen.getByText("Own list 3")).toBeInTheDocument();
 		expect(screen.queryByText("Own list 4")).not.toBeInTheDocument();
+		expect(screen.getByRole("link", { name: /See all/ })).toHaveAttribute(
+			"href",
+			"/user/ada/lists"
+		);
 	});
 
-	it("offers no expand button when every list fits", async () => {
+	it("offers no See all link when every list fits", async () => {
 		getUserLists.mockReturnValue(of({ items: lists("Own", 3), total: 3 }));
+		getUserFollowingLists.mockReturnValue(
+			of({ items: lists("Followed", 6), total: 6 })
+		);
 		await renderLists();
 
 		await screen.findByText("Own list 1");
 		expect(
-			screen.queryByRole("button", { name: /Show all lists/ })
+			screen.queryByRole("link", { name: /See all/ })
 		).not.toBeInTheDocument();
+	});
+
+	it("loads again for a new username and drops the previous owner's lists", async () => {
+		getUserLists.mockImplementation((username: string) =>
+			of({ items: lists(username, 1), total: 1 })
+		);
+		const { fixture } = await renderLists();
+		await screen.findByText("ada list 1");
+
+		fixture.componentRef.setInput("username", "grace");
+
+		expect(await screen.findByText("grace list 1")).toBeInTheDocument();
+		expect(screen.queryByText("ada list 1")).not.toBeInTheDocument();
+		expect(getUserLists).toHaveBeenLastCalledWith("grace", { limit: 6 });
 	});
 });
