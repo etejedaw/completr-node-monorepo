@@ -14,7 +14,13 @@
 		>
 			{{ text.heading }}
 		</h2>
-		<ui-premium-badge class="ml-auto" [label]="text.premiumLabel" />
+		<ui-premium-badge
+			class="ml-auto"
+			interactive
+			[label]="text.premiumLabel"
+			[title]="text.premiumPerkTitle"
+			[message]="text.premiumPerkMessage"
+		/>
 	</header>
 
 	<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">

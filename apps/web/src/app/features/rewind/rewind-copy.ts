@@ -104,6 +104,9 @@ const ENGLISH: RewindCopy = {
 	aiRecap: {
 		heading: "AI recap",
 		premiumLabel: "Premium",
+		premiumPerkTitle: "Premium perk",
+		premiumPerkMessage:
+			"The AI recap reads the whole year to describe the player behind it.",
 		insights: "Insights",
 		insightKinds: {
 			"taste-vs-critics": "Taste vs. critics",
@@ -120,6 +123,9 @@ const ENGLISH: RewindCopy = {
 	premiumStats: {
 		heading: "Premium stats",
 		premiumLabel: "Premium",
+		premiumPerkTitle: "Premium perk",
+		premiumPerkMessage:
+			"These charts show the year in more detail: hours by month, ratings against the critics, the backlog and genres.",
 		hoursByMonth: "Your year's rhythm",
 		hoursByMonthHint: "Hours played each month",
 		hours: "Hours",
@@ -238,6 +244,9 @@ const SPANISH: RewindCopy = {
 	aiRecap: {
 		heading: "Resumen con IA",
 		premiumLabel: "Premium",
+		premiumPerkTitle: "Ventaja Premium",
+		premiumPerkMessage:
+			"El resumen con IA lee todo el año para describir al jugador que hay detrás.",
 		insights: "Hallazgos",
 		insightKinds: {
 			"taste-vs-critics": "Tu gusto vs. la crítica",
@@ -254,6 +263,9 @@ const SPANISH: RewindCopy = {
 	premiumStats: {
 		heading: "Estadísticas Premium",
 		premiumLabel: "Premium",
+		premiumPerkTitle: "Ventaja Premium",
+		premiumPerkMessage:
+			"Estas gráficas muestran el año en detalle: horas por mes, notas frente a la crítica, el backlog y los géneros.",
 		hoursByMonth: "El ritmo de tu año",
 		hoursByMonthHint: "Horas jugadas cada mes",
 		hours: "Horas",

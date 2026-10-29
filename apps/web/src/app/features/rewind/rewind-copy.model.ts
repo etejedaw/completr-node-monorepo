@@ -56,6 +56,8 @@ export interface RewindShareCopy {
 export interface RewindAiRecapCopy {
 	heading: string;
 	premiumLabel: string;
+	premiumPerkTitle: string;
+	premiumPerkMessage: string;
 	insights: string;
 	insightKinds: Record<RewindInsightKind, string>;
 	funFact: string;
@@ -65,6 +67,8 @@ export interface RewindAiRecapCopy {
 export interface RewindPremiumStatsCopy {
 	heading: string;
 	premiumLabel: string;
+	premiumPerkTitle: string;
+	premiumPerkMessage: string;
 	hoursByMonth: string;
 	hoursByMonthHint: string;
 	hours: string;

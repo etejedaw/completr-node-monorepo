@@ -234,4 +234,29 @@ describe("RewindAiRecap", () => {
 			summaryParagraphs("One.\nStill one.\n\n\nTwo.\n \nThree.")
 		).toEqual(["One.\nStill one.", "Two.", "Three."]);
 	});
+	it.each([
+		[
+			"en",
+			"Premium perk",
+			"The AI recap reads the whole year to describe the player behind it."
+		],
+		[
+			"es",
+			"Ventaja Premium",
+			"El resumen con IA lee todo el año para describir al jugador que hay detrás."
+		]
+	] as const)(
+		"explains the Premium perk in %s when the badge is pressed, once per press",
+		async (language, title, message) => {
+			const view = await renderRecap(recap(), language);
+			const toast = view.fixture.debugElement.injector.get(ToastService);
+
+			const badge = screen.getByRole("button", { name: "Premium" });
+			badge.click();
+			badge.click();
+
+			expect(toast.premium).toHaveBeenCalledTimes(2);
+			expect(toast.premium).toHaveBeenCalledWith(title, message);
+		}
+	);
 });

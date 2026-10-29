@@ -74,7 +74,13 @@ function isInsightKind(kind: unknown): kind is RewindInsightKind {
 				>
 					{{ text.heading }}
 				</h2>
-				<ui-premium-badge class="ml-auto" [label]="text.premiumLabel" />
+				<ui-premium-badge
+					class="ml-auto"
+					interactive
+					[label]="text.premiumLabel"
+					[title]="text.premiumPerkTitle"
+					[message]="text.premiumPerkMessage"
+				/>
 			</header>
 
 			<div class="flex min-w-0 flex-col gap-4">

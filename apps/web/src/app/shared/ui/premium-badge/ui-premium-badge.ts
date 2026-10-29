@@ -39,11 +39,12 @@ export class UiPremiumBadge {
 
 	size = input<"sm" | "md">("md");
 	label = input("Premium");
+	title = input("Premium perk");
 	message = input("");
 	interactive = input(false, { transform: booleanAttribute });
 
 	onPress(event: Event) {
 		event.stopPropagation();
-		this.toast.premium("Premium perk", this.message() || this.label());
+		this.toast.premium(this.title(), this.message() || this.label());
 	}
 }

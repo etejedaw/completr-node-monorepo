@@ -346,4 +346,29 @@ describe("premium stats data", () => {
 		expect(hasPremiumCharts(EMPTY_STATS)).toBe(false);
 		expect(hasPremiumCharts(stats())).toBe(true);
 	});
+	it.each([
+		[
+			"en",
+			"Premium perk",
+			"These charts show the year in more detail: hours by month, ratings against the critics, the backlog and genres."
+		],
+		[
+			"es",
+			"Ventaja Premium",
+			"Estas gráficas muestran el año en detalle: horas por mes, notas frente a la crítica, el backlog y los géneros."
+		]
+	] as const)(
+		"explains the Premium perk in %s when the badge is pressed, once per press",
+		async (language, title, message) => {
+			const view = await renderStats(stats(), language);
+			const toast = view.fixture.debugElement.injector.get(ToastService);
+
+			const badge = screen.getByRole("button", { name: "Premium" });
+			badge.click();
+			badge.click();
+
+			expect(toast.premium).toHaveBeenCalledTimes(2);
+			expect(toast.premium).toHaveBeenCalledWith(title, message);
+		}
+	);
 });
