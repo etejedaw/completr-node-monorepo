@@ -127,6 +127,7 @@ export interface RewindPageCopy {
 	notGeneratedTitle: string;
 	notGeneratedMessage: string;
 	backToProfile: string;
+	generateRewind: string;
 	failedTitle: string;
 	failedMessage: string;
 	tryAgain: string;
@@ -176,6 +177,7 @@ const ENGLISH: RewindCopy = {
 		notGeneratedMessage:
 			"Generate it from your profile. Until then, nobody else can see this year.",
 		backToProfile: "Go to your profile",
+		generateRewind: "Generate your Rewind",
 		failedTitle: "Couldn't load this Rewind",
 		failedMessage: "Check your connection and try again.",
 		tryAgain: "Try again"
@@ -306,6 +308,7 @@ const SPANISH: RewindCopy = {
 		notGeneratedMessage:
 			"Genéralo desde tu perfil. Hasta entonces, nadie más puede ver este año.",
 		backToProfile: "Ir a tu perfil",
+		generateRewind: "Genera tu Rewind",
 		failedTitle: "No pudimos cargar este Rewind",
 		failedMessage: "Revisa tu conexión e inténtalo de nuevo.",
 		tryAgain: "Reintentar"

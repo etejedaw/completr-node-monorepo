@@ -34,6 +34,7 @@ import { RewindYearCard } from "../rewind-year-card/rewind-year-card";
 							<app-rewind-year-card
 								[username]="username()"
 								[summary]="summary"
+								[language]="language()"
 							/>
 						</li>
 					}

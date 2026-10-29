@@ -28,15 +28,36 @@
 		[title]="page.notGeneratedTitle"
 		[message]="page.notGeneratedMessage"
 	>
+		<button
+			uiButton
+			type="button"
+			variant="primary"
+			class="tap:min-h-[44px]"
+			[disabled]="generation.isPending()"
+			(click)="generation.open()"
+		>
+			{{ page.generateRewind }}
+		</button>
 		<a
 			uiButton
-			variant="primary"
+			variant="secondary"
 			class="tap:min-h-[44px]"
 			[routerLink]="['/user', username()]"
 			>{{ page.backToProfile }}</a
 		>
 	</ui-plain-empty-state>
-	} @else if (error === 'failed') {
+	@let generationYear = year(); @if (generation.isOpen() && generationYear !==
+	null) {
+	<app-rewind-generate-dialog
+		[username]="username()"
+		[year]="generationYear"
+		[rewind]="generation.latestRewind()"
+		[pending]="generation.isPending()"
+		[error]="generation.error()"
+		(submitted)="generation.submit($event)"
+		(closed)="generation.close()"
+	/>
+	} } @else if (error === 'failed') {
 	<ui-plain-empty-state
 		icon="cloud_off"
 		[title]="page.failedTitle"
@@ -115,7 +136,13 @@
 		</div>
 	</header>
 
-	<div id="rewind-owner-panel-slot" class="mt-6 empty:hidden"></div>
+	@if (data.ownerControls) {
+	<app-rewind-owner-panel
+		class="mt-6 block"
+		[rewind]="data"
+		(rewindChange)="replaceRewind($event)"
+	/>
+	}
 
 	<div
 		class="mt-8 grid grid-cols-1 gap-14 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-x-12 lg:[grid-template-areas:var(--rewind-areas)]"

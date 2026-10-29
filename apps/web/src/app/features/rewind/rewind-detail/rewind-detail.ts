@@ -30,11 +30,14 @@ import { ProfileAccessState } from "../../public-profile/components/profile-acce
 import { ProfileSectionHeader } from "../../public-profile/components/profile-section-header";
 import { RewindAiRecap } from "../components/rewind-ai-recap/rewind-ai-recap";
 import { RewindFinishedGames } from "../components/rewind-finished-games/rewind-finished-games";
+import { RewindGenerateDialog } from "../components/rewind-generate-dialog/rewind-generate-dialog";
+import { injectRewindGenerateFlow } from "../components/rewind-generate-dialog/rewind-generate-flow";
 import {
 	presentHighlightKeys,
 	RewindHighlights
 } from "../components/rewind-highlights/rewind-highlights";
 import { RewindMoreYears } from "../components/rewind-more-years/rewind-more-years";
+import { RewindOwnerPanel } from "../components/rewind-owner-panel/rewind-owner-panel";
 import { RewindPersonaRank } from "../components/rewind-persona-rank/rewind-persona-rank";
 import {
 	hasPremiumCharts,
@@ -98,6 +101,8 @@ function backdropOf(rewind: Rewind): string | null {
 		RewindShareActions,
 		RewindTally,
 		RewindYearOdometer,
+		RewindGenerateDialog,
+		RewindOwnerPanel,
 		UiButton,
 		UiDialog,
 		UiPlainEmptyState,
@@ -249,6 +254,12 @@ export class RewindDetail {
 	protected retry() {
 		this.resource.reload();
 	}
+
+	protected readonly generation = injectRewindGenerateFlow({
+		username: () => this.username(),
+		year: () => this.year() ?? 0,
+		onGenerated: rewind => this.replaceRewind(rewind)
+	});
 
 	replaceRewind(rewind: Rewind) {
 		const sameOwner =
