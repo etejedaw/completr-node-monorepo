@@ -42,6 +42,7 @@ export const PREMIUM_STATS: RewindPremiumStats = {
 export const FIRST_GENERATION: GenerateRewindRequest = {
 	language: "en",
 	includePrivateRuns: false,
+	includeNotes: false,
 	expectedGeneratedAt: null
 };
 
@@ -64,6 +65,7 @@ export interface RunFields {
 	finishedAt?: string;
 	realDuration?: number;
 	isPublic?: boolean;
+	notes?: string;
 }
 
 export function addRun(

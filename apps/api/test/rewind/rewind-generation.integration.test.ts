@@ -179,6 +179,7 @@ void describe("POST /users/me/rewinds/:year", () => {
 		const response = await generate(player, 2026, {
 			language: "es",
 			includePrivateRuns: true,
+			includeNotes: false,
 			expectedGeneratedAt: null
 		}).expect(201);
 
@@ -190,6 +191,7 @@ void describe("POST /users/me/rewinds/:year", () => {
 		assert.equal(data.premiumStats, null);
 		assert.deepEqual(data.ownerControls, {
 			includesPrivateRuns: true,
+			includesNotes: false,
 			regenerationsLeft: 1,
 			graceEndsAt: null,
 			canRegenerate: true,
@@ -351,6 +353,17 @@ void describe("POST /users/me/rewinds/:year", () => {
 			{ ...FIRST_GENERATION, language: "<b>es</b>" },
 			{ ...FIRST_GENERATION, includePrivateRuns: "true" },
 			{ ...FIRST_GENERATION, includePrivateRuns: 1 },
+			{ ...FIRST_GENERATION, includeNotes: "true" },
+			{ ...FIRST_GENERATION, includeNotes: "false" },
+			{ ...FIRST_GENERATION, includeNotes: 1 },
+			{ ...FIRST_GENERATION, includeNotes: null },
+			{ ...FIRST_GENERATION, includeNotes: [true] },
+			{ ...FIRST_GENERATION, notes: "leak me" },
+			{
+				language: "en",
+				includePrivateRuns: false,
+				expectedGeneratedAt: null
+			},
 			{ ...FIRST_GENERATION, expectedGeneratedAt: "yesterday" },
 			{ ...FIRST_GENERATION, expectedGeneratedAt: "🔥".repeat(2000) },
 			{ ...FIRST_GENERATION, role: "admin" },

@@ -26,6 +26,8 @@ export function buildRun(
 		duration: null,
 		score: null,
 		userRating: null,
+		createdAt: "2026-01-01",
+		notes: null,
 		game: {
 			gameId: `id-${gameCode}`,
 			code: gameCode,

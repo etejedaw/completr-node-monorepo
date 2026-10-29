@@ -3,14 +3,17 @@ import { describe, it } from "node:test";
 
 import {
 	buildRewindRecapContent,
+	condenseRecapNote,
 	REWIND_RECAP_GAME_COLUMNS,
-	REWIND_RECAP_MAX_GAME_ROWS
+	REWIND_RECAP_MAX_GAME_ROWS,
+	REWIND_RECAP_NOTE_MAX_LENGTH
 } from "../../src/rewind-recap/utils/build-rewind-recap-content.util";
 import { buildRun, finishedRun } from "../rewind/rewind-run.builder";
 import {
 	buildRecapInput,
 	buildRecapRewind,
 	buildTotals,
+	franchiseOf,
 	genreOf,
 	RECAP_YEAR,
 	TODAY
@@ -88,18 +91,21 @@ void describe("buildRewindRecapContent", () => {
 				"2026-03-10",
 				"PS5",
 				"Action/RPG",
+				null,
 				42.5,
-				false,
+				25,
+				1.7,
 				4.5,
 				4.6,
 				-0.1,
+				31,
 				37
 			]
 		]);
 		assert.doesNotMatch(serialized, /id-hades|img\.test|run-\d+/);
 	});
 
-	void it("marks estimated hours and leaves unknown values as null", () => {
+	void it("keeps real and estimated hours apart and leaves unknown values as null", () => {
 		const estimated = finishedRun("celeste", "2026-05-01", {
 			duration: 8,
 			platform: null
@@ -111,8 +117,11 @@ void describe("buildRewindRecapContent", () => {
 			TODAY
 		);
 
-		assert.deepEqual(column(content, "hours"), [8, null]);
-		assert.deepEqual(column(content, "hoursEstimated"), [true, null]);
+		assert.deepEqual(column(content, "realHours"), [null, null]);
+		assert.deepEqual(column(content, "estimatedHours"), [8, null]);
+		assert.deepEqual(column(content, "paceVsEstimate"), [null, null]);
+		assert.deepEqual(column(content, "franchise"), [null, null]);
+		assert.deepEqual(column(content, "daysInBacklog"), [null, null]);
 		assert.deepEqual(column(content, "platform"), [null, "NSW"]);
 		assert.deepEqual(column(content, "genres"), [null, null]);
 		assert.deepEqual(column(content, "userRating"), [null, null]);
@@ -363,5 +372,178 @@ void describe("buildRewindRecapContent", () => {
 		);
 
 		assert.deepEqual(content.previousYear, previousYearTotals);
+	});
+
+	void it("divides real by estimated hours and refuses to divide by zero or nothing", () => {
+		const runs = [
+			finishedRun("slow", "2026-02-01", {
+				realDuration: 10,
+				duration: 3
+			}),
+			finishedRun("fast", "2026-02-02", {
+				realDuration: 5,
+				duration: 10
+			}),
+			finishedRun("zero-estimate", "2026-02-03", {
+				realDuration: 5,
+				duration: 0
+			}),
+			finishedRun("zero-real", "2026-02-04", {
+				realDuration: 0,
+				duration: 10
+			}),
+			finishedRun("no-estimate", "2026-02-05", { realDuration: 5 }),
+			finishedRun("negative", "2026-02-06", {
+				realDuration: -4,
+				duration: 10
+			})
+		];
+
+		const content = readContent(buildRecapInput(runs), TODAY);
+
+		assert.deepEqual(column(content, "paceVsEstimate"), [
+			3.33,
+			0.5,
+			null,
+			null,
+			null,
+			null
+		]);
+		assert.deepEqual(column(content, "realHours"), [10, 5, 5, 0, 5, -4]);
+		assert.deepEqual(column(content, "estimatedHours"), [
+			3,
+			10,
+			0,
+			10,
+			null,
+			10
+		]);
+	});
+
+	void it("counts the days in the backlog and leaves them null when the game was added after it started", () => {
+		const runs = [
+			finishedRun("waited", "2026-06-01", {
+				createdAt: "2026-01-10",
+				startedAt: "2026-03-01"
+			}),
+			finishedRun("same-day", "2026-06-02", {
+				createdAt: "2026-04-01T22:30:00.000Z",
+				startedAt: "2026-04-01"
+			}),
+			finishedRun("logged-later", "2026-06-03", {
+				createdAt: "2026-05-20",
+				startedAt: "2026-05-01"
+			}),
+			finishedRun("never-started", "2026-06-04", {
+				createdAt: "2026-01-01"
+			}),
+			finishedRun("waited-years", "2026-06-05", {
+				createdAt: "2023-06-05",
+				startedAt: "2026-06-04"
+			})
+		];
+
+		const content = readContent(buildRecapInput(runs), TODAY);
+
+		assert.deepEqual(column(content, "title"), [
+			"WAITED",
+			"SAME-DAY",
+			"LOGGED-LATER",
+			"NEVER-STARTED",
+			"WAITED-YEARS"
+		]);
+		assert.deepEqual(column(content, "daysInBacklog"), [
+			50,
+			0,
+			null,
+			null,
+			1095
+		]);
+	});
+
+	void it("names the franchise of each game and joins several with a slash", () => {
+		const runs = [
+			finishedRun("zelda", "2026-02-01"),
+			finishedRun("crossover", "2026-02-02"),
+			finishedRun("standalone", "2026-02-03")
+		];
+
+		const content = readContent(
+			buildRecapInput(runs, {
+				franchises: [
+					franchiseOf("zelda", "The Legend of Zelda"),
+					franchiseOf("crossover", "Mario"),
+					franchiseOf("crossover", "Sonic"),
+					franchiseOf("crossover", "Mario")
+				]
+			}),
+			TODAY
+		);
+
+		assert.deepEqual(column(content, "franchise"), [
+			"The Legend of Zelda",
+			"Mario/Sonic",
+			null
+		]);
+	});
+
+	void it("leaves the notes column out entirely unless the player opted in", () => {
+		const run = finishedRun("journal", "2026-03-01", {
+			notes: "Played it with my sister Ana every Sunday"
+		});
+
+		const serialized = buildRewindRecapContent(
+			buildRecapInput([run]),
+			TODAY
+		);
+		const content = JSON.parse(serialized) as RecapContent;
+
+		assert.equal(content.games.columns.includes("notes"), false);
+		assert.equal(
+			content.games.rows[0]?.length,
+			REWIND_RECAP_GAME_COLUMNS.length
+		);
+		assert.doesNotMatch(serialized, /sister|Ana|Sunday/);
+	});
+
+	void it("adds the condensed notes as the last column when the player opted in", () => {
+		const html = "<b>loved</b> the <script>alert(1)</script> ending";
+		const runs = [
+			finishedRun("html", "2026-03-01", { notes: html }),
+			finishedRun("spaced", "2026-03-02", {
+				notes: "  first line\n\n\tsecond\r\nthird   "
+			}),
+			finishedRun("blank", "2026-03-03", { notes: " \n\t " }),
+			finishedRun("none", "2026-03-04")
+		];
+
+		const serialized = buildRewindRecapContent(
+			buildRecapInput(runs, { includesNotes: true }),
+			TODAY
+		);
+		const content = JSON.parse(serialized) as RecapContent;
+
+		assert.equal(content.games.columns.at(-1), "notes");
+		assert.deepEqual(column(content, "notes"), [
+			html,
+			"first line second third",
+			null,
+			null
+		]);
+		assert.doesNotMatch(serialized, /\n/);
+	});
+
+	void it("cuts very long notes at 300 characters without splitting an emoji", () => {
+		assert.equal(condenseRecapNote(null), null);
+		assert.equal(condenseRecapNote(""), null);
+		assert.equal(condenseRecapNote("x".repeat(5000)), "x".repeat(300));
+		assert.equal(REWIND_RECAP_NOTE_MAX_LENGTH, 300);
+
+		const emojiNote = condenseRecapNote("🎮".repeat(400)) ?? "";
+		assert.equal([...emojiNote].length, 300);
+		assert.equal(emojiNote, "🎮".repeat(300));
+
+		const cutBeforeSpace = condenseRecapNote(`${"a".repeat(299)} b`);
+		assert.equal(cutBeforeSpace, "a".repeat(299));
 	});
 });

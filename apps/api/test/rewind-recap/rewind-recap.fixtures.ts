@@ -3,6 +3,7 @@ import {
 	type RewindTotals
 } from "../../src/rewind/rewind.interface";
 import {
+	type RewindGameFranchise,
 	type RewindGameGenre,
 	type RewindRun
 } from "../../src/rewind/rewind-run.interface";
@@ -72,9 +73,11 @@ export function buildRecapInput(
 	return {
 		year: RECAP_YEAR,
 		language: "en",
+		includesNotes: false,
 		rewind: buildRecapRewind(),
 		runs,
 		genres: [],
+		franchises: [],
 		previousYearTotals: null,
 		...overrides
 	};
@@ -86,4 +89,11 @@ export function genreOf(
 	name = code
 ): RewindGameGenre {
 	return { gameId: `id-${gameCode}`, code, name };
+}
+
+export function franchiseOf(
+	gameCode: string,
+	name: string
+): RewindGameFranchise {
+	return { gameId: `id-${gameCode}`, name };
 }

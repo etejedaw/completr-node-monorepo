@@ -21,6 +21,7 @@ function record(overrides: Partial<RewindRecord> = {}): RewindRecord {
 		year: 2026,
 		language: "en",
 		includesPrivateRuns: false,
+		includesNotes: false,
 		generatedAt: GENERATED_AT,
 		regenerationsUsed: 0,
 		graceUsed: false,
@@ -215,6 +216,7 @@ void describe("buildRewindOwnerControls", () => {
 	void it("counts the regenerations left and whether the owner can regenerate", () => {
 		assert.deepEqual(buildRewindOwnerControls(record(), DECEMBER, false), {
 			includesPrivateRuns: false,
+			includesNotes: false,
 			regenerationsLeft: 1,
 			graceEndsAt: null,
 			canRegenerate: true,
@@ -222,12 +224,17 @@ void describe("buildRewindOwnerControls", () => {
 		});
 		assert.deepEqual(
 			buildRewindOwnerControls(
-				record({ regenerationsUsed: 1, includesPrivateRuns: true }),
+				record({
+					regenerationsUsed: 1,
+					includesPrivateRuns: true,
+					includesNotes: true
+				}),
 				GRACE_FIRST_DAY,
 				true
 			),
 			{
 				includesPrivateRuns: true,
+				includesNotes: true,
 				regenerationsLeft: 0,
 				graceEndsAt: "2027-01-07",
 				canRegenerate: true,
@@ -269,6 +276,7 @@ void describe("GenerateRewindSchema", () => {
 	const valid = {
 		language: "es",
 		includePrivateRuns: false,
+		includeNotes: false,
 		expectedGeneratedAt: null
 	};
 
@@ -294,6 +302,15 @@ void describe("GenerateRewindSchema", () => {
 			{ ...valid, expectedGeneratedAt: "<script>" },
 			{ ...valid, expectedGeneratedAt: "🔥".repeat(500) },
 			{ ...valid, extra: true },
+			{ ...valid, includeNotes: "true" },
+			{ ...valid, includeNotes: 1 },
+			{ ...valid, includeNotes: null },
+			{ ...valid, notes: "my secret" },
+			{
+				language: "en",
+				includePrivateRuns: true,
+				expectedGeneratedAt: null
+			},
 			{ language: "en", includePrivateRuns: true },
 			{},
 			null,
