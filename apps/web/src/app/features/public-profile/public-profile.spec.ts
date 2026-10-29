@@ -1,8 +1,9 @@
 import "@testing-library/jest-dom/vitest";
 
 import { signal } from "@angular/core";
+import { DeferBlockState } from "@angular/core/testing";
 import { ActivatedRoute, provideRouter } from "@angular/router";
-import { render, screen, waitFor } from "@testing-library/angular";
+import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 import { BehaviorSubject, of, Subject, throwError } from "rxjs";
 
@@ -661,14 +662,14 @@ describe("PublicProfileComponent", () => {
 				]
 			});
 
-			it("shows the spotlight of the open year to a visitor with a link to it and to past rewinds", async () => {
+			it("shows the spotlight of the open year to a visitor and the other years in their own section", async () => {
 				getRewindYears.mockReturnValue(
 					of({
 						spotlightYear: 2026,
 						years: [rewindYear(2026, 18), rewindYear(2025, 9)]
 					})
 				);
-				await renderProfile({ data: profile() });
+				const view = await renderProfile({ data: profile() });
 
 				expect(
 					await screen.findByRole("heading", { name: "Rewind 2026" })
@@ -678,9 +679,36 @@ describe("PublicProfileComponent", () => {
 				expect(
 					screen.getByRole("link", { name: "See @ada's Rewind" })
 				).toHaveAttribute("href", "/user/ada/rewind/2026");
+				for (const block of await view.fixture.getDeferBlocks())
+					await block.render(DeferBlockState.Complete);
+				const pastSection = await screen.findByRole("region", {
+					name: "Rewind"
+				});
 				expect(
-					screen.getByRole("link", { name: "Past rewinds" })
-				).toHaveAttribute("href", "/user/ada/rewind");
+					within(pastSection).getByRole("link", { name: /2025/ })
+				).toBeInTheDocument();
+				expect(
+					within(pastSection).queryByRole("link", { name: /2026/ })
+				).not.toBeInTheDocument();
+				expect(
+					screen.queryByRole("link", { name: "Past rewinds" })
+				).not.toBeInTheDocument();
+			});
+
+			it("shows no past rewinds section when the spotlight year is the only one", async () => {
+				getRewindYears.mockReturnValue(
+					of({ spotlightYear: 2026, years: [rewindYear(2026, 18)] })
+				);
+				const view = await renderProfile({ data: profile() });
+
+				expect(
+					await screen.findByRole("heading", { name: "Rewind 2026" })
+				).toBeInTheDocument();
+				for (const block of await view.fixture.getDeferBlocks())
+					await block.render(DeferBlockState.Complete);
+				expect(
+					screen.queryByRole("region", { name: "Rewind" })
+				).not.toBeInTheDocument();
 			});
 
 			it("invites the owner to see their own Rewind", async () => {

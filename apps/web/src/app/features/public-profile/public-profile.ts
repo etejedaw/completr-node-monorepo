@@ -165,9 +165,12 @@ export class PublicProfileComponent implements OnInit {
 			) ?? null
 		);
 	});
-	protected readonly pastRewinds = computed(() =>
-		this.rewindSpotlight() ? [] : (this.rewindYears()?.years ?? [])
-	);
+	protected readonly pastRewinds = computed(() => {
+		const spotlightYear = this.rewindSpotlight()?.year;
+		return (this.rewindYears()?.years ?? []).filter(
+			summary => summary.year !== spotlightYear
+		);
+	});
 	protected readonly comparison = signal<UserComparison | null>(null);
 	protected readonly comparisonBy = signal<ComparisonDimension>("completed");
 	protected readonly comparisonLoading = signal(false);
