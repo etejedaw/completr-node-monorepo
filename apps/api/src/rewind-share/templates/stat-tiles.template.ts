@@ -1,5 +1,7 @@
 import { type RewindTotals } from "../../rewind/rewind.interface";
 import { SHARE_COLORS, SHARE_FONT_FAMILY } from "../rewind-share.constants";
+import { type ShareCopy } from "../rewind-share.interface";
+import { countLabel } from "../utils/count-label.util";
 import {
 	formatCount,
 	formatHours,
@@ -13,17 +15,18 @@ export interface StatTile {
 	color: string;
 }
 
-export function leadTile(totals: RewindTotals): StatTile {
+export function leadTile(totals: RewindTotals, copy: ShareCopy): StatTile {
+	const locale = copy.numberLocale;
 	if (totals.finished > 0) {
 		return {
-			label: totals.finished === 1 ? "game finished" : "games finished",
-			value: formatCount(totals.finished),
+			label: countLabel(totals.finished, copy.tiles.gamesFinished),
+			value: formatCount(totals.finished, locale),
 			color: SHARE_COLORS.finished
 		};
 	}
 	return {
-		label: totals.started === 1 ? "game started" : "games started",
-		value: formatCount(totals.started),
+		label: countLabel(totals.started, copy.tiles.gamesStarted),
+		value: formatCount(totals.started, locale),
 		color: SHARE_COLORS.started
 	};
 }
@@ -32,47 +35,51 @@ function hoursColor(totals: RewindTotals): string {
 	return totals.finished > 0 ? SHARE_COLORS.started : SHARE_COLORS.blue;
 }
 
-function candidateTiles(totals: RewindTotals): (StatTile | null)[] {
+function candidateTiles(
+	totals: RewindTotals,
+	copy: ShareCopy
+): (StatTile | null)[] {
+	const { tiles, numberLocale: locale } = copy;
 	return [
 		totals.hoursPlayed > 0
 			? {
-					label: "hours played",
-					value: formatHours(totals.hoursPlayed),
+					label: tiles.hoursPlayed,
+					value: formatHours(totals.hoursPlayed, locale),
 					color: hoursColor(totals)
 				}
 			: null,
 		totals.finishRate === null
 			? null
 			: {
-					label: "finish rate",
+					label: tiles.finishRate,
 					value: `${totals.finishRate}%`,
 					color: SHARE_COLORS.pink
 				},
 		totals.platinums
 			? {
-					label: totals.platinums === 1 ? "platinum" : "platinums",
-					value: formatCount(totals.platinums),
+					label: countLabel(totals.platinums, tiles.platinums),
+					value: formatCount(totals.platinums, locale),
 					color: SHARE_COLORS.platinum
 				}
 			: null,
 		totals.abandoned > 0
 			? {
-					label: "left behind",
-					value: formatCount(totals.abandoned),
+					label: tiles.leftBehind,
+					value: formatCount(totals.abandoned, locale),
 					color: SHARE_COLORS.abandoned
 				}
 			: null,
 		totals.averageRating === null
 			? null
 			: {
-					label: "average rating",
-					value: formatRating(totals.averageRating),
+					label: tiles.averageRating,
+					value: formatRating(totals.averageRating, locale),
 					color: SHARE_COLORS.orange
 				},
 		totals.genresPlayed > 0
 			? {
-					label: totals.genresPlayed === 1 ? "genre" : "genres",
-					value: formatCount(totals.genresPlayed),
+					label: countLabel(totals.genresPlayed, tiles.genres),
+					value: formatCount(totals.genresPlayed, locale),
 					color: SHARE_COLORS.lime
 				}
 			: null
@@ -81,9 +88,10 @@ function candidateTiles(totals: RewindTotals): (StatTile | null)[] {
 
 export function supportingTiles(
 	totals: RewindTotals,
+	copy: ShareCopy,
 	limit: number
 ): StatTile[] {
-	return candidateTiles(totals)
+	return candidateTiles(totals, copy)
 		.filter((tile): tile is StatTile => tile !== null)
 		.slice(0, limit);
 }

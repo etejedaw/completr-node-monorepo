@@ -4,9 +4,14 @@ import {
 	SHARE_FONT_FAMILY,
 	SHARE_IMAGE_SIZES
 } from "../rewind-share.constants";
-import { type ShareArtwork, type ShareCover } from "../rewind-share.interface";
+import {
+	type ShareArtwork,
+	type ShareCopy,
+	type ShareCover
+} from "../rewind-share.interface";
 import { displayText } from "../utils/display-text.util";
 import { rewindSummary } from "../utils/rewind-summary.util";
+import { shareCopy } from "../utils/share-copy.util";
 import { coverFan } from "./cover-fan.template";
 import {
 	backdropStyle,
@@ -50,7 +55,7 @@ const FAN_LAYOUT = {
 	shrinkPerStep: 0.07
 };
 
-function header(username: string): SatoriElement {
+function header(username: string, copy: ShareCopy): SatoriElement {
 	return box(
 		{
 			justifyContent: "space-between",
@@ -60,21 +65,26 @@ function header(username: string): SatoriElement {
 		},
 		[
 			wordmark(34),
-			ownerLabel(displayText(username, USERNAME_MAX_LENGTH), 36)
+			ownerLabel(displayText(username, USERNAME_MAX_LENGTH), copy, 36)
 		]
 	);
 }
 
 function titleBlock(rewind: Rewind): SatoriElement {
+	const copy = shareCopy(rewind.language);
 	return box({ flexDirection: "column", marginTop: 56, flexShrink: 0 }, [
 		gradientYear(rewind.year, 384),
 		box({ marginTop: 40 }, [
-			personaBadge(rewind.persona, { titleSize: 76, phraseSize: 36 })
+			personaBadge(rewind.persona, copy, {
+				titleSize: 76,
+				phraseSize: 36
+			})
 		])
 	]);
 }
 
 function summaryHeadline(rewind: Rewind): SatoriElement {
+	const copy = shareCopy(rewind.language);
 	return box(
 		{
 			flexGrow: 1,
@@ -92,7 +102,7 @@ function summaryHeadline(rewind: Rewind): SatoriElement {
 					lineHeight: 1.02,
 					color: SHARE_COLORS.foreground
 				},
-				rewindSummary(rewind.totals)
+				rewindSummary(rewind.totals, copy)
 			)
 		]
 	);
@@ -117,8 +127,13 @@ function coverStage(rewind: Rewind, covers: ShareCover[]): SatoriElement {
 }
 
 function statTiles(rewind: Rewind): SatoriElement {
-	const supporting = supportingTiles(rewind.totals, SUPPORTING_TILE_LIMIT);
-	const lead = tileBox(leadTile(rewind.totals), {
+	const copy = shareCopy(rewind.language);
+	const supporting = supportingTiles(
+		rewind.totals,
+		copy,
+		SUPPORTING_TILE_LIMIT
+	);
+	const lead = tileBox(leadTile(rewind.totals, copy), {
 		valueSize: 200,
 		labelSize: 40,
 		width: supporting.length > 0 ? LEAD_TILE_WIDTH : CONTENT_WIDTH,
@@ -172,6 +187,7 @@ export function storyTemplate({
 	artwork,
 	host
 }: StoryTemplateInput): SatoriElement {
+	const copy = shareCopy(rewind.language);
 	return box(
 		{
 			position: "relative",
@@ -183,7 +199,7 @@ export function storyTemplate({
 			...backdropStyle(artwork.backdrop, SHARE_IMAGE_SIZES.story)
 		},
 		[
-			header(rewind.user.username),
+			header(rewind.user.username, copy),
 			titleBlock(rewind),
 			coverStage(rewind, artwork.covers),
 			statTiles(rewind),

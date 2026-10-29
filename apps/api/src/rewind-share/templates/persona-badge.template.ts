@@ -1,9 +1,6 @@
 import { type RewindPersonaCode } from "../../rewind/rewind.interface";
-import {
-	SHARE_COLORS,
-	SHARE_FONT_FAMILY,
-	SHARE_PERSONAS
-} from "../rewind-share.constants";
+import { SHARE_COLORS, SHARE_FONT_FAMILY } from "../rewind-share.constants";
+import { type ShareCopy } from "../rewind-share.interface";
 import { box, diamond, type SatoriElement, text } from "./elements.template";
 
 export interface PersonaBadgeSizes {
@@ -43,9 +40,10 @@ function badge(title: string, titleSize: number): SatoriElement {
 
 export function personaBadge(
 	persona: RewindPersonaCode,
+	copy: ShareCopy,
 	sizes: PersonaBadgeSizes
 ): SatoriElement {
-	const { title, phrase } = SHARE_PERSONAS[persona];
+	const { title, phrase } = copy.personas[persona];
 	return box({ flexDirection: "column", gap: sizes.phraseSize * 0.55 }, [
 		badge(title, sizes.titleSize),
 		text(

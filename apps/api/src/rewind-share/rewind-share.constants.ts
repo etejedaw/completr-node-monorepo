@@ -1,5 +1,3 @@
-import { type RewindPersonaCode } from "../rewind/rewind.interface";
-
 export const SHARE_COLORS = {
 	canvas: "#0a0a0c",
 	surface: "#131318",
@@ -28,42 +26,6 @@ export const SHARE_IMAGE_SIZES = {
 	story: { width: 1080, height: 1920 },
 	og: { width: 1200, height: 630 }
 } as const;
-
-export interface SharePersona {
-	title: string;
-	phrase: string;
-}
-
-export const SHARE_PERSONAS: Record<RewindPersonaCode, SharePersona> = {
-	"trophy-hunter": {
-		title: "Trophy Hunter",
-		phrase: "You didn't just finish games, you emptied them."
-	},
-	marathoner: {
-		title: "Marathoner",
-		phrase: "Long games, long nights, no shortcuts."
-	},
-	"short-and-sweet": {
-		title: "Short & Sweet",
-		phrase: "Lots of great games, none of them overstayed."
-	},
-	finisher: {
-		title: "The Finisher",
-		phrase: "When you start a game, you see the credits."
-	},
-	"genre-explorer": {
-		title: "Genre Explorer",
-		phrase: "No genre was safe from you this year."
-	},
-	"picky-player": {
-		title: "Picky Player",
-		phrase: "Life's too short for games that don't click."
-	},
-	"steady-player": {
-		title: "Steady Player",
-		phrase: "One game at a time, all year long."
-	}
-};
 
 export const COVER_FETCH_TIMEOUT_MS = 3000;
 export const COVER_MAX_BYTES = 5 * 1024 * 1024;

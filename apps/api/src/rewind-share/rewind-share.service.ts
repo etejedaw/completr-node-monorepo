@@ -25,6 +25,7 @@ import { LruCache } from "./utils/lru-cache.util";
 import { rewindSummary } from "./utils/rewind-summary.util";
 import { selectBackdropUrl } from "./utils/select-backdrop-url.util";
 import { selectShareCovers } from "./utils/select-share-covers.util";
+import { shareCopy } from "./utils/share-copy.util";
 
 interface RenderedImage {
 	png: Buffer;
@@ -34,6 +35,7 @@ interface RenderedImage {
 const GENERIC_SHARE_TITLE = "Completr Rewind";
 const GENERIC_SHARE_DESCRIPTION =
 	"Every year in games, one page each. See it on Completr.";
+const GENERIC_SHARE_COPY = shareCopy("en");
 const LEADING_WWW = /^www\./;
 const TRAILING_SLASHES = /\/+$/;
 
@@ -123,9 +125,13 @@ export async function renderRewindImage(
 }
 
 function imageCacheKey(rewind: Rewind, format: RewindImageFormat): string {
-	return [rewind.user.username, rewind.year, format, hashRewind(rewind)].join(
-		":"
-	);
+	return [
+		rewind.user.username,
+		rewind.year,
+		rewind.language,
+		format,
+		hashRewind(rewind)
+	].join(":");
 }
 
 function forgetEntry(key: string, rendering: Promise<RenderedImage>): void {
@@ -176,16 +182,21 @@ function sharePageMeta(
 	const redirectUrl = rewindPageUrl(username, year);
 	if (!rewind) {
 		return {
+			language: GENERIC_SHARE_COPY.language,
 			title: GENERIC_SHARE_TITLE,
 			description: GENERIC_SHARE_DESCRIPTION,
 			imageUrl: null,
+			continueLink: GENERIC_SHARE_COPY.continueLink,
 			redirectUrl
 		};
 	}
+	const copy = shareCopy(rewind.language);
 	return {
-		title: `@${rewind.user.username}'s ${rewind.year} Rewind`,
-		description: rewindSummary(rewind.totals),
+		language: copy.language,
+		title: copy.pageTitle(rewind.user.username, rewind.year),
+		description: rewindSummary(rewind.totals, copy),
 		imageUrl: ogImageUrl(rewind.user.username, rewind.year),
+		continueLink: copy.continueLink,
 		redirectUrl
 	};
 }

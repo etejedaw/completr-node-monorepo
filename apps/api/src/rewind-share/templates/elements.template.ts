@@ -1,5 +1,5 @@
 import { SHARE_COLORS, SHARE_FONT_FAMILY } from "../rewind-share.constants";
-import { type ShareCover } from "../rewind-share.interface";
+import { type ShareCopy, type ShareCover } from "../rewind-share.interface";
 import { displayText } from "../utils/display-text.util";
 import { titleGradient } from "../utils/title-gradient.util";
 
@@ -288,7 +288,11 @@ export function partlyHiddenCoverCard(
 	);
 }
 
-export function ownerLabel(username: string, fontSize: number): SatoriElement {
+export function ownerLabel(
+	username: string,
+	copy: ShareCopy,
+	fontSize: number
+): SatoriElement {
 	return text(
 		{
 			fontFamily: SHARE_FONT_FAMILY.text,
@@ -297,6 +301,6 @@ export function ownerLabel(username: string, fontSize: number): SatoriElement {
 			color: SHARE_COLORS.foreground,
 			flexShrink: 0
 		},
-		`@${username}'s Rewind`
+		copy.ownerLabel(username)
 	);
 }

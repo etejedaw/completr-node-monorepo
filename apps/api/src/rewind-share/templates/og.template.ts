@@ -4,9 +4,14 @@ import {
 	SHARE_FONT_FAMILY,
 	SHARE_IMAGE_SIZES
 } from "../rewind-share.constants";
-import { type ShareArtwork, type ShareCover } from "../rewind-share.interface";
+import {
+	type ShareArtwork,
+	type ShareCopy,
+	type ShareCover
+} from "../rewind-share.interface";
 import { displayText } from "../utils/display-text.util";
 import { rewindSummary } from "../utils/rewind-summary.util";
+import { shareCopy } from "../utils/share-copy.util";
 import { coverFan } from "./cover-fan.template";
 import {
 	backdropStyle,
@@ -44,17 +49,18 @@ const FAN_LAYOUT = {
 	shrinkPerStep: 0.07
 };
 
-function header(username: string): SatoriElement {
+function header(username: string, copy: ShareCopy): SatoriElement {
 	return box({ alignItems: "center", gap: 24 }, [
 		wordmark(24),
-		ownerLabel(displayText(username, USERNAME_MAX_LENGTH), 24)
+		ownerLabel(displayText(username, USERNAME_MAX_LENGTH), copy, 24)
 	]);
 }
 
 function statTiles(rewind: Rewind): SatoriElement {
+	const copy = shareCopy(rewind.language);
 	const tiles = [
-		leadTile(rewind.totals),
-		...supportingTiles(rewind.totals, SUPPORTING_TILE_LIMIT)
+		leadTile(rewind.totals, copy),
+		...supportingTiles(rewind.totals, copy, SUPPORTING_TILE_LIMIT)
 	];
 	return box(
 		{ gap: 14, marginTop: 30 },
@@ -71,6 +77,7 @@ function statTiles(rewind: Rewind): SatoriElement {
 }
 
 function leftColumn(rewind: Rewind): SatoriElement {
+	const copy = shareCopy(rewind.language);
 	return box(
 		{
 			flexDirection: "column",
@@ -79,10 +86,13 @@ function leftColumn(rewind: Rewind): SatoriElement {
 			flexShrink: 0
 		},
 		[
-			header(rewind.user.username),
+			header(rewind.user.username, copy),
 			box({ marginTop: 26 }, [gradientYear(rewind.year, 176)]),
 			box({ marginTop: 22 }, [
-				personaBadge(rewind.persona, { titleSize: 38, phraseSize: 22 })
+				personaBadge(rewind.persona, copy, {
+					titleSize: 38,
+					phraseSize: 22
+				})
 			]),
 			statTiles(rewind)
 		]
@@ -90,6 +100,7 @@ function leftColumn(rewind: Rewind): SatoriElement {
 }
 
 function rightColumn(rewind: Rewind, covers: ShareCover[]): SatoriElement {
+	const copy = shareCopy(rewind.language);
 	if (covers.length === 0) {
 		return box({ flexGrow: 1, alignItems: "center", paddingLeft: 40 }, [
 			text(
@@ -100,7 +111,7 @@ function rightColumn(rewind: Rewind, covers: ShareCover[]): SatoriElement {
 					lineHeight: 1.08,
 					color: SHARE_COLORS.foreground
 				},
-				rewindSummary(rewind.totals)
+				rewindSummary(rewind.totals, copy)
 			)
 		]);
 	}

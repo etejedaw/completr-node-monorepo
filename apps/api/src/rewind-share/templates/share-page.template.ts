@@ -30,9 +30,11 @@ function imageTags(imageUrl: string | null): string[] {
 }
 
 export function sharePageTemplate({
+	language,
 	title,
 	description,
 	imageUrl,
+	continueLink,
 	redirectUrl
 }: SharePageMeta): string {
 	const safeTitle = escapeHtml(title);
@@ -56,12 +58,12 @@ export function sharePageTemplate({
 
 	return [
 		"<!DOCTYPE html>",
-		'<html lang="en">',
+		`<html lang="${language}">`,
 		"<head>",
 		...head,
 		"</head>",
 		"<body>",
-		`<p><a href="${safeRedirectUrl}">Continue to Completr</a></p>`,
+		`<p><a href="${safeRedirectUrl}">${escapeHtml(continueLink)}</a></p>`,
 		"</body>",
 		"</html>"
 	].join("\n");
