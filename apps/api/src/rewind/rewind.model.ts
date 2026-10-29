@@ -21,6 +21,7 @@ class Rewind extends Model {
 	declare year: number;
 	declare language: RewindLanguage;
 	declare includesPrivateRuns: boolean;
+	declare includesNotes: boolean;
 	declare generatedAt: Date;
 	declare regenerationsUsed: number;
 	declare graceUsed: boolean;
@@ -53,6 +54,11 @@ Rewind.init(
 			allowNull: false
 		},
 		includesPrivateRuns: {
+			type: DataTypes.BOOLEAN,
+			allowNull: false,
+			defaultValue: false
+		},
+		includesNotes: {
 			type: DataTypes.BOOLEAN,
 			allowNull: false,
 			defaultValue: false

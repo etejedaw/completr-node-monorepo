@@ -15,6 +15,7 @@ export interface RewindRecord {
 	year: number;
 	language: RewindLanguage;
 	includesPrivateRuns: boolean;
+	includesNotes: boolean;
 	generatedAt: Date;
 	regenerationsUsed: number;
 	graceUsed: boolean;

@@ -17,6 +17,7 @@ export function buildRewindOwnerControls(
 
 	return {
 		includesPrivateRuns: record.includesPrivateRuns,
+		includesNotes: record.includesNotes,
 		regenerationsLeft,
 		graceEndsAt,
 		canRegenerate: graceEndsAt !== null || regenerationsLeft > 0,
