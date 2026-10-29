@@ -24,7 +24,8 @@ export function iaDomainToHttpMapper(
 
 	if (
 		error.code === "IA_PROVIDER_UNAVAILABLE" ||
-		error.code === "IA_INVALID_RESPONSE"
+		error.code === "IA_INVALID_RESPONSE" ||
+		error.code === "IA_INVALID_OUTPUT"
 	)
 		return new HttpError({ ...baseOptions, status: 502 });
 

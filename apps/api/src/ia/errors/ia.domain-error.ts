@@ -47,6 +47,15 @@ export function iaInvalidResponse(context?: Record<string, unknown>) {
 	);
 }
 
+export function iaInvalidOutput(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"IA_INVALID_OUTPUT",
+		"AI provider returned output that does not match the expected shape",
+		context
+	);
+}
+
 export function iaInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

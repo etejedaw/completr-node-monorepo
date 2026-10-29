@@ -36,3 +36,10 @@ export function invalidResponseError(rawError: unknown) {
 		raw: rawError
 	});
 }
+
+export function invalidOutputError(rawError: unknown) {
+	return new ServiceError("IA_INVALID_OUTPUT", {
+		...BASE_OPTIONS,
+		raw: rawError
+	});
+}

@@ -24,5 +24,8 @@ export function iaServiceToDomainMapper(
 	if (error.code === "IA_INVALID_RESPONSE")
 		return iaDomainError.iaInvalidResponse(context);
 
+	if (error.code === "IA_INVALID_OUTPUT")
+		return iaDomainError.iaInvalidOutput(context);
+
 	return iaDomainError.iaInternalError(context);
 }
