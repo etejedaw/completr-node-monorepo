@@ -433,5 +433,35 @@ describe("ToastService", () => {
 
 			expect(manager.destroyed).toHaveBeenCalledOnce();
 		});
+
+		it("shows nothing once the app is destroyed, even with the library loaded", async () => {
+			await setUpLazy(() => Promise.resolve(fakeLibrary()));
+			lazy.info("Visible");
+			await vi.advanceTimersByTimeAsync(0);
+			manager.show.mockClear();
+
+			TestBed.resetTestingModule();
+			lazy.info("After destroy");
+			const pendingId = lazy.pending({
+				message: "After destroy",
+				onCommit: vi.fn()
+			});
+			await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS);
+
+			expect(manager.show).not.toHaveBeenCalled();
+			expect(pendingId).toBe(-1);
+		});
+
+		it("never commits a pending whose window ends after the app is destroyed", async () => {
+			await setUpLazy(() => Promise.resolve(fakeLibrary()));
+			const onCommit = vi.fn();
+			lazy.pending({ message: "Removed", onCommit });
+			await vi.advanceTimersByTimeAsync(0);
+
+			TestBed.resetTestingModule();
+			await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS);
+
+			expect(onCommit).not.toHaveBeenCalled();
+		});
 	});
 });

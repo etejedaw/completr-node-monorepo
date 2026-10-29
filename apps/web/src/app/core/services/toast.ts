@@ -97,11 +97,7 @@ export class ToastService {
 	private destroyed = false;
 
 	constructor() {
-		inject(DestroyRef).onDestroy(() => {
-			this.destroyed = true;
-			this.waiting.length = 0;
-			this.toastInjector?.destroy();
-		});
+		inject(DestroyRef).onDestroy(() => this.teardown());
 		whenIdle(() => this.load());
 	}
 
@@ -115,7 +111,7 @@ export class ToastService {
 		durationMs: number = TOAST_CONFIG.durationMs,
 		title?: string
 	) {
-		if (!this.template) return;
+		if (!this.template || this.destroyed) return;
 		const id = this.nextId++;
 		const ctx: Toast = {
 			id,
@@ -161,7 +157,7 @@ export class ToastService {
 	}
 
 	pending(opts: PendingToastOptions): number {
-		if (!this.template) return -1;
+		if (!this.template || this.destroyed) return -1;
 		const id = this.nextId++;
 		const durationMs = UNDO_WINDOW_MS;
 		const ctx: Toast = {
@@ -211,7 +207,18 @@ export class ToastService {
 		}
 	}
 
+	private teardown() {
+		this.destroyed = true;
+		this.waiting.length = 0;
+		this.pendings.forEach(entry => clearTimeout(entry.timer));
+		this.pendings.clear();
+		this.shownByContent.clear();
+		this.manager = null;
+		this.toastInjector?.destroy();
+	}
+
 	private whenReady(task: (manager: NgpToastManager) => void) {
+		if (this.destroyed) return;
 		if (this.manager) {
 			task(this.manager);
 			return;
