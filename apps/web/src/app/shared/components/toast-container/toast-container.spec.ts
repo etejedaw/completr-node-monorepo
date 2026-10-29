@@ -72,8 +72,10 @@ describe("ToastContainer", () => {
 			await fixture.whenStable();
 		}
 
-		function renderedToasts() {
-			return [...document.querySelectorAll<HTMLElement>("[ngpToast]")];
+		function renderedToasts(text: string) {
+			return [
+				...document.querySelectorAll<HTMLElement>("[ngpToast]")
+			].filter(toast => toast.textContent?.includes(text));
 		}
 
 		afterEach(() => {
@@ -88,7 +90,7 @@ describe("ToastContainer", () => {
 			}
 			await settle(fixture);
 
-			const all = renderedToasts();
+			const all = renderedToasts("Message ");
 			const visible = all.filter(t => t.dataset["visible"] === "true");
 			const hidden = all.filter(t => t.dataset["visible"] === "false");
 			expect(visible).toHaveLength(TOAST_CONFIG.maxToasts);
@@ -110,9 +112,7 @@ describe("ToastContainer", () => {
 			await settle(fixture);
 			await settle(fixture);
 
-			const premiumToasts = renderedToasts().filter(t =>
-				t.textContent?.includes("Your Up Next has no limit.")
-			);
+			const premiumToasts = renderedToasts("Your Up Next has no limit.");
 			expect(premiumToasts).toHaveLength(1);
 		});
 	});
