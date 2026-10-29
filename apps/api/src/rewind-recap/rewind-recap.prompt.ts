@@ -4,7 +4,8 @@ import {
 } from "../rewind/rewind.constants";
 import {
 	REWIND_AI_RECAP_INSIGHT_COUNT,
-	REWIND_AI_RECAP_LIMITS
+	REWIND_AI_RECAP_LIMITS,
+	REWIND_AI_RECAP_SUMMARY_PARAGRAPHS
 } from "./schemas/rewind-ai-recap.schema";
 import {
 	REWIND_RECAP_MAX_GAME_ROWS,
@@ -43,7 +44,7 @@ function describeFieldLimits(): string {
 	const limits = REWIND_AI_RECAP_LIMITS;
 	return [
 		`- "headline": a sharp hook that names the single most defining pattern of the year, as a friend would say it. No counts, no rates. At most ${limits.headline.prompt} characters.`,
-		`- "summary": 3 paragraphs separated by "\\n\\n". The first, one or two sentences, sets the scene of the year as a story, naming a game or two. The second is the heart of the recap and the longest: who they are as a player, written as 3 to 5 conclusions about their personality and habits ("you are a player who...", "you finish what you start even when...", "you need..."), each followed by the evidence that made you think so, woven into the prose. Build those conclusions from the notes when there are any, then from "pace", "franchises", "overlap", "ratingHabits", "daysInBacklog" and the contrasts in "patterns". The third, one sentence, closes with what that says about the year ahead. Do not list totals. At most ${limits.summary.prompt} characters in total.`,
+		`- "summary": exactly ${REWIND_AI_RECAP_SUMMARY_PARAGRAPHS} short paragraphs separated by "\\n\\n", each at most ${limits.summaryParagraph.prompt} characters, so at most ${limits.summary.prompt} characters in total. The first is the heart of the recap: who they are as a player, as 2 or 3 conclusions about their personality and habits ("you are a player who...", "you finish what you start even when...", "you need..."), each with the evidence that made you think so woven into the prose. Build those conclusions from the notes when there are any, then from "pace", "franchises", "overlap", "ratingHabits", "daysInBacklog" and the contrasts in "patterns". The second tells how the year went as a story, naming a game or two, and ends with what that says about the year ahead. Do not list totals. Keep it tight: every sentence must earn its place.`,
 		`- "insights": exactly ${REWIND_AI_RECAP_INSIGHT_COUNT} patterns, each with a different "kind" from the catalog below, a "title" of at most ${limits.insightTitle.prompt} characters that states the pattern, and a "body" of at most ${limits.insightBody.prompt} characters that gives the evidence with at least two games by name. An insight must not repeat a conclusion already made in the summary, and must not just describe a chart the page already shows (hours per month, the player's rating against the critics game by game, games added against finished per month, the share of each genre): it has to say what that means about the player.`,
 		`- "funFact": a quirky coincidence or detail hidden in the rows, such as two games closed on the same day, a game started and dropped within days, a title they rated far above everything else in its genre, or an odd timing. Not the longest or shortest game. At most ${limits.funFact.prompt} characters.`,
 		`- "nextYearChallenge": a concrete challenge that follows from one of the patterns you found. Base it on one group from "patterns" and use that group's exact name (a genre, a length range or a platform). Do not name a specific game in it. At most ${limits.nextYearChallenge.prompt} characters.`

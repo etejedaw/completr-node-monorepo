@@ -98,7 +98,7 @@ void describe("RewindAiRecapSchema", () => {
 
 	const textFields: [string, number][] = [
 		["headline", 100],
-		["summary", 1600],
+		["summary", 400],
 		["funFact", 200],
 		["nextYearChallenge", 180]
 	];
@@ -167,5 +167,25 @@ void describe("RewindAiRecapSchema", () => {
 		);
 		assert.equal(RewindAiRecapSchema.safeParse(missing).success, false);
 		assert.equal(RewindAiRecapSchema.safeParse(null).success, false);
+	});
+	void it("accepts up to two summary paragraphs of 400 characters and rejects more", () => {
+		const paragraph = (length: number) => "x".repeat(length);
+		const withSummary = (summary: string) =>
+			RewindAiRecapSchema.safeParse({ ...VALID_RECAP, summary }).success;
+
+		assert.ok(withSummary(paragraph(400)));
+		assert.ok(withSummary(`${paragraph(400)}\n\n${paragraph(400)}`));
+		assert.ok(withSummary(`${paragraph(300)}\n \n${paragraph(300)}`));
+		assert.equal(withSummary(paragraph(401)), false);
+		assert.equal(
+			withSummary(`${paragraph(10)}\n\n${paragraph(401)}`),
+			false
+		);
+		assert.equal(
+			withSummary(
+				`${paragraph(10)}\n\n${paragraph(10)}\n\n${paragraph(10)}`
+			),
+			false
+		);
 	});
 });
