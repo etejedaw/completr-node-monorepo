@@ -10,7 +10,7 @@ import { REWIND_RECAP_MAX_GAME_ROWS } from "./utils/build-rewind-recap-content.u
 
 const OUTPUT_LANGUAGES: Record<RewindLanguage, string> = {
 	en: "English",
-	es: "neutral Latin American Spanish (use tú, never vos or vosotros, and avoid slang specific to Spain or to a single country)"
+	es: 'neutral Latin American Spanish (use tú, never vos or vosotros, avoid slang specific to Spain or to a single country, and write imperatives with a pronoun correctly: "proponte", "ponte", "dale", never "propónte")'
 };
 
 export const REWIND_INSIGHT_DEFINITIONS: Record<RewindInsightKind, string> = {
@@ -43,7 +43,7 @@ function describeFieldLimits(): string {
 		`- "summary": 2 short paragraphs separated by "\\n\\n" that tell the story of the year: how it started, how it shifted, what defined each part, and what that says about them as a player. Mention games by name. Do not list totals. At most ${limits.summary.prompt} characters in total.`,
 		`- "insights": exactly ${REWIND_AI_RECAP_INSIGHT_COUNT} patterns, each with a different "kind" from the catalog below, a "title" of at most ${limits.insightTitle.prompt} characters that states the pattern, and a "body" of at most ${limits.insightBody.prompt} characters that gives the evidence with at least two games by name.`,
 		`- "funFact": a quirky coincidence or detail hidden in the rows, such as two games closed on the same day, a game started and dropped within days, a title they rated far above everything else in its genre, or an odd timing. Not the longest or shortest game. At most ${limits.funFact.prompt} characters.`,
-		`- "nextYearChallenge": a concrete challenge that follows from one of the patterns you found, naming a kind of game, a genre or a game they are still playing. At most ${limits.nextYearChallenge.prompt} characters.`
+		`- "nextYearChallenge": a concrete challenge that follows from one of the patterns you found. Base it on one group from "patterns" and use that group's exact name (a genre, a length range or a platform). Do not name a specific game in it. At most ${limits.nextYearChallenge.prompt} characters.`
 	].join("\n");
 }
 
@@ -68,11 +68,13 @@ How to find patterns:
 Bad, because it only restates the numbers: "You finished 22 games and abandoned 8." / "Action was your favorite genre." / "February was your busiest month."
 Good, because it connects dimensions with evidence (illustrative only, never copy these): "Every game you dropped took more than 30 hours: Starfield and Persona 5 lost you, while Celeste and Hades never did." / "You rate horror above the critics every time, from Signalis to The Callisto Protocol."
 
-Write every text value in ${OUTPUT_LANGUAGES[language]}. Keep game titles exactly as given. Write numbers with the decimal separator of that language.
+Write every text value in ${OUTPUT_LANGUAGES[language]}. Keep game titles exactly as given. Group names in "patterns" (length ranges, quarters) are labels for you: say them naturally in the output language and never quote them. Write numbers with the decimal separator of that language.
 
 Rules:
 - Use only the data you are given. Never invent games, numbers, dates or reasons for the player's choices.
 - Every number you mention must come from the data or be counted from the rows.
+- When you describe a specific game, use only the genres, platform, hours and status in its row. Never label a game with a genre or a trait from your own knowledge of it: if its row says "Action", it is not an RPG. Call a game long or short only from its "hours", using the same ranges as "byLength" (under 5 hours is short, over 30 hours is long).
+- Never ask the player to tell, share, report or reply anything, and never use phrases like "tell us" or "cuéntanos": there is nowhere to answer.
 - No plot spoilers.
 - Never judge negatively. An abandoned game means they know what they don't want.
 - Never mention a rating like "5/5" without context.

@@ -9,7 +9,7 @@ export const REWIND_AI_RECAP_LIMITS = {
 	headline: { schema: 100, prompt: 80 },
 	summary: { schema: 650, prompt: 500 },
 	insightTitle: { schema: 50, prompt: 40 },
-	insightBody: { schema: 300, prompt: 220 },
+	insightBody: { schema: 300, prompt: 200 },
 	funFact: { schema: 200, prompt: 160 },
 	nextYearChallenge: { schema: 180, prompt: 140 }
 } as const;
