@@ -32,6 +32,7 @@ import { UserGameTag } from "../mood-tags/user-game-tag.model";
 import { Platform } from "../platforms/platform.model";
 import { Queue } from "../queue/queue.model";
 import { Review } from "../reviews/review.model";
+import { Rewind } from "../rewind/rewind.model";
 import { SavedFilter } from "../saved-filters/saved-filter.model";
 import { ScoreSource } from "../score-sources/score-source.model";
 import { UserFollowRequest } from "../user-follow-requests/user-follow-request.model";
@@ -72,6 +73,12 @@ export function setupAssociations() {
 	reviews();
 	compilations();
 	franchises();
+	rewinds();
+}
+
+function rewinds() {
+	User.hasMany(Rewind, { foreignKey: "userId", onDelete: "CASCADE" });
+	Rewind.belongsTo(User, { foreignKey: "userId" });
 }
 
 function franchises() {
