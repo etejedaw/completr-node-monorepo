@@ -1,0 +1,374 @@
+@if (hasAnyChart()) { @let text = copy();
+<section
+	aria-labelledby="rewind-premium-stats-heading"
+	class="gap-5 p-4 sm:gap-6 sm:p-6"
+	[class]="frameClass"
+>
+	<header class="flex items-center gap-2.5">
+		<span aria-hidden="true" class="material-icons text-2xl text-premium"
+			>insights</span
+		>
+		<h2
+			id="rewind-premium-stats-heading"
+			class="m-0 min-w-0 font-display text-xl sm:text-2xl font-bold tracking-tight"
+		>
+			{{ text.heading }}
+		</h2>
+		<ui-premium-badge class="ml-auto" [label]="text.premiumLabel" />
+	</header>
+
+	<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+		@if (hoursBars().length > 0) {
+		<figure
+			appRewindReveal
+			class="m-0 flex min-w-0 flex-col gap-4 rounded-card border border-line bg-canvas/40 p-4"
+			aria-labelledby="rewind-stats-hours-title"
+		>
+			<figcaption class="flex flex-col gap-0.5">
+				<h3
+					id="rewind-stats-hours-title"
+					class="m-0 font-display text-base sm:text-lg font-bold"
+				>
+					{{ text.hoursByMonth }}
+				</h3>
+				<span class="text-xs text-fg-secondary"
+					>{{ text.hoursByMonthHint }}</span
+				>
+			</figcaption>
+			<div
+				aria-hidden="true"
+				data-chart="hours-by-month"
+				class="grid h-44 grid-cols-12 items-end gap-0.5 border-b border-line-hover pt-5"
+			>
+				@for (bar of hoursBars(); track bar.month) {
+				<div
+					class="group flex h-full min-w-0 flex-col items-center justify-end"
+					[title]="barHint(bar.month, hours(bar.hours))"
+				>
+					<span
+						class="relative block w-full max-w-7 rounded-t-[4px] transition-[filter] group-hover:brightness-125"
+						[class]="bar.isPeak ? 'bg-brand' : 'bg-brand/55'"
+						[style.height.%]="bar.heightPercent"
+						[style.min-height.px]="bar.hours > 0 ? 3 : 0"
+					>
+						<span
+							class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap text-[0.6875rem] font-semibold tabular-nums text-fg"
+							[class]="bar.isPeak ? '' : 'opacity-0 group-hover:opacity-100'"
+							>{{ number(bar.hours) }}</span
+						>
+					</span>
+				</div>
+				}
+			</div>
+			<div aria-hidden="true" class="-mt-2 grid grid-cols-12 gap-0.5">
+				@for (bar of hoursBars(); track bar.month) {
+				<span
+					class="truncate text-center text-[0.625rem] sm:text-xs text-fg-muted"
+					>{{ monthLabel(bar.month) }}</span
+				>
+				}
+			</div>
+			<table class="sr-only">
+				<caption>
+					{{ text.hoursByMonth }}
+				</caption>
+				<thead>
+					<tr>
+						<th scope="col">{{ text.month }}</th>
+						<th scope="col">{{ text.hours }}</th>
+					</tr>
+				</thead>
+				<tbody>
+					@for (bar of hoursBars(); track bar.month) {
+					<tr>
+						<th scope="row">{{ fullMonth(bar.month) }}</th>
+						<td>{{ hours(bar.hours) }}</td>
+					</tr>
+					}
+				</tbody>
+			</table>
+		</figure>
+		} @if (flowBars().length > 0) { @let totals = flowTotals();
+		<figure
+			appRewindReveal
+			[revealDelay]="80"
+			class="m-0 flex min-w-0 flex-col gap-4 rounded-card border border-line bg-canvas/40 p-4"
+			aria-labelledby="rewind-stats-flow-title"
+		>
+			<figcaption class="flex flex-col gap-0.5">
+				<h3
+					id="rewind-stats-flow-title"
+					class="m-0 font-display text-base sm:text-lg font-bold"
+				>
+					{{ text.backlogFlow }}
+				</h3>
+				<span class="text-xs text-fg-secondary"
+					>{{ text.backlogFlowHint }}</span
+				>
+			</figcaption>
+			<div
+				class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2"
+			>
+				<p
+					class="m-0 flex flex-col"
+					data-testid="rewind-backlog-balance"
+				>
+					<span class="text-xs text-fg-secondary"
+						>{{ text.netBalance }}</span
+					>
+					<span
+						class="font-display text-3xl font-bold leading-none tabular-nums"
+						[class.text-nav-queue]="netBalance() > 0"
+						[class.text-nav-lists]="netBalance() < 0"
+						>{{ signedNumber(netBalance()) }}</span
+					>
+					<span class="mt-1 text-sm text-fg-secondary"
+						>{{ netBalanceText() }}</span
+					>
+				</p>
+				<ul
+					aria-hidden="true"
+					class="m-0 flex list-none flex-wrap gap-3 p-0 text-xs text-fg-secondary"
+				>
+					<li class="flex items-center gap-1.5">
+						<span
+							class="size-2.5 rounded-[3px] bg-nav-queue"
+						></span>
+						{{ text.added }} · {{ number(totals.added) }}
+					</li>
+					<li class="flex items-center gap-1.5">
+						<span
+							class="size-2.5 rounded-[3px] bg-nav-lists"
+						></span>
+						{{ text.finished }} · {{ number(totals.finished) }}
+					</li>
+				</ul>
+			</div>
+			<div
+				aria-hidden="true"
+				data-chart="backlog-flow"
+				class="grid h-36 grid-cols-12 items-end gap-1 border-b border-line-hover"
+			>
+				@for (bar of flowBars(); track bar.month) {
+				<div
+					class="group flex h-full min-w-0 items-end justify-center gap-[2px]"
+					[title]="barHint(bar.month, text.added + ' ' + number(bar.added) + ' · ' + text.finished + ' ' + number(bar.finished))"
+				>
+					<span
+						class="block w-1/2 max-w-3 rounded-t-[4px] bg-nav-queue group-hover:brightness-125"
+						[style.height.%]="bar.addedPercent"
+						[style.min-height.px]="bar.added > 0 ? 3 : 0"
+					></span>
+					<span
+						class="block w-1/2 max-w-3 rounded-t-[4px] bg-nav-lists group-hover:brightness-125"
+						[style.height.%]="bar.finishedPercent"
+						[style.min-height.px]="bar.finished > 0 ? 3 : 0"
+					></span>
+				</div>
+				}
+			</div>
+			<div aria-hidden="true" class="-mt-2 grid grid-cols-12 gap-1">
+				@for (bar of flowBars(); track bar.month) {
+				<span
+					class="truncate text-center text-[0.625rem] sm:text-xs text-fg-muted"
+					>{{ monthLabel(bar.month) }}</span
+				>
+				}
+			</div>
+			<table class="sr-only">
+				<caption>
+					{{ text.backlogFlow }}
+				</caption>
+				<thead>
+					<tr>
+						<th scope="col">{{ text.month }}</th>
+						<th scope="col">{{ text.added }}</th>
+						<th scope="col">{{ text.finished }}</th>
+					</tr>
+				</thead>
+				<tbody>
+					@for (bar of flowBars(); track bar.month) {
+					<tr>
+						<th scope="row">{{ fullMonth(bar.month) }}</th>
+						<td>{{ number(bar.added) }}</td>
+						<td>{{ number(bar.finished) }}</td>
+					</tr>
+					}
+				</tbody>
+			</table>
+		</figure>
+		} @if (gapRows().length > 0) {
+		<figure
+			appRewindReveal
+			class="m-0 flex min-w-0 flex-col gap-4 rounded-card border border-line bg-canvas/40 p-4"
+			aria-labelledby="rewind-stats-critics-title"
+		>
+			<figcaption class="flex flex-col gap-0.5">
+				<h3
+					id="rewind-stats-critics-title"
+					class="m-0 font-display text-base sm:text-lg font-bold"
+				>
+					{{ text.tasteVsCritics }}
+				</h3>
+				<span class="text-xs text-fg-secondary"
+					>{{ text.tasteVsCriticsHint }}</span
+				>
+			</figcaption>
+			<ul
+				aria-hidden="true"
+				data-chart="taste-vs-critics"
+				class="m-0 flex list-none flex-col gap-3 p-0"
+			>
+				@for (row of gapRows(); track $index) {
+				<li
+					class="grid min-w-0 grid-cols-[2rem_minmax(0,1fr)] items-center gap-x-3 gap-y-1"
+					[title]="row.title + ': ' + gapLabel(row)"
+					[attr.data-direction]="row.direction"
+				>
+					<app-game-poster
+						class="row-span-2 aspect-[2/3] w-8 rounded-[4px] ring-1 ring-line"
+						[src]="row.coverUrl"
+						[title]="row.title"
+						[width]="200"
+						[compact]="true"
+					/>
+					<div
+						class="flex min-w-0 items-baseline justify-between gap-2"
+					>
+						<span class="truncate text-sm font-semibold text-fg"
+							>{{ row.title }}</span
+						>
+						<span
+							class="shrink-0 text-xs tabular-nums text-fg-secondary"
+							>{{ text.yourRating }} {{ number(row.userRating) }}
+							· {{ text.critics }} {{ number(row.criticScore)
+							}}</span
+						>
+					</div>
+					<div class="flex min-w-0 items-center gap-2">
+						<div class="relative h-3 flex-1">
+							<span
+								class="absolute inset-y-[-3px] left-1/2 w-px bg-line-hover"
+							></span>
+							@if (row.direction === 'same') {
+							<span
+								class="absolute left-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-fg-muted"
+							></span>
+							} @else {
+							<span
+								class="absolute inset-y-0"
+								[class]="row.direction === 'more' ? 'left-1/2 rounded-r-[4px] bg-brand' : 'right-1/2 rounded-l-[4px] bg-nav-shelf'"
+								[style.width.%]="row.widthPercent"
+								[style.min-width.px]="3"
+							></span>
+							}
+						</div>
+						<span
+							class="w-10 shrink-0 text-right text-xs font-semibold tabular-nums text-fg"
+							>{{ signedNumber(row.gap) }}</span
+						>
+					</div>
+				</li>
+				}
+			</ul>
+			<table class="sr-only">
+				<caption>
+					{{ text.tasteVsCritics }}
+				</caption>
+				<thead>
+					<tr>
+						<th scope="col">{{ text.game }}</th>
+						<th scope="col">{{ text.yourRating }}</th>
+						<th scope="col">{{ text.critics }}</th>
+						<th scope="col">{{ text.gap }}</th>
+					</tr>
+				</thead>
+				<tbody>
+					@for (row of gapRows(); track $index) {
+					<tr>
+						<th scope="row">{{ row.title }}</th>
+						<td>{{ number(row.userRating) }}</td>
+						<td>{{ number(row.criticScore) }}</td>
+						<td>
+							{{ signedNumber(row.gap) }}, {{ gapLabel(row) }}
+						</td>
+					</tr>
+					}
+				</tbody>
+			</table>
+		</figure>
+		} @if (genreRows().length > 0) {
+		<figure
+			appRewindReveal
+			[revealDelay]="80"
+			class="m-0 flex min-w-0 flex-col gap-4 rounded-card border border-line bg-canvas/40 p-4"
+			aria-labelledby="rewind-stats-genres-title"
+		>
+			<figcaption class="flex flex-col gap-0.5">
+				<h3
+					id="rewind-stats-genres-title"
+					class="m-0 font-display text-base sm:text-lg font-bold"
+				>
+					{{ text.genreShare }}
+				</h3>
+				<span class="text-xs text-fg-secondary"
+					>{{ text.genreShareHint }}</span
+				>
+			</figcaption>
+			<ul
+				aria-hidden="true"
+				data-chart="genre-share"
+				class="m-0 flex list-none flex-col gap-2.5 p-0"
+			>
+				@for (row of genreRows(); track $index) {
+				<li
+					class="group flex min-w-0 flex-col gap-1"
+					[title]="row.name + ': ' + percent(row.sharePercent)"
+				>
+					<div
+						class="flex min-w-0 items-baseline justify-between gap-2"
+					>
+						<span class="truncate text-sm font-semibold text-fg"
+							>{{ row.name }}</span
+						>
+						<span
+							class="shrink-0 text-xs tabular-nums text-fg-secondary"
+							>{{ percent(row.sharePercent) }} · {{
+							number(row.count) }}</span
+						>
+					</div>
+					<span class="block h-2 w-full rounded-[4px] bg-line">
+						<span
+							class="block h-full rounded-[4px] bg-nav-sagas group-hover:brightness-125"
+							[style.width.%]="row.widthPercent"
+						></span>
+					</span>
+				</li>
+				}
+			</ul>
+			<table class="sr-only">
+				<caption>
+					{{ text.genreShare }}
+				</caption>
+				<thead>
+					<tr>
+						<th scope="col">{{ text.genre }}</th>
+						<th scope="col">{{ text.games }}</th>
+						<th scope="col">{{ text.share }}</th>
+					</tr>
+				</thead>
+				<tbody>
+					@for (row of genreRows(); track $index) {
+					<tr>
+						<th scope="row">{{ row.name }}</th>
+						<td>{{ number(row.count) }}</td>
+						<td>{{ percent(row.sharePercent) }}</td>
+					</tr>
+					}
+				</tbody>
+			</table>
+		</figure>
+		}
+	</div>
+</section>
+}
