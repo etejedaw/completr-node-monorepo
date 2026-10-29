@@ -7,7 +7,7 @@ export const REWIND_AI_RECAP_INSIGHT_COUNT = 3;
 
 export const REWIND_AI_RECAP_LIMITS = {
 	headline: { schema: 100, prompt: 80 },
-	summary: { schema: 650, prompt: 500 },
+	summary: { schema: 1600, prompt: 900 },
 	insightTitle: { schema: 50, prompt: 40 },
 	insightBody: { schema: 300, prompt: 200 },
 	funFact: { schema: 200, prompt: 160 },

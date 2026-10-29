@@ -98,7 +98,7 @@ void describe("RewindAiRecapSchema", () => {
 
 	const textFields: [string, number][] = [
 		["headline", 100],
-		["summary", 650],
+		["summary", 1600],
 		["funFact", 200],
 		["nextYearChallenge", 180]
 	];

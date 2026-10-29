@@ -51,7 +51,7 @@ void describe("generateRewindAiRecap", () => {
 		const [schema, request] = generateJson.mock.calls[0]?.arguments ?? [];
 		assert.equal(schema, RewindAiRecapSchema);
 		assert.equal(request?.schemaName, "rewind_ai_recap");
-		assert.equal(request?.maxTokens, 1000);
+		assert.equal(request?.maxTokens, 3000);
 		assert.equal(request?.temperature, 0.5);
 		assert.equal(request?.timeoutMs, 25_000);
 		assert.equal(request?.instructions, buildRewindRecapInstructions("es"));
