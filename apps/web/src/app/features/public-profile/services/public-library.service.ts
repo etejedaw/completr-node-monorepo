@@ -10,41 +10,11 @@ import { type PlatinumEntry } from "../../../core/models/platinum.model";
 import { type QueueEntry } from "../../../core/models/queue.model";
 import { type WishlistEntry } from "../../../core/models/wishlist.model";
 import { buildHttpParams } from "../../../core/utils/http-params";
-import { type TrackedFranchise } from "../../franchises/franchises";
-import { type GameSummary } from "./types";
-
-export interface PublicBacklog {
-	id: string;
-	status: string;
-	score?: number;
-	duration?: number;
-	ratio?: number | null;
-	game: GameSummary;
-	platform: { id: string; abbreviation: string };
-}
-
-export interface PublicFavorite {
-	id: string;
-	position: number;
-	game: GameSummary;
-}
-
-export interface PublicQueue {
-	id: string;
-	position: number;
-	backlog: {
-		id: string;
-		status: string;
-		game: GameSummary;
-		platform?: { id: string; abbreviation: string };
-	};
-}
-
-export interface PublicGameShelf {
-	id: string;
-	game: GameSummary & { description?: string };
-	platform: { id: string; abbreviation: string };
-}
+import { type TrackedFranchise } from "../../franchises/franchises.model";
+import {
+	type ComparisonDimension,
+	type UserComparison
+} from "./public-library.model";
 
 @Injectable({ providedIn: "root" })
 export class PublicLibraryService {
@@ -169,31 +139,4 @@ export class PublicLibraryService {
 			}>(`${environment.apiUrl}/users/${username}/comparison`, { params })
 			.pipe(map(res => res.data));
 	}
-}
-
-export type ComparisonDimension =
-	| "completed"
-	| "playing"
-	| "not_started"
-	| "shelf"
-	| "favorites"
-	| "wishlist";
-
-export interface ComparisonGame {
-	id: string;
-	code: string;
-	title: string;
-	backgroundUrl: string | null;
-}
-
-export interface UserComparison {
-	by: ComparisonDimension;
-	inCommon: ComparisonGame[];
-	onlyViewer: ComparisonGame[];
-	onlyTarget: ComparisonGame[];
-	counts: {
-		inCommon: number;
-		onlyViewer: number;
-		onlyTarget: number;
-	};
 }

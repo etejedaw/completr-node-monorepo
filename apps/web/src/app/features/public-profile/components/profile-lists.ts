@@ -14,22 +14,15 @@ import { ListCard } from "../../../shared/components/list-card/list-card";
 import { UiSkeleton } from "../../../shared/ui";
 import {
 	type PublicList,
-	type PublicListsPage,
-	PublicListsService
-} from "../services/public-lists.service";
-import { type ProfileListsTab } from "../user-lists/user-lists-tab";
+	type PublicListsPage
+} from "../services/public-lists.model";
+import { PublicListsService } from "../services/public-lists.service";
+import { type ListGroup } from "./profile-lists.model";
 import { ProfileSectionHeader } from "./profile-section-header";
 
 const COLLAPSED_LIST_COUNT = 6;
 const COLLAPSED_LIST_COUNT_MOBILE = 3;
 const EMPTY_PAGE: PublicListsPage = { items: [], total: 0 };
-
-interface ListGroup {
-	tab: ProfileListsTab;
-	title: string;
-	items: PublicList[];
-	total: number;
-}
 
 @Component({
 	selector: "app-profile-lists",

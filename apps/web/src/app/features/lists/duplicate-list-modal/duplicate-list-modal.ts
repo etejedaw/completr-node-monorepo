@@ -18,10 +18,8 @@ import {
 	UiLabel
 } from "../../../shared/ui";
 import { ListsService } from "../lists";
+import { type DuplicateListModalData } from "./duplicate-list-modal.model";
 
-export interface DuplicateListModalData {
-	list: List;
-}
 export type DuplicateListModalResult = List | null;
 
 @Component({

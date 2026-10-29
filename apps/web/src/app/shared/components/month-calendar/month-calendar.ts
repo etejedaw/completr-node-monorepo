@@ -29,20 +29,11 @@ import {
 
 import { UiButton, UiIconButton } from "../../ui";
 import { GamePoster } from "../game-poster/game-poster";
+import {
+	type CalendarAgendaItem,
+	type CalendarDayContext
+} from "./month-calendar.model";
 import { MonthYearPicker } from "./month-year-picker";
-
-export interface CalendarAgendaItem {
-	id: string;
-	title: string;
-	posterSrc?: string;
-	meta: string;
-	dotClass: string;
-	dateLabel: string;
-}
-
-interface CalendarDayContext {
-	$implicit: Date;
-}
 
 const MAX_DOTS = 4;
 

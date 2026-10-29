@@ -12,7 +12,8 @@ import { of, throwError } from "rxjs";
 
 import { AuthService } from "../../../../core/services/auth";
 import { BacklogService } from "../../../backlog/backlog";
-import { type Review, ReviewsService } from "../../reviews";
+import { ReviewsService } from "../../reviews";
+import { type Review } from "../../reviews.model";
 import { GameReviews } from "./game-reviews";
 
 const review = (overrides: Partial<Review>): Review => ({

@@ -10,7 +10,12 @@ import {
 import type * as ToastLibraryModule from "ng-primitives/toast";
 import type { NgpToastManager, NgpToastRef } from "ng-primitives/toast";
 
-export type ToastVariant = "info" | "success" | "warning" | "error" | "premium";
+import {
+	type PendingEntry,
+	type PendingToastOptions,
+	type Toast,
+	type ToastVariant
+} from "./toast.model";
 
 export const TOAST_CONFIG = {
 	placement: "bottom-end",
@@ -53,33 +58,6 @@ function whenIdle(task: () => void) {
 		return;
 	}
 	setTimeout(task, PRELOAD_FALLBACK_DELAY_MS);
-}
-
-export interface Toast {
-	id: number;
-	title?: string;
-	message: string;
-	variant: ToastVariant;
-	undoLabel?: string;
-	durationMs?: number;
-	onUndo?: () => void;
-	onDismiss?: () => void;
-}
-
-interface PendingEntry {
-	ref: NgpToastRef | null;
-	timer: ReturnType<typeof setTimeout>;
-	onCommit: () => void;
-	onUndo?: () => void;
-	committed: boolean;
-}
-
-export interface PendingToastOptions {
-	message: string;
-	onCommit: () => void;
-	onUndo?: () => void;
-	undoLabel?: string;
-	variant?: ToastVariant;
 }
 
 @Injectable({ providedIn: "root" })

@@ -3,15 +3,7 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
-
-export interface JobEntry {
-	id: string;
-	type: string;
-	status: string;
-	result?: string;
-	createdAt: string;
-	completedAt?: string;
-}
+import { type JobEntry } from "./jobs.model";
 
 @Injectable({ providedIn: "root" })
 export class JobsService {

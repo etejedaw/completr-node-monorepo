@@ -23,12 +23,8 @@ import {
 	UiLabel,
 	UiProgress
 } from "../../../shared/ui";
-import { type UserTag } from "../../mood-tags/mood-tags";
-
-export interface TagEdit {
-	name: string;
-	description: string;
-}
+import { type UserTag } from "../../mood-tags/mood-tags.model";
+import { type TagEdit } from "./tag-row.model";
 
 const TAG_NAME_MAX_LENGTH = 40;
 const TAG_DESCRIPTION_MAX_LENGTH = 255;

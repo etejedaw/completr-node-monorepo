@@ -4,11 +4,11 @@ import { type RewindTotals } from "../../../../core/models/rewind.model";
 import {
 	formatTallyValue,
 	RewindTally,
-	type RewindTallyRow,
 	rewindTallyRows,
 	TALLY_DURATION_MS,
 	TALLY_STAGGER_MS
 } from "./rewind-tally";
+import { type RewindTallyRow } from "./rewind-tally.model";
 
 let rows: RewindTallyRow[];
 

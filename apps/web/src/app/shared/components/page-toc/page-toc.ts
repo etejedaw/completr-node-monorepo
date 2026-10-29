@@ -7,16 +7,9 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import {
-	OptionPicker,
-	type PickerOption
-} from "../option-picker/option-picker";
-
-export interface PageSection {
-	id: string;
-	label: string;
-	icon: string;
-}
+import { OptionPicker } from "../option-picker/option-picker";
+import { type PickerOption } from "../option-picker/option-picker.model";
+import { type PageSection } from "./page-toc.model";
 
 @Component({
 	selector: "app-page-toc",

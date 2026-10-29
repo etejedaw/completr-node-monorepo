@@ -8,7 +8,6 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { type BacklogStatus, type UserRole } from "../../../../core/models";
 import { AuthService } from "../../../../core/services/auth";
 import { avatarRing } from "../../../../core/utils/premium";
 import { UiAvatar } from "../../../../shared/ui";
@@ -18,24 +17,10 @@ import {
 	backlogStatusLabel
 } from "../../../../shared/utils/backlog-status";
 import { GamesService } from "../../games";
-
-interface FriendActivity {
-	username: string;
-	name: string;
-	avatarUrl: string | null;
-	role: UserRole;
-	status: BacklogStatus;
-	finishedAt: string | null;
-	userRating: number | null;
-}
-
-interface OtherPlayer {
-	username: string;
-	name: string;
-	avatarUrl: string | null;
-	role: UserRole;
-	status: BacklogStatus;
-}
+import {
+	type FriendActivity,
+	type OtherPlayer
+} from "./game-social-activity.model";
 
 @Component({
 	selector: "app-game-social-activity",

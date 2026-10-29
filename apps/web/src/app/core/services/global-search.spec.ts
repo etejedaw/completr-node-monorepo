@@ -6,7 +6,8 @@ import {
 import { TestBed } from "@angular/core/testing";
 
 import { environment } from "../../../environments/environment";
-import { GlobalSearchService, type SearchResults } from "./global-search";
+import { GlobalSearchService } from "./global-search";
+import { type SearchResults } from "./global-search.model";
 
 describe("GlobalSearchService", () => {
 	let service: GlobalSearchService;

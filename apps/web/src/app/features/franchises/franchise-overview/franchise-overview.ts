@@ -22,7 +22,8 @@ import {
 } from "../../../shared/ui";
 import { FranchiseCard } from "../components/franchise-card/franchise-card";
 import { injectFranchiseTracking } from "../franchise-tracking";
-import { type FranchisePage, FranchisesService } from "../franchises";
+import { FranchisesService } from "../franchises";
+import { type FranchisePage } from "../franchises.model";
 
 const PAGE_SIZE = 24;
 const SEARCH_DEBOUNCE_MS = 300;

@@ -13,7 +13,8 @@ import { NgpDialogRef } from "ng-primitives/dialog";
 
 import { environment } from "../../../../environments/environment";
 import { type Game } from "../../../core/models";
-import { BacklogModal, type BacklogModalData } from "./backlog-modal";
+import { BacklogModal } from "./backlog-modal";
+import { type BacklogModalData } from "./backlog-modal.model";
 
 const api = environment.apiUrl;
 const backlogUrl = `${api}/users/me/backlog`;

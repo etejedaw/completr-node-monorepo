@@ -4,13 +4,9 @@ import { map, type Observable } from "rxjs";
 
 import { environment } from "../../../environments/environment";
 import { type Appendable, buildHttpParams } from "../utils/http-params";
+import { type ExportResource } from "./export.model";
 
 export type ExportFormat = "csv" | "json";
-
-export type ExportCollection =
-	"backlog" | "queue" | "game-shelf" | "wishlist" | "favorites" | "platinums";
-
-export type ExportResource = ExportCollection | { listId: string };
 
 export type ExportParams = Record<string, Appendable>;
 

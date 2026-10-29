@@ -1,10 +1,5 @@
 import { type UserRole } from "../models/user.model";
-
-export interface RoleBadge {
-	label: string;
-	className: string;
-	icon: string | null;
-}
+import { type RoleBadge } from "./role-badge.model";
 
 type ElevatedRole = Exclude<UserRole, "user">;
 

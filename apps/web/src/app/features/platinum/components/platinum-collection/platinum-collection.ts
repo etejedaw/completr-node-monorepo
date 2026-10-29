@@ -8,7 +8,7 @@ import {
 import { type PlatinumEntry } from "../../../../core/models";
 import { CoverGrid } from "../../../../shared/components/cover-grid/cover-grid";
 import { PlatinumCoverCard } from "../../../../shared/components/platinum-cover-card/platinum-cover-card";
-import { type ViewModeOption } from "../../../../shared/components/view-mode-toggle/view-mode-toggle";
+import { type ViewModeOption } from "../../../../shared/components/view-mode-toggle/view-mode-toggle.model";
 import { PlatinumCalendar } from "../platinum-calendar/platinum-calendar";
 import { PlatinumTable } from "../platinum-table/platinum-table";
 

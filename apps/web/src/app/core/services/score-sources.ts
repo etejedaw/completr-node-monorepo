@@ -10,17 +10,10 @@ import {
 } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-
-export interface ScoreSourceInfo {
-	code: string;
-	name: string;
-	scale: number;
-	priority: number;
-}
-
-interface ScoreSourcesResponse {
-	data: { sources: ScoreSourceInfo[] };
-}
+import {
+	type ScoreSourceInfo,
+	type ScoreSourcesResponse
+} from "./score-sources.model";
 
 const COMPUTED_SCORE_SOURCE = "completr";
 

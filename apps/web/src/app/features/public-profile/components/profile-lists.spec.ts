@@ -6,10 +6,8 @@ import { render, screen, waitFor } from "@testing-library/angular";
 import { of, Subject, throwError } from "rxjs";
 
 import { ViewportService } from "../../../core/services/viewport";
-import {
-	type PublicList,
-	PublicListsService
-} from "../services/public-lists.service";
+import { type PublicList } from "../services/public-lists.model";
+import { PublicListsService } from "../services/public-lists.service";
 import { ProfileLists } from "./profile-lists";
 
 function list(id: string, name: string): PublicList {

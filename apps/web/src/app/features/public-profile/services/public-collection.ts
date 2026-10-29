@@ -9,21 +9,11 @@ import {
 	matchesPlatform
 } from "../../../shared/components/platform-filter/platform-filter";
 import { type ProfileAccessError } from "../components/profile-access-state";
-
-interface CollectionPlatform {
-	id: string;
-	abbreviation: string;
-}
-
-interface CollectionGame {
-	title: string;
-	backgroundUrl?: string;
-}
-
-interface CollectionPage<T> {
-	items: T[];
-	total: number;
-}
+import {
+	type CollectionGame,
+	type CollectionPage,
+	type CollectionPlatform
+} from "./public-collection.model";
 
 type CollectionFetcher<T> = (
 	username: string,

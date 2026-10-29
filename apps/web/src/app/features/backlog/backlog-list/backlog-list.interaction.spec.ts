@@ -12,7 +12,7 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type BacklogEntry, type Platform } from "../../../core/models";
-import { type SavedFilter } from "../saved-filters";
+import { type SavedFilter } from "../saved-filters.model";
 import { BacklogList } from "./backlog-list";
 
 const api = environment.apiUrl;

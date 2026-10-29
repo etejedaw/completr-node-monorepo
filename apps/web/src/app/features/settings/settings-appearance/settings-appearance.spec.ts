@@ -6,12 +6,12 @@ import userEvent from "@testing-library/user-event";
 import { of, Subject, throwError } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
+import { THEME_CATALOG } from "../../../core/services/theme";
+import { ThemeService } from "../../../core/services/theme";
 import {
-	THEME_CATALOG,
 	type ThemeId,
 	type ThemeOption
-} from "../../../core/services/theme";
-import { ThemeService } from "../../../core/services/theme";
+} from "../../../core/services/theme.model";
 import { ToastService } from "../../../core/services/toast";
 import { SettingsAppearance } from "./settings-appearance";
 

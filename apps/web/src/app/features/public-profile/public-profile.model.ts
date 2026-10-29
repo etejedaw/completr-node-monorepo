@@ -1,0 +1,83 @@
+import { type VisibilityLevel } from "../../core/models/user.model";
+import { type PublicBacklog } from "./services/public-library.model";
+
+export interface PublicUser {
+	id: string;
+	username: string;
+	role: string;
+	name: string;
+	bio?: string;
+	avatarUrl?: string;
+	profileVisibility: VisibilityLevel;
+	queueVisibility: VisibilityLevel;
+	wishlistVisibility: VisibilityLevel;
+	favoriteVisibility: VisibilityLevel;
+	feedVisibility: VisibilityLevel;
+	backlogVisibility: VisibilityLevel;
+	shelfVisibility: VisibilityLevel;
+	listVisibility: VisibilityLevel;
+	platinumVisibility: VisibilityLevel;
+	franchiseVisibility: VisibilityLevel;
+	rewindVisibility: VisibilityLevel;
+	createdAt: string;
+}
+
+export interface PublicActivity {
+	id: string;
+	type: string;
+	createdAt: string;
+	target: {
+		type: "game" | "list" | "user";
+		id: string;
+		name: string;
+		code?: string;
+		username?: string;
+	} | null;
+	game: {
+		type: "game";
+		id: string;
+		name: string;
+		code: string;
+		backgroundUrl: string | null;
+	} | null;
+}
+
+export interface BacklogStats {
+	not_started: number;
+	playing: number;
+	completed: number;
+	abandoned: number;
+	total: number;
+}
+
+export type ProfileSection =
+	| "profile"
+	| "queue"
+	| "wishlist"
+	| "favorite"
+	| "feed"
+	| "backlog"
+	| "shelf"
+	| "list"
+	| "platinum"
+	| "franchise"
+	| "rewind";
+
+export type ProfileSectionAccess = Record<ProfileSection, boolean>;
+
+export interface PublicProfile {
+	user: PublicUser;
+	isPrivate?: boolean;
+	profileVisibility?: VisibilityLevel;
+	acceptFollowRequests?: boolean;
+	hasPendingRequest?: boolean;
+	followerCount: number;
+	followingCount: number;
+	isFollowing: boolean;
+	backlogs: PublicBacklog[];
+	backlogTotal: number;
+	backlogStats?: BacklogStats;
+	listsTotal: number;
+	recentActivity: PublicActivity[];
+	access?: ProfileSectionAccess;
+}

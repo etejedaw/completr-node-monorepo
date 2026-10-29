@@ -2,12 +2,7 @@ import {
 	type RewindLanguage,
 	type RewindPersonaCode
 } from "../../core/models/rewind.model";
-
-export interface RewindPersona {
-	title: string;
-	phrase: string;
-	icon: string;
-}
+import { type RewindPersona } from "./rewind-persona.model";
 
 type RewindPersonaText = Omit<RewindPersona, "icon">;
 

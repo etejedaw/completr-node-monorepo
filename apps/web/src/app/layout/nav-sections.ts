@@ -1,24 +1,5 @@
 import { type UserRole } from "../core/models/user.model";
-
-export type NavAccess = "everyone" | "moderator" | "admin";
-
-export interface NavItem {
-	route: string;
-	icon: string;
-	label: string;
-	iconColorClass: string;
-	tooltip?: string;
-	access?: NavAccess;
-}
-
-export interface NavSection {
-	id: string;
-	heading: string | null;
-	moderatorHeading?: string;
-	access?: NavAccess;
-	pinnedToBottom?: boolean;
-	items: NavItem[];
-}
+import { type NavAccess, type NavSection } from "./nav-sections.model";
 
 export const NAV_ACTIVE_CLASSES =
 	"!text-fg !bg-brand-subtle [&_.nav-icon]:!opacity-100 [&_.nav-indicator]:!h-5";

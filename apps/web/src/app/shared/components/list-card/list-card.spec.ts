@@ -1,7 +1,8 @@
 import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 
-import { ListCard, type ListCardList } from "./list-card";
+import { ListCard } from "./list-card";
+import { type ListCardList } from "./list-card.model";
 
 const baseList: ListCardList = { id: "l1", name: "Best RPGs" };
 

@@ -26,11 +26,11 @@ import {
 	UiSkeleton
 } from "../../../shared/ui";
 import { injectLibraryPosters } from "../../backlog/library-posters";
+import { ListModal } from "../list-modal/list-modal";
 import {
-	ListModal,
 	type ListModalData,
 	type ListModalResult
-} from "../list-modal/list-modal";
+} from "../list-modal/list-modal.model";
 import { ListsService } from "../lists";
 
 @Component({

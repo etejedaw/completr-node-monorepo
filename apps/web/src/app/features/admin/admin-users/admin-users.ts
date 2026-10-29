@@ -27,10 +27,8 @@ import {
 	USERNAME_PATTERN_MESSAGE
 } from "../../../core/utils/account-fields";
 import { avatarRing } from "../../../core/utils/premium";
-import {
-	elevatedRoleBadge,
-	type RoleBadge
-} from "../../../core/utils/role-badge";
+import { elevatedRoleBadge } from "../../../core/utils/role-badge";
+import { type RoleBadge } from "../../../core/utils/role-badge.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import {
 	UiAlert,
@@ -51,17 +49,9 @@ import {
 	validationSummary
 } from "../../../shared/utils/validation-errors";
 import { AdminInvitations } from "../admin-invitations/admin-invitations";
-import {
-	type AdminUser,
-	UserAdminService
-} from "../services/user-admin.service";
-
-interface CreateUserRequest {
-	username: string;
-	email: string;
-	password: string;
-	name: string;
-}
+import { type AdminUser } from "../services/user-admin.model";
+import { UserAdminService } from "../services/user-admin.service";
+import { type CreateUserRequest } from "./admin-users.model";
 
 // Mirrors the API's RegisterSchema / PasswordPolicySchema, which rejects
 // anything else with a 400.

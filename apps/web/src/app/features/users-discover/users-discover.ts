@@ -10,7 +10,8 @@ import {
 import { debounceTime, of, Subject, switchMap } from "rxjs";
 
 import { AuthService } from "../../core/services/auth";
-import { type UserResult, UsersService } from "../../core/services/users";
+import { UsersService } from "../../core/services/users";
+import { type UserResult } from "../../core/services/users.model";
 import { LibraryHero } from "../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../shared/components/library-toolbar/library-toolbar";
 import { UnfollowConfirmDialog } from "../../shared/components/unfollow-confirm-dialog/unfollow-confirm-dialog";

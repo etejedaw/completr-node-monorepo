@@ -12,18 +12,9 @@ import { ToastService } from "../../../core/services/toast";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { UiButton, UiEmptyState, UiSkeleton } from "../../../shared/ui";
-import { type JobEntry, JobsService } from "../services/jobs.service";
-
-interface JobAction {
-	type: string;
-	label: string;
-	icon: string;
-}
-
-interface JobStatusStyle {
-	icon: string;
-	classes: string;
-}
+import { type JobEntry } from "../services/jobs.model";
+import { JobsService } from "../services/jobs.service";
+import { type JobAction, type JobStatusStyle } from "./admin-jobs.model";
 
 const JOB_ACTIONS: JobAction[] = [
 	{ type: "populate_rawg", label: "Populate RAWG IDs", icon: "cloud_sync" },

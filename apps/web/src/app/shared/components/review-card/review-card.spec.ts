@@ -2,7 +2,8 @@ import { Component } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 
-import { ReviewCard, type ReviewCardReview } from "./review-card";
+import { ReviewCard } from "./review-card";
+import { type ReviewCardReview } from "./review-card.model";
 
 const review: ReviewCardReview = {
 	content: "Great run",

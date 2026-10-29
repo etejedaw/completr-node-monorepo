@@ -18,17 +18,14 @@ import { COMPARISON_OPTIONS } from "../services/comparison-options";
 import { injectPublicCollection } from "../services/public-collection";
 import {
 	type ComparisonDimension,
-	type ComparisonGame,
-	PublicLibraryService
-} from "../services/public-library.service";
+	type ComparisonGame
+} from "../services/public-library.model";
+import { PublicLibraryService } from "../services/public-library.service";
+import { type InCommonGame } from "./user-in-common.model";
 
 const IN_COMMON_SUFFIX: Record<string, string> = {
 	completed: " you both completed",
 	not_started: " you both have yet to play"
-};
-
-type InCommonGame = Omit<ComparisonGame, "backgroundUrl"> & {
-	backgroundUrl?: string;
 };
 
 function toInCommonGame(game: ComparisonGame): InCommonGame {

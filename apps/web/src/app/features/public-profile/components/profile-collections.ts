@@ -11,19 +11,12 @@ import { catchError, map, of } from "rxjs";
 
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shelf";
-import {
-	SegmentedControl,
-	type SegmentedOption
-} from "../../../shared/components/segmented-control/segmented-control";
+import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
+import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
 import { PublicLibraryService } from "../services/public-library.service";
+import { type CollectionGame } from "./profile-collections.model";
 
 type CollectionKind = "shelf" | "wishlist";
-
-interface CollectionGame {
-	id: string;
-	game: { code: string; title: string; backgroundUrl?: string };
-	badge?: string;
-}
 
 const COLLECTION_LIMIT = 12;
 

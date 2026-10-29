@@ -28,14 +28,16 @@ import {
 	effectiveVisibility,
 	PRIVACY_PRESETS,
 	PRIVACY_SECTION_GROUPS,
-	type PrivacyDraft,
-	type PrivacyMode,
 	PROFILE_GATE,
 	SECTION_KEYS,
-	type SectionVisibilityKey,
 	VISIBILITY_OPTIONS,
 	visibilityLabel
 } from "./privacy-options";
+import {
+	type PrivacyDraft,
+	type PrivacyMode,
+	type SectionVisibilityKey
+} from "./privacy-options.model";
 
 const DEFAULT_DRAFT: PrivacyDraft = {
 	profileVisibility: "public",

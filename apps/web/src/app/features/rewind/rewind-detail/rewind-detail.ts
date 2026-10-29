@@ -15,10 +15,8 @@ import {
 	type RewindLanguage
 } from "../../../core/models/rewind.model";
 import { AuthService } from "../../../core/services/auth";
-import {
-	OptionPicker,
-	type PickerOption
-} from "../../../shared/components/option-picker/option-picker";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { ProfileBackdrop } from "../../../shared/components/profile-backdrop/profile-backdrop";
 import {
 	UiButton,

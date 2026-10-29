@@ -12,7 +12,7 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { ToastService } from "../../../core/services/toast";
-import { type JobEntry } from "../services/jobs.service";
+import { type JobEntry } from "../services/jobs.model";
 import { AdminJobs } from "./admin-jobs";
 
 const api = environment.apiUrl;

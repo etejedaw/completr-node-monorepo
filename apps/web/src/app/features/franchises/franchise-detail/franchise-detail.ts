@@ -18,10 +18,8 @@ import { UiButton, UiEmptyState, UiPagination } from "../../../shared/ui";
 import { backlogStatusLabel } from "../../../shared/utils/backlog-status";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { injectFranchiseTracking } from "../franchise-tracking";
-import {
-	type FranchiseDetail as FranchiseDetailData,
-	FranchisesService
-} from "../franchises";
+import { FranchisesService } from "../franchises";
+import { type FranchiseDetail as FranchiseDetailData } from "../franchises.model";
 
 const PAGE_SIZE = 24;
 

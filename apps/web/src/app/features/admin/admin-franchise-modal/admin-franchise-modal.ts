@@ -31,25 +31,15 @@ import {
 	UiSkeleton,
 	UiTextarea
 } from "../../../shared/ui";
-import {
-	type Franchise,
-	type FranchiseDto,
-	FranchisesService
-} from "../../franchises/franchises";
+import { FranchisesService } from "../../franchises/franchises";
+import { type FranchiseDto } from "../../franchises/franchises.model";
 import { GamesService } from "../../games/games";
+import {
+	type AdminFranchiseModalData,
+	type SelectedGame
+} from "./admin-franchise-modal.model";
 
-export interface AdminFranchiseModalData {
-	franchise: Franchise | null;
-}
 export type AdminFranchiseModalResult = "saved";
-
-interface SelectedGame {
-	id: string;
-	title: string;
-	backgroundUrl?: string;
-	releaseAt?: string;
-	franchiseName?: string | null;
-}
 
 @Component({
 	selector: "app-admin-franchise-modal",

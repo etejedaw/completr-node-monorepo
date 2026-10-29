@@ -11,14 +11,7 @@ import {
 	type RewindGenerateError,
 	rewindGenerateError
 } from "../../rewind-errors";
-
-export interface RewindGenerateFlowOptions {
-	username: () => string;
-	year: () => number;
-	rewind?: () => Rewind | null;
-	onGenerated: (rewind: Rewind) => void;
-	onFinishedInDialog?: (rewind: Rewind) => void;
-}
+import { type RewindGenerateFlowOptions } from "./rewind-generate-flow.model";
 
 const ERRORS_ANNOUNCED_BY_INTERCEPTOR: readonly RewindGenerateError[] = [
 	"conflict",

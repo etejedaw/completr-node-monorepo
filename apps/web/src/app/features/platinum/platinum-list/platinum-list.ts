@@ -40,11 +40,11 @@ import {
 	readStoredPlatinumViewMode
 } from "../components/platinum-collection/platinum-collection";
 import { PlatinumService } from "../platinum";
+import { PlatinumDialog } from "../platinum-dialog/platinum-dialog";
 import {
-	PlatinumDialog,
 	type PlatinumDialogData,
 	type PlatinumDialogResult
-} from "../platinum-dialog/platinum-dialog";
+} from "../platinum-dialog/platinum-dialog.model";
 
 const VIEW_MODE_STORAGE_KEY = "completr.platinums.viewMode";
 

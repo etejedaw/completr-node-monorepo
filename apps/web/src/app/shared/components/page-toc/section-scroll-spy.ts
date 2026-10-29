@@ -9,7 +9,7 @@ import {
 } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
 
-import { type PageSection } from "./page-toc";
+import { type PageSection } from "./page-toc.model";
 
 const PROGRAMMATIC_SCROLL_MS = 1000;
 

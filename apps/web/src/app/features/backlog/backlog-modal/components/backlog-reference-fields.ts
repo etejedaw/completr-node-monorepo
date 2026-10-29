@@ -16,10 +16,8 @@ import { type FieldTree, FormField } from "@angular/forms/signals";
 
 import { type GameScore, type GameTime } from "../../../../core/models";
 import { ScoreSourcesService } from "../../../../core/services/score-sources";
-import {
-	ChipGroup,
-	type ChipOption
-} from "../../../../shared/components/chip-group/chip-group";
+import { ChipGroup } from "../../../../shared/components/chip-group/chip-group";
+import { type ChipOption } from "../../../../shared/components/chip-group/chip-group.model";
 import { UiButton, UiInput } from "../../../../shared/ui";
 import { scrollIntoViewAndFocus } from "../focus-field";
 import {

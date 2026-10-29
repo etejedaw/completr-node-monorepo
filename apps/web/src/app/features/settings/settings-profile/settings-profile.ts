@@ -13,21 +13,17 @@ import { ToastService } from "../../../core/services/toast";
 import { avatarRing } from "../../../core/utils/premium";
 import { ProfileBackdrop } from "../../../shared/components/profile-backdrop/profile-backdrop";
 import { UiAvatar, UiInput, UiTextarea } from "../../../shared/ui";
-import { ProfileService, type UpdateProfileDto } from "../../profile/profile";
+import { ProfileService } from "../../profile/profile";
+import { type UpdateProfileDto } from "../../profile/profile.model";
 import { injectProfileBackdrop } from "../../public-profile/profile-backdrop";
 import { SettingsPanel } from "../components/settings-panel";
 import { SettingsRow } from "../components/settings-row";
 import { SettingsSaveBar } from "../components/settings-save-bar";
+import { type ProfileDraft } from "./settings-profile.model";
 
 const NAME_MAX_LENGTH = 80;
 const BIO_MAX_LENGTH = 250;
 const AVATAR_COUNT = 15;
-
-interface ProfileDraft {
-	name: string;
-	bio: string;
-	avatarUrl: string;
-}
 
 const EMPTY_DRAFT: ProfileDraft = { name: "", bio: "", avatarUrl: "" };
 

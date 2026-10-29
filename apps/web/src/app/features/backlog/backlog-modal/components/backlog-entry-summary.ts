@@ -23,18 +23,14 @@ import {
 	backlogStatusIconColor,
 	backlogStatusLabel
 } from "../../../../shared/utils/backlog-status";
-import { type ProgressNote } from "../../../backlog-progress/backlog-progress";
-import { type CoopMember } from "../../../coop-runs/coop-runs";
+import { type ProgressNote } from "../../../backlog-progress/backlog-progress.model";
+import { type CoopMember } from "../../../coop-runs/coop-runs.model";
 import { MAX_CRITIC_SCORE } from "../reference-values";
+import { type SummaryFact } from "./backlog-entry-summary.model";
 
 const STATUSES_WITH_PROGRESS = new Set(["playing", "endless", "not_started"]);
 const RUN_DATE_FORMAT = "MMM d, y";
 const MISSING_VALUE = "—";
-
-interface SummaryFact {
-	label: string;
-	value: string;
-}
 
 @Component({
 	selector: "app-backlog-entry-summary",

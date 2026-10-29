@@ -8,10 +8,8 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import {
-	LibraryHero,
-	type LibraryHeroPoster
-} from "../../../shared/components/library-hero/library-hero";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { type LibraryHeroPoster } from "../../../shared/components/library-hero/library-hero.model";
 import {
 	LibraryPage,
 	type LibraryPageSkeleton,
@@ -22,10 +20,8 @@ import {
 	LibraryPageEmptyAction,
 	LibraryPageToolbar
 } from "../../../shared/components/library-page/library-page-slots";
-import {
-	type PlatformCount,
-	PlatformFilter
-} from "../../../shared/components/platform-filter/platform-filter";
+import { PlatformFilter } from "../../../shared/components/platform-filter/platform-filter";
+import { type PlatformCount } from "../../../shared/components/platform-filter/platform-filter.model";
 import { UiButton, UiSearchBar } from "../../../shared/ui";
 import {
 	type ProfileAccessError,

@@ -1,29 +1,11 @@
-import {
-	computed,
-	effect,
-	inject,
-	linkedSignal,
-	type Signal,
-	signal
-} from "@angular/core";
+import { computed, effect, inject, linkedSignal, signal } from "@angular/core";
 import { rxResource } from "@angular/core/rxjs-interop";
 
 import { RewindService } from "./rewind";
-
-export interface RewindShareTarget {
-	username: string;
-	year: number;
-}
-
-export interface RewindStoryImage {
-	readonly target: Signal<RewindShareTarget | null>;
-	readonly blob: Signal<Blob | null>;
-	readonly objectUrl: Signal<string | null>;
-	readonly isLoading: Signal<boolean>;
-	readonly hasError: Signal<boolean>;
-	request(): void;
-	retry(): void;
-}
+import {
+	type RewindShareTarget,
+	type RewindStoryImage
+} from "./rewind-story-image.model";
 
 function sameTarget(
 	a: RewindShareTarget | null,

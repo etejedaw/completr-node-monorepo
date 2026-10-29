@@ -23,16 +23,10 @@ import { GamePoster } from "../game-poster/game-poster";
 import { PlatinumTrophy } from "../platinum-trophy/platinum-trophy";
 import { RatioSummary } from "../ratio-summary/ratio-summary";
 import { StarRating } from "../star-rating/star-rating";
-
-export interface BacklogStatusOption {
-	label: string;
-	value: string;
-}
-
-export interface BacklogStatusSelection {
-	status: string;
-	event: Event;
-}
+import {
+	type BacklogStatusOption,
+	type BacklogStatusSelection
+} from "./backlog-entry-card.model";
 
 const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 	"playing",

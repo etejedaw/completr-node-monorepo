@@ -1,7 +1,8 @@
 import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 
-import { type FeaturedList, GameFeaturedLists } from "./game-featured-lists";
+import { GameFeaturedLists } from "./game-featured-lists";
+import { type FeaturedList } from "./game-featured-lists.model";
 
 const list = (overrides: Partial<FeaturedList>): FeaturedList => ({
 	id: "l1",

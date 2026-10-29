@@ -6,21 +6,9 @@ import {
 } from "@angular/core";
 import { type Params, RouterLink } from "@angular/router";
 
-import { type ListPreviewItem } from "../../../core/models";
 import { UiProgress } from "../../ui";
 import { GamePoster } from "../game-poster/game-poster";
-
-export interface ListCardList {
-	id: string;
-	name: string;
-	description?: string;
-	isOfficial?: boolean;
-	owner?: { username: string } | null;
-	previewItems?: ListPreviewItem[];
-	followerCount?: number;
-	isPublic?: boolean;
-	progress?: { completed: number; total: number } | null;
-}
+import { type ListCardList } from "./list-card.model";
 
 const COLLAGE_SIZE = 4;
 

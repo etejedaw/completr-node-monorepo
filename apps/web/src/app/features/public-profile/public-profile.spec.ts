@@ -13,9 +13,9 @@ import { RewindService } from "../rewind/rewind";
 import { PublicProfileComponent } from "./public-profile";
 import {
 	type ProfileSectionAccess,
-	type PublicProfile,
-	PublicProfileService
-} from "./public-profile.service";
+	type PublicProfile
+} from "./public-profile.model";
+import { PublicProfileService } from "./public-profile.service";
 import { PublicLibraryService } from "./services/public-library.service";
 import { PublicListsService } from "./services/public-lists.service";
 import { PublicReviewsService } from "./services/public-reviews.service";

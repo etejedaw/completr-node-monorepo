@@ -22,16 +22,11 @@ import {
 	rewindCopy
 } from "../../rewind-copy";
 import { canAnimateRewind } from "../../rewind-motion";
-import { type RewindTone, toneVar } from "../../rewind-tone";
-
-export type RewindTallyUnit = "count" | "hours" | "percent" | "rating";
-
-export interface RewindTallyRow {
-	label: string;
-	value: number;
-	tone: RewindTone;
-	unit: RewindTallyUnit;
-}
+import { toneVar } from "../../rewind-tone";
+import {
+	type RewindTallyRow,
+	type RewindTallyUnit
+} from "./rewind-tally.model";
 
 export const TALLY_DURATION_MS = 900;
 export const TALLY_STAGGER_MS = 80;

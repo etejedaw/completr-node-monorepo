@@ -16,7 +16,8 @@ import { type BacklogEntry } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { UiButton, UiDialog, UiPlainEmptyState } from "../../../shared/ui";
 import { QueueService } from "../../queue/queue";
-import { type BacklogFilters, BacklogService } from "../backlog";
+import { BacklogService } from "../backlog";
+import { type BacklogFilters } from "../backlog.model";
 
 type PickState = "loading" | "ready" | "empty" | "error";
 

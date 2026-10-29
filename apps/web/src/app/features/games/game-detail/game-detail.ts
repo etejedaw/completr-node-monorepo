@@ -34,58 +34,59 @@ import { metascoreColorClass } from "../../../shared/utils/metascore-color";
 import { BacklogService } from "../../backlog/backlog";
 import {
 	BacklogModal,
-	type BacklogModalData,
 	type BacklogModalResult
 } from "../../backlog/backlog-modal/backlog-modal";
+import { type BacklogModalData } from "../../backlog/backlog-modal/backlog-modal.model";
 import { FavoritesService } from "../../favorites/favorites";
 import { injectFranchiseTracking } from "../../franchises/franchise-tracking";
 import { GameShelfService } from "../../game-shelf/game-shelf";
 import {
 	GameShelfModal,
-	type GameShelfModalData,
 	type GameShelfModalResult
 } from "../../game-shelf/game-shelf-modal/game-shelf-modal";
+import { type GameShelfModalData } from "../../game-shelf/game-shelf-modal/game-shelf-modal.model";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
+import { PlatinumDialog } from "../../platinum/platinum-dialog/platinum-dialog";
 import {
-	PlatinumDialog,
 	type PlatinumDialogData,
 	type PlatinumDialogResult
-} from "../../platinum/platinum-dialog/platinum-dialog";
+} from "../../platinum/platinum-dialog/platinum-dialog.model";
 import { QueueService } from "../../queue/queue";
 import { WishlistService } from "../../wishlist/wishlist";
 import {
 	WishlistPlatformModal,
-	type WishlistPlatformModalData,
 	type WishlistPlatformModalResult
 } from "../../wishlist/wishlist-platform-modal/wishlist-platform-modal";
+import { type WishlistPlatformModalData } from "../../wishlist/wishlist-platform-modal/wishlist-platform-modal.model";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import { GamesService } from "../games";
+import { GameAddToListModal } from "./components/game-add-to-list-modal";
 import {
-	GameAddToListModal,
 	type GameAddToListModalData,
 	type ListsChanged
-} from "./components/game-add-to-list-modal";
-import {
-	type AdminActionsState,
-	GameAdminBar
-} from "./components/game-admin-bar";
+} from "./components/game-add-to-list-modal.model";
+import { GameAdminBar } from "./components/game-admin-bar";
+import { type AdminActionsState } from "./components/game-admin-bar.model";
 import { GameDlcList } from "./components/game-dlc-list";
 import { GameFeaturedLists } from "./components/game-featured-lists";
-import { type GameFact, GameHero } from "./components/game-hero";
+import { GameHero } from "./components/game-hero";
+import { type GameFact } from "./components/game-hero.model";
 import { GameLibraryActions } from "./components/game-library-actions";
 import { GamePlatinumCard } from "./components/game-platinum-card";
 import { GamePosterGrid } from "./components/game-poster-grid";
 import {
 	GameQueueRunPicker,
-	type GameQueueRunPickerData,
 	type GameQueueRunPickerResult
 } from "./components/game-queue-run-picker";
+import { type GameQueueRunPickerData } from "./components/game-queue-run-picker.model";
 import { GameReviews } from "./components/game-reviews";
 import { GameRuns } from "./components/game-runs";
 import { GameScoreCard } from "./components/game-score-card";
 import { GameSection } from "./components/game-section";
 import { GameSocialActivity } from "./components/game-social-activity";
-import { type QueueIntent, resolveQueueIntent } from "./queue-intent";
+import { type ReportModalState } from "./game-detail.model";
+import { resolveQueueIntent } from "./queue-intent";
+import { type QueueIntent } from "./queue-intent.model";
 
 const TIME_SOURCE_LABELS: Record<string, string> = {
 	completr: "Completr",
@@ -94,14 +95,6 @@ const TIME_SOURCE_LABELS: Record<string, string> = {
 };
 
 const HERO_SCORE_SOURCES_LIMIT = 3;
-
-interface ReportModalState {
-	show: boolean;
-	message: string;
-	submitting: boolean;
-	sent: boolean;
-	error: string;
-}
 
 @Component({
 	selector: "app-game-detail",

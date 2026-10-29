@@ -12,12 +12,7 @@ import {
 } from "../../../../core/models/rewind.model";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
 import { monthName, shortDate, utcMonth } from "../../rewind-copy";
-
-interface FinishedMonth {
-	month: number;
-	name: string;
-	games: RewindFinishedGame[];
-}
+import { type FinishedMonth } from "./rewind-finished-games.model";
 
 function groupByMonth(
 	games: RewindFinishedGame[],

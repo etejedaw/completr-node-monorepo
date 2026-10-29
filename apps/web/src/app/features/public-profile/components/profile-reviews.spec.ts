@@ -3,7 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { provideRouter } from "@angular/router";
 import { render, screen } from "@testing-library/angular";
 
-import { type ReviewEntry } from "../services/public-reviews.service";
+import { type ReviewEntry } from "../services/public-reviews.model";
 import { ProfileReviews } from "./profile-reviews";
 
 function review(id: string, title: string, content: string): ReviewEntry {

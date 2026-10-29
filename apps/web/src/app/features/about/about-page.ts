@@ -8,12 +8,7 @@ import {
 import { LibraryHero } from "../../shared/components/library-hero/library-hero";
 import { UiButton } from "../../shared/ui";
 import { injectLibraryPosters } from "../backlog/library-posters";
-
-interface DataSource {
-	name: string;
-	url: string;
-	provides: string;
-}
+import { type DataSource } from "./about-page.model";
 
 const REPOSITORY_URL = "https://github.com/etejedaw/completr-node-monorepo";
 

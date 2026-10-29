@@ -10,9 +10,9 @@ import {
 import {
 	type ExportFormat,
 	type ExportParams,
-	type ExportResource,
 	ExportService
 } from "../../../core/services/export";
+import { type ExportResource } from "../../../core/services/export.model";
 import { ToastService } from "../../../core/services/toast";
 import { PremiumOnly } from "../../directives/premium-only";
 import { UiButton } from "../../ui/button/ui-button";

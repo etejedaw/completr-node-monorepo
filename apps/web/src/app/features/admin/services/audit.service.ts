@@ -4,35 +4,7 @@ import { map } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
 import { buildHttpParams } from "../../../core/utils/http-params";
-
-export interface AuditActor {
-	id: string;
-	username: string;
-	name: string;
-}
-
-export interface AuditTarget {
-	type: string;
-	id: string;
-	label: string;
-	code?: string;
-	username?: string;
-}
-
-export interface AuditLogEntry {
-	id: string;
-	user: AuditActor | null;
-	action: string;
-	targetType: string;
-	targetId: string;
-	target?: AuditTarget;
-	createdAt: string;
-}
-
-export interface AuditFilters {
-	action?: string;
-	targetType?: string;
-}
+import { type AuditFilters, type AuditLogEntry } from "./audit.model";
 
 @Injectable({ providedIn: "root" })
 export class AuditService {

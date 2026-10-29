@@ -14,23 +14,14 @@ import { environment } from "../../../environments/environment";
 import { type FavoriteEntry } from "../../core/models";
 import { AuthService } from "../../core/services/auth";
 import { ToastService } from "../../core/services/toast";
-import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
+import { buildHttpParams } from "../../core/utils/http-params";
+import {
+	type FavoriteGameIdsResponse,
+	type FavoritesPagination,
+	type FavoritesResponse
+} from "./favorites.model";
 
 const MAX_FAVORITES = 100;
-
-interface FavoritesResponse {
-	data: { favorites: FavoriteEntry[]; total?: number };
-}
-
-interface FavoriteGameIdsResponse {
-	data: { gameIds: string[] };
-}
-
-export interface FavoritesPagination extends Record<string, Appendable> {
-	limit?: number;
-	offset?: number;
-	search?: string;
-}
 
 @Injectable({ providedIn: "root" })
 export class FavoritesService {

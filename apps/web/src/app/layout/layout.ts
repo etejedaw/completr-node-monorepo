@@ -35,11 +35,8 @@ import {
 	UiSeparator
 } from "../shared/ui";
 import { GlobalSearch } from "./global-search/global-search";
-import {
-	NAV_ACTIVE_CLASSES,
-	type NavItem,
-	visibleNavSections
-} from "./nav-sections";
+import { NAV_ACTIVE_CLASSES, visibleNavSections } from "./nav-sections";
+import { type NavItem } from "./nav-sections.model";
 
 const SIDEBAR_COLLAPSED_KEY = "completr.sidebar.collapsed";
 const TABLET_QUERY = "(min-width: 768px) and (max-width: 1023px)";

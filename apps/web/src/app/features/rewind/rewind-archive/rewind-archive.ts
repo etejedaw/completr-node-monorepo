@@ -9,10 +9,8 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
 import { map } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
-import {
-	LibraryHero,
-	type LibraryHeroPoster
-} from "../../../shared/components/library-hero/library-hero";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { type LibraryHeroPoster } from "../../../shared/components/library-hero/library-hero.model";
 import { UiButton, UiPlainEmptyState, UiSkeleton } from "../../../shared/ui";
 import { ProfileAccessState } from "../../public-profile/components/profile-access-state";
 import { RewindYearCard } from "../components/rewind-year-card/rewind-year-card";

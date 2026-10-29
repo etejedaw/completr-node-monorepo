@@ -19,7 +19,7 @@ import {
 } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
-import { type UserResult } from "../../../core/services/users";
+import { type UserResult } from "../../../core/services/users.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { UnfollowConfirmDialog } from "../../../shared/components/unfollow-confirm-dialog/unfollow-confirm-dialog";
@@ -38,10 +38,8 @@ import {
 	ProfileAccessState
 } from "../components/profile-access-state";
 import { PublicProfileService } from "../public-profile.service";
-import {
-	type ConnectionsPage,
-	PublicSocialService
-} from "../services/public-social.service";
+import { type ConnectionsPage } from "../services/public-social.model";
+import { PublicSocialService } from "../services/public-social.service";
 
 export type ConnectionKind = "followers" | "following";
 

@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 
-import { type AdminActionsState, GameAdminBar } from "./game-admin-bar";
+import { GameAdminBar } from "./game-admin-bar";
+import { type AdminActionsState } from "./game-admin-bar.model";
 
 const idleState: AdminActionsState = {
 	confirmDeactivate: false,

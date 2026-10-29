@@ -8,7 +8,7 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
-import { type FranchiseSummary } from "../../franchises";
+import { type FranchiseSummary } from "../../franchises.model";
 
 @Component({
 	selector: "app-franchise-card",

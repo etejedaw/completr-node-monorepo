@@ -35,22 +35,18 @@ import {
 import { DialogService } from "../../../core/services/dialog";
 import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
-import {
-	BacklogEntryCard,
-	type BacklogStatusOption
-} from "../../../shared/components/backlog-entry-card/backlog-entry-card";
+import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
+import { type BacklogStatusOption } from "../../../shared/components/backlog-entry-card/backlog-entry-card.model";
 import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
 import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import {
-	OptionPicker,
 	type PickerAction,
 	type PickerOption
-} from "../../../shared/components/option-picker/option-picker";
-import {
-	type ViewModeOption,
-	ViewModeToggle
-} from "../../../shared/components/view-mode-toggle/view-mode-toggle";
+} from "../../../shared/components/option-picker/option-picker.model";
+import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
+import { type ViewModeOption } from "../../../shared/components/view-mode-toggle/view-mode-toggle.model";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import {
 	UiButton,
@@ -74,13 +70,14 @@ import { ReviewsService } from "../../games/reviews";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
 import { PlatinumService } from "../../platinum/platinum";
 import { QueueService } from "../../queue/queue";
-import { type BacklogFilters, BacklogService } from "../backlog";
+import { BacklogService } from "../backlog";
+import { type BacklogFilters } from "../backlog.model";
 import { BacklogCalendar } from "../backlog-calendar/backlog-calendar";
 import {
 	BacklogModal,
-	type BacklogModalData,
 	type BacklogModalResult
 } from "../backlog-modal/backlog-modal";
+import { type BacklogModalData } from "../backlog-modal/backlog-modal.model";
 import {
 	BacklogFiltersPanel,
 	type SortOrder
@@ -92,32 +89,27 @@ import { EntryStatusSheet } from "../components/entry-status-sheet/entry-status-
 import { ReorderViewsDialog } from "../components/reorder-views-dialog/reorder-views-dialog";
 import { SavedViewStats } from "../components/saved-view-stats/saved-view-stats";
 import { SavedViewStatsPanel } from "../components/saved-view-stats-panel/saved-view-stats-panel";
-import {
-	type PendingStatusUpdate,
-	StatusChangeDialog
-} from "../components/status-change-dialog/status-change-dialog";
+import { StatusChangeDialog } from "../components/status-change-dialog/status-change-dialog";
+import { type PendingStatusUpdate } from "../components/status-change-dialog/status-change-dialog.model";
 import { savedFilterColorHex } from "../saved-filter-appearance";
 import {
 	DEFAULT_ENABLED_STATS,
-	type SavedFilter,
 	SavedFiltersService,
-	type SavedFilterStats,
 	STAT_KEYS,
 	type StatKey
 } from "../saved-filters";
+import {
+	type SavedFilter,
+	type SavedFilterStats
+} from "../saved-filters.model";
 import { SurpriseMe } from "../surprise-me/surprise-me";
+import { type ClearAction } from "./backlog-list.model";
 
 const MIXED_STATUS_VALUE = "__mixed__";
 
 type BacklogViewMode = "diary" | "hardcore" | "calendar";
 
 const NEW_VIEW_PARAM = "newView";
-
-interface ClearAction {
-	label: string;
-	description: string;
-	icon: string;
-}
 
 const EXIT_VIEW_ACTION: ClearAction = {
 	label: "Exit view",

@@ -5,19 +5,8 @@ import {
 	input
 } from "@angular/core";
 
-import { type MonthlyCount } from "../../saved-filters";
-
-interface MonthColumn {
-	month: string;
-	count: number;
-	heightPercent: number;
-	shortLabel: string;
-	fullLabel: string;
-	yearLabel: string | null;
-	isPeak: boolean;
-	hideTickOnMobile: boolean;
-	tooltipAlignClass: string;
-}
+import { type MonthlyCount } from "../../saved-filters.model";
+import { type MonthColumn } from "./completions-chart.model";
 
 const MOBILE_TICK_EVERY = 3;
 

@@ -3,38 +3,14 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-
-export interface UserTag {
-	tag: string;
-	usageCount: number;
-	description: string | null;
-}
-
-interface MyTagsResponse {
-	data: { tags: UserTag[] };
-}
-
-interface UpdateTagResponse {
-	data: { tag: string };
-}
-
-export interface UpdateTagDto {
-	newTag?: string;
-	description?: string | null;
-}
-
-export interface CreateTagDto {
-	tag: string;
-	description?: string | null;
-}
-
-interface CreateTagResponse {
-	data: { tag: string; description: string | null };
-}
-
-interface GameTagsResponse {
-	data: { tags: string[] };
-}
+import {
+	type CreateTagDto,
+	type CreateTagResponse,
+	type GameTagsResponse,
+	type MyTagsResponse,
+	type UpdateTagDto,
+	type UpdateTagResponse
+} from "./mood-tags.model";
 
 @Injectable({ providedIn: "root" })
 export class MoodTagsService {

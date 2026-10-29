@@ -15,7 +15,7 @@ import {
 } from "@angular/core";
 
 import { UiButton, UiDialog, UiIconButton } from "../../../../shared/ui";
-import { type SavedFilter } from "../../saved-filters";
+import { type SavedFilter } from "../../saved-filters.model";
 
 @Component({
 	selector: "app-reorder-views-dialog",

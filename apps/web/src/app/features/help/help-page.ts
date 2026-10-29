@@ -3,15 +3,14 @@ import { RouterLink } from "@angular/router";
 
 import { type BacklogStatus } from "../../core/models";
 import { OnboardingService } from "../../core/services/onboarding";
-import { NAV_SECTIONS, type NavItem } from "../../layout/nav-sections";
+import { NAV_SECTIONS } from "../../layout/nav-sections";
+import { type NavItem } from "../../layout/nav-sections.model";
 import { GamePoster } from "../../shared/components/game-poster/game-poster";
 import { InfoPageLinks } from "../../shared/components/info-page-links/info-page-links";
 import { LibraryHero } from "../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../shared/components/library-toolbar/library-toolbar";
-import {
-	type PageSection,
-	PageToc
-} from "../../shared/components/page-toc/page-toc";
+import { PageToc } from "../../shared/components/page-toc/page-toc";
+import { type PageSection } from "../../shared/components/page-toc/page-toc.model";
 import { injectSectionScrollSpy } from "../../shared/components/page-toc/section-scroll-spy";
 import { RatioSummary } from "../../shared/components/ratio-summary/ratio-summary";
 import { StarRating } from "../../shared/components/star-rating/star-rating";
@@ -22,7 +21,7 @@ import {
 	backlogStatusIcon,
 	backlogStatusLabel
 } from "../../shared/utils/backlog-status";
-import { type CanonicalScore } from "../../shared/utils/canonical-score";
+import { type CanonicalScore } from "../../shared/utils/canonical-score.model";
 import { injectLibraryPosters } from "../backlog/library-posters";
 import { GameScoreCard } from "../games/game-detail/components/game-score-card";
 

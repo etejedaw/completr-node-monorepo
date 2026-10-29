@@ -5,13 +5,9 @@ import {
 	input
 } from "@angular/core";
 
-type RatioComparison = "better" | "worse" | "even";
+import { type ComparisonStyle } from "./ratio-summary.model";
 
-interface ComparisonStyle {
-	icon: string;
-	textClass: string;
-	caption: string;
-}
+type RatioComparison = "better" | "worse" | "even";
 
 const COMPARISON_STYLES: Record<RatioComparison, ComparisonStyle> = {
 	better: {

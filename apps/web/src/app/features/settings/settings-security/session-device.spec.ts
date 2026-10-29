@@ -1,4 +1,4 @@
-import { type AuthSession } from "../../../core/services/auth";
+import { type AuthSession } from "../../../core/services/auth.model";
 import { currentSessionFirst, describeDevice, timeAgo } from "./session-device";
 
 const CHROME_WINDOWS =

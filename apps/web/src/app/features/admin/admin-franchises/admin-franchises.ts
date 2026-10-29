@@ -18,12 +18,13 @@ import {
 	UiIconButton,
 	UiSkeleton
 } from "../../../shared/ui";
-import { type Franchise, FranchisesService } from "../../franchises/franchises";
+import { FranchisesService } from "../../franchises/franchises";
+import { type Franchise } from "../../franchises/franchises.model";
 import {
 	AdminFranchiseModal,
-	type AdminFranchiseModalData,
 	type AdminFranchiseModalResult
 } from "../admin-franchise-modal/admin-franchise-modal";
+import { type AdminFranchiseModalData } from "../admin-franchise-modal/admin-franchise-modal.model";
 
 @Component({
 	selector: "app-admin-franchises",

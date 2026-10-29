@@ -6,16 +6,9 @@ import {
 	model
 } from "@angular/core";
 
-import {
-	ChipGroup,
-	type ChipOption
-} from "../../../shared/components/chip-group/chip-group";
-
-export interface WishlistPlatformOption {
-	id: string;
-	name: string;
-	abbreviation: string;
-}
+import { ChipGroup } from "../../../shared/components/chip-group/chip-group";
+import { type ChipOption } from "../../../shared/components/chip-group/chip-group.model";
+import { type WishlistPlatformOption } from "./wishlist-platform-choice.model";
 
 @Component({
 	selector: "app-wishlist-platform-choice",

@@ -24,32 +24,13 @@ import {
 } from "../../../../shared/utils/backlog-status";
 import { isPlatinumRun } from "../../../../shared/utils/platinum";
 import { FavoritesService } from "../../../favorites/favorites";
-
-export interface BacklogTableEntryEvent {
-	entry: BacklogEntry;
-	event: Event;
-}
-
-export interface BacklogTableStatusSelection extends BacklogTableEntryEvent {
-	status: BacklogStatus;
-}
-
-export interface BacklogTableRating {
-	entry: BacklogEntry;
-	rating: number | null;
-}
-
-export interface BacklogTableFavoriteToggle {
-	gameId: string;
-	event: Event;
-}
-
-interface BacklogTableColumn {
-	label: string;
-	sortKey: string | null;
-	headerClass: string;
-	hint?: string;
-}
+import {
+	type BacklogTableColumn,
+	type BacklogTableEntryEvent,
+	type BacklogTableFavoriteToggle,
+	type BacklogTableRating,
+	type BacklogTableStatusSelection
+} from "./backlog-table.model";
 
 const HEADER_BASE_CLASS =
 	"sticky top-0 bg-sidebar/95 backdrop-blur z-[1] px-3 py-3 text-[0.6875rem] uppercase tracking-[0.12em] border-b border-line select-none whitespace-nowrap";

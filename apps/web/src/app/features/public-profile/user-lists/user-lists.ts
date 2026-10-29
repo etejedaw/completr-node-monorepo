@@ -15,10 +15,8 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
 import { catchError, debounceTime, forkJoin, map, of, Subject } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
-import {
-	LibraryHero,
-	type LibraryHeroPoster
-} from "../../../shared/components/library-hero/library-hero";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { type LibraryHeroPoster } from "../../../shared/components/library-hero/library-hero.model";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { ListCard } from "../../../shared/components/list-card/list-card";
 import {
@@ -35,9 +33,10 @@ import {
 } from "../components/profile-access-state";
 import {
 	type PublicListsPage,
-	type PublicListsQuery,
-	PublicListsService
-} from "../services/public-lists.service";
+	type PublicListsQuery
+} from "../services/public-lists.model";
+import { PublicListsService } from "../services/public-lists.service";
+import { type SearchChange } from "./user-lists.model";
 import {
 	FOLLOWING_TAB_PARAM,
 	parseProfileListsTab,
@@ -57,11 +56,6 @@ const LIST_TABS: {
 	{ tab: "created", label: "Created", queryParam: null },
 	{ tab: "following", label: "Following", queryParam: FOLLOWING_TAB_PARAM }
 ];
-
-interface SearchChange {
-	tab: ProfileListsTab;
-	value: string;
-}
 
 @Component({
 	selector: "app-user-lists",

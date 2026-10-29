@@ -20,7 +20,7 @@ import { PosterShelf } from "../../shared/components/poster-shelf/poster-shelf";
 import { BETA_SIGNUP_URL } from "../../shared/constants/beta-signup";
 import { UiAvatar, UiButton, UiDialog, UiSkeleton } from "../../shared/ui";
 import { FeedService } from "../feed/feed";
-import { type TrackedFranchise } from "../franchises/franchises";
+import { type TrackedFranchise } from "../franchises/franchises.model";
 import { RewindService } from "../rewind/rewind";
 import { ProfileAccessState } from "./components/profile-access-state";
 import { ProfileActivity } from "./components/profile-activity";
@@ -42,22 +42,20 @@ import {
 	pickProfileBackdrop,
 	PROFILE_FAVORITES_LIMIT
 } from "./profile-backdrop";
-import {
-	type PublicProfile,
-	PublicProfileService
-} from "./public-profile.service";
+import { type PublicProfile } from "./public-profile.model";
+import { PublicProfileService } from "./public-profile.service";
 import { COMPARISON_OPTIONS } from "./services/comparison-options";
 import {
 	type ComparisonDimension,
 	type PublicFavorite,
-	PublicLibraryService,
 	type UserComparison
-} from "./services/public-library.service";
+} from "./services/public-library.model";
+import { PublicLibraryService } from "./services/public-library.service";
 import {
 	type HighlightsData,
-	PublicReviewsService,
 	type ReviewEntry
-} from "./services/public-reviews.service";
+} from "./services/public-reviews.model";
+import { PublicReviewsService } from "./services/public-reviews.service";
 import { PublicSocialService } from "./services/public-social.service";
 
 const LATEST_REVIEWS_COUNT = 4;

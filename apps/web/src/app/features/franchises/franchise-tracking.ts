@@ -2,17 +2,11 @@ import { type HttpErrorResponse } from "@angular/common/http";
 import { inject, signal } from "@angular/core";
 
 import { ToastService } from "../../core/services/toast";
+import {
+	type FranchiseTrackingOptions,
+	type TrackableFranchise
+} from "./franchise-tracking.model";
 import { FranchisesService } from "./franchises";
-
-export interface TrackableFranchise {
-	code: string;
-	name: string;
-	isTracked: boolean;
-}
-
-export interface FranchiseTrackingOptions {
-	onMissing?: () => void;
-}
 
 export function injectFranchiseTracking(
 	options: FranchiseTrackingOptions = {}

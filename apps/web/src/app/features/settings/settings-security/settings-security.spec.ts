@@ -11,7 +11,8 @@ import userEvent from "@testing-library/user-event";
 import { of, Subject, throwError } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
-import { AuthService, type AuthSession } from "../../../core/services/auth";
+import { AuthService } from "../../../core/services/auth";
+import { type AuthSession } from "../../../core/services/auth.model";
 import { ToastService } from "../../../core/services/toast";
 import { SettingsSecurity } from "./settings-security";
 

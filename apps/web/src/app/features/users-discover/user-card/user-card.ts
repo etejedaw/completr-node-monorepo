@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { type UserResult } from "../../../core/services/users";
+import { type UserResult } from "../../../core/services/users.model";
 import { avatarRing } from "../../../core/utils/premium";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
 import { UiAvatar, UiButton } from "../../../shared/ui";

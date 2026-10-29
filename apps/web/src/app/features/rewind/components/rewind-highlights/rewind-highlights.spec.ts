@@ -7,8 +7,6 @@ import { type RewindHighlights as RewindHighlightsData } from "../../../../core/
 import {
 	HIGHLIGHT_ORDER,
 	HIGHLIGHT_TONE,
-	type HighlightCell,
-	type HighlightKey,
 	highlightLayout,
 	highlightLayoutOf,
 	NARROW_COLUMNS,
@@ -16,6 +14,10 @@ import {
 	RewindHighlights,
 	WIDE_COLUMNS
 } from "./rewind-highlights";
+import {
+	type HighlightCell,
+	type HighlightKey
+} from "./rewind-highlights.model";
 
 const game = (code: string, title: string, finishedAt = "2026-03-04") => ({
 	gameId: code,

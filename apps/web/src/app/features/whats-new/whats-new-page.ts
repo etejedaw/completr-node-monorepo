@@ -22,23 +22,13 @@ import {
 	type ReleaseView,
 	toReleaseViews
 } from "./release.model";
+import {
+	type MonthGroup,
+	type MonthSummary,
+	type PendingScroll
+} from "./whats-new-page.model";
 
 const OLDER_PAGE_SIZE = 8;
-
-interface PendingScroll {
-	anchor: string;
-	behavior: ScrollBehavior;
-}
-
-interface MonthSummary {
-	month: string;
-	count: number;
-}
-
-interface MonthGroup {
-	month: string;
-	releases: ReleaseView[];
-}
 
 function monthAnchor(month: string): string {
 	return `month-${month}`;

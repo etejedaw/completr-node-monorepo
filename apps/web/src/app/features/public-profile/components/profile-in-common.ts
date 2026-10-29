@@ -9,15 +9,13 @@ import {
 
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shelf";
-import {
-	SegmentedControl,
-	type SegmentedOption
-} from "../../../shared/components/segmented-control/segmented-control";
+import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
+import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
 import { UiSkeleton } from "../../../shared/ui";
 import {
 	type ComparisonDimension,
 	type ComparisonGame
-} from "../services/public-library.service";
+} from "../services/public-library.model";
 import { ProfileSectionHeader } from "./profile-section-header";
 
 const SKELETON_RANGE = [0, 1, 2, 3, 4, 5];

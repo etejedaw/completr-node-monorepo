@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 
 import { ReviewCard } from "../../../shared/components/review-card/review-card";
-import { type ReviewEntry } from "../services/public-reviews.service";
+import { type ReviewEntry } from "../services/public-reviews.model";
 import { ProfileSectionHeader } from "./profile-section-header";
 
 @Component({

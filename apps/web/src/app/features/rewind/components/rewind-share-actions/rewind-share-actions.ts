@@ -17,7 +17,7 @@ import { InView } from "../../../../shared/directives/in-view";
 import { UiButton, UiSkeleton } from "../../../../shared/ui";
 import { rewindShareUrl } from "../../rewind";
 import { rewindCopy, rewindImageFileName } from "../../rewind-copy";
-import { type RewindStoryImage } from "../../rewind-story-image";
+import { type RewindStoryImage } from "../../rewind-story-image.model";
 
 export const REPEATED_ACTIVATION_WINDOW_MS = 800;
 

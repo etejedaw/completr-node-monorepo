@@ -9,15 +9,10 @@ import {
 
 import { type FavoriteEntry } from "../../../../core/models";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
-
-export type FavoriteReorderAction = "earlier" | "first" | "later";
-
-interface ReorderButton {
-	id: FavoriteReorderAction;
-	icon: string;
-	label: string;
-	disabled: boolean;
-}
+import {
+	type FavoriteReorderAction,
+	type ReorderButton
+} from "./favorite-reorder-card.model";
 
 @Component({
 	selector: "app-favorite-reorder-card",

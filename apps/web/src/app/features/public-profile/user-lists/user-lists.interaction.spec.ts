@@ -19,7 +19,7 @@ import {
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
-import { type PublicList } from "../services/public-lists.service";
+import { type PublicList } from "../services/public-lists.model";
 import { UserLists } from "./user-lists";
 
 @Component({

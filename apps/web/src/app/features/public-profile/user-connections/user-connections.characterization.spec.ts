@@ -14,7 +14,7 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type VisibilityLevel } from "../../../core/models/user.model";
-import { type UserResult } from "../../../core/services/users";
+import { type UserResult } from "../../../core/services/users.model";
 import { UserConnections } from "./user-connections";
 
 @Component({

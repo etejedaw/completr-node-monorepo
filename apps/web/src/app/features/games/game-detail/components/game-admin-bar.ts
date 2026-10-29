@@ -6,14 +6,7 @@ import {
 } from "@angular/core";
 
 import { UiButton } from "../../../../shared/ui";
-
-export interface AdminActionsState {
-	confirmDeactivate: boolean;
-	confirmDelete: boolean;
-	editor: boolean;
-	deactivating: boolean;
-	deleting: boolean;
-}
+import { type AdminActionsState } from "./game-admin-bar.model";
 
 @Component({
 	selector: "app-game-admin-bar",

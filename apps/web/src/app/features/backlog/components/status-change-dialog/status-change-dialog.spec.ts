@@ -8,10 +8,8 @@ import {
 	type BacklogStatus,
 	type GamePlatinum
 } from "../../../../core/models";
-import {
-	type PendingStatusUpdate,
-	StatusChangeDialog
-} from "./status-change-dialog";
+import { StatusChangeDialog } from "./status-change-dialog";
+import { type PendingStatusUpdate } from "./status-change-dialog.model";
 
 function pendingUpdate(
 	status: BacklogStatus,

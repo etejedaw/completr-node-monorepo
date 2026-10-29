@@ -8,7 +8,7 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { UiButton } from "../../../shared/ui";
-import { type TrackedFranchise } from "../../franchises/franchises";
+import { type TrackedFranchise } from "../../franchises/franchises.model";
 import { ProfileSectionHeader } from "./profile-section-header";
 
 const COLLAPSED_SAGA_COUNT = 6;

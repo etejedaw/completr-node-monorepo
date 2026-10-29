@@ -13,10 +13,8 @@ import {
 } from "@angular/router";
 import { filter, map } from "rxjs";
 
-import {
-	OptionPicker,
-	type PickerOption
-} from "../../../shared/components/option-picker/option-picker";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { SETTINGS_SECTIONS } from "../settings-sections";
 
 function settingsSectionOf(url: string): string {

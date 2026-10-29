@@ -11,7 +11,7 @@ import { avatarRing } from "../../../core/utils/premium";
 import { elevatedRoleBadge } from "../../../core/utils/role-badge";
 import { ProfileBackdrop } from "../../../shared/components/profile-backdrop/profile-backdrop";
 import { UiAvatar, UiButton } from "../../../shared/ui";
-import { type PublicProfile } from "../public-profile.service";
+import { type PublicProfile } from "../public-profile.model";
 
 const MEMBER_SINCE_FORMAT = new Intl.DateTimeFormat("en", {
 	month: "long",

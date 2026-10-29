@@ -12,7 +12,7 @@ import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
-import { type AuditLogEntry } from "../services/audit.service";
+import { type AuditLogEntry } from "../services/audit.model";
 import { AdminAudit } from "./admin-audit";
 
 const api = environment.apiUrl;

@@ -1,4 +1,5 @@
 import { type GameTime } from "../../../core/models";
+import { type ReferencePick } from "./reference-values.model";
 
 export const MAX_CRITIC_SCORE = 5;
 export const MIN_REFERENCE_VALUE = 0.01;
@@ -13,11 +14,6 @@ export const DURATION_SOURCE_NAMES: Readonly<Record<string, string>> = {
 	rawg: "RAWG",
 	completr: "Completr"
 };
-
-export interface ReferencePick {
-	value: number | null;
-	source: string;
-}
 
 export const NO_REFERENCE_PICK: ReferencePick = { value: null, source: "" };
 

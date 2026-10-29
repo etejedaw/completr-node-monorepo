@@ -2,7 +2,7 @@ import { computed, inject } from "@angular/core";
 import { rxResource } from "@angular/core/rxjs-interop";
 import { catchError, map, of } from "rxjs";
 
-import { type LibraryHeroPoster } from "../../shared/components/library-hero/library-hero";
+import { type LibraryHeroPoster } from "../../shared/components/library-hero/library-hero.model";
 import { BacklogService } from "./backlog";
 
 export function injectLibraryPosters(count = 14) {

@@ -13,19 +13,9 @@ import {
 	backlogStatusIconColor,
 	backlogStatusLabel
 } from "../../../../shared/utils/backlog-status";
+import { type SecondaryAction } from "./game-library-actions.model";
 
 export type GameLibraryActionsVariant = "full" | "compact";
-
-interface SecondaryAction {
-	id: "queue" | "wishlist" | "shelf" | "lists";
-	icon: string;
-	activeIcon: string;
-	label: string;
-	activeLabel: string;
-	active: boolean;
-	disabled: boolean;
-	accentClass: string;
-}
 
 @Component({
 	selector: "app-game-library-actions",

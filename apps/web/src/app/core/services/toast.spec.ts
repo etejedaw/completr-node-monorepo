@@ -1,12 +1,8 @@
 import { type TemplateRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 
-import {
-	type Toast,
-	TOAST_LIBRARY_LOADER,
-	ToastService,
-	UNDO_WINDOW_MS
-} from "./toast";
+import { TOAST_LIBRARY_LOADER, ToastService, UNDO_WINDOW_MS } from "./toast";
+import { type Toast } from "./toast.model";
 
 const IDLE_PRELOAD_MS = 2000;
 

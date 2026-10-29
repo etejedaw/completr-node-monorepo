@@ -6,13 +6,7 @@ import {
 } from "@angular/core";
 
 import { REWIND_YEAR_FILL_CLASS } from "../../rewind-tone";
-
-export interface OdometerReel {
-	key: string;
-	digits: number[];
-	fillPosition: string;
-	delayMs: number;
-}
+import { type OdometerReel } from "./rewind-year-odometer.model";
 
 export const ODOMETER_STAGGER_MS = 90;
 const DIGITS_PER_TURN = 10;

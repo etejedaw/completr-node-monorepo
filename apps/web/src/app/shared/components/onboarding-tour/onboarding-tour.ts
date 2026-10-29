@@ -5,21 +5,10 @@ import {
 	signal
 } from "@angular/core";
 
-import { NAV_SECTIONS, type NavItem } from "../../../layout/nav-sections";
+import { NAV_SECTIONS } from "../../../layout/nav-sections";
+import { type NavItem } from "../../../layout/nav-sections.model";
 import { UiButton, UiDialog } from "../../ui";
-
-interface SectionItem {
-	icon: string;
-	name: string;
-	hint: string;
-	colorClass: string;
-}
-
-interface Step {
-	heading: string;
-	tagline: string;
-	items: SectionItem[];
-}
+import { type SectionItem, type Step } from "./onboarding-tour.model";
 
 const NAV_ITEMS = new Map<string, NavItem>(
 	NAV_SECTIONS.flatMap(section => section.items).map(item => [

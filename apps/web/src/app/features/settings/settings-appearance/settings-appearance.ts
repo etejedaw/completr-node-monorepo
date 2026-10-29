@@ -8,11 +8,11 @@ import {
 } from "@angular/core";
 
 import { AuthService } from "../../../core/services/auth";
+import { ThemeService } from "../../../core/services/theme";
 import {
 	type ThemeId,
-	type ThemeOption,
-	ThemeService
-} from "../../../core/services/theme";
+	type ThemeOption
+} from "../../../core/services/theme.model";
 import { ToastService } from "../../../core/services/toast";
 import { UiPremiumBadge } from "../../../shared/ui";
 import { SettingsPanel } from "../components/settings-panel";

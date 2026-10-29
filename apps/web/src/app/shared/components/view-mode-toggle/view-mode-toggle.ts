@@ -5,12 +5,7 @@ import {
 	model
 } from "@angular/core";
 
-export interface ViewModeOption<T extends string> {
-	value: T;
-	label: string;
-	icon: string;
-	title?: string;
-}
+import { type ViewModeOption } from "./view-mode-toggle.model";
 
 @Component({
 	selector: "app-view-mode-toggle",

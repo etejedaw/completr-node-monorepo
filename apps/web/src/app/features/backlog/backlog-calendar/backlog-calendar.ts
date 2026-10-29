@@ -13,48 +13,26 @@ import { forkJoin } from "rxjs";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
 import {
-	type CalendarAgendaItem,
 	CalendarDayTemplate,
 	MonthCalendar,
 	sameTime,
 	shortDate,
 	startOfMonth
 } from "../../../shared/components/month-calendar/month-calendar";
+import { type CalendarAgendaItem } from "../../../shared/components/month-calendar/month-calendar.model";
 import {
 	backlogStatusCalendarBarClass,
 	backlogStatusFillClass,
 	backlogStatusLabel
 } from "../../../shared/utils/backlog-status";
-import { type BacklogFilters, BacklogService } from "../backlog";
-
-interface BarSlot {
-	entry: BacklogEntry;
-	status: BacklogStatus;
-	showTitle: boolean;
-	roundLeft: boolean;
-	roundRight: boolean;
-}
-
-interface CalendarLayout {
-	slots: Map<string, (BarSlot | null)[]>;
-	overflow: Map<string, number>;
-	dayEntries: Map<string, BacklogEntry[]>;
-}
-
-interface WeekSegment {
-	entry: BacklogEntry;
-	status: BacklogStatus;
-	segStart: Date;
-	segEnd: Date;
-	startsBeforeWeek: boolean;
-	endsAfterWeek: boolean;
-	lane: number;
-}
-
-interface DateRange {
-	start: Date;
-	end: Date;
-}
+import { BacklogService } from "../backlog";
+import { type BacklogFilters } from "../backlog.model";
+import {
+	type BarSlot,
+	type CalendarLayout,
+	type DateRange,
+	type WeekSegment
+} from "./backlog-calendar.model";
 
 const MAX_LANES = 3;
 const MONTH_LIMIT = 100;

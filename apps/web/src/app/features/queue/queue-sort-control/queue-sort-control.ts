@@ -6,10 +6,8 @@ import {
 	model
 } from "@angular/core";
 
-import {
-	OptionPicker,
-	type PickerOption
-} from "../../../shared/components/option-picker/option-picker";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { QUEUE_SORT_OPTIONS, type QueueSort } from "../queue-order";
 
 const QUEUE_SORT_ICONS: Record<QueueSort, string> = {

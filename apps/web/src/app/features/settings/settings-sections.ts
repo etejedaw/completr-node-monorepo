@@ -1,9 +1,4 @@
-export interface SettingsSection {
-	path: string;
-	label: string;
-	icon: string;
-	description: string;
-}
+import { type SettingsSection } from "./settings-sections.model";
 
 export const SETTINGS_SECTIONS: SettingsSection[] = [
 	{

@@ -11,26 +11,11 @@ import { RouterLink } from "@angular/router";
 import { UiIconButton } from "../../ui";
 import { GamePoster } from "../game-poster/game-poster";
 import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
-
-type CoverActionId = "favorite" | "wishlist" | "backlog";
-
-interface CoverAction {
-	id: CoverActionId;
-	label: string;
-	icon: string;
-	active: boolean;
-	pressed: boolean | null;
-	alwaysVisible: boolean;
-	overlayActiveClass: string;
-	barActiveClass: string;
-}
-
-export interface GameCoverCardGame {
-	code: string;
-	title: string;
-	coverUrl?: string;
-	backgroundUrl?: string;
-}
+import {
+	type CoverAction,
+	type CoverActionId,
+	type GameCoverCardGame
+} from "./game-cover-card.model";
 
 @Component({
 	selector: "app-game-cover-card",

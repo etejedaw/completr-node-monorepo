@@ -24,7 +24,7 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
-import { type FranchiseSummary } from "../franchises";
+import { type FranchiseSummary } from "../franchises.model";
 import { FranchiseOverview } from "./franchise-overview";
 
 @Component({

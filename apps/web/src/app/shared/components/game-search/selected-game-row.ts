@@ -11,12 +11,7 @@ import {
 
 import { UiButton } from "../../ui";
 import { GamePoster } from "../game-poster/game-poster";
-
-export interface SelectedGame {
-	title: string;
-	backgroundUrl?: string | null;
-	releaseAt?: string | null;
-}
+import { type SelectedGame } from "./selected-game-row.model";
 
 @Component({
 	selector: "app-selected-game-row",

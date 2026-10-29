@@ -45,18 +45,18 @@ import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { GamesService } from "../../games/games";
 import {
 	DuplicateListModal,
-	type DuplicateListModalData,
 	type DuplicateListModalResult
 } from "../duplicate-list-modal/duplicate-list-modal";
+import { type DuplicateListModalData } from "../duplicate-list-modal/duplicate-list-modal.model";
 import {
 	ListItemRow,
 	type ListItemRowMode
 } from "../list-item-row/list-item-row";
+import { ListModal } from "../list-modal/list-modal";
 import {
-	ListModal,
 	type ListModalData,
 	type ListModalResult
-} from "../list-modal/list-modal";
+} from "../list-modal/list-modal.model";
 import { ListsService } from "../lists";
 
 type ListActionId = "refresh" | "duplicate" | "edit";

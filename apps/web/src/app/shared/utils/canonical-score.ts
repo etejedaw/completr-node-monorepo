@@ -1,19 +1,7 @@
-import { type GameScore, type GameTime } from "../../core/models/game.model";
-
-export type CanonicalScoreType = "completr" | "aggregate" | "rawg" | null;
-
-export interface CanonicalScore {
-	type: CanonicalScoreType;
-	score: number | null;
-	scoreScale: number;
-	duration: number | null;
-	ratio: number | null;
-}
-
-interface GameWithSources {
-	scores?: GameScore[];
-	times?: GameTime[];
-}
+import {
+	type CanonicalScore,
+	type GameWithSources
+} from "./canonical-score.model";
 
 function round2(n: number): number {
 	return Math.round(n * 100) / 100;

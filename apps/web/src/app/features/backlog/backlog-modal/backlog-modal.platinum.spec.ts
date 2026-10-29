@@ -17,7 +17,8 @@ import {
 	type BacklogStatus,
 	type GamePlatinum
 } from "../../../core/models";
-import { BacklogModal, type BacklogModalData } from "./backlog-modal";
+import { BacklogModal } from "./backlog-modal";
+import { type BacklogModalData } from "./backlog-modal.model";
 
 const api = environment.apiUrl;
 const platinumUrl = `${api}/users/me/games/g1/platinum`;

@@ -11,12 +11,12 @@ import {
 
 import { type GameShelfEntry } from "../../../core/models";
 import {
-	type CalendarAgendaItem,
 	CalendarDayTemplate,
 	isSameMonth,
 	MonthCalendar,
 	shortDate
 } from "../../../shared/components/month-calendar/month-calendar";
+import { type CalendarAgendaItem } from "../../../shared/components/month-calendar/month-calendar.model";
 
 const MAX_CHIPS = 3;
 const ACQUIRED_DOT = "bg-brand";

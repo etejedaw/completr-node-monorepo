@@ -3,28 +3,13 @@ import { RouterLink } from "@angular/router";
 
 import { AppLogo } from "../../../shared/components/app-logo/app-logo";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
-import { injectShowcaseGames, type ShowcaseGame } from "../showcase-games";
-
-interface ShowcasePoster {
-	src: string | null;
-	title: string;
-}
-
-interface FeaturedGame {
-	code: string | null;
-	src: string | null;
-	title: string;
-	details: string | null;
-	score: number;
-	hours: number;
-	ratio: number;
-}
-
-type RatedShowcaseGame = ShowcaseGame & {
-	score: number;
-	hours: number;
-	ratio: number;
-};
+import { injectShowcaseGames } from "../showcase-games";
+import { type ShowcaseGame } from "../showcase-games.model";
+import {
+	type FeaturedGame,
+	type RatedShowcaseGame,
+	type ShowcasePoster
+} from "./auth-showcase.model";
 
 const COLUMN_COUNT = 7;
 const POSTERS_PER_COLUMN = 6;

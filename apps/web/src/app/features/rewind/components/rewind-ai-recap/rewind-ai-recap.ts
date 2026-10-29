@@ -16,15 +16,10 @@ import { rewindCopy } from "../../rewind-copy";
 import { RewindReveal } from "../../rewind-reveal";
 import {
 	REWIND_PREMIUM_FRAME_CLASS,
-	type RewindTone,
 	TONE_TINT_SECONDARY_CLASS,
 	toneVar
 } from "../../rewind-tone";
-
-interface InsightStyle {
-	icon: string;
-	tone: RewindTone;
-}
+import { type InsightStyle, type InsightView } from "./rewind-ai-recap.model";
 
 export const INSIGHT_STYLE: Record<RewindInsightKind, InsightStyle> = {
 	"taste-vs-critics": { icon: "reviews", tone: "brand" },
@@ -41,16 +36,6 @@ const FALLBACK_INSIGHT_STYLE: InsightStyle = {
 	tone: "brand"
 };
 const INSIGHT_REVEAL_STAGGER_MS = 80;
-
-interface InsightView {
-	key: string;
-	label: string;
-	icon: string;
-	tone: string;
-	title: string;
-	body: string;
-	delayMs: number;
-}
 
 export function summaryParagraphs(summary: string): string[] {
 	return summary

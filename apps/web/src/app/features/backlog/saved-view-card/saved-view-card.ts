@@ -15,13 +15,8 @@ import {
 	backlogStatusLabel
 } from "../../../shared/utils/backlog-status";
 import { savedFilterColorHex } from "../saved-filter-appearance";
-import { type SavedFilter } from "../saved-filters";
-
-interface ViewChip {
-	label: string;
-	icon: string;
-	classes: string;
-}
+import { type SavedFilter } from "../saved-filters.model";
+import { type ViewChip } from "./saved-view-card.model";
 
 type ViewActionId = "share" | "duplicate" | "edit";
 

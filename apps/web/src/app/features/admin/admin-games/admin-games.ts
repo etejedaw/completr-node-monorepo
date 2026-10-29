@@ -15,17 +15,13 @@ import { type Game } from "../../../core/models";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { adminErrorMessage } from "../../../core/utils/admin-error-message";
-import {
-	ChipGroup,
-	type ChipOption
-} from "../../../shared/components/chip-group/chip-group";
+import { ChipGroup } from "../../../shared/components/chip-group/chip-group";
+import { type ChipOption } from "../../../shared/components/chip-group/chip-group.model";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
-import {
-	SegmentedControl,
-	type SegmentedOption
-} from "../../../shared/components/segmented-control/segmented-control";
+import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
+import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
 import {
 	UiAlert,
 	UiButton,
@@ -38,7 +34,8 @@ import {
 	UiSkeleton
 } from "../../../shared/ui";
 import { AdminGameEditor } from "../../games/admin-game-editor/admin-game-editor";
-import { type GamesQuery, GamesService } from "../../games/games";
+import { GamesService } from "../../games/games";
+import { type GamesQuery } from "../../games/games.model";
 import { ReportsService } from "../services/reports.service";
 
 @Component({

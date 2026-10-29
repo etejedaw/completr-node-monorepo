@@ -14,7 +14,6 @@ import {
 	debounceTime,
 	distinctUntilChanged,
 	EMPTY,
-	type Observable,
 	Subject,
 	tap
 } from "rxjs";
@@ -37,15 +36,12 @@ import { PendingRemovals } from "../../../shared/utils/pending-removals";
 import { BacklogService } from "../../backlog/backlog";
 import { FavoritesService } from "../../favorites/favorites";
 import { QueueService } from "../queue";
-import {
-	QueueAddModal,
-	type QueueAddModalData
-} from "../queue-add-modal/queue-add-modal";
-import {
-	QueueBrowser,
-	type QueueEntryMove
-} from "../queue-browser/queue-browser";
+import { QueueAddModal } from "../queue-add-modal/queue-add-modal";
+import { type QueueAddModalData } from "../queue-add-modal/queue-add-modal.model";
+import { QueueBrowser } from "../queue-browser/queue-browser";
+import { type QueueEntryMove } from "../queue-browser/queue-browser.model";
 import { type QueueSort, type QueueStatusChange } from "../queue-order";
+import { type QueueWrite } from "./queue-view.model";
 
 const STATUSES_REPORTED_BY_INTERCEPTOR = new Set([402, 409, 422, 429]);
 
@@ -54,12 +50,6 @@ function isAlreadyReported(error: unknown) {
 		error instanceof HttpErrorResponse &&
 		STATUSES_REPORTED_BY_INTERCEPTOR.has(error.status)
 	);
-}
-
-interface QueueWrite {
-	request: () => Observable<QueueEntry[]>;
-	saved?: () => void;
-	failed?: () => void;
 }
 
 @Component({

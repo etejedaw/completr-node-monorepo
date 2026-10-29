@@ -13,14 +13,10 @@ import { AuthService } from "../../core/services/auth";
 import { FollowRequestsService } from "../../core/services/follow-requests";
 import { ToastService } from "../../core/services/toast";
 import { avatarRing } from "../../core/utils/premium";
-import {
-	LibraryHero,
-	type LibraryHeroPoster
-} from "../../shared/components/library-hero/library-hero";
-import {
-	OptionPicker,
-	type PickerOption
-} from "../../shared/components/option-picker/option-picker";
+import { LibraryHero } from "../../shared/components/library-hero/library-hero";
+import { type LibraryHeroPoster } from "../../shared/components/library-hero/library-hero.model";
+import { OptionPicker } from "../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../shared/components/option-picker/option-picker.model";
 import { PremiumOnly } from "../../shared/directives/premium-only";
 import {
 	UiAvatar,
@@ -30,15 +26,11 @@ import {
 	UiPremiumBadge,
 	UiSkeleton
 } from "../../shared/ui";
-import { type FeedActivity, type FeedCategory, FeedService } from "./feed";
+import { FeedService } from "./feed";
+import { type FeedActivity, type FeedCategory } from "./feed.model";
 import { FeedActivityItem } from "./feed-activity-item/feed-activity-item";
 import { gamePosters } from "./feed-hero-posters";
-
-interface ActivityDayGroup {
-	key: string;
-	label: string;
-	activities: FeedActivity[];
-}
+import { type ActivityDayGroup } from "./feed-page.model";
 
 const DAY_MS = 86_400_000;
 const WEEKDAY_FORMAT = new Intl.DateTimeFormat("en", { weekday: "long" });

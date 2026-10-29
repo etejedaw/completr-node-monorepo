@@ -3,21 +3,7 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-
-export interface Review {
-	id: string;
-	content?: string;
-	rating?: number;
-	playthroughDuration?: number | null;
-	user: {
-		id: string;
-		username: string;
-		name: string;
-		avatarUrl?: string;
-	} | null;
-	createdAt: string;
-	updatedAt: string;
-}
+import { type Review } from "./reviews.model";
 
 @Injectable({ providedIn: "root" })
 export class ReviewsService {

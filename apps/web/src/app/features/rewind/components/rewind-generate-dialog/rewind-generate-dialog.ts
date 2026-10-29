@@ -15,10 +15,8 @@ import {
 	type RewindLanguage
 } from "../../../../core/models/rewind.model";
 import { AuthService } from "../../../../core/services/auth";
-import {
-	SegmentedControl,
-	type SegmentedOption
-} from "../../../../shared/components/segmented-control/segmented-control";
+import { SegmentedControl } from "../../../../shared/components/segmented-control/segmented-control";
+import { type SegmentedOption } from "../../../../shared/components/segmented-control/segmented-control.model";
 import { UiAlert, UiButton, UiDialog, UiSwitch } from "../../../../shared/ui";
 import { type RewindGenerateError } from "../../rewind-errors";
 

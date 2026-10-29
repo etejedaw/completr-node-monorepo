@@ -3,27 +3,14 @@ import { inject, Injectable } from "@angular/core";
 import { map, switchMap } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type QueueEntry } from "../../core/models";
-import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
+import { buildHttpParams } from "../../core/utils/http-params";
 import { moveIntoFullOrder } from "../../shared/utils/full-order";
-
-interface QueueListResponse {
-	data: { queue: QueueEntry[]; total?: number };
-}
-
-interface QueueSingleResponse {
-	data: { queue: QueueEntry };
-}
-
-interface QueueBacklogIdsResponse {
-	data: { backlogIds: string[] };
-}
-
-export interface QueuePagination extends Record<string, Appendable> {
-	limit?: number;
-	offset?: number;
-	search?: string;
-}
+import {
+	type QueueBacklogIdsResponse,
+	type QueueListResponse,
+	type QueuePagination,
+	type QueueSingleResponse
+} from "./queue.model";
 
 @Injectable({ providedIn: "root" })
 export class QueueService {

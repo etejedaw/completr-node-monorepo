@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 
-import { type ViewModeOption, ViewModeToggle } from "./view-mode-toggle";
+import { ViewModeToggle } from "./view-mode-toggle";
+import { type ViewModeOption } from "./view-mode-toggle.model";
 
 const options: ViewModeOption<string>[] = [
 	{ value: "grid", label: "Grid", icon: "grid_view" },

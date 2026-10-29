@@ -1,7 +1,8 @@
 import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 
-import { GamePosterGrid, type PosterGridGame } from "./game-poster-grid";
+import { GamePosterGrid } from "./game-poster-grid";
+import { type PosterGridGame } from "./game-poster-grid.model";
 
 const game = (overrides: Partial<PosterGridGame>) =>
 	({

@@ -1,13 +1,5 @@
 import { type RewindLanguage } from "../../../../core/models/rewind.model";
-
-export interface RewindYearCardCopy {
-	finished: (count: number) => string;
-	started: (count: number) => string;
-	readyToRewind: string;
-	generate: string;
-	rewinding: string;
-	generateLabel: (year: number) => string;
-}
+import { type RewindYearCardCopy } from "./rewind-year-card.model";
 
 export const REWIND_YEAR_CARD_COPY: Record<RewindLanguage, RewindYearCardCopy> =
 	{

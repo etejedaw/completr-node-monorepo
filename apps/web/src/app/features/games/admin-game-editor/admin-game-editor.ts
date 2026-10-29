@@ -30,16 +30,19 @@ import {
 	UiSelect,
 	UiTextarea
 } from "../../../shared/ui";
-import { type Franchise, FranchisesService } from "../../franchises/franchises";
+import { FranchisesService } from "../../franchises/franchises";
+import { type Franchise } from "../../franchises/franchises.model";
+import { GamesService } from "../games";
 import {
 	type CompilationItemInput,
 	type CreateGameDto,
-	GamesService,
 	type RawgDetail,
 	type UpdateGameDto
-} from "../games";
-
-type CompilationRowMode = "link" | "create";
+} from "../games.model";
+import {
+	type CompilationRow,
+	type CompilationRowMode
+} from "./admin-game-editor.model";
 
 const DIACRITICS = /\p{Diacritic}/gu;
 
@@ -49,16 +52,6 @@ const CREATE_SIBLING_VARIANT_MISSING_MESSAGE =
 	"Another game with this external id has no variant label. Add one to that game first, then create this one.";
 
 let nextCompilationRowId = 0;
-
-interface CompilationRow {
-	id: string;
-	mode: CompilationRowMode;
-	title: string;
-	linkedGame: Game | null;
-	searchQuery: string;
-	searching: boolean;
-	searchResults: Game[];
-}
 
 @Component({
 	selector: "app-admin-game-editor",

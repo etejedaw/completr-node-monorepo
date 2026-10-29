@@ -31,25 +31,11 @@ import {
 	TONE_TINT_SECONDARY_CLASS,
 	toneVar
 } from "../../rewind-tone";
-
-export type HighlightKey =
-	| "topRated"
-	| "bestRatio"
-	| "firstFinished"
-	| "lastFinished"
-	| "longest"
-	| "fastest"
-	| "longestStreak"
-	| "busiestMonth"
-	| "topGenres"
-	| "topPlatforms";
-
-export interface HighlightCell {
-	key: HighlightKey;
-	columns: number;
-	wideColumns: number;
-	wideRows: number;
-}
+import {
+	type CellView,
+	type HighlightCell,
+	type HighlightKey
+} from "./rewind-highlights.model";
 
 export const NARROW_COLUMNS = 2;
 export const WIDE_COLUMNS = 4;
@@ -205,12 +191,6 @@ function cellClass(cell: HighlightCell): string {
 	]
 		.filter(Boolean)
 		.join(" ");
-}
-
-interface CellView {
-	classes: string;
-	tone: string;
-	delayMs: number;
 }
 
 @Component({

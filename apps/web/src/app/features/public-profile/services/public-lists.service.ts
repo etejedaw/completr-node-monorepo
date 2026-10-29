@@ -3,33 +3,12 @@ import { inject, Injectable } from "@angular/core";
 import { map, type Observable } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
-import { type ListPreviewItem } from "../../../core/models";
 import { buildHttpParams } from "../../../core/utils/http-params";
-
-export interface PublicList {
-	id: string;
-	name: string;
-	description?: string;
-	isPublic?: boolean;
-	isOfficial?: boolean;
-	owner?: { username: string } | null;
-	previewItems?: ListPreviewItem[];
-	scoreSource: string;
-	durationSource: string;
-	followerCount: number;
-	progress?: { completed: number; total: number };
-}
-
-export type PublicListsQuery = {
-	limit?: number;
-	offset?: number;
-	search?: string;
-};
-
-export interface PublicListsPage {
-	items: PublicList[];
-	total: number;
-}
+import {
+	type PublicList,
+	type PublicListsPage,
+	type PublicListsQuery
+} from "./public-lists.model";
 
 @Injectable({ providedIn: "root" })
 export class PublicListsService {

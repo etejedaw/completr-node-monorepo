@@ -14,25 +14,7 @@ import { UiAvatar } from "../../ui";
 import { ExpandableText } from "../expandable-text/expandable-text";
 import { GamePoster } from "../game-poster/game-poster";
 import { StarRating } from "../star-rating/star-rating";
-
-export interface ReviewCardReview {
-	content?: string | null;
-	rating?: number | null;
-	playthroughDuration?: number | null;
-	createdAt: string;
-	game?: {
-		code: string;
-		title: string;
-		coverUrl?: string | null;
-		backgroundUrl?: string | null;
-	} | null;
-	user?: {
-		username: string;
-		name?: string | null;
-		avatarUrl?: string | null;
-		role?: string | null;
-	} | null;
-}
+import { type ReviewCardReview } from "./review-card.model";
 
 export type ReviewCardSubject = "game" | "author";
 

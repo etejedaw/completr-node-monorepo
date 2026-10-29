@@ -13,10 +13,8 @@ import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
-import {
-	OptionPicker,
-	type PickerOption
-} from "../../../shared/components/option-picker/option-picker";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiBottomSheet,
@@ -29,14 +27,15 @@ import {
 	UiSkeleton
 } from "../../../shared/ui";
 import { injectLibraryPosters } from "../../backlog/library-posters";
+import { MoodTagsService } from "../../mood-tags/mood-tags";
 import {
-	MoodTagsService,
 	type UpdateTagDto,
 	type UserTag
-} from "../../mood-tags/mood-tags";
+} from "../../mood-tags/mood-tags.model";
 import { TagCreateDialog } from "../tag-create-dialog/tag-create-dialog";
 import { isCentrallyNotified } from "../tag-errors";
-import { type TagEdit, TagRow } from "../tag-row/tag-row";
+import { TagRow } from "../tag-row/tag-row";
+import { type TagEdit } from "../tag-row/tag-row.model";
 
 type TagSort = "usage" | "name";
 

@@ -6,14 +6,10 @@ import { GamesService } from "../games/games";
 import { BacklogService } from "./backlog";
 import {
 	BacklogModal,
-	type BacklogModalData,
 	type BacklogModalResult
 } from "./backlog-modal/backlog-modal";
-
-export interface BacklogQuickAddGame {
-	id: string;
-	code: string;
-}
+import { type BacklogModalData } from "./backlog-modal/backlog-modal.model";
+import { type BacklogQuickAddGame } from "./backlog-quick-add.model";
 
 export function injectBacklogQuickAdd(onSaved: () => void) {
 	assertInInjectionContext(injectBacklogQuickAdd);

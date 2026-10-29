@@ -2,7 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 
 import { type Game } from "../../../../core/models";
-import { type CanonicalScore } from "../../../../shared/utils/canonical-score";
+import { type CanonicalScore } from "../../../../shared/utils/canonical-score.model";
 import { GameHero } from "./game-hero";
 
 const noScore: CanonicalScore = {

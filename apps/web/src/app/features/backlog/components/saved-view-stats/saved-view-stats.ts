@@ -12,50 +12,23 @@ import { RatingDistribution } from "../../../../shared/components/rating-distrib
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { UiButton, UiProgress, UiSkeleton } from "../../../../shared/ui";
 import {
-	type BacklogHighlight,
-	type SavedFilterStats,
 	STAT_KEYS,
 	type StatKey,
 	SUMMARY_STAT_KEYS
 } from "../../saved-filters";
+import { type SavedFilterStats } from "../../saved-filters.model";
 import { CompletionsChart } from "../completions-chart/completions-chart";
 import { StatsCard } from "../stats-card/stats-card";
 import { StatusBreakdown } from "../status-breakdown/status-breakdown";
-
-type HighlightStatKey = "longestPlayed" | "bestPersonalRatio" | "highestRated";
-
-interface SummaryTile {
-	key: StatKey;
-	label: string;
-	value: string;
-	valueClass: string;
-	hint: string | null;
-}
-
-interface HighlightDescriptor {
-	key: HighlightStatKey;
-	label: string;
-	icon: string;
-	iconClass: string;
-	formattedValue: string;
-	entry: BacklogHighlight;
-}
-
-interface DurationBar {
-	label: string;
-	value: number;
-	percent: number;
-	fillClass: string;
-}
+import {
+	type DeltaDescriptor,
+	type DurationBar,
+	type HighlightDescriptor,
+	type HighlightStatKey,
+	type SummaryTile
+} from "./saved-view-stats.model";
 
 type DeltaTone = "longer" | "shorter" | "even";
-
-interface DeltaDescriptor {
-	text: string;
-	icon: string;
-	toneClass: string;
-	caption: string;
-}
 
 const HIGHLIGHT_DEFINITIONS: readonly {
 	key: HighlightStatKey;

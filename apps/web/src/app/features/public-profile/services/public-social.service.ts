@@ -3,28 +3,17 @@ import { inject, Injectable } from "@angular/core";
 import { EMPTY, expand, map, reduce } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
-import { type UserResult } from "../../../core/services/users";
+import { type UserResult } from "../../../core/services/users.model";
 import { buildHttpParams } from "../../../core/utils/http-params";
+import {
+	type ConnectionsPage,
+	type ConnectionsQuery,
+	type FollowResult
+} from "./public-social.model";
 
 export type PublicSocialUser = UserResult;
 
 const MAX_CONNECTIONS_PAGE_SIZE = 100;
-
-export type ConnectionsQuery = {
-	limit?: number;
-	offset?: number;
-	search?: string;
-};
-
-export interface ConnectionsPage {
-	users: UserResult[];
-	total: number;
-}
-
-export interface FollowResult {
-	status: "accepted" | "pending";
-	targetId: string;
-}
 
 @Injectable({ providedIn: "root" })
 export class PublicSocialService {

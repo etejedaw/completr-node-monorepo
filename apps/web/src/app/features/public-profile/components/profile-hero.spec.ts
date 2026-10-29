@@ -4,7 +4,7 @@ import { provideRouter } from "@angular/router";
 import { render, screen } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
-import { type PublicProfile } from "../public-profile.service";
+import { type PublicProfile } from "../public-profile.model";
 import { ProfileHero } from "./profile-hero";
 
 function profile(overrides: Partial<PublicProfile> = {}): PublicProfile {

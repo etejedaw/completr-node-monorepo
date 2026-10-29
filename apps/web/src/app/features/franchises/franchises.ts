@@ -3,52 +3,13 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type Game } from "../../core/models";
 import { buildHttpParams } from "../../core/utils/http-params";
-
-export interface Franchise {
-	id: string;
-	name: string;
-	code: string;
-	description?: string | null;
-}
-
-export interface FranchisePreviewGame {
-	id: string;
-	code: string;
-	title: string;
-	backgroundUrl: string | null;
-}
-
-export interface FranchiseSummary extends Franchise {
-	gameCount: number;
-	isTracked: boolean;
-	previewGames: FranchisePreviewGame[];
-}
-
-export interface FranchisePage {
-	franchises: FranchiseSummary[];
-	total: number;
-}
-
-export interface TrackedFranchise {
-	franchise: { id: string; name: string; code: string };
-	gameCount: number;
-}
-
-export interface FranchiseDetail {
-	franchise: Franchise;
-	games: (Game & { backlogStatus: string | null })[];
-	gameCount: number;
-	isTracked: boolean;
-	hasMore: boolean;
-}
-
-export interface FranchiseDto {
-	name: string;
-	description?: string | null;
-	gameIds?: string[];
-}
+import {
+	type Franchise,
+	type FranchiseDetail,
+	type FranchiseDto,
+	type FranchisePage
+} from "./franchises.model";
 
 @Injectable({ providedIn: "root" })
 export class FranchisesService {

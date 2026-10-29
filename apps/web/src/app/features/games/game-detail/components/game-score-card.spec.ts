@@ -1,6 +1,6 @@
 import { TestBed } from "@angular/core/testing";
 
-import { type CanonicalScore } from "../../../../shared/utils/canonical-score";
+import { type CanonicalScore } from "../../../../shared/utils/canonical-score.model";
 import { GameScoreCard } from "./game-score-card";
 
 const score = (overrides: Partial<CanonicalScore>): CanonicalScore => ({

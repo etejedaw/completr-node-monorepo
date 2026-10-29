@@ -13,7 +13,8 @@ import { NgpPopover, NgpPopoverTrigger } from "ng-primitives/popover";
 
 import { ViewportService } from "../../../core/services/viewport";
 import { UiBottomSheet } from "../../ui";
-import { ChipGroup, type ChipOption } from "../chip-group/chip-group";
+import { ChipGroup } from "../chip-group/chip-group";
+import { type ChipOption } from "../chip-group/chip-group.model";
 
 const YEARS_BEFORE_TODAY = 4;
 const YEARS_AFTER_TODAY = 1;

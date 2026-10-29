@@ -4,70 +4,18 @@ import { map } from "rxjs";
 
 import { environment } from "../../../environments/environment";
 import { type FollowingList, type List } from "../../core/models";
-import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
-
-interface ListsResponse {
-	data: { lists: List[]; total?: number; frozen: boolean };
-}
-
-export interface ListsPagination extends Record<string, Appendable> {
-	limit?: number;
-	offset?: number;
-}
-
-interface ListSingleResponse {
-	data: { list: List };
-}
-
-interface ListItemsResponse {
-	data: { items: List["items"] };
-}
-
-interface RefreshResponse {
-	data: { updatedItems: number };
-}
-
-interface GameListsResponse {
-	data: GameListsMembership;
-}
-
-export interface GameListsMembership {
-	lists: {
-		id: string;
-		name: string;
-		description?: string;
-		isOfficial: boolean;
-		completed: boolean;
-		owner: { username: string } | null;
-	}[];
-	myLists: {
-		id: string;
-		name: string;
-		isPublic: boolean;
-		contains: boolean;
-	}[];
-}
-
-export interface CreateListDto {
-	name: string;
-	description?: string;
-	isPublic?: boolean;
-	scoreSource: string;
-	durationSource: string;
-}
-
-export interface UpdateListDto {
-	name?: string;
-	description?: string;
-	isPublic?: boolean;
-	scoreSource?: string;
-	durationSource?: string;
-}
-
-export interface DuplicateListDto {
-	name: string;
-	isPublic?: boolean;
-}
+import { buildHttpParams } from "../../core/utils/http-params";
+import {
+	type CreateListDto,
+	type DuplicateListDto,
+	type GameListsResponse,
+	type ListItemsResponse,
+	type ListSingleResponse,
+	type ListsPagination,
+	type ListsResponse,
+	type RefreshResponse,
+	type UpdateListDto
+} from "./lists.model";
 
 @Injectable({ providedIn: "root" })
 export class ListsService {

@@ -16,42 +16,10 @@ import {
 } from "../../../../shared/ui";
 import { ListsService } from "../../../lists/lists";
 import { GamesService } from "../../games";
-
-interface MyList {
-	id: string;
-	name: string;
-	isPublic: boolean;
-	contains: boolean;
-}
-
-interface FeaturedList {
-	id: string;
-	name: string;
-	description?: string;
-	isOfficial: boolean;
-	completed: boolean;
-	owner: { username: string } | null;
-}
-
-export interface ListsChanged {
-	lists: FeaturedList[];
-	myLists: MyList[];
-}
-
-export interface GameAddToListModalData {
-	gameId: string;
-	gameTitle: string;
-	myLists: MyList[];
-	onListsChanged: (data: ListsChanged) => void;
-}
-
-interface ModalState {
-	selection: Map<string, boolean>;
-	newListName: string;
-	creatingNew: boolean;
-	saving: boolean;
-	error: string;
-}
+import {
+	type GameAddToListModalData,
+	type ModalState
+} from "./game-add-to-list-modal.model";
 
 @Component({
 	selector: "app-game-add-to-list-modal",

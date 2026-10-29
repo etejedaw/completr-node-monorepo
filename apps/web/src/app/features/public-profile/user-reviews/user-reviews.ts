@@ -4,10 +4,8 @@ import { map } from "rxjs";
 import { ReviewCard } from "../../../shared/components/review-card/review-card";
 import { ProfileCollectionPage } from "../components/profile-collection-page";
 import { injectPublicCollection } from "../services/public-collection";
-import {
-	PublicReviewsService,
-	type ReviewEntry
-} from "../services/public-reviews.service";
+import { type ReviewEntry } from "../services/public-reviews.model";
+import { PublicReviewsService } from "../services/public-reviews.service";
 
 const UNKNOWN_GAME = { title: "" };
 

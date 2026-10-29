@@ -1,7 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 
-import { type FranchiseSummary } from "../../franchises";
+import { type FranchiseSummary } from "../../franchises.model";
 import { FranchiseCard } from "./franchise-card";
 
 const residentEvil: FranchiseSummary = {

@@ -1,7 +1,5 @@
-import {
-	pickProfileBackdrop,
-	type ProfileBackdropSources
-} from "./profile-backdrop";
+import { pickProfileBackdrop } from "./profile-backdrop";
+import { type ProfileBackdropSources } from "./profile-backdrop.model";
 
 type BacklogSource = NonNullable<
 	ProfileBackdropSources["profile"]
