@@ -47,3 +47,5 @@ export const TONE_TINT_SECONDARY_CLASS =
 	"text-[color-mix(in_oklab,var(--color-fg)_80%,var(--tone))]";
 export const REWIND_YEAR_FILL_CLASS =
 	"bg-linear-to-r from-brand via-nav-queue to-nav-shelf bg-clip-text text-transparent";
+export const REWIND_PREMIUM_FRAME_CLASS =
+	"relative isolate flex flex-col overflow-hidden rounded-card border border-premium/45 bg-[linear-gradient(160deg,color-mix(in_oklab,var(--color-premium)_10%,var(--color-surface)),var(--color-surface)_45%)] shadow-[inset_0_1px_0_color-mix(in_oklab,var(--color-premium)_30%,transparent)]";
