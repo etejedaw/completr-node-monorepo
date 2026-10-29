@@ -187,6 +187,7 @@ export type RewindAiRecapState = (typeof REWIND_AI_RECAP_STATES)[number];
 
 export interface RewindOwnerControls {
 	includesPrivateRuns: boolean;
+	includesNotes: boolean;
 	regenerationsLeft: number;
 	graceEndsAt: string | null;
 	canRegenerate: boolean;
@@ -196,5 +197,6 @@ export interface RewindOwnerControls {
 export interface GenerateRewindRequest {
 	language: RewindLanguage;
 	includePrivateRuns: boolean;
+	includeNotes: boolean;
 	expectedGeneratedAt: string | null;
 }

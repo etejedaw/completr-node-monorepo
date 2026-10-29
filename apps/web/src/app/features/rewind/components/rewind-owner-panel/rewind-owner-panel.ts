@@ -76,6 +76,18 @@ const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 								{{ copy().includesPrivateRuns }}
 							</p>
 						}
+						@if (controls.includesNotes) {
+							<p
+								class="m-0 inline-flex items-center gap-1 text-sm text-fg-secondary"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-base"
+									>edit_note</span
+								>
+								{{ copy().usesNotes }}
+							</p>
+						}
 					</div>
 					@if (controls.canRegenerate) {
 						<button

@@ -120,6 +120,26 @@ export function formatGraceDate(isoDate: string): string {
 							</p>
 						}
 					</div>
+					<div class="flex flex-col gap-2">
+						<ui-switch
+							label="Use my notes"
+							[(checked)]="includeNotes"
+							[disabled]="pending()"
+						/>
+						@if (includeNotes()) {
+							<ui-alert tone="info" icon="edit_note">
+								Your AI recap reads your notes to understand you
+								as a player. Anyone who can see your Rewind will
+								read the recap, so it never quotes them word for
+								word or names people.
+							</ui-alert>
+						} @else {
+							<p class="m-0 text-[0.8125rem] text-fg-muted">
+								Off by default. Only your AI recap reads your
+								notes.
+							</p>
+						}
+					</div>
 				}
 
 				@if (pending()) {
@@ -203,6 +223,9 @@ export class RewindGenerateDialog {
 	protected readonly includePrivateRuns = linkedSignal(
 		() => this.rewind()?.ownerControls?.includesPrivateRuns ?? false
 	);
+	protected readonly includeNotes = linkedSignal(
+		() => this.rewind()?.ownerControls?.includesNotes ?? false
+	);
 
 	protected readonly isRegeneration = computed(() => this.rewind() !== null);
 	protected readonly controls = computed(
@@ -284,6 +307,7 @@ export class RewindGenerateDialog {
 		this.submitted.emit({
 			language: this.language(),
 			includePrivateRuns: this.isPremium() && this.includePrivateRuns(),
+			includeNotes: this.isPremium() && this.includeNotes(),
 			expectedGeneratedAt: this.rewind()?.generatedAt ?? null
 		});
 	}

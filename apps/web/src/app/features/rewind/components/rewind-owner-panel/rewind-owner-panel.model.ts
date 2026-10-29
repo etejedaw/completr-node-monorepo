@@ -8,6 +8,7 @@ export interface RewindOwnerPanelCopy {
 	regenerationsLeft: (count: number) => string;
 	graceUntil: (date: string) => string;
 	includesPrivateRuns: string;
+	usesNotes: string;
 	aiRecapFailed: string;
 	retry: string;
 	addAiRecap: string;
