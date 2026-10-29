@@ -1,0 +1,83 @@
+info:
+    name: Add Own Rewind AI Recap
+    type: http
+    seq: 4
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/users/me/rewinds/:year/ai-recap"
+    auth: inherit
+    params:
+        - name: year
+          value: "2026"
+          type: path
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Add Own Rewind AI Recap
+
+    Generates the AI recap (and the premium stats, if they are missing) of a Rewind the owner already generated. Used to retry after a failed recap, or by an owner who became premium after generating the year. Uses the stored `language` and `includesPrivateRuns` and does not spend a regeneration.
+
+    **Authentication:** Bearer token required (roles: user, premium, moderator, admin). The owner must be premium today (`premium`, `moderator` or `admin`).
+    **Rate Limit:** 5 requests every 10 minutes (shared with `POST /users/me/rewinds/:year`).
+
+    ### Path Params
+
+    | Param | Type    | Required | Description                                   |
+    |-------|---------|----------|-----------------------------------------------|
+    | year  | integer | Yes      | Calendar year, digits only, from 2000 to 2100 |
+
+    The recap is marked `pending` under a row lock before calling the AI, so a double click gets 409 `REWIND_AI_RECAP_IN_PROGRESS`. A `pending` recap older than 2 minutes counts as failed and can be retried.
+
+    ### Response (200)
+
+    The Rewind as the owner sees it, with `aiRecap` filled and `ownerControls.aiRecapState: "ready"`.
+
+    ```json
+    {
+      "data": {
+        "year": 2026,
+        "language": "en",
+        "aiRecap": {
+          "headline": "A year of long nights",
+          "summary": "You finished what you started, and then some.",
+          "insights": [
+            { "kind": "finish-discipline", "title": "Closer", "body": "Most runs reached the credits." }
+          ],
+          "funFact": "March was your busiest month.",
+          "nextYearChallenge": "Try a genre you skipped this year."
+        },
+        "premiumStats": {
+          "hoursByMonth": [{ "month": 3, "hours": 42.5 }],
+          "tasteVsCritics": [],
+          "backlogFlow": [{ "month": 3, "added": 4, "finished": 3 }],
+          "genreShare": [{ "code": "action", "name": "Action", "count": 7 }]
+        },
+        "ownerControls": {
+          "includesPrivateRuns": false,
+          "regenerationsLeft": 1,
+          "graceEndsAt": null,
+          "canRegenerate": true,
+          "aiRecapState": "ready"
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Code                             | Description                                       |
+    |--------|----------------------------------|---------------------------------------------------|
+    | 401    | AUTH_INVALID_TOKEN               | Invalid or expired token                          |
+    | 402    | REWIND_AI_RECAP_PREMIUM_REQUIRED | The owner is not premium                          |
+    | 403    | AUTH_FORBIDDEN                   | Role not allowed                                  |
+    | 404    | REWIND_NOT_GENERATED             | The owner has not generated this year             |
+    | 404    | REWIND_NOT_FOUND                 | The year no longer has data                       |
+    | 409    | REWIND_AI_RECAP_EXISTS           | The Rewind already has an AI recap                |
+    | 409    | REWIND_AI_RECAP_IN_PROGRESS      | A recap was requested less than 2 minutes ago     |
+    | 422    | AUTH_SCHEMA_INVALID              | Missing or malformed `Authorization` header       |
+    | 422    | COMMON_SCHEMA_INVALID            | Bad `year`                                        |
+    | 429    | AUTH_RATE_LIMITED                | Too many requests                                 |
+    | 503    | REWIND_AI_RECAP_FAILED           | The AI recap could not be generated; it stays `failed` |

@@ -22,6 +22,8 @@ docs: |-
 
     A year is listed when it is open and has data. It is open when it is a past year, or the current year from December 1 (UTC), and it is not earlier than the year the user signed up (`createdAt`, UTC): years before the sign-up (imported history) are never listed. It has data when at least one run has `startedAt` in the year, or is `completed` / `abandoned` with `finishedAt` in the year. Years outside 2000-2100 are never listed. Outside production, the `REWIND_TODAY` environment variable (`YYYY-MM-DD`) replaces today in every Rewind calculation.
 
+    **Activation:** the owner sees every open year with data, each with `isGenerated`. Everyone else only sees the years the owner generated with `POST /users/me/rewinds/:year`.
+
     The owner sees every run. Everyone else gets the summaries built from public runs only (`isPublic = true`), so a year that only has private runs is not listed for them. For non-self viewers the target's `profile` and `rewind` sections must be visible (`profileVisibility` and `rewindVisibility`): `friends` only for mutual followers, `private` only for the owner.
 
     **Authentication:** optional (Bearer token). Required to see a Rewind whose privacy needs it.
@@ -42,6 +44,7 @@ docs: |-
         "years": [
           {
             "year": 2026,
+            "isGenerated": true,
             "persona": "marathoner",
             "finishedCount": 18,
             "startedCount": 23,
@@ -61,7 +64,8 @@ docs: |-
     }
     ```
 
-    - `spotlightYear`: the year whose spotlight window (December 1 of that year to January 31 of the next, UTC) contains today, only if that year is in `years`; `null` otherwise.
+    - `spotlightYear`: the year whose spotlight window (December 1 of that year to January 31 of the next, UTC) contains today, only if that year is in `years`; `null` otherwise. For visitors it is `null` until the owner generates that year.
+    - `isGenerated`: whether the owner generated the year. Always `true` for visitors, who never get ungenerated years.
     - `persona`: the title of the year, computed with the same rules as `persona` in `GET /users/:username/rewinds/:year` and the same data the viewer gets there (platinums only count for viewers who can see them).
     - `finishedCount` / `startedCount`: distinct games finished (`completed` with `finishedAt` in the year) and started (`startedAt` in the year).
     - `hoursPlayed`: sum of `realDuration` of the `completed` and `abandoned` runs with `finishedAt` in the year, rounded to 1 decimal.

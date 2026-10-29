@@ -1,0 +1,97 @@
+info:
+    name: Generate Own Rewind
+    type: http
+    seq: 3
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/users/me/rewinds/:year"
+    headers:
+        - name: Content-Type
+          value: application/json
+    body:
+        type: json
+        data: |-
+            {
+              "language": "es",
+              "includePrivateRuns": false,
+              "expectedGeneratedAt": null
+            }
+    auth: inherit
+    params:
+        - name: year
+          value: "2026"
+          type: path
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Generate Own Rewind
+
+    Generates (activates) or regenerates the Rewind of the signed-in user for one year. Until the owner generates a year, nobody else can see it. Generating stores a row in `Rewinds` with the language, whether private runs feed the AI recap and the premium stats, the generation date and the regeneration counters. The base numbers (totals, highlights, finished games) are still computed live for each viewer.
+
+    The year must be open and have data for the owner counting every run (public and private), with the same rules as `GET /users/:username/rewinds`.
+
+    **Authentication:** Bearer token required (roles: user, premium, moderator, admin).
+    **Rate Limit:** 5 requests every 10 minutes (shared with `POST /users/me/rewinds/:year/ai-recap`).
+
+    ### Path Params
+
+    | Param | Type    | Required | Description                                   |
+    |-------|---------|----------|-----------------------------------------------|
+    | year  | integer | Yes      | Calendar year, digits only, from 2000 to 2100 |
+
+    ### Request Body
+
+    | Field               | Type             | Required | Description                                                                                 |
+    |---------------------|------------------|----------|---------------------------------------------------------------------------------------------|
+    | language            | `en` \| `es`     | Yes      | Language the Rewind page and its share images are shown in, for every viewer                |
+    | includePrivateRuns  | boolean          | Yes      | Feed private runs to the AI recap and the premium stats. Does not change the live numbers   |
+    | expectedGeneratedAt | ISO date \| null | Yes      | `null` for the first generation; the current `generatedAt` to regenerate                    |
+
+    Unknown fields are rejected.
+
+    - **First generation:** no row and `expectedGeneratedAt: null` → 201.
+    - **Regeneration:** `expectedGeneratedAt` equal to the stored `generatedAt` → 200. From January 1 to 7 (UTC) of the next year an extra grace regeneration is spent first and does not consume the normal one; otherwise the single normal regeneration is spent.
+    - **Concurrency:** the row is locked while the counters change, so of two simultaneous requests with the same `expectedGeneratedAt` exactly one wins; the other gets 409 `REWIND_GENERATION_CONFLICT` and spends nothing. A double click behaves the same way.
+    - **Premium owner** (`premium`, `moderator`, `admin`): after the counters are saved, the AI recap and the premium stats are generated from the public runs, or from every run with `includePrivateRuns`. If the AI fails the request still succeeds with `ownerControls.aiRecapState: "failed"`; retry with `POST /users/me/rewinds/:year/ai-recap`.
+    - **Free owner:** no AI call; an AI recap and premium stats stored while the owner was premium are kept.
+
+    ### Response (201 / 200)
+
+    The Rewind as the owner sees it (same shape as `GET /users/:username/rewinds/:year`, with `ownerControls`).
+
+    ```json
+    {
+      "data": {
+        "year": 2026,
+        "persona": "marathoner",
+        "language": "es",
+        "generatedAt": "2026-12-15T18:42:07.123Z",
+        "aiRecap": null,
+        "premiumStats": null,
+        "ownerControls": {
+          "includesPrivateRuns": false,
+          "regenerationsLeft": 1,
+          "graceEndsAt": null,
+          "canRegenerate": true,
+          "aiRecapState": "unavailable"
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Code                       | Description                                                                 |
+    |--------|----------------------------|-----------------------------------------------------------------------------|
+    | 401    | AUTH_INVALID_TOKEN         | Invalid or expired token                                                    |
+    | 403    | AUTH_FORBIDDEN             | Role not allowed                                                            |
+    | 404    | USER_NOT_FOUND             | The signed-in user is no longer active                                      |
+    | 404    | REWIND_NOT_FOUND           | The year is not open, is before the sign-up or has no data                  |
+    | 409    | REWIND_GENERATION_CONFLICT | `expectedGeneratedAt` does not match the stored generation (or the row exists and it is `null`, or no row exists and it is not `null`) |
+    | 409    | REWIND_REGENERATION_LIMIT  | No regenerations left                                                       |
+    | 422    | AUTH_SCHEMA_INVALID        | Missing or malformed `Authorization` header                                 |
+    | 422    | COMMON_SCHEMA_INVALID      | Bad `year` or body (unknown language, non-boolean flag, bad date, extra fields) |
+    | 429    | AUTH_RATE_LIMITED          | Too many generations                                                        |
