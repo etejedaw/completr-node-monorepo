@@ -10,9 +10,10 @@ import {
 	type IaModel
 } from "./ia.interface";
 import { type JsonOutcome } from "./ia.types";
+import { parseJsonOutput } from "./utils/parse-json-output.util";
 
 const MAX_TEMPERATURE = 2;
-const JSON_ATTEMPTS = 2;
+const JSON_ATTEMPTS = 3;
 const SCHEMA_NAME_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
 
 export class IaProvider {
@@ -56,7 +57,9 @@ export class IaProvider {
 
 		const failures: string[] = [];
 		for (let attempt = 1; attempt <= JSON_ATTEMPTS; attempt++) {
-			const result = await this.model.generateJson(modelRequest);
+			const result = await this.model.generateJson(
+				this.withRetryFeedback(modelRequest, failures)
+			);
 			const outcome = this.readJsonOutput(schema, result);
 			if (outcome.ok) return outcome.data;
 			failures.push(outcome.reason);
@@ -65,6 +68,18 @@ export class IaProvider {
 			schemaName: modelRequest.schemaName,
 			failures
 		});
+	}
+
+	private withRetryFeedback<Request extends { instructions: string }>(
+		request: Request,
+		failures: string[]
+	): Request {
+		const lastFailure = failures.at(-1);
+		if (lastFailure === undefined) return request;
+		return {
+			...request,
+			instructions: `${request.instructions}\n\nYour previous reply was rejected because ${lastFailure}. Reply again with a JSON object that fixes it and keeps every other rule; when a text was too long, rewrite it shorter instead of cutting it.`
+		};
 	}
 
 	private readJsonOutput<T>(
@@ -76,7 +91,7 @@ export class IaProvider {
 
 		let parsed: unknown;
 		try {
-			parsed = JSON.parse(result.text);
+			parsed = parseJsonOutput(result.text);
 		} catch {
 			return { ok: false, reason: "output is not valid JSON" };
 		}

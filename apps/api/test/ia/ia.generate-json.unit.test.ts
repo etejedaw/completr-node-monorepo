@@ -162,10 +162,73 @@ void describe("iaProvider.generateJson over DeepSeek", () => {
 
 		assert.deepEqual(card, VALID_CARD);
 		assert.equal(fetchMock.mock.callCount(), 2);
-		assert.deepEqual(sentBody(fetchMock, 1), sentBody(fetchMock, 0));
+		const { instructions: firstInstructions, ...firstRest } = sentBody(
+			fetchMock,
+			0
+		);
+		const { instructions: retryInstructions, ...retryRest } = sentBody(
+			fetchMock,
+			1
+		);
+		assert.deepEqual(retryRest, firstRest);
+		assert.match(String(firstInstructions), /^((?!previous reply).)*$/s);
+		assert.match(
+			String(retryInstructions),
+			/Your previous reply was rejected because output is not valid JSON/
+		);
 	});
 
-	void it("rejects with IA_INVALID_OUTPUT when the JSON is broken twice", async () => {
+	void it("recovers on the third attempt and only reports the last rejection", async () => {
+		const fetchMock = replyWith(
+			jsonResponse(responsesBody("not json")),
+			jsonResponse(
+				responsesBody(
+					JSON.stringify({
+						...VALID_CARD,
+						title: "Way too long title"
+					})
+				)
+			),
+			jsonResponse(responsesBody(JSON.stringify(VALID_CARD)))
+		);
+
+		const card = await providerOver(fetchMock).generateJson(
+			CardSchema,
+			REQUEST
+		);
+
+		assert.deepEqual(card, VALID_CARD);
+		assert.equal(fetchMock.mock.callCount(), 3);
+		const lastInstructions = String(sentBody(fetchMock, 2).instructions);
+		assert.match(lastInstructions, /does not match the schema/);
+		assert.doesNotMatch(lastInstructions, /is not valid JSON/);
+	});
+
+	void it("merges an output the model split into two JSON objects", async () => {
+		const [headline, rest] = [
+			{ title: VALID_CARD.title },
+			Object.fromEntries(
+				Object.entries(VALID_CARD).filter(([key]) => key !== "title")
+			)
+		];
+		const fetchMock = replyWith(
+			jsonResponse(
+				responsesBody(
+					`${JSON.stringify(headline)}\n${JSON.stringify(rest)}`
+				)
+			)
+		);
+
+		const card = await providerOver(fetchMock).generateJson(
+			CardSchema,
+			REQUEST
+		);
+
+		assert.deepEqual(card, VALID_CARD);
+		assert.equal(fetchMock.mock.callCount(), 1);
+	});
+
+	void it("rejects with IA_INVALID_OUTPUT when the JSON is broken on every attempt", async () => {
 		const fetchMock = replyWith(
 			jsonResponse(responsesBody("not json at all"))
 		);
@@ -175,10 +238,14 @@ void describe("iaProvider.generateJson over DeepSeek", () => {
 			"IA_INVALID_OUTPUT"
 		);
 
-		assert.equal(fetchMock.mock.callCount(), 2);
+		assert.equal(fetchMock.mock.callCount(), 3);
 		assert.deepEqual(error.serviceError.raw, {
 			schemaName: "game_card",
-			failures: ["output is not valid JSON", "output is not valid JSON"]
+			failures: [
+				"output is not valid JSON",
+				"output is not valid JSON",
+				"output is not valid JSON"
+			]
 		});
 	});
 
@@ -225,7 +292,7 @@ void describe("iaProvider.generateJson over DeepSeek", () => {
 				"IA_INVALID_OUTPUT"
 			);
 
-			assert.equal(fetchMock.mock.callCount(), 2);
+			assert.equal(fetchMock.mock.callCount(), 3);
 			assert.match(
 				failureReasons(error)[0] ?? "",
 				/does not match the schema/
@@ -272,7 +339,7 @@ void describe("iaProvider.generateJson over DeepSeek", () => {
 		assert.equal(fetchMock.mock.callCount(), 2);
 	});
 
-	void it("rejects with IA_INVALID_OUTPUT when both responses are incomplete", async () => {
+	void it("rejects with IA_INVALID_OUTPUT when every response is incomplete", async () => {
 		const fetchMock = replyWith(
 			jsonResponse(responsesBody('{"title": "Co', "incomplete"))
 		);
@@ -283,6 +350,7 @@ void describe("iaProvider.generateJson over DeepSeek", () => {
 		);
 
 		assert.deepEqual(failureReasons(error), [
+			"output was truncated",
 			"output was truncated",
 			"output was truncated"
 		]);
