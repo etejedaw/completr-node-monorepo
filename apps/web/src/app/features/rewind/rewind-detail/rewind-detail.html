@@ -1,231 +1,278 @@
-@let error = loadError(); @if (error === 'user_not_found') {
-<app-profile-access-state reason="not_found" [username]="username()" />
-} @else if (error === 'private') {
-<app-profile-access-state
-	reason="private"
-	[username]="username()"
-	privateTitle="This Rewind is private"
-/>
-} @else if (error === 'not_found') {
-<ui-plain-empty-state
-	icon="event_busy"
-	title="This Rewind isn't available"
-	message="Rewinds open on December 1 and only exist for years with games started or finished."
->
-	<a
-		uiButton
-		variant="secondary"
-		class="tap:min-h-[44px]"
-		[routerLink]="['/user', username(), 'rewind']"
-		>See all Rewinds</a
-	>
-</ui-plain-empty-state>
-} @else if (error === 'failed') {
-<ui-plain-empty-state
-	icon="cloud_off"
-	title="Couldn't load this Rewind"
-	message="Check your connection and try again."
->
-	<button
-		uiButton
-		variant="secondary"
-		class="tap:min-h-[44px]"
-		(click)="retry()"
-	>
-		Try again
-	</button>
-</ui-plain-empty-state>
-} @else if (rewind(); as data) {
-<header class="bleed bleed-top relative isolate overflow-hidden">
-	<app-profile-backdrop
-		class="absolute inset-0 -z-10"
-		[url]="backdropUrl()"
+@let error = loadError(); @let page = text();
+<div class="contents" [attr.lang]="language()">
+	@if (error === 'user_not_found') {
+	<app-profile-access-state reason="not_found" [username]="username()" />
+	} @else if (error === 'private') {
+	<app-profile-access-state
+		reason="private"
+		[username]="username()"
+		[privateTitle]="page.privateTitle"
 	/>
-	<div
-		aria-hidden="true"
-		class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_88%_35%,color-mix(in_oklab,var(--color-nav-queue)_22%,transparent),transparent_55%),radial-gradient(ellipse_at_60%_105%,color-mix(in_oklab,var(--color-nav-shelf)_16%,transparent),transparent_50%)]"
-	></div>
-	<div
-		class="bleed-inner pt-[calc(var(--topbar-height)+6rem)] lg:pt-[calc(var(--topbar-height)+9rem)] pb-8 flex flex-col gap-5"
+	} @else if (error === 'not_found') {
+	<ui-plain-empty-state
+		icon="event_busy"
+		[title]="page.notAvailableTitle"
+		[message]="page.notAvailableMessage"
 	>
-		<div class="flex flex-col gap-2 min-w-0">
-			<span
-				aria-hidden="true"
-				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-				>{{ eyebrow() }}</span
-			>
-			<h1
-				class="m-0 font-display font-bold leading-none tracking-[-0.04em] text-[clamp(5rem,22vw,11rem)]"
-			>
-				<span class="sr-only">{{ eyebrow() + " " + data.year }}</span>
-				<app-rewind-year-odometer [year]="data.year" />
-			</h1>
-			<app-rewind-persona-rank
-				class="mt-3"
-				animate.enter="motion-safe:animate-[uiFadeUp_480ms_cubic-bezier(0.16,1,0.3,1)_1150ms_both]"
-				[code]="data.persona"
-			/>
-			<p class="m-0 mt-3 max-w-xl text-base text-fg-secondary">
-				{{ summary() }}
-			</p>
-		</div>
-		<div class="flex flex-wrap items-center gap-2">
-			<button
-				uiButton
-				variant="primary"
-				class="max-sm:min-h-[44px] tap:min-h-[44px]"
-				aria-haspopup="dialog"
-				(click)="shareOpen.set(true)"
-			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>ios_share</span
+		<a
+			uiButton
+			variant="secondary"
+			class="tap:min-h-[44px]"
+			[routerLink]="['/user', username(), 'rewind']"
+			>{{ page.seeAllRewinds }}</a
+		>
+	</ui-plain-empty-state>
+	} @else if (error === 'not_generated') {
+	<ui-plain-empty-state
+		icon="auto_awesome"
+		[title]="page.notGeneratedTitle"
+		[message]="page.notGeneratedMessage"
+	>
+		<a
+			uiButton
+			variant="primary"
+			class="tap:min-h-[44px]"
+			[routerLink]="['/user', username()]"
+			>{{ page.backToProfile }}</a
+		>
+	</ui-plain-empty-state>
+	} @else if (error === 'failed') {
+	<ui-plain-empty-state
+		icon="cloud_off"
+		[title]="page.failedTitle"
+		[message]="page.failedMessage"
+	>
+		<button
+			uiButton
+			variant="secondary"
+			class="tap:min-h-[44px]"
+			(click)="retry()"
+		>
+			{{ page.tryAgain }}
+		</button>
+	</ui-plain-empty-state>
+	} @else if (rewind(); as data) {
+	<header class="bleed bleed-top relative isolate overflow-hidden">
+		<app-profile-backdrop
+			class="absolute inset-0 -z-10"
+			[url]="backdropUrl()"
+		/>
+		<div
+			aria-hidden="true"
+			class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_88%_35%,color-mix(in_oklab,var(--color-nav-queue)_22%,transparent),transparent_55%),radial-gradient(ellipse_at_60%_105%,color-mix(in_oklab,var(--color-nav-shelf)_16%,transparent),transparent_50%)]"
+		></div>
+		<div
+			class="bleed-inner pt-[calc(var(--topbar-height)+6rem)] lg:pt-[calc(var(--topbar-height)+9rem)] pb-8 flex flex-col gap-5"
+		>
+			<div class="flex flex-col gap-2 min-w-0">
+				<span
+					aria-hidden="true"
+					class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+					>{{ eyebrow() }}</span
 				>
-				Share
-			</button>
-			@if (yearOptions().length > 1) {
-			<app-option-picker
-				variant="compact"
-				size="md"
-				label="Year"
-				heading="Rewind year"
-				[options]="yearOptions()"
-				[value]="'' + data.year"
-			/>
-			}
+				<h1
+					class="m-0 font-display font-bold leading-none tracking-[-0.04em] text-[clamp(5rem,22vw,11rem)]"
+				>
+					<span class="sr-only"
+						>{{ eyebrow() + " " + data.year }}</span
+					>
+					<app-rewind-year-odometer [year]="data.year" />
+				</h1>
+				<app-rewind-persona-rank
+					class="mt-3"
+					animate.enter="motion-safe:animate-[uiFadeUp_480ms_cubic-bezier(0.16,1,0.3,1)_1150ms_both]"
+					[code]="data.persona"
+					[language]="data.language"
+				/>
+				<p class="m-0 mt-3 max-w-xl text-base text-fg-secondary">
+					{{ summary() }}
+				</p>
+			</div>
+			<div class="flex flex-wrap items-center gap-2">
+				<button
+					uiButton
+					variant="primary"
+					class="max-sm:min-h-[44px] tap:min-h-[44px]"
+					aria-haspopup="dialog"
+					(click)="shareOpen.set(true)"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>ios_share</span
+					>
+					{{ page.share }}
+				</button>
+				@if (yearOptions().length > 1) {
+				<app-option-picker
+					variant="compact"
+					size="md"
+					[label]="page.year"
+					[heading]="page.yearHeading"
+					[options]="yearOptions()"
+					[value]="'' + data.year"
+				/>
+				}
+			</div>
 		</div>
-	</div>
-</header>
+	</header>
 
-<div
-	class="mt-8 grid grid-cols-1 gap-14 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-x-12 lg:[grid-template-areas:var(--rewind-areas)]"
-	[style.--rewind-areas]="sectionAreas()"
->
-	<section
-		appRewindReveal
-		aria-labelledby="rewind-results-heading"
-		class="min-w-0 max-w-[40rem] lg:[grid-area:results]"
-	>
-		<app-profile-section-header
-			heading="Results"
-			headingId="rewind-results-heading"
-		/>
-		<app-rewind-tally [rows]="tally()" />
-	</section>
+	<div id="rewind-owner-panel-slot" class="mt-6 empty:hidden"></div>
 
-	@if (hasHighlights()) {
-	<section
-		aria-labelledby="rewind-highlights-heading"
-		class="min-w-0 lg:[grid-area:highlights]"
+	<div
+		class="mt-8 grid grid-cols-1 gap-14 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-x-12 lg:[grid-template-areas:var(--rewind-areas)]"
+		[style.--rewind-areas]="sectionAreas()"
 	>
-		<app-profile-section-header
-			heading="Highlights"
-			headingId="rewind-highlights-heading"
+		<section
+			appRewindReveal
+			aria-labelledby="rewind-results-heading"
+			class="min-w-0 max-w-[40rem] lg:[grid-area:results]"
+		>
+			<app-profile-section-header
+				headingId="rewind-results-heading"
+				[heading]="page.results"
+			/>
+			<app-rewind-tally [rows]="tally()" [language]="data.language" />
+		</section>
+
+		@if (data.aiRecap; as recap) {
+		<app-rewind-ai-recap
+			appRewindReveal
+			class="min-w-0 lg:[grid-area:recap]"
+			[recap]="recap"
+			[year]="data.year"
+			[language]="data.language"
 		/>
-		<app-rewind-highlights [highlights]="data.highlights" />
-	</section>
-	} @if (data.finishedGames.length > 0) {
-	<section
-		appRewindReveal
-		aria-labelledby="rewind-finished-heading"
-		class="min-w-0 lg:[grid-area:finished]"
-	>
-		<app-profile-section-header
-			[heading]="'Finished in ' + data.year"
-			headingId="rewind-finished-heading"
+		} @if (hasHighlights()) {
+		<section
+			aria-labelledby="rewind-highlights-heading"
+			class="min-w-0 lg:[grid-area:highlights]"
+		>
+			<app-profile-section-header
+				headingId="rewind-highlights-heading"
+				[heading]="page.highlights"
+			/>
+			<app-rewind-highlights
+				[highlights]="data.highlights"
+				[language]="data.language"
+			/>
+		</section>
+		} @if (hasPremiumStats() && data.premiumStats; as stats) {
+		<app-rewind-premium-stats
+			class="min-w-0 lg:[grid-area:stats]"
+			[stats]="stats"
+			[language]="data.language"
 		/>
-		@defer (on viewport; prefetch on idle) {
-		<app-rewind-finished-games [games]="data.finishedGames" />
-		} @placeholder {
-		<div class="flex flex-col gap-10" aria-hidden="true">
-			@for (row of skeletonMonths; track row) {
-			<div
-				class="flex flex-col gap-3 md:grid md:grid-cols-[8rem_minmax(0,1fr)] md:gap-6"
-			>
-				<ui-skeleton variant="text" class="w-20" />
+		} @if (data.finishedGames.length > 0) {
+		<section
+			appRewindReveal
+			aria-labelledby="rewind-finished-heading"
+			class="min-w-0 lg:[grid-area:finished]"
+		>
+			<app-profile-section-header
+				[heading]="page.finishedIn(data.year)"
+				headingId="rewind-finished-heading"
+			/>
+			@defer (on viewport; prefetch on idle) {
+			<app-rewind-finished-games
+				[games]="data.finishedGames"
+				[language]="data.language"
+			/>
+			} @placeholder {
+			<div class="flex flex-col gap-10" aria-hidden="true">
+				@for (row of skeletonMonths; track row) {
 				<div
-					class="grid grid-cols-4 gap-2.5 sm:grid-cols-6 md:grid-cols-[repeat(auto-fill,minmax(5.25rem,1fr))] md:gap-3"
+					class="flex flex-col gap-3 md:grid md:grid-cols-[8rem_minmax(0,1fr)] md:gap-6"
 				>
-					@for (poster of skeletonPosters; track poster) {
-					<ui-skeleton
-						variant="rect"
-						class="aspect-[2/3] rounded-md"
-					/>
-					}
+					<ui-skeleton variant="text" class="w-20" />
+					<div
+						class="grid grid-cols-4 gap-2.5 sm:grid-cols-6 md:grid-cols-[repeat(auto-fill,minmax(5.25rem,1fr))] md:gap-3"
+					>
+						@for (poster of skeletonPosters; track poster) {
+						<ui-skeleton
+							variant="rect"
+							class="aspect-[2/3] rounded-md"
+						/>
+						}
+					</div>
 				</div>
+				}
 			</div>
 			}
+		</section>
+		}
+
+		<section
+			appRewindReveal
+			[revealDelay]="120"
+			aria-labelledby="rewind-share-heading"
+			class="min-w-0 lg:[grid-area:share] lg:self-start"
+		>
+			<app-profile-section-header
+				headingId="rewind-share-heading"
+				[heading]="page.share"
+			/>
+			<app-rewind-share-actions
+				previewSize="fit-row"
+				[image]="storyImage"
+				[previewAlt]="previewAlt()"
+				[language]="data.language"
+			/>
+		</section>
+
+		@if (data.otherYears.length > 0) {
+		<div class="min-w-0 lg:[grid-area:more]">
+			@defer (on viewport; prefetch on idle) {
+			<app-rewind-more-years
+				[username]="username()"
+				[currentYear]="data.year"
+				[language]="data.language"
+			/>
+			} @placeholder {
+			<div class="h-40"></div>
+			}
 		</div>
 		}
-	</section>
-	}
+	</div>
 
-	<section
-		appRewindReveal
-		[revealDelay]="120"
-		aria-labelledby="rewind-share-heading"
-		class="min-w-0 lg:[grid-area:share] lg:self-start"
+	@if (shareOpen()) {
+	<ui-dialog
+		size="lg"
+		[heading]="page.share"
+		[subheading]="previewAlt()"
+		(closed)="shareOpen.set(false)"
 	>
-		<app-profile-section-header
-			heading="Share"
-			headingId="rewind-share-heading"
-		/>
 		<app-rewind-share-actions
-			previewSize="fit-row"
 			[image]="storyImage"
 			[previewAlt]="previewAlt()"
+			[language]="data.language"
 		/>
-	</section>
-
-	@if (data.otherYears.length > 0) {
-	<div class="min-w-0 lg:[grid-area:more]">
-		@defer (on viewport; prefetch on idle) {
-		<app-rewind-more-years
-			[username]="username()"
-			[currentYear]="data.year"
-		/>
-		} @placeholder {
-		<div class="h-40"></div>
-		}
+	</ui-dialog>
+	} } @else {
+	<div aria-busy="true" [attr.aria-label]="page.loading">
+		<div class="bleed bleed-top bg-surface/40">
+			<div
+				class="bleed-inner pt-[calc(var(--topbar-height)+6rem)] lg:pt-[calc(var(--topbar-height)+9rem)] pb-8 flex flex-col gap-4"
+			>
+				<ui-skeleton variant="text" class="w-32" />
+				<ui-skeleton
+					class="h-28 sm:h-40 w-64 sm:w-[28rem] max-w-full rounded-card"
+				/>
+				<ui-skeleton variant="text" class="w-80 max-w-full" />
+				<ui-skeleton class="h-10 w-28 rounded-card" />
+			</div>
+		</div>
+		<div class="mt-8 max-w-[40rem] flex flex-col gap-4">
+			@for (row of skeletonRows; track row) {
+			<ui-skeleton class="h-9 w-full rounded-md" />
+			}
+		</div>
+		<div class="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+			<ui-skeleton
+				class="h-72 sm:col-span-2 lg:row-span-2 rounded-card"
+			/>
+			<ui-skeleton class="h-32 sm:col-span-2 rounded-card" />
+			<ui-skeleton class="h-32 rounded-card" />
+			<ui-skeleton class="h-32 rounded-card" />
+		</div>
 	</div>
 	}
 </div>
-
-@if (shareOpen()) {
-<ui-dialog
-	size="lg"
-	heading="Share"
-	[subheading]="previewAlt()"
-	(closed)="shareOpen.set(false)"
->
-	<app-rewind-share-actions
-		[image]="storyImage"
-		[previewAlt]="previewAlt()"
-	/>
-</ui-dialog>
-} } @else {
-<div aria-busy="true" aria-label="Loading Rewind">
-	<div class="bleed bleed-top bg-surface/40">
-		<div
-			class="bleed-inner pt-[calc(var(--topbar-height)+6rem)] lg:pt-[calc(var(--topbar-height)+9rem)] pb-8 flex flex-col gap-4"
-		>
-			<ui-skeleton variant="text" class="w-32" />
-			<ui-skeleton
-				class="h-28 sm:h-40 w-64 sm:w-[28rem] max-w-full rounded-card"
-			/>
-			<ui-skeleton variant="text" class="w-80 max-w-full" />
-			<ui-skeleton class="h-10 w-28 rounded-card" />
-		</div>
-	</div>
-	<div class="mt-8 max-w-[40rem] flex flex-col gap-4">
-		@for (row of skeletonRows; track row) {
-		<ui-skeleton class="h-9 w-full rounded-md" />
-		}
-	</div>
-	<div class="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-		<ui-skeleton class="h-72 sm:col-span-2 lg:row-span-2 rounded-card" />
-		<ui-skeleton class="h-32 sm:col-span-2 rounded-card" />
-		<ui-skeleton class="h-32 rounded-card" />
-		<ui-skeleton class="h-32 rounded-card" />
-	</div>
-</div>
-}

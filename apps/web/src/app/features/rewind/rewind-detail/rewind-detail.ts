@@ -1,14 +1,19 @@
+import { type HttpErrorResponse } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
 	inject,
+	linkedSignal,
 	signal
 } from "@angular/core";
 import { rxResource, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 
-import { type Rewind } from "../../../core/models/rewind.model";
+import {
+	type Rewind,
+	type RewindLanguage
+} from "../../../core/models/rewind.model";
 import { AuthService } from "../../../core/services/auth";
 import {
 	OptionPicker,
@@ -23,6 +28,7 @@ import {
 } from "../../../shared/ui";
 import { ProfileAccessState } from "../../public-profile/components/profile-access-state";
 import { ProfileSectionHeader } from "../../public-profile/components/profile-section-header";
+import { RewindAiRecap } from "../components/rewind-ai-recap/rewind-ai-recap";
 import { RewindFinishedGames } from "../components/rewind-finished-games/rewind-finished-games";
 import {
 	presentHighlightKeys,
@@ -30,6 +36,10 @@ import {
 } from "../components/rewind-highlights/rewind-highlights";
 import { RewindMoreYears } from "../components/rewind-more-years/rewind-more-years";
 import { RewindPersonaRank } from "../components/rewind-persona-rank/rewind-persona-rank";
+import {
+	hasPremiumCharts,
+	RewindPremiumStats
+} from "../components/rewind-premium-stats/rewind-premium-stats";
 import { RewindShareActions } from "../components/rewind-share-actions/rewind-share-actions";
 import {
 	RewindTally,
@@ -37,10 +47,30 @@ import {
 } from "../components/rewind-tally/rewind-tally";
 import { RewindYearOdometer } from "../components/rewind-year-odometer/rewind-year-odometer";
 import { RewindService } from "../rewind";
-import { parseRewindYear, rewindSummarySentence } from "../rewind-copy";
-import { rewindLoadError } from "../rewind-errors";
+import {
+	DEFAULT_REWIND_LANGUAGE,
+	parseRewindYear,
+	rewindCopy,
+	rewindSummarySentence
+} from "../rewind-copy";
+import { type RewindLoadError, rewindLoadError } from "../rewind-errors";
 import { RewindReveal } from "../rewind-reveal";
 import { injectRewindStoryImage } from "../rewind-story-image";
+
+export type RewindDetailError = RewindLoadError | "not_generated";
+
+const NOT_GENERATED_ERROR_TYPE = "REWIND_NOT_GENERATED";
+
+function detailLoadError(error: unknown): RewindDetailError | null {
+	const response = error as HttpErrorResponse | undefined;
+	if (
+		response?.status === 404 &&
+		response.error?.type === NOT_GENERATED_ERROR_TYPE
+	) {
+		return "not_generated";
+	}
+	return rewindLoadError(error);
+}
 
 function backdropOf(rewind: Rewind): string | null {
 	return (
@@ -61,7 +91,9 @@ function backdropOf(rewind: Rewind): string | null {
 		RewindFinishedGames,
 		RewindHighlights,
 		RewindMoreYears,
+		RewindAiRecap,
 		RewindPersonaRank,
+		RewindPremiumStats,
 		RewindReveal,
 		RewindShareActions,
 		RewindTally,
@@ -107,11 +139,31 @@ export class RewindDetail {
 		return rewind.year === this.year() ? rewind : null;
 	});
 
-	protected readonly loadError = computed(() =>
+	protected readonly loadError = computed<RewindDetailError | null>(() =>
 		this.year() === null
 			? "not_found"
-			: rewindLoadError(this.resource.error())
+			: detailLoadError(this.resource.error())
 	);
+
+	protected readonly language = linkedSignal<
+		{ username: string; rewind: Rewind | null },
+		RewindLanguage
+	>({
+		source: () => ({ username: this.username(), rewind: this.rewind() }),
+		computation: (current, previous) => {
+			if (current.rewind) return current.rewind.language;
+			const sameUser = previous?.source.username === current.username;
+			return sameUser ? previous.value : DEFAULT_REWIND_LANGUAGE;
+		}
+	});
+
+	protected readonly copy = computed(() => rewindCopy(this.language()));
+	protected readonly text = computed(() => this.copy().page);
+
+	protected readonly hasPremiumStats = computed(() => {
+		const stats = this.rewind()?.premiumStats;
+		return !!stats && hasPremiumCharts(stats);
+	});
 
 	protected readonly hasHighlights = computed(() => {
 		const highlights = this.rewind()?.highlights;
@@ -126,17 +178,21 @@ export class RewindDetail {
 	);
 
 	protected readonly eyebrow = computed(() =>
-		this.isOwner() ? "Your Rewind" : `@${this.username()}'s Rewind`
+		this.isOwner()
+			? this.text().ownerEyebrow
+			: this.text().visitorEyebrow(this.username())
 	);
 
 	protected readonly summary = computed(() => {
 		const rewind = this.rewind();
-		return rewind ? rewindSummarySentence(rewind.totals) : "";
+		return rewind
+			? rewindSummarySentence(rewind.totals, rewind.language)
+			: "";
 	});
 
 	protected readonly tally = computed(() => {
 		const rewind = this.rewind();
-		return rewind ? rewindTallyRows(rewind.totals) : [];
+		return rewind ? rewindTallyRows(rewind.totals, rewind.language) : [];
 	});
 
 	protected readonly backdropUrl = computed(() => {
@@ -163,17 +219,19 @@ export class RewindDetail {
 	});
 
 	protected readonly previewAlt = computed(() => {
-		const year = this.year();
+		const year = this.year() ?? 0;
 		return this.isOwner()
-			? `Your ${year} Rewind`
-			: `@${this.username()}'s ${year} Rewind`;
+			? this.text().ownerPreviewAlt(year)
+			: this.text().visitorPreviewAlt(this.username(), year);
 	});
 
 	protected readonly sectionAreas = computed(() => {
 		const rewind = this.rewind();
 		const rows = [
 			"results share",
+			rewind?.aiRecap ? "recap recap" : null,
 			this.hasHighlights() ? "highlights highlights" : null,
+			this.hasPremiumStats() ? "stats stats" : null,
 			rewind?.finishedGames.length ? "finished finished" : null,
 			rewind?.otherYears.length ? "more more" : null
 		];
@@ -190,5 +248,13 @@ export class RewindDetail {
 
 	protected retry() {
 		this.resource.reload();
+	}
+
+	replaceRewind(rewind: Rewind) {
+		const sameOwner =
+			rewind.user.username.toLowerCase() ===
+			this.username().toLowerCase();
+		if (!sameOwner || rewind.year !== this.year()) return;
+		this.resource.set(rewind);
 	}
 }

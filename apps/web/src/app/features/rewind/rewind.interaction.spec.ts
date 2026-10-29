@@ -12,6 +12,7 @@ import {
 	Component
 } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { Router, RouterOutlet } from "@angular/router";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
@@ -19,7 +20,9 @@ import userEvent from "@testing-library/user-event";
 import { environment } from "../../../environments/environment";
 import {
 	type Rewind,
+	type RewindAiRecap,
 	type RewindPersonaCode,
+	type RewindPremiumStats,
 	type RewindYearSummary
 } from "../../core/models/rewind.model";
 import { ExportService } from "../../core/services/export";
@@ -107,13 +110,40 @@ function rewindFor(year: number, otherYears: number[]): Rewind {
 				{ name: "PlayStation 5", abbreviation: "PS5", count: 12 }
 			],
 			longestStreak: { months: 5, fromMonth: 3, toMonth: 7 }
-		}
+		},
+		language: "en",
+		generatedAt: `${year}-12-02T10:00:00.000Z`,
+		aiRecap: null,
+		premiumStats: null,
+		ownerControls: null
 	};
 }
+
+const AI_RECAP: RewindAiRecap = {
+	headline: "A year of roguelikes",
+	summary: "You kept coming back to Hades.",
+	insights: [
+		{
+			kind: "genre-pattern",
+			title: "Roguelikes all year",
+			body: "Seven of your games were roguelikes."
+		}
+	],
+	funFact: "You finished Celeste in November.",
+	nextYearChallenge: "Finish a 60-hour game."
+};
+
+const PREMIUM_STATS: RewindPremiumStats = {
+	hoursByMonth: [{ month: 3, hours: 40 }],
+	tasteVsCritics: [],
+	backlogFlow: [],
+	genreShare: [{ code: "roguelike", name: "Roguelike", count: 7 }]
+};
 
 function summaryFor(year: number): RewindYearSummary {
 	return {
 		year,
+		isGenerated: true,
 		finishedCount: 18,
 		startedCount: 23,
 		hoursPlayed: 212.5,
@@ -130,6 +160,7 @@ describe("Rewind interaction", () => {
 	let parked: TestRequest[];
 	let availableYears: number[];
 	let rewindFailures: Map<number, { status: number; type?: string }>;
+	let rewindOverrides: Map<number, Partial<Rewind>>;
 	let storyFailures: number[];
 	let holdRewinds: boolean;
 	let holdStories: boolean;
@@ -155,10 +186,13 @@ describe("Rewind interaction", () => {
 		if (!availableYears.includes(year))
 			return fail(req, 404, "REWIND_NOT_FOUND");
 		return req.flush({
-			data: rewindFor(
-				year,
-				availableYears.filter(other => other !== year)
-			)
+			data: {
+				...rewindFor(
+					year,
+					availableYears.filter(other => other !== year)
+				),
+				...rewindOverrides.get(year)
+			}
 		});
 	}
 
@@ -289,6 +323,7 @@ describe("Rewind interaction", () => {
 		availableYears = [2026, 2025, 2024];
 		parked = [];
 		rewindFailures = new Map();
+		rewindOverrides = new Map();
 		storyFailures = [];
 		holdRewinds = false;
 		holdStories = false;
@@ -681,6 +716,211 @@ describe("Rewind interaction", () => {
 		});
 	});
 
+	describe("detail languages and premium sections", () => {
+		function sectionNames() {
+			return screen
+				.getAllByRole("region")
+				.map(region => region.getAttribute("aria-labelledby"))
+				.filter(id => id !== "rewind-share-heading");
+		}
+
+		it("shows the whole page in Spanish when the owner generated it in Spanish", async () => {
+			const user = userEvent.setup();
+			rewindOverrides.set(2026, { language: "es" });
+			await renderAt("/user/ada/rewind/2026");
+
+			await untilVisible(() =>
+				expect(
+					screen.getByRole("heading", {
+						level: 1,
+						name: "Rewind de @ada 2026"
+					})
+				).toBeInTheDocument()
+			);
+			expect(document.querySelector("[lang='es']")).not.toBeNull();
+			expect(
+				screen.getByText(
+					"18 juegos terminados, 4 abandonados y 23 empezados."
+				)
+			).toBeInTheDocument();
+			const results = screen.getByRole("region", { name: "Resultados" });
+			expect(
+				within(results).getByText("Abandonados")
+			).toBeInTheDocument();
+			expect(
+				within(results).getByText("212,5", { selector: ".sr-only" })
+			).toBeInTheDocument();
+			expect(
+				within(results).getByText("4,3 de 5", { selector: ".sr-only" })
+			).toBeInTheDocument();
+			expect(screen.getByText("Cazatrofeos")).toBeInTheDocument();
+			expect(
+				screen.getByRole("region", { name: "Lo más destacado" })
+			).toBeInTheDocument();
+			expect(screen.getByText("Mar–Jul")).toBeInTheDocument();
+			expect(screen.getByText("Marzo a julio")).toBeInTheDocument();
+			expect(screen.getByText("Marzo")).toBeInTheDocument();
+			expect(screen.getByText("4 mar")).toBeInTheDocument();
+			expect(
+				screen.getByRole("region", { name: "Terminados en 2026" })
+			).toBeInTheDocument();
+			expect(
+				screen.getByRole("button", { name: "Año: 2026" })
+			).toBeInTheDocument();
+			const share = screen.getByRole("region", { name: "Compartir" });
+			await user.click(
+				within(share).getByRole("button", { name: "Copiar enlace" })
+			);
+			expect(
+				await screen.findByText("Enlace copiado")
+			).toBeInTheDocument();
+			expect(screen.queryByText("Results")).not.toBeInTheDocument();
+		});
+
+		it("leaves out the AI recap and the premium stats when the Rewind has none", async () => {
+			await renderRewind();
+
+			expect(
+				screen.queryByRole("region", { name: "AI recap" })
+			).not.toBeInTheDocument();
+			expect(
+				screen.queryByRole("region", { name: "Premium stats" })
+			).not.toBeInTheDocument();
+			expect(screen.queryByText(/upgrade/i)).not.toBeInTheDocument();
+		});
+
+		it("shows the AI recap after the results and the premium stats after the highlights", async () => {
+			rewindOverrides.set(2026, {
+				aiRecap: AI_RECAP,
+				premiumStats: PREMIUM_STATS
+			});
+			await renderRewind();
+
+			expect(
+				screen.getByRole("region", { name: "AI recap" })
+			).toHaveTextContent("A year of roguelikes");
+			expect(
+				screen.getByRole("region", { name: "Premium stats" })
+			).toBeInTheDocument();
+			expect(sectionNames().slice(0, 4)).toEqual([
+				"rewind-results-heading",
+				"rewind-ai-recap-heading",
+				"rewind-highlights-heading",
+				"rewind-premium-stats-heading"
+			]);
+		});
+
+		it("leaves out the premium stats when every chart is empty", async () => {
+			rewindOverrides.set(2026, {
+				premiumStats: {
+					hoursByMonth: [{ month: 1, hours: 0 }],
+					tasteVsCritics: [],
+					backlogFlow: [],
+					genreShare: []
+				}
+			});
+			await renderRewind();
+
+			expect(
+				screen.queryByRole("region", { name: "Premium stats" })
+			).not.toBeInTheDocument();
+		});
+
+		it("never mixes languages when answers for two years arrive out of order", async () => {
+			rewindOverrides.set(2025, {
+				language: "es",
+				aiRecap: AI_RECAP
+			});
+			await renderRewind();
+			const router = TestBed.inject(Router);
+			holdRewinds = true;
+
+			await router.navigateByUrl("/user/ada/rewind/2025");
+			await router.navigateByUrl("/user/ada/rewind/2024");
+			await waitFor(() =>
+				expect(heldRequest(rewindUrlPattern, 2024)).toBeDefined()
+			);
+			answer(release(heldRequest(rewindUrlPattern, 2024)!));
+			const stale = heldRequest(rewindUrlPattern, 2025);
+			if (stale) answer(release(stale));
+			holdRewinds = false;
+
+			await untilVisible(() =>
+				expect(
+					screen.getByRole("heading", {
+						level: 1,
+						name: "@ada's Rewind 2024"
+					})
+				).toBeInTheDocument()
+			);
+			expect(document.querySelector("[lang='es']")).toBeNull();
+			expect(
+				screen.queryByText("Resumen con IA")
+			).not.toBeInTheDocument();
+			expect(screen.queryByText("AI recap")).not.toBeInTheDocument();
+			expect(screen.getByText("Picky Player")).toBeInTheDocument();
+		});
+
+		it("keeps the error of a missing year in the language the player just saw", async () => {
+			rewindOverrides.set(2026, { language: "es" });
+			await renderAt("/user/ada/rewind/2026");
+			await untilVisible(() =>
+				expect(screen.getByText("Cazatrofeos")).toBeInTheDocument()
+			);
+
+			await TestBed.inject(Router).navigateByUrl("/user/ada/rewind/2023");
+
+			await untilVisible(() =>
+				expect(
+					screen.getByRole("heading", {
+						name: "Este Rewind no está disponible"
+					})
+				).toBeInTheDocument()
+			);
+		});
+
+		it("takes a regenerated Rewind from the owner panel without reloading", async () => {
+			const fixture = await renderRewind();
+			const page = fixture.debugElement.query(By.directive(RewindDetail))
+				.componentInstance as RewindDetail;
+			const regenerated: Rewind = {
+				...rewindFor(2026, [2025, 2024]),
+				language: "es",
+				aiRecap: AI_RECAP
+			};
+
+			page.replaceRewind({ ...regenerated, year: 2025 });
+			page.replaceRewind({
+				...regenerated,
+				user: { ...regenerated.user, username: "grace" }
+			});
+			fixture.detectChanges();
+			expect(screen.getByText("Trophy Hunter")).toBeInTheDocument();
+
+			page.replaceRewind(regenerated);
+
+			await untilVisible(() =>
+				expect(
+					screen.getByRole("region", { name: "Resumen con IA" })
+				).toBeInTheDocument()
+			);
+			expect(screen.getByText("Cazatrofeos")).toBeInTheDocument();
+			expect(
+				pendingRequests().filter(req =>
+					rewindUrlPattern.test(req.request.url)
+				)
+			).toHaveLength(0);
+		});
+
+		it("leaves a visible spot for the owner panel right after the hero", async () => {
+			await renderRewind();
+
+			const slot = document.getElementById("rewind-owner-panel-slot");
+			expect(slot).not.toBeNull();
+			expect(slot!.previousElementSibling?.tagName).toBe("HEADER");
+		});
+	});
+
 	describe("detail errors", () => {
 		it.each(["abc", "1999", "2101", "2026.5"])(
 			"explains the Rewind is not available for the junk year %s without asking the API",
@@ -709,6 +949,28 @@ describe("Rewind interaction", () => {
 			expect(
 				screen.getByRole("link", { name: "See all Rewinds" })
 			).toHaveAttribute("href", "/user/ada/rewind");
+		});
+
+		it("tells the owner the Rewind is not generated yet and links to their profile", async () => {
+			rewindFailures.set(2026, {
+				status: 404,
+				type: "REWIND_NOT_GENERATED"
+			});
+			await renderAt("/user/ada/rewind/2026");
+
+			await untilVisible(() =>
+				expect(
+					screen.getByRole("heading", {
+						name: "This Rewind hasn't been generated yet"
+					})
+				).toBeInTheDocument()
+			);
+			expect(
+				screen.getByRole("link", { name: "Go to your profile" })
+			).toHaveAttribute("href", "/user/ada");
+			expect(
+				screen.queryByText("This Rewind isn't available")
+			).not.toBeInTheDocument();
 		});
 
 		it("says the player does not exist", async () => {
