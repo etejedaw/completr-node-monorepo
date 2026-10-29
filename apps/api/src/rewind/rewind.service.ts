@@ -3,6 +3,7 @@ import { type Transaction } from "sequelize";
 import * as backlogService from "../backlog/backlog.service";
 import { environmentConfig } from "../common/config/environment.config";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { ServiceError } from "../common/errors/service-error";
 import { PinoLogger } from "../common/logger/pino.logger";
 import { isPremiumRole } from "../common/utils/is-premium-role.util";
 import { sequelize } from "../database/sequelize.database";
@@ -477,6 +478,14 @@ function errorCode(error: unknown): string {
 	return error instanceof Error ? error.name : "UNKNOWN";
 }
 
+function errorFailures(error: unknown): unknown {
+	if (!(error instanceof ServiceError)) return undefined;
+	const raw = error.serviceError.raw;
+	if (typeof raw !== "object" || raw === null || !("failures" in raw))
+		return undefined;
+	return raw.failures;
+}
+
 async function finishRecap(
 	request: RecapRequest,
 	content: RecapContent,
@@ -524,7 +533,8 @@ async function runRecap(
 		logger.error("runRecap", "failed", {
 			rewindId: record.id,
 			year: record.year,
-			code: errorCode(error)
+			code: errorCode(error),
+			failures: errorFailures(error)
 		});
 		await finishRecap(request, { aiRecap: null, premiumStats }, false);
 		return false;
