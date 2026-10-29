@@ -1,4 +1,8 @@
 import {
+	type RewindStoredView,
+	type RewindYearVisibility
+} from "../../src/rewind/rewind-record.interface";
+import {
 	type RewindCalendar,
 	type RewindRun
 } from "../../src/rewind/rewind-run.interface";
@@ -50,4 +54,35 @@ export function finishedRun(
 
 export function calendarOn(today: Date, firstYear = 2000): RewindCalendar {
 	return { today, firstYear };
+}
+
+export function ownerVisibility(
+	generatedYears: number[] = []
+): RewindYearVisibility {
+	return {
+		generatedYears: new Set(generatedYears),
+		includeUngenerated: true
+	};
+}
+
+export function visitorVisibility(
+	generatedYears: number[]
+): RewindYearVisibility {
+	return {
+		generatedYears: new Set(generatedYears),
+		includeUngenerated: false
+	};
+}
+
+export function storedView(
+	overrides: Partial<RewindStoredView> = {}
+): RewindStoredView {
+	return {
+		language: "en",
+		generatedAt: "2026-12-02T10:00:00.000Z",
+		aiRecap: null,
+		premiumStats: null,
+		ownerControls: null,
+		...overrides
+	};
 }

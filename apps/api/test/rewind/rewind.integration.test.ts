@@ -17,6 +17,7 @@ import {
 	createPlatform,
 	createUser
 } from "../helpers/factories.helper";
+import { storeRewind } from "./rewind-generation.helper";
 
 type Account = Awaited<ReturnType<typeof createUserWithSession>>;
 
@@ -187,6 +188,10 @@ async function withOwnerVisibility(
 	}
 }
 
+async function storeRewinds(account: Account, years: number[]) {
+	await Promise.all(years.map(year => storeRewind(account, year)));
+}
+
 async function seedFixture() {
 	[playstation, nintendo] = await Promise.all([
 		createPlatform(),
@@ -217,6 +222,7 @@ async function seedFixture() {
 	await seedGenres(games);
 	await seedRuns(owner!.user, games);
 	await seedPlatinums(owner!.user, games);
+	await storeRewinds(owner!, [2025, 2024, 2023]);
 
 	fixture = {
 		owner: owner!,
@@ -563,6 +569,7 @@ void describe("rewind years and the sign-up date", () => {
 			status: "abandoned",
 			finishedAt: "2025-05-05"
 		});
+		await storeRewinds(importer, [2025, 2024, 2023]);
 		return importer;
 	}
 
@@ -614,6 +621,7 @@ void describe("rewind years and the sign-up date", () => {
 			status: "completed",
 			finishedAt: "2025-01-01"
 		});
+		await storeRewinds(newcomer, [2025]);
 
 		const response = await rewinds(newcomer.user.username).expect(200);
 

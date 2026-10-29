@@ -12,6 +12,7 @@ import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
 import { useTestDatabase } from "../helpers/database.helper";
 import { createGame, createPlatform } from "../helpers/factories.helper";
+import { storeRewind } from "./rewind-generation.helper";
 
 type Account = Awaited<ReturnType<typeof createUserWithSession>>;
 
@@ -54,6 +55,10 @@ void describe("REWIND_TODAY", () => {
 		const player = await signUpOn("2025-03-01T00:00:00.000Z");
 		await finishGame(player, games[0]!, "2025-04-04");
 		await finishGame(player, games[1]!, "2026-06-06");
+		await Promise.all([
+			storeRewind(player, 2026),
+			storeRewind(player, 2025)
+		]);
 
 		const list = await api()
 			.get(`/users/${player.user.username}/rewinds`)
@@ -75,6 +80,10 @@ void describe("REWIND_TODAY", () => {
 		const newcomer = await signUpOn("2026-11-20T00:00:00.000Z");
 		await finishGame(newcomer, games[0]!, "2025-12-31");
 		await finishGame(newcomer, games[2]!, "2026-11-25");
+		await Promise.all([
+			storeRewind(newcomer, 2026),
+			storeRewind(newcomer, 2025)
+		]);
 
 		const list = await api()
 			.get(`/users/${newcomer.user.username}/rewinds`)

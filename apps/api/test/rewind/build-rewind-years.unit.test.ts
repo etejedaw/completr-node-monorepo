@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { type RewindYearVisibility } from "../../src/rewind/rewind-record.interface";
 import {
 	type RewindCalendar,
 	type RewindGameGenre,
@@ -8,7 +9,14 @@ import {
 } from "../../src/rewind/rewind-run.interface";
 import { buildRewind } from "../../src/rewind/utils/build-rewind.util";
 import { buildRewindYears } from "../../src/rewind/utils/build-rewind-years.util";
-import { buildRun, calendarOn, finishedRun } from "./rewind-run.builder";
+import {
+	buildRun,
+	calendarOn,
+	finishedRun,
+	ownerVisibility,
+	storedView,
+	visitorVisibility
+} from "./rewind-run.builder";
 
 const MID_2026 = new Date("2026-06-15T12:00:00.000Z");
 const DECEMBER_2026 = new Date("2026-12-01T00:00:00.000Z");
@@ -21,13 +29,15 @@ function yearsOf(
 	options: {
 		genres?: RewindGameGenre[];
 		platinumsByYear?: Map<number, number | null>;
+		visibility?: RewindYearVisibility;
 	} = {}
 ) {
 	return buildRewindYears({
 		runs,
 		calendar,
 		genres: options.genres ?? [],
-		platinumsByYear: options.platinumsByYear ?? new Map()
+		platinumsByYear: options.platinumsByYear ?? new Map(),
+		visibility: options.visibility ?? ownerVisibility()
 	});
 }
 
@@ -53,6 +63,56 @@ void describe("buildRewindYears", () => {
 			[2025, 2024]
 		);
 		assert.equal(result.spotlightYear, null);
+	});
+
+	void it("flags which years the owner already generated", () => {
+		const runs = [
+			finishedRun("hades", "2024-03-01"),
+			finishedRun("tunic", "2025-02-01")
+		];
+
+		const result = yearsOf(runs, calendarOn(MID_2026), {
+			visibility: ownerVisibility([2024])
+		});
+
+		assert.deepEqual(
+			result.years.map(summary => [summary.year, summary.isGenerated]),
+			[
+				[2025, false],
+				[2024, true]
+			]
+		);
+	});
+
+	void it("shows a visitor only the generated years and their spotlight", () => {
+		const runs = [
+			finishedRun("hades", "2025-03-01"),
+			finishedRun("tunic", "2026-02-01")
+		];
+
+		const ungenerated = yearsOf(runs, calendarOn(DECEMBER_2026), {
+			visibility: visitorVisibility([2025])
+		});
+		assert.equal(ungenerated.spotlightYear, null);
+		assert.deepEqual(
+			ungenerated.years.map(summary => summary.year),
+			[2025]
+		);
+
+		const generated = yearsOf(runs, calendarOn(DECEMBER_2026), {
+			visibility: visitorVisibility([2026, 2025])
+		});
+		assert.equal(generated.spotlightYear, 2026);
+		assert.ok(generated.years.every(summary => summary.isGenerated));
+	});
+
+	void it("keeps the spotlight for the owner before generating it", () => {
+		const runs = [finishedRun("tunic", "2026-02-01")];
+
+		const result = yearsOf(runs, calendarOn(DECEMBER_2026));
+
+		assert.equal(result.spotlightYear, 2026);
+		assert.equal(result.years[0]?.isGenerated, false);
 	});
 
 	void it("opens the current year and spotlights it from December 1", () => {
@@ -306,7 +366,9 @@ void describe("buildRewindYears", () => {
 				runs,
 				genres: [],
 				platinums: null,
-				calendar: calendarOn(MID_2026)
+				calendar: calendarOn(MID_2026),
+				visibility: ownerVisibility(),
+				stored: storedView()
 			});
 
 			assert.equal(summary?.persona, "short-and-sweet");

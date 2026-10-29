@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { RewindYearParamsSchema } from "../../src/rewind/rewind-year-params.schema";
+import { RewindYearParamsSchema } from "../../src/rewind/schemas/rewind-year-params.schema";
 
 void describe("RewindYearParamsSchema", () => {
 	void it("turns a four digit year into a number", () => {

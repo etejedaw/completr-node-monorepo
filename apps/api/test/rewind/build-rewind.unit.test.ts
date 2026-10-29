@@ -2,12 +2,20 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { type RewindOwner } from "../../src/rewind/rewind.interface";
+import { type RewindYearVisibility } from "../../src/rewind/rewind-record.interface";
 import {
 	type RewindGameGenre,
 	type RewindRun
 } from "../../src/rewind/rewind-run.interface";
 import { buildRewind } from "../../src/rewind/utils/build-rewind.util";
-import { buildRun, calendarOn, finishedRun } from "./rewind-run.builder";
+import {
+	buildRun,
+	calendarOn,
+	finishedRun,
+	ownerVisibility,
+	storedView,
+	visitorVisibility
+} from "./rewind-run.builder";
 
 const OWNER: RewindOwner = {
 	username: "ana",
@@ -26,6 +34,7 @@ function rewindOf(
 		platinums?: number | null;
 		today?: Date;
 		firstYear?: number;
+		visibility?: RewindYearVisibility;
 	} = {}
 ) {
 	return buildRewind({
@@ -34,7 +43,9 @@ function rewindOf(
 		runs,
 		genres: options.genres ?? [],
 		platinums: options.platinums === undefined ? 0 : options.platinums,
-		calendar: calendarOn(options.today ?? MID_2026, options.firstYear)
+		calendar: calendarOn(options.today ?? MID_2026, options.firstYear),
+		visibility: options.visibility ?? ownerVisibility(),
+		stored: storedView()
 	});
 }
 
@@ -57,6 +68,44 @@ void describe("buildRewind", () => {
 			assert.equal(rewind.year, 2025);
 			assert.deepEqual(rewind.user, OWNER);
 			assert.deepEqual(rewind.otherYears, [2024, 2023]);
+		});
+
+		void it("lists only the generated other years to a visitor", () => {
+			const runs = [
+				finishedRun("a", "2023-01-01"),
+				finishedRun("b", "2025-01-01"),
+				buildRun("c", { status: "playing", startedAt: "2024-05-01" })
+			];
+
+			const rewind = rewindOf(runs, {
+				visibility: visitorVisibility([2025, 2023, 2019])
+			});
+
+			assert.deepEqual(rewind.otherYears, [2023]);
+		});
+
+		void it("carries the stored fields of the generation untouched", () => {
+			const stored = storedView({
+				language: "es",
+				generatedAt: "2026-12-24T08:30:00.000Z"
+			});
+
+			const rewind = buildRewind({
+				year: 2025,
+				owner: OWNER,
+				runs: [finishedRun("a", "2025-01-01")],
+				genres: [],
+				platinums: null,
+				calendar: calendarOn(MID_2026),
+				visibility: ownerVisibility([2025]),
+				stored
+			});
+
+			assert.equal(rewind.language, "es");
+			assert.equal(rewind.generatedAt, "2026-12-24T08:30:00.000Z");
+			assert.equal(rewind.aiRecap, null);
+			assert.equal(rewind.premiumStats, null);
+			assert.equal(rewind.ownerControls, null);
 		});
 
 		void it("is in the spotlight only inside its own window", () => {
