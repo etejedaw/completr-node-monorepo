@@ -15,6 +15,7 @@ export interface RewindFinishedGame extends RewindGameRef {
 
 export interface RewindYearSummary {
 	year: number;
+	isGenerated: boolean;
 	finishedCount: number;
 	startedCount: number;
 	hoursPlayed: number;
@@ -117,4 +118,83 @@ export interface Rewind {
 	totals: RewindTotals;
 	finishedGames: RewindFinishedGame[];
 	highlights: RewindHighlights;
+	language: RewindLanguage;
+	generatedAt: string;
+	aiRecap: RewindAiRecap | null;
+	premiumStats: RewindPremiumStats | null;
+	ownerControls: RewindOwnerControls | null;
+}
+
+export const REWIND_LANGUAGES = ["en", "es"] as const;
+export type RewindLanguage = (typeof REWIND_LANGUAGES)[number];
+
+export const REWIND_INSIGHT_KINDS = [
+	"taste-vs-critics",
+	"genre-pattern",
+	"seasonal-rhythm",
+	"finish-discipline",
+	"long-vs-short",
+	"platform-habit",
+	"backlog-comeback"
+] as const;
+export type RewindInsightKind = (typeof REWIND_INSIGHT_KINDS)[number];
+
+export interface RewindInsight {
+	kind: RewindInsightKind;
+	title: string;
+	body: string;
+}
+
+export interface RewindAiRecap {
+	headline: string;
+	summary: string;
+	insights: RewindInsight[];
+	funFact: string;
+	nextYearChallenge: string;
+}
+
+export interface RewindMonthHours {
+	month: number;
+	hours: number;
+}
+
+export interface RewindCriticGap extends RewindGameRef {
+	userRating: number;
+	criticScore: number;
+	gap: number;
+}
+
+export interface RewindBacklogFlowMonth {
+	month: number;
+	added: number;
+	finished: number;
+}
+
+export interface RewindPremiumStats {
+	hoursByMonth: RewindMonthHours[];
+	tasteVsCritics: RewindCriticGap[];
+	backlogFlow: RewindBacklogFlowMonth[];
+	genreShare: RewindGenre[];
+}
+
+export const REWIND_AI_RECAP_STATES = [
+	"ready",
+	"failed",
+	"available",
+	"unavailable"
+] as const;
+export type RewindAiRecapState = (typeof REWIND_AI_RECAP_STATES)[number];
+
+export interface RewindOwnerControls {
+	includesPrivateRuns: boolean;
+	regenerationsLeft: number;
+	graceEndsAt: string | null;
+	canRegenerate: boolean;
+	aiRecapState: RewindAiRecapState;
+}
+
+export interface GenerateRewindRequest {
+	language: RewindLanguage;
+	includePrivateRuns: boolean;
+	expectedGeneratedAt: string | null;
 }

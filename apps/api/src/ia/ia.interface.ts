@@ -6,6 +6,10 @@ export interface GenerateTextRequest {
 	timeoutMs?: number;
 }
 
+export interface GenerateJsonRequest extends GenerateTextRequest {
+	schemaName: string;
+}
+
 export interface GenerateTextResult {
 	text: string;
 	truncated: boolean;

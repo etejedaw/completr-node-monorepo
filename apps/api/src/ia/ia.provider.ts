@@ -1,7 +1,10 @@
+import { type z } from "zod";
+
 import { apiKeysConfig } from "../common/config/api-keys.config";
 import { DeepseekModel } from "./deepseek/deepseek.provider";
 import * as iaServiceError from "./errors/ia.service-error";
 import {
+	type GenerateJsonRequest,
 	type GenerateTextRequest,
 	type GenerateTextResult,
 	type IaModel
@@ -28,6 +31,13 @@ export class IaProvider {
 			instructions: request.instructions.trim(),
 			content: request.content.trim()
 		});
+	}
+
+	generateJson<T>(
+		_schema: z.ZodType<T>,
+		_request: GenerateJsonRequest
+	): Promise<T> {
+		return Promise.reject(new Error("generateJson is not implemented yet"));
 	}
 
 	private findInvalidReason(request: GenerateTextRequest): string | null {
