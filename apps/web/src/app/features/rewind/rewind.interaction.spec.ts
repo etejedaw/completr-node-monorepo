@@ -912,12 +912,32 @@ describe("Rewind interaction", () => {
 			).toHaveLength(0);
 		});
 
-		it("leaves a visible spot for the owner panel right after the hero", async () => {
+		it("shows the owner panel right after the hero only to the owner", async () => {
+			rewindOverrides.set(2026, {
+				ownerControls: {
+					includesPrivateRuns: false,
+					regenerationsLeft: 1,
+					graceEndsAt: null,
+					canRegenerate: true,
+					aiRecapState: "unavailable"
+				}
+			});
 			await renderRewind();
 
-			const slot = document.getElementById("rewind-owner-panel-slot");
-			expect(slot).not.toBeNull();
-			expect(slot!.previousElementSibling?.tagName).toBe("HEADER");
+			const panel = document.querySelector("app-rewind-owner-panel");
+			expect(panel).not.toBeNull();
+			expect(panel!.previousElementSibling?.tagName).toBe("HEADER");
+			expect(
+				within(panel as HTMLElement).getByRole("button", {
+					name: /Regenerate/
+				})
+			).toBeInTheDocument();
+		});
+
+		it("hides the owner panel from visitors", async () => {
+			await renderRewind();
+
+			expect(document.querySelector("app-rewind-owner-panel")).toBeNull();
 		});
 	});
 
@@ -1068,9 +1088,7 @@ describe("Rewind interaction", () => {
 				).toBeInTheDocument()
 			);
 			expect(
-				screen.getByText(
-					"A Rewind appears once a year has games started or finished."
-				)
+				screen.getByText("@ada hasn't shared a Rewind yet.")
 			).toBeInTheDocument();
 		});
 	});

@@ -306,8 +306,8 @@ describe("ProfileRewindSpotlight", () => {
 		it("renders nothing for a visitor if an unpublished year ever reaches the page", async () => {
 			const container = await renderInvitation({ isSelf: false });
 
-			expect(screen.queryByRole("heading")).toBeNull();
-			expect(screen.queryByRole("button")).toBeNull();
+			expect(within(container).queryByRole("heading")).toBeNull();
+			expect(within(container).queryByRole("button")).toBeNull();
 			expect(container.querySelector("app-game-poster")).toBeNull();
 		});
 

@@ -645,6 +645,7 @@ describe("PublicProfileComponent", () => {
 		describe("rewind", () => {
 			const rewindYear = (year: number, finishedCount: number) => ({
 				year,
+				isGenerated: true,
 				finishedCount,
 				startedCount: 7,
 				hoursPlayed: 212.5,
