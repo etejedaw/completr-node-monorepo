@@ -32,3 +32,5 @@ export const COVER_MAX_BYTES = 5 * 1024 * 1024;
 export const COVER_FETCH_WIDTH = 420;
 export const BACKDROP_FETCH_WIDTH = 640;
 export const SHARE_IMAGE_CACHE_SIZE = 100;
+
+export type RewindImageFormat = keyof typeof SHARE_IMAGE_SIZES;

@@ -1,10 +1,15 @@
+import { type User } from "../users/user.model";
+import { type SectionAccess } from "../users/users.types";
+import { type RewindLanguage } from "./rewind.constants";
 import {
-	type Rewind,
 	type RewindAiRecap,
-	type RewindLanguage,
 	type RewindPremiumStats
 } from "./rewind.interface";
-import { type RewindAiRecapStatus } from "./rewind.model";
+import {
+	type Rewind as RewindModel,
+	type RewindAiRecapStatus
+} from "./rewind.model";
+import { type RewindCalendar, type RewindRun } from "./rewind-run.interface";
 
 export interface RewindRecord {
 	year: number;
@@ -29,7 +34,11 @@ export interface RewindYearVisibility {
 	includeUngenerated: boolean;
 }
 
-export type RewindStoredView = Pick<
-	Rewind,
-	"language" | "generatedAt" | "aiRecap" | "premiumStats" | "ownerControls"
->;
+export interface RewindViewerContext {
+	owner: User;
+	access: SectionAccess;
+	isOwner: boolean;
+	runs: RewindRun[];
+	calendar: RewindCalendar;
+	records: Map<number, RewindModel>;
+}

@@ -1,10 +1,9 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
 import { sequelize } from "../database/sequelize.database";
+import { REWIND_LANGUAGES, type RewindLanguage } from "./rewind.constants";
 import {
-	REWIND_LANGUAGES,
 	type RewindAiRecap,
-	type RewindLanguage,
 	type RewindPremiumStats
 } from "./rewind.interface";
 

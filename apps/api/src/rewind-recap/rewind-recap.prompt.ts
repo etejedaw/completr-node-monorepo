@@ -1,7 +1,7 @@
 import {
 	type RewindInsightKind,
 	type RewindLanguage
-} from "../rewind/rewind.interface";
+} from "../rewind/rewind.constants";
 import {
 	REWIND_AI_RECAP_INSIGHT_COUNT,
 	REWIND_AI_RECAP_LIMITS

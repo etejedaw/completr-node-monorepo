@@ -34,10 +34,8 @@ import { type RegisterGameDto } from "./dtos/register-game.dto";
 import { type UpdateGameDto } from "./dtos/update-game.dto";
 import * as gamesServiceError from "./errors/games.service-error";
 import { Game } from "./game.model";
-import {
-	type GameScoreEntry,
-	rawgToGameMapper
-} from "./mappers/rawg-to-game.mapper";
+import { type GameScoreEntry } from "./games.interface";
+import { rawgToGameMapper } from "./mappers/rawg-to-game.mapper";
 import {
 	findGameByCode,
 	findGameById,
@@ -45,11 +43,8 @@ import {
 } from "./services/games-search.service";
 import { assertVariantConsistency } from "./services/games-variant.service";
 
-export type {
-	GamesQueryOptions,
-	SetCompilationItemInput,
-	SplitVariantInput
-} from "./games.interface";
+export type { GamesQueryOptions, SplitVariantInput } from "./games.interface";
+export type { SetCompilationItemInput } from "./games.types";
 export {
 	clearCompilation,
 	existsActiveCompilation,

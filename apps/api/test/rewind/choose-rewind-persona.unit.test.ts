@@ -2,10 +2,8 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { type RewindTotals } from "../../src/rewind/rewind.interface";
-import {
-	chooseRewindPersona,
-	type RewindPersonaStats
-} from "../../src/rewind/utils/choose-rewind-persona.util";
+import { type RewindPersonaStats } from "../../src/rewind/rewind-build.interface";
+import { chooseRewindPersona } from "../../src/rewind/utils/choose-rewind-persona.util";
 
 const QUIET_YEAR: RewindTotals = {
 	finished: 0,

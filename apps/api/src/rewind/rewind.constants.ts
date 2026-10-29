@@ -17,3 +17,40 @@ export const PICKY_PLAYER_MIN_ABANDONED = 3;
 export const REWIND_REGENERATION_LIMIT = 1;
 export const REWIND_GRACE_LAST_DAY = 7;
 export const REWIND_AI_RECAP_PENDING_TIMEOUT_MS = 2 * 60 * 1000;
+
+export const REWIND_PERSONA_CODES = [
+	"trophy-hunter",
+	"marathoner",
+	"short-and-sweet",
+	"finisher",
+	"genre-explorer",
+	"picky-player",
+	"steady-player"
+] as const;
+
+export type RewindPersonaCode = (typeof REWIND_PERSONA_CODES)[number];
+
+export const REWIND_LANGUAGES = ["en", "es"] as const;
+
+export type RewindLanguage = (typeof REWIND_LANGUAGES)[number];
+
+export const REWIND_INSIGHT_KINDS = [
+	"taste-vs-critics",
+	"genre-pattern",
+	"seasonal-rhythm",
+	"finish-discipline",
+	"long-vs-short",
+	"platform-habit",
+	"backlog-comeback"
+] as const;
+
+export type RewindInsightKind = (typeof REWIND_INSIGHT_KINDS)[number];
+
+export const REWIND_AI_RECAP_STATES = [
+	"ready",
+	"failed",
+	"available",
+	"unavailable"
+] as const;
+
+export type RewindAiRecapState = (typeof REWIND_AI_RECAP_STATES)[number];

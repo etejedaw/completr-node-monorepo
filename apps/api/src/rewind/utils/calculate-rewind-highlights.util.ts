@@ -1,11 +1,5 @@
-import {
-	type RewindFinishedGame,
-	type RewindHighlights
-} from "../rewind.interface";
-import {
-	type ClosedRewindRun,
-	type RewindGameGenre
-} from "../rewind-run.interface";
+import { type RewindHighlights } from "../rewind.interface";
+import { type RewindHighlightsSource } from "../rewind-build.interface";
 import { findBusiestMonth } from "./find-busiest-month.util";
 import { findLongestStreak } from "./find-longest-streak.util";
 import { pickBestRatio } from "./pick-best-ratio.util";
@@ -14,13 +8,6 @@ import { pickFinishedBookends } from "./pick-finished-bookends.util";
 import { pickTopGenres } from "./pick-top-genres.util";
 import { pickTopPlatforms } from "./pick-top-platforms.util";
 import { pickTopRated } from "./pick-top-rated.util";
-
-export interface RewindHighlightsSource {
-	finishedRuns: ClosedRewindRun[];
-	latestFinishedRuns: ClosedRewindRun[];
-	finishedGames: RewindFinishedGame[];
-	genres: RewindGameGenre[];
-}
 
 export function calculateRewindHighlights(
 	source: RewindHighlightsSource

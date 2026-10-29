@@ -1,4 +1,4 @@
-import { type ExportRow } from "../common/interfaces/export-row.interface";
+import { type ExportRow } from "../common/types/export-row.types";
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
 import { toIsoDateTime } from "../common/utils/to-iso-date-time.util";
 import { type Queue } from "./queue.model";

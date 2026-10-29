@@ -2,6 +2,7 @@ import { type NextFunction, type Request, type Response } from "express";
 import { ZodError, type ZodType } from "zod";
 
 import { DomainError } from "../errors/domain-error";
+import { type RequestKey } from "../types/request-key.types";
 
 export function validateSchemaMiddleware(
 	zodSchema: ZodType,
@@ -31,5 +32,3 @@ export function validateSchemaMiddleware(
 		}
 	};
 }
-
-type RequestKey = "body" | "headers" | "params" | "query";

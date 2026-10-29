@@ -1,21 +1,7 @@
 import { REWIND_REGENERATION_LIMIT } from "../rewind.constants";
-import { type RewindRecord } from "../rewind-record.interface";
+import { type RewindGenerationAttempt } from "../rewind-generation.interface";
+import { type RewindGenerationPlan } from "../rewind-generation.types";
 import { isRewindGraceWindow } from "./is-rewind-grace-window.util";
-
-export type RewindGenerationPlan =
-	| { kind: "create" }
-	| { kind: "regenerate"; spendsGrace: boolean }
-	| { kind: "conflict" }
-	| { kind: "limit-reached" };
-
-export interface RewindGenerationAttempt {
-	record: Pick<
-		RewindRecord,
-		"year" | "generatedAt" | "regenerationsUsed" | "graceUsed"
-	> | null;
-	expectedGeneratedAt: string | null;
-	today: Date;
-}
 
 function matchesGeneratedAt(expected: string | null, generatedAt: Date) {
 	return (

@@ -12,6 +12,7 @@ import {
 import { compareText } from "../../rewind/utils/compare-text.util";
 import { resolveRunHours } from "../../rewind/utils/resolve-run-hours.util";
 import { type RewindRecapInput } from "../rewind-recap.interface";
+import { type GameRow } from "../rewind-recap.types";
 
 export const REWIND_RECAP_MAX_GAME_ROWS = 200;
 
@@ -29,8 +30,6 @@ export const REWIND_RECAP_GAME_COLUMNS = [
 ] as const;
 
 const STILL_RUNNING_STATUSES = new Set(["playing", "endless"]);
-
-type GameRow = (string | number | boolean | null)[];
 
 function toDateOnly(value: string | null): string | null {
 	return value === null ? null : value.slice(0, 10);

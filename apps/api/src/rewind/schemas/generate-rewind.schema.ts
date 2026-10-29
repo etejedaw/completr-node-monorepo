@@ -1,6 +1,6 @@
 import z from "zod";
 
-import { REWIND_LANGUAGES } from "../rewind.interface";
+import { REWIND_LANGUAGES } from "../rewind.constants";
 
 export const GenerateRewindSchema = z
 	.object({

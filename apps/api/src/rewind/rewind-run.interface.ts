@@ -40,3 +40,8 @@ export interface RewindYearRuns {
 	abandoned: ClosedRewindRun[];
 	started: RewindRun[];
 }
+
+export interface RunHours {
+	hours: number;
+	isEstimate: boolean;
+}

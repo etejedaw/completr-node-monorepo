@@ -1,7 +1,5 @@
-import {
-	type RewindStoredView,
-	type RewindYearVisibility
-} from "../../src/rewind/rewind-record.interface";
+import { type RewindYearVisibility } from "../../src/rewind/rewind-record.interface";
+import { type RewindStoredView } from "../../src/rewind/rewind-record.types";
 import {
 	type RewindCalendar,
 	type RewindRun

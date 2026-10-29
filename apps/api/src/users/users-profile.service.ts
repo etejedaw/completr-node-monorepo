@@ -27,6 +27,7 @@ import * as userCardsService from "./user-cards.service";
 import {
 	type BacklogStatusCounts,
 	type ComparisonGameEntry,
+	type ComparisonOptions,
 	type FullUserProfile,
 	type RestrictedUserProfile,
 	type UserComparisonBundle,
@@ -37,10 +38,10 @@ import {
 	type UserHighlightsBundle,
 	type UserListDetailBundle,
 	type UserListsBundle,
-	type UserProfileResult,
 	type UserReviewsBundle
 } from "./users.interface";
 import * as usersService from "./users.service";
+import { type GameEntryRow, type UserProfileResult } from "./users.types";
 
 const EMPTY_BACKLOG_STATS: BacklogStatusCounts = {
 	not_started: 0,
@@ -340,16 +341,6 @@ const COMPARISON_SECTION: Record<ComparisonDimension, VisibilitySection> = {
 	wishlist: "wishlist"
 };
 
-type GameEntryRow = {
-	gameId: string;
-	Game?: {
-		id: string;
-		code: string;
-		title: string;
-		backgroundUrl?: string | null;
-	};
-};
-
 function loadComparisonEntries(
 	userId: string,
 	by: ComparisonDimension,
@@ -400,13 +391,6 @@ const EMPTY_COMPARISON = (by: ComparisonDimension): UserComparisonBundle => ({
 	onlyTarget: [],
 	counts: { inCommon: 0, onlyViewer: 0, onlyTarget: 0 }
 });
-
-export interface ComparisonOptions {
-	includeOnlyTarget: boolean;
-	includeOnlyViewer: boolean;
-	limit?: number;
-	offset: number;
-}
 
 function paginate(
 	entries: ComparisonGameEntry[],

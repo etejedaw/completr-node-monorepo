@@ -8,10 +8,9 @@ import { canView } from "../users/helpers/visibility.helper";
 import { type User } from "../users/user.model";
 import * as usersService from "../users/users.service";
 import { CoopRun } from "./coop-run.model";
+import { type SyncableField } from "./coop-runs.types";
 import { type SyncDto } from "./dtos/sync.dto";
 import * as coopServiceError from "./errors/coop-runs.service-error";
-
-type SyncableField = "status" | "startedAt" | "finishedAt" | "realDuration";
 
 async function loadOwnedBacklog(backlogId: string, userId: string) {
 	const backlog = await backlogService.findBacklogBasicById(backlogId);

@@ -1,18 +1,13 @@
 import { type RewindDurationGame } from "../rewind.interface";
+import {
+	type DurationCandidate,
+	type DurationExtremes
+} from "../rewind-build.interface";
 import { type ClosedRewindRun } from "../rewind-run.interface";
 import { compareRunsChronologically } from "./compare-runs-chronologically.util";
-import { resolveRunHours, type RunHours } from "./resolve-run-hours.util";
+import { resolveRunHours } from "./resolve-run-hours.util";
 import { roundToTenth } from "./round-to-tenth.util";
 import { toRewindFinishedGame } from "./to-rewind-finished-game.util";
-
-interface DurationCandidate extends RunHours {
-	run: ClosedRewindRun;
-}
-
-export interface DurationExtremes {
-	longest: RewindDurationGame | null;
-	fastest: RewindDurationGame | null;
-}
 
 function toDurationCandidate(run: ClosedRewindRun): DurationCandidate[] {
 	const runHours = resolveRunHours(run);

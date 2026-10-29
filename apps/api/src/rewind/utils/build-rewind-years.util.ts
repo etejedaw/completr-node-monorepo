@@ -1,10 +1,5 @@
 import { type RewindYears, type RewindYearSummary } from "../rewind.interface";
-import { type RewindYearVisibility } from "../rewind-record.interface";
-import {
-	type RewindCalendar,
-	type RewindGameGenre,
-	type RewindRun
-} from "../rewind-run.interface";
+import { type RewindYearsSource } from "../rewind-build.interface";
 import { calculateRewindTotals } from "./calculate-rewind-totals.util";
 import { collectYearRuns } from "./collect-year-runs.util";
 import { listLatestFinishedRuns } from "./list-latest-finished-runs.util";
@@ -12,14 +7,6 @@ import { listVisibleRewindYears } from "./list-visible-rewind-years.util";
 import { pickCoverGames } from "./pick-cover-games.util";
 import { pickYearPersona } from "./pick-year-persona.util";
 import { resolveSpotlightYear } from "./resolve-spotlight-year.util";
-
-export interface RewindYearsSource {
-	runs: RewindRun[];
-	genres: RewindGameGenre[];
-	platinumsByYear: ReadonlyMap<number, number | null>;
-	calendar: RewindCalendar;
-	visibility: RewindYearVisibility;
-}
 
 function summarizeYear(
 	source: RewindYearsSource,

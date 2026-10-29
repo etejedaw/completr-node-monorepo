@@ -26,7 +26,16 @@ import * as queueService from "../queue/queue.service";
 import * as reviewsService from "../reviews/reviews.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { User } from "../users/user.model";
+import {
+	type BacklogHighlight,
+	type BacklogStats,
+	type BacklogSummary,
+	type CreatedBacklog,
+	type MonthlyCount,
+	type RatingBucket
+} from "./backlog.interface";
 import { Backlog, type BacklogStatus } from "./backlog.model";
+import { type BacklogFields, type BacklogReview } from "./backlog.types";
 import { type RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { type UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import * as backlogServiceError from "./errors/backlog.service-error";
@@ -62,20 +71,6 @@ async function assertCompilationContext(
 		))
 	)
 		throw backlogServiceError.compilationContextInvalidError();
-}
-
-type BacklogFields = Omit<
-	RegisterBacklogDto,
-	"addToQueue" | "addToShelf" | "moodTags" | "review" | "progressNote"
->;
-
-type BacklogReview = NonNullable<RegisterBacklogDto["review"]>;
-
-export interface CreatedBacklog {
-	backlog: Backlog;
-	reviewCreated: boolean;
-	addedToQueue: boolean;
-	addedToShelf: boolean;
 }
 
 async function insertBacklog(
@@ -230,13 +225,6 @@ export async function findGameIdsInBacklogByUser(
 		group: ["gameId"]
 	});
 	return rows.map(row => row.gameId);
-}
-
-export interface BacklogSummary {
-	gameId: string;
-	status: string;
-	score: number | null;
-	realDuration: number | null;
 }
 
 export async function findBacklogSummariesByUserAndGameIds(
@@ -476,55 +464,6 @@ export async function countBacklogByStatusForUsers(
 		counts.total += n;
 	}
 	return countsByUser;
-}
-
-export interface BacklogHighlightGame {
-	id: string;
-	code: string;
-	title: string;
-	backgroundUrl: string | null;
-}
-
-export interface BacklogHighlight {
-	backlogId: string;
-	game: BacklogHighlightGame;
-	value: number;
-}
-
-export interface BacklogStats {
-	totalEntries: number;
-	countByStatus: {
-		not_started: number;
-		playing: number;
-		completed: number;
-		abandoned: number;
-		endless: number;
-	};
-	totalRealHours: number | null;
-	avgRealDuration: number | null;
-	avgEstimatedDuration: number | null;
-	avgScore: number | null;
-	avgUserRating: number | null;
-	avgRatio: number | null;
-	avgPersonalRatio: number | null;
-	estimatedVsRealDelta: number | null;
-	completionRate: number | null;
-	abandonmentRate: number | null;
-	longestPlayed: BacklogHighlight | null;
-	bestPersonalRatio: BacklogHighlight | null;
-	highestRated: BacklogHighlight | null;
-	ratingDistribution: RatingBucket[];
-	completionsByMonth: MonthlyCount[];
-}
-
-export interface RatingBucket {
-	stars: number;
-	count: number;
-}
-
-export interface MonthlyCount {
-	month: string;
-	count: number;
 }
 
 const RATING_STARS = [5, 4, 3, 2, 1];

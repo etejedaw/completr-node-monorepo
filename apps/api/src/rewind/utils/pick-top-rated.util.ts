@@ -1,9 +1,8 @@
 import { type RewindRatedGame } from "../rewind.interface";
 import { type ClosedRewindRun } from "../rewind-run.interface";
+import { type RatedRun } from "../rewind-run.types";
 import { compareRunsLatestFirst } from "./compare-runs-latest-first.util";
 import { toRewindFinishedGame } from "./to-rewind-finished-game.util";
-
-type RatedRun = ClosedRewindRun & { userRating: number };
 
 function isRated(run: ClosedRewindRun): run is RatedRun {
 	return run.userRating !== null;

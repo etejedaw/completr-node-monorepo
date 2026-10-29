@@ -1,4 +1,5 @@
 import * as backlogService from "../../backlog/backlog.service";
+import { type ListProgress } from "../../lists/lists.interface";
 import * as listsService from "../../lists/lists.service";
 import * as userFollowersService from "../../user-followers/user-followers.service";
 import {
@@ -36,7 +37,7 @@ function enrichGameList(
 	list: Awaited<
 		ReturnType<typeof listsService.findPublicListsByGameId>
 	>[number],
-	progress: listsService.ListProgress = { completed: 0, total: 0 }
+	progress: ListProgress = { completed: 0, total: 0 }
 ): EnrichedGameList {
 	return {
 		id: list.id,

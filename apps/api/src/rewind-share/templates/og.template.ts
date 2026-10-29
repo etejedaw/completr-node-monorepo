@@ -4,11 +4,11 @@ import {
 	SHARE_FONT_FAMILY,
 	SHARE_IMAGE_SIZES
 } from "../rewind-share.constants";
+import { type ShareCopy, type ShareCover } from "../rewind-share.interface";
 import {
-	type ShareArtwork,
-	type ShareCopy,
-	type ShareCover
-} from "../rewind-share.interface";
+	type OgTemplateInput,
+	type SatoriElement
+} from "../rewind-share-template.interface";
 import { displayText } from "../utils/display-text.util";
 import { rewindSummary } from "../utils/rewind-summary.util";
 import { shareCopy } from "../utils/share-copy.util";
@@ -18,17 +18,11 @@ import {
 	box,
 	gradientYear,
 	ownerLabel,
-	type SatoriElement,
 	text,
 	wordmark
 } from "./elements.template";
 import { personaBadge } from "./persona-badge.template";
 import { leadTile, supportingTiles, tileBox } from "./stat-tiles.template";
-
-export interface OgTemplateInput {
-	rewind: Rewind;
-	artwork: ShareArtwork;
-}
 
 export const OG_COVER_LIMIT = 3;
 

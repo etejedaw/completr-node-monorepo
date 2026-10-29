@@ -3,10 +3,10 @@ import { type Request, type Response } from "express";
 import { DomainError } from "../common/errors/domain-error";
 import { ServiceError } from "../common/errors/service-error";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type Rewind } from "../rewind/rewind.interface";
 import * as rewindService from "../rewind/rewind.service";
 import { type RewindYearParams } from "../rewind/schemas/rewind-year-params.schema";
-import { type RewindImageFormat } from "./rewind-share.interface";
+import { type RewindImageFormat } from "./rewind-share.constants";
+import { type GuestRewindLookup } from "./rewind-share.interface";
 import * as rewindShareService from "./rewind-share.service";
 
 const VIEWER_CACHE_CONTROL = "private, max-age=300";
@@ -15,11 +15,6 @@ const MISSING_REWIND_CODES = new Set([
 	"REWIND_NOT_FOUND",
 	"REWIND_NOT_GENERATED"
 ]);
-
-interface GuestRewindLookup {
-	rewind: Rewind | null;
-	status: number;
-}
 
 function isRewindUnavailable(
 	error: unknown

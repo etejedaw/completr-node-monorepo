@@ -1,14 +1,7 @@
 import { type ListItem } from "../list-items/list-item.model";
 import { listItemSerializer } from "../list-items/list-items.serializer";
 import { type List } from "./list.model";
-import { type BacklogSummary } from "./lists.service";
-
-interface ListSerializerOptions {
-	followerCount?: number;
-	isFollowing?: boolean;
-	backlogSummaryMap?: Map<string, BacklogSummary>;
-	progress?: { completed: number; total: number } | null;
-}
+import { type ListSerializerOptions } from "./lists.interface";
 
 export function listSerializer(
 	list: List,

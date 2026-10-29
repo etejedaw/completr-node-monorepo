@@ -1,8 +1,5 @@
-import {
-	type Rewind,
-	type RewindLanguage,
-	type RewindTotals
-} from "../rewind/rewind.interface";
+import { type RewindLanguage } from "../rewind/rewind.constants";
+import { type Rewind, type RewindTotals } from "../rewind/rewind.interface";
 import {
 	type RewindGameGenre,
 	type RewindRun

@@ -1,19 +1,18 @@
 import { type RewindTotals } from "../../rewind/rewind.interface";
 import { SHARE_COLORS, SHARE_FONT_FAMILY } from "../rewind-share.constants";
 import { type ShareCopy } from "../rewind-share.interface";
+import {
+	type SatoriElement,
+	type StatTile,
+	type TileBoxStyle
+} from "../rewind-share-template.interface";
 import { countLabel } from "../utils/count-label.util";
 import {
 	formatCount,
 	formatHours,
 	formatRating
 } from "../utils/format-count.util";
-import { box, type SatoriElement, text } from "./elements.template";
-
-export interface StatTile {
-	label: string;
-	value: string;
-	color: string;
-}
+import { box, text } from "./elements.template";
 
 export function leadTile(totals: RewindTotals, copy: ShareCopy): StatTile {
 	const locale = copy.numberLocale;
@@ -94,14 +93,6 @@ export function supportingTiles(
 	return candidateTiles(totals, copy)
 		.filter((tile): tile is StatTile => tile !== null)
 		.slice(0, limit);
-}
-
-export interface TileBoxStyle {
-	valueSize: number;
-	labelSize: number;
-	width: number | string;
-	height: number;
-	stacked: boolean;
 }
 
 export function tileBox(tile: StatTile, style: TileBoxStyle): SatoriElement {

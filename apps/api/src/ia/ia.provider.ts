@@ -9,12 +9,11 @@ import {
 	type GenerateTextResult,
 	type IaModel
 } from "./ia.interface";
+import { type JsonOutcome } from "./ia.types";
 
 const MAX_TEMPERATURE = 2;
 const JSON_ATTEMPTS = 2;
 const SCHEMA_NAME_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
-
-type JsonOutcome<T> = { ok: true; data: T } | { ok: false; reason: string };
 
 export class IaProvider {
 	constructor(private readonly model: IaModel) {}

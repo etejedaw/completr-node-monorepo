@@ -13,13 +13,9 @@ import * as gamesService from "../games/games.service";
 import { Platform } from "../platforms/platform.model";
 import * as platformsService from "../platforms/platforms.service";
 import * as gamePlatinumServiceError from "./errors/game-platinum.service-error";
+import { type UpsertedGamePlatinum } from "./game-platinum.interface";
 import { GamePlatinum } from "./game-platinum.model";
 import { type UpsertGamePlatinumDto } from "./upsert-game-platinum.dto";
-
-export interface UpsertedGamePlatinum {
-	platinum: GamePlatinum;
-	created: boolean;
-}
 
 async function resolveRunPlatformId(
 	userId: string,

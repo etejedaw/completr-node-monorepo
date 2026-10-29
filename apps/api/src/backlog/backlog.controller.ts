@@ -2,8 +2,8 @@ import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
 import * as backlogProgressService from "../backlog-progress/backlog-progress.service";
-import { type ExportFormat } from "../common/interfaces/export-format.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type ExportFormat } from "../common/types/export-format.types";
 import { sendExport } from "../common/utils/send-export.util";
 import * as coopRunsService from "../coop-runs/coop-runs.service";
 import { type GamePlatinum } from "../game-platinum/game-platinum.model";

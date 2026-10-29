@@ -1,3 +1,8 @@
+import {
+	type ContextErrorOptions,
+	type ValidationIssue
+} from "./errors.interface";
+
 export class DomainError extends Error {
 	constructor(
 		readonly module: string,
@@ -9,14 +14,4 @@ export class DomainError extends Error {
 		super(message);
 		this.name = "DOMAIN_ERROR";
 	}
-}
-
-interface ContextErrorOptions extends Record<string, unknown> {
-	correlationId?: string;
-}
-
-export interface ValidationIssue {
-	path: string;
-	code: string;
-	message: string;
 }

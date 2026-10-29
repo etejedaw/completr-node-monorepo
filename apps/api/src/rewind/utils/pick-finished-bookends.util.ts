@@ -1,9 +1,5 @@
 import { type RewindFinishedGame } from "../rewind.interface";
-
-export interface FinishedBookends {
-	firstFinished: RewindFinishedGame | null;
-	lastFinished: RewindFinishedGame | null;
-}
+import { type FinishedBookends } from "../rewind-build.interface";
 
 export function pickFinishedBookends(
 	finishedGames: RewindFinishedGame[]

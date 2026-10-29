@@ -7,6 +7,7 @@ import {
 	type VisibilitySection
 } from "../constants/visibility.constants";
 import { type User } from "../user.model";
+import { type SectionAccess } from "../users.types";
 
 const SECTION_TO_FIELD: Record<VisibilitySection, keyof User> = {
 	profile: "profileVisibility",
@@ -51,8 +52,6 @@ export function isSectionVisible(
 
 	return !!viewerId && isMutual;
 }
-
-export type SectionAccess = Record<VisibilitySection, boolean>;
 
 export async function resolveSectionAccess(
 	viewerId: string | undefined,

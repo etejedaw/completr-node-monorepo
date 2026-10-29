@@ -1,15 +1,8 @@
 import { type Response } from "express";
 
-import { type ExportFormat } from "../interfaces/export-format.interface";
-import { type ExportRow } from "../interfaces/export-row.interface";
+import { type ExportPayload } from "../interfaces/export-payload.interface";
+import { type ExportFormat } from "../types/export-format.types";
 import { serializeCsv } from "./serialize-csv.util";
-
-interface ExportPayload<Column extends string> {
-	resource: string;
-	format: ExportFormat;
-	columns: readonly Column[];
-	rows: ExportRow<Column>[];
-}
 
 function todayInUtc() {
 	return new Date().toISOString().slice(0, 10);

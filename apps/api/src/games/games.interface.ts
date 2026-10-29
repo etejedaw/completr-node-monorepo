@@ -1,3 +1,6 @@
+import { type TimeSource } from "../game-times/game-time.model";
+import { type RegisterGameDto } from "./dtos/register-game.dto";
+
 export interface GamesPagination {
 	limit?: number;
 	offset?: number;
@@ -65,9 +68,6 @@ export interface SplitVariantInput {
 	variant: string;
 }
 
-export type SetCompilationItemInput =
-	{ mode: "link"; gameId: string } | { mode: "create"; title: string };
-
 export interface EnrichedGameList {
 	id: string;
 	name: string;
@@ -96,4 +96,58 @@ export interface ShowcaseGameRow {
 	genres: string[];
 	score: number | null;
 	duration: number | null;
+}
+
+export interface GameScoreEntry {
+	source: string;
+	score: number;
+}
+
+export interface GameTimeEntry {
+	source: TimeSource;
+	duration: number;
+}
+
+export interface RegisterGameEnrichment {
+	scores?: GameScoreEntry[];
+	times?: GameTimeEntry[];
+	genreSlugs?: string[];
+}
+
+export interface RawgMappedData {
+	game: RegisterGameDto;
+	enrichment: RegisterGameEnrichment;
+}
+
+export interface SourceValueExtractor<
+	TPayload,
+	TSource extends string = string
+> {
+	source: TSource;
+	extract: (payload: TPayload) => number | null;
+}
+
+export interface ExtractedSourceValue<TSource extends string = string> {
+	source: TSource;
+	value: number;
+}
+
+export interface InheritedAssets {
+	platformIds: string[];
+	genreIds: string[];
+	scores: { source: string; score: number }[];
+	times: { source: TimeSource; duration: number }[];
+	externals: { source: string; externalId: string }[];
+}
+
+export interface CachedShowcase {
+	games: ShowcaseGameRow[];
+	fetchedAt: number;
+}
+
+export interface InheritedParentAssets {
+	platformIds: string[];
+	genreIds: string[];
+	scores: { source: string; score: number }[];
+	times: { source: TimeSource; duration: number }[];
 }

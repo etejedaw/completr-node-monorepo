@@ -5,21 +5,15 @@ import {
 	MARATHONER_MIN_AVERAGE_HOURS,
 	MARATHONER_MIN_FINISHED,
 	PICKY_PLAYER_MIN_ABANDONED,
+	type RewindPersonaCode,
 	SHORT_AND_SWEET_MAX_AVERAGE_HOURS,
 	SHORT_AND_SWEET_MIN_FINISHED,
 	TROPHY_HUNTER_MIN_PLATINUMS
 } from "../rewind.constants";
-import { type RewindPersonaCode, type RewindTotals } from "../rewind.interface";
-
-export interface RewindPersonaStats {
-	totals: RewindTotals;
-	averageFinishedHours: number | null;
-}
-
-interface PersonaRule {
-	code: RewindPersonaCode;
-	matches: (stats: RewindPersonaStats) => boolean;
-}
+import {
+	type PersonaRule,
+	type RewindPersonaStats
+} from "../rewind-build.interface";
 
 const PERSONA_RULES: PersonaRule[] = [
 	{

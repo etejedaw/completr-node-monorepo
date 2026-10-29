@@ -10,10 +10,7 @@ import * as gameGenreService from "../game-genre/game-genre.service";
 import * as gamePlatinumService from "../game-platinum/game-platinum.service";
 import { generateRewindAiRecap } from "../rewind-recap/rewind-recap.service";
 import { buildRewindPremiumStats } from "../rewind-recap/utils/build-rewind-premium-stats.util";
-import {
-	resolveSectionAccess,
-	type SectionAccess
-} from "../users/helpers/visibility.helper";
+import { resolveSectionAccess } from "../users/helpers/visibility.helper";
 import { type User } from "../users/user.model";
 import * as usersService from "../users/users.service";
 import * as rewindServiceError from "./errors/rewind.service-error";
@@ -29,10 +26,17 @@ import {
 } from "./rewind.interface";
 import { Rewind as RewindModel } from "./rewind.model";
 import {
+	type RecapContent,
+	type RecapRequest,
+	type RecapSources,
+	type RewindGenerationResult
+} from "./rewind-generation.interface";
+import {
 	type RewindRecord,
-	type RewindStoredView,
+	type RewindViewerContext,
 	type RewindYearVisibility
 } from "./rewind-record.interface";
+import { type RewindStoredView } from "./rewind-record.types";
 import {
 	type RewindCalendar,
 	type RewindGameGenre,
@@ -51,38 +55,6 @@ import { planRewindGeneration } from "./utils/plan-rewind-generation.util";
 import { resolveRewindToday } from "./utils/resolve-rewind-today.util";
 
 const logger = new PinoLogger("Rewind Service");
-
-interface RewindViewerContext {
-	owner: User;
-	access: SectionAccess;
-	isOwner: boolean;
-	runs: RewindRun[];
-	calendar: RewindCalendar;
-	records: Map<number, RewindModel>;
-}
-
-interface RewindGenerationResult {
-	rewind: Rewind;
-	created: boolean;
-}
-
-interface RecapRequest {
-	recordId: string;
-	requestedAt: Date;
-}
-
-interface RecapSources {
-	runs: RewindRun[];
-	genres: RewindGameGenre[];
-	yearGenres: RewindGameGenre[];
-	platinums: number | null;
-	premiumStats: RewindPremiumStats;
-}
-
-interface RecapContent {
-	aiRecap: RewindAiRecap | null;
-	premiumStats: RewindPremiumStats | null;
-}
 
 function rewindTodayOverride(): string | undefined {
 	return environmentConfig.NODE_ENV === "prod"

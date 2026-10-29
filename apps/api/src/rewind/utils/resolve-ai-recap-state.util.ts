@@ -1,4 +1,4 @@
-import { type RewindAiRecapState } from "../rewind.interface";
+import { type RewindAiRecapState } from "../rewind.constants";
 import { type RewindRecord } from "../rewind-record.interface";
 
 export function resolveAiRecapState(

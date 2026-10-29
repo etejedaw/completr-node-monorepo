@@ -3,9 +3,7 @@ import { col, fn, type Transaction } from "sequelize";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { sequelize } from "../database/sequelize.database";
-import { type GameScore } from "../game-scores/game-score.model";
 import * as gameScoresService from "../game-scores/game-scores.service";
-import { type GameTime } from "../game-times/game-time.model";
 import { type TimeSource } from "../game-times/game-time.model";
 import * as gameTimesService from "../game-times/game-times.service";
 import { Game } from "../games/game.model";
@@ -13,18 +11,12 @@ import * as gamesService from "../games/games.service";
 import * as gamesProfileService from "../games/services/games-profile.service";
 import { List } from "../lists/list.model";
 import * as listsService from "../lists/lists.service";
-import { type ScoreSource } from "../score-sources/score-source.model";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import * as listItemsServiceError from "./errors/list-items.service-error";
 import { ListItem } from "./list-item.model";
+import { type FrozenScoreContext } from "./list-items.types";
 
 const FREE_OWNED_LISTS_LIMIT = 5;
-
-type FrozenScoreContext = {
-	scoresByGameId: Map<string, GameScore>;
-	timesByGameId: Map<string, GameTime>;
-	scoreSource: ScoreSource | null;
-};
 
 function isPremium(role: string) {
 	return role === "premium" || role === "moderator" || role === "admin";

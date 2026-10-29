@@ -1,26 +1,18 @@
 import { SHARE_COLORS, SHARE_FONT_FAMILY } from "../rewind-share.constants";
 import { type ShareCopy, type ShareCover } from "../rewind-share.interface";
+import {
+	type BackgroundLayer,
+	type CanvasSize,
+	type SatoriElement
+} from "../rewind-share-template.interface";
+import {
+	type CoverMarkerSide,
+	type FallbackContent,
+	type SatoriChild,
+	type SatoriStyle
+} from "../rewind-share-template.types";
 import { displayText } from "../utils/display-text.util";
 import { titleGradient } from "../utils/title-gradient.util";
-
-export type SatoriStyle = Record<string, string | number>;
-export type SatoriChild = SatoriElement | string;
-
-export interface SatoriElement {
-	type: string;
-	props: {
-		style?: SatoriStyle;
-		children?: SatoriChild | SatoriChild[];
-		src?: string;
-		width?: number;
-		height?: number;
-	};
-}
-
-export interface CanvasSize {
-	width: number;
-	height: number;
-}
 
 const COVER_TITLE_MAX_LENGTH = 60;
 const YEAR_GRADIENT = `linear-gradient(100deg, #ddd6fe 0%, ${SHARE_COLORS.brandLight} 28%, ${SHARE_COLORS.pink} 64%, ${SHARE_COLORS.orange} 100%)`;
@@ -106,11 +98,6 @@ export function gradientYear(year: number, fontSize: number): SatoriElement {
 	);
 }
 
-interface BackgroundLayer {
-	image: string;
-	size: string;
-}
-
 const FULL_SIZE = "100% 100%";
 
 const COLOR_BLOBS: BackgroundLayer[] = [
@@ -163,8 +150,6 @@ export function backdropStyle(
 	};
 }
 
-type FallbackContent = (title: string, width: number) => SatoriChild[];
-
 const FALLBACK_STRIPES: SatoriElement = box({
 	...FILL,
 	opacity: 0.16,
@@ -191,8 +176,6 @@ function titledFallback(title: string, width: number): SatoriChild[] {
 		)
 	];
 }
-
-export type CoverMarkerSide = "flex-start" | "center" | "flex-end";
 
 function markedFallback(side: CoverMarkerSide): FallbackContent {
 	return (_title, width) => [

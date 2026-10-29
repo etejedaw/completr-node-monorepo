@@ -1,8 +1,8 @@
 import { type NextFunction, type Request, type Response } from "express";
 
 import * as commonDomainError from "../errors/common.domain-error";
-import { type ExportFormat } from "../interfaces/export-format.interface";
 import { type RequestUser } from "../interfaces/request-user.interface";
+import { type ExportFormat } from "../types/export-format.types";
 import { isPremiumRole } from "../utils/is-premium-role.util";
 
 export function exportFormatAccessMiddleware(

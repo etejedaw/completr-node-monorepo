@@ -1,9 +1,4 @@
-export type ThemeTier = "free" | "premium";
-
-export interface ThemeEntry {
-	id: string;
-	tier: ThemeTier;
-}
+import { type ThemeEntry } from "../users.interface";
 
 export const THEME_CATALOG: ThemeEntry[] = [
 	{ id: "refined-dark", tier: "free" },

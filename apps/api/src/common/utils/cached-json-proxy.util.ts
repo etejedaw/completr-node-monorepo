@@ -1,17 +1,12 @@
 import { type Request, type Response } from "express";
 
+import {
+	type CachedBody,
+	type CachedJsonProxyOptions
+} from "../interfaces/cached-json-proxy.interface";
+
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 5_000;
-
-interface CachedJsonProxyOptions {
-	sourceUrl: string;
-	unavailableMessage: string;
-}
-
-interface CachedBody {
-	body: unknown;
-	fetchedAt: number;
-}
 
 async function fetchJson(sourceUrl: string): Promise<unknown> {
 	const controller = new AbortController();

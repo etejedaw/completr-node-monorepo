@@ -1,12 +1,11 @@
-import { type RewindPersonaCode } from "../../rewind/rewind.interface";
+import { type RewindPersonaCode } from "../../rewind/rewind.constants";
 import { SHARE_COLORS, SHARE_FONT_FAMILY } from "../rewind-share.constants";
 import { type ShareCopy } from "../rewind-share.interface";
-import { box, diamond, type SatoriElement, text } from "./elements.template";
-
-export interface PersonaBadgeSizes {
-	titleSize: number;
-	phraseSize: number;
-}
+import {
+	type PersonaBadgeSizes,
+	type SatoriElement
+} from "../rewind-share-template.interface";
+import { box, diamond, text } from "./elements.template";
 
 const BADGE_GRADIENT = `linear-gradient(110deg, #6d28d9 0%, ${SHARE_COLORS.brand} 55%, #c026d3 100%)`;
 

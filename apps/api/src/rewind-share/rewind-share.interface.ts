@@ -1,10 +1,8 @@
 import {
 	type RewindLanguage,
 	type RewindPersonaCode
-} from "../rewind/rewind.interface";
-import { type SHARE_IMAGE_SIZES } from "./rewind-share.constants";
-
-export type RewindImageFormat = keyof typeof SHARE_IMAGE_SIZES;
+} from "../rewind/rewind.constants";
+import { type Rewind } from "../rewind/rewind.interface";
 
 export interface ShareCover {
 	gameId: string;
@@ -61,4 +59,22 @@ export interface ShareCopy {
 		started: ShareCountLabel;
 		lastSeparator: string;
 	};
+}
+
+export interface GuestRewindLookup {
+	rewind: Rewind | null;
+	status: number;
+}
+
+export interface RenderedImage {
+	png: Buffer;
+	hasMissingImages: boolean;
+}
+
+export interface LoadedCover extends ShareCover {
+	failedToLoad: boolean;
+}
+
+export interface LoadedArtwork extends ShareArtwork {
+	hasMissingImages: boolean;
 }

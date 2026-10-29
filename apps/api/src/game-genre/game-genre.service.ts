@@ -1,6 +1,7 @@
 import { QueryTypes, type Transaction } from "sequelize";
 
 import { sequelize } from "../database/sequelize.database";
+import { type GameGenreRef } from "./game-genre.interface";
 import { GameGenre } from "./game-genre.model";
 
 export async function linkGameToGenres(
@@ -39,12 +40,6 @@ export async function replaceGameGenres(
 	if (!genreIds.length) return;
 
 	return linkGameToGenres(gameId, genreIds, transaction);
-}
-
-export interface GameGenreRef {
-	gameId: string;
-	code: string;
-	name: string;
 }
 
 export async function findGenresByGameIds(

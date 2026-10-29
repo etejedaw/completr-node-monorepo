@@ -1,28 +1,14 @@
 import { type ShareCover } from "../rewind-share.interface";
 import {
-	box,
-	coverCard,
+	type CoverFanLayout,
+	type FanSlot,
+	type SatoriElement
+} from "../rewind-share-template.interface";
+import {
 	type CoverMarkerSide,
-	partlyHiddenCoverCard,
-	type SatoriElement,
 	type SatoriStyle
-} from "./elements.template";
-
-export interface CoverFanLayout {
-	coverWidth: number;
-	coverHeight: number;
-	areaWidth: number;
-	areaHeight: number;
-	spreadX: number;
-	dropY: number;
-	tiltDegrees: number;
-	shrinkPerStep: number;
-}
-
-interface FanSlot {
-	cover: ShareCover;
-	offset: number;
-}
+} from "../rewind-share-template.types";
+import { box, coverCard, partlyHiddenCoverCard } from "./elements.template";
 
 function offsetsFromCenterOut(count: number): number[] {
 	const center = (count - 1) / 2;

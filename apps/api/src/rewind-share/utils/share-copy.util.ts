@@ -1,4 +1,4 @@
-import { type RewindLanguage } from "../../rewind/rewind.interface";
+import { type RewindLanguage } from "../../rewind/rewind.constants";
 import { type ShareCopy } from "../rewind-share.interface";
 
 const ENGLISH_COPY: ShareCopy = {

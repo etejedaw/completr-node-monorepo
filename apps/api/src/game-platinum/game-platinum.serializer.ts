@@ -53,7 +53,3 @@ export function platinumEntrySerializer(
 		game: platinumGameSerializer(platinum.Game)
 	};
 }
-
-export type SerializedGamePlatinum =
-	| ReturnType<typeof gamePlatinumSerializer>
-	| ReturnType<typeof gamePlatinumPublicSerializer>;

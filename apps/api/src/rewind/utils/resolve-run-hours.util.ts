@@ -1,9 +1,4 @@
-import { type RewindRun } from "../rewind-run.interface";
-
-export interface RunHours {
-	hours: number;
-	isEstimate: boolean;
-}
+import { type RewindRun, type RunHours } from "../rewind-run.interface";
 
 export function resolveRunHours(run: RewindRun): RunHours | null {
 	if (run.realDuration !== null && run.realDuration > 0)

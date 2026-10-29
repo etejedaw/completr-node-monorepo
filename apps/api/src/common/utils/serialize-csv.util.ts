@@ -1,7 +1,4 @@
-import {
-	type ExportRow,
-	type ExportValue
-} from "../interfaces/export-row.interface";
+import { type ExportRow, type ExportValue } from "../types/export-row.types";
 
 const UTF8_BOM = "﻿";
 const CSV_LINE_BREAK = "\r\n";

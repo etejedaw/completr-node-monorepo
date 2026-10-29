@@ -5,16 +5,18 @@ import { environmentConfig } from "../common/config/environment.config";
 import { type Rewind, type RewindGameRef } from "../rewind/rewind.interface";
 import {
 	BACKDROP_FETCH_WIDTH,
+	type RewindImageFormat,
 	SHARE_IMAGE_CACHE_SIZE,
 	SHARE_IMAGE_SIZES
 } from "./rewind-share.constants";
 import {
-	type RewindImageFormat,
+	type LoadedArtwork,
+	type LoadedCover,
+	type RenderedImage,
 	type ShareArtwork,
-	type ShareCover,
 	type SharePageMeta
 } from "./rewind-share.interface";
-import { type SatoriElement } from "./templates/elements.template";
+import { type SatoriElement } from "./rewind-share-template.interface";
 import { OG_COVER_LIMIT, ogTemplate } from "./templates/og.template";
 import { sharePageTemplate } from "./templates/share-page.template";
 import { STORY_COVER_LIMIT, storyTemplate } from "./templates/story.template";
@@ -26,11 +28,6 @@ import { rewindSummary } from "./utils/rewind-summary.util";
 import { selectBackdropUrl } from "./utils/select-backdrop-url.util";
 import { selectShareCovers } from "./utils/select-share-covers.util";
 import { shareCopy } from "./utils/share-copy.util";
-
-interface RenderedImage {
-	png: Buffer;
-	hasMissingImages: boolean;
-}
 
 const GENERIC_SHARE_TITLE = "Completr Rewind";
 const GENERIC_SHARE_DESCRIPTION =
@@ -52,14 +49,6 @@ function webAppHost(): string {
 
 function baseUrl(url: string): string {
 	return url.replace(TRAILING_SLASHES, "");
-}
-
-interface LoadedCover extends ShareCover {
-	failedToLoad: boolean;
-}
-
-interface LoadedArtwork extends ShareArtwork {
-	hasMissingImages: boolean;
 }
 
 function failedToLoad(url: string | null, dataUri: string | null): boolean {

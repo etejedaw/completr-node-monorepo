@@ -1,10 +1,8 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
-import {
-	type Rewind,
-	REWIND_PERSONA_CODES
-} from "../../src/rewind/rewind.interface";
+import { REWIND_PERSONA_CODES } from "../../src/rewind/rewind.constants";
+import { type Rewind } from "../../src/rewind/rewind.interface";
 import { renderRewindImage } from "../../src/rewind-share/rewind-share.service";
 import { hasPngSignature, pngDimensions, samplePng } from "./png.helper";
 import {

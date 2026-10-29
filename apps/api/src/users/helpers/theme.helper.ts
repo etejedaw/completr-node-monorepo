@@ -1,4 +1,5 @@
-import { THEME_CATALOG, type ThemeTier } from "../constants/theme.constants";
+import { THEME_CATALOG } from "../constants/theme.constants";
+import { type ThemeTier } from "../users.types";
 
 export function getThemeTier(id: string): ThemeTier | null {
 	return THEME_CATALOG.find(t => t.id === id)?.tier ?? null;

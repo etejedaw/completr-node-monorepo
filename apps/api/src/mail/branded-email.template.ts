@@ -1,15 +1,4 @@
-import { type MailContent } from "./mail.interface";
-
-export interface BrandedEmail {
-	subject: string;
-	preheader: string;
-	eyebrow: string;
-	heading: string;
-	paragraphs: string[];
-	action: { label: string; url: string };
-	notes: string[];
-	footnote: string;
-}
+import { type BrandedEmail, type MailContent } from "./mail.interface";
 
 const COLORS = {
 	canvas: "#0a0a0c",

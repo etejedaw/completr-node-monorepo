@@ -1,6 +1,5 @@
 import OpenAI, { APIConnectionTimeoutError, APIError } from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
-import { type ChatCompletionCreateParamsNonStreaming } from "openai/resources/chat/completions";
 import {
 	type Response as DeepseekResponse,
 	type ResponseCreateParamsNonStreaming
@@ -13,6 +12,7 @@ import {
 	type GenerateTextResult,
 	type IaModel
 } from "../ia.interface";
+import { type DeepseekChatParams } from "./deepseek.types";
 
 const DEEPSEEK_BASE_URL = "https://api.deepseek.com";
 const TIMEOUT_ERROR_NAMES = new Set(["TimeoutError", "AbortError"]);
@@ -23,10 +23,6 @@ function fetchFromGlobalScope(
 ): Promise<Response> {
 	return globalThis.fetch(input, init);
 }
-
-type DeepseekChatParams = ChatCompletionCreateParamsNonStreaming & {
-	thinking: { type: "disabled" };
-};
 
 export abstract class DeepseekModel implements IaModel {
 	abstract readonly isEnabled: boolean;

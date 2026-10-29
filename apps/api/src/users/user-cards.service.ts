@@ -5,15 +5,11 @@ import { sequelize } from "../database/sequelize.database";
 import * as userFollowersService from "../user-followers/user-followers.service";
 import { isSectionVisible } from "./helpers/visibility.helper";
 import { type User } from "./user.model";
-import { type UserCardInsights } from "./users.interface";
-
-type FeaturedGame = UserCardInsights["featuredGame"];
-
-interface FeaturedFavoriteRow {
-	userId: string;
-	title: string | null;
-	backgroundUrl: string | null;
-}
+import {
+	type FeaturedFavoriteRow,
+	type UserCardInsights
+} from "./users.interface";
+import { type FeaturedGame } from "./users.types";
 
 export async function buildUserCards(
 	viewerId: string | undefined,

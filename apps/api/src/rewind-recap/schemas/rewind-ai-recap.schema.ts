@@ -1,9 +1,7 @@
 import z from "zod";
 
-import {
-	REWIND_INSIGHT_KINDS,
-	type RewindAiRecap
-} from "../../rewind/rewind.interface";
+import { REWIND_INSIGHT_KINDS } from "../../rewind/rewind.constants";
+import { type RewindAiRecap } from "../../rewind/rewind.interface";
 
 export const REWIND_AI_RECAP_INSIGHT_COUNT = 3;
 

@@ -11,6 +11,7 @@ import { type RegisterFranchiseDto } from "./dtos/register-franchise.dto";
 import { type UpdateFranchiseDto } from "./dtos/update-franchise.dto";
 import * as franchiseServiceError from "./errors/franchises.service-error";
 import { Franchise } from "./franchise.model";
+import { type TrackedFranchiseEntry } from "./franchises.interface";
 import { UserFranchise } from "./user-franchise.model";
 
 async function replaceFranchiseGames(
@@ -143,11 +144,6 @@ export async function removeFranchise(id: string) {
 
 	await Franchise.destroy({ where: { id } });
 	return true;
-}
-
-export interface TrackedFranchiseEntry {
-	franchise: { id: string; name: string; code: string };
-	gameCount: number;
 }
 
 export async function trackFranchise(userId: string, franchiseId: string) {

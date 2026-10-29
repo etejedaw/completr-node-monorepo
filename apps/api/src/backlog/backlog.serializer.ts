@@ -1,16 +1,9 @@
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
-import { type SerializedGamePlatinum } from "../game-platinum/game-platinum.serializer";
+import { type SerializedGamePlatinum } from "../game-platinum/game-platinum.types";
 import { type Game } from "../games/game.model";
 import { type Platform } from "../platforms/platform.model";
+import { type CoopMemberSummary } from "./backlog.interface";
 import { type Backlog } from "./backlog.model";
-
-export interface CoopMemberSummary {
-	userId: string;
-	username: string;
-	name: string;
-	avatarUrl: string | null;
-	backlogId: string;
-}
 
 export function backlogSerializer(
 	backlogEntry: Backlog,

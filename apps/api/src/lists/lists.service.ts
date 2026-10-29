@@ -18,15 +18,11 @@ import { type RegisterListDto } from "./dtos/register-list.dto";
 import { type UpdateListDto } from "./dtos/update-list.dto";
 import * as listsServiceError from "./errors/lists.service-error";
 import { List } from "./list.model";
+import { type BacklogSummary, type ListProgress } from "./lists.interface";
 
 const FREE_LIST_LIMIT = 5;
 export const LIST_PREVIEW_SIZE = 4;
 const FINISHED_STATUSES = ["completed", "abandoned", "endless"];
-
-export interface ListProgress {
-	completed: number;
-	total: number;
-}
 
 function isPremium(role: string) {
 	return role === "premium" || role === "moderator" || role === "admin";
@@ -201,12 +197,6 @@ export async function getListFollowerCounts(
 
 export async function getIsFollowing(listId: string, userId: string) {
 	return listFollowersService.isUserFollowingList(listId, userId);
-}
-
-export interface BacklogSummary {
-	status: string;
-	realDuration: number | null;
-	personalRatio: number | null;
 }
 
 export async function getBacklogSummaryMap(

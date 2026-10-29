@@ -1,14 +1,10 @@
 import { type RewindGenre } from "../rewind.interface";
+import { type GenreGames } from "../rewind-build.interface";
 import {
 	type ClosedRewindRun,
 	type RewindGameGenre
 } from "../rewind-run.interface";
 import { compareText } from "./compare-text.util";
-
-interface GenreGames {
-	name: string;
-	gameIds: Set<string>;
-}
 
 function compareByGameCount(first: RewindGenre, second: RewindGenre) {
 	return second.count - first.count || compareText(first.name, second.name);

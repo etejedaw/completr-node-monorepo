@@ -1,13 +1,16 @@
 import { type Activity } from "../activity/activity.model";
 import { type Backlog } from "../backlog/backlog.model";
-import { type findHighlightsByUserId } from "../backlog/backlog.service";
-import { type TrackedFranchiseEntry } from "../franchises/franchises.service";
+import { type TrackedFranchiseEntry } from "../franchises/franchises.interface";
 import { type List } from "../lists/list.model";
-import { type BacklogSummary } from "../lists/lists.service";
+import { type BacklogSummary } from "../lists/lists.interface";
 import { type Review } from "../reviews/review.model";
-import { type SectionAccess } from "./helpers/visibility.helper";
 import { type ComparisonDimension } from "./schemas/comparison-query.schema";
 import { type User } from "./user.model";
+import {
+	type HighlightsResult,
+	type SectionAccess,
+	type ThemeTier
+} from "./users.types";
 
 export interface RestrictedUserProfile {
 	kind: "restricted";
@@ -32,8 +35,6 @@ export interface FullUserProfile {
 	isFollowing: boolean;
 	access: SectionAccess;
 }
-
-export type UserProfileResult = RestrictedUserProfile | FullUserProfile;
 
 export interface BacklogStatusCounts {
 	not_started: number;
@@ -70,10 +71,6 @@ export interface UserListDetailBundle {
 		progress: { completed: number; total: number } | null;
 	};
 }
-
-export type HighlightsResult = Awaited<
-	ReturnType<typeof findHighlightsByUserId>
->;
 
 export interface UserHighlightsBundle {
 	isSelf: boolean;
@@ -132,4 +129,22 @@ export interface UserCardInsights {
 export interface UserConnectionCardsBundle {
 	cards: UserCardInsights[];
 	total: number;
+}
+
+export interface ThemeEntry {
+	id: string;
+	tier: ThemeTier;
+}
+
+export interface FeaturedFavoriteRow {
+	userId: string;
+	title: string | null;
+	backgroundUrl: string | null;
+}
+
+export interface ComparisonOptions {
+	includeOnlyTarget: boolean;
+	includeOnlyViewer: boolean;
+	limit?: number;
+	offset: number;
 }

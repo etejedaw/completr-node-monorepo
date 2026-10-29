@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { REWIND_INSIGHT_KINDS } from "../../src/rewind/rewind.interface";
+import { REWIND_INSIGHT_KINDS } from "../../src/rewind/rewind.constants";
 import {
 	buildRewindRecapInstructions,
 	REWIND_INSIGHT_DEFINITIONS
