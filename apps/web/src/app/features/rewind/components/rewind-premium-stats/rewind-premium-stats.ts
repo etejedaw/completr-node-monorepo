@@ -32,6 +32,9 @@ import {
 	type MonthHoursBar
 } from "./rewind-premium-stats.model";
 
+const PREMIUM_STATS_PERK =
+	"These charts show the year in more detail: hours by month, ratings against the critics, the backlog and genres.";
+
 export const MONTHS_IN_YEAR = 12;
 
 function months(): number[] {
@@ -131,6 +134,7 @@ export function hasPremiumCharts(stats: RewindPremiumStatsData): boolean {
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RewindPremiumStats {
+	protected readonly premiumPerk = PREMIUM_STATS_PERK;
 	readonly stats = input.required<RewindPremiumStatsData>();
 	readonly language = input<RewindLanguage>("en");
 

@@ -242,11 +242,11 @@ describe("RewindAiRecap", () => {
 		],
 		[
 			"es",
-			"Ventaja Premium",
-			"El resumen con IA lee todo el año para describir al jugador que hay detrás."
+			"Premium perk",
+			"The AI recap reads the whole year to describe the player behind it."
 		]
 	] as const)(
-		"explains the Premium perk in %s when the badge is pressed, once per press",
+		"explains the Premium perk in English even on a %s Rewind, once per press",
 		async (language, title, message) => {
 			const view = await renderRecap(recap(), language);
 			const toast = view.fixture.debugElement.injector.get(ToastService);

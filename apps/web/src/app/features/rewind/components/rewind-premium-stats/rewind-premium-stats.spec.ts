@@ -354,11 +354,11 @@ describe("premium stats data", () => {
 		],
 		[
 			"es",
-			"Ventaja Premium",
-			"Estas gráficas muestran el año en detalle: horas por mes, notas frente a la crítica, el backlog y los géneros."
+			"Premium perk",
+			"These charts show the year in more detail: hours by month, ratings against the critics, the backlog and genres."
 		]
 	] as const)(
-		"explains the Premium perk in %s when the badge is pressed, once per press",
+		"explains the Premium perk in English even on a %s Rewind, once per press",
 		async (language, title, message) => {
 			const view = await renderStats(stats(), language);
 			const toast = view.fixture.debugElement.injector.get(ToastService);

@@ -21,6 +21,9 @@ import {
 } from "../../rewind-tone";
 import { type InsightStyle, type InsightView } from "./rewind-ai-recap.model";
 
+const AI_RECAP_PREMIUM_PERK =
+	"The AI recap reads the whole year to describe the player behind it.";
+
 export const INSIGHT_STYLE: Record<RewindInsightKind, InsightStyle> = {
 	"taste-vs-critics": { icon: "reviews", tone: "brand" },
 	"genre-pattern": { icon: "category", tone: "queue" },
@@ -78,8 +81,7 @@ function isInsightKind(kind: unknown): kind is RewindInsightKind {
 					class="ml-auto"
 					interactive
 					[label]="text.premiumLabel"
-					[title]="text.premiumPerkTitle"
-					[message]="text.premiumPerkMessage"
+					[message]="premiumPerk"
 				/>
 			</header>
 
@@ -193,6 +195,7 @@ function isInsightKind(kind: unknown): kind is RewindInsightKind {
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RewindAiRecap {
+	protected readonly premiumPerk = AI_RECAP_PREMIUM_PERK;
 	readonly recap = input.required<RewindAiRecapData>();
 	readonly year = input.required<number>();
 	readonly language = input<RewindLanguage>("en");
