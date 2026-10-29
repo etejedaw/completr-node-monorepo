@@ -1,7 +1,12 @@
+import { provideHttpClient } from "@angular/common/http";
+import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 
-import { type RewindYearSummary } from "../../../../core/models/rewind.model";
+import {
+	type RewindLanguage,
+	type RewindYearSummary
+} from "../../../../core/models/rewind.model";
 import { RewindYearCard } from "./rewind-year-card";
 
 const cover = (id: string) => ({
@@ -12,8 +17,11 @@ const cover = (id: string) => ({
 	backgroundUrl: null
 });
 
-function summary(overrides: Partial<RewindYearSummary> = {}) {
+function summary(
+	overrides: Partial<RewindYearSummary> = {}
+): RewindYearSummary {
 	return {
+		isGenerated: true,
 		year: 2025,
 		finishedCount: 18,
 		startedCount: 23,
@@ -26,13 +34,20 @@ function summary(overrides: Partial<RewindYearSummary> = {}) {
 
 describe("RewindYearCard", () => {
 	beforeEach(() => {
-		TestBed.configureTestingModule({ providers: [provideRouter([])] });
+		TestBed.configureTestingModule({
+			providers: [
+				provideRouter([]),
+				provideHttpClient(),
+				provideHttpClientTesting()
+			]
+		});
 	});
 
-	function render(value: RewindYearSummary) {
+	function render(value: RewindYearSummary, language?: RewindLanguage) {
 		const fixture = TestBed.createComponent(RewindYearCard);
 		fixture.componentRef.setInput("username", "ada");
 		fixture.componentRef.setInput("summary", value);
+		if (language) fixture.componentRef.setInput("language", language);
 		fixture.detectChanges();
 		return fixture.nativeElement as HTMLElement;
 	}
@@ -73,5 +88,41 @@ describe("RewindYearCard", () => {
 
 		expect(element.textContent).toContain("23 started");
 		expect(element.querySelectorAll("app-game-poster")).toHaveLength(0);
+	});
+
+	it("turns an unpublished year of the owner into a Generate card without spoilers", () => {
+		const element = render(summary({ isGenerated: false }));
+		const button = element.querySelector("button")!;
+
+		expect(element.querySelector("a")).toBeNull();
+		expect(button.getAttribute("aria-label")).toBe(
+			"Generate your 2025 Rewind"
+		);
+		expect(button.textContent).toContain("Ready to rewind");
+		expect(button.textContent).toContain("Generate");
+		expect(button.textContent).not.toContain("Trophy Hunter");
+		expect(button.textContent).not.toContain("18 finished");
+	});
+
+	it("speaks Spanish on the Spanish Rewind page", () => {
+		const generated = render(summary(), "es");
+		expect(generated.querySelector("a")!.textContent).toContain(
+			"18 terminados"
+		);
+
+		const started = render(
+			summary({ finishedCount: 0, startedCount: 1 }),
+			"es"
+		);
+		expect(started.querySelector("a")!.textContent).toContain("1 empezado");
+
+		const pending = render(summary({ isGenerated: false }), "es");
+		const button = pending.querySelector("button")!;
+		expect(button.getAttribute("aria-label")).toBe(
+			"Generar tu Rewind 2025"
+		);
+		expect(button.textContent).toContain("Listo para rebobinar");
+		expect(button.textContent).toContain("Generar");
+		expect(button.textContent).not.toContain("Generate");
 	});
 });

@@ -1,5 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 
+import { provideHttpClient } from "@angular/common/http";
+import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { provideRouter } from "@angular/router";
 import { render, screen, within } from "@testing-library/angular";
 
@@ -8,6 +10,7 @@ import { ProfileRewinds } from "./profile-rewinds";
 
 const year = (value: number): RewindYearSummary => ({
 	year: value,
+	isGenerated: true,
 	finishedCount: 3,
 	startedCount: 4,
 	hoursPlayed: 20,
@@ -32,7 +35,11 @@ describe("ProfileRewinds", () => {
 	async function renderRow(years: RewindYearSummary[]) {
 		return render(ProfileRewinds, {
 			inputs: { username: "ada", years },
-			providers: [provideRouter([])]
+			providers: [
+				provideRouter([]),
+				provideHttpClient(),
+				provideHttpClientTesting()
+			]
 		});
 	}
 

@@ -70,15 +70,23 @@ export class RewindArchive {
 		)
 	);
 
-	protected readonly subtitle = computed(() => {
-		const username = this.username();
-		const isOwner =
+	private readonly isOwner = computed(
+		() =>
 			this.authService.user()?.username.toLowerCase() ===
-			username.toLowerCase();
-		return isOwner
+			this.username().toLowerCase()
+	);
+
+	protected readonly subtitle = computed(() =>
+		this.isOwner()
 			? "Every year you've played, one page each."
-			: `Every year @${username} has played, one page each.`;
-	});
+			: `Every year @${this.username()} has played, one page each.`
+	);
+
+	protected readonly emptyMessage = computed(() =>
+		this.isOwner()
+			? "A Rewind appears once a year has games started or finished."
+			: `@${this.username()} hasn't shared a Rewind yet.`
+	);
 
 	protected readonly skeletonCards = [0, 1, 2, 3];
 
