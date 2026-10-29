@@ -1,4 +1,5 @@
 import { provideHttpClient } from "@angular/common/http";
+import { HttpErrorResponse } from "@angular/common/http";
 import {
 	HttpTestingController,
 	provideHttpClientTesting
@@ -6,8 +7,12 @@ import {
 import { TestBed } from "@angular/core/testing";
 
 import { environment } from "../../../environments/environment";
-import { type RewindYears } from "../../core/models/rewind.model";
+import {
+	type GenerateRewindRequest,
+	type RewindYears
+} from "../../core/models/rewind.model";
 import { RewindService, rewindShareUrl } from "./rewind";
+import { rewindAiRecapError, rewindGenerateError } from "./rewind-errors";
 
 const api = environment.apiUrl;
 
@@ -87,5 +92,94 @@ describe("RewindService", () => {
 		httpTesting
 			.expectOne("/share/rewind/a%2Fb%3Fc/2026/story.png")
 			.flush(new Blob());
+	});
+
+	it("generates the Rewind of the signed-in user with the chosen options", () => {
+		const request: GenerateRewindRequest = {
+			language: "es",
+			includePrivateRuns: true,
+			expectedGeneratedAt: null
+		};
+		let result: unknown;
+
+		service.generate(2026, request).subscribe(value => (result = value));
+
+		const req = httpTesting.expectOne(`${api}/users/me/rewinds/2026`);
+		expect(req.request.method).toBe("POST");
+		expect(req.request.body).toEqual(request);
+		req.flush({ data: { year: 2026 } });
+		expect(result).toEqual({ year: 2026 });
+	});
+
+	it("sends the current generatedAt when regenerating", () => {
+		service
+			.generate(2025, {
+				language: "en",
+				includePrivateRuns: false,
+				expectedGeneratedAt: "2025-12-03T10:00:00.000Z"
+			})
+			.subscribe();
+
+		const req = httpTesting.expectOne(`${api}/users/me/rewinds/2025`);
+		expect(req.request.body.expectedGeneratedAt).toBe(
+			"2025-12-03T10:00:00.000Z"
+		);
+		req.flush({ data: { year: 2025 } });
+	});
+
+	it("adds the AI recap to a generated year", () => {
+		let result: unknown;
+
+		service.addAiRecap(2026).subscribe(value => (result = value));
+
+		const req = httpTesting.expectOne(
+			`${api}/users/me/rewinds/2026/ai-recap`
+		);
+		expect(req.request.method).toBe("POST");
+		req.flush({ data: { year: 2026, aiRecap: null } });
+		expect(result).toEqual({ year: 2026, aiRecap: null });
+	});
+});
+
+function httpError(status: number, type?: string) {
+	return new HttpErrorResponse({
+		status,
+		error: type ? { type } : null
+	});
+}
+
+describe("rewindGenerateError", () => {
+	it.each([
+		[0, undefined, "network"],
+		[409, "REWIND_GENERATION_CONFLICT", "conflict"],
+		[409, "REWIND_REGENERATION_LIMIT", "limit"],
+		[409, undefined, "conflict"],
+		[404, "REWIND_NOT_FOUND", "not_found"],
+		[422, undefined, "invalid"],
+		[429, undefined, "rate_limited"],
+		[500, undefined, "failed"],
+		[503, undefined, "failed"]
+	] as const)("maps %s %s to %s", (status, type, expected) => {
+		expect(rewindGenerateError(httpError(status, type))).toBe(expected);
+	});
+
+	it("treats a non-HTTP failure as a generic failure", () => {
+		expect(rewindGenerateError(new Error("boom"))).toBe("failed");
+		expect(rewindGenerateError(null)).toBe("failed");
+	});
+});
+
+describe("rewindAiRecapError", () => {
+	it.each([
+		[0, undefined, "network"],
+		[402, "REWIND_AI_RECAP_PREMIUM_REQUIRED", "premium_required"],
+		[409, "REWIND_AI_RECAP_EXISTS", "exists"],
+		[409, "REWIND_AI_RECAP_IN_PROGRESS", "in_progress"],
+		[404, "REWIND_NOT_GENERATED", "not_generated"],
+		[429, undefined, "rate_limited"],
+		[503, "REWIND_AI_RECAP_FAILED", "failed"],
+		[500, undefined, "failed"]
+	] as const)("maps %s %s to %s", (status, type, expected) => {
+		expect(rewindAiRecapError(httpError(status, type))).toBe(expected);
 	});
 });

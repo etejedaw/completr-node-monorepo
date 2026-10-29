@@ -3,7 +3,11 @@ import { inject, Injectable } from "@angular/core";
 import { map, type Observable } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type Rewind, type RewindYears } from "../../core/models/rewind.model";
+import {
+	type GenerateRewindRequest,
+	type Rewind,
+	type RewindYears
+} from "../../core/models/rewind.model";
 
 export type RewindImageFormat = "story" | "og";
 
@@ -20,6 +24,18 @@ export class RewindService {
 	getRewind(username: string, year: number): Observable<Rewind> {
 		return this.http
 			.get<{ data: Rewind }>(`${rewindsUrl(username)}/${year}`)
+			.pipe(map(res => res.data));
+	}
+
+	generate(year: number, request: GenerateRewindRequest): Observable<Rewind> {
+		return this.http
+			.post<{ data: Rewind }>(`${ownRewindsUrl()}/${year}`, request)
+			.pipe(map(res => res.data));
+	}
+
+	addAiRecap(year: number): Observable<Rewind> {
+		return this.http
+			.post<{ data: Rewind }>(`${ownRewindsUrl()}/${year}/ai-recap`, {})
 			.pipe(map(res => res.data));
 	}
 
@@ -47,4 +63,8 @@ function rewindSharePath(username: string, year: number): string {
 
 function rewindsUrl(username: string): string {
 	return `${environment.apiUrl}/users/${encodeURIComponent(username)}/rewinds`;
+}
+
+function ownRewindsUrl(): string {
+	return `${environment.apiUrl}/users/me/rewinds`;
 }
