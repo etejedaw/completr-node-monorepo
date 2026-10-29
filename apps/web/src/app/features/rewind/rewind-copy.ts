@@ -150,6 +150,27 @@ const ENGLISH: RewindCopy = {
 		genre: "Genre",
 		games: "Games",
 		share: "Share"
+	},
+	yearMix: {
+		heading: "More of your year",
+		gameLength: "How long were your games?",
+		gameLengthHint: "Finished games by hours played",
+		lengthRanges: {
+			"under-5": "Under 5 h",
+			"5-15": "5 to 15 h",
+			"15-30": "15 to 30 h",
+			"over-30": "Over 30 h"
+		},
+		length: "Length",
+		withoutHours: count => `${count} without hours`,
+		releaseDecades: "Release decades",
+		releaseDecadesHint: "Finished games by the year they came out",
+		decade: "Decade",
+		decadeLabel: decade => `${decade}s`,
+		topDecade: label => `Most came from the ${label}`,
+		withoutRelease: count => `${count} without a release date`,
+		games: "Games",
+		share: "Share"
 	}
 };
 
@@ -283,6 +304,29 @@ const SPANISH: RewindCopy = {
 		genreShareHint: "Cómo se repartieron tus juegos entre géneros",
 		moreGenres: count => `${count} géneros más`,
 		genre: "Género",
+		games: "Juegos",
+		share: "Porcentaje"
+	},
+	yearMix: {
+		heading: "Más de tu año",
+		gameLength: "¿Cuánto duraron tus juegos?",
+		gameLengthHint: "Juegos terminados según sus horas",
+		lengthRanges: {
+			"under-5": "Menos de 5 h",
+			"5-15": "De 5 a 15 h",
+			"15-30": "De 15 a 30 h",
+			"over-30": "Más de 30 h"
+		},
+		length: "Duración",
+		withoutHours: count => `${count} sin horas`,
+		releaseDecades: "Décadas de lanzamiento",
+		releaseDecadesHint: "Juegos terminados según el año en que salieron",
+		decade: "Década",
+		decadeLabel: decade =>
+			decade < 2000 ? `Años ${decade % 100}` : `Años ${decade}`,
+		topDecade: label =>
+			`La mayoría salió en los ${label.toLocaleLowerCase("es")}`,
+		withoutRelease: count => `${count} sin fecha de lanzamiento`,
 		games: "Juegos",
 		share: "Porcentaje"
 	}

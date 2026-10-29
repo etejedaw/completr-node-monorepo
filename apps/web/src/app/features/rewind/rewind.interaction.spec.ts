@@ -111,6 +111,20 @@ function rewindFor(year: number, otherYears: number[]): Rewind {
 			],
 			longestStreak: { months: 5, fromMonth: 3, toMonth: 7 }
 		},
+		yearMix: {
+			lengthMix: [
+				{ range: "under-5", count: 1 },
+				{ range: "5-15", count: 0 },
+				{ range: "15-30", count: 1 },
+				{ range: "over-30", count: 0 }
+			],
+			releaseDecades: [
+				{ decade: 2010, count: 1 },
+				{ decade: 2020, count: 1 }
+			],
+			gamesWithoutHours: 0,
+			gamesWithoutRelease: 0
+		},
 		language: "en",
 		generatedAt: `${year}-12-02T10:00:00.000Z`,
 		aiRecap: null,
@@ -755,6 +769,9 @@ describe("Rewind interaction", () => {
 			).toBeInTheDocument();
 			expect(screen.getByText("Cazatrofeos")).toBeInTheDocument();
 			expect(
+				screen.getByRole("region", { name: "Más de tu año" })
+			).toBeInTheDocument();
+			expect(
 				screen.getByRole("region", { name: "Lo más destacado" })
 			).toBeInTheDocument();
 			expect(screen.getByText("Mar–Jul")).toBeInTheDocument();
@@ -802,12 +819,53 @@ describe("Rewind interaction", () => {
 			expect(
 				screen.getByRole("region", { name: "Premium stats" })
 			).toBeInTheDocument();
-			expect(sectionNames().slice(0, 4)).toEqual([
+			expect(sectionNames().slice(0, 5)).toEqual([
 				"rewind-results-heading",
 				"rewind-ai-recap-heading",
 				"rewind-highlights-heading",
+				"rewind-year-mix-heading",
 				"rewind-premium-stats-heading"
 			]);
+		});
+
+		it("shows the free year mix right after the highlights without premium stats", async () => {
+			await renderRewind();
+
+			const mix = screen.getByRole("region", {
+				name: "More of your year"
+			});
+			expect(
+				within(mix).getByRole("heading", {
+					level: 3,
+					name: "How long were your games?"
+				})
+			).toBeInTheDocument();
+			expect(sectionNames().slice(0, 3)).toEqual([
+				"rewind-results-heading",
+				"rewind-highlights-heading",
+				"rewind-year-mix-heading"
+			]);
+		});
+
+		it("leaves out the year mix when no finished game has hours or a release date", async () => {
+			rewindOverrides.set(2026, {
+				yearMix: {
+					lengthMix: [
+						{ range: "under-5", count: 0 },
+						{ range: "5-15", count: 0 },
+						{ range: "15-30", count: 0 },
+						{ range: "over-30", count: 0 }
+					],
+					releaseDecades: [],
+					gamesWithoutHours: 2,
+					gamesWithoutRelease: 2
+				}
+			});
+			await renderRewind();
+
+			expect(
+				screen.queryByRole("region", { name: "More of your year" })
+			).not.toBeInTheDocument();
 		});
 
 		it("leaves out the premium stats when every chart is empty", async () => {

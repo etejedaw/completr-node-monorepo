@@ -182,6 +182,12 @@
 				[language]="data.language"
 			/>
 		</section>
+		} @if (hasYearMix()) {
+		<app-rewind-year-mix
+			class="min-w-0 lg:[grid-area:mix]"
+			[mix]="data.yearMix"
+			[language]="data.language"
+		/>
 		} @if (hasPremiumStats() && data.premiumStats; as stats) {
 		<app-rewind-premium-stats
 			class="min-w-0 lg:[grid-area:stats]"

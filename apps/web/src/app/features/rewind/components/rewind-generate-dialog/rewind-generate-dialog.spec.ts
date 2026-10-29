@@ -60,6 +60,12 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 			topPlatforms: [],
 			longestStreak: null
 		},
+		yearMix: {
+			lengthMix: [],
+			releaseDecades: [],
+			gamesWithoutHours: 0,
+			gamesWithoutRelease: 0
+		},
 		language: "en",
 		generatedAt: "2026-12-02T10:00:00.000Z",
 		aiRecap: null,

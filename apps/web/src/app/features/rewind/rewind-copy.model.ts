@@ -1,4 +1,7 @@
-import { type RewindInsightKind } from "../../core/models/rewind.model";
+import {
+	type RewindInsightKind,
+	type RewindLengthRange
+} from "../../core/models/rewind.model";
 
 export interface RewindSummaryCopy {
 	finished: string;
@@ -94,6 +97,23 @@ export interface RewindPremiumStatsCopy {
 	share: string;
 }
 
+export interface RewindYearMixCopy {
+	heading: string;
+	gameLength: string;
+	gameLengthHint: string;
+	lengthRanges: Record<RewindLengthRange, string>;
+	length: string;
+	withoutHours: (count: string) => string;
+	releaseDecades: string;
+	releaseDecadesHint: string;
+	decade: string;
+	decadeLabel: (decade: number) => string;
+	topDecade: (label: string) => string;
+	withoutRelease: (count: string) => string;
+	games: string;
+	share: string;
+}
+
 export interface RewindPageCopy {
 	ownerEyebrow: string;
 	visitorEyebrow: (username: string) => string;
@@ -130,4 +150,5 @@ export interface RewindCopy {
 	share: RewindShareCopy;
 	aiRecap: RewindAiRecapCopy;
 	premiumStats: RewindPremiumStatsCopy;
+	yearMix: RewindYearMixCopy;
 }

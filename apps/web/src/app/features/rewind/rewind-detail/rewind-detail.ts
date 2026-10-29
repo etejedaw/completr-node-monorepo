@@ -46,6 +46,10 @@ import {
 	RewindTally,
 	rewindTallyRows
 } from "../components/rewind-tally/rewind-tally";
+import {
+	hasYearMixCharts,
+	RewindYearMix
+} from "../components/rewind-year-mix/rewind-year-mix";
 import { RewindYearOdometer } from "../components/rewind-year-odometer/rewind-year-odometer";
 import { RewindService } from "../rewind";
 import {
@@ -98,6 +102,7 @@ function backdropOf(rewind: Rewind): string | null {
 		RewindReveal,
 		RewindShareActions,
 		RewindTally,
+		RewindYearMix,
 		RewindYearOdometer,
 		RewindGenerateDialog,
 		RewindOwnerPanel,
@@ -168,6 +173,11 @@ export class RewindDetail {
 		return !!stats && hasPremiumCharts(stats);
 	});
 
+	protected readonly hasYearMix = computed(() => {
+		const yearMix = this.rewind()?.yearMix;
+		return !!yearMix && hasYearMixCharts(yearMix);
+	});
+
 	protected readonly hasHighlights = computed(() => {
 		const highlights = this.rewind()?.highlights;
 		return !!highlights && presentHighlightKeys(highlights).length > 0;
@@ -234,6 +244,7 @@ export class RewindDetail {
 			"results share",
 			rewind?.aiRecap ? "recap recap" : null,
 			this.hasHighlights() ? "highlights highlights" : null,
+			this.hasYearMix() ? "mix mix" : null,
 			this.hasPremiumStats() ? "stats stats" : null,
 			rewind?.finishedGames.length ? "finished finished" : null,
 			rewind?.otherYears.length ? "more more" : null
