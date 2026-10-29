@@ -18,6 +18,7 @@ export interface RewindRun {
 	userRating: number | null;
 	createdAt: string;
 	notes: string | null;
+	releaseYear: number | null;
 	game: RewindGameRef;
 	platform: RewindRunPlatform | null;
 }

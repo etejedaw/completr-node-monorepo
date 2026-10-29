@@ -2,6 +2,7 @@ import { type Rewind } from "../rewind.interface";
 import { type RewindSource } from "../rewind-build.interface";
 import { calculateRewindHighlights } from "./calculate-rewind-highlights.util";
 import { calculateRewindTotals } from "./calculate-rewind-totals.util";
+import { calculateRewindYearMix } from "./calculate-rewind-year-mix.util";
 import { collectYearRuns } from "./collect-year-runs.util";
 import { listLatestFinishedRuns } from "./list-latest-finished-runs.util";
 import { listVisibleRewindYears } from "./list-visible-rewind-years.util";
@@ -39,6 +40,7 @@ export function buildRewind(source: RewindSource): Rewind {
 			finishedGames,
 			genres
 		}),
+		yearMix: calculateRewindYearMix(latestFinishedRuns, year),
 		...source.stored
 	};
 }

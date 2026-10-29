@@ -1064,7 +1064,14 @@ export async function findLatestCompletedDurations(
 	return map;
 }
 
-const REWIND_GAME_ATTRS = ["id", "code", "title", "coverUrl", "backgroundUrl"];
+const REWIND_GAME_ATTRS = [
+	"id",
+	"code",
+	"title",
+	"coverUrl",
+	"backgroundUrl",
+	"releaseAt"
+];
 const REWIND_RUN_ATTRS = [
 	"id",
 	"gameId",

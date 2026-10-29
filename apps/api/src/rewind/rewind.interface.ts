@@ -3,6 +3,7 @@ import {
 	type RewindAiRecapState,
 	type RewindInsightKind,
 	type RewindLanguage,
+	type RewindLengthRange,
 	type RewindPersonaCode
 } from "./rewind.constants";
 
@@ -97,6 +98,23 @@ export interface RewindHighlights {
 	longestStreak: RewindStreak | null;
 }
 
+export interface RewindLengthBucket {
+	range: RewindLengthRange;
+	count: number;
+}
+
+export interface RewindReleaseDecade {
+	decade: number;
+	count: number;
+}
+
+export interface RewindYearMix {
+	lengthMix: RewindLengthBucket[];
+	releaseDecades: RewindReleaseDecade[];
+	gamesWithoutHours: number;
+	gamesWithoutRelease: number;
+}
+
 export interface RewindOwner {
 	username: string;
 	name: string;
@@ -113,6 +131,7 @@ export interface Rewind {
 	totals: RewindTotals;
 	finishedGames: RewindFinishedGame[];
 	highlights: RewindHighlights;
+	yearMix: RewindYearMix;
 	language: RewindLanguage;
 	generatedAt: string;
 	aiRecap: RewindAiRecap | null;

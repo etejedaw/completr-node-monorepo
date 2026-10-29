@@ -57,6 +57,17 @@ export function buildRecapRewind(overrides: Partial<Rewind> = {}): Rewind {
 			topPlatforms: [],
 			longestStreak: null
 		},
+		yearMix: {
+			lengthMix: [
+				{ range: "under-5", count: 0 },
+				{ range: "5-15", count: 0 },
+				{ range: "15-30", count: 0 },
+				{ range: "over-30", count: 0 }
+			],
+			releaseDecades: [],
+			gamesWithoutHours: 0,
+			gamesWithoutRelease: 0
+		},
 		language: "en",
 		generatedAt: "2026-12-15T12:00:00.000Z",
 		aiRecap: null,

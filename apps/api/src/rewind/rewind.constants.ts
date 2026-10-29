@@ -17,6 +17,7 @@ export const PICKY_PLAYER_MIN_ABANDONED = 3;
 export const REWIND_REGENERATION_LIMIT = 1;
 export const REWIND_GRACE_LAST_DAY = 7;
 export const REWIND_AI_RECAP_PENDING_TIMEOUT_MS = 2 * 60 * 1000;
+export const REWIND_MIN_RELEASE_YEAR = 1950;
 
 export const REWIND_PERSONA_CODES = [
 	"trophy-hunter",
@@ -54,3 +55,20 @@ export const REWIND_AI_RECAP_STATES = [
 ] as const;
 
 export type RewindAiRecapState = (typeof REWIND_AI_RECAP_STATES)[number];
+
+export const REWIND_LENGTH_RANGES = [
+	"under-5",
+	"5-15",
+	"15-30",
+	"over-30"
+] as const;
+
+export type RewindLengthRange = (typeof REWIND_LENGTH_RANGES)[number];
+
+export const REWIND_LENGTH_RANGE_MAX_HOURS: Record<RewindLengthRange, number> =
+	{
+		"under-5": 5,
+		"5-15": 15,
+		"15-30": 30,
+		"over-30": Number.POSITIVE_INFINITY
+	};

@@ -35,6 +35,7 @@ export function rewindSerializer(rewind: Rewind): Rewind {
 		totals: rewind.totals,
 		finishedGames: rewind.finishedGames,
 		highlights: rewind.highlights,
+		yearMix: rewind.yearMix,
 		language: rewind.language,
 		generatedAt: rewind.generatedAt,
 		aiRecap: rewind.aiRecap,

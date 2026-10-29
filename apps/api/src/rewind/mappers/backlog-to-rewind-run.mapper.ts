@@ -11,6 +11,13 @@ function toNumberOrNull(value: number | null | undefined): number | null {
 	return value === null || value === undefined ? null : Number(value);
 }
 
+function toYearOrNull(value: Date | string | null | undefined): number | null {
+	const date = toDateOnly(value);
+	if (date === null) return null;
+	const year = Number(date.slice(0, 4));
+	return Number.isInteger(year) ? year : null;
+}
+
 export function backlogToRewindRun(run: Backlog): RewindRun {
 	return {
 		id: run.id,
@@ -24,6 +31,7 @@ export function backlogToRewindRun(run: Backlog): RewindRun {
 		userRating: toNumberOrNull(run.userRating),
 		createdAt: run.createdAt.toISOString().slice(0, 10),
 		notes: run.notes ?? null,
+		releaseYear: toYearOrNull(run.Game.releaseAt),
 		game: {
 			gameId: run.Game.id,
 			code: run.Game.code,

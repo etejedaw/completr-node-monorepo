@@ -85,6 +85,20 @@ export function buildRewind(overrides: Partial<Rewind> = {}): Rewind {
 			],
 			longestStreak: { months: 5, fromMonth: 3, toMonth: 7 }
 		},
+		yearMix: {
+			lengthMix: [
+				{ range: "under-5", count: 1 },
+				{ range: "5-15", count: 1 },
+				{ range: "15-30", count: 1 },
+				{ range: "over-30", count: 1 }
+			],
+			releaseDecades: [
+				{ decade: 2010, count: 2 },
+				{ decade: 2020, count: 2 }
+			],
+			gamesWithoutHours: 0,
+			gamesWithoutRelease: 0
+		},
 		language: "en",
 		generatedAt: "2026-12-02T10:00:00.000Z",
 		aiRecap: null,

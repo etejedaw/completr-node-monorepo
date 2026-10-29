@@ -28,6 +28,7 @@ export function buildRun(
 		userRating: null,
 		createdAt: "2026-01-01",
 		notes: null,
+		releaseYear: null,
 		game: {
 			gameId: `id-${gameCode}`,
 			code: gameCode,
