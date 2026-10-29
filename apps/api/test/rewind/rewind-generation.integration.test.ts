@@ -645,6 +645,47 @@ void describe("premium generation", () => {
 		assert.deepEqual(publicCall, [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 		assert.deepEqual(privateCall, [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0]);
 	});
+
+	void it("leaves the first day of the library out of the added runs, so an initial import does not count", async () => {
+		const player = await playerWithYears("premium");
+		const [laterInApril, inJuly] = await Promise.all([
+			addRun(player, games.tunic, platform, { status: "not_started" }),
+			addRun(player, games.celeste, platform, { status: "not_started" })
+		]);
+		await Promise.all([
+			Backlog.update(
+				{ createdAt: new Date("2026-04-05T07:43:00.000Z") },
+				{
+					where: {
+						userId: player.user.id,
+						id: { [Op.notIn]: [laterInApril.id, inJuly.id] }
+					},
+					silent: true
+				}
+			),
+			Backlog.update(
+				{ createdAt: new Date("2026-04-11T10:00:00.000Z") },
+				{ where: { id: laterInApril.id }, silent: true }
+			),
+			Backlog.update(
+				{ createdAt: new Date("2026-07-20T10:00:00.000Z") },
+				{ where: { id: inJuly.id }, silent: true }
+			)
+		]);
+		const statsMock = mockPremiumStats();
+		mockAiRecap();
+
+		await generate(player, 2026, {
+			...FIRST_GENERATION,
+			includePrivateRuns: true
+		}).expect(201);
+
+		const [call] = statsMock.mock.calls.map(
+			entry =>
+				(entry.arguments[0] as RewindPremiumStatsInput).addedByMonth
+		);
+		assert.deepEqual(call, [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0]);
+	});
 });
 
 void describe("premium changes", () => {

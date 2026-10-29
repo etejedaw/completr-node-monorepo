@@ -1307,6 +1307,11 @@ export async function countRunsAddedByMonth(
 		 WHERE "userId" = :userId
 		   AND "createdAt" >= make_timestamptz(:year, 1, 1, 0, 0, 0, 'UTC')
 		   AND "createdAt" < make_timestamptz(:year + 1, 1, 1, 0, 0, 0, 'UTC')
+		   AND ("createdAt" AT TIME ZONE 'UTC')::date <> (
+		     SELECT MIN("createdAt" AT TIME ZONE 'UTC')::date
+		     FROM "Backlogs"
+		     WHERE "userId" = :userId
+		   )
 		   ${visibility.publicOnly ? `AND "isPublic" = true` : ""}
 		 GROUP BY month`,
 		{ replacements: { userId, year }, type: QueryTypes.SELECT }
