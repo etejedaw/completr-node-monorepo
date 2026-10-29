@@ -1,7 +1,8 @@
-import { Op } from "sequelize";
+import { Op, type WhereOptions } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
-import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
+import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { Game } from "../games/game.model";
 import { ListItem } from "../list-items/list-item.model";
 import { List } from "../lists/list.model";
@@ -103,22 +104,27 @@ export async function getFollowingLists(userId: string) {
 	});
 }
 
-function listVisibleToViewer(viewerId: string | undefined) {
+function listVisibleToViewer(viewerId: string | undefined, search?: string) {
+	const nameWhere = search
+		? buildTextSearchWhere(search, ["List.name"])
+		: null;
+	const conditions: WhereOptions[] = [visibleListsCondition(viewerId)];
+	if (nameWhere) conditions.push(nameWhere);
 	return {
 		...FOLLOWED_LIST_PREVIEW_INCLUDE,
 		required: true,
-		where: { [Op.and]: [visibleListsCondition(viewerId)] }
+		where: { [Op.and]: conditions }
 	};
 }
 
 export async function getFollowingListsPaginated(
 	userId: string,
 	viewerId: string | undefined,
-	pagination: PaginationQuery = {}
+	pagination: PaginatedSearchQuery = {}
 ) {
 	const query: Record<string, unknown> = {
 		where: { userId, isVisible: true },
-		include: [listVisibleToViewer(viewerId)],
+		include: [listVisibleToViewer(viewerId, pagination.search)],
 		order: [
 			["createdAt", "DESC"],
 			["id", "DESC"]

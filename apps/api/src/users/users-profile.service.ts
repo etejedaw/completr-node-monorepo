@@ -21,6 +21,7 @@ import {
 	resolveSectionAccess
 } from "./helpers/visibility.helper";
 import { type ComparisonDimension } from "./schemas/comparison-query.schema";
+import { type UserListsQuery } from "./schemas/user-lists-query.schema";
 import { type User } from "./user.model";
 import * as userCardsService from "./user-cards.service";
 import {
@@ -190,7 +191,8 @@ async function requireVisibleUser(
 
 export async function getListsForUsername(
 	viewer: RequestUser | undefined,
-	username: string
+	username: string,
+	query: UserListsQuery = {}
 ): Promise<UserListsBundle> {
 	const user = await requireVisibleUser(viewer?.id, username, [
 		"profile",
@@ -198,10 +200,10 @@ export async function getListsForUsername(
 	]);
 	const isSelf = viewer?.id === user.id;
 
-	const lists =
+	const { lists, total } =
 		isSelf && viewer
-			? (await listsService.findListsByUserId(viewer)).lists
-			: await listsService.findPublicListsByUserId(user.id);
+			? await listsService.findListsByUserId(viewer, query)
+			: await listsService.findPublicListsByUserId(user.id, query);
 
 	const listIds = lists.map(list => list.id);
 	const [followerCounts, progressByList] = await Promise.all([
@@ -214,13 +216,13 @@ export async function getListsForUsername(
 		progress: progressByList.get(list.id) ?? { completed: 0, total: 0 }
 	}));
 
-	return { lists: enriched, total: enriched.length };
+	return { lists: enriched, total };
 }
 
 export async function getFollowingListsForUsername(
 	viewerId: string | undefined,
 	username: string,
-	query: PaginationQuery
+	query: UserListsQuery
 ): Promise<UserFollowingListsBundle> {
 	const user = await requireVisibleUser(viewerId, username, ["profile"]);
 

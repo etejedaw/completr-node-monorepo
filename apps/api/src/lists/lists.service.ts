@@ -2,6 +2,7 @@ import { Op, QueryTypes } from "sequelize";
 
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
@@ -294,12 +295,19 @@ export async function getListsProgress(
 	return progressByList;
 }
 
+function listsOfUserWhere(userId: string, search?: string) {
+	const nameWhere = search
+		? buildTextSearchWhere(search, ["List.name"])
+		: null;
+	return nameWhere ? { userId, ...nameWhere } : { userId };
+}
+
 export async function findListsByUserId(
 	user: RequestUser,
-	pagination: { limit?: number; offset?: number } = {}
+	pagination: PaginatedSearchQuery = {}
 ) {
 	const query: Record<string, unknown> = {
-		where: { userId: user.id },
+		where: listsOfUserWhere(user.id, pagination.search),
 		include: [
 			{
 				model: User,
@@ -341,9 +349,15 @@ export async function findListsByUserId(
 	return { lists: rows, total: count, frozen };
 }
 
-export async function findPublicListsByUserId(userId: string) {
-	return List.findAll({
-		where: { userId, isPublic: true },
+export async function findPublicListsByUserId(
+	userId: string,
+	pagination: PaginatedSearchQuery = {}
+) {
+	const query: Record<string, unknown> = {
+		where: {
+			...listsOfUserWhere(userId, pagination.search),
+			isPublic: true
+		},
 		include: [
 			{
 				model: ListItem,
@@ -371,7 +385,12 @@ export async function findPublicListsByUserId(userId: string) {
 			["createdAt", "DESC"],
 			["id", "DESC"]
 		]
-	});
+	};
+	if (pagination.limit) query.limit = pagination.limit;
+	if (pagination.offset) query.offset = pagination.offset;
+
+	const { rows, count } = await List.findAndCountAll(query);
+	return { lists: rows, total: count };
 }
 
 export async function countListsByUserId(userId: string, publicOnly = false) {
