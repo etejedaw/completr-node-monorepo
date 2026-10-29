@@ -1,5 +1,9 @@
 import { type Rewind, type RewindOwner } from "../rewind.interface";
 import {
+	type RewindStoredView,
+	type RewindYearVisibility
+} from "../rewind-record.interface";
+import {
 	type RewindCalendar,
 	type RewindGameGenre,
 	type RewindRun
@@ -8,7 +12,7 @@ import { calculateRewindHighlights } from "./calculate-rewind-highlights.util";
 import { calculateRewindTotals } from "./calculate-rewind-totals.util";
 import { collectYearRuns } from "./collect-year-runs.util";
 import { listLatestFinishedRuns } from "./list-latest-finished-runs.util";
-import { listRewindYears } from "./list-rewind-years.util";
+import { listVisibleRewindYears } from "./list-visible-rewind-years.util";
 import { pickYearPersona } from "./pick-year-persona.util";
 import { resolveSpotlightYear } from "./resolve-spotlight-year.util";
 import { toRewindFinishedGame } from "./to-rewind-finished-game.util";
@@ -20,6 +24,8 @@ export interface RewindSource {
 	genres: RewindGameGenre[];
 	platinums: number | null;
 	calendar: RewindCalendar;
+	visibility: RewindYearVisibility;
+	stored: RewindStoredView;
 }
 
 export function buildRewind(source: RewindSource): Rewind {
@@ -39,9 +45,11 @@ export function buildRewind(source: RewindSource): Rewind {
 		persona: pickYearPersona(totals, latestFinishedRuns),
 		user: source.owner,
 		isSpotlight: resolveSpotlightYear(calendar.today) === year,
-		otherYears: listRewindYears(runs, calendar).filter(
-			other => other !== year
-		),
+		otherYears: listVisibleRewindYears(
+			runs,
+			calendar,
+			source.visibility
+		).filter(other => other !== year),
 		totals,
 		finishedGames,
 		highlights: calculateRewindHighlights({
@@ -49,6 +57,7 @@ export function buildRewind(source: RewindSource): Rewind {
 			latestFinishedRuns,
 			finishedGames,
 			genres
-		})
+		}),
+		...source.stored
 	};
 }

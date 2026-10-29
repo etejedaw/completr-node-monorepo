@@ -9,6 +9,7 @@ function rewindYearSummarySerializer(
 ): RewindYearSummary {
 	return {
 		year: summary.year,
+		isGenerated: summary.isGenerated,
 		persona: summary.persona,
 		finishedCount: summary.finishedCount,
 		startedCount: summary.startedCount,
@@ -33,6 +34,11 @@ export function rewindSerializer(rewind: Rewind): Rewind {
 		otherYears: rewind.otherYears,
 		totals: rewind.totals,
 		finishedGames: rewind.finishedGames,
-		highlights: rewind.highlights
+		highlights: rewind.highlights,
+		language: rewind.language,
+		generatedAt: rewind.generatedAt,
+		aiRecap: rewind.aiRecap,
+		premiumStats: rewind.premiumStats,
+		ownerControls: rewind.ownerControls
 	};
 }

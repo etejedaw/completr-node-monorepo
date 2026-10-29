@@ -29,6 +29,71 @@ export function userPrivate(context?: Record<string, unknown>) {
 	);
 }
 
+export function rewindNotGenerated(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"REWIND_NOT_GENERATED",
+		"This Rewind has not been generated yet",
+		context
+	);
+}
+
+export function rewindGenerationConflict(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"REWIND_GENERATION_CONFLICT",
+		"This Rewind changed since you last loaded it",
+		context
+	);
+}
+
+export function rewindRegenerationLimit(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"REWIND_REGENERATION_LIMIT",
+		"No regenerations left for this Rewind",
+		context
+	);
+}
+
+export function rewindAiRecapPremiumRequired(
+	context?: Record<string, unknown>
+) {
+	return new DomainError(
+		MODULE_NAME,
+		"REWIND_AI_RECAP_PREMIUM_REQUIRED",
+		"The AI recap requires a premium account",
+		context
+	);
+}
+
+export function rewindAiRecapExists(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"REWIND_AI_RECAP_EXISTS",
+		"This Rewind already has an AI recap",
+		context
+	);
+}
+
+export function rewindAiRecapInProgress(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"REWIND_AI_RECAP_IN_PROGRESS",
+		"The AI recap is still being generated",
+		context
+	);
+}
+
+export function rewindAiRecapFailed(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"REWIND_AI_RECAP_FAILED",
+		"The AI recap could not be generated",
+		context
+	);
+}
+
 export function rewindInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,
