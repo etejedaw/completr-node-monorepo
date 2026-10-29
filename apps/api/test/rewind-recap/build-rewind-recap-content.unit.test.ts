@@ -91,7 +91,9 @@ void describe("buildRewindRecapContent", () => {
 				42.5,
 				false,
 				4.5,
-				4.6
+				4.6,
+				-0.1,
+				37
 			]
 		]);
 		assert.doesNotMatch(serialized, /id-hades|img\.test|run-\d+/);

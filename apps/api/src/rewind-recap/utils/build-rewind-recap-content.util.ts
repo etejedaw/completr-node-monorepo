@@ -13,6 +13,11 @@ import { compareText } from "../../rewind/utils/compare-text.util";
 import { resolveRunHours } from "../../rewind/utils/resolve-run-hours.util";
 import { type RewindRecapInput } from "../rewind-recap.interface";
 import { type GameRow } from "../rewind-recap.types";
+import {
+	buildRewindRecapPatterns,
+	daysToFinish,
+	ratingVsCritics
+} from "./build-rewind-recap-patterns.util";
 
 export const REWIND_RECAP_MAX_GAME_ROWS = 200;
 
@@ -26,7 +31,9 @@ export const REWIND_RECAP_GAME_COLUMNS = [
 	"hours",
 	"hoursEstimated",
 	"userRating",
-	"criticScore"
+	"criticScore",
+	"ratingVsCritics",
+	"daysToFinish"
 ] as const;
 
 const STILL_RUNNING_STATUSES = new Set(["playing", "endless"]);
@@ -124,7 +131,9 @@ function toGameRow(
 		runHours?.hours ?? null,
 		runHours?.isEstimate ?? null,
 		run.userRating,
-		run.score
+		run.score,
+		ratingVsCritics(run),
+		daysToFinish(run)
 	];
 }
 
@@ -195,6 +204,11 @@ export function buildRewindRecapContent(
 		totals: input.rewind.totals,
 		highlights: summarizeHighlights(input.rewind.highlights),
 		previousYear: input.previousYearTotals,
+		patterns: buildRewindRecapPatterns(
+			activeRuns,
+			input.genres,
+			input.year
+		),
 		games: {
 			columns: REWIND_RECAP_GAME_COLUMNS,
 			rows: recapRuns.map(run => toGameRow(run, genreNamesByGame)),

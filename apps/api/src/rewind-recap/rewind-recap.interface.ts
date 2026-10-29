@@ -20,3 +20,51 @@ export interface RewindPremiumStatsInput {
 	genres: RewindGameGenre[];
 	addedByMonth: number[];
 }
+
+export interface RecapGroupStats {
+	name: string;
+	games: number;
+	finished: number;
+	abandoned: number;
+	averageRating: number | null;
+	averageRatingVsCritics: number | null;
+	averageHours: number | null;
+	finishedTitles: string[];
+	abandonedTitles: string[];
+}
+
+export interface RecapClosedGame {
+	title: string;
+	status: string;
+	userRating: number | null;
+}
+
+export interface RecapSameDayClose {
+	date: string;
+	games: RecapClosedGame[];
+}
+
+export interface RecapTimedGame {
+	title: string;
+	status: string;
+	startedAt: string;
+	finishedAt: string;
+	days: number;
+}
+
+export interface RewindRecapPatterns {
+	byGenre: RecapGroupStats[];
+	byPlatform: RecapGroupStats[];
+	byLength: RecapGroupStats[];
+	byQuarter: RecapGroupStats[];
+	sameDayCloses: RecapSameDayClose[];
+	quickDrops: RecapTimedGame[];
+	slowestFinishes: RecapTimedGame[];
+	startedInEarlierYears: RecapTimedGame[];
+	importedCloses: number;
+}
+
+export interface RecapLengthBucket {
+	name: string;
+	maxHours: number;
+}
