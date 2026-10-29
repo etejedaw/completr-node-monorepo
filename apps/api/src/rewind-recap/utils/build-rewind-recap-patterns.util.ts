@@ -1,4 +1,5 @@
 import {
+	type RewindGameFranchise,
 	type RewindGameGenre,
 	type RewindRun
 } from "../../rewind/rewind-run.interface";
@@ -7,8 +8,13 @@ import { resolveRunHours } from "../../rewind/utils/resolve-run-hours.util";
 import { roundToTenth } from "../../rewind/utils/round-to-tenth.util";
 import {
 	type RecapClosedGame,
+	type RecapDayInterval,
+	type RecapFranchiseGroup,
 	type RecapGroupStats,
 	type RecapLengthBucket,
+	type RecapOverlapStats,
+	type RecapPaceStats,
+	type RecapRatingHabits,
 	type RecapSameDayClose,
 	type RecapTimedGame,
 	type RewindRecapPatterns
@@ -62,13 +68,48 @@ export function ratingVsCritics(run: RewindRun): number | null {
 	return roundToTenth(run.userRating - run.score);
 }
 
+function daysBetween(from: string, to: string): number {
+	return Math.round((Date.parse(to) - Date.parse(from)) / MS_PER_DAY);
+}
+
+function dayNumber(date: string): number {
+	return Math.round(Date.parse(date) / MS_PER_DAY);
+}
+
 export function daysToFinish(run: RewindRun): number | null {
 	const startedAt = toDateOnly(run.startedAt);
 	const finishedAt = toDateOnly(run.finishedAt);
 	if (startedAt === null || finishedAt === null) return null;
-	return Math.round(
-		(Date.parse(finishedAt) - Date.parse(startedAt)) / MS_PER_DAY
-	);
+	return daysBetween(startedAt, finishedAt);
+}
+
+export function daysInBacklog(run: RewindRun): number | null {
+	const startedAt = toDateOnly(run.startedAt);
+	if (startedAt === null) return null;
+	const days = daysBetween(run.createdAt.slice(0, 10), startedAt);
+	return days < 0 ? null : days;
+}
+
+export function paceVsEstimate(run: RewindRun): number | null {
+	if (run.realDuration === null || run.duration === null) return null;
+	if (run.realDuration <= 0 || run.duration <= 0) return null;
+	return roundToHundredth(run.realDuration / run.duration);
+}
+
+function roundToHundredth(value: number): number {
+	return Math.round(value * 100) / 100;
+}
+
+export function groupFranchiseNamesByGame(
+	franchises: RewindGameFranchise[]
+): Map<string, string[]> {
+	const namesByGame = new Map<string, string[]>();
+	for (const franchise of franchises) {
+		const names = namesByGame.get(franchise.gameId) ?? [];
+		if (!names.includes(franchise.name)) names.push(franchise.name);
+		namesByGame.set(franchise.gameId, names);
+	}
+	return namesByGame;
 }
 
 function titlesWithStatus(runs: RewindRun[], status: string): string[] {
@@ -186,10 +227,133 @@ function timedGames(runs: RewindRun[]): RecapTimedGame[] {
 	});
 }
 
+function medianOf(values: number[]): number | null {
+	const sorted = [...values].sort((first, second) => first - second);
+	if (sorted.length === 0) return null;
+	const middle = Math.floor(sorted.length / 2);
+	const median =
+		sorted.length % 2 === 1
+			? (sorted[middle] ?? 0)
+			: ((sorted[middle - 1] ?? 0) + (sorted[middle] ?? 0)) / 2;
+	return roundToHundredth(median);
+}
+
+function summarizePace(runs: RewindRun[]): RecapPaceStats {
+	const paces = runs.flatMap(run => {
+		const pace = paceVsEstimate(run);
+		return pace === null ? [] : [pace];
+	});
+	return {
+		games: paces.length,
+		medianPace: medianOf(paces),
+		slowerThanEstimate: paces.filter(pace => pace > 1).length,
+		fasterThanEstimate: paces.filter(pace => pace < 1).length
+	};
+}
+
+function compareByFinishedAt(first: RewindRun, second: RewindRun) {
+	return (
+		compareText(
+			toDateOnly(first.finishedAt) ?? "",
+			toDateOnly(second.finishedAt) ?? ""
+		) ||
+		compareText(first.game.title, second.game.title) ||
+		compareText(first.id, second.id)
+	);
+}
+
+function toFranchiseGroup(
+	name: string,
+	runs: RewindRun[]
+): RecapFranchiseGroup {
+	return {
+		name,
+		games: [...runs].sort(compareByFinishedAt).map(run => ({
+			title: run.game.title,
+			status: run.status,
+			finishedAt: toDateOnly(run.finishedAt) ?? ""
+		}))
+	};
+}
+
+function findFranchises(
+	runs: RewindRun[],
+	franchises: RewindGameFranchise[]
+): RecapFranchiseGroup[] {
+	const namesByGame = groupFranchiseNamesByGame(franchises);
+	const groups = groupBy(runs, run => namesByGame.get(run.gameId) ?? []);
+	return [...groups.entries()]
+		.filter(
+			([, grouped]) =>
+				new Set(grouped.map(run => run.gameId)).size >= MIN_GROUP_GAMES
+		)
+		.map(([name, grouped]) => toFranchiseGroup(name, grouped))
+		.sort(
+			(first, second) =>
+				second.games.length - first.games.length ||
+				compareText(first.name, second.name)
+		);
+}
+
+function toDayInterval(run: RewindRun): RecapDayInterval[] {
+	const startedAt = toDateOnly(run.startedAt);
+	const finishedAt = toDateOnly(run.finishedAt);
+	if (startedAt === null || finishedAt === null) return [];
+	const start = dayNumber(startedAt);
+	const end = Math.max(dayNumber(finishedAt), start + 1);
+	return [{ runId: run.id, start, end }];
+}
+
+function overlapsAnother(
+	interval: RecapDayInterval,
+	intervals: RecapDayInterval[]
+): boolean {
+	return intervals.some(
+		other =>
+			other.runId !== interval.runId &&
+			interval.start < other.end &&
+			other.start < interval.end
+	);
+}
+
+function summarizeOverlap(runs: RewindRun[]): RecapOverlapStats {
+	const intervals = runs.flatMap(toDayInterval);
+	const overlapping = intervals.filter(interval =>
+		overlapsAnother(interval, intervals)
+	).length;
+	return {
+		games: intervals.length,
+		overlapping,
+		solo: intervals.length - overlapping
+	};
+}
+
+function mostUsedRating(ratings: number[]): number | null {
+	const counts = new Map<number, number>();
+	for (const rating of ratings)
+		counts.set(rating, (counts.get(rating) ?? 0) + 1);
+	const [top] = [...counts.entries()].sort(
+		(first, second) => second[1] - first[1] || second[0] - first[0]
+	);
+	return top ? top[0] : null;
+}
+
+function summarizeRatingHabits(runs: RewindRun[]): RecapRatingHabits {
+	const ratings = runs.flatMap(run =>
+		run.userRating === null ? [] : [run.userRating]
+	);
+	return {
+		rated: ratings.length,
+		mostUsedRating: mostUsedRating(ratings),
+		fives: ratings.filter(rating => rating === 5).length
+	};
+}
+
 export function buildRewindRecapPatterns(
 	runs: RewindRun[],
 	genres: RewindGameGenre[],
-	year: number
+	year: number,
+	franchises: RewindGameFranchise[] = []
 ): RewindRecapPatterns {
 	const closedInYear = runs.filter(run => isClosedInYear(run, year));
 	const closed = closedInYear.filter(run => !isImportedClose(run, year));
@@ -236,6 +400,10 @@ export function buildRewindRecapPatterns(
 		startedInEarlierYears: timed.filter(
 			game => Number(game.startedAt.slice(0, 4)) < year
 		),
+		pace: summarizePace(closed),
+		franchises: findFranchises(closed, franchises),
+		overlap: summarizeOverlap(closed),
+		ratingHabits: summarizeRatingHabits(closed),
 		importedCloses: closedInYear.length - closed.length
 	};
 }

@@ -10,12 +10,17 @@ import {
 	type RewindRun
 } from "../../rewind/rewind-run.interface";
 import { compareText } from "../../rewind/utils/compare-text.util";
-import { resolveRunHours } from "../../rewind/utils/resolve-run-hours.util";
-import { type RewindRecapInput } from "../rewind-recap.interface";
+import {
+	type GameRowLookups,
+	type RewindRecapInput
+} from "../rewind-recap.interface";
 import { type GameRow } from "../rewind-recap.types";
 import {
 	buildRewindRecapPatterns,
+	daysInBacklog,
 	daysToFinish,
+	groupFranchiseNamesByGame,
+	paceVsEstimate,
 	ratingVsCritics
 } from "./build-rewind-recap-patterns.util";
 
@@ -28,13 +33,22 @@ export const REWIND_RECAP_GAME_COLUMNS = [
 	"finishedAt",
 	"platform",
 	"genres",
-	"hours",
-	"hoursEstimated",
+	"franchise",
+	"realHours",
+	"estimatedHours",
+	"paceVsEstimate",
 	"userRating",
 	"criticScore",
 	"ratingVsCritics",
+	"daysInBacklog",
 	"daysToFinish"
 ] as const;
+
+export const REWIND_RECAP_NOTES_COLUMN = "notes";
+
+export const REWIND_RECAP_NOTE_MAX_LENGTH = 300;
+
+const WHITESPACE_RUN = /\s+/g;
 
 const STILL_RUNNING_STATUSES = new Set(["playing", "endless"]);
 
@@ -116,25 +130,45 @@ function groupGenreNamesByGame(
 	return namesByGame;
 }
 
+export function condenseRecapNote(notes: string | null): string | null {
+	if (notes === null) return null;
+	const condensed = notes.replace(WHITESPACE_RUN, " ").trim();
+	if (condensed === "") return null;
+	return [...condensed]
+		.slice(0, REWIND_RECAP_NOTE_MAX_LENGTH)
+		.join("")
+		.trimEnd();
+}
+
 function toGameRow(
 	run: RewindRun,
-	genreNamesByGame: Map<string, string[]>
+	lookups: GameRowLookups,
+	includesNotes: boolean
 ): GameRow {
-	const runHours = resolveRunHours(run);
-	return [
+	const row: GameRow = [
 		run.game.title,
 		run.status,
 		toDateOnly(run.startedAt),
 		toDateOnly(run.finishedAt),
 		run.platform?.abbreviation ?? null,
-		genreNamesByGame.get(run.gameId)?.join("/") ?? null,
-		runHours?.hours ?? null,
-		runHours?.isEstimate ?? null,
+		lookups.genreNamesByGame.get(run.gameId)?.join("/") ?? null,
+		lookups.franchiseNamesByGame.get(run.gameId)?.join("/") ?? null,
+		run.realDuration,
+		run.duration,
+		paceVsEstimate(run),
 		run.userRating,
 		run.score,
 		ratingVsCritics(run),
+		daysInBacklog(run),
 		daysToFinish(run)
 	];
+	return includesNotes ? [...row, condenseRecapNote(run.notes)] : row;
+}
+
+function recapGameColumns(includesNotes: boolean): string[] {
+	return includesNotes
+		? [...REWIND_RECAP_GAME_COLUMNS, REWIND_RECAP_NOTES_COLUMN]
+		: [...REWIND_RECAP_GAME_COLUMNS];
 }
 
 function summarizeFinishedGame(game: RewindFinishedGame | null) {
@@ -196,7 +230,10 @@ export function buildRewindRecapContent(
 		isActiveInYear(run, input.year, todayDate)
 	);
 	const recapRuns = pickRecapRuns(activeRuns, input.year);
-	const genreNamesByGame = groupGenreNamesByGame(input.genres);
+	const lookups: GameRowLookups = {
+		genreNamesByGame: groupGenreNamesByGame(input.genres),
+		franchiseNamesByGame: groupFranchiseNamesByGame(input.franchises)
+	};
 
 	return JSON.stringify({
 		year: input.year,
@@ -207,11 +244,14 @@ export function buildRewindRecapContent(
 		patterns: buildRewindRecapPatterns(
 			activeRuns,
 			input.genres,
-			input.year
+			input.year,
+			input.franchises
 		),
 		games: {
-			columns: REWIND_RECAP_GAME_COLUMNS,
-			rows: recapRuns.map(run => toGameRow(run, genreNamesByGame)),
+			columns: recapGameColumns(input.includesNotes),
+			rows: recapRuns.map(run =>
+				toGameRow(run, lookups, input.includesNotes)
+			),
 			total: activeRuns.length,
 			included: recapRuns.length,
 			truncated: recapRuns.length < activeRuns.length
