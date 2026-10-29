@@ -236,11 +236,11 @@ Consecuencias:
 
 ## Providers implementados
 
-| Provider             | Propósito                                                                                                              |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `apps/api/src/rawg/` | RAWG API: géneros, descripciones, covers, scores                                                                       |
-| `apps/api/src/mail/` | Correo transaccional. Modelos internos: `mail/nodemailer/` y `mail/in-memory/` (tests). Se deshabilita sin `SMTP_HOST` |
-| `apps/api/src/ia/`   | Generación de texto con IA. Proveedor interno: `ia/deepseek/`. Se deshabilita sin `DEEPSEEK_API_KEY`                   |
+| Provider             | Propósito                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `apps/api/src/rawg/` | RAWG API: géneros, descripciones, covers, scores                                                                         |
+| `apps/api/src/mail/` | Correo transaccional. Modelos internos: `mail/nodemailer/` y `mail/in-memory/` (tests). Se deshabilita sin `SMTP_HOST`   |
+| `apps/api/src/ia/`   | Generación de texto y JSON estructurado con IA. Proveedor interno: `ia/deepseek/`. Se deshabilita sin `DEEPSEEK_API_KEY` |
 
 **Qué integraciones vienen después no se decide acá:** el roadmap de fuentes externas es planificación de producto, y varias dependen de revisiones de licencia todavía abiertas.
 
@@ -250,18 +250,18 @@ Consecuencias:
 
 ```
 apps/api/src/ia/
-├── ia.interface.ts        GenerateTextRequest, GenerateTextResult y la interfaz IaModel
+├── ia.interface.ts        GenerateTextRequest, GenerateJsonRequest, GenerateTextResult y la interfaz IaModel
 ├── ia.provider.ts         Contrato público: clase IaProvider y su instancia iaProvider
 ├── errors/                Errores en 3 capas (service "IA Provider", módulo "IA Provider")
 └── deepseek/
-    ├── deepseek.interface.ts   Settings y forma de la respuesta de DeepSeek
     └── deepseek.provider.ts    DeepseekModel (create), DeepseekProvider y DisabledDeepseekProvider
 ```
 
-- **Contrato público:** el resto de la API solo importa `iaProvider` de `ia/ia.provider`. `iaProvider.generateText({ instructions, content, maxTokens?, temperature?, timeoutMs? })` devuelve `{ text, truncated }`; `truncated` es `true` si el modelo se cortó por el límite de tokens. `iaProvider.isConfigured` dice si hay un modelo configurado, para que un consumidor pueda degradar en silencio.
-- **Modelo inyectado:** `IaProvider` recibe por constructor un `IaModel` (interfaz de `ia.interface.ts`: `isEnabled` y `generateText`). Hoy es `DeepseekModel.create(...)`; cambiar a otro proveedor (OpenAI u otro) es escribir otro submódulo que implemente `IaModel` y cambiar esa línea de `ia.provider.ts`, sin tocar a los consumidores.
-- **Validación:** `IaProvider` rechaza con `IA_INVALID_INPUT` instrucciones o contenido en blanco, `maxTokens` y `timeoutMs` que no sean enteros positivos y `temperature` fuera de 0–2, antes de llamar a la red.
-- **DeepSeek:** `fetch` nativo contra `https://api.deepseek.com/chat/completions` (compatible con OpenAI), con el modo de razonamiento desactivado (`thinking: { type: "disabled" }`) y `stream: false`. El timeout usa `AbortSignal.timeout`.
+- **Contrato público:** el resto de la API solo importa `iaProvider` de `ia/ia.provider`. `iaProvider.generateText({ instructions, content, maxTokens?, temperature?, timeoutMs? })` devuelve `{ text, truncated }`; `truncated` es `true` si el modelo se cortó por el límite de tokens. `iaProvider.generateJson(schema, { ...lo mismo, schemaName })` recibe un schema de zod y devuelve el objeto ya validado: parsea el JSON, lo valida con `schema.safeParse` y, si el JSON está roto, no cumple el schema o vino truncado, reintenta una sola vez; si vuelve a fallar, rechaza con `IA_INVALID_OUTPUT`. El reintento existe porque DeepSeek respeta la estructura, los campos obligatorios y los `enum`, pero no `maxLength`. `iaProvider.isConfigured` dice si hay un modelo configurado, para que un consumidor pueda degradar en silencio.
+- **Modelo inyectado:** `IaProvider` recibe por constructor un `IaModel` (interfaz de `ia.interface.ts`: `isEnabled`, `generateText` y `generateJson`, que devuelve el texto crudo para que `IaProvider` lo valide). Hoy es `DeepseekModel.create(...)`; cambiar a otro proveedor (OpenAI u otro) es escribir otro submódulo que implemente `IaModel` y cambiar esa línea de `ia.provider.ts`, sin tocar a los consumidores.
+- **Validación:** `IaProvider` rechaza con `IA_INVALID_INPUT` instrucciones o contenido en blanco, `maxTokens` y `timeoutMs` que no sean enteros positivos, `temperature` fuera de 0–2 y, en `generateJson`, un `schemaName` en blanco o que no cumpla `^[a-zA-Z0-9_-]{1,64}$`, antes de llamar a la red.
+- **DeepSeek:** SDK oficial `openai` con `baseURL: "https://api.deepseek.com"` (DeepSeek es compatible con OpenAI). `generateText` usa `client.chat.completions.create` con el razonamiento desactivado (`thinking: { type: "disabled" }`, parámetro extra que el SDK reenvía tal cual) y `stream: false`; `truncated` es `finish_reason === "length"`. `generateJson` usa `client.responses.create` con `reasoning: { effort: "none" }`, `max_output_tokens` y `text.format` armado con `zodTextFormat` de `openai/helpers/zod` (`json_schema` estricto); `truncated` es `status === "incomplete"`. No usa `client.responses.parse`: ese helper valida dentro del SDK, parsea cada parte de texto por separado y deja `null` en una respuesta incompleta, y así no se distinguiría un JSON roto del modelo de un cuerpo HTTP roto.
+- **Timeout y reintentos:** el cliente se crea con `maxRetries: 0` y el timeout va por petición (`timeoutMs`, 30 s por defecto). Un reintento automático del SDK duplicaría la espera del usuario detrás de un timeout que ya es largo; el único reintento es el de salida inválida de `generateJson`. El `fetch` del cliente se resuelve en cada llamada contra `globalThis.fetch`, y el constructor de `DeepseekProvider` acepta otro `fetch` para los tests.
 - **Variables:** solo `DEEPSEEK_API_KEY`, opcional (vacía o ausente = IA no configurada, la API arranca igual). Se lee en `common/config/api-keys.config.ts`, junto a las demás keys de servicios externos, y `ia.provider.ts` la pasa a `DeepseekModel.create`. El modelo (`deepseek-flash`) y el timeout por defecto (30 s) son constantes de `DeepseekProvider`; un consumidor puede pedir otro timeout por petición con `timeoutMs`.
 - **Errores:** todos con `service: "IA Provider"`, registrados en los normalizers globales de `common/errors/`.
 
@@ -271,7 +271,8 @@ apps/api/src/ia/
 | `IA_INVALID_INPUT`        | 422    | La petición de generación no pasa la validación                               |
 | `IA_PROVIDER_UNAVAILABLE` | 502    | DeepSeek respondió con un status de error (401, 402, 429, 5xx) o la red falló |
 | `IA_TIMEOUT`              | 504    | Se agotó `timeoutMs`                                                          |
-| `IA_INVALID_RESPONSE`     | 502    | Cuerpo que no es JSON, sin `choices` o con texto vacío                        |
+| `IA_INVALID_RESPONSE`     | 502    | Cuerpo que no es JSON, sin `choices` / `output` o con texto vacío             |
+| `IA_INVALID_OUTPUT`       | 502    | `generateJson` recibió dos veces JSON roto, truncado o fuera del schema       |
 | `IA_INTERNAL_ERROR`       | 500    | Código de `IA Provider` sin mapeo propio                                      |
 
 ### Regla de imports
