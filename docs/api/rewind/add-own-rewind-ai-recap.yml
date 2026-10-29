@@ -18,7 +18,7 @@ settings:
 docs: |-
     ## Add Own Rewind AI Recap
 
-    Generates the AI recap (and the premium stats, if they are missing) of a Rewind the owner already generated. Used to retry after a failed recap, or by an owner who became premium after generating the year. Uses the stored `language` and `includesPrivateRuns` and does not spend a regeneration.
+    Generates the AI recap (and the premium stats, if they are missing) of a Rewind the owner already generated. Used to retry after a failed recap, or by an owner who became premium after generating the year. Uses the stored `language`, `includesPrivateRuns` and `includesNotes` and does not spend a regeneration.
 
     **Authentication:** Bearer token required (roles: user, premium, moderator, admin). The owner must be premium today (`premium`, `moderator` or `admin`).
     **Rate Limit:** 5 requests every 10 minutes (shared with `POST /users/me/rewinds/:year`).
@@ -57,6 +57,7 @@ docs: |-
         },
         "ownerControls": {
           "includesPrivateRuns": false,
+          "includesNotes": false,
           "regenerationsLeft": 1,
           "graceEndsAt": null,
           "canRegenerate": true,

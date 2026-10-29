@@ -15,6 +15,7 @@ http:
             {
               "language": "es",
               "includePrivateRuns": false,
+              "includeNotes": false,
               "expectedGeneratedAt": null
             }
     auth: inherit
@@ -29,7 +30,7 @@ settings:
 docs: |-
     ## Generate Own Rewind
 
-    Generates (activates) or regenerates the Rewind of the signed-in user for one year. Until the owner generates a year, nobody else can see it. Generating stores a row in `Rewinds` with the language, whether private runs feed the AI recap and the premium stats, the generation date and the regeneration counters. The base numbers (totals, highlights, finished games) are still computed live for each viewer.
+    Generates (activates) or regenerates the Rewind of the signed-in user for one year. Until the owner generates a year, nobody else can see it. Generating stores a row in `Rewinds` with the language, whether private runs feed the AI recap and the premium stats, whether the run notes feed the AI recap, the generation date and the regeneration counters. The base numbers (totals, highlights, finished games) are still computed live for each viewer.
 
     The year must be open and have data for the owner counting every run (public and private), with the same rules as `GET /users/:username/rewinds`.
 
@@ -48,6 +49,7 @@ docs: |-
     |---------------------|------------------|----------|---------------------------------------------------------------------------------------------|
     | language            | `en` \| `es`     | Yes      | Language the Rewind page and its share images are shown in, for every viewer                |
     | includePrivateRuns  | boolean          | Yes      | Feed private runs to the AI recap and the premium stats. Does not change the live numbers   |
+    | includeNotes        | boolean          | Yes      | Feed the notes of the runs the AI already reads to the AI recap only. Never returned        |
     | expectedGeneratedAt | ISO date \| null | Yes      | `null` for the first generation; the current `generatedAt` to regenerate                    |
 
     Unknown fields are rejected.
@@ -56,6 +58,7 @@ docs: |-
     - **Regeneration:** `expectedGeneratedAt` equal to the stored `generatedAt` → 200. From January 1 to 7 (UTC) of the next year an extra grace regeneration is spent first and does not consume the normal one; otherwise the single normal regeneration is spent.
     - **Concurrency:** the row is locked while the counters change, so of two simultaneous requests with the same `expectedGeneratedAt` exactly one wins; the other gets 409 `REWIND_GENERATION_CONFLICT` and spends nothing. A double click behaves the same way.
     - **Premium owner** (`premium`, `moderator`, `admin`): after the counters are saved, the AI recap and the premium stats are generated from the public runs, or from every run with `includePrivateRuns`. If the AI fails the request still succeeds with `ownerControls.aiRecapState: "failed"`; retry with `POST /users/me/rewinds/:year/ai-recap`.
+    - **Notes:** with `includeNotes`, the AI input gets each run's notes (whitespace collapsed, cut at 300 characters); without `includePrivateRuns`, only the notes of public runs. Notes never change the live numbers or the premium stats, and no response includes them. The choice is stored as `ownerControls.includesNotes` and reused by `POST /users/me/rewinds/:year/ai-recap`.
     - **Free owner:** no AI call; an AI recap and premium stats stored while the owner was premium are kept.
 
     ### Response (201 / 200)
@@ -73,6 +76,7 @@ docs: |-
         "premiumStats": null,
         "ownerControls": {
           "includesPrivateRuns": false,
+          "includesNotes": false,
           "regenerationsLeft": 1,
           "graceEndsAt": null,
           "canRegenerate": true,
