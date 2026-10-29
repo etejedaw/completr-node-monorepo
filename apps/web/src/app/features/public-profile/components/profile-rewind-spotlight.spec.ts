@@ -1,9 +1,23 @@
 import "@testing-library/jest-dom/vitest";
 
-import { provideRouter } from "@angular/router";
-import { render, screen } from "@testing-library/angular";
+import { provideHttpClient } from "@angular/common/http";
+import {
+	HttpTestingController,
+	provideHttpClientTesting
+} from "@angular/common/http/testing";
+import { signal } from "@angular/core";
+import { TestBed } from "@angular/core/testing";
+import { provideRouter, Router } from "@angular/router";
+import { render, screen, waitFor, within } from "@testing-library/angular";
+import userEvent from "@testing-library/user-event";
 
-import { type RewindYearSummary } from "../../../core/models/rewind.model";
+import { environment } from "../../../../environments/environment";
+import {
+	type Rewind,
+	type RewindYearSummary
+} from "../../../core/models/rewind.model";
+import { AuthService } from "../../../core/services/auth";
+import { ToastService } from "../../../core/services/toast";
 import { ProfileRewindSpotlight } from "./profile-rewind-spotlight";
 
 const cover = (id: string) => ({
@@ -14,8 +28,11 @@ const cover = (id: string) => ({
 	backgroundUrl: null
 });
 
-function summary(overrides: Partial<RewindYearSummary> = {}) {
+function summary(
+	overrides: Partial<RewindYearSummary> = {}
+): RewindYearSummary {
 	return {
+		isGenerated: true,
 		year: 2026,
 		finishedCount: 18,
 		startedCount: 23,
@@ -33,7 +50,11 @@ describe("ProfileRewindSpotlight", () => {
 	) {
 		const result = await render(ProfileRewindSpotlight, {
 			inputs: { username: "ada", summary: value, isSelf, hasMoreYears },
-			providers: [provideRouter([])]
+			providers: [
+				provideRouter([]),
+				provideHttpClient(),
+				provideHttpClientTesting()
+			]
 		});
 		return result.container as HTMLElement;
 	}
@@ -152,7 +173,11 @@ describe("ProfileRewindSpotlight", () => {
 						isSelf: false,
 						hasMoreYears: false
 					},
-					providers: [provideRouter([])]
+					providers: [
+						provideRouter([]),
+						provideHttpClient(),
+						provideHttpClientTesting()
+					]
 				}
 			);
 			expect(rotations(container)).toEqual([
@@ -187,10 +212,173 @@ describe("ProfileRewindSpotlight", () => {
 					isSelf: false,
 					hasMoreYears: false
 				},
-				providers: [provideRouter([])]
+				providers: [
+					provideRouter([]),
+					provideHttpClient(),
+					provideHttpClientTesting()
+				]
 			});
 
 			expect(rotations(container)[0]).toBe("-12deg");
+		});
+	});
+
+	describe("owner invitation before the Rewind is generated", () => {
+		let toast: {
+			pending: ReturnType<typeof vi.fn>;
+			error: ReturnType<typeof vi.fn>;
+		};
+
+		async function renderInvitation({ isSelf = true } = {}) {
+			const result = await render(ProfileRewindSpotlight, {
+				inputs: {
+					username: "ada",
+					summary: summary({ isGenerated: false }),
+					isSelf,
+					hasMoreYears: false
+				},
+				providers: [
+					provideRouter([]),
+					provideHttpClient(),
+					provideHttpClientTesting(),
+					{
+						provide: AuthService,
+						useValue: { isPremium: signal(false) }
+					},
+					{ provide: ToastService, useValue: toast }
+				]
+			});
+			return result.container as HTMLElement;
+		}
+
+		function generatedRewind(): Rewind {
+			return {
+				year: 2026,
+				user: { username: "ada" },
+				generatedAt: "2026-12-02T10:00:00.000Z",
+				language: "en",
+				ownerControls: null
+			} as Rewind;
+		}
+
+		beforeEach(() => {
+			toast = { pending: vi.fn(), error: vi.fn() };
+			vi.spyOn(performance, "now").mockReturnValue(10_000);
+			vi.stubGlobal(
+				"matchMedia",
+				vi.fn(() => ({
+					matches: false,
+					addEventListener: vi.fn(),
+					removeEventListener: vi.fn()
+				}))
+			);
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+			vi.unstubAllGlobals();
+			TestBed.inject(HttpTestingController).verify();
+		});
+
+		it("invites the owner without revealing the persona or the numbers", async () => {
+			const container = await renderInvitation();
+
+			expect(
+				screen.getByRole("heading", { name: "Rewind 2026" })
+			).toBeInTheDocument();
+			expect(
+				screen.getByText("Your 2026 is ready to rewind")
+			).toBeInTheDocument();
+			expect(
+				screen.getByRole("button", { name: "Generate your Rewind" })
+			).toBeInTheDocument();
+			expect(screen.queryByText("Genre Explorer")).toBeNull();
+			expect(screen.queryByText("18")).toBeNull();
+			expect(screen.queryByText("h played")).toBeNull();
+			expect(
+				screen.queryByRole("link", { name: "See your Rewind" })
+			).toBeNull();
+			const teaser = container.querySelector("[data-rewind-teaser]")!;
+			expect(teaser).toHaveAttribute("aria-hidden", "true");
+			expect(teaser.querySelectorAll("app-game-poster")).toHaveLength(5);
+		});
+
+		it("renders nothing for a visitor if an unpublished year ever reaches the page", async () => {
+			const container = await renderInvitation({ isSelf: false });
+
+			expect(screen.queryByRole("heading")).toBeNull();
+			expect(screen.queryByRole("button")).toBeNull();
+			expect(container.querySelector("app-game-poster")).toBeNull();
+		});
+
+		it("opens a single dialog on a double click and navigates to the Rewind once generated", async () => {
+			await renderInvitation();
+			const navigate = vi
+				.spyOn(TestBed.inject(Router), "navigate")
+				.mockResolvedValue(true);
+
+			await userEvent.dblClick(
+				screen.getByRole("button", { name: "Generate your Rewind" })
+			);
+			const dialogs = await screen.findAllByRole("dialog", {
+				name: "Generate your 2026 Rewind"
+			});
+			expect(dialogs).toHaveLength(1);
+			await userEvent.click(
+				within(dialogs[0]).getByRole("button", { name: "Generate" })
+			);
+			TestBed.inject(HttpTestingController)
+				.expectOne(`${environment.apiUrl}/users/me/rewinds/2026`)
+				.flush({ data: generatedRewind() });
+
+			await waitFor(() =>
+				expect(navigate).toHaveBeenCalledWith([
+					"/user",
+					"ada",
+					"rewind",
+					2026
+				])
+			);
+			expect(
+				await screen.findByRole("link", { name: "See your Rewind" })
+			).toBeInTheDocument();
+		});
+
+		it("turns into the regular hero without navigating when the dialog was closed mid-request", async () => {
+			await renderInvitation();
+			const navigate = vi
+				.spyOn(TestBed.inject(Router), "navigate")
+				.mockResolvedValue(true);
+			await userEvent.click(
+				screen.getByRole("button", { name: "Generate your Rewind" })
+			);
+			const dialog = await screen.findByRole("dialog", {
+				name: "Generate your 2026 Rewind"
+			});
+			await userEvent.click(
+				within(dialog).getByRole("button", { name: "Generate" })
+			);
+			expect(
+				screen.getAllByRole("button", { name: "Rewinding…" })
+			).toHaveLength(2);
+			await userEvent.click(
+				within(dialog).getByRole("button", { name: "Close" })
+			);
+
+			TestBed.inject(HttpTestingController)
+				.expectOne(`${environment.apiUrl}/users/me/rewinds/2026`)
+				.flush({ data: generatedRewind() });
+
+			expect(
+				await screen.findByRole("link", { name: "See your Rewind" })
+			).toBeInTheDocument();
+			expect(screen.getByText("Genre Explorer")).toBeInTheDocument();
+			expect(navigate).not.toHaveBeenCalled();
+			expect(toast.pending).toHaveBeenCalledWith(
+				expect.objectContaining({
+					message: "Your 2026 Rewind is ready"
+				})
+			);
 		});
 	});
 });
