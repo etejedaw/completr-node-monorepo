@@ -98,6 +98,7 @@ describe("RewindService", () => {
 		const request: GenerateRewindRequest = {
 			language: "es",
 			includePrivateRuns: true,
+			includeNotes: false,
 			expectedGeneratedAt: null
 		};
 		let result: unknown;
@@ -116,6 +117,7 @@ describe("RewindService", () => {
 			.generate(2025, {
 				language: "en",
 				includePrivateRuns: false,
+				includeNotes: false,
 				expectedGeneratedAt: "2025-12-03T10:00:00.000Z"
 			})
 			.subscribe();

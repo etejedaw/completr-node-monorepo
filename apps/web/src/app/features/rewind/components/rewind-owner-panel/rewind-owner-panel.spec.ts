@@ -29,6 +29,7 @@ function controls(
 ): RewindOwnerControls {
 	return {
 		includesPrivateRuns: false,
+		includesNotes: false,
 		regenerationsLeft: 1,
 		graceEndsAt: null,
 		canRegenerate: true,
@@ -133,6 +134,7 @@ describe("RewindOwnerPanel", () => {
 					regenerationsLeft: 0,
 					graceEndsAt: "2027-01-07",
 					includesPrivateRuns: true,
+					includesNotes: true,
 					aiRecapState: "failed"
 				})
 			})
@@ -148,6 +150,7 @@ describe("RewindOwnerPanel", () => {
 			)
 		).toBeInTheDocument();
 		expect(screen.getByText("Incluye runs privadas")).toBeInTheDocument();
+		expect(screen.getByText("Usa tus notas")).toBeInTheDocument();
 		expect(
 			screen.getByText("No se pudo generar el resumen con IA")
 		).toBeInTheDocument();
@@ -157,6 +160,24 @@ describe("RewindOwnerPanel", () => {
 		expect(
 			screen.getByRole("button", { name: "Regenerar" })
 		).toBeInTheDocument();
+	});
+
+	it("says the recap uses the notes only when the owner opted in", async () => {
+		const { fixture } = await renderPanel(
+			rewindFixture({ ownerControls: controls() })
+		);
+
+		expect(screen.queryByText("Uses your notes")).toBeNull();
+		expect(screen.queryByText("Includes private runs")).toBeNull();
+
+		fixture.componentRef.setInput(
+			"rewind",
+			rewindFixture({ ownerControls: controls({ includesNotes: true }) })
+		);
+		fixture.detectChanges();
+
+		expect(await screen.findByText("Uses your notes")).toBeInTheDocument();
+		expect(screen.queryByText("Includes private runs")).toBeNull();
 	});
 
 	it("hides Regenerate when no regeneration is possible", async () => {
@@ -389,6 +410,7 @@ describe("RewindOwnerPanel", () => {
 		expect(request.request.body).toEqual({
 			language: "es",
 			includePrivateRuns: true,
+			includeNotes: false,
 			expectedGeneratedAt: "2026-12-02T10:00:00.000Z"
 		});
 		const regenerated = rewindFixture({

@@ -916,6 +916,7 @@ describe("Rewind interaction", () => {
 			rewindOverrides.set(2026, {
 				ownerControls: {
 					includesPrivateRuns: false,
+					includesNotes: false,
 					regenerationsLeft: 1,
 					graceEndsAt: null,
 					canRegenerate: true,

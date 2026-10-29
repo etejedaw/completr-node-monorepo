@@ -66,6 +66,7 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 		premiumStats: null,
 		ownerControls: {
 			includesPrivateRuns: false,
+			includesNotes: false,
 			regenerationsLeft: 1,
 			graceEndsAt: null,
 			canRegenerate: true,
@@ -180,6 +181,7 @@ describe("RewindGenerateDialog", () => {
 		expect(request.request.body).toEqual({
 			language: "en",
 			includePrivateRuns: false,
+			includeNotes: false,
 			expectedGeneratedAt: null
 		});
 		const rewind = rewindFixture();
@@ -350,6 +352,7 @@ describe("RewindGenerateDialog", () => {
 			rewindFixture({
 				ownerControls: {
 					includesPrivateRuns: true,
+					includesNotes: false,
 					regenerationsLeft: 1,
 					graceEndsAt: null,
 					canRegenerate: true,
@@ -367,6 +370,159 @@ describe("RewindGenerateDialog", () => {
 		request.flush({ data: rewindFixture() });
 	});
 
+	it("hides the notes switch from a free user and never sends notes even if the previous Rewind used them", async () => {
+		await renderHost(
+			rewindFixture({
+				ownerControls: {
+					includesPrivateRuns: false,
+					includesNotes: true,
+					regenerationsLeft: 1,
+					graceEndsAt: null,
+					canRegenerate: true,
+					aiRecapState: "unavailable"
+				}
+			})
+		);
+		const dialog = await openDialog("Regenerate your 2026 Rewind");
+
+		expect(
+			within(dialog).queryByRole("switch", { name: "Use my notes" })
+		).toBeNull();
+		expect(within(dialog).queryByText(/notes/i)).toBeNull();
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Regenerate" })
+		);
+
+		const [request] = pendingGenerations();
+		expect(request.request.body.includeNotes).toBe(false);
+		request.flush({ data: rewindFixture() });
+	});
+
+	it("keeps the notes switch off by default for premium and explains how the recap uses them", async () => {
+		isPremium.set(true);
+		await renderHost();
+		const dialog = await openDialog();
+		const switches = within(dialog).getAllByRole("switch");
+		const notes = within(dialog).getByRole("switch", {
+			name: "Use my notes"
+		});
+
+		expect(switches.indexOf(notes)).toBe(
+			switches.indexOf(
+				within(dialog).getByRole("switch", {
+					name: "Include private runs"
+				})
+			) + 1
+		);
+		expect(notes).toHaveAttribute("aria-checked", "false");
+		expect(
+			within(dialog).queryByText(/never quotes them word for word/)
+		).toBeNull();
+
+		await userEvent.click(notes);
+
+		expect(notes).toHaveAttribute("aria-checked", "true");
+		expect(
+			within(dialog).getByText(
+				"Your AI recap reads your notes to understand you as a player. Anyone who can see your Rewind will read the recap, so it never quotes them word for word or names people."
+			)
+		).toBeInTheDocument();
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Generate" })
+		);
+
+		const [request] = pendingGenerations();
+		expect(request.request.body).toEqual({
+			language: "en",
+			includePrivateRuns: false,
+			includeNotes: true,
+			expectedGeneratedAt: null
+		});
+		request.flush({ data: rewindFixture() });
+	});
+
+	it("sends the notes choice left after toggling it on and off quickly", async () => {
+		isPremium.set(true);
+		await renderHost();
+		const dialog = await openDialog();
+		const notes = within(dialog).getByRole("switch", {
+			name: "Use my notes"
+		});
+
+		await userEvent.click(notes);
+		await userEvent.click(notes);
+		await userEvent.click(notes);
+		await userEvent.click(notes);
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Generate" })
+		);
+
+		const [request] = pendingGenerations();
+		expect(request.request.body.includeNotes).toBe(false);
+		request.flush({ data: rewindFixture() });
+	});
+
+	it("preloads the stored notes choice when regenerating and lets the owner turn it off", async () => {
+		isPremium.set(true);
+		await renderHost(
+			rewindFixture({
+				ownerControls: {
+					includesPrivateRuns: false,
+					includesNotes: true,
+					regenerationsLeft: 1,
+					graceEndsAt: null,
+					canRegenerate: true,
+					aiRecapState: "ready"
+				}
+			})
+		);
+		const dialog = await openDialog("Regenerate your 2026 Rewind");
+		const notes = within(dialog).getByRole("switch", {
+			name: "Use my notes"
+		});
+
+		expect(notes).toHaveAttribute("aria-checked", "true");
+		expect(
+			within(dialog).getByText(/never quotes them word for word/)
+		).toBeInTheDocument();
+
+		await userEvent.click(notes);
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Regenerate" })
+		);
+
+		const [request] = pendingGenerations();
+		expect(request.request.body).toEqual({
+			language: "en",
+			includePrivateRuns: false,
+			includeNotes: false,
+			expectedGeneratedAt: "2026-12-02T10:00:00.000Z"
+		});
+		request.flush({ data: rewindFixture() });
+	});
+
+	it("sends a single request with the notes on after a double click of Generate and locks the switch", async () => {
+		isPremium.set(true);
+		await renderHost();
+		const dialog = await openDialog();
+		const notes = within(dialog).getByRole("switch", {
+			name: "Use my notes"
+		});
+		await userEvent.click(notes);
+		const generate = within(dialog).getByRole("button", {
+			name: "Generate"
+		});
+
+		await userEvent.dblClick(generate);
+		await userEvent.click(notes);
+
+		const requests = pendingGenerations();
+		expect(requests).toHaveLength(1);
+		expect(requests[0].request.body.includeNotes).toBe(true);
+		expect(notes).toHaveAttribute("aria-checked", "true");
+		requests[0].flush({ data: rewindFixture() });
+	});
+
 	it("regenerates with the current values, the regenerations left and the grace window", async () => {
 		isPremium.set(true);
 		await renderHost(
@@ -381,6 +537,7 @@ describe("RewindGenerateDialog", () => {
 				},
 				ownerControls: {
 					includesPrivateRuns: true,
+					includesNotes: false,
 					regenerationsLeft: 1,
 					graceEndsAt: "2027-01-07",
 					canRegenerate: true,
@@ -415,6 +572,7 @@ describe("RewindGenerateDialog", () => {
 		expect(request.request.body).toEqual({
 			language: "es",
 			includePrivateRuns: true,
+			includeNotes: false,
 			expectedGeneratedAt: "2026-12-02T10:00:00.000Z"
 		});
 		request.flush({ data: rewindFixture() });
@@ -425,6 +583,7 @@ describe("RewindGenerateDialog", () => {
 			rewindFixture({
 				ownerControls: {
 					includesPrivateRuns: false,
+					includesNotes: false,
 					regenerationsLeft: 0,
 					graceEndsAt: null,
 					canRegenerate: false,
