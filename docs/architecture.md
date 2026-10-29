@@ -137,6 +137,7 @@ Un servicio externo que no tiene alternativas intercambiables sigue la forma sim
 - **Toda lógica de cálculo vive en backend** (ratio, estadísticas, derivados). El frontend solo renderiza.
 - **El esquema de la DB lo definen solo las migraciones.** Cada FK declara su `ON DELETE` en la migración (`REFERENCES "Tabla"(id) ON DELETE CASCADE`), igual al `onDelete` de su asociación en `associations.database.ts`.
 - **Los modelos nunca se importan entre módulos** — se accede vía el `service` del módulo dueño. Excepción: tablas pivote para asociaciones Sequelize. Ver [`context/modules.md`](./context/modules.md).
+- **No hay tests intermitentes.** Un test que falla en una corrida y pasa en otra es un bug, del código o del test. Se busca su causa (estado compartido entre tests, timers vivos tras destruir un servicio, elementos que quedan en el DOM, dos registros con el mismo `createdAt`, orden sin desempate por id) y se corrige. No se da por bueno porque pasa al repetirlo, aislado o en otra máquina. Un cambio que toque la suite se valida con 3 corridas seguidas sin fallos antes de integrarse.
 
 ## Documentación relacionada
 
