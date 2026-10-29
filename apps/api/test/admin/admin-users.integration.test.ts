@@ -211,6 +211,13 @@ void describe("POST /admin/users", () => {
 	});
 });
 
+async function setCreatedAtMinutesFromNow(userId: string, minutes: number) {
+	await User.sequelize!.query(
+		`UPDATE "Users" SET "createdAt" = NOW() + make_interval(mins => :minutes) WHERE id = :userId`,
+		{ replacements: { minutes, userId } }
+	);
+}
+
 void describe("GET /admin/users", () => {
 	void it("lists users with the admin serialization and the total", async () => {
 		const admin = await createUserWithSession("admin");
@@ -240,6 +247,8 @@ void describe("GET /admin/users", () => {
 		const admin = await createUserWithSession("admin");
 		const older = await createUser();
 		const newer = await createUser();
+		await setCreatedAtMinutesFromNow(older.id, 1);
+		await setCreatedAtMinutesFromNow(newer.id, 2);
 
 		const firstPage = await api()
 			.get("/admin/users")

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { describe, it } from "node:test";
 
 import { BACKLOG_EXPORT_COLUMNS } from "../../src/backlog/backlog.export-row.mapper";
+import { Backlog } from "../../src/backlog/backlog.model";
 import { environmentConfig } from "../../src/common/config/environment.config";
 import { Favorite } from "../../src/favorites/favorite.model";
 import { FAVORITES_EXPORT_COLUMNS } from "../../src/favorites/favorites.export-row.mapper";
@@ -287,6 +288,11 @@ void describe("GET /users/me/backlog/export", () => {
 			userRating: 4.5,
 			notes: '=HYPERLINK("x"), great'
 		});
+		await Backlog.update(
+			{ createdAt: new Date(Date.now() - 60_000) },
+			{ where: { id: older.backlog.id }, silent: true }
+		);
+		await older.backlog.reload();
 		const newer = await createOwnedGame(owner.user.id);
 		const olderAddedAt = older.backlog.createdAt.toISOString();
 		await createOwnedGame(stranger.user.id);
