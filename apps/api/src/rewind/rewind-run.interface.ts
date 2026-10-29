@@ -16,6 +16,8 @@ export interface RewindRun {
 	duration: number | null;
 	score: number | null;
 	userRating: number | null;
+	createdAt: string;
+	notes: string | null;
 	game: RewindGameRef;
 	platform: RewindRunPlatform | null;
 }
@@ -32,6 +34,11 @@ export interface RewindCalendar {
 export interface RewindGameGenre {
 	gameId: string;
 	code: string;
+	name: string;
+}
+
+export interface RewindGameFranchise {
+	gameId: string;
 	name: string;
 }
 

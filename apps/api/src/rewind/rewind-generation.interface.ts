@@ -4,7 +4,11 @@ import {
 	type RewindPremiumStats
 } from "./rewind.interface";
 import { type RewindRecord } from "./rewind-record.interface";
-import { type RewindGameGenre, type RewindRun } from "./rewind-run.interface";
+import {
+	type RewindGameFranchise,
+	type RewindGameGenre,
+	type RewindRun
+} from "./rewind-run.interface";
 
 export interface RewindGenerationResult {
 	rewind: Rewind;
@@ -20,6 +24,7 @@ export interface RecapSources {
 	runs: RewindRun[];
 	genres: RewindGameGenre[];
 	yearGenres: RewindGameGenre[];
+	franchises: RewindGameFranchise[];
 	platinums: number | null;
 	premiumStats: RewindPremiumStats;
 }

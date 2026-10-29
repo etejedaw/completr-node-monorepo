@@ -1074,17 +1074,18 @@ const REWIND_RUN_ATTRS = [
 	"realDuration",
 	"duration",
 	"score",
-	"userRating"
+	"userRating",
+	"createdAt"
 ];
 
 export async function findDatedRunsByUserId(
 	userId: string,
-	visibility: { publicOnly: boolean }
+	options: { publicOnly: boolean; includeNotes?: boolean }
 ) {
 	return Backlog.findAll({
 		where: {
 			userId,
-			...(visibility.publicOnly && { isPublic: true }),
+			...(options.publicOnly && { isPublic: true }),
 			[Op.or]: [
 				{ startedAt: { [Op.ne]: null } },
 				{
@@ -1093,7 +1094,9 @@ export async function findDatedRunsByUserId(
 				}
 			]
 		},
-		attributes: REWIND_RUN_ATTRS,
+		attributes: options.includeNotes
+			? [...REWIND_RUN_ATTRS, "notes"]
+			: REWIND_RUN_ATTRS,
 		include: [
 			{ model: Game, attributes: REWIND_GAME_ATTRS },
 			{ model: Platform, attributes: BACKLOG_PLATFORM_ATTRS }

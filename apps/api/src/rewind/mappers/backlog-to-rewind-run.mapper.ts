@@ -22,6 +22,8 @@ export function backlogToRewindRun(run: Backlog): RewindRun {
 		duration: toNumberOrNull(run.duration),
 		score: toNumberOrNull(run.score),
 		userRating: toNumberOrNull(run.userRating),
+		createdAt: run.createdAt.toISOString().slice(0, 10),
+		notes: run.notes ?? null,
 		game: {
 			gameId: run.Game.id,
 			code: run.Game.code,

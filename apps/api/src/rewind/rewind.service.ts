@@ -7,6 +7,7 @@ import { ServiceError } from "../common/errors/service-error";
 import { PinoLogger } from "../common/logger/pino.logger";
 import { isPremiumRole } from "../common/utils/is-premium-role.util";
 import { sequelize } from "../database/sequelize.database";
+import * as franchisesService from "../franchises/franchises.service";
 import * as gameGenreService from "../game-genre/game-genre.service";
 import * as gamePlatinumService from "../game-platinum/game-platinum.service";
 import { generateRewindAiRecap } from "../rewind-recap/rewind-recap.service";
@@ -89,9 +90,14 @@ async function findRecordsByUserId(
 	return new Map(records.map(record => [record.year, record]));
 }
 
-async function findRuns(owner: User, publicOnly: boolean) {
+async function findRuns(
+	owner: User,
+	publicOnly: boolean,
+	includeNotes = false
+) {
 	const runs = await backlogService.findDatedRunsByUserId(owner.id, {
-		publicOnly
+		publicOnly,
+		includeNotes
 	});
 	return runs.map(backlogToRewindRun);
 }
@@ -276,6 +282,7 @@ async function createRecord(
 				year,
 				language: dto.language,
 				includesPrivateRuns: dto.includePrivateRuns,
+				includesNotes: dto.includeNotes,
 				generatedAt: now,
 				aiRecapStatus: ownerIsPremium ? "pending" : "none",
 				aiRecapRequestedAt: ownerIsPremium ? now : null
@@ -302,6 +309,7 @@ async function regenerateRecord(
 		{
 			language: dto.language,
 			includesPrivateRuns: dto.includePrivateRuns,
+			includesNotes: dto.includeNotes,
 			generatedAt: now,
 			...(spendsGrace
 				? { graceUsed: true }
@@ -406,12 +414,15 @@ async function gatherRecapSources(
 	const publicOnly = !record.includesPrivateRuns;
 	const { year } = record;
 	const [runs, addedByMonth] = await Promise.all([
-		findRuns(owner, publicOnly),
+		findRuns(owner, publicOnly, record.includesNotes),
 		backlogService.countRunsAddedByMonth(owner.id, year, { publicOnly })
 	]);
-	const [genres, platinums] = await Promise.all([
+	const [genres, franchises, platinums] = await Promise.all([
 		gameGenreService.findGenresByGameIds(
 			listActiveGameIds(runs, [year, year - 1])
+		),
+		franchisesService.findFranchisesByGameIds(
+			listActiveGameIds(runs, [year])
 		),
 		publicPlatinumsFor(owner, record.includesPrivateRuns, year)
 	]);
@@ -424,7 +435,14 @@ async function gatherRecapSources(
 			genres: yearGenres,
 			addedByMonth
 		});
-	return { runs, genres, yearGenres, platinums, premiumStats };
+	return {
+		runs,
+		genres,
+		yearGenres,
+		franchises,
+		platinums,
+		premiumStats
+	};
 }
 
 async function writeAiRecap(
@@ -450,9 +468,11 @@ async function writeAiRecap(
 	return generateRewindAiRecap({
 		year,
 		language: record.language,
+		includesNotes: record.includesNotes,
 		rewind,
 		runs: sources.runs,
 		genres: sources.yearGenres,
+		franchises: sources.franchises,
 		previousYearTotals: await buildPreviousYearTotals(
 			owner,
 			record,
