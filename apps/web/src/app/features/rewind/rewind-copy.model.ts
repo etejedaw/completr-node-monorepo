@@ -88,6 +88,7 @@ export interface RewindPremiumStatsCopy {
 	backlogEven: string;
 	genreShare: string;
 	genreShareHint: string;
+	moreGenres: (count: number) => string;
 	genre: string;
 	games: string;
 	share: string;

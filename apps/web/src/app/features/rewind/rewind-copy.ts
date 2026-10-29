@@ -146,6 +146,7 @@ const ENGLISH: RewindCopy = {
 		backlogEven: "You finished as many games as you added",
 		genreShare: "Genre share",
 		genreShareHint: "How your games split across genres",
+		moreGenres: count => `${count} more genres`,
 		genre: "Genre",
 		games: "Games",
 		share: "Share"
@@ -280,6 +281,7 @@ const SPANISH: RewindCopy = {
 		backlogEven: "Terminaste tantos juegos como agregaste",
 		genreShare: "Reparto por género",
 		genreShareHint: "Cómo se repartieron tus juegos entre géneros",
+		moreGenres: count => `${count} géneros más`,
 		genre: "Género",
 		games: "Juegos",
 		share: "Porcentaje"

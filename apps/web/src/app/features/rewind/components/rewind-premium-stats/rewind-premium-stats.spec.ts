@@ -371,4 +371,56 @@ describe("premium stats data", () => {
 			expect(toast.premium).toHaveBeenCalledWith(title, message);
 		}
 	);
+	describe("genre share with many genres", () => {
+		const manyGenres = (count: number) =>
+			Array.from({ length: count }, (_, index) => ({
+				code: `genre-${index + 1}`,
+				name: `Genre ${index + 1}`,
+				count: count - index
+			}));
+
+		it("shows every genre when there are at most eight", () => {
+			const rows = genreShareRows(manyGenres(8));
+
+			expect(rows).toHaveLength(8);
+			expect(rows.some(row => row.isOthers)).toBe(false);
+		});
+
+		it("keeps the top seven and folds the rest into one row that adds up", () => {
+			const genres = manyGenres(15);
+			const rows = genreShareRows(
+				genres,
+				count => `${count} more genres`
+			);
+			const total = genres.reduce((sum, genre) => sum + genre.count, 0);
+			const others = rows.at(-1);
+
+			expect(rows).toHaveLength(8);
+			expect(rows.slice(0, 7).map(row => row.name)).toEqual(
+				genres.slice(0, 7).map(genre => genre.name)
+			);
+			expect(others?.isOthers).toBe(true);
+			expect(others?.name).toBe("8 more genres");
+			expect(others?.count).toBe(
+				genres.slice(7).reduce((sum, genre) => sum + genre.count, 0)
+			);
+			expect(
+				rows.reduce((sum, row) => sum + row.sharePercent, 0)
+			).toBeCloseTo(100);
+			expect(Math.max(...rows.map(row => row.widthPercent))).toBe(100);
+			expect(total).toBeGreaterThan(0);
+		});
+
+		it("labels the grouped row in Spanish and paints it neutral", async () => {
+			await renderStats(stats({ genreShare: manyGenres(12) }), "es");
+
+			const chart = document.querySelector("[data-chart='genre-share']");
+			const rows = chart?.querySelectorAll("li") ?? [];
+			expect(rows).toHaveLength(8);
+			const others = rows[rows.length - 1];
+			expect(others).toHaveTextContent("5 géneros más");
+			expect(others?.querySelector(".bg-fg-muted")).not.toBeNull();
+			expect(others?.querySelector(".bg-nav-sagas")).toBeNull();
+		});
+	});
 });

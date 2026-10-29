@@ -222,7 +222,7 @@
 			<ul
 				aria-hidden="true"
 				data-chart="taste-vs-critics"
-				class="m-0 flex list-none flex-col gap-3 p-0"
+				class="m-0 flex flex-1 list-none flex-col justify-between gap-3 p-0"
 			>
 				@for (row of gapRows(); track $index) {
 				<li
@@ -323,7 +323,7 @@
 			<ul
 				aria-hidden="true"
 				data-chart="genre-share"
-				class="m-0 flex list-none flex-col gap-2.5 p-0"
+				class="m-0 flex flex-1 list-none flex-col justify-between gap-2.5 p-0"
 			>
 				@for (row of genreRows(); track $index) {
 				<li
@@ -333,7 +333,10 @@
 					<div
 						class="flex min-w-0 items-baseline justify-between gap-2"
 					>
-						<span class="truncate text-sm font-semibold text-fg"
+						<span
+							class="truncate text-sm font-semibold"
+							[class.text-fg]="!row.isOthers"
+							[class.text-fg-secondary]="row.isOthers"
 							>{{ row.name }}</span
 						>
 						<span
@@ -344,7 +347,9 @@
 					</div>
 					<span class="block h-2 w-full rounded-[4px] bg-line">
 						<span
-							class="block h-full rounded-[4px] bg-nav-sagas group-hover:brightness-125"
+							class="block h-full rounded-[4px] group-hover:brightness-125"
+							[class.bg-nav-sagas]="!row.isOthers"
+							[class.bg-fg-muted]="row.isOthers"
 							[style.width.%]="row.widthPercent"
 						></span>
 					</span>

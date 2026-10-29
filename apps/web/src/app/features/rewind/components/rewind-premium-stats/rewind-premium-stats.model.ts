@@ -26,4 +26,5 @@ export interface BacklogFlowBar {
 export interface GenreShareRow extends RewindGenre {
 	sharePercent: number;
 	widthPercent: number;
+	isOthers: boolean;
 }

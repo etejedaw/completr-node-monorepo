@@ -105,15 +105,42 @@ export function backlogFlowBars(
 	}));
 }
 
-export function genreShareRows(genres: RewindGenre[]): GenreShareRow[] {
+export const GENRE_SHARE_MAX_ROWS = 8;
+
+const OTHER_GENRES_CODE = "other-genres";
+
+function groupTailGenres(
+	genres: RewindGenre[],
+	othersLabel: (count: number) => string
+): (RewindGenre & { isOthers: boolean })[] {
+	const named = genres.map(genre => ({ ...genre, isOthers: false }));
+	if (genres.length <= GENRE_SHARE_MAX_ROWS) return named;
+	const kept = named.slice(0, GENRE_SHARE_MAX_ROWS - 1);
+	const tail = genres.slice(GENRE_SHARE_MAX_ROWS - 1);
+	return [
+		...kept,
+		{
+			code: OTHER_GENRES_CODE,
+			name: othersLabel(tail.length),
+			count: tail.reduce((sum, genre) => sum + genre.count, 0),
+			isOthers: true
+		}
+	];
+}
+
+export function genreShareRows(
+	genres: RewindGenre[],
+	othersLabel: (count: number) => string = count => `${count} more`
+): GenreShareRow[] {
 	const counted = genres.filter(genre => safeNumber(genre.count) > 0);
 	const total = counted.reduce((sum, genre) => sum + genre.count, 0);
-	const max = Math.max(0, ...counted.map(genre => genre.count));
 	if (total <= 0) return [];
-	return counted.map(genre => ({
-		...genre,
-		sharePercent: (genre.count / total) * 100,
-		widthPercent: percentOf(genre.count, max)
+	const rows = groupTailGenres(counted, othersLabel);
+	const max = Math.max(0, ...rows.map(row => row.count));
+	return rows.map(row => ({
+		...row,
+		sharePercent: (row.count / total) * 100,
+		widthPercent: percentOf(row.count, max)
 	}));
 }
 
@@ -154,7 +181,7 @@ export class RewindPremiumStats {
 		backlogFlowBars(this.stats().backlogFlow)
 	);
 	protected readonly genreRows = computed(() =>
-		genreShareRows(this.stats().genreShare)
+		genreShareRows(this.stats().genreShare, this.copy().moreGenres)
 	);
 
 	protected readonly hasAnyChart = computed(() =>
