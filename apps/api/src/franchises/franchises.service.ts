@@ -1,4 +1,4 @@
-import { Op, type Transaction } from "sequelize";
+import { Op, QueryTypes, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
@@ -11,7 +11,10 @@ import { type RegisterFranchiseDto } from "./dtos/register-franchise.dto";
 import { type UpdateFranchiseDto } from "./dtos/update-franchise.dto";
 import * as franchiseServiceError from "./errors/franchises.service-error";
 import { Franchise } from "./franchise.model";
-import { type TrackedFranchiseEntry } from "./franchises.interface";
+import {
+	type GameFranchiseRef,
+	type TrackedFranchiseEntry
+} from "./franchises.interface";
 import { UserFranchise } from "./user-franchise.model";
 
 async function replaceFranchiseGames(
@@ -63,6 +66,21 @@ export async function registerFranchise({
 			validation: franchiseServiceError.validationError
 		});
 	}
+}
+
+export async function findFranchisesByGameIds(
+	gameIds: string[]
+): Promise<GameFranchiseRef[]> {
+	const uniqueGameIds = [...new Set(gameIds)];
+	if (uniqueGameIds.length === 0) return [];
+
+	return sequelize.query<GameFranchiseRef>(
+		`SELECT g.id AS "gameId", f.name
+		 FROM "Games" g
+		 JOIN "Franchises" f ON f.id = g."franchiseId"
+		 WHERE g.id IN (:gameIds)`,
+		{ replacements: { gameIds: uniqueGameIds }, type: QueryTypes.SELECT }
+	);
 }
 
 export async function findFranchiseByCode(code: string) {
