@@ -8,8 +8,10 @@ import {
 import { rxResource } from "@angular/core/rxjs-interop";
 import { catchError, map, of } from "rxjs";
 
+import { type RewindLanguage } from "../../../../core/models/rewind.model";
 import { ProfileSectionHeader } from "../../../public-profile/components/profile-section-header";
 import { RewindService } from "../../rewind";
+import { rewindCopy } from "../../rewind-copy";
 import { RewindYearCard } from "../rewind-year-card/rewind-year-card";
 
 @Component({
@@ -19,8 +21,9 @@ import { RewindYearCard } from "../rewind-year-card/rewind-year-card";
 		@if (years().length > 0) {
 			<section aria-labelledby="rewind-more-heading">
 				<app-profile-section-header
-					heading="More Rewinds"
 					headingId="rewind-more-heading"
+					[heading]="copy().moreRewinds"
+					[seeAllLabel]="copy().seeAll"
 					[seeAllLink]="['/user', username(), 'rewind']"
 				/>
 				<ul
@@ -46,6 +49,9 @@ export class RewindMoreYears {
 
 	readonly username = input.required<string>();
 	readonly currentYear = input.required<number>();
+	readonly language = input<RewindLanguage>("en");
+
+	protected readonly copy = computed(() => rewindCopy(this.language()).page);
 
 	private readonly archive = rxResource({
 		params: () => this.username(),

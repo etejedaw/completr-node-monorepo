@@ -9,10 +9,18 @@ import {
 	signal
 } from "@angular/core";
 
-import { type RewindTotals } from "../../../../core/models/rewind.model";
+import {
+	type RewindLanguage,
+	type RewindTotals
+} from "../../../../core/models/rewind.model";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { InView } from "../../../../shared/directives/in-view";
-import { formatHours } from "../../rewind-copy";
+import {
+	formatHours,
+	formatPercent,
+	formatRating,
+	rewindCopy
+} from "../../rewind-copy";
 import { canAnimateRewind } from "../../rewind-motion";
 import { type RewindTone, toneVar } from "../../rewind-tone";
 
@@ -30,37 +38,41 @@ export const TALLY_STAGGER_MS = 80;
 
 const RATING_SCALE = 5;
 
-export function rewindTallyRows(totals: RewindTotals): RewindTallyRow[] {
+export function rewindTallyRows(
+	totals: RewindTotals,
+	language: RewindLanguage = "en"
+): RewindTallyRow[] {
+	const copy = rewindCopy(language).tally;
 	const rows: (RewindTallyRow | null)[] = [
 		{
-			label: "Finished",
+			label: copy.finished,
 			value: totals.finished,
 			tone: "success",
 			unit: "count"
 		},
 		{
-			label: "Left behind",
+			label: copy.abandoned,
 			value: totals.abandoned,
 			tone: "danger",
 			unit: "count"
 		},
 		totals.started > 0
 			? {
-					label: "Started",
+					label: copy.started,
 					value: totals.started,
 					tone: "playing",
 					unit: "count"
 				}
 			: null,
 		{
-			label: "Hours played",
+			label: copy.hoursPlayed,
 			value: totals.hoursPlayed,
 			tone: "playing",
 			unit: "hours"
 		},
 		totals.platinums
 			? {
-					label: "Platinums",
+					label: copy.platinums,
 					value: totals.platinums,
 					tone: "platinum",
 					unit: "count"
@@ -68,7 +80,7 @@ export function rewindTallyRows(totals: RewindTotals): RewindTallyRow[] {
 			: null,
 		totals.finishRate !== null
 			? {
-					label: "Finish rate",
+					label: copy.finishRate,
 					value: totals.finishRate,
 					tone: "lists",
 					unit: "percent"
@@ -76,7 +88,7 @@ export function rewindTallyRows(totals: RewindTotals): RewindTallyRow[] {
 			: null,
 		totals.averageRating !== null
 			? {
-					label: "Average rating",
+					label: copy.averageRating,
 					value: totals.averageRating,
 					tone: "brand",
 					unit: "rating"
@@ -86,15 +98,24 @@ export function rewindTallyRows(totals: RewindTotals): RewindTallyRow[] {
 	return rows.filter(row => row !== null);
 }
 
-export function formatTallyValue(unit: RewindTallyUnit, value: number): string {
-	if (unit === "percent") return `${value}%`;
-	if (unit === "rating") return value.toFixed(1);
-	return formatHours(value);
+export function formatTallyValue(
+	unit: RewindTallyUnit,
+	value: number,
+	language: RewindLanguage = "en"
+): string {
+	if (unit === "percent") return formatPercent(value, language);
+	if (unit === "rating") return formatRating(value, language);
+	return formatHours(value, language);
 }
 
-function spokenTallyValue(row: RewindTallyRow): string {
-	const value = formatTallyValue(row.unit, row.value);
-	return row.unit === "rating" ? `${value} out of ${RATING_SCALE}` : value;
+function spokenTallyValue(
+	row: RewindTallyRow,
+	language: RewindLanguage
+): string {
+	const value = formatTallyValue(row.unit, row.value, language);
+	return row.unit === "rating"
+		? rewindCopy(language).tally.outOf(value, RATING_SCALE)
+		: value;
 }
 
 function easeOutCubic(progress: number): number {
@@ -158,6 +179,7 @@ function countedValue(target: number, progress: number): number {
 })
 export class RewindTally {
 	readonly rows = input.required<RewindTallyRow[]>();
+	readonly language = input<RewindLanguage>("en");
 
 	private readonly window = inject(DOCUMENT).defaultView;
 	private readonly elapsed = signal<number | null>(null);
@@ -192,15 +214,23 @@ export class RewindTally {
 	protected displayValue(row: RewindTallyRow, index: number): string {
 		const elapsed = this.elapsed();
 		if (elapsed === null) {
-			return formatTallyValue(row.unit, this.animates ? 0 : row.value);
+			return formatTallyValue(
+				row.unit,
+				this.animates ? 0 : row.value,
+				this.language()
+			);
 		}
 		const local = (elapsed - index * TALLY_STAGGER_MS) / TALLY_DURATION_MS;
 		const progress = Math.min(1, Math.max(0, local));
-		return formatTallyValue(row.unit, countedValue(row.value, progress));
+		return formatTallyValue(
+			row.unit,
+			countedValue(row.value, progress),
+			this.language()
+		);
 	}
 
 	protected spoken(row: RewindTallyRow): string {
-		return spokenTallyValue(row);
+		return spokenTallyValue(row, this.language());
 	}
 
 	protected toneOf(row: RewindTallyRow): string {

@@ -8,16 +8,18 @@ import { RouterLink } from "@angular/router";
 
 import {
 	type RewindFinishedGame,
-	type RewindHighlights as RewindHighlightsData
+	type RewindHighlights as RewindHighlightsData,
+	type RewindLanguage
 } from "../../../../core/models/rewind.model";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { CoverUrlPipe } from "../../../../shared/pipes/cover-url";
 import {
 	formatHours,
+	formatRewindNumber,
 	monthName,
 	monthRange,
-	pluralize,
+	rewindCopy,
 	shortDate,
 	spokenMonthRange
 } from "../../rewind-copy";
@@ -220,9 +222,11 @@ interface CellView {
 })
 export class RewindHighlights {
 	readonly highlights = input.required<RewindHighlightsData>();
+	readonly language = input<RewindLanguage>("en");
 
-	protected readonly formatHours = formatHours;
-	protected readonly shortDate = shortDate;
+	protected readonly copy = computed(
+		() => rewindCopy(this.language()).highlights
+	);
 	protected readonly solidClass = TONE_SOLID_CLASS;
 	protected readonly tintClass = TONE_TINT_CLASS;
 	protected readonly tintSecondaryClass = TONE_TINT_SECONDARY_CLASS;
@@ -241,21 +245,27 @@ export class RewindHighlights {
 
 	protected readonly busiestMonthName = computed(() => {
 		const month = this.highlights().busiestMonth;
-		return month ? monthName(month.month) : "";
+		return month ? monthName(month.month, this.language()) : "";
 	});
 	protected readonly busiestMonthCount = computed(() => {
 		const month = this.highlights().busiestMonth;
-		return month
-			? `${pluralize(month.count, "game", "games")} finished`
-			: "";
+		return month ? this.copy().gamesFinished(month.count) : "";
 	});
 	protected readonly streakRange = computed(() => {
 		const streak = this.highlights().longestStreak;
-		return streak ? monthRange(streak.fromMonth, streak.toMonth) : "";
+		return streak
+			? monthRange(streak.fromMonth, streak.toMonth, this.language())
+			: "";
 	});
 	protected readonly spokenStreakRange = computed(() => {
 		const streak = this.highlights().longestStreak;
-		return streak ? spokenMonthRange(streak.fromMonth, streak.toMonth) : "";
+		return streak
+			? spokenMonthRange(
+					streak.fromMonth,
+					streak.toMonth,
+					this.language()
+				)
+			: "";
 	});
 
 	protected artOf(game: {
@@ -265,11 +275,23 @@ export class RewindHighlights {
 		return game.backgroundUrl ?? game.coverUrl;
 	}
 
+	protected hours(value: number): string {
+		return formatHours(value, this.language());
+	}
+
+	protected number(value: number): string {
+		return formatRewindNumber(value, this.language());
+	}
+
+	protected dateOf(isoDate: string): string {
+		return shortDate(isoDate, this.language());
+	}
+
 	protected gamesCount(count: number): string {
-		return pluralize(count, "game", "games");
+		return this.copy().games(count);
 	}
 
 	protected runsCount(count: number): string {
-		return pluralize(count, "run", "runs");
+		return this.copy().runs(count);
 	}
 }

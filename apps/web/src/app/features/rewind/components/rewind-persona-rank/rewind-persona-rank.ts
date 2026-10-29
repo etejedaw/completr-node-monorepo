@@ -5,7 +5,10 @@ import {
 	input
 } from "@angular/core";
 
-import { type RewindPersonaCode } from "../../../../core/models/rewind.model";
+import {
+	type RewindLanguage,
+	type RewindPersonaCode
+} from "../../../../core/models/rewind.model";
 import { rewindPersona } from "../../rewind-persona";
 
 export type RewindPersonaRankSize = "hero" | "compact" | "mini";
@@ -54,8 +57,11 @@ const TITLE_CLASS: Record<RewindPersonaRankSize, string> = {
 export class RewindPersonaRank {
 	readonly code = input.required<RewindPersonaCode>();
 	readonly size = input<RewindPersonaRankSize>("hero");
+	readonly language = input<RewindLanguage>("en");
 
-	protected readonly persona = computed(() => rewindPersona(this.code()));
+	protected readonly persona = computed(() =>
+		rewindPersona(this.code(), this.language())
+	);
 
 	protected readonly badgeClass = computed(() => BADGE_CLASS[this.size()]);
 	protected readonly titleClass = computed(() => TITLE_CLASS[this.size()]);

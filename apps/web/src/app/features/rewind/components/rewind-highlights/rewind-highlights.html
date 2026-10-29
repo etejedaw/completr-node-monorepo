@@ -1,4 +1,4 @@
-@let data = highlights(); @let view = cells();
+@let data = highlights(); @let view = cells(); @let text = copy();
 <ul
 	class="list-none m-0 p-0 grid grid-cols-2 lg:grid-cols-4 grid-flow-dense gap-3 sm:gap-4"
 >
@@ -30,7 +30,7 @@
 			></span>
 			<span class="flex min-w-0 flex-1 flex-col gap-3">
 				<span class="text-sm font-semibold" [class]="tintSecondaryClass"
-					>Top rated</span
+					>{{ text.topRated }}</span
 				>
 				<app-star-rating
 					aria-hidden="true"
@@ -43,7 +43,9 @@
 					class="font-display text-3xl sm:text-4xl font-bold leading-[1.05] tracking-tight text-fg text-balance group-hover:underline"
 					>{{ top.title }}</span
 				>
-				<span class="sr-only">Rated {{ top.userRating }} out of 5</span>
+				<span class="sr-only"
+					>{{ text.ratedOutOf(top.userRating) }}</span
+				>
 			</span>
 			<app-game-poster
 				aria-hidden="true"
@@ -81,19 +83,19 @@
 			></span>
 			<span class="flex min-w-0 flex-1 flex-col gap-1">
 				<span class="text-sm font-semibold" [class]="tintSecondaryClass"
-					>Best value</span
+					>{{ text.bestValue }}</span
 				>
 				<span
 					class="truncate font-display text-xl sm:text-2xl font-bold tracking-tight text-fg group-hover:underline"
 					>{{ best.title }}</span
 				>
 				<span class="text-xs" [class]="tintSecondaryClass"
-					>Highest score per hour you played</span
+					>{{ text.bestValueHint }}</span
 				>
 			</span>
 			<span
 				class="shrink-0 font-display text-5xl font-bold leading-none tabular-nums text-fg"
-				>{{ best.personalRatio }}</span
+				>{{ number(best.personalRatio) }}</span
 			>
 		</a>
 	</li>
@@ -120,14 +122,14 @@
 			/>
 			<span class="flex min-w-0 flex-col gap-1">
 				<span class="text-sm font-semibold" [class]="tintSecondaryClass"
-					>First of the year</span
+					>{{ text.firstOfYear }}</span
 				>
 				<span
 					class="line-clamp-2 font-display text-base sm:text-lg font-bold leading-tight text-fg group-hover:underline"
 					>{{ first.title }}</span
 				>
 				<span class="text-sm tabular-nums" [class]="tintSecondaryClass"
-					>{{ shortDate(first.finishedAt) }}</span
+					>{{ dateOf(first.finishedAt) }}</span
 				>
 			</span>
 		</a>
@@ -155,14 +157,14 @@
 			/>
 			<span class="flex min-w-0 flex-col gap-1">
 				<span class="text-sm font-semibold" [class]="tintSecondaryClass"
-					>Last of the year</span
+					>{{ text.lastOfYear }}</span
 				>
 				<span
 					class="line-clamp-2 font-display text-base sm:text-lg font-bold leading-tight text-fg group-hover:underline"
 					>{{ last.title }}</span
 				>
 				<span class="text-sm tabular-nums" [class]="tintSecondaryClass"
-					>{{ shortDate(last.finishedAt) }}</span
+					>{{ dateOf(last.finishedAt) }}</span
 				>
 			</span>
 		</a>
@@ -180,13 +182,13 @@
 			[class]="solidClass"
 			[routerLink]="['/games', longest.code]"
 		>
-			<span class="text-sm font-semibold">Longest</span>
+			<span class="text-sm font-semibold">{{ text.longest }}</span>
 			<span class="flex min-w-0 flex-col gap-1">
 				<span
 					class="font-display text-4xl sm:text-5xl font-bold leading-none tabular-nums"
-					>{{ formatHours(longest.hours) }}<span
+					>{{ hours(longest.hours) }}<span
 						class="ml-1 text-base font-semibold"
-						>h{{ longest.isEstimate ? " est." : "" }}</span
+						>{{ text.hoursSuffix(longest.isEstimate) }}</span
 					></span
 				>
 				<span
@@ -209,13 +211,13 @@
 			[class]="solidClass"
 			[routerLink]="['/games', fastest.code]"
 		>
-			<span class="text-sm font-semibold">Fastest</span>
+			<span class="text-sm font-semibold">{{ text.fastest }}</span>
 			<span class="flex min-w-0 flex-col gap-1">
 				<span
 					class="font-display text-4xl sm:text-5xl font-bold leading-none tabular-nums"
-					>{{ formatHours(fastest.hours) }}<span
+					>{{ hours(fastest.hours) }}<span
 						class="ml-1 text-base font-semibold"
-						>h{{ fastest.isEstimate ? " est." : "" }}</span
+						>{{ text.hoursSuffix(fastest.isEstimate) }}</span
 					></span
 				>
 				<span
@@ -233,13 +235,13 @@
 		[revealDelay]="cell.delayMs"
 		[style.--tone]="cell.tone"
 	>
-		<span class="text-sm font-semibold">Longest streak</span>
+		<span class="text-sm font-semibold">{{ text.longestStreak }}</span>
 		<span class="flex min-w-0 flex-col gap-1">
 			<span class="text-base font-semibold leading-tight"
 				><span
 					class="font-display text-4xl sm:text-5xl font-bold leading-none tabular-nums"
 					>{{ streak.months }}</span
-				>{{ " months in a row" }}</span
+				>{{ text.monthsInARow }}</span
 			>
 			<span aria-hidden="true" class="text-sm font-semibold"
 				>{{ streakRange() }}</span
@@ -255,7 +257,7 @@
 		[revealDelay]="cell.delayMs"
 		[style.--tone]="cell.tone"
 	>
-		<span class="text-sm font-semibold">Busiest month</span>
+		<span class="text-sm font-semibold">{{ text.busiestMonth }}</span>
 		<span class="flex min-w-0 flex-col gap-1">
 			<span
 				class="font-display text-2xl sm:text-3xl font-bold leading-tight tracking-tight"
@@ -278,7 +280,7 @@
 			id="rewind-top-genres"
 			class="text-sm font-semibold"
 			[class]="tintSecondaryClass"
-			>Top genres</span
+			>{{ text.topGenres }}</span
 		>
 		<ol
 			class="m-0 flex list-none flex-col gap-2 p-0"
@@ -319,7 +321,7 @@
 			id="rewind-top-platforms"
 			class="text-sm font-semibold"
 			[class]="tintSecondaryClass"
-			>Platforms</span
+			>{{ text.platforms }}</span
 		>
 		<ol
 			class="m-0 flex list-none flex-col gap-2 p-0"

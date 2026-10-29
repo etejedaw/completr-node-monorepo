@@ -39,4 +39,18 @@ describe("RewindPersonaRank", () => {
 	it("falls back to Steady Player when the API sends an unknown persona", () => {
 		expect(render("speedrunner").textContent).toContain("Steady Player");
 	});
+
+	it("speaks the language it receives and stays in English by default", () => {
+		const fixture = TestBed.createComponent(RewindPersonaRank);
+		fixture.componentRef.setInput("code", "trophy-hunter");
+		fixture.detectChanges();
+		const element = fixture.nativeElement as HTMLElement;
+		expect(element.textContent).toContain("Trophy Hunter");
+
+		fixture.componentRef.setInput("language", "es");
+		fixture.detectChanges();
+
+		expect(element.textContent).toContain("Cazatrofeos");
+		expect(element.textContent).not.toContain("Trophy Hunter");
+	});
 });

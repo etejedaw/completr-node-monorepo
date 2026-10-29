@@ -1,13 +1,26 @@
+import { REWIND_LANGUAGES } from "../../core/models/rewind.model";
 import {
 	formatHours,
+	formatPercent,
+	formatRating,
 	monthName,
 	monthRange,
 	parseRewindYear,
+	REWIND_COPY,
+	rewindCopy,
 	rewindImageFileName,
 	rewindSummarySentence,
 	shortDate,
+	shortMonthName,
 	spokenMonthRange
 } from "./rewind-copy";
+
+function keyPaths(value: unknown, prefix = ""): string[] {
+	if (typeof value !== "object" || value === null) return [prefix];
+	return Object.entries(value).flatMap(([key, child]) =>
+		keyPaths(child, prefix ? `${prefix}.${key}` : key)
+	);
+}
 
 const totals = (finished: number, abandoned: number, started: number) => ({
 	finished,
@@ -83,5 +96,63 @@ describe("rewind copy", () => {
 		expect(monthRange(3, 7)).toBe("Mar–Jul");
 		expect(spokenMonthRange(3, 7)).toBe("March to July");
 		expect(monthRange(11, 12)).toBe("Nov–Dec");
+	});
+
+	describe("in Spanish", () => {
+		it.each([
+			[
+				totals(18, 4, 23),
+				"18 juegos terminados, 4 abandonados y 23 empezados."
+			],
+			[totals(1, 1, 1), "1 juego terminado, 1 abandonado y 1 empezado."],
+			[totals(5, 0, 2), "5 juegos terminados y 2 empezados."],
+			[totals(0, 3, 0), "3 juegos abandonados."],
+			[totals(0, 0, 1), "1 juego empezado."],
+			[totals(0, 0, 0), "Ningún juego este año."]
+		])("describes %o as %s", (value, sentence) => {
+			expect(rewindSummarySentence(value, "es")).toBe(sentence);
+		});
+
+		it("formats decimals, percentages and ratings with the Spanish separators", () => {
+			expect(formatHours(313.3, "es")).toBe("313,3");
+			expect(formatHours(212, "es")).toBe("212");
+			expect(formatRating(4.25, "es")).toMatch(/^4,[23]$/);
+			expect(formatRating(5, "es")).toBe("5,0");
+			expect(formatPercent(82, "es")).toBe("82\u00a0%");
+		});
+
+		it("names months in Spanish, capitalized when they stand alone", () => {
+			expect(monthName(1, "es")).toBe("Enero");
+			expect(monthName(12, "es")).toBe("Diciembre");
+			expect(monthName(13, "es")).toBe("");
+			expect(shortMonthName(3, "es")).toBe("Mar");
+			expect(monthRange(3, 7, "es")).toBe("Mar–Jul");
+			expect(spokenMonthRange(3, 7, "es")).toBe("Marzo a julio");
+		});
+
+		it("writes short dates day first and in UTC", () => {
+			expect(shortDate("2026-03-04T23:30:00.000Z", "es")).toBe("4 mar");
+		});
+	});
+
+	it("keeps English as the default so other screens are unchanged", () => {
+		expect(formatHours(1234.5)).toBe("1,234.5");
+		expect(formatPercent(82)).toBe("82%");
+		expect(formatRating(3.5)).toBe("3.5");
+		expect(shortMonthName(9)).toBe("Sep");
+	});
+
+	it.each([undefined, null, "fr", "__proto__"])(
+		"falls back to English for an unknown language (%s)",
+		language => {
+			expect(rewindCopy(language as never)).toBe(REWIND_COPY.en);
+		}
+	);
+
+	it("has the same keys in every language", () => {
+		const english = keyPaths(REWIND_COPY.en).sort();
+		for (const language of REWIND_LANGUAGES) {
+			expect(keyPaths(REWIND_COPY[language]).sort()).toEqual(english);
+		}
 	});
 });

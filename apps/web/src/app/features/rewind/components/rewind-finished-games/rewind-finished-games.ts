@@ -6,7 +6,10 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { type RewindFinishedGame } from "../../../../core/models/rewind.model";
+import {
+	type RewindFinishedGame,
+	type RewindLanguage
+} from "../../../../core/models/rewind.model";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
 import { monthName, shortDate, utcMonth } from "../../rewind-copy";
 
@@ -16,7 +19,10 @@ interface FinishedMonth {
 	games: RewindFinishedGame[];
 }
 
-function groupByMonth(games: RewindFinishedGame[]): FinishedMonth[] {
+function groupByMonth(
+	games: RewindFinishedGame[],
+	language: RewindLanguage
+): FinishedMonth[] {
 	const months = new Map<number, RewindFinishedGame[]>();
 	for (const game of games) {
 		const month = utcMonth(game.finishedAt);
@@ -26,7 +32,7 @@ function groupByMonth(games: RewindFinishedGame[]): FinishedMonth[] {
 		.sort(([a], [b]) => a - b)
 		.map(([month, monthGames]) => ({
 			month,
-			name: monthName(month),
+			name: monthName(month, language),
 			games: monthGames
 		}));
 }
@@ -80,10 +86,13 @@ function groupByMonth(games: RewindFinishedGame[]): FinishedMonth[] {
 })
 export class RewindFinishedGames {
 	readonly games = input.required<RewindFinishedGame[]>();
+	readonly language = input<RewindLanguage>("en");
 
-	protected readonly months = computed(() => groupByMonth(this.games()));
+	protected readonly months = computed(() =>
+		groupByMonth(this.games(), this.language())
+	);
 
 	protected dateOf(game: RewindFinishedGame): string {
-		return shortDate(game.finishedAt);
+		return shortDate(game.finishedAt, this.language());
 	}
 }

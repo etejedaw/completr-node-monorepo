@@ -185,6 +185,33 @@ describe("RewindTally", () => {
 		expect(visibleNumbers(element)).toEqual(["82%", "4.0"]);
 	});
 
+	it("speaks the final values in Spanish when the Rewind is in Spanish", async () => {
+		rows = [
+			{
+				label: "Horas jugadas",
+				value: 313.3,
+				tone: "playing",
+				unit: "hours"
+			},
+			{
+				label: "Nota promedio",
+				value: 4.3,
+				tone: "brand",
+				unit: "rating"
+			}
+		];
+		stubBrowser();
+		reducedMotion = true;
+		const fixture = TestBed.createComponent(RewindTally);
+		fixture.componentRef.setInput("rows", rows);
+		fixture.componentRef.setInput("language", "es");
+		fixture.detectChanges();
+		const element = fixture.nativeElement as HTMLElement;
+
+		expect(visibleNumbers(element)).toEqual(["313,3", "4,3"]);
+		expect(spokenNumbers(element)).toEqual(["313,3", "4,3 de 5"]);
+	});
+
 	it("paints each row with its own colour token", async () => {
 		stubBrowser();
 		const fixture = await render();
@@ -319,5 +346,40 @@ describe("formatTallyValue", () => {
 		expect(formatTallyValue("percent", 100)).toBe("100%");
 		expect(formatTallyValue("rating", 5)).toBe("5.0");
 		expect(formatTallyValue("rating", 3.5)).toBe("3.5");
+	});
+
+	it("formats each unit in Spanish", () => {
+		expect(formatTallyValue("hours", 313.3, "es")).toBe("313,3");
+		expect(formatTallyValue("percent", 82, "es")).toBe("82\u00a0%");
+		expect(formatTallyValue("rating", 4, "es")).toBe("4,0");
+	});
+});
+
+describe("rewindTallyRows in Spanish", () => {
+	it("labels every row in Spanish", () => {
+		expect(
+			rewindTallyRows(
+				{
+					finished: 18,
+					abandoned: 4,
+					started: 23,
+					hoursPlayed: 313.3,
+					platinums: 2,
+					finishRate: 82,
+					averageRating: 4.3,
+					genresPlayed: 6,
+					platformsPlayed: 2
+				},
+				"es"
+			).map(row => row.label)
+		).toEqual([
+			"Terminados",
+			"Abandonados",
+			"Empezados",
+			"Horas jugadas",
+			"Platinos",
+			"Tasa de finalización",
+			"Nota promedio"
+		]);
 	});
 });

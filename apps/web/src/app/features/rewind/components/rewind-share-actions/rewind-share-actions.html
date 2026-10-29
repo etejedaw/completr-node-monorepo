@@ -1,3 +1,4 @@
+@let text = copy();
 <div
 	class="flex flex-col items-center gap-5 md:flex-row md:gap-8"
 	[class]="layoutClass()"
@@ -25,9 +26,7 @@
 				class="material-icons text-3xl text-fg-secondary"
 				>broken_image</span
 			>
-			<p class="m-0 text-sm text-fg-secondary">
-				Couldn't load the image.
-			</p>
+			<p class="m-0 text-sm text-fg-secondary">{{ text.imageFailed }}</p>
 			<button
 				uiButton
 				variant="secondary"
@@ -35,12 +34,12 @@
 				class="tap:min-h-[44px]"
 				(click)="retryPreview()"
 			>
-				Try again
+				{{ text.tryAgain }}
 			</button>
 		</div>
 		} @else {
 		<ui-skeleton variant="rect" class="absolute inset-0" />
-		<span class="sr-only">Preparing the image</span>
+		<span class="sr-only">{{ text.preparingImage }}</span>
 		}
 	</figure>
 
@@ -57,7 +56,7 @@
 			<span aria-hidden="true" class="material-icons text-base"
 				>ios_share</span
 			>
-			Share image
+			{{ text.shareImage }}
 		</button>
 		}
 		<button
@@ -71,7 +70,7 @@
 			<span aria-hidden="true" class="material-icons text-base"
 				>{{ downloadPending() ? 'hourglass_top' : 'download' }}</span
 			>
-			Download image
+			{{ text.downloadImage }}
 		</button>
 		<button
 			uiButton
@@ -82,7 +81,7 @@
 			<span aria-hidden="true" class="material-icons text-base"
 				>link</span
 			>
-			Copy link
+			{{ text.copyLink }}
 		</button>
 	</div>
 </div>

@@ -10,12 +10,13 @@ import {
 	signal
 } from "@angular/core";
 
+import { type RewindLanguage } from "../../../../core/models/rewind.model";
 import { ExportService } from "../../../../core/services/export";
 import { ToastService } from "../../../../core/services/toast";
 import { InView } from "../../../../shared/directives/in-view";
 import { UiButton, UiSkeleton } from "../../../../shared/ui";
 import { rewindShareUrl } from "../../rewind";
-import { rewindImageFileName } from "../../rewind-copy";
+import { rewindCopy, rewindImageFileName } from "../../rewind-copy";
 import { type RewindStoryImage } from "../../rewind-story-image";
 
 export const REPEATED_ACTIVATION_WINDOW_MS = 800;
@@ -31,8 +32,6 @@ const LAYOUT_CLASS: Record<RewindPreviewSize, string> = {
 	full: "md:items-end",
 	"fit-row": "md:items-end lg:items-start"
 };
-
-const SHARE_FAILED_MESSAGE = "Couldn't share the image. Download it instead.";
 
 function isAbortError(error: unknown): boolean {
 	return error instanceof DOMException && error.name === "AbortError";
@@ -59,6 +58,9 @@ export class RewindShareActions {
 	readonly image = input.required<RewindStoryImage>();
 	readonly previewAlt = input.required<string>();
 	readonly previewSize = input<RewindPreviewSize>("full");
+	readonly language = input<RewindLanguage>("en");
+
+	protected readonly copy = computed(() => rewindCopy(this.language()).share);
 
 	protected readonly canShareFiles = supportsFileSharing(this.navigatorRef);
 	protected readonly sharing = signal(false);
@@ -104,7 +106,7 @@ export class RewindShareActions {
 				title: this.previewAlt()
 			});
 		} catch (error) {
-			if (!isAbortError(error)) this.toast.error(SHARE_FAILED_MESSAGE);
+			if (!isAbortError(error)) this.toast.error(this.copy().shareFailed);
 		} finally {
 			this.sharing.set(false);
 		}
@@ -127,13 +129,13 @@ export class RewindShareActions {
 		if (!target || !this.activate("copy")) return;
 		const clipboard = this.navigatorRef?.clipboard;
 		if (!clipboard) {
-			this.toast.warning("Couldn't copy the link.");
+			this.toast.warning(this.copy().copyFailed);
 			return;
 		}
 		clipboard
 			.writeText(rewindShareUrl(target.username, target.year))
-			.then(() => this.toast.success("Link copied"))
-			.catch(() => this.toast.warning("Couldn't copy the link."));
+			.then(() => this.toast.success(this.copy().linkCopied))
+			.catch(() => this.toast.warning(this.copy().copyFailed));
 	}
 
 	protected preload() {

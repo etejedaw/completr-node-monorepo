@@ -61,6 +61,30 @@ describe("RewindHighlights", () => {
 		});
 	}
 
+	it("speaks Spanish with Spanish months, dates and decimals", async () => {
+		await render(RewindHighlights, {
+			inputs: { highlights: fullHighlights, language: "es" },
+			providers: [provideRouter([])]
+		});
+
+		expect(
+			screen.getByRole("link", { name: /Mejor calificado.*Florence/ })
+		).toBeInTheDocument();
+		expect(screen.getByText("Calificado con 5 de 5")).toBeInTheDocument();
+		expect(screen.getByText("4,2")).toBeInTheDocument();
+		expect(screen.getByText("3,5")).toBeInTheDocument();
+		expect(screen.getByText("h aprox.")).toBeInTheDocument();
+		expect(screen.getByText("Marzo")).toBeInTheDocument();
+		expect(screen.getByText("5 juegos terminados")).toBeInTheDocument();
+		expect(screen.getByText("Mar–Jul")).toBeInTheDocument();
+		expect(screen.getByText("4 ene")).toBeInTheDocument();
+		expect(
+			screen.getByRole("list", { name: "Géneros favoritos" })
+		).toBeInTheDocument();
+		expect(screen.getByText("1 partida")).toBeInTheDocument();
+		expect(screen.getByText("12 partidas")).toBeInTheDocument();
+	});
+
 	it("shows every highlight and links the ones that name a game", async () => {
 		await renderHighlights(fullHighlights);
 
