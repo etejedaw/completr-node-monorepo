@@ -1343,3 +1343,27 @@ export async function existsByCompilationGameId(
 		})) !== null
 	);
 }
+
+const MONTHS_IN_YEAR = 12;
+
+export async function countRunsAddedByMonth(
+	userId: string,
+	year: number,
+	visibility: { publicOnly: boolean }
+): Promise<number[]> {
+	const rows = await sequelize.query<{ month: number; count: number }>(
+		`SELECT EXTRACT(MONTH FROM "createdAt" AT TIME ZONE 'UTC')::int AS month,
+		        COUNT(*)::int AS count
+		 FROM "Backlogs"
+		 WHERE "userId" = :userId
+		   AND "createdAt" >= make_timestamptz(:year, 1, 1, 0, 0, 0, 'UTC')
+		   AND "createdAt" < make_timestamptz(:year + 1, 1, 1, 0, 0, 0, 'UTC')
+		   ${visibility.publicOnly ? `AND "isPublic" = true` : ""}
+		 GROUP BY month`,
+		{ replacements: { userId, year }, type: QueryTypes.SELECT }
+	);
+
+	const counts = Array.from({ length: MONTHS_IN_YEAR }, () => 0);
+	for (const row of rows) counts[row.month - 1] = row.count;
+	return counts;
+}
