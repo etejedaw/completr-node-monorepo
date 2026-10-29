@@ -1,0 +1,89 @@
+info:
+    name: Get User Following Lists
+    type: http
+    seq: 16
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/:username/following-lists?limit=24&offset=0"
+    params:
+        - name: username
+          type: path
+          value: ""
+        - name: limit
+          value: "24"
+          type: query
+        - name: offset
+          value: "0"
+          type: query
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get User Following Lists
+
+    Returns the lists `:username` follows and shows on their profile, newest follow first (ties broken by follow id, also descending). Shown in the Lists section of the profile and in the Following tab of `/user/:username/lists`. Pagination is optional: without `limit` every followed list is returned.
+
+    Follows hidden by the user (`ListFollower.isVisible = false`) and lists the viewer cannot see (private, or hidden by the list owner's profile or lists section) are left out of the rows and of `total`, also for the user themselves.
+
+    **Authentication:** Optional (Bearer token). The viewer identity is used to apply profile and list privacy.
+    **Rate Limit:** 100 requests per minute (public).
+
+    Visibility: requires the user's profile (`profileVisibility`) to be visible to the viewer, otherwise 403 `USER_PRIVATE`. The user's own lists section (`listVisibility`) does not apply here.
+
+    ### Path Params
+
+    | Param    | Type   | Required | Description      |
+    |----------|--------|----------|------------------|
+    | username | string | Yes      | Profile username |
+
+    ### Query Params
+
+    | Param  | Type    | Required | Default | Description |
+    |--------|---------|----------|---------|-------------|
+    | limit  | integer | No       | —       | Page size (1–100). Without it every followed list is returned |
+    | offset | integer | No       | 0       | Page offset. An offset past the end returns an empty page with the real `total` |
+    | search | string  | No       | —       | Match on the list `name` (1–100 characters), ignoring case, accents and punctuation; every word must appear, in any order. `%`, `_` and `\` are never wildcards, and a value without letters or digits does not filter. Omit it instead of sending it empty |
+
+    Any other query param responds 422.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "followingLists": [
+          {
+            "id": "uuid",
+            "name": "Metroidvania Gems",
+            "description": "Backtracking done right.",
+            "isPublic": true,
+            "isOfficial": false,
+            "scoreSource": "metacritic",
+            "durationSource": "hltb",
+            "previewItems": [
+              {
+                "id": "uuid",
+                "game": {
+                  "id": "uuid",
+                  "code": "hollow-knight",
+                  "title": "Hollow Knight",
+                  "backgroundUrl": "https://media.rawg.io/media/games/..."
+                }
+              }
+            ]
+          }
+        ],
+        "total": 1
+      }
+    }
+    ```
+
+    `total` counts every visible followed list that matches `search`, ignoring `limit` and `offset`.
+
+    ### Errors
+
+    - `403 USER_PRIVATE` — the profile is private for the viewer
+    - `404 USER_NOT_FOUND` — no user with that username
+    - `422 COMMON_SCHEMA_INVALID` — invalid username, `limit` outside 1–100, negative or non-integer `offset`, `search` empty or longer than 100 characters, or an unknown query param

@@ -5,11 +5,17 @@ info:
 
 http:
     method: GET
-    url: "{{BASE_URL}}/users/:username/lists"
+    url: "{{BASE_URL}}/users/:username/lists?limit=24&offset=0"
     params:
         - name: username
           type: path
           value: ""
+        - name: limit
+          value: "24"
+          type: query
+        - name: offset
+          value: "0"
+          type: query
 
 settings:
     encodeUrl: true
@@ -17,7 +23,7 @@ settings:
 docs: |-
     ## Get User Lists
 
-    Returns the lists created by `:username`, newest first, as shown in the Lists section of their profile. Other viewers only get the **public** lists; when you request your own username, private lists are included too.
+    Returns the lists created by `:username`, newest first (ties broken by list id, also descending), as shown in the Lists section of their profile and on `/user/:username/lists`. Pagination is optional: without `limit` the whole collection is returned, as before. Other viewers only get the **public** lists; when you request your own username, private lists are included too.
 
     Each list carries up to 4 `previewItems` (the first games by position) so the client can render the list cover, plus `followerCount` and the profile user's `progress` on it.
 
@@ -31,6 +37,16 @@ docs: |-
     | Param    | Type   | Required | Description      |
     |----------|--------|----------|------------------|
     | username | string | Yes      | Profile username |
+
+    ### Query Params
+
+    | Param  | Type    | Required | Default | Description |
+    |--------|---------|----------|---------|-------------|
+    | limit  | integer | No       | —       | Page size (1–100). Without it every list is returned |
+    | offset | integer | No       | 0       | Page offset. An offset past the end returns an empty page with the real `total` |
+    | search | string  | No       | —       | Match on the list `name` (1–100 characters), ignoring case, accents and punctuation; every word must appear, in any order. `%`, `_` and `\` are never wildcards, and a value without letters or digits does not filter. Omit it instead of sending it empty |
+
+    Any other query param responds 422.
 
     ### Response (200)
 
@@ -66,8 +82,10 @@ docs: |-
     }
     ```
 
+    `total` counts every list that matches `search` for this viewer, ignoring `limit` and `offset`.
+
     ### Errors
 
     - `403 USER_PRIVATE` — the profile or its lists are private for the viewer
     - `404 USER_NOT_FOUND` — no user with that username
-    - `422 SCHEMA_VALIDATION_ERROR` — invalid username
+    - `422 COMMON_SCHEMA_INVALID` — invalid username, `limit` outside 1–100, negative or non-integer `offset`, `search` empty or longer than 100 characters, or an unknown query param
