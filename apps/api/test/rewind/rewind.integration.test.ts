@@ -85,11 +85,12 @@ async function makeMutual(first: User, second: User) {
 	]);
 }
 
-async function createCoveredGame(title: string) {
+async function createCoveredGame(title: string, releaseAt?: string) {
 	const game = await createGame({ title });
 	return game.update({
 		coverUrl: `https://img.test/${game.code}.jpg`,
-		backgroundUrl: `https://img.test/${game.code}-bg.jpg`
+		backgroundUrl: `https://img.test/${game.code}-bg.jpg`,
+		...(releaseAt && { releaseAt: new Date(releaseAt) })
 	});
 }
 
@@ -213,11 +214,11 @@ async function seedFixture() {
 	await makeMutual(owner!.user, mutual!.user);
 
 	const games = {
-		hades: await createCoveredGame("Hades"),
-		celeste: await createCoveredGame("Celeste"),
-		tunic: await createCoveredGame("Tunic"),
-		outer: await createCoveredGame("Outer Wilds"),
-		secret: await createCoveredGame("Secret Game")
+		hades: await createCoveredGame("Hades", "2020-09-17"),
+		celeste: await createCoveredGame("Celeste", "2018-01-25"),
+		tunic: await createCoveredGame("Tunic", "2022-03-16"),
+		outer: await createCoveredGame("Outer Wilds", "2019-05-28"),
+		secret: await createCoveredGame("Secret Game", "1998-06-01")
 	};
 	await seedGenres(games);
 	await seedRuns(owner!.user, games);
@@ -368,6 +369,21 @@ void describe("GET /users/:username/rewinds/:year", () => {
 			[2, 1]
 		);
 		assert.equal(data.highlights.longestStreak, null);
+		assert.deepEqual(data.yearMix, {
+			lengthMix: [
+				{ range: "under-5", count: 0 },
+				{ range: "5-15", count: 1 },
+				{ range: "15-30", count: 1 },
+				{ range: "over-30", count: 1 }
+			],
+			releaseDecades: [
+				{ decade: 1990, count: 1 },
+				{ decade: 2010, count: 1 },
+				{ decade: 2020, count: 1 }
+			],
+			gamesWithoutHours: 0,
+			gamesWithoutRelease: 0
+		});
 		assert.equal(JSON.stringify(response.body).includes("notes"), false);
 	});
 
@@ -415,6 +431,20 @@ void describe("GET /users/:username/rewinds/:year", () => {
 				code: "rewind-action",
 				name: "Action",
 				count: 2
+			});
+			assert.deepEqual(data.yearMix, {
+				lengthMix: [
+					{ range: "under-5", count: 0 },
+					{ range: "5-15", count: 1 },
+					{ range: "15-30", count: 1 },
+					{ range: "over-30", count: 0 }
+				],
+				releaseDecades: [
+					{ decade: 2010, count: 1 },
+					{ decade: 2020, count: 1 }
+				],
+				gamesWithoutHours: 0,
+				gamesWithoutRelease: 0
 			});
 			const body = JSON.stringify(response.body);
 			assert.equal(body.includes("Secret"), false);
