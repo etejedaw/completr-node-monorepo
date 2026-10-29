@@ -25,12 +25,18 @@ export type RewindPreviewSize = "full" | "fit-row";
 
 const PREVIEW_HEIGHT_CLASS: Record<RewindPreviewSize, string> = {
 	full: "h-[min(70vh,34rem)]",
-	"fit-row": "h-[min(70vh,34rem)] lg:h-[24rem]"
+	"fit-row": "h-[min(70vh,34rem)] lg:h-auto lg:min-h-0 lg:flex-1"
 };
 
 const LAYOUT_CLASS: Record<RewindPreviewSize, string> = {
-	full: "md:items-end",
-	"fit-row": "md:items-end lg:items-start"
+	full: "flex flex-col items-center gap-5 md:flex-row md:gap-8 md:items-end",
+	"fit-row":
+		"relative isolate flex w-full flex-col items-center gap-5 overflow-hidden rounded-card border border-line bg-surface/40 p-5 sm:p-6 lg:w-[23rem] lg:min-h-0 lg:flex-1"
+};
+
+const ACTIONS_CLASS: Record<RewindPreviewSize, string> = {
+	full: "w-full md:w-auto flex flex-col gap-2 md:min-w-[14rem]",
+	"fit-row": "w-full grid grid-cols-2 gap-2"
 };
 
 function isAbortError(error: unknown): boolean {
@@ -72,6 +78,12 @@ export class RewindShareActions {
 	);
 	protected readonly layoutClass = computed(
 		() => LAYOUT_CLASS[this.previewSize()]
+	);
+	protected readonly actionsClass = computed(
+		() => ACTIONS_CLASS[this.previewSize()]
+	);
+	protected readonly isStage = computed(
+		() => this.previewSize() === "fit-row"
 	);
 	protected readonly isReady = computed(() => !!this.image().blob());
 	protected readonly fileName = computed(() => {

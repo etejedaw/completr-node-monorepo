@@ -238,18 +238,21 @@
 			appRewindReveal
 			[revealDelay]="120"
 			aria-labelledby="rewind-share-heading"
-			class="min-w-0 lg:[grid-area:share] lg:self-start"
+			class="min-w-0 lg:[grid-area:share] lg:relative lg:w-[23rem] lg:min-h-[34rem]"
 		>
-			<app-profile-section-header
-				headingId="rewind-share-heading"
-				[heading]="page.share"
-			/>
-			<app-rewind-share-actions
-				previewSize="fit-row"
-				[image]="storyImage"
-				[previewAlt]="previewAlt()"
-				[language]="data.language"
-			/>
+			<div class="lg:absolute lg:inset-0 lg:flex lg:flex-col">
+				<app-profile-section-header
+					headingId="rewind-share-heading"
+					[heading]="page.share"
+				/>
+				<app-rewind-share-actions
+					class="lg:flex lg:min-h-0 lg:flex-1 lg:flex-col"
+					previewSize="fit-row"
+					[image]="storyImage"
+					[previewAlt]="previewAlt()"
+					[language]="data.language"
+				/>
+			</div>
 		</section>
 
 		@if (data.otherYears.length > 0) {

@@ -1,13 +1,18 @@
 @let text = copy();
 <div
-	class="flex flex-col items-center gap-5 md:flex-row md:gap-8"
 	[class]="layoutClass()"
 	appInView
 	inViewRootMargin="200px"
 	(inViewChange)="$event && preload()"
 >
+	@if (isStage()) {
+	<span
+		aria-hidden="true"
+		class="pointer-events-none absolute left-1/2 top-[40%] -z-10 size-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[conic-gradient(from_210deg,var(--color-brand),var(--color-nav-queue),var(--color-nav-shelf),var(--color-brand))] opacity-40 blur-3xl"
+	></span>
+	}
 	<figure
-		class="m-0 shrink-0 relative aspect-[9/16] max-w-full overflow-hidden rounded-card border border-line bg-surface"
+		class="m-0 shrink-0 relative aspect-[9/16] max-w-full overflow-hidden rounded-card border border-line bg-surface shadow-[0_24px_60px_-24px_rgb(0_0_0/0.75)]"
 		[class]="previewHeightClass()"
 		[attr.aria-busy]="image().isLoading() || null"
 	>
@@ -43,12 +48,13 @@
 		}
 	</figure>
 
-	<div class="w-full md:w-auto flex flex-col gap-2 md:min-w-[14rem]">
+	<div [class]="actionsClass()">
 		@if (canShareFiles) {
 		<button
 			uiButton
 			variant="primary"
 			class="max-md:min-h-[44px] tap:min-h-[44px]"
+			[class.col-span-2]="isStage()"
 			[disabled]="!isReady() || sharing()"
 			[attr.aria-busy]="sharing() || null"
 			(click)="shareImage()"
@@ -63,6 +69,7 @@
 			uiButton
 			[variant]="canShareFiles ? 'secondary' : 'primary'"
 			class="max-md:min-h-[44px] tap:min-h-[44px]"
+			[class.col-span-2]="isStage() && !canShareFiles"
 			[disabled]="downloadPending()"
 			[attr.aria-busy]="downloadPending() || null"
 			(click)="download()"
@@ -74,8 +81,9 @@
 		</button>
 		<button
 			uiButton
-			variant="ghost"
+			[variant]="isStage() ? 'secondary' : 'ghost'"
 			class="max-md:min-h-[44px] tap:min-h-[44px]"
+			[class.col-span-2]="isStage() && !canShareFiles"
 			(click)="copyLink()"
 		>
 			<span aria-hidden="true" class="material-icons text-base"
