@@ -165,6 +165,7 @@ Los `<pantalla>.interaction.spec.ts` simulan lo que hace un usuario en una panta
 
 - Archivos en `kebab-case`. Componentes y el service principal de una feature sin sufijo (`game-card.ts`, `backlog.ts`); guards e interceptors con sufijo (`auth.guard.ts`, `auth.interceptor.ts`). Cuando una feature tiene varios services, van en `services/` con sufijo `.service.ts`.
 - Clases, interfaces y tipos en `PascalCase` (`GameCard`, `BacklogEntry`).
+- Los tipos compartidos entre features (el contrato con la API) viven en `core/models/`. El resto de las `interface` y de los `type` que describen un objeto (también una unión de objetos) van en un `<archivo>.model.ts` junto al archivo que los usa (`rewind-tally.ts` → `rewind-tally.model.ts`, `audit.service.ts` → `audit.model.ts`), nunca dentro de un componente, service, guard, directiva o util; las uniones de literales que esos tipos necesitan viajan con ellos. Se quedan donde están los tipos derivados de una constante o función (`(typeof X)[number]`, `ReturnType<typeof injectX>`), las firmas de función y los tipos locales de un spec.
 - Selectores con prefijo `app-` o `ui-` (lo valida ESLint). Los componentes de `shared/ui/` que extienden un elemento nativo usan selector de atributo (`<button uiButton>`).
 - URLs en `kebab-case` (`/game-shelf`, `/saved-views`).
 
