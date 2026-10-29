@@ -110,7 +110,7 @@ const ENGLISH: RewindCopy = {
 			"genre-pattern": "Genre pattern",
 			"seasonal-rhythm": "Seasonal rhythm",
 			"finish-discipline": "Finish discipline",
-			"long-vs-short": "Long vs. short",
+			"long-vs-short": "Game length",
 			"platform-habit": "Platform habit",
 			"backlog-comeback": "Backlog comeback"
 		},
@@ -244,7 +244,7 @@ const SPANISH: RewindCopy = {
 			"genre-pattern": "Tus géneros",
 			"seasonal-rhythm": "Tu ritmo del año",
 			"finish-discipline": "Disciplina para terminar",
-			"long-vs-short": "Largos vs. cortos",
+			"long-vs-short": "Duración de tus juegos",
 			"platform-habit": "Tu plataforma",
 			"backlog-comeback": "Rescates del backlog"
 		},
