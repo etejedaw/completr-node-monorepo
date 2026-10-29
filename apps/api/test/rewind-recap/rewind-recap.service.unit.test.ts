@@ -52,7 +52,7 @@ void describe("generateRewindAiRecap", () => {
 		assert.equal(schema, RewindAiRecapSchema);
 		assert.equal(request?.schemaName, "rewind_ai_recap");
 		assert.equal(request?.maxTokens, 1000);
-		assert.equal(request?.temperature, 0.8);
+		assert.equal(request?.temperature, 0.5);
 		assert.equal(request?.timeoutMs, 25_000);
 		assert.equal(request?.instructions, buildRewindRecapInstructions("es"));
 		const content = JSON.parse(request?.content ?? "") as {

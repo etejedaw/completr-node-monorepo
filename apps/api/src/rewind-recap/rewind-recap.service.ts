@@ -10,7 +10,7 @@ import { buildRewindRecapContent } from "./utils/build-rewind-recap-content.util
 const REWIND_AI_RECAP_REQUEST = {
 	schemaName: "rewind_ai_recap",
 	maxTokens: 1000,
-	temperature: 0.8,
+	temperature: 0.5,
 	timeoutMs: 25_000
 };
 

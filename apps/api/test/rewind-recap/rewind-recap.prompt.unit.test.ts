@@ -54,7 +54,10 @@ void describe("buildRewindRecapInstructions", () => {
 
 		assert.match(instructions, /JSON/);
 		assert.match(instructions, /second person/);
-		assert.match(instructions, /Never invent games, numbers or dates/);
+		assert.match(
+			instructions,
+			/Never invent games, numbers, dates or reasons/
+		);
 		assert.match(instructions, /No plot spoilers/);
 		assert.match(instructions, /No markdown and no emojis/);
 		assert.match(

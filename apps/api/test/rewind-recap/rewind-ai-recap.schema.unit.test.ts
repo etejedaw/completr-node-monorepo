@@ -134,7 +134,7 @@ void describe("RewindAiRecapSchema", () => {
 
 	const insightFields: [string, number][] = [
 		["title", 50],
-		["body", 200]
+		["body", 300]
 	];
 
 	for (const [field, max] of insightFields) {
