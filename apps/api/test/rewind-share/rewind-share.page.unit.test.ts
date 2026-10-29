@@ -6,9 +6,12 @@ import { sharePageTemplate } from "../../src/rewind-share/templates/share-page.t
 import { escapeHtml } from "../../src/rewind-share/utils/escape-html.util";
 import { removeEmoji } from "../../src/rewind-share/utils/remove-emoji.util";
 import { rewindSummary } from "../../src/rewind-share/utils/rewind-summary.util";
+import { shareCopy } from "../../src/rewind-share/utils/share-copy.util";
 import { truncateText } from "../../src/rewind-share/utils/truncate-text.util";
 import { buildRewind, emptyTotals } from "./rewind.fixture";
 
+const ENGLISH = shareCopy("en");
+const SPANISH = shareCopy("es");
 const HOSTILE_USERNAME = `"><script>alert('x')</script>&`;
 
 function metaContent(html: string, key: string): string | undefined {
@@ -112,6 +115,8 @@ void describe("renderSharePage", () => {
 void describe("sharePageTemplate", () => {
 	void it("escapes the title, description and URLs", () => {
 		const html = sharePageTemplate({
+			language: "en",
+			continueLink: "<i>go</i>",
 			title: "<b>t</b>",
 			description: `"quoted" & 'single'`,
 			imageUrl: "https://x.test/?a=1&b=2",
@@ -128,35 +133,87 @@ void describe("sharePageTemplate", () => {
 			"https://x.test/?a=1&amp;b=2"
 		);
 		assert.doesNotMatch(html, /"onload="/);
+		assert.match(html, /&lt;i&gt;go&lt;\/i&gt;<\/a>/);
 	});
 });
 
 void describe("rewindSummary", () => {
 	void it("joins the non-zero counts with commas and a final 'and'", () => {
 		assert.equal(
-			rewindSummary(totals(18, 4, 23)),
+			rewindSummary(totals(18, 4, 23), ENGLISH),
 			"18 games finished, 4 left behind and 23 started."
 		);
 	});
 
 	void it("uses the singular for a single game", () => {
 		assert.equal(
-			rewindSummary(totals(1, 1, 1)),
+			rewindSummary(totals(1, 1, 1), ENGLISH),
 			"1 game finished, 1 left behind and 1 started."
 		);
 	});
 
 	void it("omits the parts that are zero", () => {
-		assert.equal(rewindSummary(totals(0, 0, 23)), "23 games started.");
 		assert.equal(
-			rewindSummary(totals(0, 2, 5)),
+			rewindSummary(totals(0, 0, 23), ENGLISH),
+			"23 games started."
+		);
+		assert.equal(
+			rewindSummary(totals(0, 2, 5), ENGLISH),
 			"2 games left behind and 5 started."
 		);
-		assert.equal(rewindSummary(totals(3, 0, 0)), "3 games finished.");
+		assert.equal(
+			rewindSummary(totals(3, 0, 0), ENGLISH),
+			"3 games finished."
+		);
 	});
 
 	void it("has a sentence for a year with nothing to count", () => {
-		assert.equal(rewindSummary(totals(0, 0, 0)), "A year in games.");
+		assert.equal(
+			rewindSummary(totals(0, 0, 0), ENGLISH),
+			"A year in games."
+		);
+	});
+});
+
+void describe("rewindSummary in Spanish", () => {
+	void it("agrees every part with its count and joins with 'y'", () => {
+		assert.equal(
+			rewindSummary(totals(18, 4, 23), SPANISH),
+			"18 juegos terminados, 4 abandonados y 23 empezados."
+		);
+		assert.equal(
+			rewindSummary(totals(1, 1, 1), SPANISH),
+			"1 juego terminado, 1 abandonado y 1 empezado."
+		);
+		assert.equal(
+			rewindSummary(totals(0, 0, 0), SPANISH),
+			"Un año de juegos."
+		);
+	});
+});
+
+void describe("renderSharePage in Spanish", () => {
+	void it("writes the title, description, link and html lang in Spanish", () => {
+		const html = renderSharePage(
+			"esteban",
+			2026,
+			buildRewind({ language: "es" })
+		);
+
+		assert.match(html, /<html lang="es">/);
+		assert.equal(metaContent(html, "og:title"), "Rewind 2026 de @esteban");
+		assert.equal(
+			metaContent(html, "og:description"),
+			"18 juegos terminados, 4 abandonados y 23 empezados."
+		);
+		assert.match(html, />Continuar a Completr<\/a>/);
+	});
+
+	void it("keeps the generic page in English", () => {
+		const html = renderSharePage("esteban", 2026, null);
+
+		assert.match(html, /<html lang="en">/);
+		assert.match(html, />Continue to Completr<\/a>/);
 	});
 });
 

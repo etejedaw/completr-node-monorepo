@@ -85,6 +85,11 @@ export function buildRewind(overrides: Partial<Rewind> = {}): Rewind {
 			],
 			longestStreak: { months: 5, fromMonth: 3, toMonth: 7 }
 		},
+		language: "en",
+		generatedAt: "2026-12-02T10:00:00.000Z",
+		aiRecap: null,
+		premiumStats: null,
+		ownerControls: null,
 		...overrides
 	};
 }

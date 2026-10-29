@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
+import * as rewindServiceError from "../../src/rewind/errors/rewind.service-error";
 import { type Rewind } from "../../src/rewind/rewind.interface";
 import * as rewindService from "../../src/rewind/rewind.service";
 import { clearRewindImageCache } from "../../src/rewind-share/rewind-share.service";
@@ -257,6 +258,23 @@ void describe("GET /share/rewind/:username/:year", () => {
 				response.text,
 				/url=http:\/\/localhost:4200\/user\/hidden\/rewind\/2026"/
 			);
+			mock.restoreAll();
+		}
+	});
+
+	void it("answers the generic page with 404 when the year is not generated", async () => {
+		for (const error of [
+			rewindServiceError.notFoundError(),
+			rewindServiceError.notGeneratedError()
+		]) {
+			stubRewind(() => Promise.reject(error));
+
+			const response = await api()
+				.get("/share/rewind/esteban/2026")
+				.expect(404);
+
+			assert.match(response.text, /<title>Completr Rewind<\/title>/);
+			assert.doesNotMatch(response.text, /og:image/);
 			mock.restoreAll();
 		}
 	});

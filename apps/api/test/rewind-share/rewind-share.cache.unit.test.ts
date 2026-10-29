@@ -101,6 +101,20 @@ void describe("getRewindImage", () => {
 		assert.equal(rewindImageCacheSize(), 3);
 	});
 
+	void it("renders a different image when only the language changes", async () => {
+		stubCoverFetch(coverResponse);
+		const rewind = rewindWithCover("https://covers.test/a.png");
+
+		const english = await getRewindImage(rewind, "og");
+		const spanish = await getRewindImage(
+			{ ...rewind, language: "es" },
+			"og"
+		);
+
+		assert.equal(rewindImageCacheSize(), 2);
+		assert.equal(english.equals(spanish), false);
+	});
+
 	void it("does not cache an image whose covers failed to download", async () => {
 		const fetchMock = stubCoverFetch(() =>
 			Promise.reject(new Error("network down"))
