@@ -1,6 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { map } from "rxjs";
+import { map, type Observable } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
 import { type ListPreviewItem } from "../../../core/models";
@@ -20,15 +20,31 @@ export interface PublicList {
 	progress?: { completed: number; total: number };
 }
 
+export type PublicListsQuery = {
+	limit?: number;
+	offset?: number;
+	search?: string;
+};
+
+export interface PublicListsPage {
+	items: PublicList[];
+	total: number;
+}
+
 @Injectable({ providedIn: "root" })
 export class PublicListsService {
 	private readonly http = inject(HttpClient);
 
-	getUserLists(username: string) {
+	getUserLists(
+		username: string,
+		query: PublicListsQuery = {}
+	): Observable<PublicListsPage> {
 		return this.http
 			.get<{
 				data: { lists: PublicList[]; total: number };
-			}>(`${environment.apiUrl}/users/${username}/lists`)
+			}>(`${environment.apiUrl}/users/${username}/lists`, {
+				params: buildHttpParams(query)
+			})
 			.pipe(
 				map(res => ({ items: res.data.lists, total: res.data.total }))
 			);
@@ -36,14 +52,13 @@ export class PublicListsService {
 
 	getUserFollowingLists(
 		username: string,
-		pagination: { limit?: number; offset?: number } = {}
-	) {
-		const params = buildHttpParams(pagination);
+		query: PublicListsQuery = {}
+	): Observable<PublicListsPage> {
 		return this.http
 			.get<{
 				data: { followingLists: PublicList[]; total: number };
 			}>(`${environment.apiUrl}/users/${username}/following-lists`, {
-				params
+				params: buildHttpParams(query)
 			})
 			.pipe(
 				map(res => ({

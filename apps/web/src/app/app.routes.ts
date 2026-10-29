@@ -68,6 +68,13 @@ const publicProfileRoutes: Routes = [
 			)
 	},
 	{
+		path: "user/:username/lists",
+		loadComponent: () =>
+			import("./features/public-profile/user-lists/user-lists").then(
+				m => m.UserLists
+			)
+	},
+	{
 		path: "user/:username/reviews",
 		loadComponent: () =>
 			import("./features/public-profile/user-reviews/user-reviews").then(

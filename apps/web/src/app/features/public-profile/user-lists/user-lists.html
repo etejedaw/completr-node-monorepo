@@ -1,0 +1,139 @@
+@if (accessError(); as reason) {
+<app-profile-access-state
+	[reason]="reason"
+	[username]="username"
+	privateTitle="These lists are private"
+/>
+} @else {
+<app-library-hero heading="Lists" [posters]="heroPosters()">
+	<a
+		heroEyebrow
+		class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover"
+		[routerLink]="['/user', username]"
+	>
+		<span aria-hidden="true" class="material-icons text-sm"
+			>arrow_back</span
+		>
+		{{ '@' + username }}'s profile
+	</a>
+	<p
+		heroSubtitle
+		class="m-0 mt-2 flex items-center gap-2 text-sm text-fg-secondary"
+	>
+		<span aria-hidden="true" class="material-icons text-lg text-brand"
+			>format_list_bulleted</span
+		>
+		@let count = activeCount(); @if (count === null) {
+		<ui-skeleton variant="text" class="block w-48" />
+		<span class="sr-only">Loading lists…</span>
+		} @else if (tab() === 'following') {
+		<span
+			>{{ '@' + username }} follows
+			<span class="font-semibold text-fg tabular-nums">{{ count }}</span>
+			{{ count === 1 ? 'list' : 'lists' }}</span
+		>
+		} @else {
+		<span
+			><span class="font-semibold text-fg tabular-nums">{{ count }}</span>
+			{{ count === 1 ? 'list' : 'lists' }} by {{ '@' + username }}</span
+		>
+		}
+	</p>
+	<nav
+		aria-label="Lists"
+		class="flex w-fit gap-0.5 p-1 bg-input-bg border border-line rounded-card"
+	>
+		@for (item of tabs; track item.tab) {
+		<a
+			class="inline-flex items-center gap-1.5 h-8 tap:min-h-[44px] px-3.5 rounded-md text-sm font-medium text-fg-muted no-underline transition hover:text-fg"
+			[class.!bg-surface-hover]="tab() === item.tab"
+			[class.!text-fg]="tab() === item.tab"
+			[routerLink]="[]"
+			[queryParams]="{ tab: item.queryParam }"
+			[attr.aria-current]="tab() === item.tab ? 'page' : null"
+			replaceUrl
+		>
+			{{ item.label }} @if (countFor(item.tab) !== null) {
+			<span class="text-xs text-fg-muted tabular-nums"
+				>{{ countFor(item.tab) }}</span
+			>
+			}
+		</a>
+		}
+	</nav>
+</app-library-hero>
+
+@if (!hasNoLists() && !hasLoadFailed()) {
+<app-library-toolbar>
+	<ui-search-bar
+		class="flex-1 max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+		[placeholder]="tab() === 'following' ? 'Search followed lists...' : 'Search ' + username + '\'s lists...'"
+		[value]="query()"
+		(valueChange)="onSearch($event)"
+	/>
+</app-library-toolbar>
+} @if (isLoading()) {
+<div
+	class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+	aria-busy="true"
+	aria-label="Loading lists"
+>
+	@for (i of skeletonRange; track i) {
+	<ui-skeleton variant="rect" class="block aspect-[16/10] rounded-card" />
+	}
+</div>
+} @else if (hasLoadFailed()) {
+<ui-empty-state
+	role="alert"
+	icon="cloud_off"
+	title="Couldn't load the lists"
+	hint="The lists are out of reach right now. Check your connection and try again."
+>
+	<button
+		uiButton
+		type="button"
+		variant="secondary"
+		class="tap:min-h-[44px]"
+		(click)="retry()"
+	>
+		<span aria-hidden="true" class="material-icons text-base">refresh</span>
+		Try again
+	</button>
+</ui-empty-state>
+} @else if (hasNoLists()) {
+<ui-empty-state
+	icon="format_list_bulleted"
+	[title]="tab() === 'following' ? 'Not following any lists yet' : 'No lists yet'"
+	[hint]="tab() === 'following' ? '@' + username + ' isn\'t showing any followed lists yet.' : '@' + username + ' hasn\'t shared any lists yet.'"
+>
+	<div class="flex flex-wrap justify-center gap-2">
+		<a uiButton variant="primary" routerLink="/lists">Browse lists</a>
+		<a uiButton variant="secondary" [routerLink]="['/user', username]"
+			>Back to profile</a
+		>
+	</div>
+</ui-empty-state>
+} @else if (visibleLists().length === 0) {
+<ui-no-matches
+	[hint]="'No lists here match “' + search() + '”.'"
+	(cleared)="clearSearch()"
+/>
+} @else {
+<ul class="list-none m-0 p-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+	@for (list of visibleLists(); track list.id) {
+	<li>
+		<app-list-card
+			[list]="list"
+			[showVisibility]="isSelf() && tab() === 'created'"
+			[linkQueryParams]="{ from: username }"
+		/>
+	</li>
+	}
+</ul>
+<ui-pagination
+	[offset]="offset()"
+	[limit]="limit"
+	[total]="total()"
+	(offsetChange)="goToOffset($event)"
+/>
+} }
