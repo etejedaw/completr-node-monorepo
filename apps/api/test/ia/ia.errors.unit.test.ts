@@ -41,6 +41,13 @@ describeModuleErrors({
 			module: "IA Provider",
 			code: "IA_INVALID_RESPONSE",
 			message: "Unexpected AI provider response"
+		},
+		{
+			serviceCode: "IA_INVALID_OUTPUT",
+			module: "IA Provider",
+			code: "IA_INVALID_OUTPUT",
+			message:
+				"AI provider returned output that does not match the expected shape"
 		}
 	],
 	fallback: {
@@ -58,6 +65,7 @@ describeDomainToHttpMapper({
 		{ code: "IA_INVALID_INPUT", status: 422 },
 		{ code: "IA_PROVIDER_UNAVAILABLE", status: 502 },
 		{ code: "IA_INVALID_RESPONSE", status: 502 },
+		{ code: "IA_INVALID_OUTPUT", status: 502 },
 		{ code: "IA_TIMEOUT", status: 504 }
 	]
 });

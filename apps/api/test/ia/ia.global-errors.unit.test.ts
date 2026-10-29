@@ -16,7 +16,12 @@ const cases: [string, ServiceError, number][] = [
 		502
 	],
 	["IA_TIMEOUT", iaServiceError.timeoutError(new Error("t")), 504],
-	["IA_INVALID_RESPONSE", iaServiceError.invalidResponseError("empty"), 502]
+	["IA_INVALID_RESPONSE", iaServiceError.invalidResponseError("empty"), 502],
+	[
+		"IA_INVALID_OUTPUT",
+		iaServiceError.invalidOutputError({ failures: ["not JSON"] }),
+		502
+	]
 ];
 
 void describe("IA errors through the global normalizers", () => {

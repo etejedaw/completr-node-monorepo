@@ -3,6 +3,7 @@ import { afterEach, describe, it, mock } from "node:test";
 
 import { ServiceError } from "../../src/common/errors/service-error";
 import {
+	type GenerateJsonModelRequest,
 	type GenerateTextRequest,
 	type GenerateTextResult,
 	type IaModel
@@ -101,6 +102,13 @@ class FakeIaModel implements IaModel {
 			text: `reply to ${request.content}`,
 			truncated: false
 		});
+	}
+
+	async generateJson(
+		request: GenerateJsonModelRequest
+	): Promise<GenerateTextResult> {
+		this.requests.push(request);
+		return await Promise.resolve({ text: "{}", truncated: false });
 	}
 }
 

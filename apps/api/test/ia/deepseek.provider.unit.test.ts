@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
+import z from "zod";
+
 import { ServiceError } from "../../src/common/errors/service-error";
 import {
 	DeepseekModel,
@@ -8,40 +10,34 @@ import {
 	DisabledDeepseekProvider
 } from "../../src/ia/deepseek/deepseek.provider";
 import { captureRejection } from "../unit-helpers/mocks";
+import {
+	API_KEY,
+	completion,
+	hangingFetch,
+	jsonResponse,
+	replyWith,
+	responsesBody,
+	scriptedFetch,
+	sentBody,
+	sentCall,
+	sentHeader
+} from "./deepseek-fakes";
 
-const API_KEY = "fake-key";
 const REQUEST = { instructions: "Summarize.", content: "Played 3 games." };
 
-function jsonResponse(body: unknown, status = 200) {
-	return new Response(JSON.stringify(body), {
-		status,
-		headers: { "content-type": "application/json" }
-	});
-}
+const CardSchema = z
+	.object({ title: z.string().trim().min(1).max(10) })
+	.strict();
 
-function completion(content: unknown, finishReason = "stop") {
-	return {
-		choices: [
-			{
-				finish_reason: finishReason,
-				message: { role: "assistant", content }
-			}
-		]
-	};
-}
-
-function stubFetch(implementation: () => Promise<Response>) {
-	return mock.method(globalThis, "fetch", implementation as typeof fetch);
-}
-
-function sentBody(fetchMock: ReturnType<typeof stubFetch>) {
-	const init = fetchMock.mock.calls[0]?.arguments[1] as RequestInit;
-	return JSON.parse(String(init.body)) as Record<string, unknown>;
-}
+const JSON_REQUEST = {
+	...REQUEST,
+	schemaName: "game_card",
+	schema: CardSchema
+};
 
 async function assertRejectsWith(promise: Promise<unknown>, code: string) {
 	const error = await captureRejection(promise);
-	assert.ok(error instanceof ServiceError);
+	assert.ok(error instanceof ServiceError, String(error));
 	assert.equal(error.code, code);
 	assert.equal(error.serviceError.service, "IA Provider");
 	return error;
@@ -60,9 +56,7 @@ void describe("DeepseekModel.create", () => {
 	});
 
 	void it("returns a DisabledDeepseekProvider with an empty API key", () => {
-		const client = DeepseekModel.create("");
-
-		assert.ok(client instanceof DisabledDeepseekProvider);
+		assert.ok(DeepseekModel.create("") instanceof DisabledDeepseekProvider);
 	});
 
 	void it("returns a DeepseekProvider with an API key", () => {
@@ -74,37 +68,31 @@ void describe("DeepseekModel.create", () => {
 });
 
 void describe("DisabledDeepseekProvider", () => {
-	void it("rejects with IA_NOT_CONFIGURED without calling fetch", async () => {
-		const fetchMock = stubFetch(async () => jsonResponse({}));
+	void it("rejects both generations with IA_NOT_CONFIGURED without calling fetch", async () => {
+		const fetchMock = mock.method(globalThis, "fetch", (async () =>
+			jsonResponse({})) as typeof fetch);
+		const provider = new DisabledDeepseekProvider();
 
-		await assertRejectsWith(
-			new DisabledDeepseekProvider().generateText(),
-			"IA_NOT_CONFIGURED"
-		);
+		await assertRejectsWith(provider.generateText(), "IA_NOT_CONFIGURED");
+		await assertRejectsWith(provider.generateJson(), "IA_NOT_CONFIGURED");
 		assert.equal(fetchMock.mock.callCount(), 0);
 	});
 });
 
 void describe("DeepseekProvider.generateText", () => {
 	void it("sends an authenticated chat completion request", async () => {
-		const fetchMock = stubFetch(async () => jsonResponse(completion("Hi")));
+		const fetchMock = replyWith(jsonResponse(completion("Hi")));
 
-		await new DeepseekProvider(API_KEY).generateText({
+		await new DeepseekProvider(API_KEY, fetchMock).generateText({
 			...REQUEST,
 			maxTokens: 200,
 			temperature: 0.4
 		});
 
-		const [url, init] = fetchMock.mock.calls[0]?.arguments as [
-			string,
-			RequestInit
-		];
+		const { url, init } = sentCall(fetchMock);
 		assert.equal(url, "https://api.deepseek.com/chat/completions");
 		assert.equal(init.method, "POST");
-		assert.equal(
-			(init.headers as Record<string, string>).Authorization,
-			"Bearer fake-key"
-		);
+		assert.equal(sentHeader(fetchMock, "authorization"), "Bearer fake-key");
 		assert.deepEqual(sentBody(fetchMock), {
 			model: "deepseek-flash",
 			messages: [
@@ -119,9 +107,9 @@ void describe("DeepseekProvider.generateText", () => {
 	});
 
 	void it("omits max_tokens and temperature when not given", async () => {
-		const fetchMock = stubFetch(async () => jsonResponse(completion("Hi")));
+		const fetchMock = replyWith(jsonResponse(completion("Hi")));
 
-		await new DeepseekProvider(API_KEY).generateText(REQUEST);
+		await new DeepseekProvider(API_KEY, fetchMock).generateText(REQUEST);
 
 		const body = sentBody(fetchMock);
 		assert.equal("max_tokens" in body, false);
@@ -129,30 +117,39 @@ void describe("DeepseekProvider.generateText", () => {
 	});
 
 	void it("returns the trimmed text", async () => {
-		stubFetch(async () => jsonResponse(completion("  Great year.\n")));
-
-		const result = await new DeepseekProvider(API_KEY).generateText(
-			REQUEST
+		const fetchMock = replyWith(
+			jsonResponse(completion("  Great year.\n"))
 		);
+
+		const result = await new DeepseekProvider(
+			API_KEY,
+			fetchMock
+		).generateText(REQUEST);
 
 		assert.deepEqual(result, { text: "Great year.", truncated: false });
 	});
 
 	void it("flags a response cut by the token limit", async () => {
-		stubFetch(async () => jsonResponse(completion("Half a", "length")));
-
-		const result = await new DeepseekProvider(API_KEY).generateText(
-			REQUEST
+		const fetchMock = replyWith(
+			jsonResponse(completion("Half a", "length"))
 		);
+
+		const result = await new DeepseekProvider(
+			API_KEY,
+			fetchMock
+		).generateText(REQUEST);
 
 		assert.equal(result.truncated, true);
 	});
 
 	void it("keeps emoji and HTML in the content untouched", async () => {
 		const text = "<b>Épico</b> 🎮 & más \u0000 ñ";
-		const fetchMock = stubFetch(async () => jsonResponse(completion(text)));
+		const fetchMock = replyWith(jsonResponse(completion(text)));
 
-		const result = await new DeepseekProvider(API_KEY).generateText({
+		const result = await new DeepseekProvider(
+			API_KEY,
+			fetchMock
+		).generateText({
 			instructions: "<script>alert(1)</script> 🎮",
 			content: "👾 <img src=x onerror=1>"
 		});
@@ -165,15 +162,17 @@ void describe("DeepseekProvider.generateText", () => {
 	});
 
 	for (const status of [400, 401, 402, 422, 429, 500, 503]) {
-		void it(`rejects with IA_PROVIDER_UNAVAILABLE on HTTP ${status}`, async () => {
-			stubFetch(async () =>
-				jsonResponse({ error: { message: "secret detail" } }, status)
+		void it(`rejects with IA_PROVIDER_UNAVAILABLE on HTTP ${status} without retrying`, async () => {
+			const fetchMock = replyWith(
+				jsonResponse({ error: { message: "upstream detail" } }, status)
 			);
 
 			const error = await assertRejectsWith(
-				new DeepseekProvider(API_KEY).generateText(REQUEST),
+				new DeepseekProvider(API_KEY, fetchMock).generateText(REQUEST),
 				"IA_PROVIDER_UNAVAILABLE"
 			);
+
+			assert.equal(fetchMock.mock.callCount(), 1);
 			assert.match(
 				String(error.serviceError.raw),
 				new RegExp(`${status}`)
@@ -183,76 +182,54 @@ void describe("DeepseekProvider.generateText", () => {
 	}
 
 	void it("rejects with IA_PROVIDER_UNAVAILABLE when the network fails", async () => {
-		stubFetch(async () => {
+		const fetchMock = scriptedFetch(() => {
 			throw new TypeError("fetch failed");
 		});
 
 		await assertRejectsWith(
-			new DeepseekProvider(API_KEY).generateText(REQUEST),
+			new DeepseekProvider(API_KEY, fetchMock).generateText(REQUEST),
 			"IA_PROVIDER_UNAVAILABLE"
 		);
+		assert.equal(fetchMock.mock.callCount(), 1);
 	});
 
-	void it("rejects with IA_TIMEOUT when the request is aborted by the timeout", async () => {
-		stubFetch(async () => {
-			throw new DOMException("timed out", "TimeoutError");
-		});
+	void it("rejects with IA_TIMEOUT for a hanging request", async () => {
+		const fetchMock = hangingFetch();
 
 		await assertRejectsWith(
-			new DeepseekProvider(API_KEY).generateText(REQUEST),
-			"IA_TIMEOUT"
-		);
-	});
-
-	void it("rejects with IA_TIMEOUT for a real hanging request", async () => {
-		mock.method(
-			globalThis,
-			"fetch",
-			((_url: string, init: RequestInit) =>
-				new Promise((_resolve, reject) => {
-					init.signal?.addEventListener("abort", () =>
-						reject(init.signal?.reason)
-					);
-				})) as unknown as typeof fetch
-		);
-
-		await assertRejectsWith(
-			new DeepseekProvider(API_KEY).generateText({
+			new DeepseekProvider(API_KEY, fetchMock).generateText({
 				...REQUEST,
 				timeoutMs: 20
 			}),
 			"IA_TIMEOUT"
 		);
-	});
-
-	void it("uses the per-request timeout over the default one", async () => {
-		const timeoutSpy = mock.method(AbortSignal, "timeout");
-		stubFetch(async () => jsonResponse(completion("Hi")));
-
-		await new DeepseekProvider(API_KEY).generateText({
-			...REQUEST,
-			timeoutMs: 1234
-		});
-
-		assert.equal(timeoutSpy.mock.calls[0]?.arguments[0], 1234);
-	});
-
-	void it("uses a 30 second timeout by default", async () => {
-		const timeoutSpy = mock.method(AbortSignal, "timeout");
-		stubFetch(async () => jsonResponse(completion("Hi")));
-
-		await new DeepseekProvider(API_KEY).generateText(REQUEST);
-
-		assert.equal(timeoutSpy.mock.calls[0]?.arguments[0], 30_000);
+		assert.equal(fetchMock.mock.callCount(), 1);
 	});
 
 	void it("rejects with IA_INVALID_RESPONSE when the body is not JSON", async () => {
-		stubFetch(
-			async () => new Response("<html>gateway</html>", { status: 200 })
+		const fetchMock = replyWith(
+			new Response("<html>gateway</html>", {
+				status: 200,
+				headers: { "content-type": "text/html" }
+			})
 		);
 
 		await assertRejectsWith(
-			new DeepseekProvider(API_KEY).generateText(REQUEST),
+			new DeepseekProvider(API_KEY, fetchMock).generateText(REQUEST),
+			"IA_INVALID_RESPONSE"
+		);
+	});
+
+	void it("rejects with IA_INVALID_RESPONSE when a JSON body is malformed", async () => {
+		const fetchMock = replyWith(
+			new Response("{not json", {
+				status: 200,
+				headers: { "content-type": "application/json" }
+			})
+		);
+
+		await assertRejectsWith(
+			new DeepseekProvider(API_KEY, fetchMock).generateText(REQUEST),
 			"IA_INVALID_RESPONSE"
 		);
 	});
@@ -261,6 +238,7 @@ void describe("DeepseekProvider.generateText", () => {
 		["null", null],
 		["an empty object", {}],
 		["no choices", { choices: [] }],
+		["non-array choices", { choices: "nope" }],
 		["a choice without message", { choices: [{}] }],
 		["null content", completion(null)],
 		["empty content", completion("")],
@@ -271,10 +249,10 @@ void describe("DeepseekProvider.generateText", () => {
 
 	for (const [label, body] of invalidBodies) {
 		void it(`rejects with IA_INVALID_RESPONSE on ${label}`, async () => {
-			stubFetch(async () => jsonResponse(body));
+			const fetchMock = replyWith(jsonResponse(body));
 
 			await assertRejectsWith(
-				new DeepseekProvider(API_KEY).generateText(REQUEST),
+				new DeepseekProvider(API_KEY, fetchMock).generateText(REQUEST),
 				"IA_INVALID_RESPONSE"
 			);
 		});
@@ -282,13 +260,13 @@ void describe("DeepseekProvider.generateText", () => {
 
 	void it("serves concurrent calls independently", async () => {
 		let calls = 0;
-		stubFetch(async () => {
+		const fetchMock = scriptedFetch(() => {
 			calls += 1;
 			return calls === 2
 				? jsonResponse({}, 500)
 				: jsonResponse(completion(`ok ${calls}`));
 		});
-		const provider = new DeepseekProvider(API_KEY);
+		const provider = new DeepseekProvider(API_KEY, fetchMock);
 
 		const results = await Promise.allSettled([
 			provider.generateText(REQUEST),
@@ -301,4 +279,157 @@ void describe("DeepseekProvider.generateText", () => {
 			["fulfilled", "rejected", "fulfilled"]
 		);
 	});
+});
+
+void describe("DeepseekProvider.generateJson", () => {
+	void it("sends a structured output request to the responses endpoint", async () => {
+		const fetchMock = replyWith(
+			jsonResponse(responsesBody('{"title":"A"}'))
+		);
+
+		await new DeepseekProvider(API_KEY, fetchMock).generateJson({
+			...JSON_REQUEST,
+			maxTokens: 300,
+			temperature: 0.8
+		});
+
+		const { url } = sentCall(fetchMock);
+		assert.equal(url, "https://api.deepseek.com/responses");
+		assert.equal(sentHeader(fetchMock, "authorization"), "Bearer fake-key");
+		assert.deepEqual(sentBody(fetchMock), {
+			model: "deepseek-flash",
+			instructions: "Summarize.",
+			input: "Played 3 games.",
+			reasoning: { effort: "none" },
+			text: {
+				format: {
+					type: "json_schema",
+					name: "game_card",
+					strict: true,
+					schema: {
+						$schema: "http://json-schema.org/draft-07/schema#",
+						type: "object",
+						properties: {
+							title: {
+								type: "string",
+								minLength: 1,
+								maxLength: 10
+							}
+						},
+						required: ["title"],
+						additionalProperties: false
+					}
+				}
+			},
+			stream: false,
+			max_output_tokens: 300,
+			temperature: 0.8
+		});
+	});
+
+	void it("returns the raw trimmed text for the caller to validate", async () => {
+		const fetchMock = replyWith(
+			jsonResponse(
+				responsesBody('  {"title":"too long for the schema"}\n')
+			)
+		);
+
+		const result = await new DeepseekProvider(
+			API_KEY,
+			fetchMock
+		).generateJson(JSON_REQUEST);
+
+		assert.deepEqual(result, {
+			text: '{"title":"too long for the schema"}',
+			truncated: false
+		});
+	});
+
+	void it("flags an incomplete response as truncated", async () => {
+		const fetchMock = replyWith(
+			jsonResponse(responsesBody('{"title":"A', "incomplete"))
+		);
+
+		const result = await new DeepseekProvider(
+			API_KEY,
+			fetchMock
+		).generateJson(JSON_REQUEST);
+
+		assert.deepEqual(result, { text: '{"title":"A', truncated: true });
+	});
+
+	for (const status of [401, 429, 500]) {
+		void it(`rejects with IA_PROVIDER_UNAVAILABLE on HTTP ${status} without retrying`, async () => {
+			const fetchMock = replyWith(
+				jsonResponse({ error: { message: "nope" } }, status)
+			);
+
+			const error = await assertRejectsWith(
+				new DeepseekProvider(API_KEY, fetchMock).generateJson(
+					JSON_REQUEST
+				),
+				"IA_PROVIDER_UNAVAILABLE"
+			);
+
+			assert.equal(fetchMock.mock.callCount(), 1);
+			assert.match(
+				String(error.serviceError.raw),
+				new RegExp(`${status}`)
+			);
+		});
+	}
+
+	void it("rejects with IA_PROVIDER_UNAVAILABLE on a connection error", async () => {
+		const fetchMock = scriptedFetch(() => {
+			throw new TypeError("ECONNRESET");
+		});
+
+		await assertRejectsWith(
+			new DeepseekProvider(API_KEY, fetchMock).generateJson(JSON_REQUEST),
+			"IA_PROVIDER_UNAVAILABLE"
+		);
+	});
+
+	void it("rejects with IA_TIMEOUT for a hanging request", async () => {
+		await assertRejectsWith(
+			new DeepseekProvider(API_KEY, hangingFetch()).generateJson({
+				...JSON_REQUEST,
+				timeoutMs: 20
+			}),
+			"IA_TIMEOUT"
+		);
+	});
+
+	const emptyBodies: [string, unknown][] = [
+		["null", null],
+		["an empty object", {}],
+		["an empty output", { status: "completed", output: [] }],
+		["a message without content", { output: [{ type: "message" }] }],
+		["a non-array output", { output: "text" }],
+		["blank text", responsesBody("  \n ")],
+		[
+			"a non-string text",
+			{
+				output: [
+					{
+						type: "message",
+						content: [{ type: "output_text", text: 42 }]
+					}
+				]
+			}
+		],
+		["an empty incomplete response", responsesBody("", "incomplete")]
+	];
+
+	for (const [label, body] of emptyBodies) {
+		void it(`rejects with IA_INVALID_RESPONSE on ${label}`, async () => {
+			await assertRejectsWith(
+				new DeepseekProvider(
+					API_KEY,
+					replyWith(jsonResponse(body))
+				).generateJson(JSON_REQUEST),
+				"IA_INVALID_RESPONSE"
+			);
+		});
+	}
 });

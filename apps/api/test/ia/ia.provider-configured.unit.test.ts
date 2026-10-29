@@ -27,7 +27,8 @@ void describe("ia provider with DEEPSEEK_API_KEY", () => {
 								message: { content: "Nice 🎮" }
 							}
 						]
-					})
+					}),
+					{ headers: { "content-type": "application/json" } }
 				)) as typeof fetch
 		);
 
@@ -40,7 +41,7 @@ void describe("ia provider with DEEPSEEK_API_KEY", () => {
 		assert.deepEqual(result, { text: "Nice 🎮", truncated: false });
 		const init = fetchMock.mock.calls[0]?.arguments[1] as RequestInit;
 		assert.equal(
-			(init.headers as Record<string, string>).Authorization,
+			new Headers(init.headers).get("authorization"),
 			"Bearer fake-key"
 		);
 		const body = JSON.parse(String(init.body)) as {
