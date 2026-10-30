@@ -1,8 +1,10 @@
 import "@testing-library/jest-dom/vitest";
 
+import { HttpErrorResponse } from "@angular/common/http";
 import { signal } from "@angular/core";
 import { ActivatedRoute, provideRouter } from "@angular/router";
 import { render, screen } from "@testing-library/angular";
+import userEvent from "@testing-library/user-event";
 import { of, throwError } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
@@ -103,7 +105,7 @@ describe("UserQueue", () => {
 	});
 
 	it("shows the private state when the owner does not share the queue", async () => {
-		getUserQueue.mockReturnValue(throwError(() => ({ status: 403 })));
+		getUserQueue.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 403 })));
 		await renderPage();
 
 		expect(
@@ -117,13 +119,37 @@ describe("UserQueue", () => {
 	});
 
 	it("shows the not-found state when the player does not exist", async () => {
-		getUserQueue.mockReturnValue(throwError(() => ({ status: 404 })));
+		getUserQueue.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
 		await renderPage();
 
 		expect(
 			await screen.findByRole("heading", { name: "Player not found" })
 		).toBeInTheDocument();
 	});
+
+	it.each([0, 500])(
+		"offers to try again after a %s failure and reloads the queue",
+		async status => {
+			const user = userEvent.setup();
+			getUserQueue
+				.mockReturnValueOnce(throwError(() => ({ status })))
+				.mockReturnValueOnce(
+					of({ items: [queueEntry("hades", 1, "Hades")], total: 1 })
+				);
+			await renderPage();
+
+			expect(await screen.findByRole("alert")).toHaveTextContent(
+				"Couldn't load the queue"
+			);
+			expect(
+				screen.queryByRole("heading", { name: "Player not found" })
+			).not.toBeInTheDocument();
+			await user.click(screen.getByRole("button", { name: "Try again" }));
+
+			expect(await screen.findAllByText("Hades")).not.toHaveLength(0);
+			expect(getUserQueue).toHaveBeenCalledTimes(2);
+		}
+	);
 
 	it("shows the empty state when nothing is queued", async () => {
 		getUserQueue.mockReturnValue(of({ items: [], total: 0 }));

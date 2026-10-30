@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 
+import { HttpErrorResponse } from "@angular/common/http";
 import { signal } from "@angular/core";
 import { ActivatedRoute, provideRouter } from "@angular/router";
 import { render, screen, waitFor, within } from "@testing-library/angular";
@@ -106,7 +107,7 @@ describe("UserPlatinums", () => {
 	});
 
 	it("shows the private state when the owner does not share it", async () => {
-		getUserPlatinums.mockReturnValue(throwError(() => ({ status: 403 })));
+		getUserPlatinums.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 403 })));
 		await renderPage();
 
 		expect(
@@ -118,7 +119,7 @@ describe("UserPlatinums", () => {
 	});
 
 	it("shows the not-found state when the player does not exist", async () => {
-		getUserPlatinums.mockReturnValue(throwError(() => ({ status: 404 })));
+		getUserPlatinums.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
 		await renderPage();
 
 		expect(

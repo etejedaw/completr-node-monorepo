@@ -36,11 +36,13 @@ describe("ProfileCollectionPage", () => {
 				[visibleCount]="visibleCount"
 				[isLoading]="isLoading"
 				[error]="error"
+				[hasLoadFailed]="hasLoadFailed"
 				[privateTitle]="privateTitle"
 				[noun]="noun"
 				emptyTitle="No favorites yet"
 				emptyText="They haven't picked any."
 				(offsetChange)="offsetChange($event)"
+				(retry)="retry()"
 			><p>collection body</p></app-profile-collection-page>`,
 			{
 				providers: [provideRouter([])],
@@ -53,9 +55,11 @@ describe("ProfileCollectionPage", () => {
 					visibleCount: 3,
 					isLoading: false,
 					error: null,
+					hasLoadFailed: false,
 					privateTitle: "These favorites are private",
 					noun: "game",
 					offsetChange: on["offsetChange"] ?? vi.fn(),
+					retry: on["retry"] ?? vi.fn(),
 					...inputs
 				}
 			}
@@ -141,6 +145,19 @@ describe("ProfileCollectionPage", () => {
 
 		expect(screen.queryByText("No favorites yet")).not.toBeInTheDocument();
 		expect(screen.queryByText("collection body")).not.toBeInTheDocument();
+	});
+
+	it("shows a recoverable error and emits retry", async () => {
+		const user = userEvent.setup();
+		const retry = vi.fn();
+		await renderPage({ hasLoadFailed: true }, { retry });
+
+		expect(screen.getByRole("alert")).toHaveTextContent(
+			"Couldn't load the favorites"
+		);
+		expect(screen.queryByText("collection body")).not.toBeInTheDocument();
+		await user.click(screen.getByRole("button", { name: "Try again" }));
+		expect(retry).toHaveBeenCalledTimes(1);
 	});
 
 	it("searches with a placeholder naming the owner", async () => {

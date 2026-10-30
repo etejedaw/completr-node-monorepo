@@ -3,7 +3,7 @@ import { RouterLink } from "@angular/router";
 
 import { type QueueEntry } from "../../../core/models";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { UiButton, UiPlainEmptyState } from "../../../shared/ui";
+import { UiButton, UiEmptyState, UiPlainEmptyState } from "../../../shared/ui";
 import { QueueBrowser } from "../../queue/queue-browser/queue-browser";
 import { ProfileAccessState } from "../components/profile-access-state";
 import { injectPublicCollection } from "../services/public-collection";
@@ -19,6 +19,7 @@ const QUEUE_PAGE_SIZE = 100;
 		ProfileAccessState,
 		QueueBrowser,
 		UiButton,
+		UiEmptyState,
 		UiPlainEmptyState
 	],
 	templateUrl: "./user-queue.html",

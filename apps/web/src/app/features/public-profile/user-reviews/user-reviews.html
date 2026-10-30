@@ -14,10 +14,12 @@
 	[visibleCount]="collection.visibleItems().length"
 	[isLoading]="collection.isLoading()"
 	[error]="collection.error()"
+	[hasLoadFailed]="collection.hasLoadFailed()"
 	[offset]="collection.offset()"
 	[limit]="collection.limit"
 	[(query)]="collection.query"
 	(offsetChange)="collection.goToOffset($event)"
+	(retry)="collection.retry()"
 >
 	<ul class="list-none m-0 p-0 grid gap-3 md:grid-cols-2">
 		@for (review of collection.visibleItems(); track review.id) {

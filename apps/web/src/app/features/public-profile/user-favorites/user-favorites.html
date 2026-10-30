@@ -13,10 +13,12 @@
 	[visibleCount]="collection.visibleItems().length"
 	[isLoading]="collection.isLoading()"
 	[error]="collection.error()"
+	[hasLoadFailed]="collection.hasLoadFailed()"
 	[offset]="collection.offset()"
 	[limit]="collection.limit"
 	[(query)]="collection.query"
 	(offsetChange)="collection.goToOffset($event)"
+	(retry)="collection.retry()"
 >
 	<app-cover-grid>
 		@for (entry of collection.visibleItems(); track entry.id) {

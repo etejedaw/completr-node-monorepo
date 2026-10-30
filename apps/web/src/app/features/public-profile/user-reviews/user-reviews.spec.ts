@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 
+import { HttpErrorResponse } from "@angular/common/http";
 import { signal } from "@angular/core";
 import { ActivatedRoute, provideRouter } from "@angular/router";
 import { render, screen } from "@testing-library/angular";
@@ -95,7 +96,7 @@ describe("UserReviews", () => {
 	});
 
 	it("shows the private state when the owner does not share the reviews", async () => {
-		getUserReviews.mockReturnValue(throwError(() => ({ status: 403 })));
+		getUserReviews.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 403 })));
 		await renderPage();
 
 		expect(
@@ -106,7 +107,7 @@ describe("UserReviews", () => {
 	});
 
 	it("shows the not-found state when the player does not exist", async () => {
-		getUserReviews.mockReturnValue(throwError(() => ({ status: 404 })));
+		getUserReviews.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
 		await renderPage();
 
 		expect(

@@ -141,17 +141,34 @@ export class UserConnections {
 	protected readonly isLoading = computed(
 		() => this.connections.isLoading() || this.inRangeOffset() !== null
 	);
-	protected readonly error = computed<ProfileAccessError | null>(() => {
-		const error = this.connections.error() as { status?: number } | null;
-		if (!error) return null;
-		return error.status === 403 ? "private" : "not_found";
+
+	private readonly errorStatus = computed(() => {
+		const error = this.connections.error() as
+			| { status?: number }
+			| undefined;
+		return error ? (error.status ?? 0) : null;
 	});
+
+	protected readonly error = computed<ProfileAccessError | null>(() => {
+		const status = this.errorStatus();
+		if (status === 403) return "private";
+		if (status === 404) return "not_found";
+		return null;
+	});
+
+	protected readonly hasLoadFailed = computed(
+		() => this.errorStatus() !== null && this.error() === null
+	);
 
 	protected readonly users = computed(() => this.page()?.users ?? []);
 	protected readonly total = computed(() => this.page()?.total ?? 0);
 
 	protected readonly hasNoConnections = computed(
-		() => !this.isLoading() && !this.search() && this.total() === 0
+		() =>
+			!this.isLoading() &&
+			!this.hasLoadFailed() &&
+			!this.search() &&
+			this.total() === 0
 	);
 
 	protected readonly heroPosters = computed(() =>
@@ -199,6 +216,10 @@ export class UserConnections {
 
 	protected goToOffset(offset: number) {
 		this.offset.set(offset);
+	}
+
+	protected retry() {
+		this.connections.reload();
 	}
 
 	protected countFor(kind: ConnectionKind): number | null {
