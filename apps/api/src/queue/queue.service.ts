@@ -1,16 +1,12 @@
 import { type Transaction } from "sequelize";
 
-import { Backlog } from "../backlog/backlog.model";
 import * as backlogService from "../backlog/backlog.service";
 import * as backlogServiceError from "../backlog/errors/backlog.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
-import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
-import { Game } from "../games/game.model";
 import * as gamesService from "../games/games.service";
-import { Platform } from "../platforms/platform.model";
 import * as platformsService from "../platforms/platforms.service";
 import * as queueServiceError from "./errors/queue.service-error";
 import { moveInOrder } from "./move-in-order.util";
@@ -50,19 +46,6 @@ async function findNextPosition(userId: string, transaction: Transaction) {
 	return (lastPosition ?? 0) + 1;
 }
 
-const QUEUE_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
-const QUEUE_PLATFORM_ATTRS = ["id", "abbreviation"];
-
-const BACKLOG_INCLUDE = [
-	{
-		model: Backlog,
-		include: [
-			{ model: Game, attributes: QUEUE_GAME_ATTRS },
-			{ model: Platform, attributes: QUEUE_PLATFORM_ATTRS }
-		]
-	}
-];
-
 export async function addFromGame(
 	gameId: string,
 	platformId: string,
@@ -101,7 +84,7 @@ export async function addFromGame(
 
 		return Queue.findOne({
 			where: { backlogId: backlogEntry.id, userId: user.id },
-			include: BACKLOG_INCLUDE
+			include: backlogService.buildQueueBacklogInclude()
 		});
 	} catch (error) {
 		await transaction.rollback();
@@ -152,7 +135,7 @@ export async function addFromBacklog(
 			);
 		return Queue.findOne({
 			where: { backlogId, userId: user.id },
-			include: BACKLOG_INCLUDE,
+			include: backlogService.buildQueueBacklogInclude(),
 			transaction
 		});
 	} catch (error) {
@@ -199,7 +182,7 @@ export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
 
 	return Queue.findAll({
 		where: { userId: user.id },
-		include: BACKLOG_INCLUDE,
+		include: backlogService.buildQueueBacklogInclude(),
 		order: [
 			["position", "ASC"],
 			["id", "ASC"]
@@ -273,7 +256,7 @@ export async function findQueueBacklogIdsByUserId(userId: string) {
 export async function findQueueByUserId(userId: string) {
 	return Queue.findAll({
 		where: { userId },
-		include: BACKLOG_INCLUDE,
+		include: backlogService.buildQueueBacklogInclude(),
 		order: [
 			["position", "ASC"],
 			["id", "ASC"]
@@ -286,35 +269,10 @@ export async function findQueueByUserIdPaginated(
 	pagination: PaginatedSearchQuery = {},
 	publicOnly = false
 ) {
-	const titleWhere = pagination.search
-		? buildTextSearchWhere(pagination.search, ["Backlog->Game.title"])
-		: null;
-	const include = titleWhere
-		? [
-				{
-					model: Backlog,
-					required: true,
-					where: publicOnly ? { isPublic: true } : undefined,
-					include: [
-						{
-							model: Game,
-							required: true,
-							attributes: QUEUE_GAME_ATTRS,
-							where: titleWhere
-						},
-						{ model: Platform, attributes: QUEUE_PLATFORM_ATTRS }
-					]
-				}
-			]
-		: publicOnly
-			? [
-					{
-						...BACKLOG_INCLUDE[0]!,
-						required: true,
-						where: { isPublic: true }
-					}
-				]
-			: BACKLOG_INCLUDE;
+	const include = backlogService.buildQueueBacklogInclude(
+		pagination.search,
+		publicOnly
+	);
 
 	const query: Record<string, unknown> = {
 		where: { userId },
@@ -366,27 +324,9 @@ export async function findQueueForExport(
 	userId: string,
 	filters: QueueExportQuery
 ) {
-	const titleWhere = filters.search
-		? buildTextSearchWhere(filters.search, ["Backlog->Game.title"])
-		: null;
-
 	const entries = await Queue.findAll({
 		where: { userId },
-		include: [
-			{
-				model: Backlog,
-				attributes: ["id", "status", "score", "duration"],
-				required: titleWhere !== null,
-				include: [
-					{
-						model: Game,
-						attributes: ["id", "title"],
-						...(titleWhere && { required: true, where: titleWhere })
-					},
-					{ model: Platform, attributes: ["id", "name"] }
-				]
-			}
-		],
+		include: backlogService.buildQueueExportBacklogInclude(filters.search),
 		order: [
 			["position", "ASC"],
 			["id", "ASC"]

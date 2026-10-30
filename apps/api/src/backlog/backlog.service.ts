@@ -321,6 +321,64 @@ export async function createNotStartedBacklog(
 	);
 }
 
+const QUEUE_PLATFORM_ATTRS = ["id", "abbreviation"];
+
+export function buildQueueBacklogInclude(search?: string, publicOnly = false) {
+	const titleWhere = search
+		? buildTextSearchWhere(search, ["Backlog->Game.title"])
+		: null;
+	if (titleWhere) {
+		return [
+			{
+				model: Backlog,
+				required: true,
+				where: publicOnly ? { isPublic: true } : undefined,
+				include: [
+					{
+						model: Game,
+						required: true,
+						attributes: BACKLOG_GAME_ATTRS,
+						where: titleWhere
+					},
+					{ model: Platform, attributes: QUEUE_PLATFORM_ATTRS }
+				]
+			}
+		];
+	}
+
+	return [
+		{
+			model: Backlog,
+			...(publicOnly && { required: true, where: { isPublic: true } }),
+			include: [
+				{ model: Game, attributes: BACKLOG_GAME_ATTRS },
+				{ model: Platform, attributes: QUEUE_PLATFORM_ATTRS }
+			]
+		}
+	];
+}
+
+export function buildQueueExportBacklogInclude(search?: string) {
+	const titleWhere = search
+		? buildTextSearchWhere(search, ["Backlog->Game.title"])
+		: null;
+	return [
+		{
+			model: Backlog,
+			attributes: ["id", "status", "score", "duration"],
+			required: titleWhere !== null,
+			include: [
+				{
+					model: Game,
+					attributes: ["id", "title"],
+					...(titleWhere && { required: true, where: titleWhere })
+				},
+				{ model: Platform, attributes: ["id", "name"] }
+			]
+		}
+	];
+}
+
 function buildIncludes(filters: BacklogQuery) {
 	const gameInclude: Record<string, unknown> = {
 		model: Game,
