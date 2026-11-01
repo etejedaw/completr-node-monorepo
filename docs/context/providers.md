@@ -143,6 +143,7 @@ Errores típicos de un provider:
 - `<MOD>_RATE_LIMITED` — 429.
 - `<MOD>_PARSE_ERROR` — la respuesta no tiene el shape esperado.
 - `<MOD>_TIMEOUT` — si manejas timeouts.
+- `<MOD>_BLOCKED` — 403, CAPTCHA o página de challenge (providers de scraping).
 - `<MOD>_UNAUTHORIZED` — 401 (key inválida o expirada).
 - `<MOD>_DISABLED` — el provider no tiene credencial configurada.
 
@@ -236,13 +237,63 @@ Consecuencias:
 
 ## Providers implementados
 
-| Provider             | Propósito                                                                                                                |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `apps/api/src/rawg/` | RAWG API: géneros, descripciones, covers, scores                                                                         |
-| `apps/api/src/mail/` | Correo transaccional. Modelos internos: `mail/nodemailer/` y `mail/in-memory/` (tests). Se deshabilita sin `SMTP_HOST`   |
-| `apps/api/src/ia/`   | Generación de texto y JSON estructurado con IA. Proveedor interno: `ia/deepseek/`. Se deshabilita sin `DEEPSEEK_API_KEY` |
+| Provider                   | Propósito                                                                                                                |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `apps/api/src/rawg/`       | RAWG API: géneros, descripciones, covers, scores                                                                         |
+| `apps/api/src/hltb/`       | HowLongToBeat por scraping de la página de detalle: duraciones Main Story, Main + Extras y Completionist                 |
+| `apps/api/src/metacritic/` | Metacritic por scraping de la página de detalle: Metascore, User Score, plataformas y año                                |
+| `apps/api/src/mail/`       | Correo transaccional. Modelos internos: `mail/nodemailer/` y `mail/in-memory/` (tests). Se deshabilita sin `SMTP_HOST`   |
+| `apps/api/src/ia/`         | Generación de texto y JSON estructurado con IA. Proveedor interno: `ia/deepseek/`. Se deshabilita sin `DEEPSEEK_API_KEY` |
 
 **Qué integraciones vienen después no se decide acá:** el roadmap de fuentes externas es planificación de producto, y varias dependen de revisiones de licencia todavía abiertas.
+
+## Providers de scraping: HLTB y Metacritic
+
+`apps/api/src/hltb/` y `apps/api/src/metacritic/` leen páginas HTML públicas, no una API. Siguen la estructura de cualquier provider (clase, `*.interface.ts`, `errors/` en tres capas), con dos diferencias: no tienen credencial, así que no hay clase deshabilitada ni variable de entorno, y toda la red pasa por un cliente HTTP compartido, `apps/api/src/scraping/`.
+
+### Solo páginas de detalle
+
+Los providers respetan el `robots.txt` de cada sitio. HowLongToBeat prohíbe `/api` (lo que usa su buscador) y Metacritic prohíbe `/search`, así que **ningún provider busca**: solo piden páginas de detalle.
+
+- `HltbClient.getGameById(externalId)` pide `https://howlongtobeat.com/game/<id>`. Necesita un id de HLTB ya conocido (un `GameExternal` con fuente `hltb`); el provider no lo descubre.
+- `MetacriticClient.getGameBySlug(slug)` pide `https://www.metacritic.com/game/<slug>/`. El slug lo aporta quien llama (derivado del título o de un `GameExternal` con fuente `metacritic`).
+
+Un id que no es numérico o un slug que no cumple `^[a-z0-9]+(?:-+[a-z0-9]+)*$` se rechaza con `<MOD>_NOT_FOUND` sin hacer la request: así nunca se construye una URL fuera de `/game/`.
+
+Cada instancia se obtiene con `HltbClient.create()` / `MetacriticClient.create()`, que devuelven siempre la misma instancia, montada sobre `ScrapingHttpClient.shared()`. Así la acción individual y el job comparten la cola por host. Los tests construyen la clase directamente con un `ScrapingHttpClient` propio.
+
+### Qué se parsea
+
+- **HLTB:** el JSON de `<script id="__NEXT_DATA__">`, en `props.pageProps.game.data.game[0]`. `comp_main`, `comp_plus` y `comp_100` vienen en segundos y se devuelven en horas con 2 decimales (`mainStoryHours`, `mainExtrasHours`, `completionistHours`). El año sale de `release_world` y, si no es válido, de `release_na`, `release_eu` o `release_jp`. Si Next.js sirve su página `/404` o la lista de juegos viene vacía, es `HLTB_NOT_FOUND`.
+- **Metacritic:** primero el JSON-LD `VideoGame` del `<head>` (título, `datePublished`, `gamePlatform`, `url` canónica y `aggregateRating`, que es el Metascore). El User Score no está en el JSON-LD: se lee del `aria-label` de `[data-testid="global-score-value-wrapper"]` (`User score 9.1 out of 10`), el primero de la página, que es el del hero. Si el JSON-LD no trae rating, el Metascore sale del mismo tipo de etiqueta; si falta el JSON-LD, el título sale de `[data-testid="hero-title"]`. El `slug` devuelto es el de la URL canónica, por si el sitio redirigió a otro.
+
+Un dato ausente no es un error: una duración en 0, ausente o inválida, y un score `tbd`, ausente o fuera de rango (Metascore 0–100, User Score 0–10) se devuelven como `null`. `<MOD>_PARSE_ERROR` queda para cuando la página no tiene la estructura esperada (falta `__NEXT_DATA__`, JSON inválido, no hay título), que suele indicar un cambio del sitio. Las notas se devuelven crudas: normalizarlas o elegir una es regla de negocio del módulo que consume.
+
+### Cliente HTTP compartido (`apps/api/src/scraping/`)
+
+`ScrapingHttpClient.getHtml(url)` devuelve el HTML o lanza `ScrapingRequestError` con un `kind` (`NOT_FOUND`, `RATE_LIMITED`, `BLOCKED`, `TIMEOUT`, `REQUEST_ERROR`) y el detalle (`url`, `status`, `attempts`, `retryAfterMs`). Ese error no sale del provider: cada uno lo traduce con `fromRequestFailure` de su `*.service-error.ts` a `<MOD>_<kind>`.
+
+- **Cola por host:** una sola request a la vez por host; las llamadas concurrentes salen en orden de llegada. Hosts distintos no se esperan entre sí.
+- **Throttle:** entre dos requests al mismo host pasan al menos `minDelayMs` (5000) más un jitter aleatorio de 0 a `jitterMs` (2000), contados desde que terminó la anterior. Los reintentos también cuentan como requests. Son una precaución propia, no un límite publicado por los sitios.
+- **Timeout:** `timeoutMs` (15 s) por intento, con `AbortController`; cubre también la descarga del cuerpo.
+- **Reintentos:** `maxRetries` (1) ante 429, 5xx, fallo de red o timeout. La espera es la de `Retry-After` (en segundos o fecha HTTP) o, si no viene, `retryBaseDelayMs` (10 s) con backoff exponencial, y nunca menos que el throttle. Si `Retry-After` supera `maxRetryAfterMs` (60 s) no se reintenta antes de tiempo: se falla en el acto, y la siguiente request a ese host espera hasta ese tope.
+- **Bloqueos:** un 403, el header `cf-mitigated: challenge` o una página de challenge o CAPTCHA reconocible (Cloudflare, DataDome, PerimeterX, reCAPTCHA, hCaptcha) es `BLOCKED` y nunca se reintenta. No se intenta sortear ningún bloqueo: ni proxies, ni navegadores automatizados, ni cambio de User-Agent.
+- **Identificación:** `User-Agent: CompletrBot/1.0 (+https://www.completr.app)`, sin hacerse pasar por un navegador.
+- **Inyectable:** el constructor acepta `fetch`, `sleep`, `now` y `random` además de los valores anteriores, para probar colas, esperas y reintentos con un reloj simulado y sin red.
+
+El throttle vive en memoria, así que cubre una sola instancia de la API. Con varias réplicas habría que moverlo a estado compartido.
+
+| Código                 | Status | Cuándo                                               |
+| ---------------------- | ------ | ---------------------------------------------------- |
+| `<MOD>_NOT_FOUND`      | 404    | 404, página 404 de la app o id/slug inválido         |
+| `<MOD>_PARSE_ERROR`    | 502    | La página no tiene la estructura esperada            |
+| `<MOD>_RATE_LIMITED`   | 429    | 429 persistente tras el reintento                    |
+| `<MOD>_BLOCKED`        | 502    | 403, CAPTCHA o challenge                             |
+| `<MOD>_TIMEOUT`        | 504    | Se agotó el timeout también en el reintento          |
+| `<MOD>_REQUEST_ERROR`  | 502    | 5xx persistente, otro status de error o fallo de red |
+| `<MOD>_INTERNAL_ERROR` | 500    | Código del provider sin mapeo propio                 |
+
+`<MOD>` es `HLTB` (`service: "HLTB Provider"`) o `METACRITIC` (`service: "Metacritic Provider"`); ambos están registrados en los normalizers globales de `common/errors/`.
 
 ## Módulo `ia` y su submódulo `deepseek`
 

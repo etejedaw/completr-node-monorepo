@@ -55,6 +55,8 @@ apps/api/src/
 ├── lists/  list-items/     # ...
 ├── wishlist/  favorites/   # ...
 ├── rawg/                   # Provider de RAWG API (adapter externo)
+├── hltb/  metacritic/      # Providers de scraping (solo páginas de detalle)
+├── scraping/               # Cliente HTTP compartido de los scrapers: cola y throttle por host
 └── jobs/                   # Cron jobs y tareas programadas
 ```
 
