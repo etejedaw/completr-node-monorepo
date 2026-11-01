@@ -14,15 +14,13 @@ afterEach(async () => {
 	await PremiumPromotion.destroy({ where: {} });
 });
 
-const ONE_MONTH_MS = 30 * 24 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 interface OfferBody {
 	code: string;
 	feature: string;
-	durationDays: number | null;
-	availableFrom: string | null;
-	availableUntil: string | null;
+	availableFrom: string;
+	availableUntil: string;
 	status: string;
 	expiresAt: string | null;
 	canActivate: boolean;
@@ -34,8 +32,9 @@ let promotionSequence = 0;
 function createPromotion(
 	options: {
 		code?: string;
-		feature?: "lists.unlimited" | "rewind.premium" | "*";
+		feature?: "lists.unlimited" | "rewind.premium" | "export.json" | "*";
 		startsInDays?: number;
+		startsAt?: Date;
 		endsInDays?: number;
 	} = {}
 ) {
@@ -43,7 +42,9 @@ function createPromotion(
 	return PremiumPromotion.create({
 		code: options.code ?? `launch-gift-${promotionSequence}`,
 		feature: options.feature ?? "lists.unlimited",
-		startsAt: new Date(Date.now() + (options.startsInDays ?? -1) * DAY_MS),
+		startsAt:
+			options.startsAt ??
+			new Date(Date.now() + (options.startsInDays ?? -1) * DAY_MS),
 		endsAt: new Date(Date.now() + (options.endsInDays ?? 30) * DAY_MS)
 	});
 }
@@ -64,41 +65,68 @@ function claim(authorization: string, code: string) {
 }
 
 void describe("GET /users/me/gift-offers", () => {
-	void it("returns available trials with server-defined features and durations", async () => {
+	void it("returns an empty list when there are no promotions", async () => {
 		const account = await createUserWithSession();
 
-		const response = await api()
-			.get("/users/me/gift-offers")
-			.set("Authorization", account.authorization);
-
-		assert.equal(response.status, 200);
-		const jsonOffer = response.body.data.offers.find(
-			(offer: { code: string }) => offer.code === "json-export-trial-1m"
-		);
-		assert.equal(jsonOffer.feature, "export.json");
-		assert.equal(jsonOffer.durationDays, 30);
-		assert.equal(jsonOffer.availableFrom, null);
-		assert.equal(jsonOffer.availableUntil, null);
-		assert.equal(jsonOffer.status, "available");
-		assert.equal(jsonOffer.canActivate, true);
-		assert.equal(jsonOffer.hasAccess, false);
+		assert.deepEqual(await listOffers(account.authorization), []);
 	});
 
-	void it("hides eligibility for trials a premium user does not need", async () => {
+	void it("returns an available promotion with its feature and fixed window and no duration", async () => {
+		const account = await createUserWithSession();
+		const promotion = await createPromotion({
+			code: "export-gift",
+			feature: "export.json"
+		});
+
+		const offers = await listOffers(account.authorization);
+
+		assert.equal(offers.length, 1);
+		const offer = offers[0]!;
+		assert.equal(offer.code, "export-gift");
+		assert.equal(offer.feature, "export.json");
+		assert.equal(offer.availableFrom, promotion.startsAt.toISOString());
+		assert.equal(offer.availableUntil, promotion.endsAt.toISOString());
+		assert.equal(offer.status, "available");
+		assert.equal(offer.canActivate, true);
+		assert.equal(offer.hasAccess, false);
+		assert.deepEqual(Object.keys(offer).sort(), [
+			"availableFrom",
+			"availableUntil",
+			"canActivate",
+			"code",
+			"expiresAt",
+			"feature",
+			"hasAccess",
+			"status"
+		]);
+	});
+
+	void it("orders offers by start date and then by code", async () => {
+		const account = await createUserWithSession();
+		await createPromotion({ code: "zeta-gift", startsInDays: -5 });
+		const sharedStart = new Date(Date.now() - 2 * DAY_MS);
+		await createPromotion({ code: "beta-gift", startsAt: sharedStart });
+		await createPromotion({ code: "alpha-gift", startsAt: sharedStart });
+
+		const offers = await listOffers(account.authorization);
+
+		assert.deepEqual(
+			offers.map(offer => offer.code),
+			["zeta-gift", "alpha-gift", "beta-gift"]
+		);
+	});
+
+	void it("marks promotions as not eligible for a premium account", async () => {
 		const account = await createUserWithSession("premium");
+		await createPromotion({ code: "premium-gift", feature: "*" });
+		await createPromotion({ code: "export-gift", feature: "export.json" });
 
-		const response = await api()
-			.get("/users/me/gift-offers")
-			.set("Authorization", account.authorization);
+		const offers = await listOffers(account.authorization);
 
-		assert.equal(response.status, 200);
+		assert.equal(offers.length, 2);
 		assert.ok(
-			response.body.data.offers.every(
-				(offer: {
-					status: string;
-					canActivate: boolean;
-					hasAccess: boolean;
-				}) =>
+			offers.every(
+				offer =>
 					offer.status === "not-eligible" &&
 					offer.canActivate === false &&
 					offer.hasAccess === true
@@ -114,78 +142,65 @@ void describe("GET /users/me/gift-offers", () => {
 });
 
 void describe("POST /users/me/gift-offers/:offerCode/claim", () => {
-	void it("claims a feature trial for the server-defined duration", async () => {
+	void it("claims a feature promotion until its fixed end date", async () => {
 		const account = await createUserWithSession();
-		const before = Date.now();
+		const promotion = await createPromotion({
+			code: "export-gift",
+			feature: "export.json",
+			endsInDays: 12
+		});
 
-		const response = await api()
-			.post("/users/me/gift-offers/json-export-trial-1m/claim")
-			.set("Authorization", account.authorization)
-			.send({});
+		const response = await claim(account.authorization, "export-gift");
 
 		assert.equal(response.status, 201);
 		assert.equal(response.body.data.created, true);
 		assert.equal(response.body.data.grant, undefined);
-		assert.equal(response.body.data.offer.code, "json-export-trial-1m");
+		assert.equal(response.body.data.offer.code, "export-gift");
 		assert.equal(response.body.data.offer.feature, "export.json");
 		assert.equal(response.body.data.offer.status, "active");
 		assert.equal(response.body.data.offer.hasAccess, true);
-		const grant = await PremiumGrant.findOne({
-			where: {
-				userId: account.user.id,
-				offerCode: "json-export-trial-1m"
-			}
-		});
-		assert.ok(grant?.expiresAt);
 		assert.equal(
 			response.body.data.offer.expiresAt,
-			grant.expiresAt.toISOString()
+			promotion.endsAt.toISOString()
 		);
-		const expiresAt = grant.expiresAt.getTime();
-		assert.ok(expiresAt >= before + ONE_MONTH_MS);
-		assert.ok(expiresAt <= Date.now() + ONE_MONTH_MS);
+		const grant = await PremiumGrant.findOne({
+			where: { userId: account.user.id, offerCode: "export-gift" }
+		});
+		assert.equal(
+			grant?.expiresAt?.toISOString(),
+			promotion.endsAt.toISOString()
+		);
 	});
 
 	void it("repeats a claim idempotently without extending its expiration", async () => {
 		const account = await createUserWithSession();
-		const first = await api()
-			.post("/users/me/gift-offers/json-export-trial-1m/claim")
-			.set("Authorization", account.authorization)
-			.send({});
-		const firstExpiration = first.body.data.offer.expiresAt;
+		await createPromotion({ code: "export-gift", feature: "export.json" });
+		const first = await claim(account.authorization, "export-gift");
 
-		const second = await api()
-			.post("/users/me/gift-offers/json-export-trial-1m/claim")
-			.set("Authorization", account.authorization)
-			.send({});
+		const second = await claim(account.authorization, "export-gift");
 
 		assert.equal(second.status, 200);
 		assert.equal(second.body.data.created, false);
 		assert.equal(second.body.data.offer.status, "active");
-		assert.equal(second.body.data.offer.expiresAt, firstExpiration);
+		assert.equal(
+			second.body.data.offer.expiresAt,
+			first.body.data.offer.expiresAt
+		);
 		assert.equal(
 			await PremiumGrant.count({
-				where: {
-					userId: account.user.id,
-					offerCode: "json-export-trial-1m"
-				}
+				where: { userId: account.user.id, offerCode: "export-gift" }
 			}),
 			1
 		);
 	});
 
-	void it("resolves concurrent claims to one grant and one creation response", async () => {
+	void it("resolves concurrent claims of a full premium promotion to one grant and one creation response", async () => {
 		const account = await createUserWithSession();
+		await createPromotion({ code: "premium-gift", feature: "*" });
 
 		const responses = await Promise.all([
-			api()
-				.post("/users/me/gift-offers/premium-trial-1m/claim")
-				.set("Authorization", account.authorization)
-				.send({}),
-			api()
-				.post("/users/me/gift-offers/premium-trial-1m/claim")
-				.set("Authorization", account.authorization)
-				.send({})
+			claim(account.authorization, "premium-gift"),
+			claim(account.authorization, "premium-gift")
 		]);
 
 		assert.deepEqual(
@@ -198,10 +213,7 @@ void describe("POST /users/me/gift-offers/:offerCode/claim", () => {
 		);
 		assert.equal(
 			await PremiumGrant.count({
-				where: {
-					userId: account.user.id,
-					offerCode: "premium-trial-1m"
-				}
+				where: { userId: account.user.id, offerCode: "premium-gift" }
 			}),
 			1
 		);
@@ -209,10 +221,8 @@ void describe("POST /users/me/gift-offers/:offerCode/claim", () => {
 
 	void it("activates full premium in the effective authentication state", async () => {
 		const account = await createUserWithSession();
-		const claimed = await api()
-			.post("/users/me/gift-offers/premium-trial-1m/claim")
-			.set("Authorization", account.authorization)
-			.send({});
+		await createPromotion({ code: "premium-gift", feature: "*" });
+		const claimed = await claim(account.authorization, "premium-gift");
 		assert.equal(claimed.status, 201);
 
 		const me = await api()
@@ -228,28 +238,39 @@ void describe("POST /users/me/gift-offers/:offerCode/claim", () => {
 
 	void it("rejects an unknown offer", async () => {
 		const account = await createUserWithSession();
-		const response = await api()
-			.post("/users/me/gift-offers/not-a-real-offer/claim")
-			.set("Authorization", account.authorization)
-			.send({});
+		const response = await claim(account.authorization, "not-a-real-offer");
 		assert.equal(response.status, 404);
 		assert.equal(response.body.type, "GIFT_OFFER_NOT_FOUND");
 	});
 
-	void it("rejects an unnecessary trial for a premium account", async () => {
+	void it("rejects retired trial codes as unknown", async () => {
+		const account = await createUserWithSession();
+		const responses = await Promise.all(
+			["export-trial-1m", "trial-1m", "x".repeat(60)].map(code =>
+				claim(account.authorization, code)
+			)
+		);
+		for (const response of responses) {
+			assert.equal(response.status, 404);
+			assert.equal(response.body.type, "GIFT_OFFER_NOT_FOUND");
+		}
+		assert.equal(await PremiumGrant.count(), 0);
+	});
+
+	void it("rejects an unnecessary promotion for a premium account", async () => {
 		const account = await createUserWithSession("premium");
-		const response = await api()
-			.post("/users/me/gift-offers/premium-trial-1m/claim")
-			.set("Authorization", account.authorization)
-			.send({});
+		await createPromotion({ code: "premium-gift", feature: "*" });
+		const response = await claim(account.authorization, "premium-gift");
 		assert.equal(response.status, 409);
 		assert.equal(response.body.type, "GIFT_OFFER_NOT_ELIGIBLE");
+		assert.equal(await PremiumGrant.count(), 0);
 	});
 
 	void it("does not let the client choose feature or expiration", async () => {
 		const account = await createUserWithSession();
+		await createPromotion({ code: "export-gift", feature: "export.json" });
 		const response = await api()
-			.post("/users/me/gift-offers/json-export-trial-1m/claim")
+			.post("/users/me/gift-offers/export-gift/claim")
 			.set("Authorization", account.authorization)
 			.send({ feature: "*", expiresAt: null });
 		assert.equal(response.status, 422);
@@ -260,19 +281,17 @@ void describe("POST /users/me/gift-offers/:offerCode/claim", () => {
 		);
 	});
 
-	void it("returns a revoked grant without reactivating it", async () => {
+	void it("returns an expired grant as used without reactivating it", async () => {
 		const account = await createUserWithSession();
+		await createPromotion({ code: "export-gift", feature: "export.json" });
 		const grant = await PremiumGrant.create({
 			userId: account.user.id,
 			feature: "export.json",
 			expiresAt: new Date("2020-01-01T00:00:00.000Z"),
-			offerCode: "json-export-trial-1m"
+			offerCode: "export-gift"
 		});
 
-		const response = await api()
-			.post("/users/me/gift-offers/json-export-trial-1m/claim")
-			.set("Authorization", account.authorization)
-			.send({});
+		const response = await claim(account.authorization, "export-gift");
 		assert.equal(response.status, 200);
 		assert.equal(response.body.data.created, false);
 		assert.equal(response.body.data.offer.status, "used");
@@ -288,37 +307,30 @@ void describe("POST /users/me/gift-offers/:offerCode/claim", () => {
 			1
 		);
 
-		const offers = await api()
-			.get("/users/me/gift-offers")
-			.set("Authorization", account.authorization);
-		const offer = offers.body.data.offers.find(
-			(candidate: { code: string }) =>
-				candidate.code === "json-export-trial-1m"
+		const offer = (await listOffers(account.authorization)).find(
+			candidate => candidate.code === "export-gift"
 		);
-		assert.equal(offer.status, "used");
-		assert.equal(offer.canActivate, false);
-		assert.equal(offer.hasAccess, false);
+		assert.equal(offer?.status, "used");
+		assert.equal(offer?.canActivate, false);
+		assert.equal(offer?.hasAccess, false);
 	});
 });
 
 void describe("gift offers backed by premium promotions", () => {
-	void it("lists an active promotion next to the static offers with its fixed window", async () => {
+	void it("lists an active promotion with its fixed window", async () => {
 		const account = await createUserWithSession();
 		const promotion = await createPromotion({ code: "lists-gift" });
 
 		const offers = await listOffers(account.authorization);
 
-		const codes = offers.map(offer => offer.code);
-		assert.deepEqual(codes.slice(0, 2), [
-			"json-export-trial-1m",
-			"premium-trial-1m"
-		]);
-		assert.ok(codes.includes("lists-gift"));
+		assert.deepEqual(
+			offers.map(offer => offer.code),
+			["lists-gift"]
+		);
 		const offer = offers.find(
 			candidate => candidate.code === "lists-gift"
 		)!;
 		assert.equal(offer.feature, "lists.unlimited");
-		assert.equal(offer.durationDays, null);
 		assert.equal(offer.availableFrom, promotion.startsAt.toISOString());
 		assert.equal(offer.availableUntil, promotion.endsAt.toISOString());
 		assert.equal(offer.status, "available");
@@ -423,6 +435,7 @@ void describe("gift offers backed by premium promotions", () => {
 			code: "rewind-gift",
 			feature: "rewind.premium"
 		});
+		await createPromotion({ code: "export-gift", feature: "export.json" });
 		const before = await listOffers(account.authorization);
 		assert.equal(
 			before.find(offer => offer.code === "rewind-gift")?.hasAccess,
@@ -435,8 +448,8 @@ void describe("gift offers backed by premium promotions", () => {
 		const after = await listOffers(account.authorization);
 		const byCode = new Map(after.map(offer => [offer.code, offer]));
 		assert.equal(byCode.get("rewind-gift")?.hasAccess, true);
-		assert.equal(byCode.get("json-export-trial-1m")?.hasAccess, false);
-		assert.equal(byCode.get("json-export-trial-1m")?.status, "available");
+		assert.equal(byCode.get("export-gift")?.hasAccess, false);
+		assert.equal(byCode.get("export-gift")?.status, "available");
 	});
 
 	void it("repeats a promotion claim without a second grant or a longer expiration", async () => {

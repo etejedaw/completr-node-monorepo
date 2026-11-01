@@ -141,25 +141,6 @@ void describe("premium promotion administration", () => {
 		assert.equal(await PremiumPromotion.count(), 1);
 	});
 
-	void it("rejects codes reserved by static gift offers", async () => {
-		const admin = await createUserWithSession("admin");
-
-		const responses = await Promise.all(
-			["premium-trial-1m", "json-export-trial-1m"].map(code =>
-				api()
-					.post("/admin/premium-promotions")
-					.set("Authorization", admin.authorization)
-					.send(promotionBody(code))
-			)
-		);
-
-		for (const response of responses) {
-			assert.equal(response.status, 409);
-			assert.equal(response.body.type, "PREMIUM_PROMOTION_CODE_CONFLICT");
-		}
-		assert.equal(await PremiumPromotion.count(), 0);
-	});
-
 	void it("lists how many users claimed each promotion", async () => {
 		const admin = await createUserWithSession("admin");
 		const [firstUser, secondUser] = await Promise.all([
@@ -350,7 +331,7 @@ void describe("premium promotion administration", () => {
 			userId: otherUser.id,
 			feature: "export.json",
 			expiresAt: new Date(futureDate(60)),
-			offerCode: "json-export-trial-1m"
+			offerCode: "another-promotion"
 		});
 		const unrelatedExpiration = unrelatedGrant.expiresAt?.toISOString();
 
