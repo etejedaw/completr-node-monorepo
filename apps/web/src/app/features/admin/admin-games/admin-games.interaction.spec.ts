@@ -94,11 +94,16 @@ describe("AdminGames interaction", () => {
 	let detailFailure: ApiResponse | null;
 	let deactivateFailure: ApiResponse | null;
 	let scoreSourcesFailure: ApiResponse | null;
+	let refreshOutcome: (
+		game: StoredGame,
+		sources: string[]
+	) => ApiResponse | "network-error";
 	let unexpectedRequests: string[];
 	const gamesQueries: URLSearchParams[] = [];
 	const reactivations: string[] = [];
 	const deactivations: string[] = [];
 	const detailRequests: string[] = [];
+	const refreshRequests: { id: string; body: unknown }[] = [];
 	const toast = {
 		success: vi.fn(),
 		warning: vi.fn(),
@@ -171,7 +176,47 @@ describe("AdminGames interaction", () => {
 		return ok({ data: { game } });
 	}
 
-	function handle(req: TestRequest): ApiResponse | null {
+	function successfulRefresh(
+		game: StoredGame,
+		sources: string[]
+	): ApiResponse {
+		const results = sources.map(source => {
+			if (source === "metacritic") {
+				game.scores = [
+					...game.scores.filter(s => s.source !== "metacritic"),
+					{ source: "metacritic", score: 88 }
+				];
+				return {
+					source,
+					status: "updated",
+					score: 88,
+					metaScore: 88,
+					userScore: 8.4
+				};
+			}
+			game.times = [
+				...game.times.filter(t => t.source !== "hltb"),
+				{ source: "hltb", duration: 12.5 }
+			];
+			return { source, status: "updated", duration: 12.5 };
+		});
+		return ok({ data: { game: { ...game, genres: [] }, results } });
+	}
+
+	function refreshExternalData(req: TestRequest, id: string) {
+		refreshRequests.push({ id, body: req.request.body });
+		const game = catalog.find(g => g.id === id);
+		if (!game) return failure(404);
+		const sources = (req.request.body as { sources: string[] }).sources;
+		return refreshOutcome(game, sources);
+	}
+
+	function handle(req: TestRequest): ApiResponse | "network-error" | null {
+		const refreshMatch = req.request.url.match(
+			/\/games\/([^/]+)\/external-data\/refresh$/
+		);
+		if (req.request.method === "POST" && refreshMatch)
+			return refreshExternalData(req, refreshMatch[1]);
 		const { method, url } = req.request;
 		if (method === "GET" && url === gamesUrl) return listGames(req);
 		if (method === "GET" && url === `${api}/score-sources`)
@@ -230,6 +275,11 @@ describe("AdminGames interaction", () => {
 	function answer(req: TestRequest) {
 		const response = handle(req);
 		if (!response || req.cancelled) return;
+		if (response === "network-error")
+			return req.error(new ProgressEvent("error"), {
+				status: 0,
+				statusText: "Unknown Error"
+			});
 		req.flush(response.body, {
 			status: response.status,
 			statusText: String(response.status)
@@ -337,6 +387,8 @@ describe("AdminGames interaction", () => {
 		detailFailure = null;
 		deactivateFailure = null;
 		scoreSourcesFailure = null;
+		refreshOutcome = successfulRefresh;
+		refreshRequests.length = 0;
 		unexpectedRequests = [];
 		gamesQueries.length = 0;
 		reactivations.length = 0;
@@ -345,6 +397,7 @@ describe("AdminGames interaction", () => {
 		toast.success.mockClear();
 		toast.warning.mockClear();
 		toast.error.mockClear();
+		toast.info.mockClear();
 	});
 
 	afterEach(() => {
@@ -1855,6 +1908,532 @@ describe("AdminGames interaction", () => {
 				expect(toast.success).toHaveBeenCalledTimes(1)
 			);
 			expect(reactivations).toEqual(["dead1"]);
+		});
+	});
+
+	describe("refreshing external data", () => {
+		const isRefresh = (req: HttpRequest<unknown>) =>
+			req.url.endsWith("/external-data/refresh");
+
+		function refreshButton(title: string) {
+			return screen.getByRole("button", {
+				name: `Refresh external data for ${title}`
+			});
+		}
+
+		function catalogRow(title: string) {
+			return screen
+				.getByRole("link", { name: title })
+				.closest("li") as HTMLElement;
+		}
+
+		function refreshDialog() {
+			return screen.getByRole("dialog", {
+				name: "Refresh external data"
+			});
+		}
+
+		function sourceBox(
+			name: "Metacritic — score" | "HowLongToBeat — duration"
+		) {
+			return within(refreshDialog()).getByRole("checkbox", { name });
+		}
+
+		function submitButton(name = "Refresh selected") {
+			return within(refreshDialog()).getByRole("button", { name });
+		}
+
+		function liveStatus() {
+			return within(refreshDialog()).getByRole("status");
+		}
+
+		async function openRefresh(
+			user: ReturnType<typeof userEvent.setup>,
+			title: string
+		) {
+			await user.click(refreshButton(title));
+			const dialog = await screen.findByRole("dialog", {
+				name: "Refresh external data"
+			});
+			return dialog;
+		}
+
+		function takeHeldRefreshes() {
+			return httpTesting.match(isRefresh);
+		}
+
+		function respond(req: TestRequest) {
+			answer(req);
+		}
+
+		it("opens the dialog with the title of the clicked game", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+
+			const dialog = await openRefresh(user, "Pokémon Rojo");
+
+			expect(dialog).toHaveAccessibleDescription("Pokémon Rojo");
+			expect(
+				within(dialog).getByText("Pokémon Rojo")
+			).toBeInTheDocument();
+			expect(screen.getAllByRole("dialog")).toHaveLength(1);
+		});
+
+		it("preselects only the sources whose data is missing", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+
+			await openRefresh(user, "Zelda: Breath of the Wild");
+			expect(sourceBox("Metacritic — score")).toBeChecked();
+			expect(sourceBox("HowLongToBeat — duration")).not.toBeChecked();
+			expect(
+				within(refreshDialog()).getByText("Missing")
+			).toBeInTheDocument();
+			expect(
+				within(refreshDialog()).getByText("Current: 10 h")
+			).toBeInTheDocument();
+			await user.keyboard("{Escape}");
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+
+			await openRefresh(user, "Pokémon Rojo");
+			expect(sourceBox("Metacritic — score")).not.toBeChecked();
+			expect(sourceBox("HowLongToBeat — duration")).toBeChecked();
+		});
+
+		it("disables the submit without a selection and lets the admin pick sources that already have data", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			await openRefresh(user, "Alpha 001");
+
+			expect(sourceBox("Metacritic — score")).not.toBeChecked();
+			expect(sourceBox("HowLongToBeat — duration")).not.toBeChecked();
+			expect(submitButton()).toBeDisabled();
+			await user.click(submitButton());
+			expect(refreshRequests).toEqual([]);
+
+			await user.click(sourceBox("HowLongToBeat — duration"));
+			await user.click(
+				within(refreshDialog()).getByText("Metacritic — score")
+			);
+			expect(sourceBox("Metacritic — score")).toBeChecked();
+			expect(sourceBox("HowLongToBeat — duration")).toBeChecked();
+			expect(submitButton()).toBeEnabled();
+
+			await user.click(sourceBox("Metacritic — score"));
+			await user.click(sourceBox("HowLongToBeat — duration"));
+			expect(submitButton()).toBeDisabled();
+
+			sourceBox("Metacritic — score").focus();
+			await user.keyboard(" ");
+			expect(sourceBox("Metacritic — score")).toBeChecked();
+			await user.click(submitButton());
+			await untilVisible(() => expect(refreshRequests).toHaveLength(1));
+			expect(refreshRequests[0]).toEqual({
+				id: "a001",
+				body: { sources: ["metacritic"] }
+			});
+		});
+
+		it("sends a single request on a triple click and locks the selection while waiting", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			await openRefresh(user, "Zelda: Breath of the Wild");
+			await user.click(sourceBox("HowLongToBeat — duration"));
+
+			held = isRefresh;
+			await user.tripleClick(submitButton());
+
+			const pending = takeHeldRefreshes();
+			expect(pending).toHaveLength(1);
+			expect(pending[0].request.body).toEqual({
+				sources: ["metacritic", "hltb"]
+			});
+			const busy = submitButton("Refreshing...");
+			expect(busy).toHaveAttribute("aria-disabled", "true");
+			expect(busy).toHaveAttribute("aria-busy", "true");
+			expect(liveStatus()).toHaveTextContent(
+				/Refreshing external data\.\.\./
+			);
+			expect(sourceBox("Metacritic — score")).toHaveAttribute(
+				"aria-disabled",
+				"true"
+			);
+			await user.click(sourceBox("Metacritic — score"));
+			await user.click(busy);
+			expect(sourceBox("Metacritic — score")).toBeChecked();
+			expect(takeHeldRefreshes()).toHaveLength(0);
+
+			held = () => false;
+			respond(pending[0]);
+			await untilVisible(() =>
+				expect(
+					within(liveStatus()).getByText(/Updated: Score 88/)
+				).toBeInTheDocument()
+			);
+			expect(sourceBox("Metacritic — score")).toBeChecked();
+			expect(sourceBox("HowLongToBeat — duration")).toBeChecked();
+			expect(submitButton()).toBeEnabled();
+		});
+
+		it("shows every source as updated with its value and refreshes the row", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			await openRefresh(user, "Zelda: Breath of the Wild");
+			await user.click(sourceBox("HowLongToBeat — duration"));
+
+			await user.click(submitButton());
+
+			await untilVisible(() =>
+				expect(
+					within(liveStatus()).getByText(/Updated: Score 88/)
+				).toBeInTheDocument()
+			);
+			const status = liveStatus();
+			expect(
+				within(status).getByText(/Updated: 12\.5 h/)
+			).toBeInTheDocument();
+			expect(
+				within(status).getByText("Metascore 88 · User score 8.4")
+			).toBeInTheDocument();
+			expect(
+				within(catalogRow("Zelda: Breath of the Wild")).getByText(
+					"metacritic: 88"
+				)
+			).toBeInTheDocument();
+			expect(
+				within(catalogRow("Zelda: Breath of the Wild")).getByText(
+					"hltb: 12.5h"
+				)
+			).toBeInTheDocument();
+			expect(
+				within(refreshDialog()).getByText("Current: 88")
+			).toBeInTheDocument();
+			expect(toast.success).not.toHaveBeenCalled();
+		});
+
+		it("explains partial results with text and asks for the HLTB ID when it is not found", async () => {
+			refreshOutcome = game =>
+				ok({
+					data: {
+						game: { ...game, genres: [] },
+						results: [
+							{
+								source: "metacritic",
+								status: "ambiguous",
+								metaScore: 71,
+								userScore: 6.2
+							},
+							{
+								source: "hltb",
+								status: "not_found",
+								errorCode: null
+							}
+						]
+					}
+				});
+			const user = userEvent.setup();
+			await renderLoaded();
+			await openRefresh(user, "Alpha 001");
+			await user.click(sourceBox("Metacritic — score"));
+			await user.click(sourceBox("HowLongToBeat — duration"));
+
+			await user.click(submitButton());
+
+			await untilVisible(() =>
+				expect(
+					within(liveStatus()).getByText("Ambiguous match")
+				).toBeInTheDocument()
+			);
+			const status = liveStatus();
+			expect(within(status).getByText("Not found")).toBeInTheDocument();
+			expect(
+				within(status).getByText(
+					/Save the HowLongToBeat ID of this game first/
+				)
+			).toBeInTheDocument();
+			expect(
+				within(status).getByText("Metascore 71 · User score 6.2")
+			).toBeInTheDocument();
+			expect(
+				within(catalogRow("Alpha 001")).getByText("metacritic: 80")
+			).toBeInTheDocument();
+		});
+
+		it("reports no data and failures with their error code", async () => {
+			refreshOutcome = game =>
+				ok({
+					data: {
+						game: { ...game, genres: [] },
+						results: [
+							{
+								source: "metacritic",
+								status: "failed",
+								errorCode: "METACRITIC_BLOCKED"
+							},
+							{ source: "hltb", status: "no_data" }
+						]
+					}
+				});
+			const user = userEvent.setup();
+			await renderLoaded();
+			await openRefresh(user, "Alpha 002");
+			await user.click(sourceBox("Metacritic — score"));
+			await user.click(sourceBox("HowLongToBeat — duration"));
+
+			await user.click(submitButton());
+
+			await untilVisible(() =>
+				expect(
+					within(liveStatus()).getByText("Failed")
+				).toBeInTheDocument()
+			);
+			const status = liveStatus();
+			expect(
+				within(status).getByText("Error code: METACRITIC_BLOCKED")
+			).toBeInTheDocument();
+			expect(within(status).getByText("No data")).toBeInTheDocument();
+			expect(
+				within(status).getByText(/has no Main Story time yet/)
+			).toBeInTheDocument();
+			const items = within(status).getAllByRole("listitem");
+			expect(items[0]).toHaveTextContent("Metacritic");
+			expect(items[1]).toHaveTextContent("HowLongToBeat");
+		});
+
+		it.each([
+			[
+				"a missing game",
+				() => ({
+					status: 404,
+					body: { type: "GAME_NOT_FOUND", title: "GAME_NOT_FOUND" }
+				}),
+				/no longer exists or is already inactive/
+			],
+			[
+				"an invalid body",
+				() => ({
+					status: 422,
+					body: {
+						type: "COMMON_SCHEMA_INVALID",
+						issues: [{ path: "sources", message: "Invalid source" }]
+					}
+				}),
+				/Invalid source/
+			],
+			[
+				"a 422 without details",
+				() => ({ status: 422, body: null }),
+				/rejected this request/
+			],
+			[
+				"a network error",
+				() => "network-error" as const,
+				/Couldn't reach the server/
+			],
+			[
+				"a server error",
+				() => ({ status: 500, body: "<html>oops" }),
+				/Try again in a moment/
+			]
+		])(
+			"shows %s inside the dialog and lets the admin retry",
+			async (_label, outcome, message) => {
+				refreshOutcome = outcome;
+				const user = userEvent.setup();
+				await renderLoaded();
+				await openRefresh(user, "Zelda: Breath of the Wild");
+
+				await user.click(submitButton());
+
+				await untilVisible(() =>
+					expect(
+						within(refreshDialog()).getByRole("alert")
+					).toHaveTextContent(message)
+				);
+				expect(toast.warning).not.toHaveBeenCalled();
+				expect(sourceBox("Metacritic — score")).toBeChecked();
+				expect(
+					within(catalogRow("Zelda: Breath of the Wild")).queryByText(
+						/metacritic:/
+					)
+				).not.toBeInTheDocument();
+
+				refreshOutcome = successfulRefresh;
+				await user.click(submitButton());
+				await untilVisible(() =>
+					expect(
+						within(liveStatus()).getByText(/Updated: Score 88/)
+					).toBeInTheDocument()
+				);
+				expect(
+					within(refreshDialog()).queryByRole("alert")
+				).not.toBeInTheDocument();
+				expect(refreshRequests).toHaveLength(2);
+			}
+		);
+
+		it("ignores a late response in the closed dialog but still updates the same row", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			await openRefresh(user, "Zelda: Breath of the Wild");
+			held = isRefresh;
+			await user.click(submitButton());
+			const [pending] = takeHeldRefreshes();
+
+			await user.keyboard("{Escape}");
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+			expect(refreshButton("Zelda: Breath of the Wild")).toHaveAttribute(
+				"aria-busy",
+				"true"
+			);
+
+			held = () => false;
+			respond(pending);
+
+			await untilVisible(() =>
+				expect(
+					within(catalogRow("Zelda: Breath of the Wild")).getByText(
+						"metacritic: 88"
+					)
+				).toBeInTheDocument()
+			);
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+			expect(
+				refreshButton("Zelda: Breath of the Wild")
+			).not.toHaveAttribute("aria-busy");
+			expect(toast.success).toHaveBeenCalledWith(
+				'Finished refreshing external data for "Zelda: Breath of the Wild"'
+			);
+			expect(
+				within(catalogRow("Alpha 001")).getByText("metacritic: 80")
+			).toBeInTheDocument();
+		});
+
+		it("does not show a late response in the dialog of another game", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			await openRefresh(user, "Zelda: Breath of the Wild");
+			held = isRefresh;
+			await user.click(submitButton());
+			const [pending] = takeHeldRefreshes();
+			await user.click(
+				within(refreshDialog()).getByRole("button", { name: "Close" })
+			);
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+
+			const other = await openRefresh(user, "Pokémon Rojo");
+			held = () => false;
+			respond(pending);
+
+			await untilVisible(() =>
+				expect(
+					within(catalogRow("Zelda: Breath of the Wild")).getByText(
+						"metacritic: 88"
+					)
+				).toBeInTheDocument()
+			);
+			expect(other).toHaveAccessibleDescription("Pokémon Rojo");
+			expect(
+				within(other).queryByText(/Updated/)
+			).not.toBeInTheDocument();
+			expect(
+				within(other).queryByText(/Refreshing external data/)
+			).not.toBeInTheDocument();
+			expect(sourceBox("HowLongToBeat — duration")).toBeChecked();
+			expect(submitButton()).toBeEnabled();
+			expect(
+				within(catalogRow("Pokémon Rojo")).queryByText(/hltb:/)
+			).not.toBeInTheDocument();
+		});
+
+		it("shows the wait again when the same game is reopened during the request and then its results", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			await openRefresh(user, "Zelda: Breath of the Wild");
+			held = isRefresh;
+			await user.click(submitButton());
+			const [pending] = takeHeldRefreshes();
+			await user.keyboard("{Escape}");
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+
+			await openRefresh(user, "Zelda: Breath of the Wild");
+			expect(liveStatus()).toHaveTextContent(/Refreshing external data/);
+			await user.click(submitButton("Refreshing..."));
+			expect(takeHeldRefreshes()).toHaveLength(0);
+
+			held = () => false;
+			respond(pending);
+			await untilVisible(() =>
+				expect(
+					within(liveStatus()).getByText(/Updated: Score 88/)
+				).toBeInTheDocument()
+			);
+			expect(refreshRequests).toHaveLength(1);
+			expect(toast.success).not.toHaveBeenCalled();
+		});
+
+		it("warns with a toast when a request fails after its dialog was closed", async () => {
+			refreshOutcome = () => "network-error";
+			const user = userEvent.setup();
+			await renderLoaded();
+			await openRefresh(user, "Zelda: Breath of the Wild");
+			held = isRefresh;
+			await user.click(submitButton());
+			const [pending] = takeHeldRefreshes();
+			await user.keyboard("{Escape}");
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+
+			held = () => false;
+			respond(pending);
+
+			await waitFor(() =>
+				expect(toast.warning).toHaveBeenCalledWith(
+					expect.stringContaining(
+						'Couldn\'t refresh external data for "Zelda: Breath of the Wild"'
+					)
+				)
+			);
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+			expect(
+				refreshButton("Zelda: Breath of the Wild")
+			).not.toHaveAttribute("aria-busy");
+		});
+
+		it("returns the focus to the row button when the dialog closes", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			await openRefresh(user, "Alpha 003");
+
+			await user.keyboard("{Escape}");
+
+			await waitFor(() =>
+				expect(refreshButton("Alpha 003")).toHaveFocus()
+			);
+		});
+
+		it("is only offered on active games", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			await user.click(statusOption("Deactivated"));
+			await untilVisible(() =>
+				expect(screen.getByText("Dead Game One")).toBeInTheDocument()
+			);
+
+			expect(
+				screen.queryByRole("button", {
+					name: /^Refresh external data for/
+				})
+			).not.toBeInTheDocument();
 		});
 	});
 });
