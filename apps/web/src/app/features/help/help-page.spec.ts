@@ -11,6 +11,7 @@ import { provideRouter } from "@angular/router";
 import { render, screen, within } from "@testing-library/angular";
 
 import { AuthService } from "../../core/services/auth";
+import { VISIBILITY_OPTIONS } from "../settings/settings-privacy/privacy-options";
 import { HelpPage } from "./help-page";
 
 describe("HelpPage", () => {
@@ -155,6 +156,17 @@ describe("HelpPage", () => {
 
 		for (const name of ["Platinums", "Sagas", "Rewind"])
 			expect(sentence).toHaveTextContent(name);
+	});
+
+	it("names the visibility levels as the privacy settings do", async () => {
+		await renderHelp();
+
+		const privacy = within(document.getElementById("privacy")!);
+
+		for (const option of VISIBILITY_OPTIONS)
+			expect(privacy.getByText(option.label)).toBeInTheDocument();
+		expect(privacy.queryByText("Public")).not.toBeInTheDocument();
+		expect(privacy.queryByText("Private")).not.toBeInTheDocument();
 	});
 
 	it("describes pinned saved views as living in the View menu", async () => {
