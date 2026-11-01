@@ -80,13 +80,14 @@ const STATUSES_TOASTED_BY_INTERCEPTOR = new Set([402, 409, 422, 429]);
 			<app-gift-offer-card
 				feature="export.json"
 				variant="compact"
+				class="block min-w-0 max-w-full empty:hidden"
 				(claimed)="jsonGiftClaimed.set(true)"
 				(expired)="jsonGiftClaimed.set(false)"
 			/>
 		}
 	`,
 	host: {
-		class: "flex shrink-0 items-center gap-[8px]"
+		class: "flex min-w-0 max-w-full flex-wrap items-center gap-[8px] sm:shrink-0"
 	},
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
