@@ -1,5 +1,8 @@
 import { type ExternalDataSource } from "./games.constants";
-import { type ExternalDataStatus } from "./games-external-data.types";
+import {
+	type ExternalDataRequestPriority,
+	type ExternalDataStatus
+} from "./games-external-data.types";
 
 export interface MetacriticSourceDetail {
 	slug: string;
@@ -19,12 +22,23 @@ export interface HltbSourceDetail {
 	completionistHours: number | null;
 }
 
+export interface ExternalDataRequestOptions {
+	priority?: ExternalDataRequestPriority;
+	signal?: AbortSignal;
+}
+
 export interface MetacriticSource {
-	getGameBySlug(slug: string): Promise<MetacriticSourceDetail>;
+	getGameBySlug(
+		slug: string,
+		options?: ExternalDataRequestOptions
+	): Promise<MetacriticSourceDetail>;
 }
 
 export interface HltbSource {
-	getGameById(id: string): Promise<HltbSourceDetail>;
+	getGameById(
+		id: string,
+		options?: ExternalDataRequestOptions
+	): Promise<HltbSourceDetail>;
 }
 
 export interface HltbIdCandidate {
@@ -35,16 +49,24 @@ export interface HltbIdCandidate {
 }
 
 export interface HltbIdResolver {
-	findHltbCandidates(query: {
-		rawgSlug: string | null;
-		title: string;
-	}): Promise<HltbIdCandidate[]>;
+	findHltbCandidates(
+		query: {
+			rawgSlug: string | null;
+			title: string;
+		},
+		options?: ExternalDataRequestOptions
+	): Promise<HltbIdCandidate[]>;
 }
 
 export interface ExternalDataSources {
 	metacritic?: MetacriticSource;
 	hltb?: HltbSource;
 	hltbIdResolver?: HltbIdResolver;
+}
+
+export interface ExternalDataRefreshTimer {
+	deadlineMs: number;
+	startTimer(milliseconds: number, onExpire: () => void): () => void;
 }
 
 export interface ExternalDataGame {

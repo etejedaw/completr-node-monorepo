@@ -3,6 +3,8 @@ import {
 	type MetacriticSourceDetail
 } from "./games-external-data.interface";
 
+export type ExternalDataRequestPriority = "interactive" | "background";
+
 export type ExternalDataStatus =
 	"updated" | "not_found" | "ambiguous" | "no_data" | "failed";
 

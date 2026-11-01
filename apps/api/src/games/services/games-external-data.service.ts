@@ -4,11 +4,15 @@ import * as gameExternalService from "../../game-external/game-external.service"
 import * as gameScoresService from "../../game-scores/game-scores.service";
 import * as gameTimesService from "../../game-times/game-times.service";
 import * as gamesServiceError from "../errors/games.service-error";
-import { type ExternalDataSource } from "../games.constants";
+import {
+	EXTERNAL_DATA_DEADLINE_EXCEEDED,
+	type ExternalDataSource
+} from "../games.constants";
 import {
 	type ExternalDataCandidate,
 	type ExternalDataCandidates,
 	type ExternalDataGame,
+	type ExternalDataRequestOptions,
 	type ExternalDataResult,
 	type HltbSource,
 	type MetacriticSlugCandidate,
@@ -25,8 +29,10 @@ import { isReleaseYearMismatch } from "../utils/is-release-year-mismatch.util";
 import { normalizeGameTitle } from "../utils/normalize-game-title.util";
 import { pickMetacriticScore } from "../utils/pick-metacritic-score.util";
 import { resolveHltbId } from "../utils/resolve-hltb-id.util";
+import { untilAborted } from "../utils/until-aborted.util";
 import {
 	findUnavailableSources,
+	getExternalDataRefreshTimer,
 	getHltbIdResolver,
 	getHltbSource,
 	getMetacriticSource
@@ -55,14 +61,33 @@ export async function refreshGameExternalData(
 	const game = await findGameById(gameId);
 	if (!game) return null;
 
-	const results = await refreshExternalDataForGame(game, sources);
+	const results = await refreshWithinDeadline(game, sources);
 	const refreshedGame = await findGameById(gameId);
 	return { game: refreshedGame ?? game, results };
 }
 
-export async function refreshExternalDataForGame(
+async function refreshWithinDeadline(
 	game: ExternalDataGame,
 	sources: readonly ExternalDataSource[]
+) {
+	const { deadlineMs, startTimer } = getExternalDataRefreshTimer();
+	const deadline = new AbortController();
+	const cancelTimer = startTimer(deadlineMs, () => deadline.abort());
+
+	try {
+		return await refreshExternalDataForGame(game, sources, {
+			priority: "interactive",
+			signal: deadline.signal
+		});
+	} finally {
+		cancelTimer();
+	}
+}
+
+export async function refreshExternalDataForGame(
+	game: ExternalDataGame,
+	sources: readonly ExternalDataSource[],
+	options: ExternalDataRequestOptions = {}
 ) {
 	const externals = await gameExternalService.findByGameId(game.id);
 	const externalIdOf = (source: ExternalSource) =>
@@ -71,10 +96,18 @@ export async function refreshExternalDataForGame(
 
 	const results: ExternalDataResult[] = [];
 	for (const source of sources) {
+		if (options.signal?.aborted) {
+			results.push(deadlineExceededResult(source));
+			continue;
+		}
 		results.push(
 			source === "metacritic"
-				? await refreshMetacritic(game, externalIdOf("metacritic"))
-				: await refreshHltb(game, externalIdOf("hltb"))
+				? await refreshMetacritic(
+						game,
+						externalIdOf("metacritic"),
+						options
+					)
+				: await refreshHltb(game, externalIdOf("hltb"), options)
 		);
 	}
 	return results;
@@ -136,9 +169,14 @@ function failedResult(
 	return { source, status: "failed", errorCode };
 }
 
+function deadlineExceededResult(source: ExternalDataSource) {
+	return failedResult(source, EXTERNAL_DATA_DEADLINE_EXCEEDED);
+}
+
 async function refreshMetacritic(
 	game: ExternalDataGame,
-	externalId: string | null
+	externalId: string | null,
+	options: ExternalDataRequestOptions
 ): Promise<ExternalDataResult> {
 	const metacritic = getMetacriticSource();
 	if (!metacritic) return failedResult("metacritic", SOURCE_UNAVAILABLE);
@@ -148,11 +186,16 @@ async function refreshMetacritic(
 		lookup = externalId
 			? {
 					status: "matched",
-					detail: await metacritic.getGameBySlug(externalId),
+					detail: await untilAborted(
+						metacritic.getGameBySlug(externalId, options),
+						options.signal
+					),
 					isNewMatch: false
 				}
-			: await findMetacriticMatch(game, metacritic);
+			: await findMetacriticMatch(game, metacritic, options);
 	} catch (error) {
+		if (options.signal?.aborted)
+			return deadlineExceededResult("metacritic");
 		return { source: "metacritic", ...classifyExternalDataError(error) };
 	}
 
@@ -160,6 +203,7 @@ async function refreshMetacritic(
 		return { source: "metacritic", status: lookup.status, errorCode: null };
 
 	const { detail } = lookup;
+	if (options.signal?.aborted) return deadlineExceededResult("metacritic");
 	if (lookup.isNewMatch)
 		await saveExternalId(game.id, "metacritic", detail.slug);
 
@@ -176,6 +220,7 @@ async function refreshMetacritic(
 			errorCode: null
 		};
 
+	if (options.signal?.aborted) return deadlineExceededResult("metacritic");
 	await gameScoresService.upsertScore(
 		game.id,
 		METACRITIC_SCORE_SOURCE,
@@ -192,14 +237,18 @@ async function refreshMetacritic(
 
 async function findMetacriticMatch(
 	game: ExternalDataGame,
-	metacritic: MetacriticSource
+	metacritic: MetacriticSource,
+	options: ExternalDataRequestOptions
 ): Promise<MetacriticLookup> {
 	for (const candidate of buildMetacriticSlugCandidates(
 		game.title,
 		game.variant
 	)) {
 		const detail = await fetchUnlessNotFound(() =>
-			metacritic.getGameBySlug(candidate.slug)
+			untilAborted(
+				metacritic.getGameBySlug(candidate.slug, options),
+				options.signal
+			)
 		);
 		if (!detail) continue;
 		return matchMetacriticDetail(game, candidate, detail);
@@ -237,7 +286,8 @@ async function fetchUnlessNotFound<T>(fetchDetail: () => Promise<T>) {
 
 async function refreshHltb(
 	game: ExternalDataGame,
-	externalId: string | null
+	externalId: string | null,
+	options: ExternalDataRequestOptions
 ): Promise<ExternalDataResult> {
 	const hltb = getHltbSource();
 	if (!hltb) return failedResult("hltb", SOURCE_UNAVAILABLE);
@@ -247,11 +297,15 @@ async function refreshHltb(
 		lookup = externalId
 			? {
 					status: "matched",
-					detail: await hltb.getGameById(externalId),
+					detail: await untilAborted(
+						hltb.getGameById(externalId, options),
+						options.signal
+					),
 					isNewMatch: false
 				}
-			: await findHltbMatch(game, hltb);
+			: await findHltbMatch(game, hltb, options);
 	} catch (error) {
+		if (options.signal?.aborted) return deadlineExceededResult("hltb");
 		return { source: "hltb", ...classifyExternalDataError(error) };
 	}
 
@@ -259,6 +313,7 @@ async function refreshHltb(
 		return { source: "hltb", status: lookup.status, errorCode: null };
 
 	const { detail } = lookup;
+	if (options.signal?.aborted) return deadlineExceededResult("hltb");
 	if (lookup.isNewMatch) await saveExternalId(game.id, "hltb", detail.id);
 
 	const { mainStoryHours } = detail;
@@ -269,6 +324,7 @@ async function refreshHltb(
 	)
 		return { source: "hltb", status: "no_data", errorCode: null };
 
+	if (options.signal?.aborted) return deadlineExceededResult("hltb");
 	await gameTimesService.upsertTime(
 		game.id,
 		HLTB_TIME_SOURCE,
@@ -284,19 +340,26 @@ async function refreshHltb(
 
 async function findHltbMatch(
 	game: ExternalDataGame,
-	hltb: HltbSource
+	hltb: HltbSource,
+	options: ExternalDataRequestOptions
 ): Promise<HltbLookup> {
 	const resolver = getHltbIdResolver();
 	if (!resolver) return { status: "not_found" };
 
-	const candidates = await resolver.findHltbCandidates({
-		rawgSlug: game.code?.trim() || null,
-		title: game.title
-	});
+	const candidates = await untilAborted(
+		resolver.findHltbCandidates(
+			{ rawgSlug: game.code?.trim() || null, title: game.title },
+			options
+		),
+		options.signal
+	);
 	const resolution = resolveHltbId(game, candidates);
 	if (resolution.status !== "resolved") return resolution;
 
-	const detail = await hltb.getGameById(resolution.hltbId);
+	const detail = await untilAborted(
+		hltb.getGameById(resolution.hltbId, options),
+		options.signal
+	);
 	if (
 		resolution.matchedBy === "label" &&
 		normalizeGameTitle(detail.title) !== normalizeGameTitle(game.title)
