@@ -2,7 +2,6 @@ import { type Request, type Response } from "express";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import * as giftOffersService from "./gift-offers.service";
-import { premiumGrantSerializer } from "./premium-access.serializer";
 import { type GiftOfferParams } from "./schemas/gift-offer.schemas";
 
 export async function getGiftOffers(request: Request, response: Response) {
@@ -14,11 +13,11 @@ export async function getGiftOffers(request: Request, response: Response) {
 export async function postClaimGiftOffer(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
 	const { offerCode } = request.locals.params as GiftOfferParams;
-	const { grant, created } = await giftOffersService.claimGiftOffer(
+	const { offer, created } = await giftOffersService.claimGiftOffer(
 		user,
 		offerCode
 	);
 	return response
 		.status(created ? 201 : 200)
-		.json({ data: { grant: premiumGrantSerializer(grant), created } });
+		.json({ data: { offer, created } });
 }
