@@ -6,7 +6,10 @@ import {
 import { TestBed } from "@angular/core/testing";
 
 import { environment } from "../../../../environments/environment";
-import { SUPPRESS_VALIDATION_TOAST } from "../../../shared/utils/validation-errors";
+import {
+	SUPPRESS_CONFLICT_TOAST,
+	SUPPRESS_VALIDATION_TOAST
+} from "../../../shared/utils/validation-errors";
 import { premiumPromotionStatus } from "./premium-promotions-admin.model";
 import { PremiumPromotionsAdminService } from "./premium-promotions-admin.service";
 
@@ -47,6 +50,7 @@ describe("PremiumPromotionsAdminService", () => {
 		expect(req.request.method).toBe("POST");
 		expect(req.request.body).toEqual(body);
 		expect(req.request.context.get(SUPPRESS_VALIDATION_TOAST)).toBe(true);
+		expect(req.request.context.get(SUPPRESS_CONFLICT_TOAST)).toBe(true);
 		req.flush({ data: { promotion: { id: "p1" } } });
 		expect(result).toEqual({ id: "p1" });
 	});
@@ -62,6 +66,7 @@ describe("PremiumPromotionsAdminService", () => {
 			endsAt: "2026-12-10T00:00:00.000Z"
 		});
 		expect(req.request.context.get(SUPPRESS_VALIDATION_TOAST)).toBe(true);
+		expect(req.request.context.get(SUPPRESS_CONFLICT_TOAST)).toBe(true);
 		req.flush({ data: { promotion: { id: "p1" } } });
 		expect(result).toEqual({ id: "p1" });
 	});
@@ -73,6 +78,7 @@ describe("PremiumPromotionsAdminService", () => {
 		expect(req.request.method).toBe("POST");
 		expect(req.request.body).toEqual({});
 		expect(req.request.context.get(SUPPRESS_VALIDATION_TOAST)).toBe(true);
+		expect(req.request.context.get(SUPPRESS_CONFLICT_TOAST)).toBe(false);
 		req.flush({ data: { promotion: { id: "p1" } } });
 		expect(result).toEqual({ id: "p1" });
 	});

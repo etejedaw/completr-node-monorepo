@@ -3,7 +3,10 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
-import { SUPPRESS_VALIDATION_TOAST } from "../../../shared/utils/validation-errors";
+import {
+	SUPPRESS_CONFLICT_TOAST,
+	SUPPRESS_VALIDATION_TOAST
+} from "../../../shared/utils/validation-errors";
 import {
 	type CreatePremiumPromotionRequest,
 	type PremiumPromotion,
@@ -14,6 +17,10 @@ const SUPPRESS_TOAST_CONTEXT = new HttpContext().set(
 	SUPPRESS_VALIDATION_TOAST,
 	true
 );
+
+const SUPPRESS_FORM_ERROR_TOASTS_CONTEXT = new HttpContext()
+	.set(SUPPRESS_VALIDATION_TOAST, true)
+	.set(SUPPRESS_CONFLICT_TOAST, true);
 
 @Injectable({ providedIn: "root" })
 export class PremiumPromotionsAdminService {
@@ -31,7 +38,7 @@ export class PremiumPromotionsAdminService {
 			.post<{ data: { promotion: PremiumPromotion } }>(
 				this.baseUrl,
 				data,
-				{ context: SUPPRESS_TOAST_CONTEXT }
+				{ context: SUPPRESS_FORM_ERROR_TOASTS_CONTEXT }
 			)
 			.pipe(map(res => res.data.promotion));
 	}
@@ -41,7 +48,7 @@ export class PremiumPromotionsAdminService {
 			.patch<{ data: { promotion: PremiumPromotion } }>(
 				`${this.baseUrl}/${promotionId}`,
 				data,
-				{ context: SUPPRESS_TOAST_CONTEXT }
+				{ context: SUPPRESS_FORM_ERROR_TOASTS_CONTEXT }
 			)
 			.pipe(map(res => res.data.promotion));
 	}
