@@ -139,20 +139,27 @@ export function formatGraceDate(isoDate: string): string {
 						@if (providerNoticeOpen()) {
 							<p
 								id="rewind-ai-provider-notice"
-								class="m-0 rounded-card border border-line bg-surface px-3 py-2.5 text-[0.8125rem] leading-relaxed text-fg-secondary"
+								class="m-0 flex items-start gap-2 rounded-card border border-line bg-surface px-3 py-2.5 text-[0.8125rem] leading-relaxed text-fg-secondary"
 							>
-								Your AI recap is written by DeepSeek, an
-								external AI service. It receives this year's
-								games, ratings and stats, never your email or
-								username.
-								<a
-									routerLink="/privacy"
-									fragment="sharing"
-									target="_blank"
-									rel="noopener"
-									class="font-semibold text-brand hover:text-brand-hover"
-									>How your data is used</a
+								<span
+									aria-hidden="true"
+									class="material-icons shrink-0 text-base text-fg-muted"
+									>smart_toy</span
 								>
+								<span>
+									Your AI recap is written by DeepSeek, an
+									external AI service. It receives this year's
+									games, ratings and stats, never your email
+									or username.
+									<a
+										routerLink="/privacy"
+										fragment="sharing"
+										target="_blank"
+										rel="noopener"
+										class="font-semibold text-brand hover:text-brand-hover"
+										>How your data is used</a
+									>
+								</span>
 							</p>
 						}
 					</div>
