@@ -1,0 +1,136 @@
+<button
+	uiButton
+	type="button"
+	variant="secondary"
+	[size]="placement() === 'hero' ? 'md' : 'sm'"
+	[class]="
+		(placement() === 'hero' ? '!bg-surface/70 backdrop-blur' : 'h-9') +
+		(iconOnly() ? ' min-w-[44px] sm:min-w-9 !px-2' : '')
+	"
+	[ngpMenuTrigger]="menu"
+	[ngpMenuTriggerDisabled]="isMobile()"
+	ngpMenuTriggerPlacement="bottom-end"
+	[ngpMenuTriggerOffset]="6"
+	[attr.aria-haspopup]="isMobile() ? 'dialog' : 'menu'"
+	[attr.aria-label]="iconOnly() ? label() : null"
+	[attr.aria-busy]="busy() || null"
+	[title]="iconOnly() ? label() : ''"
+	(click)="openSheet()"
+>
+	<span
+		aria-hidden="true"
+		class="material-icons"
+		[class.text-base]="!iconOnly()"
+		[class.text-xl]="iconOnly()"
+		[class.animate-spin]="busy()"
+		>{{ busy() ? 'autorenew' : icon() }}</span
+	>
+	@if (!iconOnly()) { {{ label() }}
+	<span
+		aria-hidden="true"
+		class="material-icons text-base -mr-1 text-fg-muted"
+		>expand_more</span
+	>
+	}
+</button>
+
+<ng-template #menu>
+	<div
+		ngpMenu
+		[attr.aria-label]="heading()"
+		class="fixed z-[1010] min-w-[13rem] max-w-[20rem] p-1.5 bg-sidebar border border-line rounded-card shadow-[0_24px_48px_-16px_rgba(0,0,0,0.75)] outline-none data-[enter]:animate-[uiFadeUp_140ms_ease-out]"
+	>
+		<p
+			class="m-0 px-2.5 pt-1.5 pb-2 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+		>
+			{{ heading() }}
+		</p>
+		@for (item of items(); track item.id) { @if (item.separated) {
+		<div class="my-1.5 h-px bg-line" role="separator"></div>
+		}
+		<button
+			ngpMenuItem
+			type="button"
+			class="w-full flex items-center gap-2.5 min-h-9 px-2.5 rounded bg-transparent border-0 text-left text-sm text-fg-secondary outline-none cursor-pointer hover:bg-surface-hover hover:text-fg focus-visible:bg-surface-hover focus-visible:text-fg data-[disabled]:opacity-40 data-[disabled]:cursor-default"
+			[class.!text-premium]="item.premium && !item.locked"
+			[ngpMenuItemDisabled]="!!item.disabled || !!item.busy"
+			[attr.aria-label]="item.label"
+			[attr.aria-description]="item.hint ?? null"
+			[attr.aria-busy]="item.busy || null"
+			(click)="select(item)"
+		>
+			<ng-container
+				*ngTemplateOutlet="menuRow; context: { $implicit: item, sheet: false }"
+			/>
+		</button>
+		}
+	</div>
+</ng-template>
+
+<ng-template #menuRow let-item let-sheet="sheet">
+	<span
+		aria-hidden="true"
+		class="material-icons shrink-0"
+		[class.text-base]="!sheet"
+		[class.text-2xl]="sheet"
+		[class.text-fg-muted]="!item.premium || item.locked"
+		[class.text-premium]="item.premium && !item.locked"
+		[class.animate-spin]="item.busy"
+		>{{ item.busy ? 'autorenew' : item.icon }}</span
+	>
+	<span class="flex-1 min-w-0">
+		<span class="block truncate">{{ item.label }}</span>
+		@if (item.hint) {
+		<span class="block text-xs font-normal text-fg-muted"
+			>{{ item.hint }}</span
+		>
+		}
+	</span>
+	@if (item.locked) {
+	<span
+		aria-hidden="true"
+		class="material-icons text-premium"
+		[class.text-sm]="!sheet"
+		[class.text-lg]="sheet"
+		>lock</span
+	>
+	} @else if (item.premium) {
+	<span
+		aria-hidden="true"
+		class="material-icons text-premium"
+		[class.text-sm]="!sheet"
+		[class.text-lg]="sheet"
+		>workspace_premium</span
+	>
+	}
+</ng-template>
+
+@if (sheetOpen()) {
+<ui-bottom-sheet [heading]="heading()" (closed)="sheetOpen.set(false)">
+	<ul class="list-none m-0 p-0 flex flex-col gap-1">
+		@for (item of items(); track item.id) {
+		<li
+			[class.mt-2]="item.separated"
+			[class.pt-2]="item.separated"
+			[class.border-t]="item.separated"
+			[class.border-line]="item.separated"
+		>
+			<button
+				type="button"
+				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border-0 text-base font-medium text-fg text-left cursor-pointer transition active:bg-surface disabled:opacity-40 disabled:cursor-default"
+				[class.!text-premium]="item.premium && !item.locked"
+				[disabled]="item.disabled || item.busy"
+				[attr.aria-label]="item.label"
+				[attr.aria-description]="item.hint ?? null"
+				[attr.aria-busy]="item.busy || null"
+				(click)="select(item)"
+			>
+				<ng-container
+					*ngTemplateOutlet="menuRow; context: { $implicit: item, sheet: true }"
+				/>
+			</button>
+		</li>
+		}
+	</ul>
+</ui-bottom-sheet>
+}
