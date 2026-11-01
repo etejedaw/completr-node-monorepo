@@ -97,6 +97,16 @@ function noDataDetail(source: ExternalDataSource): string {
 		: "The Metacritic page has no score yet.";
 }
 
+const DEADLINE_EXCEEDED_CODE = "EXTERNAL_DATA_DEADLINE_EXCEEDED";
+
+function failedDetails(result: ExternalDataRefreshResult): string[] {
+	if (result.errorCode === DEADLINE_EXCEEDED_CODE)
+		return [
+			"Ran out of time: the source was busy, probably with a running job. Nothing was saved for it; try again in a moment."
+		];
+	return [`Error code: ${result.errorCode ?? "unknown"}`];
+}
+
 function resultView(
 	result: ExternalDataRefreshResult
 ): Omit<ExternalDataResultView, "source" | "sourceName"> {
@@ -136,7 +146,7 @@ function resultView(
 				statusLabel: "Failed",
 				icon: "error_outline",
 				tone: "danger",
-				details: [`Error code: ${result.errorCode ?? "unknown"}`]
+				details: failedDetails(result)
 			};
 	}
 }

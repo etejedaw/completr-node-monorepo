@@ -60,6 +60,35 @@ describe("AdminExternalDataDialog results", () => {
 		expect(hltb).not.toHaveTextContent(/Metacritic slug/);
 	});
 
+	it("explains a refresh that ran out of time instead of showing the raw error code", async () => {
+		const region = await renderResults([
+			{ source: "metacritic", status: "updated", score: 88 },
+			{
+				source: "hltb",
+				status: "failed",
+				errorCode: "EXTERNAL_DATA_DEADLINE_EXCEEDED"
+			}
+		]);
+
+		const hltb = resultOf(region, "HowLongToBeat");
+		expect(within(hltb).getByText("Failed")).toBeInTheDocument();
+		expect(hltb).toHaveTextContent(
+			/Ran out of time: the source was busy, probably with a running job\. Nothing was saved for it; try again in a moment\./
+		);
+		expect(hltb).not.toHaveTextContent("EXTERNAL_DATA_DEADLINE_EXCEEDED");
+		expect(resultOf(region, "Metacritic")).toHaveTextContent(/Score 88/);
+	});
+
+	it("keeps showing the error code for other failures", async () => {
+		const region = await renderResults([
+			{ source: "hltb", status: "failed", errorCode: "HLTB_BLOCKED" }
+		]);
+
+		expect(resultOf(region, "HowLongToBeat")).toHaveTextContent(
+			"Error code: HLTB_BLOCKED"
+		);
+	});
+
 	it("suggests setting the Metacritic slug from the game editor when no page is found", async () => {
 		const region = await renderResults([
 			{ source: "metacritic", status: "not_found" }
