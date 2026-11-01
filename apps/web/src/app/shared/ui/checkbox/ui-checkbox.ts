@@ -15,6 +15,7 @@ import { NgpCheckbox } from "ng-primitives/checkbox";
 			ngpCheckbox
 			[(ngpCheckboxChecked)]="checked"
 			[ngpCheckboxDisabled]="disabled()"
+			[attr.aria-label]="label() || null"
 		>
 			<svg
 				class="ui-checkbox__indicator"
@@ -32,15 +33,27 @@ import { NgpCheckbox } from "ng-primitives/checkbox";
 			</svg>
 		</span>
 		@if (label()) {
-			<span class="ui-checkbox__label">{{ label() }}</span>
+			<span class="ui-checkbox__label" aria-hidden="true">{{
+				label()
+			}}</span>
 		}
 		<ng-content />
 	`,
-	host: { class: "ui-checkbox" },
+	host: {
+		class: "ui-checkbox",
+		"[attr.data-disabled]": "disabled() ? '' : null",
+		"(click)": "toggleFromHost($event)"
+	},
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UiCheckbox {
 	checked = model(false);
 	disabled = input(false);
 	label = input<string>("");
+
+	protected toggleFromHost(event: MouseEvent) {
+		const handledByBox = event.defaultPrevented;
+		if (handledByBox || this.disabled()) return;
+		this.checked.set(!this.checked());
+	}
 }
