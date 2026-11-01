@@ -157,6 +157,17 @@ export async function findActiveGameSummaries() {
 	});
 }
 
+export async function findActiveGamesForExternalData() {
+	return Game.findAll({
+		where: { isActive: true },
+		attributes: ["id", "title", "variant", "releaseAt"],
+		order: [
+			["title", "ASC"],
+			["id", "ASC"]
+		]
+	});
+}
+
 export async function findGameById(id: string) {
 	return await Game.findOne({
 		where: { id, isActive: true },
