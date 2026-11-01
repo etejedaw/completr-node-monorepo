@@ -1,0 +1,78 @@
+info:
+    name: Refresh External Data
+    type: http
+    seq: 18
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/games/:id/external-data/refresh"
+    params:
+        - name: id
+          value: ""
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "sources": ["metacritic", "hltb"]
+            }
+
+settings:
+    encodeUrl: true
+    timeout: 0
+
+docs: |-
+    ## Refresh External Data
+
+    Fetches the Metacritic score and the HowLongToBeat Main Story duration of one game from their detail pages and stores them in the global catalog (`GameScore` source `metacritic`, `GameTime` source `hltb`). Each requested source is refreshed even when it already has a value. Sources run one after another and the request can take 10-30 s because the scrapers wait 5-7 s between external requests. `GameShelf` and `ListItem` are never touched.
+
+    **Authentication:** Bearer token required (role: moderator or admin).
+    **Rate Limit:** 300 requests per minute (admin/moderator exempt).
+
+    ### Path Parameters
+
+    | Param | Type | Required | Description    |
+    |-------|------|----------|----------------|
+    | id    | uuid | Yes      | The game UUID  |
+
+    ### Request Body
+
+    | Field   | Type  | Required | Description                                                                          |
+    |---------|-------|----------|--------------------------------------------------------------------------------------|
+    | sources | array | Yes      | At least one of `metacritic`, `hltb`, without repeats. Results follow this order.    |
+
+    ### Per-source behavior
+
+    - **Metacritic:** with a stored `metacritic` external id, its page is fetched as is. Without one, the slug is derived from the title (`title + variant` first when the game has a variant, then the bare title; at most two requests). The first page found must have the same normalized title, otherwise `not_found`; if both release years are known and differ by more than one, `ambiguous`. Only a confirmed match stores the external id. The stored score is `max(metaScore, userScore × 10)`, rounded, among the available ones; with neither, `no_data`.
+    - **HowLongToBeat:** needs a stored `hltb` external id; without it the result is `not_found` and HLTB is not called. Only Main Story is stored; a missing or non-positive Main Story is `no_data` (Main + Extras and Completionist are never used instead).
+    - `not_found`, `ambiguous`, `no_data` and `failed` never delete or overwrite stored values. One source can update while the other fails.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "game": { "id": "uuid", "title": "Hades", "scores": [], "times": [] },
+        "results": [
+          { "source": "metacritic", "status": "updated", "score": 93, "metaScore": 93, "userScore": 9.1, "errorCode": null },
+          { "source": "hltb", "status": "failed", "errorCode": "HLTB_RATE_LIMITED" }
+        ]
+      }
+    }
+    ```
+
+    `game` has the same shape as `PATCH /games/:id`. Each result has `source`, `status` (`updated`, `not_found`, `ambiguous`, `no_data`, `failed`) and `errorCode` (the provider code on `failed`, `SOURCE_UNAVAILABLE` when the scraper is not registered, otherwise `null`). Metacritic adds `score` (the stored 0-100 value) on `updated` and the raw `metaScore`/`userScore` whenever there was a match. HLTB adds `duration` (hours) on `updated`.
+
+    Records the audit action `game_external_data_refreshed`.
+
+    ### Errors
+
+    - 401 `AUTH_INVALID_TOKEN` — Invalid or expired token.
+    - 403 `AUTH_FORBIDDEN` — Caller is not moderator or admin.
+    - 404 `GAME_NOT_FOUND` — Game does not exist or is inactive.
+    - 422 `AUTH_SCHEMA_INVALID` — Missing Authorization header.
+    - 422 `COMMON_SCHEMA_INVALID` — `id` is not a UUID, or `sources` is missing, empty, repeated or has an unknown value.

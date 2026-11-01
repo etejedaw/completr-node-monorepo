@@ -1,0 +1,68 @@
+info:
+    name: Start Populate External Data
+    type: http
+    seq: 6
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/jobs/populate-external-data?limit=5"
+    auth: inherit
+    params:
+        - name: limit
+          type: query
+          value: "5"
+          enabled: false
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Start Populate External Data
+
+    Background job that fills the missing Metacritic scores and HowLongToBeat Main Story durations of the catalog, using the same per-game flow as `POST /games/:id/external-data/refresh`. Only one `populate_external_data` job can be running or pending at a time; a second call returns the running job.
+
+    **Authentication:** Hidden route — admin only.
+    **Rate Limit:** 50 requests per minute (user).
+
+    ### Query Params
+
+    | Param | Type | Required | Description                                                       |
+    |-------|------|----------|-------------------------------------------------------------------|
+    | limit | int  | No       | Positive integer. Max number of candidates to process. Omit for all. |
+
+    ### Response (202)
+
+    ```json
+    {
+      "data": {
+        "job": {
+          "id": "uuid",
+          "type": "populate_external_data",
+          "status": "running"
+        }
+      }
+    }
+    ```
+
+    Poll `GET /admin/jobs` to see its `status` and `result`.
+
+    ### Behavior while running
+
+    - Candidates: active games missing the `metacritic` score or the `hltb` time (either one). Each game is asked only for the missing sources. External ids do not exclude anyone.
+    - Games are processed one at a time; cancellation is checked before each game. A cancelled job stays `cancelled` and records its partial result.
+    - `not_found`, `ambiguous` and `no_data` are counted and the job continues.
+    - A `*_RATE_LIMITED`, `*_BLOCKED` or `*_PARSE_ERROR` failure, or a database error, stops the job as `failed`. `*_TIMEOUT`, `*_REQUEST_ERROR` and unknown failures are counted and the job continues, unless the same source fails three times in a row.
+    - Values saved before a stop are kept.
+
+    ### Result string
+
+    `Candidates: C, Processed: P, Metacritic scores updated: M, HLTB durations updated: H, Skipped complete: S. Metacritic not found: n, ambiguous: a, no data: d, failed: f. HLTB not found: n, ambiguous: a, no data: d, failed: f`
+
+    - Cancelled: prefixed with `Cancelled. `
+    - Failed: followed by `. Stopped: <reason>` (for example `METACRITIC_BLOCKED` or `HLTB_TIMEOUT (3 failures in a row)`).
+
+    ### Errors
+
+    - 404 `AUTH_ROUTE_NOT_FOUND` — Caller is not admin.
+    - 422 `COMMON_SCHEMA_INVALID` — `limit` is not a positive integer, or an unknown query param is sent.
+    - 503 `GAME_EXTERNAL_DATA_SOURCE_UNAVAILABLE` — A scraper is not registered on the server; the job is not started.
