@@ -1,0 +1,54 @@
+info:
+    name: Revoke Premium Promotion
+    type: http
+    seq: 11
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/premium-promotions/:promotionId/revoke"
+    params:
+        - name: promotionId
+          value: ""
+          type: path
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Revoke Premium Promotion
+
+    Ends a promotion immediately and expires every grant claimed with its code in the same transaction. For a scheduled promotion, the start date is also moved to the revocation instant. The promotion and grant rows are preserved; repeating the action is safe.
+
+    **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "promotion": {
+          "id": "uuid",
+          "code": "rewind-launch-2026",
+          "feature": "rewind.premium",
+          "startsAt": "2026-12-01T00:00:00.000Z",
+          "endsAt": "2026-12-15T12:00:00.000Z",
+          "createdAt": "2026-11-01T12:00:00.000Z",
+          "updatedAt": "2026-12-15T12:00:00.000Z"
+        }
+      }
+    }
+    ```
+
+    Records the audit event `premium_promotion_revoked`.
+
+    ### Errors
+
+    | Status | Code | Description |
+    |--------|------|-------------|
+    | 404 | AUTH_ROUTE_NOT_FOUND | Caller is anonymous or is not an admin |
+    | 404 | PREMIUM_PROMOTION_NOT_FOUND | Promotion does not exist |
+    | 422 | COMMON_SCHEMA_INVALID | `promotionId` is not a UUID |

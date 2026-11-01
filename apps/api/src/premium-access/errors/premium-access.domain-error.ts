@@ -2,6 +2,37 @@ import { DomainError } from "../../common/errors/domain-error";
 
 const MODULE_NAME = "Premium Access Module";
 
+export function premiumPromotionNotFound(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"PREMIUM_PROMOTION_NOT_FOUND",
+		"Premium promotion not found",
+		context
+	);
+}
+
+export function premiumPromotionInvalidDates(
+	context?: Record<string, unknown>
+) {
+	return new DomainError(
+		MODULE_NAME,
+		"PREMIUM_PROMOTION_INVALID_DATES",
+		"The promotion must end after its start date and in the future",
+		context
+	);
+}
+
+export function premiumPromotionCodeConflict(
+	context?: Record<string, unknown>
+) {
+	return new DomainError(
+		MODULE_NAME,
+		"PREMIUM_PROMOTION_CODE_CONFLICT",
+		"A premium promotion with this code already exists",
+		context
+	);
+}
+
 export function premiumGrantNotFound(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

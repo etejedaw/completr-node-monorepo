@@ -1,0 +1,48 @@
+info:
+    name: List Premium Promotions
+    type: http
+    seq: 8
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/admin/premium-promotions"
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## List Premium Promotions
+
+    Lists all global premium promotions, including scheduled, active and ended promotions. Results are ordered by creation date descending with a deterministic id tie-breaker.
+
+    **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "promotions": [
+          {
+            "id": "uuid",
+            "code": "rewind-launch-2026",
+            "feature": "rewind.premium",
+            "startsAt": "2026-12-01T00:00:00.000Z",
+            "endsAt": "2027-01-31T23:59:59.999Z",
+            "createdAt": "2026-11-01T12:00:00.000Z",
+            "updatedAt": "2026-11-01T12:00:00.000Z"
+          }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Code | Description |
+    |--------|------|-------------|
+    | 404 | AUTH_ROUTE_NOT_FOUND | Caller is anonymous or is not an admin |

@@ -22,25 +22,11 @@ module.exports = {
 			CREATE UNIQUE INDEX IF NOT EXISTS "PremiumGrants_userId_offerCode_unique"
 			ON "PremiumGrants" ("userId", "offerCode")
 			WHERE "offerCode" IS NOT NULL AND "userId" IS NOT NULL;
-
-			INSERT INTO "PremiumGrants" ("userId", feature, "expiresAt", "offerCode")
-			SELECT NULL, 'rewind.premium', '2027-01-31T23:59:59.999Z', NULL
-			WHERE NOT EXISTS (
-				SELECT 1 FROM "PremiumGrants"
-				WHERE "userId" IS NULL
-				AND feature = 'rewind.premium'
-				AND "expiresAt" = '2027-01-31T23:59:59.999Z'
-			);
 		`);
 	},
 
 	async down(queryInterface) {
 		await queryInterface.sequelize.query(`
-			DELETE FROM "PremiumGrants"
-			WHERE "userId" IS NULL
-			AND feature = 'rewind.premium'
-			AND "expiresAt" = '2027-01-31T23:59:59.999Z';
-
 			DROP TABLE IF EXISTS "PremiumGrants";
 		`);
 	}

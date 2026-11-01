@@ -1,0 +1,71 @@
+info:
+    name: Update Premium Promotion
+    type: http
+    seq: 10
+
+http:
+    method: PATCH
+    url: "{{BASE_URL}}/admin/premium-promotions/:promotionId"
+    headers:
+        - name: Content-Type
+          value: application/json
+    params:
+        - name: promotionId
+          value: ""
+          type: path
+    body:
+        type: json
+        data: |-
+            {
+              "endsAt": "2027-02-07T23:59:59.999Z"
+            }
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Update Premium Promotion
+
+    Changes the promotion start or end date. At least one date is required; code and feature are immutable. The new expiration is also applied in the same transaction to every grant already claimed with the promotion code.
+
+    **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
+
+    ### Request Body
+
+    | Field | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | startsAt | string | No | New ISO start date |
+    | endsAt | string | No | New future ISO end date, after the resulting start date |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "promotion": {
+          "id": "uuid",
+          "code": "rewind-launch-2026",
+          "feature": "rewind.premium",
+          "startsAt": "2026-12-01T00:00:00.000Z",
+          "endsAt": "2027-02-07T23:59:59.999Z",
+          "createdAt": "2026-11-01T12:00:00.000Z",
+          "updatedAt": "2026-11-15T12:00:00.000Z"
+        }
+      }
+    }
+    ```
+
+    Records the audit event `premium_promotion_updated`.
+
+    ### Errors
+
+    | Status | Code | Description |
+    |--------|------|-------------|
+    | 404 | AUTH_ROUTE_NOT_FOUND | Caller is anonymous or is not an admin |
+    | 404 | PREMIUM_PROMOTION_NOT_FOUND | Promotion does not exist |
+    | 422 | PREMIUM_PROMOTION_INVALID_DATES | The resulting end date is not after the start date or is not in the future |
+    | 422 | COMMON_SCHEMA_INVALID | Empty body, invalid UUID, invalid ISO date or extra field |
