@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { beforeEach, describe, it } from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
 
+import jwt from "jsonwebtoken";
+
 import { PasswordResetToken } from "../../src/auth/password-reset-token.model";
 import { environmentConfig } from "../../src/common/config/environment.config";
 import { sequelize } from "../../src/database/sequelize.database";
@@ -196,6 +198,79 @@ void describe("invitations", () => {
 
 		assert.equal(response.status, 404);
 		assert.equal(response.body.type, "AUTH_ROUTE_NOT_FOUND");
+	});
+});
+
+void describe("hidden admin routes", () => {
+	function expiredAccessTokenFor(user: { id: string }) {
+		return jwt.sign(
+			{ sub: user.id },
+			environmentConfig.ACCESS_TOKEN_SECRET,
+			{ expiresIn: -10 }
+		);
+	}
+
+	void it("answers 401 AUTH_INVALID_TOKEN to an admin whose access token expired so the client can refresh it", async () => {
+		const admin = await createUserWithSession("admin");
+
+		const response = await api()
+			.get("/admin/users")
+			.set("Authorization", bearer(expiredAccessTokenFor(admin.user)));
+
+		assert.equal(response.status, 401);
+		assert.equal(response.body.type, "AUTH_INVALID_TOKEN");
+	});
+
+	void it("answers the same 401 to a regular user with an expired token, revealing nothing about the route", async () => {
+		const user = await createUserWithSession();
+
+		const response = await api()
+			.patch(`/admin/users/${user.user.id}`)
+			.set("Authorization", bearer(expiredAccessTokenFor(user.user)))
+			.send({ password: NEW_PASSWORD });
+
+		assert.equal(response.status, 401);
+		assert.equal(response.body.type, "AUTH_INVALID_TOKEN");
+	});
+
+	void it("keeps hiding the route with 404 for a forged token, a missing token or garbage", async () => {
+		const admin = await createUserWithSession("admin");
+		const forged = jwt.sign({ sub: admin.user.id }, "another-secret", {
+			expiresIn: -10
+		});
+
+		const responses = await Promise.all([
+			api().get("/admin/users").set("Authorization", bearer(forged)),
+			api().get("/admin/users"),
+			api().get("/admin/users").set("Authorization", "Bearer not-a-jwt"),
+			api().get("/admin/users").set("Authorization", "garbage")
+		]);
+
+		for (const response of responses) {
+			assert.equal(response.status, 404);
+			assert.equal(response.body.type, "AUTH_ROUTE_NOT_FOUND");
+		}
+	});
+
+	void it("lets an admin update a user again once the refreshed token is used", async () => {
+		const admin = await createUserWithSession("admin");
+		const target = await createUser();
+
+		const stale = await api()
+			.patch(`/admin/users/${target.id}`)
+			.set("Authorization", bearer(expiredAccessTokenFor(admin.user)))
+			.send({ password: NEW_PASSWORD });
+		const retried = await api()
+			.patch(`/admin/users/${target.id}`)
+			.set("Authorization", admin.authorization)
+			.send({ password: NEW_PASSWORD });
+
+		assert.equal(stale.status, 401);
+		assert.equal(retried.status, 200);
+		const relogin = await api()
+			.post("/auth/login")
+			.send({ email: target.email, password: NEW_PASSWORD });
+		assert.equal(relogin.status, 200);
 	});
 });
 
