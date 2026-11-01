@@ -29,7 +29,7 @@ export function hltbDomainToHttpMapper(
 	)
 		return new HttpError({ ...baseOptions, status: 502 });
 
-	if (error.code === "HLTB_TIMEOUT")
+	if (error.code === "HLTB_TIMEOUT" || error.code === "HLTB_ABORTED")
 		return new HttpError({ ...baseOptions, status: 504 });
 
 	return new HttpError({ ...baseOptions, status: 500 });

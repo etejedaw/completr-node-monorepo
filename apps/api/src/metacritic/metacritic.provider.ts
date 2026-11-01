@@ -1,6 +1,7 @@
 import { type CheerioAPI, load } from "cheerio";
 
 import { decodeHtmlEntities } from "../common/utils/decode-html-entities.util";
+import { type ScrapingRequestOptions } from "../scraping/scraping.interface";
 import { ScrapingHttpClient } from "../scraping/scraping-http.client";
 import { asRecord } from "../scraping/utils/as-record.util";
 import { parseReleaseYear } from "../scraping/utils/parse-release-year.util";
@@ -44,20 +45,27 @@ export class MetacriticClient {
 		return MetacriticClient.sharedInstance;
 	}
 
-	async getGameBySlug(slug: string): Promise<MetacriticGameDetail> {
+	async getGameBySlug(
+		slug: string,
+		options: ScrapingRequestOptions = {}
+	): Promise<MetacriticGameDetail> {
 		const requestedSlug = slug.trim();
 		if (!SLUG_PATTERN.test(requestedSlug))
 			throw metacriticServiceError.notFoundError({ slug });
 
 		const html = await this.fetchPage(
-			new URL(`/game/${requestedSlug}/`, BASE_URL)
+			new URL(`/game/${requestedSlug}/`, BASE_URL),
+			options
 		);
 		return this.parseGamePage(html, requestedSlug);
 	}
 
-	private async fetchPage(url: URL): Promise<string> {
+	private async fetchPage(
+		url: URL,
+		options: ScrapingRequestOptions
+	): Promise<string> {
 		try {
-			return await this.http.getHtml(url);
+			return await this.http.getHtml(url, options);
 		} catch (error) {
 			throw metacriticServiceError.fromRequestFailure(error);
 		}

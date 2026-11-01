@@ -25,6 +25,9 @@ export function hltbServiceToDomainMapper(
 	if (error.code === "HLTB_TIMEOUT")
 		return hltbDomainError.hltbTimeout(context);
 
+	if (error.code === "HLTB_ABORTED")
+		return hltbDomainError.hltbAborted(context);
+
 	if (error.code === "HLTB_REQUEST_ERROR")
 		return hltbDomainError.hltbRequestError(context);
 

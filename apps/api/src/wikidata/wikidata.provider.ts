@@ -1,3 +1,4 @@
+import { type ScrapingRequestOptions } from "../scraping/scraping.interface";
 import { ScrapingHttpClient } from "../scraping/scraping-http.client";
 import { asRecord } from "../scraping/utils/as-record.util";
 import { parseReleaseYear } from "../scraping/utils/parse-release-year.util";
@@ -35,7 +36,8 @@ export class WikidataClient {
 	}
 
 	async findHltbCandidates(
-		query: WikidataHltbQuery
+		query: WikidataHltbQuery,
+		options: ScrapingRequestOptions = {}
 	): Promise<WikidataHltbCandidate[]> {
 		const sparql = buildHltbCandidatesQuery(query);
 		if (!sparql) return [];
@@ -43,13 +45,16 @@ export class WikidataClient {
 		const url = new URL(SPARQL_ENDPOINT);
 		url.searchParams.set("query", sparql);
 
-		const body = await this.fetchResults(url);
+		const body = await this.fetchResults(url, options);
 		return this.parseCandidates(body);
 	}
 
-	private async fetchResults(url: URL): Promise<string> {
+	private async fetchResults(
+		url: URL,
+		options: ScrapingRequestOptions
+	): Promise<string> {
 		try {
-			return await this.http.getText(url, SPARQL_JSON_HEADERS);
+			return await this.http.getText(url, SPARQL_JSON_HEADERS, options);
 		} catch (error) {
 			throw wikidataServiceError.fromRequestFailure(error);
 		}

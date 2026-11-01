@@ -22,6 +22,9 @@ export function wikidataServiceToDomainMapper(
 	if (error.code === "WIKIDATA_TIMEOUT")
 		return wikidataDomainError.wikidataTimeout(context);
 
+	if (error.code === "WIKIDATA_ABORTED")
+		return wikidataDomainError.wikidataAborted(context);
+
 	if (error.code === "WIKIDATA_REQUEST_ERROR")
 		return wikidataDomainError.wikidataRequestError(context);
 

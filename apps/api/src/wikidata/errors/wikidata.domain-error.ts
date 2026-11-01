@@ -38,6 +38,15 @@ export function wikidataTimeout(context?: Record<string, unknown>) {
 	);
 }
 
+export function wikidataAborted(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"WIKIDATA_ABORTED",
+		"Wikidata request was aborted",
+		context
+	);
+}
+
 export function wikidataRequestError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

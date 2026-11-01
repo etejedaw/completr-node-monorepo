@@ -26,7 +26,7 @@ export function wikidataDomainToHttpMapper(
 	)
 		return new HttpError({ ...baseOptions, status: 502 });
 
-	if (error.code === "WIKIDATA_TIMEOUT")
+	if (error.code === "WIKIDATA_TIMEOUT" || error.code === "WIKIDATA_ABORTED")
 		return new HttpError({ ...baseOptions, status: 504 });
 
 	return new HttpError({ ...baseOptions, status: 500 });

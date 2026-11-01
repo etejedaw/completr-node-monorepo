@@ -25,6 +25,9 @@ export function metacriticServiceToDomainMapper(
 	if (error.code === "METACRITIC_TIMEOUT")
 		return metacriticDomainError.metacriticTimeout(context);
 
+	if (error.code === "METACRITIC_ABORTED")
+		return metacriticDomainError.metacriticAborted(context);
+
 	if (error.code === "METACRITIC_REQUEST_ERROR")
 		return metacriticDomainError.metacriticRequestError(context);
 

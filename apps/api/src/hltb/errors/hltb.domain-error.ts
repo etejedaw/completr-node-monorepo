@@ -47,6 +47,15 @@ export function hltbTimeout(context?: Record<string, unknown>) {
 	);
 }
 
+export function hltbAborted(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"HLTB_ABORTED",
+		"HowLongToBeat request was aborted",
+		context
+	);
+}
+
 export function hltbRequestError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

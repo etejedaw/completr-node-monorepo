@@ -29,7 +29,10 @@ export function metacriticDomainToHttpMapper(
 	)
 		return new HttpError({ ...baseOptions, status: 502 });
 
-	if (error.code === "METACRITIC_TIMEOUT")
+	if (
+		error.code === "METACRITIC_TIMEOUT" ||
+		error.code === "METACRITIC_ABORTED"
+	)
 		return new HttpError({ ...baseOptions, status: 504 });
 
 	return new HttpError({ ...baseOptions, status: 500 });

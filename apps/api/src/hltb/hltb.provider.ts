@@ -1,5 +1,6 @@
 import { load } from "cheerio";
 
+import { type ScrapingRequestOptions } from "../scraping/scraping.interface";
 import { ScrapingHttpClient } from "../scraping/scraping-http.client";
 import { asRecord } from "../scraping/utils/as-record.util";
 import { parseReleaseYear } from "../scraping/utils/parse-release-year.util";
@@ -30,18 +31,27 @@ export class HltbClient {
 		return HltbClient.sharedInstance;
 	}
 
-	async getGameById(externalId: string): Promise<HltbGameDetail> {
+	async getGameById(
+		externalId: string,
+		options: ScrapingRequestOptions = {}
+	): Promise<HltbGameDetail> {
 		const id = externalId.trim();
 		if (!GAME_ID_PATTERN.test(id))
 			throw hltbServiceError.notFoundError({ externalId });
 
-		const html = await this.fetchPage(new URL(`/game/${id}`, BASE_URL));
+		const html = await this.fetchPage(
+			new URL(`/game/${id}`, BASE_URL),
+			options
+		);
 		return this.parseGamePage(html, id);
 	}
 
-	private async fetchPage(url: URL): Promise<string> {
+	private async fetchPage(
+		url: URL,
+		options: ScrapingRequestOptions
+	): Promise<string> {
 		try {
-			return await this.http.getHtml(url);
+			return await this.http.getHtml(url, options);
 		} catch (error) {
 			throw hltbServiceError.fromRequestFailure(error);
 		}

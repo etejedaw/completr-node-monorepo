@@ -38,6 +38,13 @@ export function requestError(rawError: unknown) {
 	});
 }
 
+export function abortedError(rawError: unknown) {
+	return new ServiceError("WIKIDATA_ABORTED", {
+		...BASE_OPTIONS,
+		raw: rawError
+	});
+}
+
 export function fromRequestFailure(error: unknown) {
 	if (!(error instanceof ScrapingRequestError)) return requestError(error);
 
@@ -46,5 +53,6 @@ export function fromRequestFailure(error: unknown) {
 	if (error.kind === "RATE_LIMITED") return rateLimitedError(raw);
 	if (error.kind === "BLOCKED") return blockedError(raw);
 	if (error.kind === "TIMEOUT") return timeoutError(raw);
+	if (error.kind === "ABORTED") return abortedError(raw);
 	return requestError(raw);
 }

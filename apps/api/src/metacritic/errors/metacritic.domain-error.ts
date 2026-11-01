@@ -47,6 +47,15 @@ export function metacriticTimeout(context?: Record<string, unknown>) {
 	);
 }
 
+export function metacriticAborted(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"METACRITIC_ABORTED",
+		"Metacritic request was aborted",
+		context
+	);
+}
+
 export function metacriticRequestError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,
