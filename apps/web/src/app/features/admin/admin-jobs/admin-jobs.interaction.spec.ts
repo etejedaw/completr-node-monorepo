@@ -127,11 +127,43 @@ describe("AdminJobs interaction", () => {
 		return screen.getByRole("list");
 	}
 
-	function startButton(name: string | RegExp) {
-		return screen.getByRole("button", { name });
+	function runJobButton() {
+		return screen.getByRole("button", { name: "Run job" });
+	}
+
+	async function jobItem(name: string) {
+		const open = screen.queryByRole("menu", { name: "Run a job" });
+		if (!open || open.hasAttribute("data-exit")) {
+			await waitFor(() =>
+				expect(screen.queryByRole("menu")).not.toBeInTheDocument()
+			);
+			await userEvent.click(runJobButton());
+		}
+		const menu = await screen.findByRole("menu", { name: "Run a job" });
+		return within(menu).getByRole("menuitem", { name });
+	}
+
+	async function startJob(name: string) {
+		await userEvent.click(await jobItem(name));
+	}
+
+	async function expectJobBlocked(name: string) {
+		expect(await jobItem(name)).toBeDisabled();
+	}
+
+	function expectNoJobStarting() {
+		expect(runJobButton()).not.toHaveAttribute("aria-busy");
 	}
 
 	beforeEach(() => {
+		vi.stubGlobal(
+			"matchMedia",
+			vi.fn(() => ({
+				matches: false,
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn()
+			}))
+		);
 		jobs = [
 			job({
 				id: "j1",
@@ -169,6 +201,7 @@ describe("AdminJobs interaction", () => {
 			httpTesting.verify();
 		}
 		expect(unexpectedRequests).toEqual([]);
+		vi.unstubAllGlobals();
 	});
 
 	it("lists the recorded jobs with their status and result", async () => {
@@ -224,26 +257,21 @@ describe("AdminJobs interaction", () => {
 		);
 	});
 
-	it("sends a single start request when a job button is clicked three times in a row", async () => {
+	it("sends a single start request when a job is picked three times in a row", async () => {
 		await renderLoaded();
 		holdStarts = true;
 
-		const button = startButton("Calculate Ratings");
-		await userEvent.tripleClick(button);
+		await userEvent.tripleClick(await jobItem("Calculate Ratings"));
+		answerPending();
+		await userEvent.click(await jobItem("Calculate Ratings"));
 		answerPending();
 
 		expect(heldStarts).toHaveLength(1);
-		expect(
-			screen.getByRole("button", { name: "Starting..." })
-		).toHaveAttribute("aria-busy", "true");
+		expect(runJobButton()).toHaveAttribute("aria-busy", "true");
 
 		holdStarts = false;
 		startResponse(heldStarts[0]);
-		await untilVisible(() =>
-			expect(
-				screen.getByRole("button", { name: "Calculate Ratings" })
-			).toBeEnabled()
-		);
+		await untilVisible(() => expectNoJobStarting());
 		expect(starts).toEqual(["/admin/jobs/calculate-ratings"]);
 	});
 
@@ -251,27 +279,26 @@ describe("AdminJobs interaction", () => {
 		await renderLoaded();
 		holdStarts = true;
 
-		await userEvent.click(startButton("Calculate Ratings"));
+		await startJob("Calculate Ratings");
 		answerPending();
 
-		expect(startButton("Populate RAWG IDs")).toBeDisabled();
-		expect(startButton("Calculate Durations")).toBeDisabled();
-		await userEvent.click(startButton("Populate RAWG IDs"));
-		await userEvent.click(startButton("Calculate Durations"));
+		await expectJobBlocked("Populate RAWG IDs");
+		await expectJobBlocked("Calculate Durations");
+		await userEvent.click(await jobItem("Populate RAWG IDs"));
+		await userEvent.click(await jobItem("Calculate Durations"));
 		answerPending();
 		expect(heldStarts).toHaveLength(1);
 
 		holdStarts = false;
 		startResponse(heldStarts[0]);
-		await untilVisible(() =>
-			expect(startButton("Populate RAWG IDs")).toBeEnabled()
-		);
+		await untilVisible(() => expectNoJobStarting());
+		expect(await jobItem("Populate RAWG IDs")).toBeEnabled();
 	});
 
 	it("asks the server for a limit of 2 when populating RAWG IDs", async () => {
 		await renderLoaded();
 
-		await userEvent.click(startButton("Populate RAWG IDs"));
+		await startJob("Populate RAWG IDs");
 		await untilVisible(() => expect(starts).toHaveLength(1));
 
 		expect(starts).toEqual(["/admin/jobs/populate-rawg?limit=2"]);
@@ -283,7 +310,7 @@ describe("AdminJobs interaction", () => {
 		it("starts the full run without a hidden limit and shows the new job after reloading", async () => {
 			await renderLoaded();
 
-			await userEvent.click(startButton(label));
+			await startJob(label);
 
 			await untilVisible(() =>
 				expect(
@@ -300,22 +327,20 @@ describe("AdminJobs interaction", () => {
 			await renderLoaded();
 			holdStarts = true;
 
-			await userEvent.tripleClick(startButton(label));
+			await userEvent.tripleClick(await jobItem(label));
 			answerPending();
 
 			expect(heldStarts).toHaveLength(1);
-			expect(
-				screen.getByRole("button", { name: "Starting..." })
-			).toHaveAttribute("aria-busy", "true");
-			expect(startButton("Populate RAWG IDs")).toBeDisabled();
-			expect(startButton("Calculate Ratings")).toBeDisabled();
-			await userEvent.click(startButton("Calculate Ratings"));
+			expect(runJobButton()).toHaveAttribute("aria-busy", "true");
+			await expectJobBlocked("Populate RAWG IDs");
+			await expectJobBlocked("Calculate Ratings");
+			await userEvent.click(await jobItem("Calculate Ratings"));
 			answerPending();
 			expect(heldStarts).toHaveLength(1);
 
 			holdStarts = false;
 			startResponse(heldStarts[0]);
-			await untilVisible(() => expect(startButton(label)).toBeEnabled());
+			await untilVisible(() => expectNoJobStarting());
 			expect(starts).toEqual(["/admin/jobs/populate-external-data"]);
 		});
 
@@ -350,12 +375,12 @@ describe("AdminJobs interaction", () => {
 				body: { type: "JOB_ALREADY_RUNNING" }
 			};
 
-			await userEvent.click(startButton(label));
-			await untilVisible(() => expect(startButton(label)).toBeEnabled());
+			await startJob(label);
+			await untilVisible(() => expectNoJobStarting());
 			expect(starts).toEqual([]);
 
 			delete failures["POST /admin/jobs/populate-external-data"];
-			await userEvent.click(startButton(label));
+			await startJob(label);
 			await untilVisible(() => expect(starts).toHaveLength(1));
 			expect(starts).toEqual(["/admin/jobs/populate-external-data"]);
 		});
@@ -364,7 +389,7 @@ describe("AdminJobs interaction", () => {
 	it("reloads the list after a job starts and shows the new running job", async () => {
 		await renderLoaded();
 
-		await userEvent.click(startButton("Calculate Durations"));
+		await startJob("Calculate Durations");
 
 		await untilVisible(() =>
 			expect(
@@ -390,10 +415,8 @@ describe("AdminJobs interaction", () => {
 				body: { type: "JOB_ALREADY_RUNNING" }
 			};
 
-			await userEvent.click(startButton("Calculate Ratings"));
-			await untilVisible(() =>
-				expect(startButton("Calculate Ratings")).toBeEnabled()
-			);
+			await startJob("Calculate Ratings");
+			await untilVisible(() => expectNoJobStarting());
 			expect(starts).toEqual([]);
 			expect(
 				within(desktopTable()).queryByText("calculate_ratings", {
@@ -402,14 +425,14 @@ describe("AdminJobs interaction", () => {
 			).toBeInTheDocument();
 
 			delete failures["POST /admin/jobs/calculate-ratings"];
-			await userEvent.click(startButton("Calculate Ratings"));
+			await startJob("Calculate Ratings");
 			await untilVisible(() => expect(starts).toHaveLength(1));
 		}
 	);
 
 	it("shows the load error when the list cannot be reloaded after starting a job", async () => {
 		await renderLoaded();
-		await userEvent.click(startButton("Calculate Ratings"));
+		await startJob("Calculate Ratings");
 		await untilVisible(() => expect(starts).toHaveLength(1));
 		failures["GET /admin/jobs"] = { status: 500 };
 		await userEvent.click(screen.getByRole("button", { name: "Refresh" }));
@@ -419,7 +442,8 @@ describe("AdminJobs interaction", () => {
 				screen.getByText("Couldn't load the jobs")
 			).toBeInTheDocument()
 		);
-		expect(startButton("Calculate Ratings")).toBeEnabled();
+		expectNoJobStarting();
+		expect(runJobButton()).toBeEnabled();
 	});
 
 	it("disables Refresh while the list is loading so repeated clicks send one request", async () => {
@@ -569,9 +593,9 @@ describe("AdminJobs interaction", () => {
 		await renderLoaded();
 		holdLoads = true;
 
-		await userEvent.click(startButton("Calculate Ratings"));
+		await startJob("Calculate Ratings");
 		answerPending();
-		await userEvent.click(startButton("Calculate Durations"));
+		await startJob("Calculate Durations");
 		answerPending();
 		expect(heldLoads).toHaveLength(2);
 
@@ -588,7 +612,7 @@ describe("AdminJobs interaction", () => {
 		);
 	});
 
-	it("activates the toolbar and Refresh buttons with Enter and Space", async () => {
+	it("activates Refresh and Run job from the keyboard", async () => {
 		await renderLoaded();
 		await userEvent.tab();
 		expect(screen.getByRole("button", { name: "Refresh" })).toHaveFocus();
@@ -605,41 +629,56 @@ describe("AdminJobs interaction", () => {
 			).toBeEnabled()
 		);
 
-		startButton("Populate RAWG IDs").focus();
+		runJobButton().focus();
 		await userEvent.keyboard(" ");
+		const menu = await screen.findByRole("menu", { name: "Run a job" });
+		await waitFor(() =>
+			expect(
+				within(menu).getByRole("menuitem", {
+					name: "Populate RAWG IDs"
+				})
+			).toHaveFocus()
+		);
+		await userEvent.keyboard("{Enter}");
 		await untilVisible(() => expect(starts).toHaveLength(1));
+		expect(starts).toEqual(["/admin/jobs/populate-rawg?limit=2"]);
 	});
 
 	it("reaches every action by Tab in a sensible order", async () => {
 		await renderLoaded();
 
 		const order: string[] = [];
-		for (let i = 0; i < 6; i++) {
+		for (let i = 0; i < 3; i++) {
 			await userEvent.tab();
-			order.push(document.activeElement?.textContent?.trim() ?? "");
+			const active = document.activeElement;
+			order.push(
+				active?.getAttribute("aria-label") ??
+					active?.textContent?.trim() ??
+					""
+			);
 		}
 
-		expect(order.slice(0, 5)).toEqual([
-			expect.stringContaining("Refresh"),
-			expect.stringContaining("Populate RAWG IDs"),
-			expect.stringContaining("Fill missing Metacritic & HLTB"),
-			expect.stringContaining("Calculate Ratings"),
-			expect.stringContaining("Calculate Durations")
+		expect(order).toEqual([
+			"Refresh",
+			expect.stringContaining("Run job"),
+			"Cancel"
 		]);
-		expect(order[5]).toBe("Cancel");
 	});
 
 	it("keeps icon glyphs out of the accessible names of the buttons", async () => {
 		await renderLoaded();
 
+		expect(
+			screen.getByRole("button", { name: "Refresh" })
+		).toBeInTheDocument();
+		expect(runJobButton()).toBeInTheDocument();
 		for (const name of [
-			"Refresh",
 			"Populate RAWG IDs",
 			"Fill missing Metacritic & HLTB",
 			"Calculate Ratings",
 			"Calculate Durations"
 		]) {
-			expect(startButton(name)).toBeInTheDocument();
+			expect(await jobItem(name)).toBeInTheDocument();
 		}
 	});
 });

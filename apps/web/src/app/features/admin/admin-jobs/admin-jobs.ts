@@ -2,6 +2,7 @@ import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
 	signal
@@ -9,8 +10,9 @@ import {
 import { type Subscription } from "rxjs";
 
 import { ToastService } from "../../../core/services/toast";
+import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
+import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { UiButton, UiEmptyState, UiSkeleton } from "../../../shared/ui";
 import { type JobEntry } from "../services/jobs.model";
 import { JobsService } from "../services/jobs.service";
@@ -45,9 +47,9 @@ const DEFAULT_JOB_STATUS_STYLE: JobStatusStyle = {
 @Component({
 	selector: "app-admin-jobs",
 	imports: [
+		ActionMenu,
 		DatePipe,
 		LibraryHero,
-		LibraryToolbar,
 		UiButton,
 		UiEmptyState,
 		UiSkeleton
@@ -65,7 +67,15 @@ export class AdminJobs implements OnInit {
 	protected readonly starting = signal("");
 	protected readonly cancelling = signal("");
 	protected readonly loadFailed = signal(false);
-	protected readonly jobActions = JOB_ACTIONS;
+	protected readonly jobMenuItems = computed<ActionMenuItem[]>(() =>
+		JOB_ACTIONS.map(action => ({
+			id: action.type,
+			label: action.label,
+			icon: action.icon,
+			busy: this.starting() === action.type,
+			disabled: !!this.starting()
+		}))
+	);
 	protected readonly skeletonRows = [1, 2, 3, 4];
 
 	ngOnInit() {
