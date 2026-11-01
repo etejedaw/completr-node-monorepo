@@ -109,3 +109,14 @@ export function gameInUse(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function gameExternalDataSourceUnavailable(
+	context?: Record<string, unknown>
+) {
+	return new DomainError(
+		MODULE_NAME,
+		"GAME_EXTERNAL_DATA_SOURCE_UNAVAILABLE",
+		"External data source is not available",
+		context
+	);
+}
