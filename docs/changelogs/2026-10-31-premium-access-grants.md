@@ -52,4 +52,6 @@ El acceso premium deja de depender exclusivamente de `User.role`. El módulo nue
 
 ## Commits
 
-- Tanda implementada en el working tree y pendiente de commit; no hay hashes asociados todavía.
+- `907e0ebc` — feat(premium-access): add temporary premium grants and gift offers
+- `033bc84c` — feat(premium-access): add grant management and gift offer UI
+- `f9822ccc` — docs(premium-access): document grants and gift offers
