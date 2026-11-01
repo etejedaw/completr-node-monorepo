@@ -55,6 +55,7 @@ docs: |-
           "backlogFlow": [{ "month": 3, "added": 4, "finished": 3 }],
           "genreShare": [{ "code": "action", "name": "Action", "count": 7 }]
         },
+        "premiumAccessKind": "gift",
         "ownerControls": {
           "includesPrivateRuns": false,
           "includesNotes": false,
@@ -62,6 +63,11 @@ docs: |-
           "graceEndsAt": null,
           "canRegenerate": true,
           "aiRecapState": "ready"
+        },
+        "premiumAccess": {
+          "allowed": true,
+          "source": "feature-grant",
+          "expiresAt": "2027-01-31T23:59:59.999Z"
         }
       }
     }

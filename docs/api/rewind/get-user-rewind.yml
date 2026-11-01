@@ -39,6 +39,8 @@ docs: |-
 
     ### Response (200)
 
+    As a visitor sees it (`premiumAccess` and `ownerControls` are `null`).
+
     ```json
     {
       "data": {
@@ -51,11 +53,7 @@ docs: |-
           "role": "user"
         },
         "isSpotlight": false,
-        "premiumAccess": {
-          "allowed": true,
-          "source": "feature-grant",
-          "expiresAt": "2027-01-31T23:59:59.999Z"
-        },
+        "premiumAccess": null,
         "otherYears": [2024, 2023],
         "totals": {
           "finished": 18,
@@ -174,6 +172,7 @@ docs: |-
         "generatedAt": "2025-12-03T20:15:00.000Z",
         "aiRecap": null,
         "premiumStats": null,
+        "premiumAccessKind": null,
         "ownerControls": null
       }
     }
@@ -181,7 +180,8 @@ docs: |-
 
     - `persona`: the title of the year, the first rule that matches: `trophy-hunter` (`platinums` >= 3, never when `platinums` is `null`), `marathoner` (`finished` >= 3 and an average of 30 hours or more per finished game), `short-and-sweet` (`finished` >= 5 and an average of 8 hours or less), `finisher` (`finished` >= 10 and `finishRate` >= 80), `genre-explorer` (`genresPlayed` >= 6), `picky-player` (`abandoned` > `finished` and `abandoned` >= 3), otherwise `steady-player`. The average uses the hours of `longest` / `fastest` (real or estimated) of the latest run of each finished game, leaving out games without hours.
     - `isSpotlight`: `true` while today (UTC) is between December 1 of `year` and January 31 of the next year.
-    - `premiumAccess`: the owner's current access to `rewind.premium`. `source` is `role`, `full-grant`, `feature-grant` or null; `expiresAt` is the applicable grant expiration or null. It controls premium generation actions and the badge, not access to already generated content.
+    - `premiumAccess`: only for the owner, `null` for everyone else. The owner's current access to `rewind.premium`: `source` is `role`, `full-grant`, `feature-grant` or null; `expiresAt` is the applicable grant expiration or null. It controls premium generation actions, not access to already generated content nor the badge.
+    - `premiumAccessKind`: same for every viewer. How the stored premium part (`aiRecap`, `premiumStats`) was generated: `gift` with a specific Rewind grant, `premium` with a premium role or temporary full premium, `null` without premium content or for Rewinds generated before this field existed. It is stored with the content, so it stays correct after the owner's access expires; the client shows the badge from it.
     - `otherYears`: the other years `GET /users/:username/rewinds` lists for the same viewer, newest first (only generated years for visitors).
     - `language`: `en` or `es`, chosen by the owner when generating; the page is shown in it for every viewer.
     - `generatedAt`: ISO date of the last generation. The owner sends it back as `expectedGeneratedAt` to regenerate.

@@ -60,6 +60,7 @@ docs: |-
     - **Owner with `rewind.premium` access:** access can come from a premium role, temporary full premium or a specific Rewind grant. After the counters are saved, the AI recap and the premium stats are generated from the public runs, or from every run with `includePrivateRuns`. If the AI fails the request still succeeds with `ownerControls.aiRecapState: "failed"`; retry with `POST /users/me/rewinds/:year/ai-recap`.
     - **Notes:** with `includeNotes`, the AI input gets each run's notes (whitespace collapsed, cut at 300 characters); without `includePrivateRuns`, only the notes of public runs. Notes never change the live numbers or the premium stats, and no response includes them. The choice is stored as `ownerControls.includesNotes` and reused by `POST /users/me/rewinds/:year/ai-recap`.
     - **Owner without access:** no AI call; an AI recap and premium stats stored while the owner had access are kept.
+    - **`premiumAccessKind`:** stored when the AI recap or the premium stats are written: `gift` when the owner's access came from a specific Rewind grant (`feature-grant`), `premium` for a premium role or temporary full premium. A regeneration without access keeps it while premium content remains, and sets it to `null` otherwise.
 
     ### Response (201 / 200)
 
@@ -74,6 +75,7 @@ docs: |-
         "generatedAt": "2026-12-15T18:42:07.123Z",
         "aiRecap": null,
         "premiumStats": null,
+        "premiumAccessKind": null,
         "ownerControls": {
           "includesPrivateRuns": false,
           "includesNotes": false,
@@ -81,6 +83,11 @@ docs: |-
           "graceEndsAt": null,
           "canRegenerate": true,
           "aiRecapState": "unavailable"
+        },
+        "premiumAccess": {
+          "allowed": false,
+          "source": null,
+          "expiresAt": null
         }
       }
     }
