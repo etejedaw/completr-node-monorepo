@@ -6,7 +6,7 @@ import { of, Subject, throwError } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
 import { GiftOfferCard } from "./gift-offer-card";
-import { type GiftOffer, type GiftOfferGrant } from "./gift-offer-card.model";
+import { type GiftOffer, type GiftOfferClaim } from "./gift-offer-card.model";
 import { GiftOffersService } from "./gift-offers.service";
 
 function makeOffer(overrides: Partial<GiftOffer> = {}): GiftOffer {
@@ -14,6 +14,8 @@ function makeOffer(overrides: Partial<GiftOffer> = {}): GiftOffer {
 		code: "json-export-trial-1m",
 		feature: "export.json",
 		durationDays: 30,
+		availableFrom: null,
+		availableUntil: null,
 		status: "available",
 		expiresAt: null,
 		canActivate: true,
@@ -22,15 +24,19 @@ function makeOffer(overrides: Partial<GiftOffer> = {}): GiftOffer {
 	};
 }
 
-const GRANT: GiftOfferGrant = {
-	id: "g1",
-	userId: "u1",
-	feature: "export.json",
-	expiresAt: "2026-12-01T00:00:00.000Z",
-	offerCode: "json-export-trial-1m",
-	createdAt: "2026-11-01T00:00:00.000Z",
-	updatedAt: "2026-11-01T00:00:00.000Z"
-};
+const ACTIVE_OFFER = makeOffer({
+	status: "active",
+	canActivate: false,
+	hasAccess: true,
+	expiresAt: "2026-12-01T00:00:00.000Z"
+});
+
+function claimOf(
+	overrides: Partial<GiftOffer> = {},
+	created = true
+): GiftOfferClaim {
+	return { offer: { ...ACTIVE_OFFER, ...overrides }, created };
+}
 
 describe("GiftOfferCard interaction", () => {
 	const giftOffers = {
@@ -43,10 +49,9 @@ describe("GiftOfferCard interaction", () => {
 		giftOffers.listOffers.mockReset();
 		giftOffers.claimOffer.mockReset();
 		giftOffers.listOffers.mockReturnValue(of([makeOffer()]));
-		giftOffers.claimOffer.mockReturnValue(
-			of({ grant: GRANT, created: true })
-		);
-		auth.loadUser.mockClear();
+		giftOffers.claimOffer.mockReturnValue(of(claimOf()));
+		auth.loadUser.mockReset();
+		auth.loadUser.mockReturnValue(of({}));
 	});
 
 	function providers() {
@@ -72,10 +77,7 @@ describe("GiftOfferCard interaction", () => {
 	});
 
 	it("locks the button while activation is pending", async () => {
-		const pending = new Subject<{
-			grant: GiftOfferGrant;
-			created: boolean;
-		}>();
+		const pending = new Subject<GiftOfferClaim>();
 		giftOffers.claimOffer.mockReturnValue(pending);
 		await render(GiftOfferCard, {
 			inputs: { offerCode: "json-export-trial-1m" },
@@ -88,7 +90,7 @@ describe("GiftOfferCard interaction", () => {
 		expect(
 			screen.getByRole("button", { name: "Activating..." })
 		).toBeDisabled();
-		pending.next({ grant: GRANT, created: true });
+		pending.next(claimOf());
 		pending.complete();
 	});
 
@@ -102,7 +104,7 @@ describe("GiftOfferCard interaction", () => {
 			])
 		);
 		giftOffers.claimOffer.mockReturnValue(
-			of({ grant: { ...GRANT, feature: "*" }, created: true })
+			of(claimOf({ code: "premium-trial-1m", feature: "*" }))
 		);
 		await render(GiftOfferCard, {
 			inputs: { offerCode: "premium-trial-1m" },
@@ -170,6 +172,147 @@ describe("GiftOfferCard interaction", () => {
 		);
 		expect(
 			await screen.findByText("Trial already used")
+		).toBeInTheDocument();
+	});
+
+	it("emits the claimed offer only when it comes back active", async () => {
+		const { fixture } = await render(GiftOfferCard, {
+			inputs: { offerCode: "json-export-trial-1m" },
+			providers: providers()
+		});
+		const emitted: GiftOffer[] = [];
+		fixture.componentInstance.claimed.subscribe(value =>
+			emitted.push(value)
+		);
+		await userEvent.click(
+			await screen.findByRole("button", { name: "Activate trial" })
+		);
+		expect(emitted).toEqual([ACTIVE_OFFER]);
+	});
+
+	it("reloads the listing instead of marking active when the claim returns a used offer", async () => {
+		giftOffers.claimOffer.mockReturnValue(
+			of(
+				claimOf(
+					{
+						status: "used",
+						hasAccess: false,
+						expiresAt: "2020-01-01T00:00:00.000Z"
+					},
+					false
+				)
+			)
+		);
+		giftOffers.listOffers
+			.mockReturnValueOnce(of([makeOffer()]))
+			.mockReturnValueOnce(
+				of([makeOffer({ status: "used", canActivate: false })])
+			);
+		const { fixture } = await render(GiftOfferCard, {
+			inputs: { offerCode: "json-export-trial-1m" },
+			providers: providers()
+		});
+		const emitted: GiftOffer[] = [];
+		fixture.componentInstance.claimed.subscribe(value =>
+			emitted.push(value)
+		);
+		await userEvent.click(
+			await screen.findByRole("button", { name: "Activate trial" })
+		);
+		expect(
+			await screen.findByText("Trial already used")
+		).toBeInTheDocument();
+		expect(screen.queryByText("Trial active")).not.toBeInTheDocument();
+		expect(giftOffers.listOffers).toHaveBeenCalledTimes(2);
+		expect(emitted).toEqual([]);
+		expect(auth.loadUser).not.toHaveBeenCalled();
+	});
+
+	it("does not refresh the user when a full premium claim comes back inactive", async () => {
+		giftOffers.listOffers.mockReturnValue(
+			of([makeOffer({ code: "premium-trial-1m", feature: "*" })])
+		);
+		giftOffers.claimOffer.mockReturnValue(
+			of(
+				claimOf(
+					{
+						code: "premium-trial-1m",
+						feature: "*",
+						status: "used",
+						hasAccess: false
+					},
+					false
+				)
+			)
+		);
+		await render(GiftOfferCard, {
+			inputs: { offerCode: "premium-trial-1m" },
+			providers: providers()
+		});
+		await userEvent.click(
+			await screen.findByRole("button", { name: "Activate trial" })
+		);
+		expect(auth.loadUser).not.toHaveBeenCalled();
+	});
+
+	it("keeps the trial active when refreshing the user fails after a successful claim", async () => {
+		giftOffers.listOffers.mockReturnValue(
+			of([makeOffer({ code: "premium-trial-1m", feature: "*" })])
+		);
+		giftOffers.claimOffer.mockReturnValue(
+			of(claimOf({ code: "premium-trial-1m", feature: "*" }))
+		);
+		auth.loadUser.mockReturnValue(throwError(() => new Error("offline")));
+		await render(GiftOfferCard, {
+			inputs: { offerCode: "premium-trial-1m" },
+			providers: providers()
+		});
+		await userEvent.click(
+			await screen.findByRole("button", { name: "Activate trial" })
+		);
+		expect(await screen.findByText("Trial active")).toBeInTheDocument();
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+	});
+
+	it("retries after a server error and activates on the second attempt", async () => {
+		giftOffers.claimOffer
+			.mockReturnValueOnce(throwError(() => ({ status: 500 })))
+			.mockReturnValueOnce(of(claimOf()));
+		await render(GiftOfferCard, {
+			inputs: { offerCode: "json-export-trial-1m" },
+			providers: providers()
+		});
+		await userEvent.click(
+			await screen.findByRole("button", { name: "Activate trial" })
+		);
+		expect(await screen.findByRole("alert")).toHaveTextContent(
+			"Could not activate the trial. Try again."
+		);
+		await userEvent.click(
+			screen.getByRole("button", { name: "Activate trial" })
+		);
+		expect(await screen.findByText("Trial active")).toBeInTheDocument();
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+	});
+
+	it("titles a fixed-date promotion without a duration", async () => {
+		giftOffers.listOffers.mockReturnValue(
+			of([
+				makeOffer({
+					code: "lists-gift",
+					feature: "lists.unlimited",
+					durationDays: null,
+					availableFrom: "2026-11-01T00:00:00.000Z",
+					availableUntil: "2026-12-01T00:00:00.000Z"
+				})
+			])
+		);
+		await render(GiftOfferCard, {
+			inputs: { offerCode: "lists-gift" },
+			providers: providers()
+		});
+		expect(
+			await screen.findByText("Claim your Premium gift")
 		).toBeInTheDocument();
 	});
 });

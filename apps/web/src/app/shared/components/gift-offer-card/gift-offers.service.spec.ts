@@ -43,7 +43,12 @@ describe("GiftOffersService", () => {
 		expect(req.request.method).toBe("POST");
 		expect(req.request.body).toEqual({});
 		expect(req.request.context.get(SUPPRESS_VALIDATION_TOAST)).toBe(true);
-		req.flush({ data: { grant: { id: "g1" }, created: true } });
-		expect(result).toEqual({ grant: { id: "g1" }, created: true });
+		req.flush({
+			data: { offer: { code: "json-export-trial-1m" }, created: true }
+		});
+		expect(result).toEqual({
+			offer: { code: "json-export-trial-1m" },
+			created: true
+		});
 	});
 });

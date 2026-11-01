@@ -8,11 +8,11 @@ import {
 	output,
 	signal
 } from "@angular/core";
-import { map, switchMap } from "rxjs";
+import { catchError, map, of, switchMap } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
 import { UiAlert, UiButton, UiSkeleton } from "../../ui";
-import { type GiftOffer, type GiftOfferGrant } from "./gift-offer-card.model";
+import { type GiftOffer } from "./gift-offer-card.model";
 import { GiftOffersService } from "./gift-offers.service";
 
 const OFFER_COPY: Record<string, { title: string; description: string }> = {
@@ -37,7 +37,7 @@ const OFFER_COPY: Record<string, { title: string; description: string }> = {
 export class GiftOfferCard implements OnInit {
 	readonly offerCode = input.required<string>();
 	readonly variant = input<"card" | "compact">("card");
-	readonly claimed = output<GiftOfferGrant>();
+	readonly claimed = output<GiftOffer>();
 
 	private readonly giftOffersService = inject(GiftOffersService);
 	private readonly auth = inject(AuthService);
@@ -79,22 +79,24 @@ export class GiftOfferCard implements OnInit {
 			.claimOffer(offer.code)
 			.pipe(
 				switchMap(result =>
-					result.grant.feature === "*"
-						? this.auth.loadUser().pipe(map(() => result))
-						: [result]
+					result.offer.status === "active" &&
+					result.offer.feature === "*"
+						? this.auth.loadUser().pipe(
+								map(() => result),
+								catchError(() => of(result))
+							)
+						: of(result)
 				)
 			)
 			.subscribe({
-				next: result => {
-					this.offer.set({
-						...offer,
-						status: "active",
-						expiresAt: result.grant.expiresAt,
-						canActivate: false,
-						hasAccess: true
-					});
+				next: ({ offer: claimedOffer }) => {
 					this.isClaiming.set(false);
-					this.claimed.emit(result.grant);
+					if (claimedOffer.status !== "active") {
+						this.load();
+						return;
+					}
+					this.offer.set(claimedOffer);
+					this.claimed.emit(claimedOffer);
 				},
 				error: error => {
 					this.claimError.set(
@@ -107,9 +109,12 @@ export class GiftOfferCard implements OnInit {
 	}
 
 	protected copy() {
+		const durationDays = this.offer()?.durationDays;
 		return (
 			OFFER_COPY[this.offerCode()] ?? {
-				title: `Try this Premium feature for ${this.offer()?.durationDays ?? 30} days`,
+				title: durationDays
+					? `Try this Premium feature for ${durationDays} days`
+					: "Claim your Premium gift",
 				description: "Activate a limited-time Premium feature trial."
 			}
 		);
