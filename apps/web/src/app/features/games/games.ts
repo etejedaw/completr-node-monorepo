@@ -18,6 +18,8 @@ import { SUPPRESS_VALIDATION_TOAST } from "../../shared/utils/validation-errors"
 import {
 	type CompilationItemResponse,
 	type CreateGameDto,
+	type ExternalDataRefreshResponse,
+	type ExternalDataSource,
 	type GamesQuery,
 	type GamesResponse,
 	type GamesSearchResponse,
@@ -130,6 +132,18 @@ export class GamesService {
 				data: { game: Game };
 			}>(`${environment.apiUrl}/games/${id}`, dto)
 			.pipe(map(res => res.data.game));
+	}
+
+	refreshExternalData(gameId: string, sources: ExternalDataSource[]) {
+		return this.http
+			.post<{
+				data: ExternalDataRefreshResponse;
+			}>(
+				`${environment.apiUrl}/games/${gameId}/external-data/refresh`,
+				{ sources },
+				{ context: SUPPRESS_TOAST_CONTEXT }
+			)
+			.pipe(map(res => res.data));
 	}
 
 	splitGame(id: string, dto: SplitGameDto) {

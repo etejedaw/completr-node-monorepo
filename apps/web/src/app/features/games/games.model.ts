@@ -103,3 +103,23 @@ export interface GamesQuery extends Record<string, Appendable> {
 	only_inactive?: boolean;
 	detailed?: boolean;
 }
+
+export type ExternalDataSource = "metacritic" | "hltb";
+
+export type ExternalDataRefreshStatus =
+	"updated" | "not_found" | "ambiguous" | "no_data" | "failed";
+
+export interface ExternalDataRefreshResult {
+	source: ExternalDataSource;
+	status: ExternalDataRefreshStatus;
+	score?: number;
+	metaScore?: number;
+	userScore?: number;
+	duration?: number;
+	errorCode?: string | null;
+}
+
+export interface ExternalDataRefreshResponse {
+	game: Game;
+	results: ExternalDataRefreshResult[];
+}
