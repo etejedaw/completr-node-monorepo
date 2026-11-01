@@ -17,7 +17,7 @@ auth:
 docs: |-
     ## Get Gift Offers
 
-    Lists the gift offers visible to the authenticated user and their server-resolved state. It merges the static trials `json-export-trial-1m` (`export.json`) and `premium-trial-1m` (`*`), both for 30 days from the claim, with the admin-managed promotions (fixed end date), static offers first and promotions ordered by start date and code.
+    Lists the gift offers visible to the authenticated user and their server-resolved state. Every offer comes from an admin-managed promotion, which expires on a fixed end date, ordered by start date and code.
 
     **Authentication:** Bearer token required.
 
@@ -28,11 +28,10 @@ docs: |-
       "data": {
         "offers": [
           {
-            "code": "json-export-trial-1m",
+            "code": "json-export-launch",
             "feature": "export.json",
-            "durationDays": 30,
-            "availableFrom": null,
-            "availableUntil": null,
+            "availableFrom": "2026-11-01T00:00:00.000Z",
+            "availableUntil": "2026-12-01T00:00:00.000Z",
             "status": "available",
             "expiresAt": null,
             "canActivate": true,
@@ -41,7 +40,6 @@ docs: |-
           {
             "code": "lists-unlimited-launch",
             "feature": "lists.unlimited",
-            "durationDays": null,
             "availableFrom": "2026-11-01T00:00:00.000Z",
             "availableUntil": "2026-12-01T00:00:00.000Z",
             "status": "active",
@@ -54,6 +52,6 @@ docs: |-
     }
     ```
 
-    `status` is `available`, `active`, `used`, `expired` or `not-eligible`. `canActivate` is true only for `available`. `hasAccess` reports current access to the offer feature from any source, including a role or another grant. `durationDays` is `null` for promotions, which expire on `availableUntil`.
+    `status` is `available`, `active`, `used`, `expired` or `not-eligible`. `canActivate` is true only for `available`. `hasAccess` reports current access to the offer feature from any source, including a role or another grant. `availableFrom` and `availableUntil` are the promotion's start and end dates.
 
     Promotions that have not started are not returned, so scheduled campaigns stay hidden. Ended or revoked promotions are returned only to users who claimed them, with `status: "used"`. An existing grant for the user and code always decides the state, even if it already expired or was revoked.

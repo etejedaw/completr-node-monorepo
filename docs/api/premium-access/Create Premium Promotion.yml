@@ -68,6 +68,6 @@ docs: |-
     | Status | Code | Description |
     |--------|------|-------------|
     | 404 | AUTH_ROUTE_NOT_FOUND | Caller is anonymous or is not an admin |
-    | 409 | PREMIUM_PROMOTION_CODE_CONFLICT | Another promotion or a static gift offer (`json-export-trial-1m`, `premium-trial-1m`) already uses this code |
+    | 409 | PREMIUM_PROMOTION_CODE_CONFLICT | Another promotion already uses this code |
     | 422 | PREMIUM_PROMOTION_INVALID_DATES | `endsAt` is not after `startsAt` or is not in the future |
     | 422 | COMMON_SCHEMA_INVALID | Invalid code, feature, ISO date or extra field |

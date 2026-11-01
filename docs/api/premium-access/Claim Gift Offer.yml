@@ -11,7 +11,7 @@ http:
           value: application/json
     params:
         - name: offerCode
-          value: json-export-trial-1m
+          value: lists-unlimited-launch
           type: path
     body:
         type: json
@@ -28,7 +28,7 @@ auth:
 docs: |-
     ## Claim Gift Offer
 
-    Activates a gift offer, either a static trial or an admin-managed promotion, with its server-defined feature and expiration. The client cannot choose the feature, duration or expiration. Static trials last 30 days from the claim; promotions expire for everyone on their fixed `endsAt`, so claiming late gives less access. Repeating a claim returns the original offer state without extending or reactivating it; concurrent claims produce one grant.
+    Activates a gift offer, which is always an admin-managed promotion, with its server-defined feature and expiration. The client cannot choose the feature or the expiration. The grant expires for everyone on the promotion's fixed `endsAt`, so claiming late gives less access. Repeating a claim returns the original offer state without extending or reactivating it; concurrent claims produce one grant.
 
     **Authentication:** Bearer token required. Body must be an empty JSON object.
 
@@ -40,7 +40,6 @@ docs: |-
         "offer": {
           "code": "lists-unlimited-launch",
           "feature": "lists.unlimited",
-          "durationDays": null,
           "availableFrom": "2026-11-01T00:00:00.000Z",
           "availableUntil": "2026-12-01T00:00:00.000Z",
           "status": "active",
@@ -59,6 +58,6 @@ docs: |-
 
     | Status | Code | Description |
     |--------|------|-------------|
-    | 404 | GIFT_OFFER_NOT_FOUND | Unknown offer or promotion code, or a promotion that has not started yet (indistinguishable from an unknown code, so scheduled campaigns stay hidden) |
+    | 404 | GIFT_OFFER_NOT_FOUND | Unknown promotion code, or a promotion that has not started yet (indistinguishable from an unknown code, so scheduled campaigns stay hidden) |
     | 409 | GIFT_OFFER_NOT_ELIGIBLE | Offer already ended, promotion revoked, or the account already has access to its feature |
     | 422 | COMMON_SCHEMA_INVALID | Body is not empty or the offer code is invalid |

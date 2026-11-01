@@ -19,7 +19,7 @@ El acceso premium deja de depender exclusivamente de `User.role`. El módulo nue
 - Modelo `PremiumGrant`, asociación con `User` y resolvedor `resolvePremiumAccess`, con origen `role`, `full-grant` o `feature-grant` y vencimiento derivado.
 - Consulta agrupada `findFullPremiumUserIds` para serializar `hasPremium` sin consultas por fila.
 - Endpoints admin para consultar el catálogo, listar, crear, actualizar y revocar concesiones, con validación estricta y auditoría `premium_grant_created`, `premium_grant_updated` y `premium_grant_revoked`.
-- Ofertas `json-export-trial-1m` y `premium-trial-1m`, endpoints `GET /users/me/gift-offers` y `POST /users/me/gift-offers/:offerCode/claim`, y estados `available`, `active`, `used`, `expired` y `not-eligible`.
+- Ofertas de regalo que salen de promociones administrables, endpoints `GET /users/me/gift-offers` y `POST /users/me/gift-offers/:offerCode/claim`, y estados `available`, `active`, `used`, `expired` y `not-eligible`.
 - `AdminPremiumAccess` y `PremiumAccessAdminService`, con formularios de concesión y extensión, revocación confirmada y protección contra doble clic, cierre durante peticiones y respuestas fuera de orden.
 - `GiftOfferCard` y `GiftOffersService`, con estados de carga, activación, error y reintento; una prueba completa refresca `AuthService.loadUser()` antes de emitir el resultado.
 - `premiumAccess` en `/users/me` y en las respuestas de Rewind; `hasPremium` en perfiles, tarjetas, feed, reviews, actividad social y solicitudes de seguimiento.
