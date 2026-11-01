@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 
 import { ServiceError } from "../../../src/common/errors/service-error";
 import { classifyExternalDataError } from "../../../src/games/utils/classify-external-data-error.util";
-import { isMetacriticYearMismatch } from "../../../src/games/utils/is-metacritic-year-mismatch.util";
+import { isReleaseYearMismatch } from "../../../src/games/utils/is-release-year-mismatch.util";
 import { pickMetacriticScore } from "../../../src/games/utils/pick-metacritic-score.util";
 
 function providerError(code: string) {
@@ -91,24 +91,21 @@ void describe("classifyExternalDataError", () => {
 	});
 });
 
-void describe("isMetacriticYearMismatch", () => {
+void describe("isReleaseYearMismatch", () => {
 	void it("tolerates one year of difference", () => {
-		assert.equal(isMetacriticYearMismatch("2017-03-03", 2018), false);
-		assert.equal(isMetacriticYearMismatch("2017-03-03", 2016), false);
+		assert.equal(isReleaseYearMismatch("2017-03-03", 2018), false);
+		assert.equal(isReleaseYearMismatch("2017-03-03", 2016), false);
 	});
 
 	void it("flags a gap larger than one year", () => {
-		assert.equal(isMetacriticYearMismatch("2017-03-03", 2019), true);
-		assert.equal(
-			isMetacriticYearMismatch(new Date("2004-01-01"), 2020),
-			true
-		);
+		assert.equal(isReleaseYearMismatch("2017-03-03", 2019), true);
+		assert.equal(isReleaseYearMismatch(new Date("2004-01-01"), 2020), true);
 	});
 
 	void it("never flags when either year is missing or unreadable", () => {
-		assert.equal(isMetacriticYearMismatch(null, 2019), false);
-		assert.equal(isMetacriticYearMismatch(undefined, 2019), false);
-		assert.equal(isMetacriticYearMismatch("2017-03-03", null), false);
-		assert.equal(isMetacriticYearMismatch("not a date", 2019), false);
+		assert.equal(isReleaseYearMismatch(null, 2019), false);
+		assert.equal(isReleaseYearMismatch(undefined, 2019), false);
+		assert.equal(isReleaseYearMismatch("2017-03-03", null), false);
+		assert.equal(isReleaseYearMismatch("not a date", 2019), false);
 	});
 });

@@ -1,6 +1,7 @@
 import { type ExternalDataSource } from "../games.constants";
 import {
 	type ExternalDataSources,
+	type HltbIdResolver,
 	type HltbSource,
 	type MetacriticSource
 } from "../games-external-data.interface";
@@ -19,6 +20,10 @@ export function getMetacriticSource(): MetacriticSource | null {
 
 export function getHltbSource(): HltbSource | null {
 	return registeredSources.hltb ?? null;
+}
+
+export function getHltbIdResolver(): HltbIdResolver | null {
+	return registeredSources.hltbIdResolver ?? null;
 }
 
 export function findUnavailableSources(sources: readonly ExternalDataSource[]) {

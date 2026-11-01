@@ -5,6 +5,7 @@ import { GameExternal } from "../../src/game-external/game-external.model";
 import { type ExternalSource } from "../../src/game-external/game-external.model";
 import { Game } from "../../src/games/game.model";
 import {
+	type HltbIdCandidate,
 	type HltbSourceDetail,
 	type MetacriticSourceDetail
 } from "../../src/games/games-external-data.interface";
@@ -12,11 +13,15 @@ import { registerExternalDataSources } from "../../src/games/services/external-d
 
 type FakeOutcome<T> = T | Error | Promise<T>;
 
+function providerServiceOf(code: string) {
+	if (code.startsWith("HLTB")) return "HLTB Provider";
+	if (code.startsWith("WIKIDATA")) return "Wikidata Provider";
+	return "Metacritic Provider";
+}
+
 export function providerError(code: string) {
 	return new ServiceError(code, {
-		service: code.startsWith("HLTB")
-			? "HLTB Provider"
-			: "Metacritic Provider",
+		service: providerServiceOf(code),
 		raw: undefined
 	});
 }
@@ -81,6 +86,42 @@ export function fakeHltb(
 	return { calls, source };
 }
 
+export function hltbCandidate(
+	overrides: Partial<HltbIdCandidate> & { hltbId: string }
+): HltbIdCandidate {
+	return {
+		label: null,
+		releaseYear: null,
+		rawgSlug: null,
+		...overrides
+	};
+}
+
+export function fakeWikidata(
+	respond: (query: {
+		rawgSlug: string | null;
+		title: string;
+	}) => HltbIdCandidate[] | Error | Promise<HltbIdCandidate[]>
+) {
+	const calls: { rawgSlug: string | null; title: string }[] = [];
+	const source = {
+		async findHltbCandidates(query: {
+			rawgSlug: string | null;
+			title: string;
+		}) {
+			calls.push(query);
+			const outcome = await respond(query);
+			if (outcome instanceof Error) throw outcome;
+			return outcome;
+		}
+	};
+	return { calls, source };
+}
+
+export function wikidataCandidates(candidates: HltbIdCandidate[]) {
+	return fakeWikidata(() => candidates);
+}
+
 export function metacriticPages(pages: MetacriticSourceDetail[]) {
 	return fakeMetacritic(slug => pages.find(page => page.slug === slug));
 }
@@ -92,10 +133,12 @@ export function hltbPages(pages: HltbSourceDetail[]) {
 export function registerFakes(fakes: {
 	metacritic?: ReturnType<typeof fakeMetacritic>;
 	hltb?: ReturnType<typeof fakeHltb>;
+	wikidata?: ReturnType<typeof fakeWikidata>;
 }) {
 	registerExternalDataSources({
 		metacritic: fakes.metacritic?.source,
-		hltb: fakes.hltb?.source
+		hltb: fakes.hltb?.source,
+		hltbIdResolver: fakes.wikidata?.source
 	});
 }
 
@@ -110,6 +153,7 @@ export function deferred<T>() {
 export function createCatalogGame(
 	title: string,
 	overrides: {
+		code?: string;
 		variant?: string | null;
 		releaseAt?: string | null;
 		isActive?: boolean;
@@ -117,7 +161,7 @@ export function createCatalogGame(
 ) {
 	return Game.create({
 		title,
-		code: `game-${randomUUID().slice(0, 12)}`,
+		code: overrides.code ?? `game-${randomUUID().slice(0, 12)}`,
 		variant: overrides.variant ?? null,
 		releaseAt: overrides.releaseAt ?? null,
 		isActive: overrides.isActive ?? true

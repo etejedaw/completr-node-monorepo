@@ -1,6 +1,6 @@
 const MAX_RELEASE_YEAR_GAP = 1;
 
-export function isMetacriticYearMismatch(
+export function isReleaseYearMismatch(
 	gameReleaseAt: Date | string | null | undefined,
 	detailReleaseYear: number | null
 ) {

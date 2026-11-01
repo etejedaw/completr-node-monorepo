@@ -1,4 +1,7 @@
-import { type MetacriticSourceDetail } from "./games-external-data.interface";
+import {
+	type HltbSourceDetail,
+	type MetacriticSourceDetail
+} from "./games-external-data.interface";
 
 export type ExternalDataStatus =
 	"updated" | "not_found" | "ambiguous" | "no_data" | "failed";
@@ -9,4 +12,12 @@ export type ExternalDataErrorOutcome =
 
 export type MetacriticLookup =
 	| { status: "matched"; detail: MetacriticSourceDetail; isNewMatch: boolean }
+	| { status: "not_found" | "ambiguous" };
+
+export type HltbLookup =
+	| { status: "matched"; detail: HltbSourceDetail; isNewMatch: boolean }
+	| { status: "not_found" | "ambiguous" };
+
+export type HltbIdResolution =
+	| { status: "resolved"; hltbId: string; matchedBy: "rawg_slug" | "label" }
 	| { status: "not_found" | "ambiguous" };

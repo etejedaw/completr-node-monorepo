@@ -14,13 +14,16 @@ import {
 	deferred,
 	fakeHltb,
 	fakeMetacritic,
+	fakeWikidata,
+	hltbCandidate,
 	hltbDetail,
 	hltbPages,
 	linkExternal,
 	metacriticDetail,
 	metacriticPages,
 	providerError,
-	registerFakes
+	registerFakes,
+	wikidataCandidates
 } from "../games/external-data-fakes.helper";
 import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
@@ -552,5 +555,140 @@ void describe("POST /admin/jobs/populate-external-data — cancellation", () => 
 			})}`
 		);
 		assert.deepEqual(metacritic.calls, ["alpha"]);
+	});
+});
+
+void describe("POST /admin/jobs/populate-external-data — HLTB id through Wikidata", () => {
+	void it("resolves and stores the HLTB id of games that have none", async () => {
+		const game = await createCatalogGame("Alpha", { code: "alpha-slug" });
+		const wikidata = wikidataCandidates([
+			hltbCandidate({ hltbId: "11", rawgSlug: "alpha-slug" })
+		]);
+		registerFakes({
+			metacritic: metacriticPages([scorePage("alpha", "Alpha", 80)]),
+			hltb: hltbPages([hltbDetail({ id: "11", mainStoryHours: 12 })]),
+			wikidata
+		});
+
+		const job = await runJob();
+
+		assert.equal(job.status, "completed");
+		assert.equal(
+			job.result,
+			report({
+				candidates: 1,
+				processed: 1,
+				mcUpdated: 1,
+				hltbUpdated: 1
+			})
+		);
+		assert.deepEqual(wikidata.calls, [
+			{ rawgSlug: "alpha-slug", title: "Alpha" }
+		]);
+		assert.equal(
+			(
+				await GameExternal.findOne({
+					where: { gameId: game.id, source: "hltb" }
+				})
+			)?.externalId,
+			"11"
+		);
+	});
+
+	for (const suffix of ["BLOCKED", "RATE_LIMITED", "PARSE_ERROR"]) {
+		void it(`stops at once on WIKIDATA_${suffix} after saving the Metacritic score of the same game`, async () => {
+			const game = await createCatalogGame("Alpha");
+			await createCatalogGame("Bravo");
+			const metacritic = metacriticPages([
+				scorePage("alpha", "Alpha", 80),
+				scorePage("bravo", "Bravo", 70)
+			]);
+			const wikidata = fakeWikidata(() =>
+				providerError(`WIKIDATA_${suffix}`)
+			);
+			const hltb = hltbPages([]);
+			registerFakes({ metacritic, hltb, wikidata });
+
+			const job = await runJob();
+
+			assert.equal(job.status, "failed");
+			assert.equal(
+				job.result,
+				`${report({
+					candidates: 2,
+					processed: 1,
+					mcUpdated: 1,
+					hltb: [0, 0, 0, 1]
+				})}. Stopped: WIKIDATA_${suffix}`
+			);
+			assert.deepEqual(metacritic.calls, ["alpha"]);
+			assert.equal(wikidata.calls.length, 1);
+			assert.equal(hltb.calls.length, 0);
+			assert.equal(
+				(await GameScore.findOne({ where: { gameId: game.id } }))
+					?.score,
+				80
+			);
+		});
+	}
+
+	void it("counts Wikidata timeouts and request errors in the HLTB transient streak", async () => {
+		for (const title of ["Alpha", "Bravo", "Charlie", "Delta"])
+			await createCatalogGame(title);
+		const wikidata = fakeWikidata(({ title }) =>
+			providerError(
+				title === "Bravo"
+					? "WIKIDATA_REQUEST_ERROR"
+					: "WIKIDATA_TIMEOUT"
+			)
+		);
+		registerFakes({
+			metacritic: metacriticPages([]),
+			hltb: hltbPages([]),
+			wikidata
+		});
+
+		const job = await runJob();
+
+		assert.equal(job.status, "failed");
+		assert.equal(
+			job.result,
+			`${report({
+				candidates: 4,
+				processed: 3,
+				mc: [3, 0, 0, 0],
+				hltb: [0, 0, 0, 3]
+			})}. Stopped: WIKIDATA_TIMEOUT (3 failures in a row)`
+		);
+		assert.equal(wikidata.calls.length, 3);
+	});
+
+	void it("keeps going after an isolated Wikidata timeout", async () => {
+		await createCatalogGame("Alpha");
+		await createCatalogGame("Bravo", { code: "bravo-slug" });
+		const wikidata = fakeWikidata(({ title }) =>
+			title === "Alpha"
+				? providerError("WIKIDATA_TIMEOUT")
+				: [hltbCandidate({ hltbId: "22", rawgSlug: "bravo-slug" })]
+		);
+		registerFakes({
+			metacritic: metacriticPages([]),
+			hltb: hltbPages([hltbDetail({ id: "22", mainStoryHours: 5 })]),
+			wikidata
+		});
+
+		const job = await runJob();
+
+		assert.equal(job.status, "completed");
+		assert.equal(
+			job.result,
+			report({
+				candidates: 2,
+				processed: 2,
+				hltbUpdated: 1,
+				mc: [2, 0, 0, 0],
+				hltb: [0, 0, 0, 1]
+			})
+		);
 	});
 });

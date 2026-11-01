@@ -6,6 +6,7 @@ import { registerExternalDataSources } from "./games/services/external-data-sour
 import { HltbClient } from "./hltb/hltb.provider";
 import { MetacriticClient } from "./metacritic/metacritic.provider";
 import { createApp } from "./server";
+import { WikidataClient } from "./wikidata/wikidata.provider";
 
 const logger = new PinoLogger("Server");
 
@@ -20,7 +21,8 @@ function warnIfRawgDisabled() {
 function registerScrapingProviders() {
 	registerExternalDataSources({
 		metacritic: MetacriticClient.create(),
-		hltb: HltbClient.create()
+		hltb: HltbClient.create(),
+		hltbIdResolver: WikidataClient.create()
 	});
 }
 

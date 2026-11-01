@@ -160,7 +160,7 @@ export async function findActiveGameSummaries() {
 export async function findActiveGamesForExternalData() {
 	return Game.findAll({
 		where: { isActive: true },
-		attributes: ["id", "title", "variant", "releaseAt"],
+		attributes: ["id", "title", "code", "variant", "releaseAt"],
 		order: [
 			["title", "ASC"],
 			["id", "ASC"]

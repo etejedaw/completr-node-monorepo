@@ -9,18 +9,24 @@ import {
 	type ExternalDataCandidates,
 	type ExternalDataGame,
 	type ExternalDataResult,
+	type HltbSource,
 	type MetacriticSlugCandidate,
 	type MetacriticSource,
 	type MetacriticSourceDetail
 } from "../games-external-data.interface";
-import { type MetacriticLookup } from "../games-external-data.types";
+import {
+	type HltbLookup,
+	type MetacriticLookup
+} from "../games-external-data.types";
 import { buildMetacriticSlugCandidates } from "../utils/build-metacritic-slug-candidates.util";
 import { classifyExternalDataError } from "../utils/classify-external-data-error.util";
-import { isMetacriticYearMismatch } from "../utils/is-metacritic-year-mismatch.util";
+import { isReleaseYearMismatch } from "../utils/is-release-year-mismatch.util";
 import { normalizeGameTitle } from "../utils/normalize-game-title.util";
 import { pickMetacriticScore } from "../utils/pick-metacritic-score.util";
+import { resolveHltbId } from "../utils/resolve-hltb-id.util";
 import {
 	findUnavailableSources,
+	getHltbIdResolver,
 	getHltbSource,
 	getMetacriticSource
 } from "./external-data-sources.service";
@@ -182,7 +188,7 @@ function matchMetacriticDetail(
 		normalizeGameTitle(detail.title) !== normalizeGameTitle(candidate.title)
 	)
 		return { status: "not_found" };
-	if (isMetacriticYearMismatch(game.releaseAt, detail.releaseYear))
+	if (isReleaseYearMismatch(game.releaseAt, detail.releaseYear))
 		return { status: "ambiguous" };
 	return {
 		status: "matched",
@@ -207,16 +213,27 @@ async function refreshHltb(
 ): Promise<ExternalDataResult> {
 	const hltb = getHltbSource();
 	if (!hltb) return failedResult("hltb", SOURCE_UNAVAILABLE);
-	if (!externalId)
-		return { source: "hltb", status: "not_found", errorCode: null };
 
-	let mainStoryHours: number | null;
+	let lookup: HltbLookup;
 	try {
-		mainStoryHours = (await hltb.getGameById(externalId)).mainStoryHours;
+		lookup = externalId
+			? {
+					status: "matched",
+					detail: await hltb.getGameById(externalId),
+					isNewMatch: false
+				}
+			: await findHltbMatch(game, hltb);
 	} catch (error) {
 		return { source: "hltb", ...classifyExternalDataError(error) };
 	}
 
+	if (lookup.status !== "matched")
+		return { source: "hltb", status: lookup.status, errorCode: null };
+
+	const { detail } = lookup;
+	if (lookup.isNewMatch) await saveExternalId(game.id, "hltb", detail.id);
+
+	const { mainStoryHours } = detail;
 	if (
 		mainStoryHours === null ||
 		!Number.isFinite(mainStoryHours) ||
@@ -234,6 +251,34 @@ async function refreshHltb(
 		status: "updated",
 		duration: mainStoryHours,
 		errorCode: null
+	};
+}
+
+async function findHltbMatch(
+	game: ExternalDataGame,
+	hltb: HltbSource
+): Promise<HltbLookup> {
+	const resolver = getHltbIdResolver();
+	if (!resolver) return { status: "not_found" };
+
+	const candidates = await resolver.findHltbCandidates({
+		rawgSlug: game.code?.trim() || null,
+		title: game.title
+	});
+	const resolution = resolveHltbId(game, candidates);
+	if (resolution.status !== "resolved") return resolution;
+
+	const detail = await hltb.getGameById(resolution.hltbId);
+	if (
+		resolution.matchedBy === "label" &&
+		normalizeGameTitle(detail.title) !== normalizeGameTitle(game.title)
+	)
+		return { status: "ambiguous" };
+
+	return {
+		status: "matched",
+		detail: { ...detail, id: detail.id || resolution.hltbId },
+		isNewMatch: true
 	};
 }
 

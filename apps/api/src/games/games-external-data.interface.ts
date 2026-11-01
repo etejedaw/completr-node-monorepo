@@ -27,14 +27,30 @@ export interface HltbSource {
 	getGameById(id: string): Promise<HltbSourceDetail>;
 }
 
+export interface HltbIdCandidate {
+	hltbId: string;
+	label: string | null;
+	releaseYear: number | null;
+	rawgSlug: string | null;
+}
+
+export interface HltbIdResolver {
+	findHltbCandidates(query: {
+		rawgSlug: string | null;
+		title: string;
+	}): Promise<HltbIdCandidate[]>;
+}
+
 export interface ExternalDataSources {
 	metacritic?: MetacriticSource;
 	hltb?: HltbSource;
+	hltbIdResolver?: HltbIdResolver;
 }
 
 export interface ExternalDataGame {
 	id: string;
 	title: string;
+	code?: string | null;
 	variant?: string | null;
 	releaseAt?: Date | string | null;
 }
