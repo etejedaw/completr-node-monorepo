@@ -4,7 +4,8 @@ import {
 	computed,
 	input,
 	linkedSignal,
-	output
+	output,
+	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
@@ -16,7 +17,13 @@ import {
 } from "../../../../core/models/rewind.model";
 import { SegmentedControl } from "../../../../shared/components/segmented-control/segmented-control";
 import { type SegmentedOption } from "../../../../shared/components/segmented-control/segmented-control.model";
-import { UiAlert, UiButton, UiDialog, UiSwitch } from "../../../../shared/ui";
+import {
+	UiAlert,
+	UiButton,
+	UiDialog,
+	UiIconButton,
+	UiSwitch
+} from "../../../../shared/ui";
 import { type RewindGenerateError } from "../../rewind-errors";
 
 const LANGUAGE_OPTIONS: SegmentedOption<RewindLanguage>[] = [
@@ -51,6 +58,7 @@ export function formatGraceDate(isoDate: string): string {
 		UiAlert,
 		UiButton,
 		UiDialog,
+		UiIconButton,
 		UiSwitch
 	],
 	template: `
@@ -101,6 +109,54 @@ export function formatGraceDate(isoDate: string): string {
 
 				@if (hasPremiumAccess()) {
 					<div class="flex flex-col gap-2">
+						<div class="flex items-center gap-1.5">
+							<span
+								id="rewind-ai-recap-heading"
+								class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-fg-secondary"
+								>AI recap</span
+							>
+							<button
+								uiIconButton
+								type="button"
+								size="sm"
+								class="tap-area"
+								aria-label="Who writes the AI recap"
+								aria-controls="rewind-ai-provider-notice"
+								[attr.aria-expanded]="providerNoticeOpen()"
+								(click)="
+									providerNoticeOpen.set(
+										!providerNoticeOpen()
+									)
+								"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-base"
+									>help_outline</span
+								>
+							</button>
+						</div>
+						@if (providerNoticeOpen()) {
+							<p
+								id="rewind-ai-provider-notice"
+								class="m-0 rounded-card border border-line bg-surface px-3 py-2.5 text-[0.8125rem] leading-relaxed text-fg-secondary"
+							>
+								Your AI recap is written by DeepSeek, an
+								external AI service. It receives this year's
+								games, ratings and stats, never your email or
+								username.
+								<a
+									routerLink="/privacy"
+									fragment="sharing"
+									target="_blank"
+									rel="noopener"
+									class="font-semibold text-brand hover:text-brand-hover"
+									>How your data is used</a
+								>
+							</p>
+						}
+					</div>
+					<div class="flex flex-col gap-2">
 						<ui-switch
 							label="Include private runs"
 							[(checked)]="includePrivateRuns"
@@ -139,28 +195,6 @@ export function formatGraceDate(isoDate: string): string {
 							</p>
 						}
 					</div>
-					<p
-						class="m-0 flex items-start gap-2 text-[0.8125rem] leading-relaxed text-fg-muted"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons shrink-0 text-base"
-							>smart_toy</span
-						>
-						<span>
-							Your AI recap is written by DeepSeek, an external AI
-							service. It receives this year's games, ratings and
-							stats, never your email or username.
-							<a
-								routerLink="/privacy"
-								fragment="sharing"
-								target="_blank"
-								rel="noopener"
-								class="font-semibold text-brand hover:text-brand-hover"
-								>How your data is used</a
-							>
-						</span>
-					</p>
 				}
 
 				@if (pending()) {
@@ -251,6 +285,7 @@ export class RewindGenerateDialog {
 		() => this.rewind()?.ownerControls?.includesNotes ?? false
 	);
 
+	protected readonly providerNoticeOpen = signal(false);
 	protected readonly isRegeneration = computed(() => this.rewind() !== null);
 	protected readonly controls = computed(
 		() => this.rewind()?.ownerControls ?? null

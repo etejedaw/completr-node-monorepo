@@ -340,11 +340,20 @@ describe("RewindGenerateDialog", () => {
 		expect(within(dialog).queryByText(/private/i)).toBeNull();
 	});
 
-	it("tells a premium user that DeepSeek writes the AI recap and links to the privacy policy", async () => {
+	it("keeps the DeepSeek notice behind the help button until a premium user opens it", async () => {
 		isPremium.set(true);
 		await renderHost();
 		const dialog = await openDialog();
+		const help = within(dialog).getByRole("button", {
+			name: "Who writes the AI recap"
+		});
 
+		expect(help).toHaveAttribute("aria-expanded", "false");
+		expect(within(dialog).queryByText(/written by DeepSeek/)).toBeNull();
+
+		await userEvent.click(help);
+
+		expect(help).toHaveAttribute("aria-expanded", "true");
 		expect(
 			within(dialog).getByText(/written by DeepSeek/)
 		).toHaveTextContent("never your email or username");
@@ -355,11 +364,67 @@ describe("RewindGenerateDialog", () => {
 		expect(policyLink).toHaveAttribute("target", "_blank");
 	});
 
+	it("closes the DeepSeek notice on a second click and ends closed after a double click", async () => {
+		isPremium.set(true);
+		await renderHost();
+		const dialog = await openDialog();
+		const help = within(dialog).getByRole("button", {
+			name: "Who writes the AI recap"
+		});
+
+		await userEvent.click(help);
+		await userEvent.click(help);
+		expect(help).toHaveAttribute("aria-expanded", "false");
+		expect(within(dialog).queryByText(/written by DeepSeek/)).toBeNull();
+
+		await userEvent.dblClick(help);
+		expect(help).toHaveAttribute("aria-expanded", "false");
+	});
+
+	it("opens the DeepSeek notice from the keyboard", async () => {
+		isPremium.set(true);
+		await renderHost();
+		const dialog = await openDialog();
+		const help = within(dialog).getByRole("button", {
+			name: "Who writes the AI recap"
+		});
+
+		help.focus();
+		await userEvent.keyboard("{Enter}");
+
+		expect(
+			within(dialog).getByText(/written by DeepSeek/)
+		).toBeInTheDocument();
+	});
+
+	it("starts with the DeepSeek notice closed every time the dialog opens", async () => {
+		isPremium.set(true);
+		await renderHost();
+		let dialog = await openDialog();
+		await userEvent.click(
+			within(dialog).getByRole("button", {
+				name: "Who writes the AI recap"
+			})
+		);
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Cancel" })
+		);
+
+		dialog = await openDialog();
+
+		expect(within(dialog).queryByText(/written by DeepSeek/)).toBeNull();
+	});
+
 	it("does not mention DeepSeek to a free user, whose Rewind has no AI recap", async () => {
 		await renderHost();
 		const dialog = await openDialog();
 
 		expect(within(dialog).queryByText(/DeepSeek/)).toBeNull();
+		expect(
+			within(dialog).queryByRole("button", {
+				name: "Who writes the AI recap"
+			})
+		).toBeNull();
 		expect(
 			within(dialog).queryByRole("link", {
 				name: "How your data is used"
