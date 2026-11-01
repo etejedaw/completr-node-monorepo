@@ -36,6 +36,7 @@ import * as gamesServiceError from "./errors/games.service-error";
 import { Game } from "./game.model";
 import { type GameScoreEntry } from "./games.interface";
 import { rawgToGameMapper } from "./mappers/rawg-to-game.mapper";
+import { enqueueImportedGames } from "./services/games-import-enrichment.service";
 import {
 	findGameByCode,
 	findGameById,
@@ -293,7 +294,9 @@ export async function searchGames(query: string, forceRawg = false) {
 		}
 	}
 
-	return searchAndCreateFromRawg(query, forceRawg);
+	const result = await searchAndCreateFromRawg(query, forceRawg);
+	enqueueImportedGames([...result.importedIds]);
+	return result;
 }
 
 async function searchAndCreateFromRawg(query: string, forceRawg: boolean) {
