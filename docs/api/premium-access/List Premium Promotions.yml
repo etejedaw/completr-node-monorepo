@@ -17,7 +17,7 @@ auth:
 docs: |-
     ## List Premium Promotions
 
-    Lists all global premium promotions, including scheduled, active and ended promotions. Results are ordered by creation date descending with a deterministic id tie-breaker.
+    Lists all global premium promotions, including scheduled, active and ended promotions. Results are ordered by creation date descending with a deterministic id tie-breaker. `claimCount` is the number of users who claimed each promotion, including grants that already expired.
 
     **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
 
@@ -33,6 +33,7 @@ docs: |-
             "feature": "rewind.premium",
             "startsAt": "2026-12-01T00:00:00.000Z",
             "endsAt": "2027-01-31T23:59:59.999Z",
+            "claimCount": 2,
             "createdAt": "2026-11-01T12:00:00.000Z",
             "updatedAt": "2026-11-01T12:00:00.000Z"
           }

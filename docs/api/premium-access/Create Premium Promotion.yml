@@ -37,7 +37,7 @@ docs: |-
 
     | Field | Type | Required | Description |
     |-------|------|----------|-------------|
-    | code | string | Yes | Unique lowercase kebab-case code, 3-80 characters |
+    | code | string | Yes | Unique lowercase kebab-case code, 3-80 characters; cannot reuse a static gift offer code |
     | feature | string | Yes | Catalog feature code or `*` |
     | startsAt | string | Yes | ISO date when claiming opens |
     | endsAt | string | Yes | Future ISO date after `startsAt`; all claims expire at this instant |
@@ -53,6 +53,7 @@ docs: |-
           "feature": "rewind.premium",
           "startsAt": "2026-12-01T00:00:00.000Z",
           "endsAt": "2027-01-31T23:59:59.999Z",
+          "claimCount": 0,
           "createdAt": "2026-11-01T12:00:00.000Z",
           "updatedAt": "2026-11-01T12:00:00.000Z"
         }
@@ -67,6 +68,6 @@ docs: |-
     | Status | Code | Description |
     |--------|------|-------------|
     | 404 | AUTH_ROUTE_NOT_FOUND | Caller is anonymous or is not an admin |
-    | 409 | PREMIUM_PROMOTION_CODE_CONFLICT | Another promotion already uses this code |
+    | 409 | PREMIUM_PROMOTION_CODE_CONFLICT | Another promotion or a static gift offer (`json-export-trial-1m`, `premium-trial-1m`) already uses this code |
     | 422 | PREMIUM_PROMOTION_INVALID_DATES | `endsAt` is not after `startsAt` or is not in the future |
     | 422 | COMMON_SCHEMA_INVALID | Invalid code, feature, ISO date or extra field |

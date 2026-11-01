@@ -21,7 +21,7 @@ auth:
 docs: |-
     ## Revoke Premium Promotion
 
-    Ends a promotion immediately and expires every grant claimed with its code in the same transaction. For a scheduled promotion, the start date is also moved to the revocation instant. The promotion and grant rows are preserved; repeating the action is safe.
+    Ends a promotion immediately and expires, in the same transaction, every grant claimed with its code that is still active. For a scheduled promotion, the start date is also moved to the revocation instant. Revoking a promotion that already ended keeps its original end date and changes nothing. The promotion and grant rows are preserved; repeating the action is idempotent.
 
     **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
 
@@ -36,6 +36,7 @@ docs: |-
           "feature": "rewind.premium",
           "startsAt": "2026-12-01T00:00:00.000Z",
           "endsAt": "2026-12-15T12:00:00.000Z",
+          "claimCount": 2,
           "createdAt": "2026-11-01T12:00:00.000Z",
           "updatedAt": "2026-12-15T12:00:00.000Z"
         }

@@ -30,7 +30,7 @@ auth:
 docs: |-
     ## Update Premium Promotion
 
-    Changes the promotion start or end date. At least one date is required; code and feature are immutable. The new expiration is also applied in the same transaction to every grant already claimed with the promotion code.
+    Changes the promotion start or end date. At least one date is required; code and feature are immutable. The new expiration is also applied in the same transaction to every grant claimed with the promotion code that is still active; grants revoked individually stay revoked. An ended promotion cannot be edited: create a new one instead.
 
     **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
 
@@ -52,6 +52,7 @@ docs: |-
           "feature": "rewind.premium",
           "startsAt": "2026-12-01T00:00:00.000Z",
           "endsAt": "2027-02-07T23:59:59.999Z",
+          "claimCount": 2,
           "createdAt": "2026-11-01T12:00:00.000Z",
           "updatedAt": "2026-11-15T12:00:00.000Z"
         }
@@ -67,5 +68,6 @@ docs: |-
     |--------|------|-------------|
     | 404 | AUTH_ROUTE_NOT_FOUND | Caller is anonymous or is not an admin |
     | 404 | PREMIUM_PROMOTION_NOT_FOUND | Promotion does not exist |
+    | 409 | PREMIUM_PROMOTION_ENDED | The promotion already ended or was revoked |
     | 422 | PREMIUM_PROMOTION_INVALID_DATES | The resulting end date is not after the start date or is not in the future |
     | 422 | COMMON_SCHEMA_INVALID | Empty body, invalid UUID, invalid ISO date or extra field |
