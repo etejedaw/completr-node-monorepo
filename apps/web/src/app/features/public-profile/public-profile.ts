@@ -16,6 +16,7 @@ import { AuthService } from "../../core/services/auth";
 import { ToastService } from "../../core/services/toast";
 import { avatarRing } from "../../core/utils/premium";
 import { GameCoverCard } from "../../shared/components/game-cover-card/game-cover-card";
+import { GiftOfferCard } from "../../shared/components/gift-offer-card/gift-offer-card";
 import { PosterShelf } from "../../shared/components/poster-shelf/poster-shelf";
 import { BETA_SIGNUP_URL } from "../../shared/constants/beta-signup";
 import { UiAvatar, UiButton, UiDialog, UiSkeleton } from "../../shared/ui";
@@ -72,6 +73,7 @@ const PROFILE_PLATINUMS_LIMIT = 8;
 		PosterShelf,
 		ProfileAccessState,
 		ProfileActivity,
+		GiftOfferCard,
 		ProfileCollections,
 		ProfileHero,
 		ProfileInCommon,
@@ -334,7 +336,7 @@ export class PublicProfileComponent implements OnInit {
 			});
 	}
 
-	private loadRewinds(username: string) {
+	protected loadRewinds(username: string) {
 		this.rewindService.getYears(username).subscribe({
 			next: rewinds => {
 				if (this.username() === username) this.rewindYears.set(rewinds);

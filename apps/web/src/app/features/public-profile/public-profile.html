@@ -127,7 +127,13 @@
 	[isSelf]="isSelf()"
 	[premiumAccess]="rewindYears()?.premiumAccess ?? null"
 />
-} @if (visibility().favorites && (favoritesData()?.length ?? 0) > 0) {
+@if (isSelf()) {
+<app-gift-offer-card
+	feature="rewind.premium"
+	class="mt-4 block empty:hidden"
+	(claimed)="loadRewinds(username())"
+/>
+} } @if (visibility().favorites && (favoritesData()?.length ?? 0) > 0) {
 <section class="mt-10" aria-labelledby="favorites-heading">
 	<app-profile-section-header
 		heading="Favorite games"

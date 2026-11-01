@@ -9,6 +9,7 @@ import { BehaviorSubject, of, Subject, throwError } from "rxjs";
 
 import { AuthService } from "../../core/services/auth";
 import { ToastService } from "../../core/services/toast";
+import { GiftOffersService } from "../../shared/components/gift-offer-card/gift-offers.service";
 import { FeedService } from "../feed/feed";
 import { RewindService } from "../rewind/rewind";
 import { PublicProfileComponent } from "./public-profile";
@@ -131,6 +132,8 @@ describe("PublicProfileComponent", () => {
 	const getUserReviews = vi.fn();
 	const getHighlights = vi.fn();
 	const getRewindYears = vi.fn();
+	const listOffers = vi.fn();
+	const claimOffer = vi.fn();
 	const toast = { success: vi.fn(), warning: vi.fn(), pending: vi.fn() };
 
 	beforeEach(() => {
@@ -164,7 +167,9 @@ describe("PublicProfileComponent", () => {
 			getComparison,
 			getUserReviews,
 			getHighlights,
-			getRewindYears
+			getRewindYears,
+			listOffers,
+			claimOffer
 		]) {
 			fn.mockReset();
 		}
@@ -178,6 +183,7 @@ describe("PublicProfileComponent", () => {
 		getUserReviews.mockReturnValue(of({ reviews: [], total: 0 }));
 		getHighlights.mockReturnValue(of(emptyHighlights));
 		getRewindYears.mockReturnValue(of({ spotlightYear: null, years: [] }));
+		listOffers.mockReturnValue(of([]));
 		getComparison.mockReturnValue(
 			of({ inCommon: [], counts: { inCommon: 0 } })
 		);
@@ -223,10 +229,14 @@ describe("PublicProfileComponent", () => {
 						token: () => null,
 						user: authUser,
 						isLoggedIn: loggedIn,
-						loadUser: vi.fn()
+						loadUser: vi.fn(() => of(null))
 					}
 				},
 				{ provide: ToastService, useValue: toast },
+				{
+					provide: GiftOffersService,
+					useValue: { listOffers, claimOffer, invalidate: vi.fn() }
+				},
 				{
 					provide: FeedService,
 					useValue: { deleteActivity: vi.fn(() => of({})) }
@@ -726,6 +736,101 @@ describe("PublicProfileComponent", () => {
 				expect(
 					screen.queryByRole("link", { name: "Past rewinds" })
 				).not.toBeInTheDocument();
+			});
+
+			describe("rewind gift", () => {
+				const rewindGift = (status: "available" | "active") => ({
+					code: "rewind-launch",
+					feature: "rewind.premium" as const,
+					availableFrom: "2026-11-01T00:00:00.000Z",
+					availableUntil: "2099-01-31T00:00:00.000Z",
+					status,
+					expiresAt:
+						status === "active" ? "2099-01-31T00:00:00.000Z" : null,
+					canActivate: status === "available",
+					hasAccess: status === "active"
+				});
+
+				beforeEach(() => {
+					getRewindYears.mockReturnValue(
+						of({
+							spotlightYear: 2026,
+							years: [rewindYear(2026, 18)]
+						})
+					);
+					listOffers.mockReturnValue(of([rewindGift("available")]));
+				});
+
+				it("offers the Rewind gift on the owner's profile and reloads the Rewind after claiming it", async () => {
+					const claim = new Subject<unknown>();
+					claimOffer.mockReturnValue(claim);
+					await renderProfile({
+						data: profile(),
+						user: { id: "u-ada" }
+					});
+					const activate = await screen.findByRole("button", {
+						name: "Activate gift"
+					});
+					expect(getRewindYears).toHaveBeenCalledTimes(1);
+
+					await userEvent.dblClick(activate);
+					claim.next({ offer: rewindGift("active"), created: true });
+					claim.complete();
+
+					expect(claimOffer).toHaveBeenCalledTimes(1);
+					expect(claimOffer).toHaveBeenCalledWith("rewind-launch");
+					expect(
+						await screen.findByText(/Gift active until/)
+					).toBeInTheDocument();
+					await waitFor(() =>
+						expect(getRewindYears).toHaveBeenCalledTimes(2)
+					);
+				});
+
+				it("never offers the owner's Rewind gift to a visitor", async () => {
+					await renderProfile({
+						data: profile(),
+						user: { id: "u-grace" }
+					});
+
+					await screen.findByRole("heading", { name: "Rewind 2026" });
+					expect(listOffers).not.toHaveBeenCalled();
+					expect(
+						screen.queryByRole("button", { name: "Activate gift" })
+					).not.toBeInTheDocument();
+				});
+
+				it("never offers the Rewind gift to an anonymous visitor", async () => {
+					await renderProfile({ data: profile() });
+
+					await screen.findByRole("heading", { name: "Rewind 2026" });
+					expect(listOffers).not.toHaveBeenCalled();
+				});
+
+				it("keeps the Rewind when the claim fails and lets the owner retry", async () => {
+					claimOffer.mockReturnValueOnce(
+						throwError(() => ({ status: 500, error: {} }))
+					);
+					await renderProfile({
+						data: profile(),
+						user: { id: "u-ada" }
+					});
+
+					await userEvent.click(
+						await screen.findByRole("button", {
+							name: "Activate gift"
+						})
+					);
+
+					expect(await screen.findByRole("alert")).toBeInTheDocument();
+					expect(
+						screen.getByRole("heading", { name: "Rewind 2026" })
+					).toBeInTheDocument();
+					expect(getRewindYears).toHaveBeenCalledTimes(1);
+					expect(
+						screen.getByRole("button", { name: "Activate gift" })
+					).toBeEnabled();
+				});
 			});
 
 			it("hides the spotlight outside the December window", async () => {
