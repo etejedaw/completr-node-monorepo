@@ -1,88 +1,30 @@
-import { type HttpErrorResponse } from "@angular/common/http";
-import {
-	ChangeDetectionStrategy,
-	Component,
-	computed,
-	inject,
-	input,
-	signal
-} from "@angular/core";
+import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 
-import { AuthService } from "../../../core/services/auth";
-import {
-	type ExportFormat,
-	type ExportParams,
-	ExportService
-} from "../../../core/services/export";
+import { type ExportParams } from "../../../core/services/export";
 import { type ExportResource } from "../../../core/services/export.model";
-import { ToastService } from "../../../core/services/toast";
-import { UiButton } from "../../ui/button/ui-button";
-import { UiPremiumBadge } from "../../ui/premium-badge/ui-premium-badge";
+import { ActionMenu } from "../action-menu/action-menu";
 import { GiftOfferCard } from "../gift-offer-card/gift-offer-card";
-
-const STATUSES_TOASTED_BY_INTERCEPTOR = new Set([402, 409, 422, 429]);
+import { injectExportDownload } from "./export-download";
 
 @Component({
 	selector: "app-export-actions",
-	imports: [UiButton, UiPremiumBadge, GiftOfferCard],
+	imports: [ActionMenu, GiftOfferCard],
 	template: `
-		<button
-			uiButton
-			type="button"
-			variant="secondary"
-			size="sm"
-			class="h-9"
-			[disabled]="isDownloading('csv')"
-			[attr.aria-busy]="isDownloading('csv') || null"
-			[attr.aria-label]="downloadLabel('csv')"
-			[title]="downloadLabel('csv')"
-			(click)="download('csv')"
-		>
-			<span
-				aria-hidden="true"
-				class="material-icons text-base"
-				[class.animate-spin]="isDownloading('csv')"
-				>{{ isDownloading("csv") ? "autorenew" : "download" }}</span
-			>
-			CSV
-		</button>
-		@if (canExportJson()) {
-			<button
-				uiButton
-				type="button"
-				variant="premium"
-				size="sm"
-				class="h-9"
-				[disabled]="isDownloading('json')"
-				[attr.aria-busy]="isDownloading('json') || null"
-				[attr.aria-label]="downloadLabel('json')"
-				[title]="downloadLabel('json')"
-				(click)="download('json')"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-base"
-					[class.animate-spin]="isDownloading('json')"
-					>{{
-						isDownloading("json") ? "autorenew" : "download"
-					}}</span
-				>
-				JSON
-			</button>
-			<ui-premium-badge
-				size="sm"
-				interactive
-				label="Premium perk: JSON export"
-				message="JSON export is a Premium perk. Free accounts can download their collections as CSV."
-			/>
-		}
-		@if (!auth.isPremium()) {
+		<app-action-menu
+			icon="download"
+			label="Export"
+			[heading]="'Export ' + label()"
+			[items]="exporter.menuItems()"
+			[busy]="exporter.isBusy()"
+			(selected)="exporter.runMenuAction($event)"
+		/>
+		@if (!exporter.isPremium()) {
 			<app-gift-offer-card
 				feature="export.json"
 				variant="compact"
 				class="block min-w-0 max-w-full empty:hidden"
-				(claimed)="jsonGiftClaimed.set(true)"
-				(expired)="jsonGiftClaimed.set(false)"
+				(claimed)="exporter.jsonGiftClaimed.set(true)"
+				(expired)="exporter.jsonGiftClaimed.set(false)"
 			/>
 		}
 	`,
@@ -92,52 +34,13 @@ const STATUSES_TOASTED_BY_INTERCEPTOR = new Set([402, 409, 422, 429]);
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExportActions {
-	private readonly exportService = inject(ExportService);
-	private readonly toast = inject(ToastService);
-	protected readonly auth = inject(AuthService);
-
 	readonly resource = input.required<ExportResource>();
 	readonly label = input.required<string>();
 	readonly params = input<ExportParams>({});
 
-	private readonly downloading = signal<ReadonlySet<ExportFormat>>(new Set());
-	protected readonly jsonGiftClaimed = signal(false);
-	protected readonly canExportJson = computed(
-		() =>
-			this.auth.hasPremiumFeature("export.json") || this.jsonGiftClaimed()
-	);
-
-	protected isDownloading(format: ExportFormat): boolean {
-		return this.downloading().has(format);
-	}
-
-	protected downloadLabel(format: ExportFormat): string {
-		return `Download ${this.label()} as ${format.toUpperCase()}`;
-	}
-
-	protected download(format: ExportFormat) {
-		if (this.isDownloading(format)) return;
-		this.setDownloading(format, true);
-		this.exportService
-			.download(this.resource(), format, this.params())
-			.subscribe({
-				next: () => this.setDownloading(format, false),
-				error: (error: HttpErrorResponse) => {
-					this.setDownloading(format, false);
-					if (!STATUSES_TOASTED_BY_INTERCEPTOR.has(error.status))
-						this.toast.error(
-							`Could not download ${this.label()}. Please try again.`
-						);
-				}
-			});
-	}
-
-	private setDownloading(format: ExportFormat, active: boolean) {
-		this.downloading.update(current => {
-			const next = new Set(current);
-			if (active) next.add(format);
-			else next.delete(format);
-			return next;
-		});
-	}
+	protected readonly exporter = injectExportDownload({
+		resource: this.resource,
+		label: this.label,
+		params: this.params
+	});
 }

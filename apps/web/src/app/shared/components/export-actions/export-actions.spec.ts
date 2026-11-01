@@ -1,7 +1,13 @@
 import "@testing-library/jest-dom/vitest";
 
 import { signal } from "@angular/core";
-import { fireEvent, render, screen, waitFor } from "@testing-library/angular";
+import {
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within
+} from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 import { type Observable, of, Subject, throwError } from "rxjs";
 
@@ -83,6 +89,32 @@ describe("ExportActions", () => {
 		});
 	}
 
+	function exportButton() {
+		return screen.getByRole("button", { name: "Export" });
+	}
+
+	async function openExportMenu(
+		user: ReturnType<typeof userEvent.setup>,
+		label = "My Games"
+	) {
+		await waitFor(() =>
+			expect(screen.queryByRole("menu")).not.toBeInTheDocument()
+		);
+		await user.click(exportButton());
+		return screen.findByRole("menu", { name: `Export ${label}` });
+	}
+
+	function openExportMenuNow(label = "My Games") {
+		fireEvent.click(exportButton());
+		return screen.findByRole("menu", { name: `Export ${label}` });
+	}
+
+	function menuItem(menu: HTMLElement, format: "CSV" | "JSON") {
+		return within(menu).getByRole("menuitem", {
+			name: `Download ${format}`
+		});
+	}
+
 	function finish(format: ExportFormat) {
 		const download = pending.get(format)!;
 		download.next();
@@ -90,6 +122,14 @@ describe("ExportActions", () => {
 	}
 
 	beforeEach(() => {
+		vi.stubGlobal(
+			"matchMedia",
+			vi.fn(() => ({
+				matches: false,
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn()
+			}))
+		);
 		isPremium.set(false);
 		features.set([]);
 		auth.loadUser.mockReset();
@@ -109,66 +149,65 @@ describe("ExportActions", () => {
 		toast.premium.mockReset();
 	});
 
-	it("shows only the CSV button to free users", async () => {
-		await renderActions();
-
-		const csv = screen.getByRole("button", {
-			name: "Download My Games as CSV"
-		});
-		expect(csv).toHaveTextContent("CSV");
-		expect(csv).toHaveAttribute("title", "Download My Games as CSV");
-		expect(
-			screen.queryByRole("button", { name: "Download My Games as JSON" })
-		).not.toBeInTheDocument();
+	afterEach(() => {
+		vi.unstubAllGlobals();
 	});
 
-	it("shows the JSON button in gold to premium users", async () => {
+	it("groups both formats under a single Export button", async () => {
+		const user = userEvent.setup();
 		isPremium.set(true);
 		await renderActions();
 
-		expect(
-			screen.getByRole("button", { name: "Download My Games as CSV" })
-		).toHaveAttribute("data-variant", "secondary");
-		expect(
-			screen.getByRole("button", { name: "Download My Games as JSON" })
-		).toHaveAttribute("data-variant", "premium");
-	});
+		expect(screen.getAllByRole("button")).toHaveLength(1);
+		const menu = await openExportMenu(user);
 
-	it("explains the JSON perk from the premium badge", async () => {
-		isPremium.set(true);
-		await renderActions();
-
-		await userEvent.click(
-			screen.getByRole("button", { name: "Premium perk: JSON export" })
+		expect(within(menu).getAllByRole("menuitem")).toHaveLength(2);
+		expect(menuItem(menu, "CSV")).toHaveAccessibleDescription(
+			"Opens in any spreadsheet"
 		);
-
-		expect(toast.premium).toHaveBeenCalledWith(
-			"Premium perk",
-			"JSON export is a Premium perk. Free accounts can download their collections as CSV."
+		expect(menuItem(menu, "JSON")).toHaveAccessibleDescription(
+			"Full data, for backups"
 		);
 	});
 
-	it("hides the premium badge from free users", async () => {
+	it("shows JSON as a locked Premium perk to free users", async () => {
+		const user = userEvent.setup();
 		await renderActions();
 
-		expect(
-			screen.queryByRole("button", { name: "Premium perk: JSON export" })
-		).not.toBeInTheDocument();
+		const menu = await openExportMenu(user);
+
+		expect(menuItem(menu, "CSV")).toBeInTheDocument();
+		expect(menuItem(menu, "JSON")).toHaveAccessibleDescription(
+			"Premium perk"
+		);
 	});
 
-	it("disables the button while it downloads and keeps the other one active", async () => {
+	it("lets the API explain the perk when a free user picks JSON", async () => {
+		const user = userEvent.setup();
+		exportService.download.mockReturnValueOnce(
+			throwError(() => ({ status: 402 }))
+		);
+		await renderActions();
+
+		await user.click(menuItem(await openExportMenu(user), "JSON"));
+
+		expect(exportService.download).toHaveBeenCalledWith(
+			"backlog",
+			"json",
+			{}
+		);
+		expect(toast.error).not.toHaveBeenCalled();
+	});
+
+	it("blocks a second download of the same format while the first one runs", async () => {
 		const user = userEvent.setup();
 		isPremium.set(true);
 		await renderActions({ listId: "list-1" });
-		const csv = screen.getByRole("button", {
-			name: "Download My Games as CSV"
-		});
-		const json = screen.getByRole("button", {
-			name: "Download My Games as JSON"
-		});
 
-		await user.click(csv);
-		await user.click(csv);
+		await user.click(menuItem(await openExportMenu(user), "CSV"));
+		expect(exportButton()).toHaveAttribute("aria-busy", "true");
+		const menu = await openExportMenu(user);
+		await user.click(menuItem(menu, "CSV"));
 
 		expect(exportService.download).toHaveBeenCalledTimes(1);
 		expect(exportService.download).toHaveBeenCalledWith(
@@ -176,14 +215,15 @@ describe("ExportActions", () => {
 			"csv",
 			{}
 		);
-		expect(csv).toBeDisabled();
-		expect(csv).toHaveAttribute("aria-busy", "true");
-		expect(json).not.toBeDisabled();
-		expect(json).not.toHaveAttribute("aria-busy");
+
+		await user.click(menuItem(menu, "JSON"));
+		expect(exportService.download).toHaveBeenCalledTimes(2);
 
 		finish("csv");
-		await waitFor(() => expect(csv).not.toBeDisabled());
-		expect(csv).not.toHaveAttribute("aria-busy");
+		finish("json");
+		await waitFor(() =>
+			expect(exportButton()).not.toHaveAttribute("aria-busy")
+		);
 	});
 
 	it("shows an error toast when the download fails for an unhandled reason", async () => {
@@ -193,16 +233,12 @@ describe("ExportActions", () => {
 		);
 		await renderActions();
 
-		await user.click(
-			screen.getByRole("button", { name: "Download My Games as CSV" })
-		);
+		await user.click(menuItem(await openExportMenu(user), "CSV"));
 
 		expect(toast.error).toHaveBeenCalledWith(
 			"Could not download My Games. Please try again."
 		);
-		expect(
-			screen.getByRole("button", { name: "Download My Games as CSV" })
-		).not.toBeDisabled();
+		expect(exportButton()).not.toHaveAttribute("aria-busy");
 	});
 
 	it("forwards the view params to the download", async () => {
@@ -217,7 +253,7 @@ describe("ExportActions", () => {
 		});
 
 		await user.click(
-			screen.getByRole("button", { name: "Download Platinums as CSV" })
+			menuItem(await openExportMenu(user, "Platinums"), "CSV")
 		);
 
 		expect(exportService.download).toHaveBeenCalledWith(
@@ -240,9 +276,7 @@ describe("ExportActions", () => {
 		);
 		await renderActions();
 
-		await user.click(
-			screen.getByRole("button", { name: "Download My Games as CSV" })
-		);
+		await user.click(menuItem(await openExportMenu(user), "CSV"));
 
 		expect(toast.error).toHaveBeenCalledWith(
 			"Could not download My Games. Please try again."
@@ -257,24 +291,23 @@ describe("ExportActions", () => {
 		);
 		await renderActions();
 
-		await user.click(
-			screen.getByRole("button", { name: "Download My Games as JSON" })
-		);
+		await user.click(menuItem(await openExportMenu(user), "JSON"));
 
 		expect(toast.error).not.toHaveBeenCalled();
 	});
 
-	it("shows the JSON button to a free user with the JSON export gift", async () => {
+	it("unlocks JSON for a free user with the JSON export gift", async () => {
+		const user = userEvent.setup();
 		features.set(["export.json"]);
 		giftOffers.listOffers.mockReturnValue(of([ACTIVE_JSON_GIFT]));
 		await renderActions();
 
 		expect(
-			screen.getByRole("button", { name: "Download My Games as JSON" })
-		).toBeInTheDocument();
-		expect(
 			await screen.findByText(/Gift active until/)
 		).toBeInTheDocument();
+		expect(
+			menuItem(await openExportMenu(user), "JSON")
+		).toHaveAccessibleDescription("Full data, for backups");
 	});
 
 	it("asks for the offers only once for a free user", async () => {
@@ -290,7 +323,7 @@ describe("ExportActions", () => {
 		expect(giftOffers.listOffers).not.toHaveBeenCalled();
 	});
 
-	it("reveals the JSON button right after activating the gift with a double click", async () => {
+	it("unlocks JSON right after activating the gift with a double click", async () => {
 		const user = userEvent.setup();
 		giftOffers.listOffers.mockReturnValue(of([JSON_GIFT]));
 		await renderActions();
@@ -301,31 +334,37 @@ describe("ExportActions", () => {
 
 		expect(giftOffers.claimOffer).toHaveBeenCalledTimes(1);
 		expect(auth.loadUser).toHaveBeenCalledTimes(1);
+		await waitFor(() =>
+			expect(
+				screen.queryByRole("button", { name: "Activate gift" })
+			).not.toBeInTheDocument()
+		);
 		expect(
-			await screen.findByRole("button", {
-				name: "Download My Games as JSON"
-			})
-		).toBeInTheDocument();
+			menuItem(await openExportMenu(user), "JSON")
+		).toHaveAccessibleDescription("Full data, for backups");
 	});
 
-	it("still reveals the JSON button when refreshing the user fails after the claim", async () => {
+	it("still unlocks JSON when refreshing the user fails after the claim", async () => {
+		const user = userEvent.setup();
 		giftOffers.listOffers.mockReturnValue(of([JSON_GIFT]));
 		auth.loadUser.mockReturnValue(throwError(() => new Error("offline")));
 		await renderActions();
 
-		await userEvent.click(
+		await user.click(
 			await screen.findByRole("button", { name: "Activate gift" })
 		);
 
 		expect(
-			await screen.findByRole("button", {
-				name: "Download My Games as JSON"
-			})
+			await screen.findByText(/Gift active until/)
 		).toBeInTheDocument();
+		expect(
+			menuItem(await openExportMenu(user), "JSON")
+		).toHaveAccessibleDescription("Full data, for backups");
 		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 	});
 
-	it("keeps JSON hidden when the gift was revoked between listing and claiming", async () => {
+	it("keeps JSON locked when the gift was revoked between listing and claiming", async () => {
+		const user = userEvent.setup();
 		giftOffers.listOffers
 			.mockReturnValueOnce(of([JSON_GIFT]))
 			.mockReturnValueOnce(of([]));
@@ -337,7 +376,7 @@ describe("ExportActions", () => {
 		);
 		await renderActions();
 
-		await userEvent.click(
+		await user.click(
 			await screen.findByRole("button", { name: "Activate gift" })
 		);
 
@@ -347,12 +386,12 @@ describe("ExportActions", () => {
 			).not.toBeInTheDocument()
 		);
 		expect(
-			screen.queryByRole("button", { name: "Download My Games as JSON" })
-		).not.toBeInTheDocument();
+			menuItem(await openExportMenu(user), "JSON")
+		).toHaveAccessibleDescription("Premium perk");
 		expect(auth.loadUser).not.toHaveBeenCalled();
 	});
 
-	it("hides the JSON button when the gift ends while the view is open", async () => {
+	it("locks JSON again when the gift ends while the view is open", async () => {
 		vi.useFakeTimers({ shouldAdvanceTime: true });
 		try {
 			const endsSoon = new Date(Date.now() + 60_000).toISOString();
@@ -371,30 +410,25 @@ describe("ExportActions", () => {
 				])
 			);
 			const { fixture } = await renderActions();
-			expect(
-				screen.getByRole("button", {
-					name: "Download My Games as JSON"
-				})
-			).toBeInTheDocument();
 
 			vi.advanceTimersByTime(60_000);
 			fixture.detectChanges();
 
 			expect(auth.loadUser).toHaveBeenCalledTimes(1);
 			expect(
-				screen.queryByRole("button", {
-					name: "Download My Games as JSON"
-				})
-			).not.toBeInTheDocument();
-			expect(
 				screen.queryByText(/Gift active until/)
 			).not.toBeInTheDocument();
+			const menu = await openExportMenuNow();
+			fixture.detectChanges();
+			expect(menuItem(menu, "JSON")).toHaveAccessibleDescription(
+				"Premium perk"
+			);
 		} finally {
 			vi.useRealTimers();
 		}
 	});
 
-	it("hides the JSON button at the end of a gift claimed while the user refresh failed", async () => {
+	it("locks JSON at the end of a gift claimed while the user refresh failed", async () => {
 		vi.useFakeTimers({ shouldAdvanceTime: true });
 		try {
 			const endsSoon = new Date(Date.now() + 120_000).toISOString();
@@ -419,41 +453,22 @@ describe("ExportActions", () => {
 				screen.getByRole("button", { name: "Activate gift" })
 			);
 			fixture.detectChanges();
-			expect(
-				screen.getByRole("button", {
-					name: "Download My Games as JSON"
-				})
-			).toBeInTheDocument();
+			expect(screen.getByText(/Gift active until/)).toBeInTheDocument();
 
 			vi.advanceTimersByTime(120_000);
 			fixture.detectChanges();
 
-			expect(
-				screen.queryByRole("button", {
-					name: "Download My Games as JSON"
-				})
-			).not.toBeInTheDocument();
+			const menu = await openExportMenuNow();
+			fixture.detectChanges();
+			expect(menuItem(menu, "JSON")).toHaveAccessibleDescription(
+				"Premium perk"
+			);
 		} finally {
 			vi.useRealTimers();
 		}
 	});
 
 	describe("in Up Next", () => {
-		beforeEach(() => {
-			vi.stubGlobal(
-				"matchMedia",
-				vi.fn(() => ({
-					matches: false,
-					addEventListener: vi.fn(),
-					removeEventListener: vi.fn()
-				}))
-			);
-		});
-
-		afterEach(() => {
-			vi.unstubAllGlobals();
-		});
-
 		async function renderQueue(inputs: Record<string, unknown>) {
 			return render(QueueBrowser, {
 				inputs: {
@@ -475,7 +490,7 @@ describe("ExportActions", () => {
 			await renderQueue({ isLoading: false });
 
 			expect(
-				screen.getByRole("button", { name: "Download Up Next as CSV" })
+				screen.getByRole("button", { name: "Export" })
 			).toBeInTheDocument();
 		});
 
@@ -483,9 +498,7 @@ describe("ExportActions", () => {
 			await renderQueue({ isLoading: true });
 
 			expect(
-				screen.queryByRole("button", {
-					name: "Download Up Next as CSV"
-				})
+				screen.queryByRole("button", { name: "Export" })
 			).not.toBeInTheDocument();
 		});
 
@@ -493,9 +506,7 @@ describe("ExportActions", () => {
 			await renderQueue({ isLoading: false, readonly: true });
 
 			expect(
-				screen.queryByRole("button", {
-					name: "Download Up Next as CSV"
-				})
+				screen.queryByRole("button", { name: "Export" })
 			).not.toBeInTheDocument();
 		});
 	});
