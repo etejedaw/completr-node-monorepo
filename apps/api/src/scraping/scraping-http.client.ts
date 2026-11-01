@@ -39,9 +39,15 @@ export class ScrapingHttpClient {
 	}
 
 	getHtml(url: URL): Promise<string> {
+		return this.getText(url);
+	}
+
+	getText(url: URL, headers: Record<string, string> = {}): Promise<string> {
 		const host = url.host;
 		const previous = this.hostQueues.get(host) ?? Promise.resolve();
-		const request = previous.then(() => this.requestWithRetries(url));
+		const request = previous.then(() =>
+			this.requestWithRetries(url, { ...REQUEST_HEADERS, ...headers })
+		);
 		const settled = request.then(
 			() => undefined,
 			() => undefined
@@ -56,10 +62,13 @@ export class ScrapingHttpClient {
 		return request;
 	}
 
-	private async requestWithRetries(url: URL): Promise<string> {
+	private async requestWithRetries(
+		url: URL,
+		headers: Record<string, string>
+	): Promise<string> {
 		for (let attempt = 1; ; attempt += 1) {
 			await this.waitForTurn(url.host);
-			const outcome = await this.attempt(url, attempt);
+			const outcome = await this.attempt(url, attempt, headers);
 			this.scheduleNextRequest(url.host, outcome, attempt);
 
 			if (outcome.ok) return outcome.body;
@@ -109,7 +118,8 @@ export class ScrapingHttpClient {
 
 	private async attempt(
 		url: URL,
-		attempt: number
+		attempt: number,
+		headers: Record<string, string>
 	): Promise<ScrapingAttemptOutcome> {
 		const controller = new AbortController();
 		const timer = setTimeout(
@@ -119,10 +129,7 @@ export class ScrapingHttpClient {
 
 		try {
 			const response = await this.options.fetch(url.toString(), {
-				headers: {
-					...REQUEST_HEADERS,
-					"User-Agent": this.options.userAgent
-				},
+				headers: { ...headers, "User-Agent": this.options.userAgent },
 				redirect: "follow",
 				signal: controller.signal
 			});
