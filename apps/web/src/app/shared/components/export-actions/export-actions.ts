@@ -5,7 +5,6 @@ import {
 	computed,
 	inject,
 	input,
-	type OnInit,
 	signal
 } from "@angular/core";
 
@@ -20,7 +19,6 @@ import { ToastService } from "../../../core/services/toast";
 import { UiButton } from "../../ui/button/ui-button";
 import { UiPremiumBadge } from "../../ui/premium-badge/ui-premium-badge";
 import { GiftOfferCard } from "../gift-offer-card/gift-offer-card";
-import { GiftOffersService } from "../gift-offer-card/gift-offers.service";
 
 const STATUSES_TOASTED_BY_INTERCEPTOR = new Set([402, 409, 422, 429]);
 
@@ -80,9 +78,10 @@ const STATUSES_TOASTED_BY_INTERCEPTOR = new Set([402, 409, 422, 429]);
 		}
 		@if (!auth.isPremium()) {
 			<app-gift-offer-card
-				offerCode="json-export-trial-1m"
+				feature="export.json"
 				variant="compact"
-				(claimed)="jsonFeatureAccess.set(true)"
+				(claimed)="jsonGiftClaimed.set(true)"
+				(expired)="jsonGiftClaimed.set(false)"
 			/>
 		}
 	`,
@@ -91,9 +90,8 @@ const STATUSES_TOASTED_BY_INTERCEPTOR = new Set([402, 409, 422, 429]);
 	},
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExportActions implements OnInit {
+export class ExportActions {
 	private readonly exportService = inject(ExportService);
-	private readonly giftOffersService = inject(GiftOffersService);
 	private readonly toast = inject(ToastService);
 	protected readonly auth = inject(AuthService);
 
@@ -102,21 +100,11 @@ export class ExportActions implements OnInit {
 	readonly params = input<ExportParams>({});
 
 	private readonly downloading = signal<ReadonlySet<ExportFormat>>(new Set());
-	protected readonly jsonFeatureAccess = signal(false);
+	protected readonly jsonGiftClaimed = signal(false);
 	protected readonly canExportJson = computed(
-		() => this.auth.isPremium() || this.jsonFeatureAccess()
+		() =>
+			this.auth.hasPremiumFeature("export.json") || this.jsonGiftClaimed()
 	);
-
-	ngOnInit() {
-		this.giftOffersService.listOffers().subscribe({
-			next: offers => {
-				const offer = offers.find(
-					candidate => candidate.code === "json-export-trial-1m"
-				);
-				this.jsonFeatureAccess.set(offer?.hasAccess ?? false);
-			}
-		});
-	}
 
 	protected isDownloading(format: ExportFormat): boolean {
 		return this.downloading().has(format);

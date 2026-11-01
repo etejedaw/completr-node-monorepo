@@ -1,10 +1,11 @@
 import "@testing-library/jest-dom/vitest";
 
 import { signal } from "@angular/core";
-import { render, screen, waitFor } from "@testing-library/angular";
+import { fireEvent, render, screen, waitFor } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 import { type Observable, of, Subject, throwError } from "rxjs";
 
+import { type PremiumFeature } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import {
 	type ExportFormat,
@@ -14,11 +15,42 @@ import {
 import { type ExportResource } from "../../../core/services/export.model";
 import { ToastService } from "../../../core/services/toast";
 import { QueueBrowser } from "../../../features/queue/queue-browser/queue-browser";
+import { type GiftOffer } from "../gift-offer-card/gift-offer-card.model";
 import { GiftOffersService } from "../gift-offer-card/gift-offers.service";
 import { ExportActions } from "./export-actions";
 
+const JSON_GIFT: GiftOffer = {
+	code: "json-launch",
+	feature: "export.json",
+	availableFrom: "2026-10-01T00:00:00.000Z",
+	availableUntil: "2099-12-01T00:00:00.000Z",
+	status: "available",
+	expiresAt: null,
+	canActivate: true,
+	hasAccess: false
+};
+
+const ACTIVE_JSON_GIFT: GiftOffer = {
+	...JSON_GIFT,
+	status: "active",
+	canActivate: false,
+	hasAccess: true,
+	expiresAt: JSON_GIFT.availableUntil
+};
+
 describe("ExportActions", () => {
 	const isPremium = signal(false);
+	const features = signal<PremiumFeature[]>([]);
+	const auth = {
+		isPremium,
+		hasPremiumFeature: (feature: PremiumFeature) =>
+			isPremium() || features().includes(feature),
+		loadUser: vi.fn()
+	};
+	const giftOffers = {
+		listOffers: vi.fn(),
+		claimOffer: vi.fn()
+	};
 	let pending: Map<ExportFormat, Subject<void>>;
 	const exportService = {
 		download: vi.fn(
@@ -37,12 +69,9 @@ describe("ExportActions", () => {
 
 	function providers() {
 		return [
-			{ provide: AuthService, useValue: { isPremium } },
+			{ provide: AuthService, useValue: auth },
 			{ provide: ExportService, useValue: exportService },
-			{
-				provide: GiftOffersService,
-				useValue: { listOffers: vi.fn(() => of([])) }
-			},
+			{ provide: GiftOffersService, useValue: giftOffers },
 			{ provide: ToastService, useValue: toast }
 		];
 	}
@@ -62,6 +91,18 @@ describe("ExportActions", () => {
 
 	beforeEach(() => {
 		isPremium.set(false);
+		features.set([]);
+		auth.loadUser.mockReset();
+		auth.loadUser.mockImplementation(() => {
+			features.set(["export.json"]);
+			return of({});
+		});
+		giftOffers.listOffers.mockReset();
+		giftOffers.listOffers.mockReturnValue(of([]));
+		giftOffers.claimOffer.mockReset();
+		giftOffers.claimOffer.mockReturnValue(
+			of({ offer: ACTIVE_JSON_GIFT, created: true })
+		);
 		pending = new Map();
 		exportService.download.mockClear();
 		toast.error.mockReset();
@@ -221,6 +262,180 @@ describe("ExportActions", () => {
 		);
 
 		expect(toast.error).not.toHaveBeenCalled();
+	});
+
+	it("shows the JSON button to a free user with the JSON export gift", async () => {
+		features.set(["export.json"]);
+		giftOffers.listOffers.mockReturnValue(of([ACTIVE_JSON_GIFT]));
+		await renderActions();
+
+		expect(
+			screen.getByRole("button", { name: "Download My Games as JSON" })
+		).toBeInTheDocument();
+		expect(
+			await screen.findByText(/Gift active until/)
+		).toBeInTheDocument();
+	});
+
+	it("asks for the offers only once for a free user", async () => {
+		await renderActions();
+
+		expect(giftOffers.listOffers).toHaveBeenCalledTimes(1);
+	});
+
+	it("never asks for the offers for a premium user", async () => {
+		isPremium.set(true);
+		await renderActions();
+
+		expect(giftOffers.listOffers).not.toHaveBeenCalled();
+	});
+
+	it("reveals the JSON button right after activating the gift with a double click", async () => {
+		const user = userEvent.setup();
+		giftOffers.listOffers.mockReturnValue(of([JSON_GIFT]));
+		await renderActions();
+
+		await user.dblClick(
+			await screen.findByRole("button", { name: "Activate gift" })
+		);
+
+		expect(giftOffers.claimOffer).toHaveBeenCalledTimes(1);
+		expect(auth.loadUser).toHaveBeenCalledTimes(1);
+		expect(
+			await screen.findByRole("button", {
+				name: "Download My Games as JSON"
+			})
+		).toBeInTheDocument();
+	});
+
+	it("still reveals the JSON button when refreshing the user fails after the claim", async () => {
+		giftOffers.listOffers.mockReturnValue(of([JSON_GIFT]));
+		auth.loadUser.mockReturnValue(throwError(() => new Error("offline")));
+		await renderActions();
+
+		await userEvent.click(
+			await screen.findByRole("button", { name: "Activate gift" })
+		);
+
+		expect(
+			await screen.findByRole("button", {
+				name: "Download My Games as JSON"
+			})
+		).toBeInTheDocument();
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+	});
+
+	it("keeps JSON hidden when the gift was revoked between listing and claiming", async () => {
+		giftOffers.listOffers
+			.mockReturnValueOnce(of([JSON_GIFT]))
+			.mockReturnValueOnce(of([]));
+		giftOffers.claimOffer.mockReturnValue(
+			of({
+				offer: { ...JSON_GIFT, status: "expired", canActivate: false },
+				created: false
+			})
+		);
+		await renderActions();
+
+		await userEvent.click(
+			await screen.findByRole("button", { name: "Activate gift" })
+		);
+
+		await waitFor(() =>
+			expect(
+				screen.queryByRole("button", { name: "Activate gift" })
+			).not.toBeInTheDocument()
+		);
+		expect(
+			screen.queryByRole("button", { name: "Download My Games as JSON" })
+		).not.toBeInTheDocument();
+		expect(auth.loadUser).not.toHaveBeenCalled();
+	});
+
+	it("hides the JSON button when the gift ends while the view is open", async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		try {
+			const endsSoon = new Date(Date.now() + 60_000).toISOString();
+			features.set(["export.json"]);
+			auth.loadUser.mockImplementation(() => {
+				features.set([]);
+				return of({});
+			});
+			giftOffers.listOffers.mockReturnValue(
+				of([
+					{
+						...ACTIVE_JSON_GIFT,
+						availableUntil: endsSoon,
+						expiresAt: endsSoon
+					}
+				])
+			);
+			const { fixture } = await renderActions();
+			expect(
+				screen.getByRole("button", {
+					name: "Download My Games as JSON"
+				})
+			).toBeInTheDocument();
+
+			vi.advanceTimersByTime(60_000);
+			fixture.detectChanges();
+
+			expect(auth.loadUser).toHaveBeenCalledTimes(1);
+			expect(
+				screen.queryByRole("button", {
+					name: "Download My Games as JSON"
+				})
+			).not.toBeInTheDocument();
+			expect(
+				screen.queryByText(/Gift active until/)
+			).not.toBeInTheDocument();
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("hides the JSON button at the end of a gift claimed while the user refresh failed", async () => {
+		vi.useFakeTimers({ shouldAdvanceTime: true });
+		try {
+			const endsSoon = new Date(Date.now() + 120_000).toISOString();
+			const gift = { ...JSON_GIFT, availableUntil: endsSoon };
+			giftOffers.listOffers.mockReturnValue(of([gift]));
+			giftOffers.claimOffer.mockReturnValue(
+				of({
+					offer: {
+						...ACTIVE_JSON_GIFT,
+						availableUntil: endsSoon,
+						expiresAt: endsSoon
+					},
+					created: true
+				})
+			);
+			auth.loadUser.mockReturnValue(
+				throwError(() => new Error("offline"))
+			);
+			const { fixture } = await renderActions();
+
+			fireEvent.click(
+				screen.getByRole("button", { name: "Activate gift" })
+			);
+			fixture.detectChanges();
+			expect(
+				screen.getByRole("button", {
+					name: "Download My Games as JSON"
+				})
+			).toBeInTheDocument();
+
+			vi.advanceTimersByTime(120_000);
+			fixture.detectChanges();
+
+			expect(
+				screen.queryByRole("button", {
+					name: "Download My Games as JSON"
+				})
+			).not.toBeInTheDocument();
+		} finally {
+			vi.useRealTimers();
+		}
 	});
 
 	describe("in Up Next", () => {
