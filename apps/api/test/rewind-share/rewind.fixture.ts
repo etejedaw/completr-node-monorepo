@@ -103,6 +103,7 @@ export function buildRewind(overrides: Partial<Rewind> = {}): Rewind {
 		generatedAt: "2026-12-02T10:00:00.000Z",
 		aiRecap: null,
 		premiumStats: null,
+		premiumAccessKind: null,
 		ownerControls: null,
 		premiumAccess: { allowed: false, source: null, expiresAt: null },
 		...overrides

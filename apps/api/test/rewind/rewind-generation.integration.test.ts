@@ -106,7 +106,7 @@ void describe("reading a Rewind before and after generating it", () => {
 			assert.deepEqual(list.body.data, {
 				spotlightYear: null,
 				years: [],
-				premiumAccess: { allowed: false, source: null, expiresAt: null }
+				premiumAccess: null
 			});
 
 			const detail = await readRewind(username, 2026, authorization);

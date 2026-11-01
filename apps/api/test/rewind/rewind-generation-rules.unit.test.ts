@@ -29,6 +29,7 @@ function record(overrides: Partial<RewindRecord> = {}): RewindRecord {
 		aiRecapStatus: "none",
 		aiRecapRequestedAt: null,
 		premiumStats: null,
+		premiumAccessKind: null,
 		...overrides
 	};
 }

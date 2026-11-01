@@ -297,7 +297,7 @@ void describe("GET /users/:username/rewinds", () => {
 		assert.deepEqual(response.body.data, {
 			spotlightYear: null,
 			years: [],
-			premiumAccess: { allowed: false, source: null, expiresAt: null }
+			premiumAccess: null
 		});
 	});
 
@@ -659,7 +659,7 @@ void describe("rewind years and the sign-up date", () => {
 		assert.deepEqual(response.body.data, {
 			spotlightYear: null,
 			years: [],
-			premiumAccess: { allowed: false, source: null, expiresAt: null }
+			premiumAccess: null
 		});
 		const detail = await rewind(newcomer.user.username, "2025");
 		assert.equal(detail.status, 404);

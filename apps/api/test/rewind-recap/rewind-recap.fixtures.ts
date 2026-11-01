@@ -40,6 +40,7 @@ export function buildRecapRewind(overrides: Partial<Rewind> = {}): Rewind {
 			role: "premium"
 		},
 		premiumAccess: { allowed: true, source: "role", expiresAt: null },
+		premiumAccessKind: "premium",
 		isSpotlight: true,
 		otherYears: [],
 		totals: buildTotals(),
