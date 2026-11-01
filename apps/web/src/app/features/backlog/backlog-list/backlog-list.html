@@ -34,31 +34,16 @@
 		</div>
 		}
 
-		<div
-			class="md:hidden grid gap-2"
-			[class.grid-cols-2]="viewPickerViews().length > 0"
-		>
-			<app-option-picker
-				label="Status"
-				heading="Filter by status"
-				[options]="statusPickerOptions"
-				[value]="statusPickerValue()"
-				[placeholder]="quickStatusLabel()"
-				[placeholderIcon]="quickStatusIcon()"
-				(valueChange)="pickStatus($event)"
-			/>
-			@if (viewPickerViews().length > 0) {
-			<app-option-picker
-				label="View"
-				heading="Saved views"
-				[options]="viewPickerOptions()"
-				[value]="activeFilterId() ?? ''"
-				[actions]="viewPickerActions()"
-				(valueChange)="pickView($event)"
-				(actionSelected)="runViewAction($event)"
-			/>
-			}
-		</div>
+		<app-option-picker
+			class="md:hidden"
+			label="Status"
+			heading="Filter by status"
+			[options]="statusPickerOptions"
+			[value]="statusPickerValue()"
+			[placeholder]="quickStatusLabel()"
+			[placeholderIcon]="quickStatusIcon()"
+			(valueChange)="pickStatus($event)"
+		/>
 
 		<app-backlog-status-pills
 			[selected]="selectedStatuses()"
@@ -80,7 +65,6 @@
 
 			@if (viewPickerViews().length > 0) {
 			<app-option-picker
-				class="max-md:hidden"
 				variant="compact"
 				label="View"
 				heading="Saved views"
@@ -92,12 +76,6 @@
 				(actionSelected)="runViewAction($event)"
 			/>
 			}
-
-			<app-view-mode-toggle
-				[options]="viewModes"
-				[value]="viewMode()"
-				(valueChange)="setViewMode($event)"
-			/>
 
 			<div class="flex items-center gap-2">
 				<button
@@ -180,6 +158,12 @@
 				</button>
 				}
 			</div>
+
+			<app-view-mode-toggle
+				[options]="viewModes"
+				[value]="viewMode()"
+				(valueChange)="setViewMode($event)"
+			/>
 
 			@if (!isLoading()) {
 			<app-export-actions

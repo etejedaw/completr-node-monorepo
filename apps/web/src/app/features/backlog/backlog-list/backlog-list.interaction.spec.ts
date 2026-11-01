@@ -315,8 +315,11 @@ describe("BacklogList interaction", () => {
 			expect(visibleTitles()).toEqual(["Hollow Knight"])
 		);
 
+		await user.click(screen.getByRole("button", { name: "Export" }));
 		await user.click(
-			screen.getByRole("button", { name: "Download My Games as CSV" })
+			within(
+				await screen.findByRole("menu", { name: "Export My Games" })
+			).getByRole("menuitem", { name: "Download CSV" })
 		);
 		answerPending();
 
