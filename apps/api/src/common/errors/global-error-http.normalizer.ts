@@ -35,6 +35,7 @@ import { scoreSourcesDomainToHttpMapper } from "../../score-sources/errors/score
 import { userFollowRequestsDomainToHttpMapper } from "../../user-follow-requests/errors/user-follow-requests.domain-to-http.mapper";
 import { userFollowersDomainToHttpMapper } from "../../user-followers/errors/user-followers.domain-to-http.mapper";
 import { usersDomainToHttpMapper } from "../../users/errors/users.domain-to-http.mapper";
+import { wikidataDomainToHttpMapper } from "../../wikidata/errors/wikidata.domain-to-http.mapper";
 import { wishlistDomainToHttpMapper } from "../../wishlist/errors/wishlist.domain-to-http.mapper";
 import { commonDomainToHttpMapper } from "./common.domain-to-http.mapper";
 import { type DomainError } from "./domain-error";
@@ -142,6 +143,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "Metacritic Provider")
 		return metacriticDomainToHttpMapper(error, request);
+
+	if (error.module === "Wikidata Provider")
+		return wikidataDomainToHttpMapper(error, request);
 
 	if (error.module === "IA Provider")
 		return iaDomainToHttpMapper(error, request);

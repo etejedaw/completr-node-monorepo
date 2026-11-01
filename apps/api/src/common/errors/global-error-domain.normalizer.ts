@@ -34,6 +34,7 @@ import { scoreSourcesErrorDomainNormalizer } from "../../score-sources/errors/sc
 import { userFollowRequestsErrorDomainNormalizer } from "../../user-follow-requests/errors/user-follow-requests.error-domain.normalizer";
 import { userFollowersErrorDomainNormalizer } from "../../user-followers/errors/user-followers.error-domain.normalizer";
 import { usersErrorDomainNormalizer } from "../../users/errors/users.error-domain.normalizer";
+import { wikidataErrorDomainNormalizer } from "../../wikidata/errors/wikidata.error-domain.normalizer";
 import { wishlistErrorDomainNormalizer } from "../../wishlist/errors/wishlist.error-domain.normalizer";
 import * as commonDomainError from "./common.domain-error";
 import { DomainError } from "./domain-error";
@@ -158,6 +159,9 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "Metacritic Provider")
 		return metacriticErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "Wikidata Provider")
+		return wikidataErrorDomainNormalizer(error, correlationId);
 
 	if (error.serviceError.service === "IA Provider")
 		return iaErrorDomainNormalizer(error, correlationId);
