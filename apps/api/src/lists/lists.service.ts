@@ -10,6 +10,7 @@ import { Game } from "../games/game.model";
 import * as listFollowersService from "../list-followers/list-followers.service";
 import { ListItem } from "../list-items/list-item.model";
 import * as listItemsService from "../list-items/list-items.service";
+import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import { visibleListsCondition } from "../users/helpers/visibility.helper";
 import { User } from "../users/user.model";
@@ -24,12 +25,13 @@ const FREE_LIST_LIMIT = 5;
 export const LIST_PREVIEW_SIZE = 4;
 const FINISHED_STATUSES = ["completed", "abandoned", "endless"];
 
-function isPremium(role: string) {
-	return role === "premium" || role === "moderator" || role === "admin";
+async function hasPremiumAccess(userId: string, role: string) {
+	return resolvePremiumAccess({ id: userId, role }, "lists.unlimited");
 }
 
 async function areFrozen(userId: string, role: string) {
-	if (isPremium(role)) return false;
+	const premiumAccess = await hasPremiumAccess(userId, role);
+	if (premiumAccess.allowed) return false;
 	const count = await List.count({ where: { userId } });
 	return count > FREE_LIST_LIMIT;
 }
@@ -38,7 +40,8 @@ export async function createList(
 	user: RequestUser,
 	registerList: RegisterListDto
 ) {
-	if (!isPremium(user.role)) {
+	const premiumAccess = await hasPremiumAccess(user.id, user.role);
+	if (!premiumAccess.allowed) {
 		const count = await List.count({ where: { userId: user.id } });
 		if (count >= FREE_LIST_LIMIT)
 			throw listsServiceError.limitReachedError();
@@ -75,7 +78,8 @@ export async function duplicateList(
 	if (!(await isListVisibleToViewer(source.id, user.id)))
 		throw listsServiceError.notFoundError();
 
-	if (!isPremium(user.role)) {
+	const premiumAccess = await hasPremiumAccess(user.id, user.role);
+	if (!premiumAccess.allowed) {
 		const count = await List.count({ where: { userId: user.id } });
 		if (count >= FREE_LIST_LIMIT)
 			throw listsServiceError.limitReachedError();

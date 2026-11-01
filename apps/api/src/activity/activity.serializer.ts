@@ -1,14 +1,17 @@
 import { type User } from "../users/user.model";
 import { type Activity } from "./activity.model";
 
-export function activitySerializer(activity: Activity) {
-	const target = resolveTarget(activity);
+export function activitySerializer(
+	activity: Activity,
+	premiumUserIds?: ReadonlySet<string>
+) {
+	const target = resolveTarget(activity, premiumUserIds);
 
 	return {
 		id: activity.id,
 		type: activity.type,
 		createdAt: activity.createdAt,
-		user: userSerializer(activity.User),
+		user: userSerializer(activity.User, premiumUserIds),
 		target,
 		game: resolveMetadataGame(activity)
 	};
@@ -35,7 +38,10 @@ function resolveMetadataGame(activity: Activity) {
 	};
 }
 
-function resolveTarget(activity: Activity) {
+function resolveTarget(
+	activity: Activity,
+	premiumUserIds?: ReadonlySet<string>
+) {
 	if (activity.ActivityGame?.Game) {
 		const game = activity.ActivityGame.Game;
 		return {
@@ -64,20 +70,22 @@ function resolveTarget(activity: Activity) {
 			name: targetUser.name || targetUser.username,
 			username: targetUser.username,
 			avatarUrl: targetUser.avatarUrl,
-			role: targetUser.role
+			role: targetUser.role,
+			hasPremium: premiumUserIds?.has(targetUser.id) ?? false
 		};
 	}
 
 	return null;
 }
 
-function userSerializer(user?: User) {
+function userSerializer(user?: User, premiumUserIds?: ReadonlySet<string>) {
 	if (!user) return null;
 	return {
 		id: user.id,
 		username: user.username,
 		name: user.name,
 		avatarUrl: user.avatarUrl,
-		role: user.role
+		role: user.role,
+		hasPremium: premiumUserIds?.has(user.id) ?? false
 	};
 }

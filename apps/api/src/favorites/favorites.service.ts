@@ -7,14 +7,11 @@ import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import * as gamesService from "../games/games.service";
+import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import * as favoritesServiceError from "./errors/favorites.service-error";
 import { Favorite } from "./favorite.model";
 
 const FREE_FAVORITE_LIMIT = 10;
-
-function isPremium(role: string) {
-	return role === "premium" || role === "moderator" || role === "admin";
-}
 
 export async function replaceFavorites(user: RequestUser, gameIds: string[]) {
 	if (gameIds.length === 0) {
@@ -22,7 +19,11 @@ export async function replaceFavorites(user: RequestUser, gameIds: string[]) {
 		return [];
 	}
 
-	if (!isPremium(user.role) && gameIds.length > FREE_FAVORITE_LIMIT)
+	const premiumAccess = await resolvePremiumAccess(
+		user,
+		"favorites.unlimited"
+	);
+	if (!premiumAccess.allowed && gameIds.length > FREE_FAVORITE_LIMIT)
 		throw favoritesServiceError.limitReachedError();
 
 	const games = await gamesService.findGamesByIds(gameIds);

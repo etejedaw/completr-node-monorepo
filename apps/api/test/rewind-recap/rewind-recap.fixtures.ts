@@ -39,6 +39,7 @@ export function buildRecapRewind(overrides: Partial<Rewind> = {}): Rewind {
 			avatarUrl: "https://img.test/avatar.png",
 			role: "premium"
 		},
+		premiumAccess: { allowed: true, source: "role", expiresAt: null },
 		isSpotlight: true,
 		otherYears: [],
 		totals: buildTotals(),

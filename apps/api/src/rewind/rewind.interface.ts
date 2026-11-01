@@ -1,3 +1,4 @@
+import { type PremiumAccess } from "../premium-access/premium-access.interface";
 import { type UserRole } from "../users/user-role.type";
 import {
 	type RewindAiRecapState,
@@ -33,6 +34,7 @@ export interface RewindYearSummary {
 export interface RewindYears {
 	spotlightYear: number | null;
 	years: RewindYearSummary[];
+	premiumAccess: PremiumAccess;
 }
 
 export interface RewindTotals {
@@ -137,6 +139,7 @@ export interface Rewind {
 	aiRecap: RewindAiRecap | null;
 	premiumStats: RewindPremiumStats | null;
 	ownerControls: RewindOwnerControls | null;
+	premiumAccess: PremiumAccess;
 }
 
 export interface RewindInsight {

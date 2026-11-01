@@ -462,6 +462,7 @@ void describe("GET /games/:id/friends-activity", () => {
 				name: friend.name,
 				avatarUrl: null,
 				role: "user",
+				hasPremium: false,
 				status: "completed",
 				finishedAt: "2025-05-20",
 				userRating: 4.5
@@ -676,6 +677,7 @@ void describe("GET /games/:id/players", () => {
 				name: player.name,
 				avatarUrl: null,
 				role: "user",
+				hasPremium: false,
 				status: "playing"
 			}
 		]);

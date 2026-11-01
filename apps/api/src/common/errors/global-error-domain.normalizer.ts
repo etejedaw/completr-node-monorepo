@@ -22,6 +22,7 @@ import { listsErrorDomainNormalizer } from "../../lists/errors/lists.error-domai
 import { mailErrorDomainNormalizer } from "../../mail/errors/mail.error-domain.normalizer";
 import { moodTagsErrorDomainNormalizer } from "../../mood-tags/errors/mood-tags.error-domain.normalizer";
 import { platformsErrorDomainNormalizer } from "../../platforms/errors/platforms.error-domain.normalizer";
+import { premiumAccessErrorDomainNormalizer } from "../../premium-access/errors/premium-access.error-domain.normalizer";
 import { queueErrorDomainNormalizer } from "../../queue/errors/queue.error-domain.normalizer";
 import { rawgErrorDomainNormalizer } from "../../rawg/errors/rawg.error-domain.normalizer";
 import { reviewsErrorDomainNormalizer } from "../../reviews/errors/reviews.error-domain.normalizer";
@@ -143,6 +144,9 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "CoopRuns Service")
 		return coopRunsErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "Premium Access Service")
+		return premiumAccessErrorDomainNormalizer(error, correlationId);
 
 	if (error.serviceError.service === "RAWG Provider")
 		return rawgErrorDomainNormalizer(error, correlationId);

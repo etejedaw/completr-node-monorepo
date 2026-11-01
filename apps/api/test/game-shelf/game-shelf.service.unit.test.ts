@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { afterEach, describe, it, mock } from "node:test";
+import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
 import { UniqueConstraintError, ValidationError } from "sequelize";
 
@@ -12,9 +12,14 @@ import {
 	spy,
 	stub
 } from "../unit-helpers/mocks";
+import { stubPremiumAccess } from "../unit-helpers/premium-access";
 
 const FREE_SHELF_LIMIT = 250;
 const dto = { gameId: "game-1", platformId: "platform-1" };
+
+beforeEach(() => {
+	stubPremiumAccess();
+});
 
 function stubShelfEntry(userId: string) {
 	const update = spy();

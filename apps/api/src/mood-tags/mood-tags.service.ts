@@ -3,6 +3,7 @@ import { Op, QueryTypes, type Transaction } from "sequelize";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { sequelize } from "../database/sequelize.database";
 import * as gamesService from "../games/games.service";
+import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import * as moodTagsServiceError from "./errors/mood-tags.service-error";
 import { MoodTagMeta } from "./mood-tag-meta.model";
 import { normalizeTag, normalizeTags } from "./normalize-tag.util";
@@ -10,10 +11,6 @@ import { UserGameTag } from "./user-game-tag.model";
 
 const MAX_TAGS_PER_GAME = 10;
 const FREE_TAG_LIMIT = 25;
-
-function isPremium(role: string) {
-	return role === "premium" || role === "moderator" || role === "admin";
-}
 
 async function findTagNamesByUser(userId: string) {
 	const rows = (await sequelize.query(
@@ -29,7 +26,11 @@ async function assertWithinTagLimit(
 	user: RequestUser,
 	tags: readonly string[]
 ) {
-	if (isPremium(user.role)) return;
+	const premiumAccess = await resolvePremiumAccess(
+		user,
+		"mood-tags.unlimited"
+	);
+	if (premiumAccess.allowed) return;
 	const existing = await findTagNamesByUser(user.id);
 	const newTags = tags.filter(tag => !existing.has(tag));
 	if (newTags.length > 0 && existing.size + newTags.length > FREE_TAG_LIMIT)

@@ -11,15 +11,12 @@ import { Game } from "../games/game.model";
 import * as gamesService from "../games/games.service";
 import { Platform } from "../platforms/platform.model";
 import * as platformsService from "../platforms/platforms.service";
+import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import * as wishlistServiceError from "./errors/wishlist.service-error";
 import { Wishlist } from "./wishlist.model";
 
 const FREE_WISHLIST_LIMIT = 20;
 const INCLUDE = [{ model: Game }, { model: Platform }];
-
-function isPremium(role: string) {
-	return role === "premium" || role === "moderator" || role === "admin";
-}
 
 export async function replaceWishlist(user: RequestUser, gameIds: string[]) {
 	if (gameIds.length === 0) {
@@ -27,7 +24,11 @@ export async function replaceWishlist(user: RequestUser, gameIds: string[]) {
 		return [];
 	}
 
-	if (!isPremium(user.role) && gameIds.length > FREE_WISHLIST_LIMIT)
+	const premiumAccess = await resolvePremiumAccess(
+		user,
+		"wishlist.unlimited"
+	);
+	if (!premiumAccess.allowed && gameIds.length > FREE_WISHLIST_LIMIT)
 		throw wishlistServiceError.limitReachedError();
 
 	const games = await gamesService.findGamesByIds(gameIds);
@@ -86,8 +87,12 @@ export async function addToWishlist(
 	});
 	if (existing) throw wishlistServiceError.alreadyExistsError();
 
+	const premiumAccess = await resolvePremiumAccess(
+		user,
+		"wishlist.unlimited"
+	);
 	const count = await Wishlist.count({ where: { userId: user.id } });
-	if (!isPremium(user.role) && count >= FREE_WISHLIST_LIMIT)
+	if (!premiumAccess.allowed && count >= FREE_WISHLIST_LIMIT)
 		throw wishlistServiceError.limitReachedError();
 
 	try {

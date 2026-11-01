@@ -6,6 +6,7 @@ import * as franchiseService from "../franchises/franchises.service";
 import { gamePlatinumSerializer } from "../game-platinum/game-platinum.serializer";
 import * as gamePlatinumService from "../game-platinum/game-platinum.service";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
+import { findFullPremiumUserIds } from "../premium-access/premium-access.service";
 import { type MarkCompilationDto } from "./dtos/mark-compilation.dto";
 import { type RegisterGameDto } from "./dtos/register-game.dto";
 import { type SplitGameDto } from "./dtos/split-game.dto";
@@ -266,8 +267,18 @@ export async function getGameFriendsActivity(
 		user.id,
 		params.id
 	);
+	const premiumUserIds = await findFullPremiumUserIds(
+		entries.flatMap(entry => (entry.User ? [entry.User] : []))
+	);
 
-	const data = { friends: entries.map(gameFriendActivitySerializer) };
+	const data = {
+		friends: entries.map(entry =>
+			gameFriendActivitySerializer(
+				entry,
+				premiumUserIds.has(entry.userId)
+			)
+		)
+	};
 	return response.status(200).json({ data });
 }
 
@@ -279,7 +290,14 @@ export async function getGamePlayers(request: Request, response: Response) {
 		user.id,
 		params.id
 	);
+	const premiumUserIds = await findFullPremiumUserIds(
+		entries.flatMap(entry => (entry.User ? [entry.User] : []))
+	);
 
-	const data = { players: entries.map(gamePlayerSerializer) };
+	const data = {
+		players: entries.map(entry =>
+			gamePlayerSerializer(entry, premiumUserIds.has(entry.userId))
+		)
+	};
 	return response.status(200).json({ data });
 }

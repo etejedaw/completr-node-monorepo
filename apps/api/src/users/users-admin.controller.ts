@@ -6,6 +6,7 @@ import { type RegisterDto } from "../auth/dtos";
 import * as passwordService from "../auth/services/password.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
+import { resolvePremiumStatus } from "../premium-access/premium-access.service";
 import { type AdminUpdateUserDto } from "./dtos";
 import * as userDomain from "./errors/users.domain-error";
 import { type UserIdParam } from "./schemas/user-id-params.schema";
@@ -24,7 +25,9 @@ export async function postAdminCreateUser(
 
 	const userPlain = user.get({ plain: true });
 
-	const data = { user: userMeSerializer(userPlain) };
+	const data = {
+		user: userMeSerializer(userPlain, await resolvePremiumStatus(userPlain))
+	};
 	return response.status(201).json({ data });
 }
 

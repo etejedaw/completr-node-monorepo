@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { afterEach, describe, it, mock } from "node:test";
+import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
 import { sequelize } from "../../src/database/sequelize.database";
 import * as gameScoresService from "../../src/game-scores/game-scores.service";
@@ -16,6 +16,7 @@ import {
 	stub,
 	stubTransaction
 } from "../unit-helpers/mocks";
+import { stubPremiumAccess } from "../unit-helpers/premium-access";
 
 const FREE_OWNED_LISTS_LIMIT = 5;
 const FREE_USER = buildRequestUser();
@@ -35,6 +36,10 @@ function stubList(overrides: Record<string, unknown> = {}) {
 		})
 	);
 }
+
+beforeEach(() => {
+	stubPremiumAccess();
+});
 
 function stubOwnedListCount(count: number) {
 	return stub(List, "count", async () => count);

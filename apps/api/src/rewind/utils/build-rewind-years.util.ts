@@ -32,7 +32,9 @@ function summarizeYear(
 	};
 }
 
-export function buildRewindYears(source: RewindYearsSource): RewindYears {
+export function buildRewindYears(
+	source: RewindYearsSource
+): Omit<RewindYears, "premiumAccess"> {
 	const years = listVisibleRewindYears(
 		source.runs,
 		source.calendar,

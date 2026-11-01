@@ -30,6 +30,7 @@ import { List } from "../lists/list.model";
 import { MoodTagMeta } from "../mood-tags/mood-tag-meta.model";
 import { UserGameTag } from "../mood-tags/user-game-tag.model";
 import { Platform } from "../platforms/platform.model";
+import { PremiumGrant } from "../premium-access/premium-grant.model";
 import { Queue } from "../queue/queue.model";
 import { Review } from "../reviews/review.model";
 import { Rewind } from "../rewind/rewind.model";
@@ -74,6 +75,12 @@ export function setupAssociations() {
 	compilations();
 	franchises();
 	rewinds();
+	premiumGrants();
+}
+
+function premiumGrants() {
+	User.hasMany(PremiumGrant, { foreignKey: "userId", onDelete: "CASCADE" });
+	PremiumGrant.belongsTo(User, { foreignKey: "userId" });
 }
 
 function rewinds() {

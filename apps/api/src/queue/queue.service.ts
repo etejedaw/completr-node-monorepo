@@ -8,6 +8,7 @@ import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-qu
 import { sequelize } from "../database/sequelize.database";
 import * as gamesService from "../games/games.service";
 import * as platformsService from "../platforms/platforms.service";
+import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import * as queueServiceError from "./errors/queue.service-error";
 import { moveInOrder } from "./move-in-order.util";
 import { Queue } from "./queue.model";
@@ -16,16 +17,16 @@ import { sortQueueExport } from "./sort-queue-export.util";
 
 const FREE_QUEUE_LIMIT = 10;
 
-function isPremium(role: string) {
-	return role === "premium" || role === "moderator" || role === "admin";
-}
-
 async function checkLimit(
 	userId: string,
 	role: string,
 	transaction?: Transaction
 ) {
-	if (isPremium(role)) return;
+	const premiumAccess = await resolvePremiumAccess(
+		{ id: userId, role },
+		"queue.unlimited"
+	);
+	if (premiumAccess.allowed) return;
 	const count = await Queue.count({ where: { userId }, transaction });
 	if (count >= FREE_QUEUE_LIMIT) throw queueServiceError.limitReachedError();
 }
@@ -151,7 +152,8 @@ export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
 		return [];
 	}
 
-	if (!isPremium(user.role) && backlogIds.length > FREE_QUEUE_LIMIT)
+	const premiumAccess = await resolvePremiumAccess(user, "queue.unlimited");
+	if (!premiumAccess.allowed && backlogIds.length > FREE_QUEUE_LIMIT)
 		throw queueServiceError.limitReachedError();
 
 	const backlogs = await backlogService.findBacklogsByUserAndIds(

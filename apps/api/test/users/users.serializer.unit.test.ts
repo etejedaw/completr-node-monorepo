@@ -54,6 +54,12 @@ function buildUser(overrides: Record<string, unknown> = {}) {
 	return asModel<User>({ ...plain, get: () => plain });
 }
 
+const NO_FULL_PREMIUM = {
+	active: false,
+	source: null,
+	expiresAt: null
+} as const;
+
 const SENSITIVE = ["private@example.com", "hash"];
 
 function leaksSensitiveData(value: unknown) {
@@ -66,9 +72,9 @@ void describe("user serializers", () => {
 		const user = buildUser();
 
 		for (const serialized of [
-			userMeSerializer(user),
+			userMeSerializer(user, NO_FULL_PREMIUM),
 			userPublicSerializer(user),
-			userProfileSerializer(user),
+			userProfileSerializer(user, false),
 			userSummarySerializer(user)
 		]) {
 			assert.equal(leaksSensitiveData(serialized), false);
@@ -83,7 +89,7 @@ void describe("user serializers", () => {
 	});
 
 	void it("include every visibility setting and theme in the me serializer", () => {
-		const result = userMeSerializer(buildUser());
+		const result = userMeSerializer(buildUser(), NO_FULL_PREMIUM);
 
 		assert.equal(result.queueVisibility, "friends");
 		assert.equal(result.acceptFollowRequests, true);
@@ -122,6 +128,7 @@ void describe("fullProfileSerializer", () => {
 		return {
 			kind: "full" as const,
 			user: buildUser(),
+			hasPremium: false,
 			isSelf,
 			backlogs: [buildBacklog()],
 			backlogTotal: 1,
@@ -194,6 +201,7 @@ void describe("userCardSerializer", () => {
 		assert.equal(result.role, "premium");
 		assert.equal(result.username, "player");
 		assert.equal(result.completedTotal, 4);
+		assert.equal(result.hasPremium, false);
 		assert.equal(leaksSensitiveData(result), false);
 	});
 });

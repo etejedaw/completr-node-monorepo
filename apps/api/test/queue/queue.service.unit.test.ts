@@ -12,9 +12,14 @@ import {
 	stub,
 	stubTransaction
 } from "../unit-helpers/mocks";
+import { stubPremiumAccess } from "../unit-helpers/premium-access";
 
 const FREE_QUEUE_LIMIT = 10;
 const FREE_USER = buildRequestUser();
+
+beforeEach(() => {
+	stubPremiumAccess();
+});
 
 function errorCode(error: unknown) {
 	return (error as { code: string }).code;

@@ -24,12 +24,14 @@ export interface RestrictedUserProfile {
 export interface FullUserProfile {
 	kind: "full";
 	user: User;
+	hasPremium: boolean;
 	isSelf: boolean;
 	backlogs: Backlog[];
 	backlogTotal: number;
 	backlogStats: BacklogStatusCounts;
 	listsTotal: number;
 	recentActivity: Activity[];
+	activityPremiumUserIds?: ReadonlySet<string>;
 	followerCount: number;
 	followingCount: number;
 	isFollowing: boolean;
@@ -117,6 +119,7 @@ export interface UserReviewsBundle {
 
 export interface UserCardInsights {
 	user: User;
+	hasPremium?: boolean;
 	isSelf: boolean;
 	profileVisible: boolean;
 	followerCount: number | null;

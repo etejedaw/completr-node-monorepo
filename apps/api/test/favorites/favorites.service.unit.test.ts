@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { afterEach, describe, it, mock } from "node:test";
+import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
 import { Favorite } from "../../src/favorites/favorite.model";
 import * as favoritesService from "../../src/favorites/favorites.service";
@@ -10,6 +10,7 @@ import {
 	stub,
 	stubTransaction
 } from "../unit-helpers/mocks";
+import { stubPremiumAccess } from "../unit-helpers/premium-access";
 
 const FREE_FAVORITE_LIMIT = 10;
 const FREE_USER = buildRequestUser();
@@ -17,6 +18,10 @@ const FREE_USER = buildRequestUser();
 function gameIds(count: number) {
 	return Array.from({ length: count }, (_, index) => `g-${index}`);
 }
+
+beforeEach(() => {
+	stubPremiumAccess();
+});
 
 function stubGamesExist(ids: string[]) {
 	stub(Game, "findAll", async () => ids.map(id => ({ id })));
@@ -72,6 +77,36 @@ void describe("favoritesService.replaceFavorites", () => {
 			assert.equal(
 				(bulkCreate.mock.calls[0]?.arguments[0] as unknown[]).length,
 				count
+			);
+			mock.restoreAll();
+		}
+	});
+
+	void it("honors active full and feature grants but not denied or expired access", async () => {
+		for (const access of [
+			{ allowed: true, source: "full-grant", expiresAt: "2027-01-01" },
+			{ allowed: true, source: "feature-grant", expiresAt: "2027-01-01" },
+			{ allowed: false, source: null, expiresAt: null },
+			{ allowed: false, source: null, expiresAt: "2026-01-01" }
+		] as const) {
+			stubPremiumAccess(access);
+			stubGamesExist(gameIds(FREE_FAVORITE_LIMIT + 1));
+			stubTransaction();
+			stub(Favorite, "destroy", async () => 0);
+			stub(Favorite, "bulkCreate", async () => []);
+			stub(Favorite, "findAll", async () => []);
+
+			const result = await captureRejection(
+				favoritesService.replaceFavorites(
+					FREE_USER,
+					gameIds(FREE_FAVORITE_LIMIT + 1)
+				)
+			);
+
+			assert.equal(
+				(result as { code?: string } | undefined)?.code ===
+					"FAVORITE_LIMIT_REACHED",
+				!access.allowed
 			);
 			mock.restoreAll();
 		}

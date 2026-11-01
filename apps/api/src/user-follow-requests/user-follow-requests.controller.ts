@@ -2,6 +2,7 @@ import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { findFullPremiumUserIds } from "../premium-access/premium-access.service";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
 import { type RequesterIdParam } from "./schemas/requester-id-params.schema";
 import * as service from "./user-follow-requests.service";
@@ -12,10 +13,18 @@ export async function getIncomingRequests(
 ) {
 	const user = request.locals.user as RequestUser;
 	const rows = await service.listIncomingRequests(user.id);
+	const premiumUserIds = await findFullPremiumUserIds(
+		rows.flatMap(row => (row.Requester ? [row.Requester] : []))
+	);
 	const data = rows.map(row => ({
 		requesterId: row.requesterId,
 		createdAt: row.createdAt,
 		user: row.Requester
+			? {
+					...row.Requester.get({ plain: true }),
+					hasPremium: premiumUserIds.has(row.requesterId)
+				}
+			: row.Requester
 	}));
 	return response.status(200).json({ data: { requests: data } });
 }

@@ -5,6 +5,7 @@ import * as authService from "../auth/auth.service";
 import { getDeviceInfo } from "../auth/utils/device-info.util";
 import { setRefreshCookie } from "../auth/utils/refresh-cookie.util";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { resolvePremiumStatus } from "../premium-access/premium-access.service";
 import { userMeSerializer } from "../users";
 import * as usersService from "../users/users.service";
 import { type AcceptInvitationDto } from "./dtos/accept-invitation.dto";
@@ -86,8 +87,12 @@ export async function postAcceptInvitation(
 
 	setRefreshCookie(response, registration.refreshToken);
 
+	const userPlain = registration.user.get({ plain: true });
 	const data = {
-		user: userMeSerializer(registration.user.get({ plain: true })),
+		user: userMeSerializer(
+			userPlain,
+			await resolvePremiumStatus(userPlain)
+		),
 		access_token: registration.accessToken,
 		session_id: registration.sessionId
 	};

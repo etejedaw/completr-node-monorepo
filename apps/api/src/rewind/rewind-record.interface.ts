@@ -1,3 +1,4 @@
+import { type PremiumAccess } from "../premium-access/premium-access.interface";
 import { type User } from "../users/user.model";
 import { type SectionAccess } from "../users/users.types";
 import { type RewindLanguage } from "./rewind.constants";
@@ -38,6 +39,7 @@ export interface RewindYearVisibility {
 export interface RewindViewerContext {
 	owner: User;
 	access: SectionAccess;
+	premiumAccess: PremiumAccess;
 	isOwner: boolean;
 	runs: RewindRun[];
 	calendar: RewindCalendar;

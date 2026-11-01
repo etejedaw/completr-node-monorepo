@@ -23,6 +23,7 @@ import { listsDomainToHttpMapper } from "../../lists/errors/lists.domain-to-http
 import { mailDomainToHttpMapper } from "../../mail/errors/mail.domain-to-http.mapper";
 import { moodTagsDomainToHttpMapper } from "../../mood-tags/errors/mood-tags.domain-to-http.mapper";
 import { platformsDomainToHttpMapper } from "../../platforms/errors/platforms.domain-to-http.mapper";
+import { premiumAccessDomainToHttpMapper } from "../../premium-access/errors/premium-access.domain-to-http.mapper";
 import { queueDomainToHttpMapper } from "../../queue/errors/queue.domain-to-http.mapper";
 import { rawgDomainToHttpMapper } from "../../rawg/errors/rawg.domain-to-http.mapper";
 import { reviewsDomainToHttpMapper } from "../../reviews/errors/reviews.domain-to-http.mapper";
@@ -124,6 +125,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "CoopRuns Module")
 		return coopRunsDomainToHttpMapper(error, request);
+
+	if (error.module === "Premium Access Module")
+		return premiumAccessDomainToHttpMapper(error, request);
 
 	if (error.module === "Activity Module")
 		return activityDomainToHttpMapper(error, request);

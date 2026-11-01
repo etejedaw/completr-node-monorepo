@@ -21,7 +21,8 @@ function rewindYearSummarySerializer(
 export function rewindYearsSerializer(rewindYears: RewindYears): RewindYears {
 	return {
 		spotlightYear: rewindYears.spotlightYear,
-		years: rewindYears.years.map(rewindYearSummarySerializer)
+		years: rewindYears.years.map(rewindYearSummarySerializer),
+		premiumAccess: rewindYears.premiumAccess
 	};
 }
 
@@ -40,6 +41,7 @@ export function rewindSerializer(rewind: Rewind): Rewind {
 		generatedAt: rewind.generatedAt,
 		aiRecap: rewind.aiRecap,
 		premiumStats: rewind.premiumStats,
-		ownerControls: rewind.ownerControls
+		ownerControls: rewind.ownerControls,
+		premiumAccess: rewind.premiumAccess
 	};
 }

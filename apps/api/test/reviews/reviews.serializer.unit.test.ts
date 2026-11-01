@@ -42,9 +42,17 @@ void describe("reviewSerializer", () => {
 			username: "player",
 			name: "Player",
 			avatarUrl: null,
-			role: "user"
+			role: "user",
+			hasPremium: false
 		});
 		assert.equal(result.playthroughDuration, 12.5);
+	});
+
+	void it("marks effective premium without changing the permanent role", () => {
+		const result = reviewSerializer(buildReview(), null, true);
+
+		assert.equal(result.user?.role, "user");
+		assert.equal(result.user?.hasPremium, true);
 	});
 
 	void it("defaults playthroughDuration to null and user to null when not loaded", () => {

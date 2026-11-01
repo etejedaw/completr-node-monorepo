@@ -104,6 +104,7 @@ export function buildRewind(overrides: Partial<Rewind> = {}): Rewind {
 		aiRecap: null,
 		premiumStats: null,
 		ownerControls: null,
+		premiumAccess: { allowed: false, source: null, expiresAt: null },
 		...overrides
 	};
 }

@@ -11,6 +11,7 @@ import * as gamesService from "../games/games.service";
 import * as gamesProfileService from "../games/services/games-profile.service";
 import { List } from "../lists/list.model";
 import * as listsService from "../lists/lists.service";
+import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import * as listItemsServiceError from "./errors/list-items.service-error";
 import { ListItem } from "./list-item.model";
@@ -18,12 +19,12 @@ import { type FrozenScoreContext } from "./list-items.types";
 
 const FREE_OWNED_LISTS_LIMIT = 5;
 
-function isPremium(role: string) {
-	return role === "premium" || role === "moderator" || role === "admin";
-}
-
 async function checkFrozen(userId: string, role: string) {
-	if (isPremium(role)) return;
+	const premiumAccess = await resolvePremiumAccess(
+		{ id: userId, role },
+		"lists.unlimited"
+	);
+	if (premiumAccess.allowed) return;
 	const total = await listsService.countListsByUserId(userId);
 	if (total > FREE_OWNED_LISTS_LIMIT)
 		throw listItemsServiceError.frozenError();

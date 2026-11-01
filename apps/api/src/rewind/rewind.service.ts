@@ -5,11 +5,12 @@ import { environmentConfig } from "../common/config/environment.config";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { ServiceError } from "../common/errors/service-error";
 import { PinoLogger } from "../common/logger/pino.logger";
-import { isPremiumRole } from "../common/utils/is-premium-role.util";
 import { sequelize } from "../database/sequelize.database";
 import * as franchisesService from "../franchises/franchises.service";
 import * as gameGenreService from "../game-genre/game-genre.service";
 import * as gamePlatinumService from "../game-platinum/game-platinum.service";
+import { type PremiumAccess } from "../premium-access/premium-access.interface";
+import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import { generateRewindAiRecap } from "../rewind-recap/rewind-recap.service";
 import { buildRewindPremiumStats } from "../rewind-recap/utils/build-rewind-premium-stats.util";
 import { resolveSectionAccess } from "../users/helpers/visibility.helper";
@@ -104,20 +105,23 @@ async function findRuns(
 
 async function buildViewerContext(
 	viewerId: string | undefined,
-	owner: User
+	owner: User,
+	providedPremiumAccess?: PremiumAccess
 ): Promise<RewindViewerContext> {
 	const access = await resolveSectionAccess(viewerId, owner);
 	if (!access.profile || !access.rewind)
 		throw rewindServiceError.userPrivateError();
 
 	const isOwner = viewerId === owner.id;
-	const [runs, records] = await Promise.all([
+	const [premiumAccess, runs, records] = await Promise.all([
+		providedPremiumAccess ?? resolvePremiumAccess(owner, "rewind.premium"),
 		findRuns(owner, !isOwner),
 		findRecordsByUserId(owner.id)
 	]);
 	return {
 		owner,
 		access,
+		premiumAccess,
 		isOwner,
 		runs,
 		calendar: buildRewindCalendar(owner),
@@ -168,7 +172,7 @@ function ownerControlsFor(context: RewindViewerContext, record: RewindRecord) {
 	return buildRewindOwnerControls(
 		record,
 		context.calendar.today,
-		isPremiumRole(context.owner.role)
+		context.premiumAccess.allowed
 	);
 }
 
@@ -191,15 +195,21 @@ export async function getRewindYearsForViewer(
 		Promise.all(years.map(year => countVisiblePlatinums(context, year)))
 	]);
 
-	return buildRewindYears({
-		runs: context.runs,
-		genres,
-		platinumsByYear: new Map(
-			years.map((year, index) => [year, platinumCounts[index] ?? null])
-		),
-		calendar: context.calendar,
-		visibility
-	});
+	return {
+		...buildRewindYears({
+			runs: context.runs,
+			genres,
+			platinumsByYear: new Map(
+				years.map((year, index) => [
+					year,
+					platinumCounts[index] ?? null
+				])
+			),
+			calendar: context.calendar,
+			visibility
+		}),
+		premiumAccess: context.premiumAccess
+	};
 }
 
 async function buildRewindForContext(
@@ -224,16 +234,19 @@ async function buildRewindForContext(
 		countVisiblePlatinums(context, year)
 	]);
 
-	return buildRewind({
-		year,
-		owner: userToRewindOwner(context.owner),
-		runs: context.runs,
-		genres,
-		platinums,
-		calendar: context.calendar,
-		visibility: yearVisibility(context),
-		stored: storedView(record, ownerControlsFor(context, record))
-	});
+	return {
+		...buildRewind({
+			year,
+			owner: userToRewindOwner(context.owner),
+			runs: context.runs,
+			genres,
+			platinums,
+			calendar: context.calendar,
+			visibility: yearVisibility(context),
+			stored: storedView(record, ownerControlsFor(context, record))
+		}),
+		premiumAccess: context.premiumAccess
+	};
 }
 
 export async function getRewindForViewer(
@@ -246,8 +259,12 @@ export async function getRewindForViewer(
 	return buildRewindForContext(context, year);
 }
 
-async function getOwnRewind(owner: User, year: number): Promise<Rewind> {
-	const context = await buildViewerContext(owner.id, owner);
+async function getOwnRewind(
+	owner: User,
+	year: number,
+	premiumAccess: PremiumAccess
+): Promise<Rewind> {
+	const context = await buildViewerContext(owner.id, owner, premiumAccess);
 	return buildRewindForContext(context, year);
 }
 
@@ -271,10 +288,10 @@ async function createRecord(
 	owner: User,
 	year: number,
 	dto: GenerateRewindDto,
+	premiumAccess: PremiumAccess,
 	transaction: Transaction
 ): Promise<RewindModel> {
 	const now = new Date();
-	const ownerIsPremium = isPremiumRole(owner.role);
 	try {
 		return await RewindModel.create(
 			{
@@ -284,8 +301,8 @@ async function createRecord(
 				includesPrivateRuns: dto.includePrivateRuns,
 				includesNotes: dto.includeNotes,
 				generatedAt: now,
-				aiRecapStatus: ownerIsPremium ? "pending" : "none",
-				aiRecapRequestedAt: ownerIsPremium ? now : null
+				aiRecapStatus: premiumAccess.allowed ? "pending" : "none",
+				aiRecapRequestedAt: premiumAccess.allowed ? now : null
 			},
 			{ transaction }
 		);
@@ -297,14 +314,13 @@ async function createRecord(
 }
 
 async function regenerateRecord(
-	owner: User,
 	record: RewindModel,
 	dto: GenerateRewindDto,
+	premiumAccess: PremiumAccess,
 	spendsGrace: boolean,
 	transaction: Transaction
 ): Promise<RewindModel> {
 	const now = nextGeneratedAt(record.generatedAt, new Date());
-	const ownerIsPremium = isPremiumRole(owner.role);
 	return record.update(
 		{
 			language: dto.language,
@@ -314,7 +330,7 @@ async function regenerateRecord(
 			...(spendsGrace
 				? { graceUsed: true }
 				: { regenerationsUsed: record.regenerationsUsed + 1 }),
-			...(ownerIsPremium && {
+			...(premiumAccess.allowed && {
 				aiRecapStatus: "pending",
 				aiRecapRequestedAt: now
 			})
@@ -327,7 +343,8 @@ async function reserveGeneration(
 	owner: User,
 	year: number,
 	dto: GenerateRewindDto,
-	calendar: RewindCalendar
+	calendar: RewindCalendar,
+	premiumAccess: PremiumAccess
 ): Promise<{ record: RewindModel; created: boolean }> {
 	return sequelize.transaction(async transaction => {
 		const record = await lockRecord(owner.id, year, transaction);
@@ -343,15 +360,21 @@ async function reserveGeneration(
 			throw rewindServiceError.regenerationLimitError();
 		if (plan.kind === "create" || !record) {
 			return {
-				record: await createRecord(owner, year, dto, transaction),
+				record: await createRecord(
+					owner,
+					year,
+					dto,
+					premiumAccess,
+					transaction
+				),
 				created: true
 			};
 		}
 		return {
 			record: await regenerateRecord(
-				owner,
 				record,
 				dto,
+				premiumAccess,
 				plan.spendsGrace,
 				transaction
 			),
@@ -449,22 +472,26 @@ async function writeAiRecap(
 	owner: User,
 	record: RewindRecord,
 	calendar: RewindCalendar,
-	sources: RecapSources
+	sources: RecapSources,
+	premiumAccess: PremiumAccess
 ): Promise<RewindAiRecap> {
 	const { year } = record;
-	const rewind = buildRewind({
-		year,
-		owner: userToRewindOwner(owner),
-		runs: sources.runs,
-		genres: sources.genres,
-		platinums: sources.platinums,
-		calendar,
-		visibility: { generatedYears: new Set(), includeUngenerated: true },
-		stored: {
-			...storedView(record, null),
-			premiumStats: sources.premiumStats
-		}
-	});
+	const rewind = {
+		...buildRewind({
+			year,
+			owner: userToRewindOwner(owner),
+			runs: sources.runs,
+			genres: sources.genres,
+			platinums: sources.platinums,
+			calendar,
+			visibility: { generatedYears: new Set(), includeUngenerated: true },
+			stored: {
+				...storedView(record, null),
+				premiumStats: sources.premiumStats
+			}
+		}),
+		premiumAccess
+	};
 	return generateRewindAiRecap({
 		year,
 		language: record.language,
@@ -531,7 +558,8 @@ async function runRecap(
 	owner: User,
 	record: RewindModel,
 	calendar: RewindCalendar,
-	reusablePremiumStats: RewindPremiumStats | null
+	reusablePremiumStats: RewindPremiumStats | null,
+	premiumAccess: PremiumAccess
 ): Promise<boolean> {
 	const request: RecapRequest = {
 		recordId: record.id,
@@ -546,7 +574,13 @@ async function runRecap(
 			reusablePremiumStats
 		);
 		premiumStats = sources.premiumStats;
-		const aiRecap = await writeAiRecap(owner, record, calendar, sources);
+		const aiRecap = await writeAiRecap(
+			owner,
+			record,
+			calendar,
+			sources,
+			premiumAccess
+		);
 		await finishRecap(request, { aiRecap, premiumStats }, true);
 		return true;
 	} catch (error) {
@@ -567,26 +601,37 @@ export async function generateOwnRewind(
 	dto: GenerateRewindDto
 ): Promise<RewindGenerationResult> {
 	const owner = await requireSignedInOwner(ownerId);
-	const calendar = await requireOpenYearWithData(owner, year);
+	const [calendar, premiumAccess] = await Promise.all([
+		requireOpenYearWithData(owner, year),
+		resolvePremiumAccess(owner, "rewind.premium")
+	]);
 	const { record, created } = await reserveGeneration(
 		owner,
 		year,
 		dto,
-		calendar
+		calendar,
+		premiumAccess
 	);
 
-	if (record.aiRecapStatus === "pending" && isPremiumRole(owner.role))
-		await runRecap(owner, record, calendar, null);
+	if (record.aiRecapStatus === "pending" && premiumAccess.allowed)
+		await runRecap(owner, record, calendar, null, premiumAccess);
 
-	return { rewind: await getOwnRewind(owner, year), created };
+	return {
+		rewind: await getOwnRewind(owner, year, premiumAccess),
+		created
+	};
 }
 
-async function reserveAiRecap(owner: User, year: number): Promise<RewindModel> {
+async function reserveAiRecap(
+	owner: User,
+	year: number,
+	premiumAccess: PremiumAccess
+): Promise<RewindModel> {
 	return sequelize.transaction(async transaction => {
 		const record = await lockRecord(owner.id, year, transaction);
 		const now = new Date();
 		if (!record) throw rewindServiceError.notGeneratedError();
-		if (!isPremiumRole(owner.role))
+		if (!premiumAccess.allowed)
 			throw rewindServiceError.aiRecapPremiumRequiredError();
 		if (record.aiRecapStatus === "ready" && record.aiRecap)
 			throw rewindServiceError.aiRecapExistsError();
@@ -605,16 +650,18 @@ export async function addOwnRewindAiRecap(
 	year: number
 ): Promise<Rewind> {
 	const owner = await requireSignedInOwner(ownerId);
+	const premiumAccess = await resolvePremiumAccess(owner, "rewind.premium");
 	const calendar = buildRewindCalendar(owner);
-	const record = await reserveAiRecap(owner, year);
+	const record = await reserveAiRecap(owner, year, premiumAccess);
 
 	const succeeded = await runRecap(
 		owner,
 		record,
 		calendar,
-		record.premiumStats
+		record.premiumStats,
+		premiumAccess
 	);
 	if (!succeeded) throw rewindServiceError.aiRecapFailedError();
 
-	return getOwnRewind(owner, year);
+	return getOwnRewind(owner, year, premiumAccess);
 }

@@ -90,7 +90,8 @@ void describe("REWIND_TODAY", () => {
 			.expect(200);
 		assert.deepEqual(list.body.data, {
 			spotlightYear: 2026,
-			years: [list.body.data.years[0]]
+			years: [list.body.data.years[0]],
+			premiumAccess: { allowed: false, source: null, expiresAt: null }
 		});
 		assert.equal(list.body.data.years[0].year, 2026);
 

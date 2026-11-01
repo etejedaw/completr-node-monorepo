@@ -9,6 +9,7 @@ import * as gameShelfService from "../game-shelf/game-shelf.service";
 import * as listFollowersService from "../list-followers/list-followers.service";
 import * as listDomainError from "../lists/errors/lists.domain-error";
 import * as listsService from "../lists/lists.service";
+import { findFullPremiumUserIds } from "../premium-access/premium-access.service";
 import * as reviewsService from "../reviews/reviews.service";
 import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
 import * as userFollowersService from "../user-followers/user-followers.service";
@@ -135,16 +136,26 @@ async function buildFullProfile(
 			? userFollowersService.isFollowing(viewerId, userId)
 			: Promise.resolve(false)
 	]);
+	const activityPremiumUserIds = await findFullPremiumUserIds([
+		user,
+		...recentActivity.flatMap(activity =>
+			[activity.User, activity.ActivityUser?.TargetUser].filter(
+				activityUser => activityUser !== undefined
+			)
+		)
+	]);
 
 	return {
 		kind: "full",
 		user,
+		hasPremium: activityPremiumUserIds.has(user.id),
 		isSelf,
 		backlogs: backlogResult.rows.map(b => b.get({ plain: true })),
 		backlogTotal: backlogResult.total,
 		backlogStats,
 		listsTotal,
 		recentActivity,
+		activityPremiumUserIds,
 		followerCount,
 		followingCount,
 		isFollowing,

@@ -4,6 +4,7 @@ import * as activityService from "../activity/activity.service";
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type GameIdParam } from "../games/schemas/game-id-params.schema";
+import { findFullPremiumUserIds } from "../premium-access/premium-access.service";
 import { type CreateReviewDto } from "./dtos/create-review.dto";
 import { type UpdateReviewDto } from "./dtos/update-review.dto";
 import * as reviewsServiceError from "./errors/reviews.service-error";
@@ -16,10 +17,17 @@ export async function postReview(request: Request, response: Response) {
 	const body = request.locals.body as CreateReviewDto;
 
 	const review = await reviewsService.createReview(user.id, params.id, body);
+	const premiumUserIds = await findFullPremiumUserIds([user]);
 
 	activityService.record(user.id, "game_reviewed", params.id);
 
-	const data = { review: reviewSerializer(review.get({ plain: true })) };
+	const data = {
+		review: reviewSerializer(
+			review.get({ plain: true }),
+			null,
+			premiumUserIds.has(user.id)
+		)
+	};
 	return response.status(201).json({ data });
 }
 
@@ -32,8 +40,12 @@ export async function getReviews(request: Request, response: Response) {
 	const pairs = reviewsPlain
 		.filter(r => r.User)
 		.map(r => ({ userId: r.User.id, gameId: params.id }));
-	const durationMap =
-		await backlogService.findLatestCompletedDurations(pairs);
+	const [durationMap, premiumUserIds] = await Promise.all([
+		backlogService.findLatestCompletedDurations(pairs),
+		findFullPremiumUserIds(
+			reviewsPlain.flatMap(review => (review.User ? [review.User] : []))
+		)
+	]);
 
 	const data = {
 		reviews: reviewsPlain.map(r =>
@@ -41,7 +53,8 @@ export async function getReviews(request: Request, response: Response) {
 				r,
 				r.User
 					? (durationMap.get(`${r.User.id}:${params.id}`) ?? null)
-					: null
+					: null,
+				r.User ? premiumUserIds.has(r.User.id) : false
 			)
 		)
 	};
@@ -64,10 +77,17 @@ export async function patchReview(request: Request, response: Response) {
 		user.id,
 		body
 	);
+	const premiumUserIds = await findFullPremiumUserIds([user]);
 
 	activityService.record(user.id, "game_reviewed", params.id);
 
-	const data = { review: reviewSerializer(review.get({ plain: true })) };
+	const data = {
+		review: reviewSerializer(
+			review.get({ plain: true }),
+			null,
+			premiumUserIds.has(user.id)
+		)
+	};
 	return response.status(200).json({ data });
 }
 

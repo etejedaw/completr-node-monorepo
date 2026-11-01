@@ -10,7 +10,9 @@ import { pickYearPersona } from "./pick-year-persona.util";
 import { resolveSpotlightYear } from "./resolve-spotlight-year.util";
 import { toRewindFinishedGame } from "./to-rewind-finished-game.util";
 
-export function buildRewind(source: RewindSource): Rewind {
+export function buildRewind(
+	source: RewindSource
+): Omit<Rewind, "premiumAccess"> {
 	const { year, runs, genres, calendar } = source;
 	const yearRuns = collectYearRuns(runs, year);
 	const latestFinishedRuns = listLatestFinishedRuns(yearRuns.finished);

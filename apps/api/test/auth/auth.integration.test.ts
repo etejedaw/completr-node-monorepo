@@ -6,6 +6,7 @@ import { PasswordResetToken } from "../../src/auth/password-reset-token.model";
 import { environmentConfig } from "../../src/common/config/environment.config";
 import { sequelize } from "../../src/database/sequelize.database";
 import { InMemoryMailModel } from "../../src/mail/in-memory/in-memory.provider";
+import { PremiumGrant } from "../../src/premium-access/premium-grant.model";
 import { api } from "../helpers/app.helper";
 import {
 	bearer,
@@ -218,6 +219,43 @@ void describe("POST /auth/login", () => {
 			.set("Authorization", bearer(response.body.data.access_token));
 		assert.equal(me.status, 200);
 		assert.equal(me.body.data.user.id, user.id);
+	});
+
+	void it("resolves full and feature grants in the current user response", async () => {
+		const account = await createUserWithSession();
+		const grant = await PremiumGrant.create({
+			userId: account.user.id,
+			feature: "*",
+			expiresAt: new Date("2099-01-01T00:00:00.000Z")
+		});
+
+		const full = await api()
+			.get("/users/me")
+			.set("Authorization", account.authorization)
+			.expect(200);
+		assert.deepEqual(full.body.data.user.premiumAccess, {
+			active: true,
+			source: "full-grant",
+			expiresAt: "2099-01-01T00:00:00.000Z"
+		});
+
+		await grant.update({ feature: "rewind.premium" });
+		const feature = await api()
+			.get("/users/me")
+			.set("Authorization", account.authorization)
+			.expect(200);
+		assert.deepEqual(feature.body.data.user.premiumAccess, {
+			active: false,
+			source: null,
+			expiresAt: null
+		});
+
+		await grant.update({ feature: "*", expiresAt: new Date("2020-01-01") });
+		const expired = await api()
+			.get("/users/me")
+			.set("Authorization", account.authorization)
+			.expect(200);
+		assert.equal(expired.body.data.user.premiumAccess.active, false);
 	});
 
 	void it("rejects a wrong password with 401 AUTH_INVALID_CREDENTIALS", async () => {
