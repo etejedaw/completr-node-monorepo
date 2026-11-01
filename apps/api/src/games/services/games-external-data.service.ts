@@ -6,6 +6,7 @@ import * as gameTimesService from "../../game-times/game-times.service";
 import * as gamesServiceError from "../errors/games.service-error";
 import { type ExternalDataSource } from "../games.constants";
 import {
+	type ExternalDataCandidate,
 	type ExternalDataCandidates,
 	type ExternalDataGame,
 	type ExternalDataResult,
@@ -91,14 +92,41 @@ export async function findGamesMissingExternalData(): Promise<ExternalDataCandid
 	const candidates = games
 		.map(game => ({
 			game: game.get({ plain: true }) as ExternalDataGame,
-			sources: [
-				...(hasScore.has(game.id) ? [] : (["metacritic"] as const)),
-				...(hasTime.has(game.id) ? [] : (["hltb"] as const))
-			]
+			sources: missingExternalDataSources(
+				hasScore.has(game.id),
+				hasTime.has(game.id)
+			)
 		}))
 		.filter(candidate => candidate.sources.length > 0);
 
 	return { candidates, completeCount: games.length - candidates.length };
+}
+
+export async function findExternalDataCandidate(
+	gameId: string
+): Promise<ExternalDataCandidate | null> {
+	const game = await findGameById(gameId);
+	if (!game) return null;
+
+	return {
+		game: game.get({ plain: true }) as ExternalDataGame,
+		sources: missingExternalDataSources(
+			game.GameScores.some(
+				score => score.source === METACRITIC_SCORE_SOURCE
+			),
+			game.GameTimes.some(time => time.source === HLTB_TIME_SOURCE)
+		)
+	};
+}
+
+function missingExternalDataSources(
+	hasMetacriticScore: boolean,
+	hasHltbTime: boolean
+): ExternalDataSource[] {
+	return [
+		...(hasMetacriticScore ? [] : (["metacritic"] as const)),
+		...(hasHltbTime ? [] : (["hltb"] as const))
+	];
 }
 
 function failedResult(

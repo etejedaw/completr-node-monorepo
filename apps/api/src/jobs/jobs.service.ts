@@ -10,6 +10,7 @@ import * as gameScoresService from "../game-scores/game-scores.service";
 import * as gameTimesService from "../game-times/game-times.service";
 import {
 	EXTERNAL_DATA_SOURCES,
+	EXTERNAL_DATA_THROTTLE_SUFFIXES,
 	type ExternalDataSource
 } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
@@ -28,8 +29,7 @@ const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
 
 const MIN_THRESHOLD_PERCENT = 0.1;
 const EXTERNAL_DATA_STOP_SUFFIXES = [
-	"_RATE_LIMITED",
-	"_BLOCKED",
+	...EXTERNAL_DATA_THROTTLE_SUFFIXES,
 	"_PARSE_ERROR"
 ];
 const MAX_CONSECUTIVE_TRANSIENT_FAILURES = 3;
