@@ -36,6 +36,10 @@ import { userFollowersErrorDomainNormalizer } from "../../user-followers/errors/
 import { usersErrorDomainNormalizer } from "../../users/errors/users.error-domain.normalizer";
 import { wikidataErrorDomainNormalizer } from "../../wikidata/errors/wikidata.error-domain.normalizer";
 import { wishlistErrorDomainNormalizer } from "../../wishlist/errors/wishlist.error-domain.normalizer";
+import {
+	bodyParserErrorMapper,
+	isBodyParserError
+} from "./body-parser-error.mapper";
 import * as commonDomainError from "./common.domain-error";
 import { DomainError } from "./domain-error";
 import { ServiceError } from "./service-error";
@@ -51,6 +55,9 @@ export function globalErrorDomainNormalizer(
 
 	if (error instanceof ForeignKeyConstraintError)
 		return foreignKeyErrorMapper(error, correlationId);
+
+	if (isBodyParserError(error))
+		return bodyParserErrorMapper(error, correlationId);
 
 	return new DomainError(
 		"COMMON",

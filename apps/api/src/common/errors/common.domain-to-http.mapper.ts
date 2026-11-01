@@ -20,6 +20,12 @@ export function commonDomainToHttpMapper(
 	if (error.code === "COMMON_SCHEMA_INVALID")
 		return new HttpError({ ...baseOptions, status: 422 });
 
+	if (error.code === "COMMON_INVALID_JSON")
+		return new HttpError({ ...baseOptions, status: 400 });
+
+	if (error.code === "COMMON_PAYLOAD_TOO_LARGE")
+		return new HttpError({ ...baseOptions, status: 413 });
+
 	if (error.code === "COMMON_RESOURCE_IN_USE")
 		return new HttpError({ ...baseOptions, status: 409 });
 

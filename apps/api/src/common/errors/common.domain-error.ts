@@ -37,3 +37,21 @@ export function exportFormatNotAcceptable(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function commonInvalidJson(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"COMMON_INVALID_JSON",
+		"Request body is not valid JSON",
+		context
+	);
+}
+
+export function commonPayloadTooLarge(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"COMMON_PAYLOAD_TOO_LARGE",
+		"Request body is too large",
+		context
+	);
+}
