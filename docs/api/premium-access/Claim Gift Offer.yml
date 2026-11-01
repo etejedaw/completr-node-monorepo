@@ -1,0 +1,62 @@
+info:
+    name: Claim Gift Offer
+    type: http
+    seq: 7
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/users/me/gift-offers/:offerCode/claim"
+    headers:
+        - name: Content-Type
+          value: application/json
+    params:
+        - name: offerCode
+          value: json-export-trial-1m
+          type: path
+    body:
+        type: json
+        data: |-
+            {}
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Claim Gift Offer
+
+    Activates a gift offer with its server-defined feature and duration. The client cannot choose the feature, duration or expiration. Repeating a claim returns the original grant without extending or reactivating it; concurrent claims produce one grant.
+
+    **Authentication:** Bearer token required. Body must be an empty JSON object.
+
+    ### Response (201, first claim)
+
+    ```json
+    {
+      "data": {
+        "grant": {
+          "id": "uuid",
+          "userId": "uuid",
+          "feature": "export.json",
+          "expiresAt": "2026-11-30T12:00:00.000Z",
+          "offerCode": "json-export-trial-1m",
+          "createdAt": "2026-10-31T12:00:00.000Z",
+          "updatedAt": "2026-10-31T12:00:00.000Z"
+        },
+        "created": true
+      }
+    }
+    ```
+
+    A repeated claim returns 200 with the same grant and `created: false`.
+
+    ### Errors
+
+    | Status | Code | Description |
+    |--------|------|-------------|
+    | 404 | GIFT_OFFER_NOT_FOUND | Unknown offer code |
+    | 409 | GIFT_OFFER_NOT_ELIGIBLE | Offer unavailable or the account already has access to its feature |
+    | 422 | COMMON_SCHEMA_INVALID | Body is not empty or the offer code is invalid |

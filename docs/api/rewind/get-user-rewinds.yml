@@ -41,6 +41,11 @@ docs: |-
     {
       "data": {
         "spotlightYear": 2026,
+        "premiumAccess": {
+          "allowed": true,
+          "source": "feature-grant",
+          "expiresAt": "2027-01-31T23:59:59.999Z"
+        },
         "years": [
           {
             "year": 2026,
@@ -65,6 +70,7 @@ docs: |-
     ```
 
     - `spotlightYear`: the year whose spotlight window (December 1 of that year to January 31 of the next, UTC) contains today, only if that year is in `years`; `null` otherwise. For visitors it is `null` until the owner generates that year.
+    - `premiumAccess`: the owner's current access to `rewind.premium`, with `allowed`, `source` (`role`, `full-grant`, `feature-grant` or null) and `expiresAt`. It lets the client configure the first generation before a Rewind row exists.
     - `isGenerated`: whether the owner generated the year. Always `true` for visitors, who never get ungenerated years.
     - `persona`: the title of the year, computed with the same rules as `persona` in `GET /users/:username/rewinds/:year` and the same data the viewer gets there (platinums only count for viewers who can see them).
     - `finishedCount` / `startedCount`: distinct games finished (`completed` with `finishedAt` in the year) and started (`startedAt` in the year).

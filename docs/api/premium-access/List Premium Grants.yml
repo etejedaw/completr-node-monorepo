@@ -1,0 +1,53 @@
+info:
+    name: List Premium Grants
+    type: http
+    seq: 2
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/admin/users/:userId/premium-grants"
+    params:
+        - name: userId
+          value: ""
+          type: path
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## List Premium Grants
+
+    Lists active and expired premium grants for a user, including grants created by gift offers. The role-based premium status is not a grant and is not included.
+
+    **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "grants": [
+          {
+            "id": "uuid",
+            "userId": "uuid",
+            "feature": "*",
+            "expiresAt": "2026-11-30T12:00:00.000Z",
+            "offerCode": null,
+            "createdAt": "2026-10-31T12:00:00.000Z",
+            "updatedAt": "2026-10-31T12:00:00.000Z"
+          }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Code | Description |
+    |--------|------|-------------|
+    | 404 | USER_NOT_FOUND | User does not exist |
+    | 422 | COMMON_SCHEMA_INVALID | `userId` is not a UUID |

@@ -57,9 +57,9 @@ docs: |-
     - **First generation:** no row and `expectedGeneratedAt: null` → 201.
     - **Regeneration:** `expectedGeneratedAt` equal to the stored `generatedAt` → 200. From January 1 to 7 (UTC) of the next year an extra grace regeneration is spent first and does not consume the normal one; otherwise the single normal regeneration is spent.
     - **Concurrency:** the row is locked while the counters change, so of two simultaneous requests with the same `expectedGeneratedAt` exactly one wins; the other gets 409 `REWIND_GENERATION_CONFLICT` and spends nothing. A double click behaves the same way.
-    - **Premium owner** (`premium`, `moderator`, `admin`): after the counters are saved, the AI recap and the premium stats are generated from the public runs, or from every run with `includePrivateRuns`. If the AI fails the request still succeeds with `ownerControls.aiRecapState: "failed"`; retry with `POST /users/me/rewinds/:year/ai-recap`.
+    - **Owner with `rewind.premium` access:** access can come from a premium role, temporary full premium or a specific Rewind grant. After the counters are saved, the AI recap and the premium stats are generated from the public runs, or from every run with `includePrivateRuns`. If the AI fails the request still succeeds with `ownerControls.aiRecapState: "failed"`; retry with `POST /users/me/rewinds/:year/ai-recap`.
     - **Notes:** with `includeNotes`, the AI input gets each run's notes (whitespace collapsed, cut at 300 characters); without `includePrivateRuns`, only the notes of public runs. Notes never change the live numbers or the premium stats, and no response includes them. The choice is stored as `ownerControls.includesNotes` and reused by `POST /users/me/rewinds/:year/ai-recap`.
-    - **Free owner:** no AI call; an AI recap and premium stats stored while the owner was premium are kept.
+    - **Owner without access:** no AI call; an AI recap and premium stats stored while the owner had access are kept.
 
     ### Response (201 / 200)
 

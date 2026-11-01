@@ -45,6 +45,7 @@ docs: |-
           "id": "uuid",
           "username": "johndoe",
           "role": "user",
+          "hasPremium": true,
           "name": "John Doe",
           "bio": "Gamer since 1990",
           "avatarUrl": "https://example.com/avatar.png",
@@ -92,7 +93,7 @@ docs: |-
     }
     ```
 
-    `backlogs` is capped at 6 entries (preview). Use `GET /users/:username/backlog` for the full paginated list.
+    `backlogs` is capped at 6 entries (preview). Use `GET /users/:username/backlog` for the full paginated list. In a full profile, `user.hasPremium` is true for a premium role or temporary full premium without changing `role`; individual feature grants do not change it. Restricted profiles do not expose this field.
 
     `access` tells whether the current viewer can see each section: always `true` for the owner, `true` for `public`, `true` for `friends` only when viewer and owner follow each other, `false` for `private` and for `friends` otherwise. Clients should use it to decide which sections to request and render instead of reading the raw `*Visibility` levels.
 

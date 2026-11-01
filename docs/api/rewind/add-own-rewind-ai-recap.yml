@@ -18,9 +18,9 @@ settings:
 docs: |-
     ## Add Own Rewind AI Recap
 
-    Generates the AI recap (and the premium stats, if they are missing) of a Rewind the owner already generated. Used to retry after a failed recap, or by an owner who became premium after generating the year. Uses the stored `language`, `includesPrivateRuns` and `includesNotes` and does not spend a regeneration.
+    Generates the AI recap (and the premium stats, if they are missing) of a Rewind the owner already generated. Used to retry after a failed recap, or by an owner who gained `rewind.premium` access after generating the year. Uses the stored `language`, `includesPrivateRuns` and `includesNotes` and does not spend a regeneration.
 
-    **Authentication:** Bearer token required (roles: user, premium, moderator, admin). The owner must be premium today (`premium`, `moderator` or `admin`).
+    **Authentication:** Bearer token required (roles: user, premium, moderator, admin). The owner must currently have `rewind.premium` access through a premium role, temporary full premium or a specific Rewind grant.
     **Rate Limit:** 5 requests every 10 minutes (shared with `POST /users/me/rewinds/:year`).
 
     ### Path Params

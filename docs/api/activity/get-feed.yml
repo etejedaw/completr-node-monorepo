@@ -54,7 +54,8 @@ docs: |-
               "username": "johndoe",
               "name": "John Doe",
               "avatarUrl": null,
-              "role": "user"
+              "role": "user",
+              "hasPremium": true
             },
             "game": {
               "id": "uuid",
@@ -67,6 +68,8 @@ docs: |-
       }
     }
     ```
+
+    Each activity user includes `hasPremium`, true for a premium role or temporary full premium without changing `role`; individual feature grants do not change it.
 
     For `coop_tagged`, `target` is the tagged user and `game` carries the co-op game (from a `metadata` snapshot taken when the tag was created, shape `{ type: "game", id, name, code, backgroundUrl }`). This lets the client render "X is playing co-op with Y in [game]". Other activity types omit `game`.
 

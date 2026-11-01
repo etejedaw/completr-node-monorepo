@@ -14,7 +14,7 @@ settings:
 docs: |-
     ## Get Current User
 
-    Returns the profile of the authenticated user.
+    Returns the profile of the authenticated user. `premiumAccess.active` reports effective full premium from the permanent role or a temporary `*` grant; `source` is `role`, `full-grant` or null, and `expiresAt` is the temporary grant expiration. Individual feature grants do not activate this global status and `role` is never changed by a grant.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
@@ -29,6 +29,11 @@ docs: |-
           "username": "johndoe",
           "email": "johndoe@example.com",
           "role": "user",
+          "premiumAccess": {
+            "active": true,
+            "source": "full-grant",
+            "expiresAt": "2026-11-30T12:00:00.000Z"
+          },
           "name": "John Doe",
           "bio": "Gamer since 1990",
           "avatarUrl": "https://example.com/avatar.png"
