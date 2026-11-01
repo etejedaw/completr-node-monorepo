@@ -139,6 +139,28 @@ export function formatGraceDate(isoDate: string): string {
 							</p>
 						}
 					</div>
+					<p
+						class="m-0 flex items-start gap-2 text-[0.8125rem] leading-relaxed text-fg-muted"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons shrink-0 text-base"
+							>smart_toy</span
+						>
+						<span>
+							Your AI recap is written by DeepSeek, an external AI
+							service. It receives this year's games, ratings and
+							stats, never your email or username.
+							<a
+								routerLink="/privacy"
+								fragment="sharing"
+								target="_blank"
+								rel="noopener"
+								class="font-semibold text-brand hover:text-brand-hover"
+								>How your data is used</a
+							>
+						</span>
+					</p>
 				}
 
 				@if (pending()) {

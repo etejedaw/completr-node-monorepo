@@ -340,6 +340,33 @@ describe("RewindGenerateDialog", () => {
 		expect(within(dialog).queryByText(/private/i)).toBeNull();
 	});
 
+	it("tells a premium user that DeepSeek writes the AI recap and links to the privacy policy", async () => {
+		isPremium.set(true);
+		await renderHost();
+		const dialog = await openDialog();
+
+		expect(
+			within(dialog).getByText(/written by DeepSeek/)
+		).toHaveTextContent("never your email or username");
+		const policyLink = within(dialog).getByRole("link", {
+			name: "How your data is used"
+		});
+		expect(policyLink).toHaveAttribute("href", "/privacy#sharing");
+		expect(policyLink).toHaveAttribute("target", "_blank");
+	});
+
+	it("does not mention DeepSeek to a free user, whose Rewind has no AI recap", async () => {
+		await renderHost();
+		const dialog = await openDialog();
+
+		expect(within(dialog).queryByText(/DeepSeek/)).toBeNull();
+		expect(
+			within(dialog).queryByRole("link", {
+				name: "How your data is used"
+			})
+		).toBeNull();
+	});
+
 	it("lets a premium user include private runs and warns that visitors read them", async () => {
 		isPremium.set(true);
 		await renderHost();
