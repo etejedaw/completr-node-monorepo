@@ -8,6 +8,7 @@ import * as gamePlatinumService from "../game-platinum/game-platinum.service";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import { findFullPremiumUserIds } from "../premium-access/premium-access.service";
 import { type MarkCompilationDto } from "./dtos/mark-compilation.dto";
+import { type RefreshExternalDataDto } from "./dtos/refresh-external-data.dto";
 import { type RegisterGameDto } from "./dtos/register-game.dto";
 import { type SplitGameDto } from "./dtos/split-game.dto";
 import { type UpdateGameDto } from "./dtos/update-game.dto";
@@ -155,6 +156,33 @@ export async function patchGame(request: Request, response: Response) {
 	const gamePlain = game.get({ plain: true });
 
 	const data = { game: gameSerializer(gamePlain) };
+	return response.status(200).json({ data });
+}
+
+export async function postRefreshExternalData(
+	request: Request,
+	response: Response
+) {
+	const params = request.locals.params as GameIdParam;
+	const body = request.locals.body as RefreshExternalDataDto;
+	const user = request.locals.user as RequestUser;
+
+	const refreshed = await gameService.refreshGameExternalData(
+		params.id,
+		body.sources
+	);
+	if (!refreshed) throw gameDomainError.gameNotFound();
+	auditService.record(
+		user.id,
+		"game_external_data_refreshed",
+		"game",
+		params.id
+	);
+
+	const data = {
+		game: gameSerializer(refreshed.game.get({ plain: true })),
+		results: refreshed.results
+	};
 	return response.status(200).json({ data });
 }
 
