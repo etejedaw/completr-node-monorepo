@@ -28,7 +28,7 @@ import { type ViewModeOption } from "./view-mode-toggle.model";
 					<span aria-hidden="true" class="material-icons text-base">{{
 						option.icon
 					}}</span>
-					<span class="max-lg:sr-only">{{ option.label }}</span>
+					<span class="sr-only">{{ option.label }}</span>
 				</button>
 			}
 		</div>
