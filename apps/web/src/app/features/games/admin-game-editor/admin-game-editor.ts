@@ -8,7 +8,7 @@ import {
 	output,
 	signal
 } from "@angular/core";
-import { form, FormField, maxLength } from "@angular/forms/signals";
+import { form, FormField, maxLength, validate } from "@angular/forms/signals";
 import { forkJoin, type Subscription } from "rxjs";
 
 import {
@@ -41,8 +41,15 @@ import {
 } from "../games.model";
 import {
 	type CompilationRow,
-	type CompilationRowMode
+	type CompilationRowMode,
+	type ManualExternalSource
 } from "./admin-game-editor.model";
+import {
+	buildHltbSearchUrl,
+	buildMetacriticGameUrl,
+	normalizeHltbId,
+	normalizeMetacriticSlug
+} from "./external-id-input";
 
 const DIACRITICS = /\p{Diacritic}/gu;
 
@@ -50,6 +57,11 @@ const CREATE_VARIANT_MISSING_MESSAGE =
 	"Another game already uses this external id. Set a variant label on this game (e.g. Collection) to tell them apart.";
 const CREATE_SIBLING_VARIANT_MISSING_MESSAGE =
 	"Another game with this external id has no variant label. Add one to that game first, then create this one.";
+
+const HLTB_ID_ERROR =
+	"Enter the HowLongToBeat game ID (a whole number above 0) or paste its game page URL.";
+const METACRITIC_SLUG_ERROR =
+	"Use lowercase letters, numbers and hyphens (e.g. the-witcher-3-wild-hunt) or paste the Metacritic game URL.";
 
 let nextCompilationRowId = 0;
 
@@ -95,10 +107,22 @@ export class AdminGameEditor implements OnInit {
 		backgroundUrl: "",
 		isDlc: false,
 		variant: "",
-		parentSlug: ""
+		parentSlug: "",
+		hltbId: "",
+		metacriticSlug: ""
 	});
 	readonly form = form(this.model, path => {
 		maxLength(path.variant, 100);
+		validate(path.hltbId, ({ value }) =>
+			normalizeHltbId(value()) === null
+				? { kind: "hltbId", message: HLTB_ID_ERROR }
+				: null
+		);
+		validate(path.metacriticSlug, ({ value }) =>
+			normalizeMetacriticSlug(value()) === null
+				? { kind: "metacriticSlug", message: METACRITIC_SLUG_ERROR }
+				: null
+		);
 	});
 	protected readonly rawgSlug = computed(() => this.form.rawgSlug().value());
 	protected readonly title = computed(() => this.form.title().value());
@@ -115,6 +139,45 @@ export class AdminGameEditor implements OnInit {
 	protected readonly variant = computed(() => this.form.variant().value());
 	protected readonly parentSlug = computed(() =>
 		this.form.parentSlug().value()
+	);
+
+	private readonly normalizedHltbId = computed(() =>
+		normalizeHltbId(this.form.hltbId().value())
+	);
+	private readonly normalizedMetacriticSlug = computed(() =>
+		normalizeMetacriticSlug(this.form.metacriticSlug().value())
+	);
+	protected readonly savedHltbId = computed(() =>
+		this.savedExternalId("hltb")
+	);
+	protected readonly savedMetacriticSlug = computed(() =>
+		this.savedExternalId("metacritic")
+	);
+	protected readonly hltbIdError = computed(() =>
+		this.visibleFieldError(this.form.hltbId())
+	);
+	protected readonly metacriticSlugError = computed(() =>
+		this.visibleFieldError(this.form.metacriticSlug())
+	);
+	protected readonly hltbIdCleared = computed(
+		() => !!this.savedHltbId() && this.normalizedHltbId() === ""
+	);
+	protected readonly metacriticSlugCleared = computed(
+		() =>
+			!!this.savedMetacriticSlug() &&
+			this.normalizedMetacriticSlug() === ""
+	);
+	protected readonly hltbSearchUrl = computed(() =>
+		buildHltbSearchUrl(this.title())
+	);
+	protected readonly metacriticPageUrl = computed(() => {
+		const slug = this.normalizedMetacriticSlug();
+		return slug ? buildMetacriticGameUrl(slug) : null;
+	});
+	private readonly hasInvalidExternalIds = computed(
+		() =>
+			this.normalizedHltbId() === null ||
+			this.normalizedMetacriticSlug() === null
 	);
 
 	protected readonly fetchingRawg = signal(false);
@@ -216,7 +279,9 @@ export class AdminGameEditor implements OnInit {
 			releaseAt: g.releaseAt ?? "",
 			backgroundUrl: g.backgroundUrl ?? "",
 			isDlc: g.isDlc,
-			variant: g.variant ?? ""
+			variant: g.variant ?? "",
+			hltbId: externalIdOf(g, "hltb"),
+			metacriticSlug: externalIdOf(g, "metacritic")
 		}));
 		this.selectedPlatforms.set(new Set(g.platforms.map(p => p.code)));
 		this.selectedGenres.set(new Set(g.genres.map(ge => ge.code)));
@@ -438,7 +503,57 @@ export class AdminGameEditor implements OnInit {
 		this.times.set(current);
 	}
 
+	private savedExternalId(source: ManualExternalSource) {
+		const g = this.game();
+		return g ? externalIdOf(g, source) : "";
+	}
+
+	private visibleFieldError(field: {
+		touched: () => boolean;
+		errors: () => readonly { message?: string }[];
+	}) {
+		if (!field.touched()) return null;
+		return field.errors()[0]?.message ?? null;
+	}
+
+	normalizeHltbIdField() {
+		const normalized = this.normalizedHltbId();
+		if (normalized && normalized !== this.form.hltbId().value())
+			this.form.hltbId().value.set(normalized);
+	}
+
+	normalizeMetacriticSlugField() {
+		const normalized = this.normalizedMetacriticSlug();
+		if (normalized && normalized !== this.form.metacriticSlug().value())
+			this.form.metacriticSlug().value.set(normalized);
+	}
+
+	private externalIdsToSend() {
+		const externalIds: { source: string; externalId: string }[] = [];
+		const rawgId = this.rawgId();
+		if (rawgId)
+			externalIds.push({ source: "rawg", externalId: String(rawgId) });
+		const manualIds: [ManualExternalSource, string | null][] = [
+			["hltb", this.normalizedHltbId()],
+			["metacritic", this.normalizedMetacriticSlug()]
+		];
+		for (const [source, externalId] of manualIds) {
+			if (externalId && externalId !== this.savedExternalId(source))
+				externalIds.push({ source, externalId });
+		}
+		return externalIds;
+	}
+
 	save() {
+		if (this.saving()) return;
+		if (this.hasInvalidExternalIds()) {
+			this.form.hltbId().markAsTouched();
+			this.form.metacriticSlug().markAsTouched();
+			this.saveError.set(
+				"Fix the highlighted external IDs before saving."
+			);
+			return;
+		}
 		if (this.hasInvalidValues()) {
 			this.saveError.set(
 				"Fix the highlighted scores and durations before saving."
@@ -484,11 +599,8 @@ export class AdminGameEditor implements OnInit {
 			dto.parentGameId = parent.id;
 		}
 
-		if (this.rawgId()) {
-			dto.externalIds = [
-				{ source: "rawg", externalId: String(this.rawgId()) }
-			];
-		}
+		const externalIds = this.externalIdsToSend();
+		if (externalIds.length > 0) dto.externalIds = externalIds;
 
 		this.gamesService.createGame(dto).subscribe({
 			next: game => {
@@ -529,11 +641,8 @@ export class AdminGameEditor implements OnInit {
 		if (this.isDlc() && parent) dto.parentGameId = parent.id;
 		else if (this.isDlc() && this.parentCleared()) dto.parentGameId = null;
 
-		if (this.rawgId()) {
-			dto.externalIds = [
-				{ source: "rawg", externalId: String(this.rawgId()) }
-			];
-		}
+		const externalIds = this.externalIdsToSend();
+		if (externalIds.length > 0) dto.externalIds = externalIds;
 
 		this.gamesService.updateGame(g.id, dto).subscribe({
 			next: () => this.saveScoresAndTimes(g.id),
@@ -1028,6 +1137,13 @@ export class AdminGameEditor implements OnInit {
 		const used = new Set(this.times().map(t => t.source));
 		return this.timeSources.filter(s => !used.has(s));
 	}
+}
+
+function externalIdOf(game: Game, source: ManualExternalSource) {
+	return (
+		game.externalLinks?.find(link => link.source === source)?.externalId ??
+		""
+	);
 }
 
 function isVariantRequiredError(err: { error?: { type?: unknown } }) {
