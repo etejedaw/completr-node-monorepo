@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
 import { RouterLink, RouterOutlet } from "@angular/router";
 
 import { AuthService } from "../../../core/services/auth";
+import { GiftOfferCard } from "../../../shared/components/gift-offer-card/gift-offer-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { UiButton } from "../../../shared/ui";
@@ -13,6 +14,7 @@ import { SettingsNav } from "../components/settings-nav";
 	imports: [
 		RouterOutlet,
 		RouterLink,
+		GiftOfferCard,
 		LibraryHero,
 		LibraryToolbar,
 		SettingsNav,

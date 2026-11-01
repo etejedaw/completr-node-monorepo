@@ -8,12 +8,28 @@ import {
 import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { Router, RouterOutlet } from "@angular/router";
-import { render, screen } from "@testing-library/angular";
+import { render, screen, waitFor } from "@testing-library/angular";
+import userEvent from "@testing-library/user-event";
+import { of, throwError } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
 import { type User } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
+import { type GiftOffer } from "../../../shared/components/gift-offer-card/gift-offer-card.model";
 import { SettingsShell } from "./settings-shell";
+
+const OFFERS_URL = `${environment.apiUrl}/users/me/gift-offers`;
+
+const PREMIUM_GIFT: GiftOffer = {
+	code: "premium-week",
+	feature: "*",
+	availableFrom: "2026-10-01T00:00:00.000Z",
+	availableUntil: "2099-12-01T00:00:00.000Z",
+	status: "available",
+	expiresAt: null,
+	canActivate: true,
+	hasAccess: false
+};
 
 @Component({
 	selector: "app-stub-profile",
@@ -50,6 +66,7 @@ const routes = [
 
 describe("SettingsShell", () => {
 	const user = signal<User | null>({ id: "u1", username: "ada" } as User);
+	const loadUser = vi.fn();
 
 	beforeEach(() => {
 		vi.stubGlobal(
@@ -62,12 +79,20 @@ describe("SettingsShell", () => {
 			}))
 		);
 		user.set({ id: "u1", username: "ada" } as User);
+		loadUser.mockReset();
+		loadUser.mockReturnValue(of({}));
 	});
 
 	afterEach(() => {
 		TestBed.inject(HttpTestingController)
 			.match(() => true)
-			.forEach(req => req.flush({ data: { backlog: [] } }));
+			.forEach(req =>
+				req.flush(
+					req.request.url === OFFERS_URL
+						? { data: { offers: [] } }
+						: { data: { backlog: [] } }
+				)
+			);
 		vi.unstubAllGlobals();
 	});
 
@@ -77,7 +102,10 @@ describe("SettingsShell", () => {
 			providers: [
 				provideHttpClient(),
 				provideHttpClientTesting(),
-				{ provide: AuthService, useValue: { user: user.asReadonly() } }
+				{
+					provide: AuthService,
+					useValue: { user: user.asReadonly(), loadUser }
+				}
 			],
 			initialRoute: url
 		});
@@ -139,5 +167,109 @@ describe("SettingsShell", () => {
 		expect(req.request.params.get("sort_by")).toBe("createdAt");
 		expect(req.request.params.get("sort_order")).toBe("desc");
 		req.flush({ data: { backlog: [] } });
+	});
+
+	function http() {
+		return TestBed.inject(HttpTestingController);
+	}
+
+	it("offers an available Premium gift above the section and refreshes the account after activating it", async () => {
+		const user = userEvent.setup();
+		await renderShell();
+		http()
+			.expectOne(OFFERS_URL)
+			.flush({ data: { offers: [PREMIUM_GIFT] } });
+
+		await user.dblClick(
+			await screen.findByRole("button", { name: "Activate gift" })
+		);
+		const claims = http().match(`${OFFERS_URL}/premium-week/claim`);
+		expect(claims).toHaveLength(1);
+		claims[0].flush({
+			data: {
+				offer: {
+					...PREMIUM_GIFT,
+					status: "active",
+					canActivate: false,
+					hasAccess: true,
+					expiresAt: PREMIUM_GIFT.availableUntil
+				},
+				created: true
+			}
+		});
+
+		expect(
+			await screen.findByText(/Gift active until/)
+		).toBeInTheDocument();
+		expect(loadUser).toHaveBeenCalledTimes(1);
+		expect(await screen.findByText("Profile page")).toBeInTheDocument();
+	});
+
+	it("keeps the gift active when the account refresh fails", async () => {
+		loadUser.mockReturnValue(throwError(() => new Error("offline")));
+		await renderShell();
+		http()
+			.expectOne(OFFERS_URL)
+			.flush({ data: { offers: [PREMIUM_GIFT] } });
+
+		await userEvent.click(
+			await screen.findByRole("button", { name: "Activate gift" })
+		);
+		http()
+			.expectOne(`${OFFERS_URL}/premium-week/claim`)
+			.flush({
+				data: {
+					offer: {
+						...PREMIUM_GIFT,
+						status: "active",
+						canActivate: false
+					},
+					created: true
+				}
+			});
+
+		expect(
+			await screen.findByText(/Gift active until/)
+		).toBeInTheDocument();
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+	});
+
+	it("shows nothing when the Premium gift was already used", async () => {
+		await renderShell();
+		http()
+			.expectOne(OFFERS_URL)
+			.flush({
+				data: {
+					offers: [
+						{ ...PREMIUM_GIFT, status: "used", canActivate: false },
+						{
+							...PREMIUM_GIFT,
+							code: "lists",
+							feature: "lists.unlimited"
+						}
+					]
+				}
+			});
+
+		await waitFor(() =>
+			expect(screen.getByText("Profile page")).toBeInTheDocument()
+		);
+		expect(
+			screen.queryByRole("button", { name: "Activate gift" })
+		).not.toBeInTheDocument();
+	});
+
+	it("keeps a single offers request while moving between sections", async () => {
+		await renderShell("/settings/profile");
+		http().expectOne(OFFERS_URL).flush(null, {
+			status: 500,
+			statusText: "Server Error"
+		});
+
+		await TestBed.inject(Router).navigateByUrl("/settings/security");
+
+		expect(await screen.findByText("Security page")).toBeInTheDocument();
+		http().expectNone(OFFERS_URL);
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 	});
 });
