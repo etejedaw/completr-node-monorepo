@@ -202,14 +202,28 @@ describe("GameDetail interaction", () => {
 		});
 	}
 
-	function libraryActions() {
-		return within(
-			screen.getByRole("list", { name: "More library actions" })
+	async function libraryItem(name: RegExp | string) {
+		await waitFor(() =>
+			expect(
+				screen.queryByRole("menu", { name: "Your library" })
+			).not.toBeInTheDocument()
 		);
+		await userEvent.click(
+			screen.getByRole("button", { name: "More library actions" })
+		);
+		const menu = await screen.findByRole("menu", { name: "Your library" });
+		return within(menu).getByRole("menuitem", { name });
+	}
+
+	async function expectLibraryItem(name: RegExp | string) {
+		expect(await libraryItem(name)).toBeInTheDocument();
+		await userEvent.keyboard("{Escape}");
 	}
 
 	function heroActions() {
-		const actions = libraryActions().getAllByRole("button")[0];
+		const actions = screen.getByRole("button", {
+			name: "More library actions"
+		});
 		return within(
 			actions.closest("app-game-library-actions") as HTMLElement
 		);
@@ -314,9 +328,7 @@ describe("GameDetail interaction", () => {
 		const user = userEvent.setup();
 		await renderGame();
 
-		await user.click(
-			libraryActions().getByRole("button", { name: /Lists/ })
-		);
+		await user.click(await libraryItem("Add to a list"));
 		const dialog = await screen.findByRole("dialog", {
 			name: "Add to your lists"
 		});
@@ -331,12 +343,10 @@ describe("GameDetail interaction", () => {
 		await user.click(within(dialog).getByRole("button", { name: "Save" }));
 
 		await untilVisible(() =>
-			expect(
-				libraryActions().getByRole("button", { name: /In 1 list/ })
-			).toHaveAttribute("aria-pressed", "true")
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
 		);
-		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 		expect(listUpdates).toEqual([["l1"]]);
+		await expectLibraryItem("In 1 list");
 	});
 
 	it("marks the game as favorite and unmarks it again", async () => {
@@ -373,9 +383,7 @@ describe("GameDetail interaction", () => {
 		const user = userEvent.setup();
 		await renderGame();
 
-		await user.click(
-			libraryActions().getByRole("button", { name: /Want it/ })
-		);
+		await user.click(await libraryItem("Add to Want to Get"));
 		const dialog = await screen.findByRole("dialog", {
 			name: "Add to Want to Get"
 		});
@@ -389,12 +397,10 @@ describe("GameDetail interaction", () => {
 		await user.click(add);
 
 		await untilVisible(() =>
-			expect(
-				libraryActions().getByRole("button", { name: /Wanted/ })
-			).toHaveAttribute("aria-pressed", "true")
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
 		);
-		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 		expect(wishlistAdds).toEqual([{ gameId: "g1", platformId: "p1" }]);
+		await expectLibraryItem("Remove from Want to Get");
 	});
 
 	describe("saga tracking from the hero", () => {

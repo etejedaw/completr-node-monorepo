@@ -7,19 +7,20 @@ import {
 } from "@angular/core";
 
 import { type BacklogEntry } from "../../../../core/models";
+import { ActionMenu } from "../../../../shared/components/action-menu/action-menu";
+import { type ActionMenuItem } from "../../../../shared/components/action-menu/action-menu.model";
 import { UiButton } from "../../../../shared/ui";
 import {
 	backlogStatusIcon,
 	backlogStatusIconColor,
 	backlogStatusLabel
 } from "../../../../shared/utils/backlog-status";
-import { type SecondaryAction } from "./game-library-actions.model";
 
 export type GameLibraryActionsVariant = "full" | "compact";
 
 @Component({
 	selector: "app-game-library-actions",
-	imports: [UiButton],
+	imports: [ActionMenu, UiButton],
 	templateUrl: "./game-library-actions.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -48,58 +49,61 @@ export class GameLibraryActions {
 	protected readonly statusIcon = backlogStatusIcon;
 	protected readonly statusLabel = backlogStatusLabel;
 
-	protected readonly secondaryActions = computed<SecondaryAction[]>(() => {
+	protected readonly libraryMenuItems = computed<ActionMenuItem[]>(() => {
 		const listsCount = this.listsCount();
+		const inQueue = this.inQueue();
+		const inWishlist = this.inWishlist();
+		const inShelf = this.inShelf();
 		return [
 			{
 				id: "queue",
-				icon: "playlist_play",
-				activeIcon: "playlist_add_check",
-				label: "Up Next",
-				activeLabel: "In Up Next",
-				active: this.inQueue(),
-				disabled: this.queueing(),
-				accentClass: "text-nav-queue"
+				label: inQueue ? "In Up Next" : "Add to Up Next",
+				icon: inQueue ? "playlist_add_check" : "playlist_play",
+				iconClass: inQueue ? "text-nav-queue" : undefined,
+				hint: inQueue ? "Already in your queue" : undefined,
+				disabled: inQueue,
+				busy: this.queueing()
 			},
 			{
 				id: "wishlist",
+				label: inWishlist
+					? "Remove from Want to Get"
+					: "Add to Want to Get",
 				icon: "redeem",
-				activeIcon: "redeem",
-				label: "Want it",
-				activeLabel: "Wanted",
-				active: this.inWishlist(),
-				disabled: this.togglingWishlist(),
-				accentClass: "text-nav-wishlist"
+				iconClass: inWishlist ? "text-nav-wishlist" : undefined,
+				hint: inWishlist ? "It's in your Want to Get" : undefined,
+				busy: this.togglingWishlist()
 			},
 			{
 				id: "shelf",
+				label: inShelf ? "On My Shelf" : "Add to My Shelf",
 				icon: "shelves",
-				activeIcon: "shelves",
-				label: "Shelf",
-				activeLabel: "On shelf",
-				active: this.inShelf(),
-				disabled: false,
-				accentClass: "text-nav-shelf"
+				iconClass: inShelf ? "text-nav-shelf" : undefined,
+				hint: inShelf ? "Add another copy" : undefined
 			},
 			{
 				id: "lists",
-				icon: "format_list_bulleted_add",
-				activeIcon: "playlist_add_check_circle",
-				label: "Lists",
-				activeLabel:
-					listsCount === 1 ? "In 1 list" : `In ${listsCount} lists`,
-				active: listsCount > 0,
-				disabled: false,
-				accentClass: "text-nav-lists"
+				label:
+					listsCount === 0
+						? "Add to a list"
+						: listsCount === 1
+							? "In 1 list"
+							: `In ${listsCount} lists`,
+				icon:
+					listsCount > 0
+						? "playlist_add_check_circle"
+						: "format_list_bulleted_add",
+				iconClass: listsCount > 0 ? "text-nav-lists" : undefined,
+				hint: listsCount > 0 ? "Add to or remove from lists" : undefined
 			}
 		];
 	});
 
-	protected runSecondary(id: SecondaryAction["id"]): void {
+	protected runLibraryAction(id: string): void {
 		if (id === "queue") this.queueRequested.emit();
 		else if (id === "wishlist") this.wishlistToggled.emit();
 		else if (id === "shelf") this.shelfRequested.emit();
-		else this.listsRequested.emit();
+		else if (id === "lists") this.listsRequested.emit();
 	}
 
 	protected openPrimary(): void {

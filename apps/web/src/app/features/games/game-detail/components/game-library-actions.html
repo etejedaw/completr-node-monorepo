@@ -1,9 +1,4 @@
-<div
-	class="flex items-stretch gap-2"
-	[class.flex-col]="variant() === 'full'"
-	[class.sm:flex-row]="variant() === 'full'"
-	[class.sm:flex-wrap]="variant() === 'full'"
->
+<div class="flex items-stretch gap-2">
 	<div class="flex items-stretch gap-2 flex-1 sm:flex-none">
 		@if (latestRun(); as run) {
 		<button
@@ -61,38 +56,16 @@
 			<span aria-hidden="true" class="hidden md:inline">Favorite</span>
 			}
 		</button>
-	</div>
-
-	@if (variant() === 'full') {
-	<ul
-		class="list-none m-0 p-0 grid grid-cols-4 gap-2 sm:flex sm:flex-wrap"
-		aria-label="More library actions"
-	>
-		@for (action of secondaryActions(); track action.id) {
-		<li class="flex">
-			<button
-				uiButton
-				variant="secondary"
-				type="button"
-				class="flex-1 max-sm:flex-col h-16 sm:h-11 !px-2 sm:!px-3.5 !rounded-card backdrop-blur-md !text-[0.6875rem] sm:!text-sm !whitespace-normal active:scale-[0.97]"
-				[class]="action.active ? '!bg-surface-hover !border-line-hover' : '!bg-surface/70 !text-fg-secondary hover:!text-fg'"
-				[disabled]="action.disabled"
-				[attr.aria-pressed]="action.active"
-				(click)="runSecondary(action.id)"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-xl sm:text-lg"
-					[class]="action.active ? action.accentClass : ''"
-					>{{ action.active ? action.activeIcon : action.icon }}</span
-				>
-				<span class="leading-tight text-center"
-					>{{ action.active ? action.activeLabel : action.label
-					}}</span
-				>
-			</button>
-		</li>
+		@if (variant() === 'full') {
+		<app-action-menu
+			placement="hero"
+			size="lg"
+			label="More library actions"
+			heading="Your library"
+			[iconOnly]="true"
+			[items]="libraryMenuItems()"
+			(selected)="runLibraryAction($event)"
+		/>
 		}
-	</ul>
-	}
+	</div>
 </div>

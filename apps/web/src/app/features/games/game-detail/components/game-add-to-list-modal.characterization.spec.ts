@@ -215,14 +215,22 @@ describe("GameAddToListModal characterization", () => {
 		});
 	}
 
-	function libraryActions() {
-		return within(
-			screen.getByRole("list", { name: "More library actions" })
+	async function libraryItem(name: RegExp | string) {
+		await waitFor(() =>
+			expect(
+				screen.queryByRole("menu", { name: "Your library" })
+			).not.toBeInTheDocument()
 		);
+		await userEvent.click(
+			screen.getByRole("button", { name: "More library actions" })
+		);
+		const menu = await screen.findByRole("menu", { name: "Your library" });
+		return within(menu).getByRole("menuitem", { name });
 	}
 
-	function listsButton(name: RegExp) {
-		return libraryActions().getByRole("button", { name });
+	async function expectLibraryItem(name: RegExp | string) {
+		expect(await libraryItem(name)).toBeInTheDocument();
+		await userEvent.keyboard("{Escape}");
 	}
 
 	function containing(gameId: string) {
@@ -241,12 +249,15 @@ describe("GameAddToListModal characterization", () => {
 		httpTesting = TestBed.inject(HttpTestingController);
 		TestBed.inject(AuthService).loadUser().subscribe();
 		await untilVisible(() =>
-			expect(listsButton(/In 1 list/)).toBeInTheDocument()
+			expect(
+				screen.getByRole("button", { name: "More library actions" })
+			).toBeInTheDocument()
 		);
+		await expectLibraryItem("In 1 list");
 	}
 
 	async function openListsDialog() {
-		await userEvent.click(listsButton(/In 1 list/));
+		await userEvent.click(await libraryItem("In 1 list"));
 		return screen.findByRole("dialog", { name: "Add to your lists" });
 	}
 
@@ -322,12 +333,9 @@ describe("GameAddToListModal characterization", () => {
 			);
 
 			await untilVisible(() =>
-				expect(listsButton(/In 2 lists/)).toHaveAttribute(
-					"aria-pressed",
-					"true"
-				)
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
 			);
-			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+			await expectLibraryItem("In 2 lists");
 			expect(containing("g1")).toEqual(["l1", "l2"]);
 		});
 
@@ -342,7 +350,7 @@ describe("GameAddToListModal characterization", () => {
 			await untilVisible(() =>
 				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
 			);
-			expect(listsButton(/In 1 list/)).toBeInTheDocument();
+			await expectLibraryItem("In 1 list");
 			expect(containing("g1")).toEqual(["l3"]);
 		});
 	});

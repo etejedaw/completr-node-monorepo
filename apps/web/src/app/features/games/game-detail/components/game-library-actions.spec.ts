@@ -1,4 +1,7 @@
-import { TestBed } from "@angular/core/testing";
+import "@testing-library/jest-dom/vitest";
+
+import { render, screen, waitFor, within } from "@testing-library/angular";
+import userEvent from "@testing-library/user-event";
 
 import { type BacklogEntry } from "../../../../core/models";
 import { GameLibraryActions } from "./game-library-actions";
@@ -12,14 +15,22 @@ const run = {
 } as BacklogEntry;
 
 describe("GameLibraryActions", () => {
-	function render(inputs: Record<string, unknown> = {}) {
-		const fixture = TestBed.createComponent(GameLibraryActions);
-		for (const [name, value] of Object.entries(inputs)) {
-			fixture.componentRef.setInput(name, value);
-		}
-		fixture.detectChanges();
-		const element = fixture.nativeElement as HTMLElement;
-		const instance = fixture.componentInstance;
+	beforeEach(() => {
+		vi.stubGlobal(
+			"matchMedia",
+			vi.fn(() => ({
+				matches: false,
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn()
+			}))
+		);
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	async function renderActions(inputs: Record<string, unknown> = {}) {
 		const events = {
 			backlog: vi.fn(),
 			run: vi.fn(),
@@ -29,170 +40,235 @@ describe("GameLibraryActions", () => {
 			lists: vi.fn(),
 			favorite: vi.fn()
 		};
-		instance.backlogRequested.subscribe(events.backlog);
-		instance.runOpened.subscribe(events.run);
-		instance.queueRequested.subscribe(events.queue);
-		instance.wishlistToggled.subscribe(events.wishlist);
-		instance.shelfRequested.subscribe(events.shelf);
-		instance.listsRequested.subscribe(events.lists);
-		instance.favoriteToggled.subscribe(events.favorite);
-		return { fixture, element, events };
+		const { container } = await render(GameLibraryActions, {
+			inputs,
+			on: {
+				backlogRequested: events.backlog,
+				runOpened: events.run,
+				queueRequested: events.queue,
+				wishlistToggled: events.wishlist,
+				shelfRequested: events.shelf,
+				listsRequested: events.lists,
+				favoriteToggled: events.favorite
+			}
+		});
+		return { container, events };
 	}
 
-	function button(element: HTMLElement, text: string) {
-		return Array.from(element.querySelectorAll("button")).find(b =>
-			b.textContent?.includes(text)
-		) as HTMLButtonElement;
+	async function openLibraryMenu() {
+		await waitFor(() =>
+			expect(
+				screen.queryByRole("menu", { name: "Your library" })
+			).not.toBeInTheDocument()
+		);
+		await userEvent.click(
+			screen.getByRole("button", { name: "More library actions" })
+		);
+		return screen.findByRole("menu", { name: "Your library" });
 	}
 
-	function secondaryLabels(element: HTMLElement) {
-		return Array.from(
-			element.querySelectorAll("ul[aria-label] li button")
-		).map(b => b.querySelectorAll("span")[1].textContent?.trim());
+	async function menuLabels() {
+		const menu = await openLibraryMenu();
+		const labels = within(menu)
+			.getAllByRole("menuitem")
+			.map(item => item.getAttribute("aria-label"));
+		await userEvent.keyboard("{Escape}");
+		return labels;
 	}
-
-	beforeEach(() => {
-		TestBed.configureTestingModule({ imports: [GameLibraryActions] });
-	});
 
 	describe("primary action", () => {
-		it("offers to add the game when there is no run yet", () => {
-			const { element, events } = render();
+		it("offers to add the game when there is no run yet", async () => {
+			const { events } = await renderActions();
 
-			button(element, "Add to My Games").click();
+			await userEvent.click(
+				screen.getByRole("button", { name: /Add to My Games/ })
+			);
 
 			expect(events.backlog).toHaveBeenCalledTimes(1);
 			expect(events.run).not.toHaveBeenCalled();
 		});
 
-		it("shows the status and platform of the latest run and opens it", () => {
-			const { element, events } = render({ latestRun: run });
+		it("shows the status and platform of the latest run and opens it", async () => {
+			const { events } = await renderActions({ latestRun: run });
 
-			const primary = button(element, "Playing");
-			expect(primary.textContent).toContain("PC");
-			expect(primary.title).toBe("Open your playing run");
-			expect(element.textContent).not.toContain("Add to My Games");
-			primary.click();
+			const primary = screen.getByRole("button", { name: /Playing/ });
+			expect(primary).toHaveTextContent("PC");
+			expect(primary).toHaveAttribute("title", "Open your playing run");
+			expect(
+				screen.queryByRole("button", { name: /Add to My Games/ })
+			).not.toBeInTheDocument();
+			await userEvent.click(primary);
 			expect(events.run).toHaveBeenCalledWith(run);
 			expect(events.backlog).not.toHaveBeenCalled();
 		});
 	});
 
 	describe("favorite button", () => {
-		it("offers to add a non favorite and emits on click", () => {
-			const { element, events } = render();
+		it("offers to add a non favorite and emits on click", async () => {
+			const { events } = await renderActions();
 
-			const favorite = element.querySelector(
-				'button[aria-label="Add to favorites"]'
-			) as HTMLButtonElement;
-			favorite.click();
+			const favorite = screen.getByRole("button", {
+				name: "Add to favorites"
+			});
+			await userEvent.click(favorite);
 
-			expect(favorite.getAttribute("aria-pressed")).toBe("false");
+			expect(favorite).toHaveAttribute("aria-pressed", "false");
 			expect(events.favorite).toHaveBeenCalledTimes(1);
 		});
 
-		it("offers to remove an existing favorite", () => {
-			const { element } = render({ favorite: true });
-
-			const favorite = element.querySelector(
-				'button[aria-label="Remove from favorites"]'
-			) as HTMLButtonElement;
-			expect(favorite.getAttribute("aria-pressed")).toBe("true");
-		});
-
-		it("is disabled while toggling", () => {
-			const { element } = render({ togglingFavorite: true });
+		it("offers to remove an existing favorite", async () => {
+			await renderActions({ favorite: true });
 
 			expect(
-				(
-					element.querySelector(
-						'button[aria-label="Add to favorites"]'
-					) as HTMLButtonElement
-				).disabled
-			).toBe(true);
+				screen.getByRole("button", { name: "Remove from favorites" })
+			).toHaveAttribute("aria-pressed", "true");
 		});
 
-		it("shows the Favorite text only in the full variant", () => {
-			expect(render().element.textContent).toContain("Favorite");
+		it("is disabled while toggling", async () => {
+			await renderActions({ togglingFavorite: true });
+
 			expect(
-				render({ variant: "compact" }).element.textContent
-			).not.toContain("Favorite");
+				screen.getByRole("button", { name: "Add to favorites" })
+			).toBeDisabled();
+		});
+
+		it("shows the Favorite text only in the full variant", async () => {
+			const full = await renderActions();
+			expect(full.container).toHaveTextContent("Favorite");
+		});
+
+		it("hides the Favorite text in the compact variant", async () => {
+			const compact = await renderActions({ variant: "compact" });
+			expect(compact.container).not.toHaveTextContent("Favorite");
 		});
 	});
 
-	describe("secondary actions", () => {
-		it("lists the four actions with their inactive labels", () => {
-			const { element } = render();
+	describe("library menu", () => {
+		it("groups the four library actions behind a single more button", async () => {
+			await renderActions();
 
-			expect(secondaryLabels(element)).toEqual([
-				"Up Next",
-				"Want it",
-				"Shelf",
-				"Lists"
+			expect(screen.getAllByRole("button")).toHaveLength(3);
+			expect(await menuLabels()).toEqual([
+				"Add to Up Next",
+				"Add to Want to Get",
+				"Add to My Shelf",
+				"Add to a list"
 			]);
 		});
 
-		it("is hidden in the compact variant", () => {
-			const { element } = render({ variant: "compact" });
+		it("is hidden in the compact variant", async () => {
+			await renderActions({ variant: "compact" });
 
-			expect(element.querySelector("ul[aria-label]")).toBeNull();
+			expect(
+				screen.queryByRole("button", { name: "More library actions" })
+			).not.toBeInTheDocument();
 		});
 
-		it("shows the active labels when the game is in each collection", () => {
-			const { element } = render({
+		it("shows where the game already is", async () => {
+			await renderActions({
 				inQueue: true,
 				inWishlist: true,
 				inShelf: true,
 				listsCount: 3
 			});
 
-			expect(secondaryLabels(element)).toEqual([
+			expect(await menuLabels()).toEqual([
 				"In Up Next",
-				"Wanted",
-				"On shelf",
+				"Remove from Want to Get",
+				"On My Shelf",
 				"In 3 lists"
 			]);
 		});
 
-		it("uses the singular for a single list", () => {
-			const { element } = render({ listsCount: 1 });
+		it("uses the singular for a single list", async () => {
+			await renderActions({ listsCount: 1 });
 
-			expect(secondaryLabels(element)).toContain("In 1 list");
+			expect(await menuLabels()).toContain("In 1 list");
 		});
 
-		it("marks active actions as pressed", () => {
-			const { element } = render({ inWishlist: true });
+		it("explains each active state", async () => {
+			await renderActions({
+				inQueue: true,
+				inWishlist: true,
+				inShelf: true,
+				listsCount: 2
+			});
+			const menu = await openLibraryMenu();
 
-			const pressed = Array.from(
-				element.querySelectorAll("ul[aria-label] li button")
-			).map(b => b.getAttribute("aria-pressed"));
-			expect(pressed).toEqual(["false", "true", "false", "false"]);
+			expect(
+				within(menu).getByRole("menuitem", { name: "In Up Next" })
+			).toHaveAccessibleDescription("Already in your queue");
+			expect(
+				within(menu).getByRole("menuitem", {
+					name: "Remove from Want to Get"
+				})
+			).toHaveAccessibleDescription("It's in your Want to Get");
+			expect(
+				within(menu).getByRole("menuitem", { name: "On My Shelf" })
+			).toHaveAccessibleDescription("Add another copy");
+			expect(
+				within(menu).getByRole("menuitem", { name: "In 2 lists" })
+			).toHaveAccessibleDescription("Add to or remove from lists");
 		});
 
-		it("emits the matching event for each action", () => {
-			const { element, events } = render();
+		it.each([
+			["Add to Up Next", "queue"],
+			["Add to Want to Get", "wishlist"],
+			["Add to My Shelf", "shelf"],
+			["Add to a list", "lists"]
+		] as const)("emits the matching event for %s", async (name, event) => {
+			const { events } = await renderActions();
+			const menu = await openLibraryMenu();
 
-			button(element, "Up Next").click();
-			button(element, "Want it").click();
-			button(element, "Shelf").click();
-			button(element, "Lists").click();
+			await userEvent.click(within(menu).getByRole("menuitem", { name }));
 
-			expect(events.queue).toHaveBeenCalledTimes(1);
-			expect(events.wishlist).toHaveBeenCalledTimes(1);
-			expect(events.shelf).toHaveBeenCalledTimes(1);
-			expect(events.lists).toHaveBeenCalledTimes(1);
+			expect(events[event]).toHaveBeenCalledTimes(1);
+			const others = Object.entries(events).filter(
+				([key]) => key !== event
+			);
+			for (const [, handler] of others)
+				expect(handler).not.toHaveBeenCalled();
 		});
 
-		it("disables Up Next while queueing and Want it while toggling the wishlist", () => {
-			const { element } = render({
+		it("does not queue a game that is already in Up Next", async () => {
+			const { events } = await renderActions({ inQueue: true });
+			const menu = await openLibraryMenu();
+
+			const queued = within(menu).getByRole("menuitem", {
+				name: "In Up Next"
+			});
+			expect(queued).toBeDisabled();
+			await userEvent.click(queued);
+
+			expect(events.queue).not.toHaveBeenCalled();
+		});
+
+		it("blocks Up Next while queueing and Want to Get while toggling, even on a double click", async () => {
+			const { events } = await renderActions({
 				queueing: true,
 				togglingWishlist: true
 			});
+			const menu = await openLibraryMenu();
 
-			expect(button(element, "Up Next").disabled).toBe(true);
-			expect(button(element, "Want it").disabled).toBe(true);
-			expect(button(element, "Shelf").disabled).toBe(false);
-			expect(button(element, "Lists").disabled).toBe(false);
+			const queue = within(menu).getByRole("menuitem", {
+				name: "Add to Up Next"
+			});
+			const wishlist = within(menu).getByRole("menuitem", {
+				name: "Add to Want to Get"
+			});
+			expect(queue).toBeDisabled();
+			expect(wishlist).toBeDisabled();
+			expect(
+				within(menu).getByRole("menuitem", { name: "Add to My Shelf" })
+			).toBeEnabled();
+			expect(
+				within(menu).getByRole("menuitem", { name: "Add to a list" })
+			).toBeEnabled();
+
+			await userEvent.dblClick(queue);
+			await userEvent.dblClick(wishlist);
+			expect(events.queue).not.toHaveBeenCalled();
+			expect(events.wishlist).not.toHaveBeenCalled();
 		});
 	});
 });
