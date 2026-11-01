@@ -55,6 +55,12 @@ describeModuleErrors({
 			message: "Metacritic request timed out"
 		},
 		{
+			serviceCode: "METACRITIC_ABORTED",
+			module: SERVICE,
+			code: "METACRITIC_ABORTED",
+			message: "Metacritic request was aborted"
+		},
+		{
 			serviceCode: "METACRITIC_REQUEST_ERROR",
 			module: SERVICE,
 			code: "METACRITIC_REQUEST_ERROR",
@@ -74,7 +80,8 @@ const HTTP_STATUSES = [
 	{ code: "METACRITIC_REQUEST_ERROR", status: 502 },
 	{ code: "METACRITIC_PARSE_ERROR", status: 502 },
 	{ code: "METACRITIC_BLOCKED", status: 502 },
-	{ code: "METACRITIC_TIMEOUT", status: 504 }
+	{ code: "METACRITIC_TIMEOUT", status: 504 },
+	{ code: "METACRITIC_ABORTED", status: 504 }
 ];
 
 describeDomainToHttpMapper({
@@ -109,7 +116,8 @@ void describe("metacriticServiceError.fromRequestFailure", () => {
 		"RATE_LIMITED",
 		"BLOCKED",
 		"TIMEOUT",
-		"REQUEST_ERROR"
+		"REQUEST_ERROR",
+		"ABORTED"
 	];
 
 	for (const kind of kinds) {

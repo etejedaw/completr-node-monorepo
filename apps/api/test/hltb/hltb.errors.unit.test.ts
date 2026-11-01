@@ -55,6 +55,12 @@ describeModuleErrors({
 			message: "HowLongToBeat request timed out"
 		},
 		{
+			serviceCode: "HLTB_ABORTED",
+			module: SERVICE,
+			code: "HLTB_ABORTED",
+			message: "HowLongToBeat request was aborted"
+		},
+		{
 			serviceCode: "HLTB_REQUEST_ERROR",
 			module: SERVICE,
 			code: "HLTB_REQUEST_ERROR",
@@ -74,7 +80,8 @@ const HTTP_STATUSES = [
 	{ code: "HLTB_REQUEST_ERROR", status: 502 },
 	{ code: "HLTB_PARSE_ERROR", status: 502 },
 	{ code: "HLTB_BLOCKED", status: 502 },
-	{ code: "HLTB_TIMEOUT", status: 504 }
+	{ code: "HLTB_TIMEOUT", status: 504 },
+	{ code: "HLTB_ABORTED", status: 504 }
 ];
 
 describeDomainToHttpMapper({
@@ -109,7 +116,8 @@ void describe("hltbServiceError.fromRequestFailure", () => {
 		"RATE_LIMITED",
 		"BLOCKED",
 		"TIMEOUT",
-		"REQUEST_ERROR"
+		"REQUEST_ERROR",
+		"ABORTED"
 	];
 
 	for (const kind of kinds) {

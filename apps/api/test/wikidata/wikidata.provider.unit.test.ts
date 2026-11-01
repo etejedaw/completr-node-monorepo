@@ -297,6 +297,32 @@ void describe("WikidataClient.findHltbCandidates failures", () => {
 		);
 	});
 
+	void it("an aborted interactive request fails as WIKIDATA_ABORTED without retrying", async () => {
+		let attempts = 0;
+		const hanging = fetchThatHangsUntilAborted();
+		const client = new WikidataClient(
+			buildClient(
+				createFakeClock(),
+				(url, init) => {
+					attempts += 1;
+					return hanging(url, init);
+				},
+				{ timeoutMs: 60_000 }
+			)
+		);
+		const controller = new AbortController();
+
+		const pending = client.findHltbCandidates(WITCHER_QUERY, {
+			priority: "interactive",
+			signal: controller.signal
+		});
+		await new Promise(resolve => setImmediate(resolve));
+		controller.abort();
+
+		await expectCode(pending, "WIKIDATA_ABORTED");
+		assert.equal(attempts, 1);
+	});
+
 	void it("a 404 or 400 from the endpoint fails as WIKIDATA_REQUEST_ERROR", async () => {
 		for (const status of [404, 400]) {
 			const { client } = clientRespondingWith(htmlResponse("", status));

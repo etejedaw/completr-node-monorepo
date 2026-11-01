@@ -420,6 +420,32 @@ void describe("MetacriticClient.getGameBySlug request errors", () => {
 		);
 	});
 
+	void it("an aborted interactive request fails as METACRITIC_ABORTED without retrying", async () => {
+		let attempts = 0;
+		const hanging = fetchThatHangsUntilAborted();
+		const client = new MetacriticClient(
+			buildClient(
+				createFakeClock(),
+				(url, init) => {
+					attempts += 1;
+					return hanging(url, init);
+				},
+				{ timeoutMs: 60_000 }
+			)
+		);
+		const controller = new AbortController();
+
+		const pending = client.getGameBySlug("the-witcher-3-wild-hunt", {
+			priority: "interactive",
+			signal: controller.signal
+		});
+		await new Promise(resolve => setImmediate(resolve));
+		controller.abort();
+
+		await expectCode(pending, "METACRITIC_ABORTED");
+		assert.equal(attempts, 1);
+	});
+
 	void it("concurrent lookups of different games come back to the right caller", async () => {
 		const { client, calls } = clientRespondingWith(
 			htmlResponse(WITCHER_3_PAGE),

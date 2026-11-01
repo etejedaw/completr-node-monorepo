@@ -49,6 +49,12 @@ describeModuleErrors({
 			message: "Wikidata request timed out"
 		},
 		{
+			serviceCode: "WIKIDATA_ABORTED",
+			module: SERVICE,
+			code: "WIKIDATA_ABORTED",
+			message: "Wikidata request was aborted"
+		},
+		{
 			serviceCode: "WIKIDATA_REQUEST_ERROR",
 			module: SERVICE,
 			code: "WIKIDATA_REQUEST_ERROR",
@@ -67,7 +73,8 @@ const HTTP_STATUSES = [
 	{ code: "WIKIDATA_REQUEST_ERROR", status: 502 },
 	{ code: "WIKIDATA_PARSE_ERROR", status: 502 },
 	{ code: "WIKIDATA_BLOCKED", status: 502 },
-	{ code: "WIKIDATA_TIMEOUT", status: 504 }
+	{ code: "WIKIDATA_TIMEOUT", status: 504 },
+	{ code: "WIKIDATA_ABORTED", status: 504 }
 ];
 
 describeDomainToHttpMapper({
@@ -102,6 +109,7 @@ void describe("wikidataServiceError.fromRequestFailure", () => {
 		RATE_LIMITED: "WIKIDATA_RATE_LIMITED",
 		BLOCKED: "WIKIDATA_BLOCKED",
 		TIMEOUT: "WIKIDATA_TIMEOUT",
+		ABORTED: "WIKIDATA_ABORTED",
 		REQUEST_ERROR: "WIKIDATA_REQUEST_ERROR"
 	};
 

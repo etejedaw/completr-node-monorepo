@@ -328,6 +328,33 @@ void describe("HltbClient.getGameById request errors", () => {
 		await expectCode(client.getGameById("10270"), "HLTB_TIMEOUT");
 	});
 
+	void it("an aborted interactive request fails as HLTB_ABORTED without retrying", async () => {
+		const clock = createFakeClock();
+		let attempts = 0;
+		const hanging = fetchThatHangsUntilAborted();
+		const client = new HltbClient(
+			buildClient(
+				clock,
+				(url, init) => {
+					attempts += 1;
+					return hanging(url, init);
+				},
+				{ timeoutMs: 60_000 }
+			)
+		);
+		const controller = new AbortController();
+
+		const pending = client.getGameById("10270", {
+			priority: "interactive",
+			signal: controller.signal
+		});
+		await new Promise(resolve => setImmediate(resolve));
+		controller.abort();
+
+		await expectCode(pending, "HLTB_ABORTED");
+		assert.equal(attempts, 1);
+	});
+
 	void it("a double click asks twice in order without overlapping requests", async () => {
 		const { client, calls } = clientRespondingWith(
 			htmlResponse(WITCHER_3_PAGE),
