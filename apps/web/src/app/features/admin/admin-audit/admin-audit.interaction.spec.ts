@@ -311,6 +311,28 @@ describe("AdminAudit interaction", () => {
 		);
 	});
 
+	it("filters by the external data refresh action on games", async () => {
+		await renderLoaded();
+
+		await chooseAction("game_external_data_refreshed");
+		await untilVisible(() =>
+			expect(lastQuery().action).toBe("game_external_data_refreshed")
+		);
+		await chooseTarget("game");
+
+		await untilVisible(() =>
+			expect(lastQuery()).toEqual({
+				limit: "50",
+				offset: "0",
+				action: "game_external_data_refreshed",
+				targetType: "game"
+			})
+		);
+		expect(picker("Action")).toHaveAccessibleName(
+			"Action: game_external_data_refreshed"
+		);
+	});
+
 	it("walks the pages forward and back with a single request per click", async () => {
 		await renderLoaded();
 

@@ -33,6 +33,7 @@ const ACTION_OPTIONS = [
 	"game_edited",
 	"game_deleted",
 	"game_deactivated",
+	"game_external_data_refreshed",
 	"job_started",
 	"report_approved",
 	"report_rejected"
