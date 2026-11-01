@@ -145,6 +145,10 @@ describe("HelpPage", () => {
 			"Platinums"
 		])
 			expect(note).toHaveTextContent(name);
+		expect(note).toHaveTextContent(
+			"Export menu at the end of their toolbar"
+		);
+		expect(note).toHaveTextContent("your own lists from their ⋯ menu");
 		expect(note).toHaveTextContent("JSON is a Premium perk");
 	});
 
