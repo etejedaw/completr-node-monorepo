@@ -80,6 +80,14 @@ export async function findScoresByGameIdAndSources(
 	return GameScore.findAll({ where: { gameId, source: sources } });
 }
 
+export async function findGameIdsBySource(source: string) {
+	const rows = await GameScore.findAll({
+		where: { source },
+		attributes: ["gameId"]
+	});
+	return rows.map(row => row.gameId);
+}
+
 export async function upsertScore(
 	gameId: string,
 	source: string,

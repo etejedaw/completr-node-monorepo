@@ -75,6 +75,14 @@ export async function findTimesByGameIdAndSources(
 	return GameTime.findAll({ where: { gameId, source: sources } });
 }
 
+export async function findGameIdsBySource(source: TimeSource) {
+	const rows = await GameTime.findAll({
+		where: { source },
+		attributes: ["gameId"]
+	});
+	return rows.map(row => row.gameId);
+}
+
 export async function upsertTime(
 	gameId: string,
 	source: TimeSource,
