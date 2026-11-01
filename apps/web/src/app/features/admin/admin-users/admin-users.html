@@ -126,7 +126,9 @@
 								size="sm"
 								variant="ghost"
 								type="button"
-								[attr.aria-label]="'Premium access for ' + user.username"
+								[attr.aria-label]="premiumAccessLabel(user)"
+								[attr.title]="premiumAccessHint(user)"
+								[disabled]="hasPremiumRole(user)"
 								(click)="$event.stopPropagation(); openPremiumAccess(user)"
 							>
 								<span
@@ -206,7 +208,9 @@
 				variant="ghost"
 				type="button"
 				class="ml-2 shrink-0"
-				[attr.aria-label]="'Premium access for ' + user.username"
+				[attr.aria-label]="premiumAccessLabel(user)"
+				[attr.title]="premiumAccessHint(user)"
+				[disabled]="hasPremiumRole(user)"
 				(click)="openPremiumAccess(user)"
 			>
 				<span aria-hidden="true" class="material-icons text-base"
@@ -532,7 +536,8 @@
 			variant="premium"
 			type="button"
 			class="mr-auto"
-			[disabled]="isEditing()"
+			[attr.title]="premiumAccessHint(user)"
+			[disabled]="isEditing() || hasPremiumRole(user)"
 			(click)="openPremiumAccess(user)"
 		>
 			<span aria-hidden="true" class="material-icons text-base"

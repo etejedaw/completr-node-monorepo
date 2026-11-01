@@ -26,7 +26,7 @@ import {
 	USERNAME_PATTERN,
 	USERNAME_PATTERN_MESSAGE
 } from "../../../core/utils/account-fields";
-import { avatarRing } from "../../../core/utils/premium";
+import { avatarRing, isPremiumRole } from "../../../core/utils/premium";
 import { elevatedRoleBadge } from "../../../core/utils/role-badge";
 import { type RoleBadge } from "../../../core/utils/role-badge.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
@@ -401,7 +401,24 @@ export class AdminUsers implements OnInit {
 		this.editingUser.set(null);
 	}
 
+	protected hasPremiumRole(user: AdminUser): boolean {
+		return isPremiumRole(user.role);
+	}
+
+	protected premiumAccessLabel(user: AdminUser): string {
+		return this.hasPremiumRole(user)
+			? `Premium access for ${user.username} comes from the ${user.role} role`
+			: `Premium access for ${user.username}`;
+	}
+
+	protected premiumAccessHint(user: AdminUser): string | null {
+		return this.hasPremiumRole(user)
+			? `Premium through the ${user.role} role`
+			: null;
+	}
+
 	openPremiumAccess(user: AdminUser) {
+		if (this.hasPremiumRole(user)) return;
 		this.closeEdit();
 		this.premiumAccessUser.set(user);
 		this.showPremiumAccess.set(true);

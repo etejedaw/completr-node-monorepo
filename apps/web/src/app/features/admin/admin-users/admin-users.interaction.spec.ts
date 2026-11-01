@@ -1065,6 +1065,58 @@ describe("Admin users interaction", () => {
 			});
 		});
 
+		it("blocks premium access for accounts whose role already includes premium", async () => {
+			const user = userEvent.setup();
+			await renderUsers([
+				ADA,
+				{ ...BOB, role: "premium" },
+				makeUser(3, { username: "mod", role: "moderator" })
+			]);
+			for (const username of ["ada", "bob", "mod"]) {
+				const buttons = screen.getAllByRole("button", {
+					name: new RegExp(
+						`^Premium access for ${username} comes from`
+					)
+				});
+				expect(buttons.length).toBeGreaterThan(0);
+				for (const button of buttons) {
+					expect(button).toBeDisabled();
+					await user.click(button);
+					await user.dblClick(button);
+				}
+			}
+			expect(
+				screen.queryByRole("dialog", { name: "Premium access" })
+			).not.toBeInTheDocument();
+			http.expectNone(`${USERS_URL}/u2/premium-grants`);
+
+			await user.click(
+				screen.getAllByRole("button", { name: "Edit bob" })[0]!
+			);
+			const editor = await screen.findByRole("dialog", {
+				name: "Edit user"
+			});
+			const footerButton = within(editor).getByRole("button", {
+				name: "Premium access"
+			});
+			expect(footerButton).toBeDisabled();
+			expect(footerButton).toHaveAttribute(
+				"title",
+				"Premium through the premium role"
+			);
+		});
+
+		it("keeps premium access available for regular accounts", async () => {
+			await renderUsers();
+			const buttons = screen.getAllByRole("button", {
+				name: "Premium access for bob"
+			});
+			for (const button of buttons) {
+				expect(button).toBeEnabled();
+				expect(button).not.toHaveAttribute("title");
+			}
+		});
+
 		it("clicking a table row opens the editor for that row's user", async () => {
 			const user = userEvent.setup();
 			await renderUsers();

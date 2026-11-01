@@ -49,14 +49,6 @@
 		class="rounded-card border border-premium/30 bg-premium/5 p-4"
 	>
 		<div class="mb-4">
-			@if (hasPremiumRole()) {
-			<p
-				class="m-0 mb-3 rounded-card border border-premium/30 bg-premium/10 px-3 py-2 text-sm text-premium"
-			>
-				Active through the permanent {{ user().role }} role. Grants
-				below provide additional history but are not needed for access.
-			</p>
-			}
 			<h2
 				id="full-premium-heading"
 				class="m-0 font-display text-base font-semibold text-premium"

@@ -203,27 +203,6 @@ describe("AdminPremiumAccess interaction", () => {
 		expect(dialog).toHaveTextContent("Offer: lists-trial-1m");
 	});
 
-	it("shows full-premium access inherited from the permanent role", async () => {
-		const view = await render(AdminPremiumAccess, {
-			inputs: { user: { ...USER, role: "premium" } },
-			providers: [provideHttpClient(), provideHttpClientTesting()]
-		});
-		http = TestBed.inject(HttpTestingController);
-		http.expectOne(`${api}/admin/users/u1/premium-grants`).flush({
-			data: { grants: [] }
-		});
-		http.expectOne(`${api}/admin/premium-features`).flush({
-			data: { features: FEATURES }
-		});
-		view.fixture.detectChanges();
-		const dialog = await screen.findByRole("dialog", {
-			name: "Premium access"
-		});
-		expect(dialog).toHaveTextContent(
-			"Active through the permanent premium role"
-		);
-	});
-
 	it("requires confirmation before revoking full premium", async () => {
 		const user = userEvent.setup();
 		const view = await renderDialog([

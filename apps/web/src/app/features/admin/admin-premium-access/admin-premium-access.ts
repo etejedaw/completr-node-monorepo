@@ -92,9 +92,6 @@ export class AdminPremiumAccess implements OnInit {
 	protected readonly pendingFullRevoke = signal("");
 	protected readonly grants = signal<PremiumGrant[]>([]);
 	protected readonly features = signal<PremiumFeatureDefinition[]>([]);
-	protected readonly hasPremiumRole = computed(() =>
-		["premium", "moderator", "admin"].includes(this.user().role)
-	);
 	protected readonly fullGrants = computed(() =>
 		this.grants().filter(grant => grant.feature === "*")
 	);
