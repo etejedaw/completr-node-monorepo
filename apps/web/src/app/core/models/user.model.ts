@@ -6,12 +6,26 @@ export interface PremiumAccess {
 	expiresAt: string | null;
 }
 
+export type PremiumFeature =
+	| "lists.unlimited"
+	| "saved-filters.unlimited"
+	| "favorites.unlimited"
+	| "wishlist.unlimited"
+	| "queue.unlimited"
+	| "game-shelf.unlimited"
+	| "mood-tags.unlimited"
+	| "activity.feed-filters"
+	| "themes.premium"
+	| "export.json"
+	| "rewind.premium";
+
 export interface User {
 	id: string;
 	username: string;
 	email: string;
 	role: UserRole;
 	premiumAccess: PremiumAccess;
+	premiumFeatures: PremiumFeature[];
 	name: string;
 	bio?: string;
 	avatarUrl?: string;

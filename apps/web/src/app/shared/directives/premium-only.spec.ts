@@ -10,14 +10,29 @@ import { PremiumOnly } from "./premium-only";
 })
 class Host {}
 
+@Component({
+	imports: [PremiumOnly],
+	template: `<p *appPremiumOnly="'themes.premium'" class="perk">Perk</p>`
+})
+class FeatureHost {}
+
 describe("PremiumOnly", () => {
 	const isPremium = signal(false);
+	const grantedFeatures = signal<string[]>([]);
+	const hasPremiumFeature = vi.fn((feature: string) =>
+		isPremium() ? true : grantedFeatures().includes(feature)
+	);
 
-	function render() {
+	function render(host: typeof Host | typeof FeatureHost = Host) {
 		TestBed.configureTestingModule({
-			providers: [{ provide: AuthService, useValue: { isPremium } }]
+			providers: [
+				{
+					provide: AuthService,
+					useValue: { isPremium, hasPremiumFeature }
+				}
+			]
 		});
-		const fixture = TestBed.createComponent(Host);
+		const fixture = TestBed.createComponent(host);
 		fixture.detectChanges();
 		return fixture;
 	}
@@ -28,6 +43,8 @@ describe("PremiumOnly", () => {
 
 	beforeEach(() => {
 		isPremium.set(false);
+		grantedFeatures.set([]);
+		hasPremiumFeature.mockClear();
 	});
 
 	it("does not render the content for non premium users", () => {
@@ -63,5 +80,45 @@ describe("PremiumOnly", () => {
 		expect(
 			(fixture.nativeElement as HTMLElement).querySelectorAll(".perk")
 		).toHaveLength(1);
+	});
+
+	describe("with a feature", () => {
+		it("does not render without access to that feature", () => {
+			grantedFeatures.set(["export.json"]);
+
+			expect(perk(render(FeatureHost))).toBeNull();
+		});
+
+		it("renders with an individual grant for that feature", () => {
+			grantedFeatures.set(["themes.premium"]);
+
+			expect(perk(render(FeatureHost))?.textContent).toBe("Perk");
+			expect(hasPremiumFeature).toHaveBeenCalledWith("themes.premium");
+		});
+
+		it("renders for full premium", () => {
+			isPremium.set(true);
+
+			expect(perk(render(FeatureHost))).not.toBeNull();
+		});
+
+		it("follows grants gained and lost while mounted", () => {
+			const fixture = render(FeatureHost);
+
+			grantedFeatures.set(["themes.premium"]);
+			fixture.detectChanges();
+			expect(perk(fixture)).not.toBeNull();
+
+			grantedFeatures.set([]);
+			fixture.detectChanges();
+			expect(perk(fixture)).toBeNull();
+		});
+
+		it("ignores the feature check when used without a feature", () => {
+			grantedFeatures.set(["themes.premium"]);
+
+			expect(perk(render())).toBeNull();
+			expect(hasPremiumFeature).not.toHaveBeenCalled();
+		});
 	});
 });

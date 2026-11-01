@@ -26,7 +26,7 @@ const premiumTheme: ThemeOption = {
 
 describe("SettingsAppearance", () => {
 	const catalog = [...THEME_CATALOG, premiumTheme];
-	const premium = signal(false);
+	const grantedFeatures = signal<string[]>([]);
 	const loggedIn = signal(true);
 	const user = signal<{ theme: string | null } | null>(null);
 	const loadUser = vi.fn();
@@ -54,7 +54,8 @@ describe("SettingsAppearance", () => {
 					provide: AuthService,
 					useValue: {
 						user: user.asReadonly(),
-						isPremium: premium.asReadonly(),
+						hasPremiumFeature: (feature: string) =>
+							grantedFeatures().includes(feature),
 						isLoggedIn: loggedIn.asReadonly(),
 						loadUser
 					}
@@ -70,7 +71,7 @@ describe("SettingsAppearance", () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
-		premium.set(false);
+		grantedFeatures.set([]);
 		loggedIn.set(true);
 	});
 
@@ -91,12 +92,22 @@ describe("SettingsAppearance", () => {
 		).not.toBeInTheDocument();
 	});
 
-	it("shows premium themes only to premium accounts", async () => {
-		premium.set(true);
+	it("shows premium themes to accounts with access to themes.premium", async () => {
+		grantedFeatures.set(["themes.premium"]);
 		await renderAppearance();
 
 		expect(screen.getAllByRole("radio")).toHaveLength(4);
 		expect(themeRadio("Gold Rush")).toBeInTheDocument();
+	});
+
+	it("keeps premium themes hidden when only other features are granted", async () => {
+		grantedFeatures.set(["activity.feed-filters", "export.json"]);
+		await renderAppearance();
+
+		expect(screen.getAllByRole("radio")).toHaveLength(3);
+		expect(
+			screen.queryByRole("radio", { name: /Gold Rush/ })
+		).not.toBeInTheDocument();
 	});
 
 	it("adopts the theme saved on the account when it differs from the local one", async () => {
@@ -224,7 +235,7 @@ describe("SettingsAppearance", () => {
 
 	it("persists a premium theme for premium accounts", async () => {
 		const typist = userEvent.setup();
-		premium.set(true);
+		grantedFeatures.set(["themes.premium"]);
 		await renderAppearance();
 		themeService.persist.mockReturnValue(of({}));
 

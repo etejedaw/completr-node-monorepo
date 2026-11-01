@@ -4,7 +4,7 @@ import { Router } from "@angular/router";
 import { map, type Observable, tap } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type User } from "../models";
+import { type PremiumFeature, type User } from "../models";
 import { buildHttpParams } from "../utils/http-params";
 import {
 	type AcceptInvitationRequest,
@@ -37,6 +37,13 @@ export class AuthService {
 	readonly isPremium = computed(
 		() => this._user()?.premiumAccess?.active ?? false
 	);
+	private readonly premiumFeatures = computed(
+		() => new Set(this._user()?.premiumFeatures ?? [])
+	);
+
+	hasPremiumFeature(feature: PremiumFeature): boolean {
+		return this.isPremium() || this.premiumFeatures().has(feature);
+	}
 
 	token(): string | null {
 		return this.storage.get(TOKEN_KEY);
