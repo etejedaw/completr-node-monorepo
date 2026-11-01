@@ -1,10 +1,14 @@
 <button
 	uiButton
 	type="button"
-	variant="secondary"
+	[variant]="variant()"
 	[size]="placement() === 'hero' ? 'md' : 'sm'"
 	[class]="
-		(placement() === 'hero' ? '!bg-surface/70 backdrop-blur' : 'h-9') +
+		(placement() === 'toolbar'
+			? 'h-9'
+			: variant() === 'secondary'
+				? '!bg-surface/70 backdrop-blur'
+				: '') +
 		(iconOnly() ? ' min-w-[44px] sm:min-w-9 !px-2' : '')
 	"
 	[ngpMenuTrigger]="menu"
@@ -28,7 +32,8 @@
 	@if (!iconOnly()) { {{ label() }}
 	<span
 		aria-hidden="true"
-		class="material-icons text-base -mr-1 text-fg-muted"
+		class="material-icons text-base -mr-1"
+		[class.text-fg-muted]="variant() === 'secondary'"
 		>expand_more</span
 	>
 	}

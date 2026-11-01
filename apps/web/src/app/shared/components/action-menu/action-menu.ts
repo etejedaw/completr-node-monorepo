@@ -35,6 +35,7 @@ export class ActionMenu {
 	readonly icon = input("more_horiz");
 	readonly iconOnly = input(false);
 	readonly placement = input<"toolbar" | "hero">("toolbar");
+	readonly variant = input<"primary" | "secondary">("secondary");
 	readonly busy = input(false);
 	readonly selected = output<string>();
 
