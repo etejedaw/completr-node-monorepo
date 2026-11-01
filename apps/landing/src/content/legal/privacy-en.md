@@ -1,14 +1,14 @@
 ---
 lang: en
-version: "2.0"
-updated: 2026-08-16
+version: "2.1"
+updated: 2026-11-01
 title: Privacy Policy
-summary: "The idea is simple: I collect the minimum needed for the app to work, I never sell or share your data, and you can delete it whenever you want."
+summary: "The idea is simple: I collect the minimum needed for the app to work, I never sell your data or share it for commercial purposes, and you can delete it whenever you want."
 highlights:
     - section: use
       icon: block
-      title: Never sold or shared
-      text: I don't sell or share your data with third parties.
+      title: Never sold
+      text: I don't sell your data or share it for commercial purposes.
     - section: use
       icon: visibility_off
       title: No ads, no tracking
@@ -42,7 +42,7 @@ sections:
 
 Completr is a personal project built and operated by **Esteban Tejeda**, who acts as the data controller for the data described here. This policy covers both the sign-up page (completr.app) and the application (web.completr.app).
 
-The idea is simple: I collect the minimum needed for the app to work, I never sell or share your data, and you can delete it whenever you want.
+The idea is simple: I collect the minimum needed for the app to work, I never sell your data or share it for commercial purposes, and you can delete it whenever you want.
 
 The people whose data I process are those who sign up for the beta and those who create an account in the app. You provide all of it yourself: I don't buy databases or get your information from third parties.
 
@@ -52,7 +52,7 @@ The people whose data I process are those who sign up for the beta and those who
 
 **Your account.** When you sign up I store your email, an encrypted version of your password (never plain text), your username and, optionally, a display name, bio and avatar.
 
-**Content you create.** What you track inside the app: your game backlog, lists, reviews, tags, progress notes and co-op runs. It's the whole point of the service.
+**Content you create.** What you track inside the app: your game backlog, lists, reviews, tags, progress notes, co-op runs, platinums and the yearly Rewinds you generate. It's the whole point of the service.
 
 **Technical data.** Aggregate usage statistics that don't identify you (see below), and server logs I keep to detect failures and attacks.
 
@@ -61,13 +61,14 @@ The people whose data I process are those who sign up for the beta and those who
 - Run the service and show you your own content.
 - Authenticate you and keep your session secure.
 - Understand in aggregate how the app is used, to improve it.
+- Generate your Rewind when you ask for it, including its AI-written summary when your account has it.
 - Contact you about your account or access to the beta.
 
-What I **don't** do: I don't sell or share your data for commercial purposes, I don't run ads, I don't sign you up to newsletters and I don't build profiles about you.
+What I **don't** do: I don't sell or share your data for commercial purposes, I don't run ads, I don't sign you up to newsletters and I don't build profiles about you, apart from the Rewind you generate yourself (see "Automated decisions" below).
 
 ## Legal basis
 
-I process your account data and your content to provide the service you request when you sign up (performance of a contract, article 13(c) of Chile's Law 21.719). Aggregate analytics and security logs rely on my legitimate interest in keeping the app running and improving it (article 13(d)). The beta sign-up relies on your consent (article 12).
+I process your account data and your content to provide the service you request when you sign up (performance of a contract, article 13(c) of Chile's Law 21.719). Aggregate analytics and security logs rely on my legitimate interest in keeping the app running and improving it (article 13(d)). The Rewind, including its AI summary, is part of the service you request when you generate it (article 13(c)). Your notes and your private runs only go into it if you turn on the matching switch for that Rewind. The beta sign-up relies on your consent (article 12).
 
 You can withdraw that consent whenever you want, without giving a reason and at no cost: email me and I'll remove your address from the list. Withdrawing it doesn't affect what I did before with your permission.
 
@@ -81,17 +82,18 @@ The app uses a single cookie: the one strictly necessary so you don't have to si
 
 Completr is a social app: part of what you track is meant to be seen by others. You decide how much, but it's worth knowing how it works.
 
-Each section of your account (profile, backlog, shelf, queue, wishlist, favorites, activity feed and lists) has its own visibility level, and you can change each one separately whenever you want:
+Each section of your account (profile, My Games, My Shelf, Platinums, Sagas, Rewind, Up Next, Want to Get, Favorites, Lists and your activity feed) has its own visibility level, and you can change each one separately whenever you want:
 
-- **Public:** anyone can see it, even someone without a Completr account.
+- **Everyone:** anyone can see it, even someone without a Completr account.
 - **Friends:** only people you follow who also follow you back can see it.
-- **Private:** only you can see it.
+- **Only you:** nobody else can see it.
 
-**By default those eight sections are public.** It's a design decision: an app for sharing backlogs with nothing visible isn't much use. But it means that if you don't change anything, your profile and what you track are visible on the internet. If you'd rather have the opposite, you can make everything private from the settings.
+**By default those eleven sections are visible to everyone.** It's a design decision: an app for sharing backlogs with nothing visible isn't much use. But it means that if you don't change anything, your profile and what you track are visible on the internet. If you'd rather have the opposite, you can set everything to Only you from the settings.
 
-There are two exceptions, and they go in opposite directions:
+There are a few exceptions, and they go in opposite directions:
 
 - **Lists start private.** Every list you create starts out as yours alone; you publish it separately when you decide to.
+- **A Rewind stays hidden until you generate it.** Even with its section set to Everyone, nobody sees a year's Rewind until you create it from your profile. Whoever can see it also sees its AI summary, which may paraphrase your notes if you included them but never quotes them.
 - **Reviews have no visibility control.** If you write a review or rate a game, anyone with a Completr account can see it on that game's page, even if the rest of your profile is private. If you don't want something to be seen, don't post it as a review.
 
 ## Where your data goes
@@ -101,23 +103,29 @@ I don't hand it to anyone for commercial purposes. But for the app to work, your
 - **Cloudflare** (United States). Everything you send and receive goes through its network before reaching my servers, so technically it can see it.
 - **My servers** (São Paulo, Brazil). The application, the database and the analytics run here. I manage them directly.
 - **Email service** (São Paulo, Brazil). It receives the email address you leave in the beta form.
+- **DeepSeek** (China). It writes the AI summary of the Rewind. It only receives data when you generate a Rewind that includes that summary, and only the data for that year: your games, with their dates, platform, genres, hours and your ratings, and the statistics calculated from them. Your notes and your private runs only go if you turn on their switches. It never receives your email, your username or your display name.
 
-Video game data comes from external catalogs (such as RAWG), but that's information I _receive_: I never send your personal data to those services.
+Video game data comes from external catalogs and sites (such as RAWG, Metacritic, HowLongToBeat and Wikidata), but that's information I _receive_: I never send your personal data to those services.
 
-Beyond that there are no third parties. Fonts and icons are served from my own servers, so your browser doesn't connect to Google or any external CDN while you use Completr.
+Beyond those, there are no third parties. Fonts and icons are served from my own servers, so your browser doesn't connect to Google or any external CDN while you use Completr.
 
 ## Transfers outside Chile
 
 My servers are in Brazil and Cloudflare is a US service, so your data leaves Chile. Those transfers are covered by the data processing agreements signed with each provider, which include contractual clauses with protection safeguards.
 
+When you generate a Rewind with the AI summary, the data listed for DeepSeek also leaves Chile, to China. That transfer only happens when you ask for that summary, because the summary can't be written without it, and it's limited to what the summary needs.
+
 ## Automated decisions
 
-There are none. Nothing that happens in your account is decided by an automated system, I don't build profiles about you and I don't use your data to train models.
+No automated system makes decisions about your account: nothing about what you can do in Completr depends on one. I don't use your data to train models.
+
+The only profile is the Rewind, and it exists only if you ask for it. When you generate it, the app assigns you a persona (such as Trophy Hunter or The Finisher) based on your numbers for the year and, with the AI summary, DeepSeek writes a description of your habits as a player. It has no effect on your account, you decide who sees it from its privacy section, and you can regenerate it to replace it.
 
 ## How long I keep it
 
 - **Your account and your content:** for as long as you want. There's no maximum period and no automatic deletion for inactivity: your backlog stays there until you decide to leave.
 - **Beta list email:** until you ask me to delete it, or at most 12 months after the beta phase ends.
+- **Your Rewinds:** stored with your account, AI summary included, until you delete the account. Regenerating a Rewind replaces the previous version.
 - **Server logs:** 30 days, then they're deleted.
 - **Analytics:** aggregate and anonymous, so it isn't tied to you and there's nothing to delete.
 
