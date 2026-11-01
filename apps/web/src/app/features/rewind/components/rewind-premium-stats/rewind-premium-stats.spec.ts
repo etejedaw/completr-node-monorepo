@@ -5,6 +5,7 @@ import { render, screen, within } from "@testing-library/angular";
 import {
 	type RewindCriticGap,
 	type RewindLanguage,
+	type RewindPremiumAccessKind,
 	type RewindPremiumStats as RewindPremiumStatsData
 } from "../../../../core/models/rewind.model";
 import { ToastService } from "../../../../core/services/toast";
@@ -71,13 +72,13 @@ const EMPTY_STATS: RewindPremiumStatsData = {
 async function renderStats(
 	data: RewindPremiumStatsData = stats(),
 	language: RewindLanguage = "en",
-	source: "role" | "full-grant" | "feature-grant" = "role"
+	premiumAccessKind: RewindPremiumAccessKind | null = "premium"
 ) {
 	return render(RewindPremiumStats, {
 		inputs: {
 			stats: data,
 			language,
-			premiumAccess: { allowed: true, source, expiresAt: null }
+			premiumAccessKind
 		},
 		providers: [{ provide: ToastService, useValue: { premium: vi.fn() } }]
 	});
@@ -112,21 +113,27 @@ describe("RewindPremiumStats", () => {
 		expect(figure("Genre share")).toBeInTheDocument();
 	});
 
-	it.each(["role", "full-grant"] as const)(
-		"keeps the Premium label for access from %s",
-		async source => {
-			await renderStats(stats(), "en", source);
+	it("labels stats generated with a gift as Gift", async () => {
+		await renderStats(stats(), "en", "gift");
 
-			expect(screen.getByLabelText("Premium")).toBeInTheDocument();
-			expect(screen.queryByLabelText("Launch gift")).toBeNull();
-		}
-	);
-
-	it("labels a feature-specific Rewind grant as Launch gift", async () => {
-		await renderStats(stats(), "en", "feature-grant");
-
-		expect(screen.getByLabelText("Launch gift")).toBeInTheDocument();
+		expect(screen.getByLabelText("Gift")).toBeInTheDocument();
 		expect(screen.queryByLabelText("Premium")).toBeNull();
+	});
+
+	it("labels Spanish stats generated with a gift as Regalo", async () => {
+		await renderStats(stats(), "es", "gift");
+
+		expect(screen.getByLabelText("Regalo")).toBeInTheDocument();
+		expect(screen.queryByLabelText("Premium")).toBeNull();
+	});
+
+	it("shows the charts without a badge when the Rewind does not say how they were generated", async () => {
+		await renderStats(stats(), "en", null);
+
+		const section = screen.getByRole("region", { name: "Premium stats" });
+		expect(within(section).getAllByRole("figure")).toHaveLength(4);
+		expect(within(section).queryByLabelText("Premium")).toBeNull();
+		expect(within(section).queryByLabelText("Gift")).toBeNull();
 	});
 
 	it("gives screen readers a table for every chart and hides the drawing", async () => {

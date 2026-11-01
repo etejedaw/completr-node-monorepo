@@ -11,7 +11,7 @@ import {
 	type RewindGenre,
 	type RewindLanguage,
 	type RewindMonthHours,
-	type RewindPremiumAccess,
+	type RewindPremiumAccessKind,
 	type RewindPremiumStats as RewindPremiumStatsData
 } from "../../../../core/models/rewind.model";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
@@ -165,13 +165,12 @@ export class RewindPremiumStats {
 	protected readonly premiumPerk = PREMIUM_STATS_PERK;
 	readonly stats = input.required<RewindPremiumStatsData>();
 	readonly language = input<RewindLanguage>("en");
-	readonly premiumAccess = input<RewindPremiumAccess | null>(null);
+	readonly premiumAccessKind = input<RewindPremiumAccessKind | null>(null);
 
-	protected readonly premiumLabel = computed(() =>
-		this.premiumAccess()?.source === "feature-grant"
-			? "Launch gift"
-			: "Premium"
-	);
+	protected readonly premiumLabel = computed(() => {
+		const kind = this.premiumAccessKind();
+		return kind ? rewindCopy(this.language()).premiumStats.premiumLabels[kind] : null;
+	});
 	protected readonly frameClass = REWIND_PREMIUM_FRAME_CLASS;
 
 	protected readonly copy = computed(

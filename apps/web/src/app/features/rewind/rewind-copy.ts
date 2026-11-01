@@ -2,7 +2,7 @@ import {
 	type RewindLanguage,
 	type RewindTotals
 } from "../../core/models/rewind.model";
-import { type RewindCopy } from "./rewind-copy.model";
+import { type RewindCopy, type RewindPremiumLabels } from "./rewind-copy.model";
 
 export const MIN_REWIND_YEAR = 2000;
 export const MAX_REWIND_YEAR = 2100;
@@ -20,6 +20,16 @@ function englishPlural(count: number, singular: string, plural: string) {
 function spanishPlural(count: number, singular: string, plural: string) {
 	return `${formatRewindNumber(count, "es")} ${count === 1 ? singular : plural}`;
 }
+
+const ENGLISH_PREMIUM_LABELS: RewindPremiumLabels = {
+	premium: "Premium",
+	gift: "Gift"
+};
+
+const SPANISH_PREMIUM_LABELS: RewindPremiumLabels = {
+	premium: "Premium",
+	gift: "Regalo"
+};
 
 const ENGLISH: RewindCopy = {
 	locale: LOCALE.en,
@@ -103,7 +113,7 @@ const ENGLISH: RewindCopy = {
 	},
 	aiRecap: {
 		heading: "AI recap",
-		premiumLabel: "Premium",
+		premiumLabels: ENGLISH_PREMIUM_LABELS,
 		insights: "Insights",
 		insightKinds: {
 			"taste-vs-critics": "Taste vs. critics",
@@ -119,7 +129,7 @@ const ENGLISH: RewindCopy = {
 	},
 	premiumStats: {
 		heading: "Premium stats",
-		premiumLabel: "Premium",
+		premiumLabels: ENGLISH_PREMIUM_LABELS,
 		hoursByMonth: "Your year's rhythm",
 		hoursByMonthHint: "Hours played each month",
 		hours: "Hours",
@@ -259,7 +269,7 @@ const SPANISH: RewindCopy = {
 	},
 	aiRecap: {
 		heading: "Resumen con IA",
-		premiumLabel: "Premium",
+		premiumLabels: SPANISH_PREMIUM_LABELS,
 		insights: "Hallazgos",
 		insightKinds: {
 			"taste-vs-critics": "Tu gusto vs. la crítica",
@@ -275,7 +285,7 @@ const SPANISH: RewindCopy = {
 	},
 	premiumStats: {
 		heading: "Estadísticas Premium",
-		premiumLabel: "Premium",
+		premiumLabels: SPANISH_PREMIUM_LABELS,
 		hoursByMonth: "El ritmo de tu año",
 		hoursByMonthHint: "Horas jugadas cada mes",
 		hours: "Horas",

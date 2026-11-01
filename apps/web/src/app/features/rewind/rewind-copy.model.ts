@@ -1,7 +1,10 @@
 import {
 	type RewindInsightKind,
-	type RewindLengthRange
+	type RewindLengthRange,
+	type RewindPremiumAccessKind
 } from "../../core/models/rewind.model";
+
+export type RewindPremiumLabels = Record<RewindPremiumAccessKind, string>;
 
 export interface RewindSummaryCopy {
 	finished: string;
@@ -58,7 +61,7 @@ export interface RewindShareCopy {
 
 export interface RewindAiRecapCopy {
 	heading: string;
-	premiumLabel: string;
+	premiumLabels: RewindPremiumLabels;
 	insights: string;
 	insightKinds: Record<RewindInsightKind, string>;
 	funFact: string;
@@ -67,7 +70,7 @@ export interface RewindAiRecapCopy {
 
 export interface RewindPremiumStatsCopy {
 	heading: string;
-	premiumLabel: string;
+	premiumLabels: RewindPremiumLabels;
 	hoursByMonth: string;
 	hoursByMonthHint: string;
 	hours: string;

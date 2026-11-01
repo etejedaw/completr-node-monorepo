@@ -14,12 +14,14 @@
 		>
 			{{ text.heading }}
 		</h2>
+		@if (premiumLabel(); as label) {
 		<ui-premium-badge
 			class="ml-auto"
 			interactive
-			[label]="premiumLabel()"
+			[label]="label"
 			[message]="premiumPerk"
 		/>
+		}
 	</header>
 
 	<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">

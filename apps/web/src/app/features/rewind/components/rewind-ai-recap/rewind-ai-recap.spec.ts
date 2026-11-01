@@ -5,7 +5,8 @@ import { render, screen, within } from "@testing-library/angular";
 import {
 	REWIND_INSIGHT_KINDS,
 	type RewindAiRecap as RewindAiRecapData,
-	type RewindLanguage
+	type RewindLanguage,
+	type RewindPremiumAccessKind
 } from "../../../../core/models/rewind.model";
 import { ToastService } from "../../../../core/services/toast";
 import {
@@ -45,14 +46,14 @@ function recap(overrides: Partial<RewindAiRecapData> = {}): RewindAiRecapData {
 async function renderRecap(
 	data: RewindAiRecapData = recap(),
 	language: RewindLanguage = "en",
-	source: "role" | "full-grant" | "feature-grant" = "role"
+	premiumAccessKind: RewindPremiumAccessKind | null = "premium"
 ) {
 	return render(RewindAiRecap, {
 		inputs: {
 			recap: data,
 			year: 2026,
 			language,
-			premiumAccess: { allowed: true, source, expiresAt: null }
+			premiumAccessKind
 		},
 		providers: [{ provide: ToastService, useValue: { premium: vi.fn() } }]
 	});
@@ -122,21 +123,27 @@ describe("RewindAiRecap", () => {
 		expect(section.className).toContain("border-premium");
 	});
 
-	it.each(["role", "full-grant"] as const)(
-		"keeps the Premium label for access from %s",
-		async source => {
-			await renderRecap(recap(), "en", source);
+	it("labels a recap generated with a gift as Gift", async () => {
+		await renderRecap(recap(), "en", "gift");
 
-			expect(screen.getByLabelText("Premium")).toBeInTheDocument();
-			expect(screen.queryByLabelText("Launch gift")).toBeNull();
-		}
-	);
-
-	it("labels a feature-specific Rewind grant as Launch gift", async () => {
-		await renderRecap(recap(), "en", "feature-grant");
-
-		expect(screen.getByLabelText("Launch gift")).toBeInTheDocument();
+		expect(screen.getByLabelText("Gift")).toBeInTheDocument();
 		expect(screen.queryByLabelText("Premium")).toBeNull();
+	});
+
+	it("labels a Spanish recap generated with a gift as Regalo", async () => {
+		await renderRecap(recap(), "es", "gift");
+
+		expect(screen.getByLabelText("Regalo")).toBeInTheDocument();
+		expect(screen.queryByLabelText("Premium")).toBeNull();
+	});
+
+	it("shows no badge when the Rewind does not say how its premium part was generated", async () => {
+		await renderRecap(recap(), "en", null);
+
+		const section = screen.getByRole("region", { name: "AI recap" });
+		expect(within(section).queryByLabelText("Premium")).toBeNull();
+		expect(within(section).queryByLabelText("Gift")).toBeNull();
+		expect(within(section).queryByText("workspace_premium")).toBeNull();
 	});
 
 	it("renders HTML and scripts from the AI as plain text", async () => {

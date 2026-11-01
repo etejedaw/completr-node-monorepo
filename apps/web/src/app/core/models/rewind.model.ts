@@ -6,6 +6,10 @@ export interface RewindPremiumAccess {
 	expiresAt: string | null;
 }
 
+export const REWIND_PREMIUM_ACCESS_KINDS = ["premium", "gift"] as const;
+export type RewindPremiumAccessKind =
+	(typeof REWIND_PREMIUM_ACCESS_KINDS)[number];
+
 export interface RewindGameRef {
 	gameId: string;
 	code: string;
@@ -32,7 +36,7 @@ export interface RewindYearSummary {
 export interface RewindYears {
 	spotlightYear: number | null;
 	years: RewindYearSummary[];
-	premiumAccess: RewindPremiumAccess;
+	premiumAccess: RewindPremiumAccess | null;
 }
 
 export interface RewindTotals {
@@ -155,8 +159,9 @@ export interface Rewind {
 	generatedAt: string;
 	aiRecap: RewindAiRecap | null;
 	premiumStats: RewindPremiumStats | null;
+	premiumAccessKind: RewindPremiumAccessKind | null;
 	ownerControls: RewindOwnerControls | null;
-	premiumAccess: RewindPremiumAccess;
+	premiumAccess: RewindPremiumAccess | null;
 }
 
 export const REWIND_LANGUAGES = ["en", "es"] as const;

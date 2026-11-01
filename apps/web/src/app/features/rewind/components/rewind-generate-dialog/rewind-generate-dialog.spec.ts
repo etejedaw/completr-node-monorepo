@@ -73,6 +73,7 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 		generatedAt: "2026-12-02T10:00:00.000Z",
 		aiRecap: null,
 		premiumStats: null,
+		premiumAccessKind: null,
 		ownerControls: {
 			includesPrivateRuns: false,
 			includesNotes: false,

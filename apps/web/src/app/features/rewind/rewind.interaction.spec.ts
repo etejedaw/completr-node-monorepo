@@ -129,6 +129,7 @@ function rewindFor(year: number, otherYears: number[]): Rewind {
 		generatedAt: `${year}-12-02T10:00:00.000Z`,
 		aiRecap: null,
 		premiumStats: null,
+		premiumAccessKind: null,
 		ownerControls: null,
 		premiumAccess: { allowed: true, source: "role", expiresAt: null }
 	};
@@ -832,6 +833,39 @@ describe("Rewind interaction", () => {
 				"rewind-year-mix-heading",
 				"rewind-premium-stats-heading"
 			]);
+		});
+
+		it("labels both premium sections as Gift for a visitor even without the owner's access", async () => {
+			rewindOverrides.set(2026, {
+				aiRecap: AI_RECAP,
+				premiumStats: PREMIUM_STATS,
+				premiumAccessKind: "gift",
+				premiumAccess: null,
+				ownerControls: null
+			});
+			await renderRewind();
+
+			const recap = screen.getByRole("region", { name: "AI recap" });
+			const stats = screen.getByRole("region", { name: "Premium stats" });
+			expect(within(recap).getByLabelText("Gift")).toBeInTheDocument();
+			expect(within(stats).getByLabelText("Gift")).toBeInTheDocument();
+			expect(within(recap).queryByLabelText("Premium")).toBeNull();
+		});
+
+		it("leaves the premium sections without a badge when the Rewind has no access kind", async () => {
+			rewindOverrides.set(2026, {
+				aiRecap: AI_RECAP,
+				premiumStats: PREMIUM_STATS,
+				premiumAccessKind: null
+			});
+			await renderRewind();
+
+			const recap = screen.getByRole("region", { name: "AI recap" });
+			expect(within(recap).queryByText("workspace_premium")).toBeNull();
+			expect(
+				within(screen.getByRole("region", { name: "Premium stats" }))
+					.queryByText("workspace_premium")
+			).toBeNull();
 		});
 
 		it("shows the free year mix right after the highlights without premium stats", async () => {

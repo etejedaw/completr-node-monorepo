@@ -168,7 +168,7 @@
 			[recap]="recap"
 			[year]="data.year"
 			[language]="data.language"
-			[premiumAccess]="data.premiumAccess"
+			[premiumAccessKind]="data.premiumAccessKind"
 		/>
 		} @if (hasHighlights()) {
 		<section
@@ -195,7 +195,7 @@
 			class="min-w-0 lg:[grid-area:stats]"
 			[stats]="stats"
 			[language]="data.language"
-			[premiumAccess]="data.premiumAccess"
+			[premiumAccessKind]="data.premiumAccessKind"
 		/>
 		} @if (data.finishedGames.length > 0) {
 		<section
