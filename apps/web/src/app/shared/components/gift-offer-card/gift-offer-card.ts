@@ -1,86 +1,108 @@
 import { DatePipe } from "@angular/common";
+import { type HttpErrorResponse } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
+	DestroyRef,
+	effect,
 	inject,
 	input,
-	type OnInit,
 	output,
 	signal
 } from "@angular/core";
-import { catchError, map, of, switchMap } from "rxjs";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import {
+	catchError,
+	map,
+	of,
+	Subject,
+	type Subscription,
+	switchMap
+} from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
-import { UiAlert, UiButton, UiSkeleton } from "../../ui";
-import { type GiftOffer } from "./gift-offer-card.model";
+import { UiButton } from "../../ui";
+import { type GiftOffer, type GiftOfferFeature } from "./gift-offer-card.model";
+import { GIFT_OFFER_COPY } from "./gift-offer-copy";
+import { giftOfferEndsAt, selectGiftOffer } from "./gift-offer-selection";
 import { GiftOffersService } from "./gift-offers.service";
 
-const OFFER_COPY: Record<string, { title: string; description: string }> = {
-	"json-export-trial-1m": {
-		title: "Try JSON export for 1 month",
-		description:
-			"Download a complete, portable copy of this collection as JSON."
-	},
-	"premium-trial-1m": {
-		title: "Try Premium for 1 month",
-		description:
-			"Explore every Premium feature with no change to your account role."
-	}
-};
+const LONGEST_TIMER_MS = 2_147_483_647;
+const STATUSES_THAT_RELOAD_AFTER_CLAIM_ERROR = new Set([404, 409, 410]);
+
+let nextGiftOfferCardId = 0;
 
 @Component({
 	selector: "app-gift-offer-card",
-	imports: [DatePipe, UiAlert, UiButton, UiSkeleton],
+	imports: [DatePipe, UiButton],
 	templateUrl: "./gift-offer-card.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class GiftOfferCard implements OnInit {
-	readonly offerCode = input.required<string>();
+export class GiftOfferCard {
+	readonly feature = input.required<GiftOfferFeature>();
 	readonly variant = input<"card" | "compact">("card");
 	readonly claimed = output<GiftOffer>();
+	readonly expired = output<GiftOffer>();
 
 	private readonly giftOffersService = inject(GiftOffersService);
 	private readonly auth = inject(AuthService);
+	private readonly destroyRef = inject(DestroyRef);
+	private readonly reloadRequests = new Subject<void>();
+	private claimSubscription: Subscription | null = null;
 
-	protected readonly offer = signal<GiftOffer | null>(null);
-	protected readonly isLoading = signal(true);
+	private readonly offers = signal<readonly GiftOffer[]>([]);
+	private readonly now = signal(Date.now());
 	protected readonly isClaiming = signal(false);
-	protected readonly loadError = signal(false);
 	protected readonly claimError = signal("");
+	protected readonly titleId = `gift-offer-title-${nextGiftOfferCardId++}`;
+	protected readonly dateFormat = "MMM d, y, h:mm a";
 
-	ngOnInit() {
-		this.load();
-	}
+	protected readonly offer = computed(() =>
+		selectGiftOffer(this.offers(), this.feature(), this.now())
+	);
+	protected readonly copy = computed(() => GIFT_OFFER_COPY[this.feature()]);
 
-	protected load() {
-		this.isLoading.set(true);
-		this.loadError.set(false);
-		this.giftOffersService.listOffers().subscribe({
-			next: offers => {
-				this.offer.set(
-					offers.find(offer => offer.code === this.offerCode()) ??
-						null
-				);
-				this.isLoading.set(false);
-			},
-			error: () => {
-				this.loadError.set(true);
-				this.isLoading.set(false);
-			}
+	constructor() {
+		this.reloadRequests
+			.pipe(
+				switchMap(() =>
+					this.giftOffersService
+						.listOffers()
+						.pipe(catchError(() => of<GiftOffer[]>([])))
+				),
+				takeUntilDestroyed()
+			)
+			.subscribe(offers => {
+				this.now.set(Date.now());
+				this.offers.set(offers);
+			});
+		this.reload();
+		effect(onCleanup => {
+			const offer = this.offer();
+			if (!offer) return;
+			const remaining = giftOfferEndsAt(offer) - Date.now();
+			if (remaining > LONGEST_TIMER_MS) return;
+			const timer = setTimeout(
+				() => this.reachEnd(offer),
+				Math.max(remaining, 0)
+			);
+			onCleanup(() => clearTimeout(timer));
 		});
+		this.destroyRef.onDestroy(() => this.claimSubscription?.unsubscribe());
 	}
 
 	protected claim() {
 		const offer = this.offer();
-		if (!offer?.canActivate || this.isClaiming()) return;
+		if (!offer?.canActivate || offer.status !== "available") return;
+		if (this.isClaiming()) return;
 		this.isClaiming.set(true);
 		this.claimError.set("");
-		this.giftOffersService
+		this.claimSubscription = this.giftOffersService
 			.claimOffer(offer.code)
 			.pipe(
 				switchMap(result =>
-					result.offer.status === "active" &&
-					result.offer.feature === "*"
+					result.offer.status === "active"
 						? this.auth.loadUser().pipe(
 								map(() => result),
 								catchError(() => of(result))
@@ -92,31 +114,51 @@ export class GiftOfferCard implements OnInit {
 				next: ({ offer: claimedOffer }) => {
 					this.isClaiming.set(false);
 					if (claimedOffer.status !== "active") {
-						this.load();
+						this.reload();
 						return;
 					}
-					this.offer.set(claimedOffer);
+					this.replaceOffer(claimedOffer);
 					this.claimed.emit(claimedOffer);
 				},
-				error: error => {
+				error: (error: HttpErrorResponse) => {
+					this.isClaiming.set(false);
 					this.claimError.set(
 						error.error?.title ??
-							"Could not activate the trial. Try again."
+							"Could not activate the gift. Try again."
 					);
-					this.isClaiming.set(false);
+					if (
+						STATUSES_THAT_RELOAD_AFTER_CLAIM_ERROR.has(error.status)
+					)
+						this.reload();
 				}
 			});
 	}
 
-	protected copy() {
-		const durationDays = this.offer()?.durationDays;
-		return (
-			OFFER_COPY[this.offerCode()] ?? {
-				title: durationDays
-					? `Try this Premium feature for ${durationDays} days`
-					: "Claim your Premium gift",
-				description: "Activate a limited-time Premium feature trial."
-			}
-		);
+	protected activeUntil(offer: GiftOffer): string {
+		return offer.expiresAt ?? offer.availableUntil;
+	}
+
+	private reachEnd(offer: GiftOffer) {
+		this.now.set(Date.now());
+		if (offer.status !== "active") return;
+		this.auth
+			.loadUser()
+			.pipe(
+				catchError(() => of(null)),
+				takeUntilDestroyed(this.destroyRef)
+			)
+			.subscribe(() => this.expired.emit(offer));
+	}
+
+	private reload() {
+		this.reloadRequests.next();
+	}
+
+	private replaceOffer(claimedOffer: GiftOffer) {
+		this.now.set(Date.now());
+		this.offers.update(offers => [
+			claimedOffer,
+			...offers.filter(offer => offer.code !== claimedOffer.code)
+		]);
 	}
 }

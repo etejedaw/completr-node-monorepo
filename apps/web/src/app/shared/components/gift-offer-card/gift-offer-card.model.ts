@@ -1,12 +1,15 @@
+import { type PremiumFeature } from "../../../core/models";
+
 export type GiftOfferStatus =
 	"available" | "active" | "used" | "expired" | "not-eligible";
 
+export type GiftOfferFeature = PremiumFeature | "*";
+
 export interface GiftOffer {
 	code: string;
-	feature: string;
-	durationDays: number | null;
-	availableFrom: string | null;
-	availableUntil: string | null;
+	feature: GiftOfferFeature;
+	availableFrom: string;
+	availableUntil: string;
 	status: GiftOfferStatus;
 	expiresAt: string | null;
 	canActivate: boolean;
@@ -16,4 +19,10 @@ export interface GiftOffer {
 export interface GiftOfferClaim {
 	offer: GiftOffer;
 	created: boolean;
+}
+
+export interface GiftOfferCopy {
+	title: string;
+	shortTitle: string;
+	description: string;
 }
