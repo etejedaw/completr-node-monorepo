@@ -13,6 +13,8 @@ export function premiumAccessServiceToDomainMapper(
 		return premiumAccessDomainError.premiumPromotionNotFound(context);
 	if (error.code === "PREMIUM_PROMOTION_INVALID_DATES")
 		return premiumAccessDomainError.premiumPromotionInvalidDates(context);
+	if (error.code === "PREMIUM_PROMOTION_ENDED")
+		return premiumAccessDomainError.premiumPromotionEnded(context);
 	if (error.code === "PREMIUM_PROMOTION_CODE_CONFLICT")
 		return premiumAccessDomainError.premiumPromotionCodeConflict(context);
 	return premiumAccessDomainError.premiumAccessInternalError(context);

@@ -25,17 +25,17 @@ export async function postPremiumPromotion(
 ) {
 	const dto = request.locals.body as CreatePremiumPromotionDto;
 	const admin = request.locals.user as RequestUser;
-	const promotion =
+	const result =
 		await premiumPromotionsAdminService.createPremiumPromotion(dto);
 	auditService.record(
 		admin.id,
 		"premium_promotion_created",
 		"premium_promotion",
-		promotion.id
+		result.promotion.id
 	);
 	return response
 		.status(201)
-		.json({ data: { promotion: premiumPromotionSerializer(promotion) } });
+		.json({ data: { promotion: premiumPromotionSerializer(result) } });
 }
 
 export async function patchPremiumPromotion(
@@ -45,20 +45,19 @@ export async function patchPremiumPromotion(
 	const { promotionId } = request.locals.params as PremiumPromotionParams;
 	const dto = request.locals.body as UpdatePremiumPromotionDto;
 	const admin = request.locals.user as RequestUser;
-	const promotion =
-		await premiumPromotionsAdminService.updatePremiumPromotion(
-			promotionId,
-			dto
-		);
+	const result = await premiumPromotionsAdminService.updatePremiumPromotion(
+		promotionId,
+		dto
+	);
 	auditService.record(
 		admin.id,
 		"premium_promotion_updated",
 		"premium_promotion",
-		promotion.id
+		result.promotion.id
 	);
 	return response
 		.status(200)
-		.json({ data: { promotion: premiumPromotionSerializer(promotion) } });
+		.json({ data: { promotion: premiumPromotionSerializer(result) } });
 }
 
 export async function postRevokePremiumPromotion(
@@ -67,15 +66,15 @@ export async function postRevokePremiumPromotion(
 ) {
 	const { promotionId } = request.locals.params as PremiumPromotionParams;
 	const admin = request.locals.user as RequestUser;
-	const promotion =
+	const result =
 		await premiumPromotionsAdminService.revokePremiumPromotion(promotionId);
 	auditService.record(
 		admin.id,
 		"premium_promotion_revoked",
 		"premium_promotion",
-		promotion.id
+		result.promotion.id
 	);
 	return response
 		.status(200)
-		.json({ data: { promotion: premiumPromotionSerializer(promotion) } });
+		.json({ data: { promotion: premiumPromotionSerializer(result) } });
 }

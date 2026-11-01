@@ -22,6 +22,15 @@ export function premiumPromotionInvalidDates(
 	);
 }
 
+export function premiumPromotionEnded(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"PREMIUM_PROMOTION_ENDED",
+		"An ended promotion cannot be edited",
+		context
+	);
+}
+
 export function premiumPromotionCodeConflict(
 	context?: Record<string, unknown>
 ) {

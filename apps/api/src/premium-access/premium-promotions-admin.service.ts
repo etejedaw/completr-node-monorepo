@@ -1,34 +1,48 @@
-import { type Transaction } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { sequelize } from "../database/sequelize.database";
 import { type CreatePremiumPromotionDto } from "./dtos/create-premium-promotion.dto";
 import { type UpdatePremiumPromotionDto } from "./dtos/update-premium-promotion.dto";
 import * as premiumAccessServiceError from "./errors/premium-access.service-error";
+import { GIFT_OFFERS } from "./gift-offers.constants";
+import { type PremiumPromotionWithClaims } from "./premium-access.interface";
 import { PremiumGrant } from "./premium-grant.model";
 import { PremiumPromotion } from "./premium-promotion.model";
 
-export async function findPremiumPromotions() {
-	return PremiumPromotion.findAll({
+export async function findPremiumPromotions(): Promise<
+	PremiumPromotionWithClaims[]
+> {
+	const promotions = await PremiumPromotion.findAll({
 		order: [
 			["createdAt", "DESC"],
 			["id", "DESC"]
 		]
 	});
+	const claimCounts = await countClaimsByCode(
+		promotions.map(promotion => promotion.code)
+	);
+	return promotions.map(promotion => ({
+		promotion,
+		claimCount: claimCounts.get(promotion.code) ?? 0
+	}));
 }
 
 export async function createPremiumPromotion(
 	dto: CreatePremiumPromotionDto,
 	now = new Date()
-) {
+): Promise<PremiumPromotionWithClaims> {
 	const period = resolvePeriod(dto.startsAt, dto.endsAt, now);
+	if (GIFT_OFFERS.some(offer => offer.code === dto.code))
+		throw premiumAccessServiceError.premiumPromotionCodeConflict();
 	try {
-		return await PremiumPromotion.create({
+		const promotion = await PremiumPromotion.create({
 			code: dto.code,
 			feature: dto.feature,
 			startsAt: period.startsAt,
 			endsAt: period.endsAt
 		});
+		return { promotion, claimCount: 0 };
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: premiumAccessServiceError.premiumPromotionCodeConflict,
@@ -41,10 +55,12 @@ export async function updatePremiumPromotion(
 	promotionId: string,
 	dto: UpdatePremiumPromotionDto,
 	now = new Date()
-) {
+): Promise<PremiumPromotionWithClaims> {
 	return sequelize.transaction(async transaction => {
 		try {
 			const promotion = await requirePromotion(promotionId, transaction);
+			if (promotion.endsAt <= now)
+				throw premiumAccessServiceError.premiumPromotionEnded();
 			const period = resolvePeriod(
 				dto.startsAt ?? promotion.startsAt,
 				dto.endsAt ?? promotion.endsAt,
@@ -54,11 +70,14 @@ export async function updatePremiumPromotion(
 			await PremiumGrant.update(
 				{ expiresAt: period.endsAt },
 				{
-					where: { offerCode: promotion.code },
+					where: {
+						offerCode: promotion.code,
+						...grantsActiveAfter(now)
+					},
 					transaction
 				}
 			);
-			return promotion;
+			return withClaimCount(promotion, transaction);
 		} catch (error) {
 			rethrowSequelizeError(error, {
 				validation:
@@ -71,21 +90,31 @@ export async function updatePremiumPromotion(
 export async function revokePremiumPromotion(
 	promotionId: string,
 	now = new Date()
-) {
+): Promise<PremiumPromotionWithClaims> {
 	return sequelize.transaction(async transaction => {
 		const promotion = await requirePromotion(promotionId, transaction);
+		const revokedAt = promotion.endsAt < now ? promotion.endsAt : now;
 		await promotion.update(
 			{
-				startsAt: promotion.startsAt > now ? now : promotion.startsAt,
-				endsAt: now
+				startsAt:
+					promotion.startsAt > revokedAt
+						? revokedAt
+						: promotion.startsAt,
+				endsAt: revokedAt
 			},
 			{ transaction }
 		);
 		await PremiumGrant.update(
-			{ expiresAt: now },
-			{ where: { offerCode: promotion.code }, transaction }
+			{ expiresAt: revokedAt },
+			{
+				where: {
+					offerCode: promotion.code,
+					...grantsActiveAfter(revokedAt)
+				},
+				transaction
+			}
 		);
-		return promotion;
+		return withClaimCount(promotion, transaction);
 	});
 }
 
@@ -96,6 +125,38 @@ async function requirePromotion(promotionId: string, transaction: Transaction) {
 	});
 	if (!promotion) throw premiumAccessServiceError.premiumPromotionNotFound();
 	return promotion;
+}
+
+function grantsActiveAfter(instant: Date) {
+	return {
+		[Op.or]: [{ expiresAt: null }, { expiresAt: { [Op.gt]: instant } }]
+	};
+}
+
+async function withClaimCount(
+	promotion: PremiumPromotion,
+	transaction: Transaction
+) {
+	const claimCounts = await countClaimsByCode([promotion.code], transaction);
+	return { promotion, claimCount: claimCounts.get(promotion.code) ?? 0 };
+}
+
+async function countClaimsByCode(codes: string[], transaction?: Transaction) {
+	if (codes.length === 0) return new Map<string, number>();
+	const rows = (await PremiumGrant.findAll({
+		attributes: [
+			"offerCode",
+			[sequelize.fn("COUNT", sequelize.col("id")), "count"]
+		],
+		where: {
+			offerCode: { [Op.in]: codes },
+			userId: { [Op.not]: null }
+		},
+		group: ["offerCode"],
+		raw: true,
+		transaction
+	})) as unknown as { offerCode: string; count: string }[];
+	return new Map(rows.map(row => [row.offerCode, Number(row.count)]));
 }
 
 function resolvePeriod(

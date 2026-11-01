@@ -16,6 +16,13 @@ export function premiumPromotionInvalidDates(raw?: unknown) {
 	});
 }
 
+export function premiumPromotionEnded() {
+	return new ServiceError("PREMIUM_PROMOTION_ENDED", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
+
 export function premiumPromotionCodeConflict(raw?: unknown) {
 	return new ServiceError("PREMIUM_PROMOTION_CODE_CONFLICT", {
 		...BASE_OPTIONS,

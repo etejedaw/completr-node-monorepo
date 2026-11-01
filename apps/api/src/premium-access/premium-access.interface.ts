@@ -1,5 +1,6 @@
 import { type PremiumFeature } from "./premium-access.constants";
 import { type PremiumAccessSource } from "./premium-access.types";
+import { type PremiumPromotion } from "./premium-promotion.model";
 
 export interface PremiumAccessUser {
 	id: string;
@@ -22,4 +23,9 @@ export interface PremiumFeatureDefinition {
 	feature: PremiumFeature;
 	allowsExpiration: boolean;
 	allowsGlobalGrant: boolean;
+}
+
+export interface PremiumPromotionWithClaims {
+	promotion: PremiumPromotion;
+	claimCount: number;
 }

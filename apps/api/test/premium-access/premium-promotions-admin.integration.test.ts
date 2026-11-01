@@ -54,6 +54,7 @@ void describe("premium promotion administration", () => {
 		assert.equal(created.body.data.promotion.feature, body.feature);
 		assert.equal(created.body.data.promotion.startsAt, body.startsAt);
 		assert.equal(created.body.data.promotion.endsAt, body.endsAt);
+		assert.equal(created.body.data.promotion.claimCount, 0);
 		assert.equal(await PremiumGrant.count(), 0);
 
 		const listed = await api()
@@ -140,6 +141,69 @@ void describe("premium promotion administration", () => {
 		assert.equal(await PremiumPromotion.count(), 1);
 	});
 
+	void it("rejects codes reserved by static gift offers", async () => {
+		const admin = await createUserWithSession("admin");
+
+		const responses = await Promise.all(
+			["premium-trial-1m", "json-export-trial-1m"].map(code =>
+				api()
+					.post("/admin/premium-promotions")
+					.set("Authorization", admin.authorization)
+					.send(promotionBody(code))
+			)
+		);
+
+		for (const response of responses) {
+			assert.equal(response.status, 409);
+			assert.equal(response.body.type, "PREMIUM_PROMOTION_CODE_CONFLICT");
+		}
+		assert.equal(await PremiumPromotion.count(), 0);
+	});
+
+	void it("lists how many users claimed each promotion", async () => {
+		const admin = await createUserWithSession("admin");
+		const [firstUser, secondUser] = await Promise.all([
+			createUser(),
+			createUser()
+		]);
+		const body = promotionBody();
+		const claimed = await PremiumPromotion.create({
+			...body,
+			startsAt: new Date(body.startsAt),
+			endsAt: new Date(body.endsAt)
+		});
+		const unclaimed = await PremiumPromotion.create({
+			...promotionBody("lists-unlimited-2026"),
+			feature: "lists.unlimited",
+			startsAt: new Date(body.startsAt),
+			endsAt: new Date(body.endsAt)
+		});
+		await PremiumGrant.bulkCreate(
+			[firstUser, secondUser].map(user => ({
+				userId: user.id,
+				feature: claimed.feature,
+				expiresAt: claimed.endsAt,
+				offerCode: claimed.code
+			}))
+		);
+
+		const listed = await api()
+			.get("/admin/premium-promotions")
+			.set("Authorization", admin.authorization);
+
+		assert.equal(listed.status, 200);
+		const claimCountById = new Map(
+			listed.body.data.promotions.map(
+				(promotion: { id: string; claimCount: number }) => [
+					promotion.id,
+					promotion.claimCount
+				]
+			)
+		);
+		assert.equal(claimCountById.get(claimed.id), 2);
+		assert.equal(claimCountById.get(unclaimed.id), 0);
+	});
+
 	void it("updates dates and synchronizes claimed grants in the same operation", async () => {
 		const admin = await createUserWithSession("admin");
 		const user = await createUser();
@@ -173,6 +237,79 @@ void describe("premium promotion administration", () => {
 				.userId,
 			admin.user.id
 		);
+	});
+
+	void it("keeps individually revoked grants revoked when the promotion is extended", async () => {
+		const admin = await createUserWithSession("admin");
+		const [activeUser, revokedUser] = await Promise.all([
+			createUser(),
+			createUser()
+		]);
+		const body = promotionBody();
+		const promotion = await PremiumPromotion.create({
+			...body,
+			startsAt: new Date(body.startsAt),
+			endsAt: new Date(body.endsAt)
+		});
+		const activeGrant = await PremiumGrant.create({
+			userId: activeUser.id,
+			feature: promotion.feature,
+			expiresAt: promotion.endsAt,
+			offerCode: promotion.code
+		});
+		const revokedAt = new Date(futureDate(-0.5));
+		const revokedGrant = await PremiumGrant.create({
+			userId: revokedUser.id,
+			feature: promotion.feature,
+			expiresAt: revokedAt,
+			offerCode: promotion.code
+		});
+		const endsAt = futureDate(90);
+
+		const response = await api()
+			.patch(`/admin/premium-promotions/${promotion.id}`)
+			.set("Authorization", admin.authorization)
+			.send({ endsAt });
+
+		assert.equal(response.status, 200);
+		assert.equal(response.body.data.promotion.claimCount, 2);
+		await Promise.all([activeGrant.reload(), revokedGrant.reload()]);
+		assert.equal(activeGrant.expiresAt?.toISOString(), endsAt);
+		assert.equal(
+			revokedGrant.expiresAt?.toISOString(),
+			revokedAt.toISOString()
+		);
+	});
+
+	void it("refuses to edit an ended promotion and leaves its grants untouched", async () => {
+		const admin = await createUserWithSession("admin");
+		const user = await createUser();
+		const promotion = await PremiumPromotion.create({
+			code: "rewind-ended-2026",
+			feature: "rewind.premium",
+			startsAt: new Date(futureDate(-30)),
+			endsAt: new Date(futureDate(-1))
+		});
+		const grant = await PremiumGrant.create({
+			userId: user.id,
+			feature: promotion.feature,
+			expiresAt: promotion.endsAt,
+			offerCode: promotion.code
+		});
+
+		const response = await api()
+			.patch(`/admin/premium-promotions/${promotion.id}`)
+			.set("Authorization", admin.authorization)
+			.send({ endsAt: futureDate(30) });
+
+		assert.equal(response.status, 409);
+		assert.equal(response.body.type, "PREMIUM_PROMOTION_ENDED");
+		await Promise.all([promotion.reload(), grant.reload()]);
+		assert.equal(
+			promotion.endsAt.toISOString(),
+			new Date(grant.expiresAt ?? 0).toISOString()
+		);
+		assert.ok(promotion.endsAt.getTime() < Date.now());
 	});
 
 	void it("returns not found when updating or revoking an unknown promotion", async () => {
@@ -260,5 +397,45 @@ void describe("premium promotion administration", () => {
 		);
 		assert.equal(second.status, 200);
 		assert.equal(second.body.data.promotion.id, promotion.id);
+		assert.equal(
+			second.body.data.promotion.endsAt,
+			first.body.data.promotion.endsAt
+		);
+	});
+
+	void it("keeps the original end of an ended promotion when revoked again", async () => {
+		const admin = await createUserWithSession("admin");
+		const user = await createUser();
+		const endedAt = new Date(futureDate(-5));
+		const promotion = await PremiumPromotion.create({
+			code: "lists-october-2026",
+			feature: "lists.unlimited",
+			startsAt: new Date(futureDate(-35)),
+			endsAt: endedAt
+		});
+		const grant = await PremiumGrant.create({
+			userId: user.id,
+			feature: promotion.feature,
+			expiresAt: endedAt,
+			offerCode: promotion.code
+		});
+
+		const responses = await Promise.all(
+			[1, 2].map(() =>
+				api()
+					.post(`/admin/premium-promotions/${promotion.id}/revoke`)
+					.set("Authorization", admin.authorization)
+			)
+		);
+
+		for (const response of responses) {
+			assert.equal(response.status, 200);
+			assert.equal(
+				response.body.data.promotion.endsAt,
+				endedAt.toISOString()
+			);
+		}
+		await grant.reload();
+		assert.equal(grant.expiresAt?.toISOString(), endedAt.toISOString());
 	});
 });
