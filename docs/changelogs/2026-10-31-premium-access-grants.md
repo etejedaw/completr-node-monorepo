@@ -23,7 +23,7 @@ El acceso premium deja de depender exclusivamente de `User.role`. El módulo nue
 - `AdminPremiumAccess` y `PremiumAccessAdminService`, con formularios de concesión y extensión, revocación confirmada y protección contra doble clic, cierre durante peticiones y respuestas fuera de orden.
 - `GiftOfferCard` y `GiftOffersService`, con estados de carga, activación, error y reintento; una prueba completa refresca `AuthService.loadUser()` antes de emitir el resultado.
 - `premiumAccess` en `/users/me` y en las respuestas de Rewind; `hasPremium` en perfiles, tarjetas, feed, reviews, actividad social y solicitudes de seguimiento.
-- Distintivo `Launch gift` para el regalo específico de Rewind y `Premium` para acceso por rol o concesión completa.
+- Distintivo `Gift` para el contenido premium del Rewind generado con un regalo específico y `Premium` para el generado con acceso por rol o concesión completa.
 - Colección OpenCollection `docs/api/premium-access/` y documentación de las respuestas modificadas.
 
 ## Changed
