@@ -5,7 +5,6 @@ import { sequelize } from "../database/sequelize.database";
 import { type CreatePremiumPromotionDto } from "./dtos/create-premium-promotion.dto";
 import { type UpdatePremiumPromotionDto } from "./dtos/update-premium-promotion.dto";
 import * as premiumAccessServiceError from "./errors/premium-access.service-error";
-import { GIFT_OFFERS } from "./gift-offers.constants";
 import { type PremiumPromotionWithClaims } from "./premium-access.interface";
 import { PremiumGrant } from "./premium-grant.model";
 import { PremiumPromotion } from "./premium-promotion.model";
@@ -33,8 +32,6 @@ export async function createPremiumPromotion(
 	now = new Date()
 ): Promise<PremiumPromotionWithClaims> {
 	const period = resolvePeriod(dto.startsAt, dto.endsAt, now);
-	if (GIFT_OFFERS.some(offer => offer.code === dto.code))
-		throw premiumAccessServiceError.premiumPromotionCodeConflict();
 	try {
 		const promotion = await PremiumPromotion.create({
 			code: dto.code,

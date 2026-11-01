@@ -2,7 +2,6 @@ import { Op, type Transaction, UniqueConstraintError } from "sequelize";
 
 import { sequelize } from "../database/sequelize.database";
 import * as premiumAccessDomainError from "./errors/premium-access.domain-error";
-import { GIFT_OFFERS, type GiftOfferDefinition } from "./gift-offers.constants";
 import {
 	type GiftOfferView,
 	type NormalizedGiftOffer
@@ -11,8 +10,6 @@ import { type PremiumAccessUser } from "./premium-access.interface";
 import { resolvePremiumAccess } from "./premium-access.service";
 import { PremiumGrant } from "./premium-grant.model";
 import { PremiumPromotion } from "./premium-promotion.model";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 export async function listGiftOffers(
 	user: PremiumAccessUser,
@@ -34,10 +31,7 @@ export async function listGiftOffers(
 			["code", "ASC"]
 		]
 	});
-	const offers = [
-		...GIFT_OFFERS.map(normalizeStaticOffer),
-		...promotions.map(normalizePromotion)
-	];
+	const offers = promotions.map(normalizePromotion);
 	return Promise.all(
 		offers.map(async offer => {
 			const access = await resolvePremiumAccess(user, offer.feature, now);
@@ -97,7 +91,7 @@ export async function claimGiftOffer(
 				{
 					userId: user.id,
 					feature: lockedOffer.feature,
-					expiresAt: resolveGrantExpiration(lockedOffer, claimedAt),
+					expiresAt: lockedOffer.availableUntil,
 					offerCode: lockedOffer.code
 				},
 				{ transaction }
@@ -122,8 +116,6 @@ export async function claimGiftOffer(
 async function findOffer(
 	offerCode: string
 ): Promise<NormalizedGiftOffer | undefined> {
-	const staticOffer = GIFT_OFFERS.find(offer => offer.code === offerCode);
-	if (staticOffer) return normalizeStaticOffer(staticOffer);
 	const promotion = await PremiumPromotion.findOne({
 		where: { code: offerCode }
 	});
@@ -134,7 +126,6 @@ async function lockOffer(
 	offer: NormalizedGiftOffer,
 	transaction: Transaction
 ): Promise<NormalizedGiftOffer> {
-	if (offer.expiration.kind === "relative") return offer;
 	const promotion = await PremiumPromotion.findOne({
 		where: { code: offer.code },
 		transaction,
@@ -158,34 +149,13 @@ async function respondWithOffer(
 	};
 }
 
-function normalizeStaticOffer(offer: GiftOfferDefinition): NormalizedGiftOffer {
-	return {
-		code: offer.code,
-		feature: offer.feature,
-		expiration: { kind: "relative", durationMs: offer.durationMs },
-		availableFrom: offer.availableFrom
-			? new Date(offer.availableFrom)
-			: null,
-		availableUntil: offer.availableUntil
-			? new Date(offer.availableUntil)
-			: null
-	};
-}
-
 function normalizePromotion(promotion: PremiumPromotion): NormalizedGiftOffer {
 	return {
 		code: promotion.code,
 		feature: promotion.feature,
-		expiration: { kind: "fixed", endsAt: promotion.endsAt },
 		availableFrom: promotion.startsAt,
 		availableUntil: promotion.endsAt
 	};
-}
-
-function resolveGrantExpiration(offer: NormalizedGiftOffer, now: Date) {
-	return offer.expiration.kind === "fixed"
-		? offer.expiration.endsAt
-		: new Date(now.getTime() + offer.expiration.durationMs);
 }
 
 function serializeGiftOffer(
@@ -208,12 +178,8 @@ function serializeGiftOffer(
 	return {
 		code: offer.code,
 		feature: offer.feature,
-		durationDays:
-			offer.expiration.kind === "relative"
-				? offer.expiration.durationMs / DAY_MS
-				: null,
-		availableFrom: offer.availableFrom?.toISOString() ?? null,
-		availableUntil: offer.availableUntil?.toISOString() ?? null,
+		availableFrom: offer.availableFrom.toISOString(),
+		availableUntil: offer.availableUntil.toISOString(),
 		status,
 		expiresAt: grant?.expiresAt?.toISOString() ?? null,
 		canActivate: status === "available",
@@ -222,18 +188,11 @@ function serializeGiftOffer(
 }
 
 function isOfferAvailable(offer: NormalizedGiftOffer, now: Date) {
-	return (
-		(!offer.availableFrom || offer.availableFrom <= now) &&
-		(!offer.availableUntil || offer.availableUntil > now)
-	);
+	return offer.availableFrom <= now && offer.availableUntil > now;
 }
 
 function isHiddenScheduledPromotion(offer: NormalizedGiftOffer, now: Date) {
-	return (
-		offer.expiration.kind === "fixed" &&
-		offer.availableFrom !== null &&
-		offer.availableFrom > now
-	);
+	return offer.availableFrom > now;
 }
 
 function findOfferGrant(
