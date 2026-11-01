@@ -51,6 +51,12 @@ const LISTS_GIFT: GiftOffer = {
 	hasAccess: false
 };
 
+const JSON_EXPORT_GIFT: GiftOffer = {
+	...LISTS_GIFT,
+	code: "json-launch",
+	feature: "export.json"
+};
+
 const catalog = [
 	{ id: "g1", code: "hades", title: "Hades", isDlc: false },
 	{ id: "g2", code: "celeste", title: "Celeste", isDlc: false },
@@ -551,6 +557,68 @@ describe("Lists interaction", () => {
 		expect(listUpdates).toEqual([
 			expect.objectContaining({ name: "Metroidvanias", isPublic: false })
 		]);
+	});
+
+	describe("json export gift on the list detail", () => {
+		async function openListMenu(user: ReturnType<typeof userEvent.setup>) {
+			await waitFor(() =>
+				expect(
+					screen.queryByRole("menu", { name: "List actions" })
+				).not.toBeInTheDocument()
+			);
+			await user.click(
+				screen.getByRole("button", { name: "More list actions" })
+			);
+			return screen.findByRole("menu", { name: "List actions" });
+		}
+
+		it("offers the gift next to the list actions and unlocks JSON once activated", async () => {
+			const user = userEvent.setup();
+			giftOffers = [JSON_EXPORT_GIFT];
+			await renderLists();
+			await createListWithGames(user);
+
+			const lockedMenu = await openListMenu(user);
+			expect(
+				within(lockedMenu).getByRole("menuitem", {
+					name: "Download JSON"
+				})
+			).toHaveAccessibleDescription("Premium perk");
+			await user.keyboard("{Escape}");
+
+			await user.dblClick(
+				await screen.findByRole("button", { name: "Activate gift" })
+			);
+			await untilVisible(() =>
+				expect(
+					screen.getByText(/Gift active until/)
+				).toBeInTheDocument()
+			);
+
+			expect(giftClaims).toEqual(["json-launch"]);
+			const unlockedMenu = await openListMenu(user);
+			expect(
+				within(unlockedMenu).getByRole("menuitem", {
+					name: "Download JSON"
+				})
+			).toHaveAccessibleDescription("Full data, for backups");
+		});
+
+		it("does not offer the gift to a premium owner", async () => {
+			const user = userEvent.setup();
+			giftOffers = [JSON_EXPORT_GIFT];
+			currentUser = {
+				...owner,
+				premiumAccess: { active: true, source: "role", expiresAt: null }
+			};
+			await renderLists();
+			await createListWithGames(user);
+			answerPending();
+
+			expect(
+				screen.queryByRole("button", { name: "Activate gift" })
+			).not.toBeInTheDocument();
+		});
 	});
 
 	describe("lists gift", () => {

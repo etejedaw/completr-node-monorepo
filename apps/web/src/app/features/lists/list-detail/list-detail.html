@@ -120,7 +120,15 @@
 			[busy]="listMenuBusy()"
 			(selected)="runListAction($event)"
 		/>
-		} @else if (current.isPublic) {
+		@if (!exporter.isPremium()) {
+		<app-gift-offer-card
+			feature="export.json"
+			variant="compact"
+			class="block min-w-0 max-w-full empty:hidden"
+			(claimed)="exporter.jsonGiftClaimed.set(true)"
+			(expired)="exporter.jsonGiftClaimed.set(false)"
+		/>
+		} } @else if (current.isPublic) {
 		<button
 			uiButton
 			[variant]="current.isFollowing ? 'secondary' : 'primary'"

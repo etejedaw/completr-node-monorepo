@@ -33,6 +33,7 @@ import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
 import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { injectExportDownload } from "../../../shared/components/export-actions/export-download";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { GiftOfferCard } from "../../../shared/components/gift-offer-card/gift-offer-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { ProgressMeter } from "../../../shared/components/progress-meter/progress-meter";
 import {
@@ -73,6 +74,7 @@ const LIST_ACTIONS: ActionMenuItem[] = [
 	selector: "app-list-detail",
 	imports: [
 		ActionMenu,
+		GiftOfferCard,
 		RouterLink,
 		CdkDropList,
 		CdkDrag,
@@ -117,7 +119,7 @@ export class ListDetail implements OnInit {
 	protected readonly isSearching = signal(false);
 	protected readonly isSearchingOnline = signal(false);
 	protected readonly togglingFollow = signal(false);
-	private readonly exporter = injectExportDownload({
+	protected readonly exporter = injectExportDownload({
 		resource: () => ({ listId: this.listId }),
 		label: () => this.list()?.name ?? "list"
 	});
