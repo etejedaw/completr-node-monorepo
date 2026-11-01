@@ -79,6 +79,12 @@
 	Lists are frozen. Delete lists to go below the free limit (5) to create new
 	ones.
 </div>
+} @if (!isPremium()) {
+<app-gift-offer-card
+	feature="lists.unlimited"
+	class="mb-6 block max-w-2xl empty:hidden"
+	(claimed)="onGiftClaimed()"
+/>
 }
 
 <section aria-labelledby="my-lists-heading">
