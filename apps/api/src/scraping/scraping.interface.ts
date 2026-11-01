@@ -1,4 +1,8 @@
-import { type ScrapingFetch, type ScrapingSleep } from "./scraping.types";
+import {
+	type ScrapingFetch,
+	type ScrapingPriority,
+	type ScrapingSleep
+} from "./scraping.types";
 
 export interface ScrapingHttpClientOptions {
 	userAgent: string;
@@ -20,4 +24,9 @@ export interface ScrapingFailureDetail {
 	attempts: number;
 	retryAfterMs?: number;
 	reason?: string;
+}
+
+export interface ScrapingRequestOptions {
+	priority?: ScrapingPriority;
+	signal?: AbortSignal;
 }

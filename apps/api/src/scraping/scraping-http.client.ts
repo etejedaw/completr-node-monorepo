@@ -1,10 +1,15 @@
 import { ScrapingRequestError } from "./errors/scraping-request.error";
 import { SCRAPING_DEFAULTS, SCRAPING_USER_AGENT } from "./scraping.constants";
-import { type ScrapingHttpClientOptions } from "./scraping.interface";
+import {
+	type ScrapingHttpClientOptions,
+	type ScrapingRequestOptions
+} from "./scraping.interface";
 import {
 	type ScrapingAttemptOutcome,
-	type ScrapingFailureKind
+	type ScrapingFailureKind,
+	type ScrapingPriority
 } from "./scraping.types";
+import { interruptibleSleep } from "./utils/interruptible-sleep.util";
 import { isChallengePage } from "./utils/is-challenge-page.util";
 import { parseRetryAfter } from "./utils/parse-retry-after.util";
 
@@ -13,20 +18,38 @@ const REQUEST_HEADERS = {
 	"Accept-Language": "en-US,en;q=0.8"
 };
 
+interface QueuedRequest {
+	url: URL;
+	headers: Record<string, string>;
+	priority: ScrapingPriority;
+	signal?: AbortSignal;
+	sequence: number;
+	attempts: number;
+	notBefore: number;
+	resolve(body: string): void;
+	reject(error: unknown): void;
+}
+
+interface HostQueue {
+	waiting: QueuedRequest[];
+	draining: boolean;
+	wake?: AbortController;
+}
+
 export class ScrapingHttpClient {
 	private static sharedInstance?: ScrapingHttpClient;
 
 	private readonly options: ScrapingHttpClientOptions;
-	private readonly hostQueues = new Map<string, Promise<void>>();
+	private readonly hostQueues = new Map<string, HostQueue>();
 	private readonly nextRequestAt = new Map<string, number>();
+	private nextSequence = 0;
 
 	constructor(options: Partial<ScrapingHttpClientOptions> = {}) {
 		this.options = {
 			userAgent: SCRAPING_USER_AGENT,
 			...SCRAPING_DEFAULTS,
 			fetch: (input, init) => fetch(input, init),
-			sleep: milliseconds =>
-				new Promise(resolve => setTimeout(resolve, milliseconds)),
+			sleep: interruptibleSleep,
 			now: () => Date.now(),
 			random: () => Math.random(),
 			...options
@@ -38,51 +61,147 @@ export class ScrapingHttpClient {
 		return ScrapingHttpClient.sharedInstance;
 	}
 
-	getHtml(url: URL): Promise<string> {
-		return this.getText(url);
+	getHtml(url: URL, options: ScrapingRequestOptions = {}): Promise<string> {
+		return this.getText(url, {}, options);
 	}
 
-	getText(url: URL, headers: Record<string, string> = {}): Promise<string> {
-		const host = url.host;
-		const previous = this.hostQueues.get(host) ?? Promise.resolve();
-		const request = previous.then(() =>
-			this.requestWithRetries(url, { ...REQUEST_HEADERS, ...headers })
-		);
-		const settled = request.then(
-			() => undefined,
-			() => undefined
-		);
-
-		this.hostQueues.set(host, settled);
-		void settled.then(() => {
-			if (this.hostQueues.get(host) === settled)
-				this.hostQueues.delete(host);
-		});
-
-		return request;
-	}
-
-	private async requestWithRetries(
+	getText(
 		url: URL,
-		headers: Record<string, string>
+		headers: Record<string, string> = {},
+		{ priority = "background", signal }: ScrapingRequestOptions = {}
 	): Promise<string> {
-		for (let attempt = 1; ; attempt += 1) {
-			await this.waitForTurn(url.host);
-			const outcome = await this.attempt(url, attempt, headers);
-			this.scheduleNextRequest(url.host, outcome, attempt);
+		if (signal?.aborted)
+			return Promise.reject(this.abortedError(url.toString(), 0));
 
-			if (outcome.ok) return outcome.body;
-			if (!outcome.retryable || attempt > this.options.maxRetries)
-				throw outcome.error;
+		return new Promise((resolve, reject) => {
+			const leaveOnAbort = () => this.leaveQueueOnAbort(request);
+			const stopListening = () =>
+				signal?.removeEventListener("abort", leaveOnAbort);
+			const request: QueuedRequest = {
+				url,
+				headers: { ...REQUEST_HEADERS, ...headers },
+				priority,
+				signal,
+				sequence: this.nextSequence++,
+				attempts: 0,
+				notBefore: 0,
+				resolve: body => {
+					stopListening();
+					resolve(body);
+				},
+				reject: error => {
+					stopListening();
+					reject(error);
+				}
+			};
+
+			signal?.addEventListener("abort", leaveOnAbort, { once: true });
+			this.enqueue(request);
+		});
+	}
+
+	private enqueue(request: QueuedRequest) {
+		const host = request.url.host;
+		let queue = this.hostQueues.get(host);
+		if (!queue) {
+			queue = { waiting: [], draining: false };
+			this.hostQueues.set(host, queue);
+		}
+
+		queue.waiting.push(request);
+		queue.wake?.abort();
+
+		if (queue.draining) return;
+		queue.draining = true;
+		const startedQueue = queue;
+		void Promise.resolve().then(() => this.drain(host, startedQueue));
+	}
+
+	private leaveQueueOnAbort(request: QueuedRequest) {
+		const queue = this.hostQueues.get(request.url.host);
+		if (!queue || !this.removeWaiting(queue, request)) return;
+
+		request.reject(
+			this.abortedError(request.url.toString(), request.attempts)
+		);
+		queue.wake?.abort();
+	}
+
+	private removeWaiting(queue: HostQueue, request: QueuedRequest) {
+		const index = queue.waiting.indexOf(request);
+		if (index === -1) return false;
+		queue.waiting.splice(index, 1);
+		return true;
+	}
+
+	private async drain(host: string, queue: HostQueue) {
+		try {
+			for (
+				let next = this.nextInLine(queue);
+				next;
+				next = this.nextInLine(queue)
+			) {
+				const readyAt = Math.max(
+					this.nextRequestAt.get(host) ?? 0,
+					next.notBefore
+				);
+				const wait = readyAt - this.options.now();
+				if (wait > 0) {
+					await this.waitUnlessWoken(queue, wait);
+					continue;
+				}
+
+				this.removeWaiting(queue, next);
+				await this.dispatch(next);
+			}
+		} finally {
+			queue.draining = false;
+			if (this.hostQueues.get(host) === queue)
+				this.hostQueues.delete(host);
 		}
 	}
 
-	private async waitForTurn(host: string) {
-		const nextRequestAt = this.nextRequestAt.get(host);
-		if (nextRequestAt === undefined) return;
+	private nextInLine(queue: HostQueue): QueuedRequest | undefined {
+		const interactive = queue.waiting.filter(
+			request => request.priority === "interactive"
+		);
+		const candidates = interactive.length > 0 ? interactive : queue.waiting;
 
-		const wait = nextRequestAt - this.options.now();
-		if (wait > 0) await this.options.sleep(wait);
+		return candidates.reduce<QueuedRequest | undefined>(
+			(first, request) =>
+				!first || request.sequence < first.sequence ? request : first,
+			undefined
+		);
+	}
+
+	private async waitUnlessWoken(queue: HostQueue, milliseconds: number) {
+		const wake = new AbortController();
+		queue.wake = wake;
+		try {
+			await this.options.sleep(milliseconds, wake.signal);
+		} finally {
+			if (queue.wake === wake) queue.wake = undefined;
+		}
+	}
+
+	private async dispatch(request: QueuedRequest) {
+		request.attempts += 1;
+		const outcome = await this.attempt(request);
+		this.scheduleNextRequest(request.url.host, outcome, request.attempts);
+
+		if (outcome.ok) {
+			request.resolve(outcome.body);
+			return;
+		}
+
+		if (outcome.retryable && request.attempts <= this.options.maxRetries) {
+			request.notBefore =
+				this.options.now() + this.retryDelay(outcome, request.attempts);
+			this.enqueue(request);
+			return;
+		}
+
+		request.reject(outcome.error);
 	}
 
 	private scheduleNextRequest(
@@ -92,50 +211,70 @@ export class ScrapingHttpClient {
 	) {
 		const { minDelayMs, jitterMs, random, now } = this.options;
 		const throttleDelay = minDelayMs + Math.round(random() * jitterMs);
-		const backoffDelay = outcome.ok
+		const hostPenalty = outcome.ok
 			? 0
-			: this.backoffDelay(outcome, attempt);
+			: this.hostPenaltyDelay(outcome, attempt);
 
 		this.nextRequestAt.set(
 			host,
-			now() + Math.max(throttleDelay, backoffDelay)
+			now() + Math.max(throttleDelay, hostPenalty)
 		);
 	}
 
-	private backoffDelay(
+	private hostPenaltyDelay(
 		outcome: Extract<ScrapingAttemptOutcome, { ok: false }>,
 		attempt: number
 	) {
-		const { retryBaseDelayMs, maxRetryAfterMs } = this.options;
-
 		if (outcome.retryAfterMs !== undefined)
-			return Math.min(outcome.retryAfterMs, maxRetryAfterMs);
+			return Math.min(outcome.retryAfterMs, this.options.maxRetryAfterMs);
 
-		if (!outcome.retryable) return 0;
+		if (outcome.retryable && outcome.error.kind === "RATE_LIMITED")
+			return this.exponentialBackoff(attempt);
 
-		return retryBaseDelayMs * 2 ** (attempt - 1);
+		return 0;
+	}
+
+	private retryDelay(
+		outcome: Extract<ScrapingAttemptOutcome, { ok: false }>,
+		attempt: number
+	) {
+		if (outcome.retryAfterMs !== undefined)
+			return Math.min(outcome.retryAfterMs, this.options.maxRetryAfterMs);
+
+		return this.exponentialBackoff(attempt);
+	}
+
+	private exponentialBackoff(attempt: number) {
+		return this.options.retryBaseDelayMs * 2 ** (attempt - 1);
 	}
 
 	private async attempt(
-		url: URL,
-		attempt: number,
-		headers: Record<string, string>
+		request: QueuedRequest
 	): Promise<ScrapingAttemptOutcome> {
+		const { url, attempts, signal } = request;
 		const controller = new AbortController();
 		const timer = setTimeout(
 			() => controller.abort(),
 			this.options.timeoutMs
 		);
+		const abortFetch = () => controller.abort();
+		signal?.addEventListener("abort", abortFetch, { once: true });
 
 		try {
 			const response = await this.options.fetch(url.toString(), {
-				headers: { ...headers, "User-Agent": this.options.userAgent },
+				headers: {
+					...request.headers,
+					"User-Agent": this.options.userAgent
+				},
 				redirect: "follow",
 				signal: controller.signal
 			});
 			const body = await response.text();
-			return this.classifyResponse(url, attempt, response, body);
+			if (signal?.aborted) return this.abortedOutcome(url, attempts);
+			return this.classifyResponse(url, attempts, response, body);
 		} catch (error) {
+			if (signal?.aborted) return this.abortedOutcome(url, attempts);
+
 			const kind = controller.signal.aborted
 				? "TIMEOUT"
 				: "REQUEST_ERROR";
@@ -145,13 +284,30 @@ export class ScrapingHttpClient {
 				retryable: true,
 				error: new ScrapingRequestError(
 					kind,
-					{ url: url.toString(), attempts: attempt, reason },
+					{ url: url.toString(), attempts, reason },
 					error
 				)
 			};
 		} finally {
 			clearTimeout(timer);
+			signal?.removeEventListener("abort", abortFetch);
 		}
+	}
+
+	private abortedOutcome(url: URL, attempts: number): ScrapingAttemptOutcome {
+		return {
+			ok: false,
+			retryable: false,
+			error: this.abortedError(url.toString(), attempts)
+		};
+	}
+
+	private abortedError(url: string, attempts: number) {
+		return new ScrapingRequestError("ABORTED", {
+			url,
+			attempts,
+			reason: "aborted by caller"
+		});
 	}
 
 	private classifyResponse(
