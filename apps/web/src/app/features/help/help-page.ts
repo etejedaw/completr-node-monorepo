@@ -1,7 +1,13 @@
-import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
+import {
+	ChangeDetectionStrategy,
+	Component,
+	computed,
+	inject
+} from "@angular/core";
 import { RouterLink } from "@angular/router";
 
 import { type BacklogStatus } from "../../core/models";
+import { AuthService } from "../../core/services/auth";
 import { OnboardingService } from "../../core/services/onboarding";
 import { NAV_SECTIONS } from "../../layout/nav-sections";
 import { type NavItem } from "../../layout/nav-sections.model";
@@ -32,6 +38,7 @@ const SECTIONS: readonly PageSection[] = [
 	{ id: "statuses", label: "Statuses", icon: "flag" },
 	{ id: "collection", label: "Collection", icon: "shelves" },
 	{ id: "saved-views", label: "Saved Views", icon: "bookmark" },
+	{ id: "rewind", label: "Rewind", icon: "history" },
 	{ id: "privacy", label: "Privacy", icon: "shield" }
 ];
 
@@ -70,12 +77,16 @@ const COLLECTION_GUIDE: readonly { route: string; text: string }[] = [
 		text: "Your all-time top games, ranked. Any game can be a favorite, played or not."
 	},
 	{
+		route: "/platinums",
+		text: "Every game you finished at 100%, one platinum per game. Mark it from Edit run, the quick status dialog or the game page, and link it to the run where you got it."
+	},
+	{
 		route: "/lists",
 		text: "Curated collections you build and share: sagas, rankings, challenges. Other players can follow them."
 	},
 	{
 		route: "/franchises",
-		text: "Game sagas from the catalog, like Resident Evil or Zelda. Track the ones you follow and they show up on your profile."
+		text: "A page in Discover to browse and search the catalog's game sagas, like Resident Evil or Zelda. Track the ones you follow and they show up on your profile."
 	},
 	{
 		route: "/tags",
@@ -117,6 +128,7 @@ const SCORE_EXAMPLES: readonly CanonicalScore[] = [
 })
 export class HelpPage {
 	private readonly onboarding = inject(OnboardingService);
+	private readonly auth = inject(AuthService);
 
 	protected readonly posters = injectLibraryPosters();
 	protected readonly sections = SECTIONS;
@@ -126,6 +138,10 @@ export class HelpPage {
 		...entry,
 		nav: NAV_ITEMS_BY_ROUTE.get(entry.route)
 	}));
+	protected readonly rewindLink = computed(() => {
+		const username = this.auth.user()?.username;
+		return username ? ["/user", username, "rewind"] : ["/profile"];
+	});
 	protected readonly scrollSpy = injectSectionScrollSpy(SECTIONS);
 
 	protected readonly statusClass = backlogStatusClass;
