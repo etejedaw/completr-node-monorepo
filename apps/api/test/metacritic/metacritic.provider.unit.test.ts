@@ -94,10 +94,14 @@ void describe("MetacriticClient.getGameBySlug parsing", () => {
 	});
 
 	void it("ignores the hidden 'my score' widget when the User Score is missing", async () => {
-		const html = WITCHER_3_PAGE.replaceAll(
-			`aria-label="${WITCHER_USER_LABEL}" data-testid="global-score-value-wrapper"`,
-			""
+		const html = WITCHER_3_PAGE.replace(
+			new RegExp(
+				`(aria-label="${WITCHER_USER_LABEL}"\\s+)data-testid="global-score-value-wrapper"`
+			),
+			"$1"
 		);
+
+		assert.notEqual(html, WITCHER_3_PAGE);
 
 		assert.match(html, /User score null out of 10/);
 		assert.equal((await parse(html)).userScore, null);
