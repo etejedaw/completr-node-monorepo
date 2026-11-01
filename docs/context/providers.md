@@ -237,13 +237,14 @@ Consecuencias:
 
 ## Providers implementados
 
-| Provider                   | Propósito                                                                                                                |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `apps/api/src/rawg/`       | RAWG API: géneros, descripciones, covers, scores                                                                         |
-| `apps/api/src/hltb/`       | HowLongToBeat por scraping de la página de detalle: duraciones Main Story, Main + Extras y Completionist                 |
-| `apps/api/src/metacritic/` | Metacritic por scraping de la página de detalle: Metascore, User Score, plataformas y año                                |
-| `apps/api/src/mail/`       | Correo transaccional. Modelos internos: `mail/nodemailer/` y `mail/in-memory/` (tests). Se deshabilita sin `SMTP_HOST`   |
-| `apps/api/src/ia/`         | Generación de texto y JSON estructurado con IA. Proveedor interno: `ia/deepseek/`. Se deshabilita sin `DEEPSEEK_API_KEY` |
+| Provider                   | Propósito                                                                                                                 |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `apps/api/src/rawg/`       | RAWG API: géneros, descripciones, covers, scores                                                                          |
+| `apps/api/src/hltb/`       | HowLongToBeat por scraping de la página de detalle: duraciones Main Story, Main + Extras y Completionist                  |
+| `apps/api/src/metacritic/` | Metacritic por scraping de la página de detalle: Metascore, User Score, plataformas y año                                 |
+| `apps/api/src/wikidata/`   | Wikidata por su endpoint SPARQL público: descubre el id de HowLongToBeat de un juego a partir de su slug de RAWG o título |
+| `apps/api/src/mail/`       | Correo transaccional. Modelos internos: `mail/nodemailer/` y `mail/in-memory/` (tests). Se deshabilita sin `SMTP_HOST`    |
+| `apps/api/src/ia/`         | Generación de texto y JSON estructurado con IA. Proveedor interno: `ia/deepseek/`. Se deshabilita sin `DEEPSEEK_API_KEY`  |
 
 **Qué integraciones vienen después no se decide acá:** el roadmap de fuentes externas es planificación de producto, y varias dependen de revisiones de licencia todavía abiertas.
 
@@ -255,7 +256,7 @@ Consecuencias:
 
 Los providers respetan el `robots.txt` de cada sitio. HowLongToBeat prohíbe `/api` (lo que usa su buscador) y Metacritic prohíbe `/search`, así que **ningún provider busca**: solo piden páginas de detalle.
 
-- `HltbClient.getGameById(externalId)` pide `https://howlongtobeat.com/game/<id>`. Necesita un id de HLTB ya conocido (un `GameExternal` con fuente `hltb`); el provider no lo descubre.
+- `HltbClient.getGameById(externalId)` pide `https://howlongtobeat.com/game/<id>`. Necesita un id de HLTB ya conocido; el provider no lo descubre. Sale de un `GameExternal` con fuente `hltb` o, si el juego no lo tiene, lo resuelve Wikidata (ver "Provider de Wikidata").
 - `MetacriticClient.getGameBySlug(slug)` pide `https://www.metacritic.com/game/<slug>/`. El slug lo aporta quien llama (derivado del título o de un `GameExternal` con fuente `metacritic`).
 
 Un id que no es numérico o un slug que no cumple `^[a-z0-9]+(?:-+[a-z0-9]+)*$` se rechaza con `<MOD>_NOT_FOUND` sin hacer la request: así nunca se construye una URL fuera de `/game/`.
@@ -271,7 +272,7 @@ Un dato ausente no es un error: una duración en 0, ausente o inválida, y un sc
 
 ### Cliente HTTP compartido (`apps/api/src/scraping/`)
 
-`ScrapingHttpClient.getHtml(url)` devuelve el HTML o lanza `ScrapingRequestError` con un `kind` (`NOT_FOUND`, `RATE_LIMITED`, `BLOCKED`, `TIMEOUT`, `REQUEST_ERROR`) y el detalle (`url`, `status`, `attempts`, `retryAfterMs`). Ese error no sale del provider: cada uno lo traduce con `fromRequestFailure` de su `*.service-error.ts` a `<MOD>_<kind>`.
+`ScrapingHttpClient.getHtml(url)` devuelve el HTML (`getText(url, headers)` hace lo mismo con headers propios, como el `Accept` JSON de Wikidata) o lanza `ScrapingRequestError` con un `kind` (`NOT_FOUND`, `RATE_LIMITED`, `BLOCKED`, `TIMEOUT`, `REQUEST_ERROR`) y el detalle (`url`, `status`, `attempts`, `retryAfterMs`). Ese error no sale del provider: cada uno lo traduce con `fromRequestFailure` de su `*.service-error.ts` a `<MOD>_<kind>`.
 
 - **Cola por host:** una sola request a la vez por host; las llamadas concurrentes salen en orden de llegada. Hosts distintos no se esperan entre sí.
 - **Throttle:** entre dos requests al mismo host pasan al menos `minDelayMs` (5000) más un jitter aleatorio de 0 a `jitterMs` (2000), contados desde que terminó la anterior. Los reintentos también cuentan como requests. Son una precaución propia, no un límite publicado por los sitios.
@@ -294,6 +295,27 @@ El throttle vive en memoria, así que cubre una sola instancia de la API. Con va
 | `<MOD>_INTERNAL_ERROR` | 500    | Código del provider sin mapeo propio                 |
 
 `<MOD>` es `HLTB` (`service: "HLTB Provider"`) o `METACRITIC` (`service: "Metacritic Provider"`); ambos están registrados en los normalizers globales de `common/errors/`.
+
+## Provider de Wikidata
+
+`apps/api/src/wikidata/` existe porque HLTB solo se lee por página de detalle y su buscador está prohibido por `robots.txt`: hace falta otra forma de conocer el id de un juego. Wikidata publica sus datos bajo CC0 y su servicio de consultas admite tráfico automatizado que se identifique con un User-Agent descriptivo. Tiene el slug de RAWG (P9968), el id de HowLongToBeat (P2816) y la fecha de publicación (P577), y en el catálogo `Game.code` funciona como slug de RAWG.
+
+- `WikidataClient.findHltbCandidates({ rawgSlug, title })` hace **una sola** request `GET https://query.wikidata.org/sparql?query=...` con `Accept: application/sparql-results+json`. La consulta une (`UNION`) los ítems con P9968 igual a `rawgSlug` y los que tienen exactamente `title` como etiqueta en inglés (`rdfs:label "<title>"@en`); en ambos casos exige P2816 y trae, opcionales, la etiqueta en inglés, el P9968 y el P577. Sin slug, solo busca por etiqueta; sin slug ni título, devuelve `[]` sin hacer la request.
+- Devuelve candidatos `{ hltbId, label, releaseYear, rawgSlug }`. Las filas que solo difieren en la fecha se unen y se queda el año más antiguo. Una fila sin P2816 numérico se descarta. Elegir entre candidatos es regla de negocio del módulo que consume (`games/utils/resolve-hltb-id.util.ts`).
+- El slug y el título se escapan como literales SPARQL (`escapeSparqlString`: `\`, `"`, saltos de línea, retorno de carro, tabulador, `\b` y `\f`), así que un título nunca puede salir del literal ni agregar patrones a la consulta.
+- `WikidataClient.create()` devuelve siempre la misma instancia, con un `ScrapingHttpClient` **propio** (no el compartido): mismo User-Agent de Completr, timeout y reintentos por defecto, pero un throttle de 1000 ms más un jitter de 0 a 500 ms, porque es una API pensada para consultas y no un sitio que se lee por scraping. Al ser otro host, no espera a la cola de HLTB ni de Metacritic.
+- Se cablea en `apps/api/src/app.ts` como `hltbIdResolver` del registro de fuentes externas.
+
+| Código                    | Status | Cuándo                                                         |
+| ------------------------- | ------ | -------------------------------------------------------------- |
+| `WIKIDATA_PARSE_ERROR`    | 502    | El cuerpo no es JSON o no trae `results.bindings`              |
+| `WIKIDATA_RATE_LIMITED`   | 429    | 429 persistente tras el reintento                              |
+| `WIKIDATA_BLOCKED`        | 502    | 403 o página de challenge                                      |
+| `WIKIDATA_TIMEOUT`        | 504    | Se agotó el timeout también en el reintento                    |
+| `WIKIDATA_REQUEST_ERROR`  | 502    | 404, 400, 5xx persistente, otro status de error o fallo de red |
+| `WIKIDATA_INTERNAL_ERROR` | 500    | Código del provider sin mapeo propio                           |
+
+No hay `WIKIDATA_NOT_FOUND`: una consulta sin resultados devuelve `[]`. Los errores llevan `service: "Wikidata Provider"` y están registrados en los normalizers globales de `common/errors/`.
 
 ## Módulo `ia` y su submódulo `deepseek`
 
