@@ -103,7 +103,7 @@ I don't hand it to anyone for commercial purposes. But for the app to work, your
 - **Cloudflare** (United States). Everything you send and receive goes through its network before reaching my servers, so technically it can see it.
 - **My servers** (São Paulo, Brazil). The application, the database and the analytics run here. I manage them directly.
 - **Email service** (São Paulo, Brazil). It receives the email address you leave in the beta form.
-- **DeepSeek** (China). It writes the AI summary of the Rewind. It only receives data when you generate a Rewind that includes that summary, and only the data for that year: your games, with their dates, platform, genres, hours and your ratings, and the statistics calculated from them. Your notes and your private runs only go if you turn on their switches. It never receives your email, your username or your display name.
+- **DeepSeek** (China). It writes the AI summary of the Rewind. It only receives data when you generate a Rewind that includes that summary, and only the data for that year: your games, with their dates, platform, genres, hours and your ratings, and the statistics calculated from them. Your notes and your private runs only go if you turn on their switches. It receives nothing that identifies you: no email, username, display name or account ID, only your runs. The request is sent from my servers, so it doesn't see your IP address either. The only exception is anything identifying you write yourself in your notes, and only if you choose to include them.
 
 Video game data comes from external catalogs and sites (such as RAWG, Metacritic, HowLongToBeat and Wikidata), but that's information I _receive_: I never send your personal data to those services.
 
