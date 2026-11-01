@@ -14,7 +14,6 @@ import { type Observable, type Subscription } from "rxjs";
 
 import { ToastService } from "../../../core/services/toast";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import {
 	UiAlert,
 	UiButton,
@@ -122,7 +121,6 @@ function endsAtError(startsAt: string, endsAt: string) {
 		DatePipe,
 		FormField,
 		LibraryHero,
-		LibraryToolbar,
 		UiAlert,
 		UiButton,
 		UiDialog,

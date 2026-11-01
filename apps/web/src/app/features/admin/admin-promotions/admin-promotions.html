@@ -10,31 +10,31 @@
 		>
 		{{ promotions().length === 1 ? 'promotion' : 'promotions' }}
 	</p>
-	<button
-		heroActions
-		uiButton
-		variant="secondary"
-		class="!bg-surface/70 backdrop-blur"
-		(click)="refresh()"
-		[disabled]="isLoading() || isBusy()"
-	>
-		<span aria-hidden="true" class="material-icons text-base">refresh</span>
-		Refresh
-	</button>
+	<div heroActions class="flex items-center gap-2">
+		<button
+			uiButton
+			variant="secondary"
+			class="!bg-surface/70 backdrop-blur min-w-[44px] !px-2"
+			aria-label="Refresh"
+			title="Refresh"
+			(click)="refresh()"
+			[disabled]="isLoading() || isBusy()"
+		>
+			<span aria-hidden="true" class="material-icons text-xl"
+				>refresh</span
+			>
+		</button>
+		<button
+			uiButton
+			variant="primary"
+			[disabled]="isBusy() || isLoading() || loadFailed()"
+			(click)="openCreate()"
+		>
+			<span aria-hidden="true" class="material-icons text-base">add</span>
+			New promotion
+		</button>
+	</div>
 </app-library-hero>
-
-<app-library-toolbar>
-	<button
-		uiButton
-		variant="primary"
-		class="max-sm:flex-1 max-sm:basis-full"
-		[disabled]="isBusy() || isLoading() || loadFailed()"
-		(click)="openCreate()"
-	>
-		<span aria-hidden="true" class="material-icons text-base">add</span>
-		New promotion
-	</button>
-</app-library-toolbar>
 
 @if (pageError()) {
 <ui-alert class="mb-4">{{ pageError() }}</ui-alert>
