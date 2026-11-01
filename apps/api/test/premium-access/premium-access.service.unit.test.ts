@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
+import { inspect } from "node:util";
 
 import { Op } from "sequelize";
 
@@ -9,6 +10,7 @@ import {
 } from "../../src/premium-access/premium-access.constants";
 import {
 	resolvePremiumAccess,
+	resolvePremiumFeatures,
 	resolvePremiumStatus
 } from "../../src/premium-access/premium-access.service";
 import { PremiumGrant } from "../../src/premium-access/premium-grant.model";
@@ -234,5 +236,68 @@ void describe("resolvePremiumAccess", () => {
 		await resolvePremiumAccess(user, "rewind.premium", NOW);
 
 		assert.equal(user.role, "user");
+	});
+});
+
+void describe("resolvePremiumFeatures", () => {
+	void it("returns every feature for premium roles without querying grants", async () => {
+		const findAll = stubGrants([]);
+
+		const features = await resolvePremiumFeatures(
+			buildRequestUser({ role: "premium" }),
+			NOW
+		);
+
+		assert.deepEqual(features, [...PREMIUM_FEATURES]);
+		assert.equal(findAll.mock.callCount(), 0);
+	});
+
+	void it("resolves every feature with a single grants query", async () => {
+		const findAll = stubGrants([
+			buildGrant({ feature: "themes.premium" }),
+			buildGrant({ userId: null, feature: "export.json" })
+		]);
+
+		const features = await resolvePremiumFeatures(USER, NOW);
+
+		assert.deepEqual(features, ["themes.premium", "export.json"]);
+		assert.equal(findAll.mock.callCount(), 1);
+	});
+
+	void it("returns every feature with a full grant", async () => {
+		stubGrants([buildGrant({ feature: FULL_PREMIUM_FEATURE })]);
+
+		assert.deepEqual(await resolvePremiumFeatures(USER, NOW), [
+			...PREMIUM_FEATURES
+		]);
+	});
+
+	void it("ignores a global full grant and unknown features", async () => {
+		stubGrants([
+			buildGrant({ userId: null, feature: FULL_PREMIUM_FEATURE }),
+			buildGrant({ feature: "not.a.feature" })
+		]);
+
+		assert.deepEqual(await resolvePremiumFeatures(USER, NOW), []);
+	});
+
+	void it("filters out expired grants in the query", async () => {
+		const findAll = stubGrants([]);
+
+		await resolvePremiumFeatures(USER, NOW);
+
+		const where = inspect(
+			(findAll.mock.calls[0]!.arguments[0] as { where: unknown }).where,
+			{ depth: 10 }
+		);
+		assert.ok(where.includes(NOW.toISOString()));
+	});
+
+	void it("maps database failures to the service error", async () => {
+		stub(PremiumGrant, "findAll", async () => {
+			throw new Error("db down");
+		});
+
+		await assert.rejects(resolvePremiumFeatures(USER, NOW));
 	});
 });

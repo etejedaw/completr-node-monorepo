@@ -4,6 +4,7 @@ import { isPremiumRole } from "../common/utils/is-premium-role.util";
 import * as premiumAccessServiceError from "./errors/premium-access.service-error";
 import {
 	FULL_PREMIUM_FEATURE,
+	PREMIUM_FEATURES,
 	type PremiumFeature
 } from "./premium-access.constants";
 import {
@@ -90,6 +91,44 @@ export async function resolvePremiumStatus(
 				: null,
 		expiresAt: access.allowed ? access.expiresAt : null
 	};
+}
+
+export async function resolvePremiumFeatures(
+	user: PremiumAccessUser,
+	now = new Date()
+): Promise<PremiumFeature[]> {
+	if (isPremiumRole(user.role)) return [...PREMIUM_FEATURES];
+
+	try {
+		const grants = await PremiumGrant.findAll({
+			attributes: ["userId", "feature", "expiresAt"],
+			where: {
+				[Op.and]: [
+					{ [Op.or]: [{ userId: user.id }, { userId: null }] },
+					{
+						[Op.or]: [
+							{ expiresAt: null },
+							{ expiresAt: { [Op.gt]: now } }
+						]
+					}
+				]
+			}
+		});
+
+		const hasFullGrant = grants.some(
+			grant =>
+				grant.userId === user.id &&
+				grant.feature === FULL_PREMIUM_FEATURE
+		);
+		if (hasFullGrant) return [...PREMIUM_FEATURES];
+
+		const grantedFeatures = new Set<string>(
+			grants.map(grant => grant.feature)
+		);
+		return PREMIUM_FEATURES.filter(feature => grantedFeatures.has(feature));
+	} catch (error) {
+		throw premiumAccessServiceError.internalError(error);
+	}
 }
 
 export async function findFullPremiumUserIds(
