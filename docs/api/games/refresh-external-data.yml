@@ -28,7 +28,7 @@ settings:
 docs: |-
     ## Refresh External Data
 
-    Fetches the Metacritic score and the HowLongToBeat Main Story duration of one game from their detail pages and stores them in the global catalog (`GameScore` source `metacritic`, `GameTime` source `hltb`). Each requested source is refreshed even when it already has a value. Sources run one after another and the request can take 10-30 s because the scrapers wait 5-7 s between external requests. `GameShelf` and `ListItem` are never touched.
+    Fetches the Metacritic score and the HowLongToBeat Main Story duration of one game from their detail pages and stores them in the global catalog (`GameScore` source `metacritic`, `GameTime` source `hltb`). Each requested source is refreshed even when it already has a value. Sources run one after another and the request can take 10-30 s because the scrapers wait 5-7 s between external requests. The requests go with interactive priority, ahead of the ones queued by the `populate_external_data` job or the import enrichment queue, and the whole refresh has a 45 s deadline: when it expires the request in flight is aborted, every unfinished source is `failed` with `EXTERNAL_DATA_DEADLINE_EXCEEDED` and the endpoint still answers 200 with what did finish. Nothing is saved after the deadline. `GameShelf` and `ListItem` are never touched.
 
     **Authentication:** Bearer token required (role: moderator or admin).
     **Rate Limit:** 300 requests per minute (admin/moderator exempt).
@@ -65,7 +65,7 @@ docs: |-
     }
     ```
 
-    `game` has the same shape as `PATCH /games/:id`. Each result has `source`, `status` (`updated`, `not_found`, `ambiguous`, `no_data`, `failed`) and `errorCode` (the provider code on `failed`, `SOURCE_UNAVAILABLE` when the scraper is not registered, otherwise `null`). Metacritic adds `score` (the stored 0-100 value) on `updated` and the raw `metaScore`/`userScore` whenever there was a match. HLTB adds `duration` (hours) on `updated`.
+    `game` has the same shape as `PATCH /games/:id`. Each result has `source`, `status` (`updated`, `not_found`, `ambiguous`, `no_data`, `failed`) and `errorCode` (the provider code on `failed`, `SOURCE_UNAVAILABLE` when the scraper is not registered, `EXTERNAL_DATA_DEADLINE_EXCEEDED` when the 45 s deadline expired before the source finished, otherwise `null`). Metacritic adds `score` (the stored 0-100 value) on `updated` and the raw `metaScore`/`userScore` whenever there was a match. HLTB adds `duration` (hours) on `updated`.
 
     Records the audit action `game_external_data_refreshed`.
 

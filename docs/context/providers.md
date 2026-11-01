@@ -272,15 +272,17 @@ Un dato ausente no es un error: una duración en 0, ausente o inválida, y un sc
 
 ### Cliente HTTP compartido (`apps/api/src/scraping/`)
 
-`ScrapingHttpClient.getHtml(url)` devuelve el HTML (`getText(url, headers)` hace lo mismo con headers propios, como el `Accept` JSON de Wikidata) o lanza `ScrapingRequestError` con un `kind` (`NOT_FOUND`, `RATE_LIMITED`, `BLOCKED`, `TIMEOUT`, `REQUEST_ERROR`) y el detalle (`url`, `status`, `attempts`, `retryAfterMs`). Ese error no sale del provider: cada uno lo traduce con `fromRequestFailure` de su `*.service-error.ts` a `<MOD>_<kind>`.
+`ScrapingHttpClient.getHtml(url, options)` devuelve el HTML (`getText(url, headers, options)` hace lo mismo con headers propios, como el `Accept` JSON de Wikidata) o lanza `ScrapingRequestError` con un `kind` (`NOT_FOUND`, `RATE_LIMITED`, `BLOCKED`, `TIMEOUT`, `REQUEST_ERROR`, `ABORTED`) y el detalle (`url`, `status`, `attempts`, `retryAfterMs`). Ese error no sale del provider: cada uno lo traduce con `fromRequestFailure` de su `*.service-error.ts` a `<MOD>_<kind>`.
 
 - **Cola por host:** una sola request a la vez por host; las llamadas concurrentes salen en orden de llegada. Hosts distintos no se esperan entre sí.
+- **Prioridad:** `options.priority` es `"background"` (por defecto) o `"interactive"`. Una interactiva pasa delante de todas las de fondo que esperan en la cola del host, pero no interrumpe la que está en curso y respeta el throttle. Entre interactivas se mantiene el orden de llegada. La usa el refresco individual de datos externos; el job y la cola de importación van en fondo.
+- **Cancelación:** `options.signal` es un `AbortSignal`. Abortado mientras espera en la cola (también durante la espera de un reintento), la request sale de la cola sin llegar a la red; abortado en vuelo, se aborta el `fetch`. En ambos casos se lanza `ABORTED`, que no se reintenta ni cuenta como fallo de red. Un abort en vuelo deja el throttle del host corriendo desde ese momento, porque la request pudo llegar al sitio. Un signal ya abortado rechaza sin encolar.
 - **Throttle:** entre dos requests al mismo host pasan al menos `minDelayMs` (5000) más un jitter aleatorio de 0 a `jitterMs` (2000), contados desde que terminó la anterior. Los reintentos también cuentan como requests. Son una precaución propia, no un límite publicado por los sitios.
 - **Timeout:** `timeoutMs` (15 s) por intento, con `AbortController`; cubre también la descarga del cuerpo.
-- **Reintentos:** `maxRetries` (1) ante 429, 5xx, fallo de red o timeout. La espera es la de `Retry-After` (en segundos o fecha HTTP) o, si no viene, `retryBaseDelayMs` (10 s) con backoff exponencial, y nunca menos que el throttle. Si `Retry-After` supera `maxRetryAfterMs` (60 s) no se reintenta antes de tiempo: se falla en el acto, y la siguiente request a ese host espera hasta ese tope.
+- **Reintentos:** `maxRetries` (1) ante 429, 5xx, fallo de red o timeout. La espera es la de `Retry-After` (en segundos o fecha HTTP) o, si no viene, `retryBaseDelayMs` (10 s) con backoff exponencial, y nunca menos que el throttle. Si `Retry-After` supera `maxRetryAfterMs` (60 s) no se reintenta antes de tiempo: se falla en el acto, y la siguiente request a ese host espera hasta ese tope. Mientras espera su reintento, la request vuelve a la cola y suelta el host: `Retry-After` y el backoff de un 429 frenan a todo el host (el sitio pidió bajar el ritmo), pero el backoff de un 5xx, fallo de red o timeout solo demora a esa request, así que una interactiva que llega mientras tanto sale en cuanto vence el throttle. La espera de la cola se despierta al llegar una request nueva o al abortarse una.
 - **Bloqueos:** un 403, el header `cf-mitigated: challenge` o una página de challenge o CAPTCHA reconocible (Cloudflare, DataDome, PerimeterX, reCAPTCHA, hCaptcha) es `BLOCKED` y nunca se reintenta. No se intenta sortear ningún bloqueo: ni proxies, ni navegadores automatizados, ni cambio de User-Agent.
 - **Identificación:** `User-Agent: CompletrBot/1.0 (+https://www.completr.app)`, sin hacerse pasar por un navegador.
-- **Inyectable:** el constructor acepta `fetch`, `sleep`, `now` y `random` además de los valores anteriores, para probar colas, esperas y reintentos con un reloj simulado y sin red.
+- **Inyectable:** el constructor acepta `fetch`, `sleep` (recibe un `AbortSignal` para despertarla antes de tiempo), `now` y `random` además de los valores anteriores, para probar colas, esperas y reintentos con un reloj simulado y sin red.
 
 El throttle vive en memoria, así que cubre una sola instancia de la API. Con varias réplicas habría que moverlo a estado compartido.
 
@@ -292,6 +294,7 @@ El throttle vive en memoria, así que cubre una sola instancia de la API. Con va
 | `<MOD>_BLOCKED`        | 502    | 403, CAPTCHA o challenge                             |
 | `<MOD>_TIMEOUT`        | 504    | Se agotó el timeout también en el reintento          |
 | `<MOD>_REQUEST_ERROR`  | 502    | 5xx persistente, otro status de error o fallo de red |
+| `<MOD>_ABORTED`        | 504    | Quien llamó abortó la request con su `signal`        |
 | `<MOD>_INTERNAL_ERROR` | 500    | Código del provider sin mapeo propio                 |
 
 `<MOD>` es `HLTB` (`service: "HLTB Provider"`) o `METACRITIC` (`service: "Metacritic Provider"`); ambos están registrados en los normalizers globales de `common/errors/`.
@@ -313,6 +316,7 @@ El throttle vive en memoria, así que cubre una sola instancia de la API. Con va
 | `WIKIDATA_BLOCKED`        | 502    | 403 o página de challenge                                      |
 | `WIKIDATA_TIMEOUT`        | 504    | Se agotó el timeout también en el reintento                    |
 | `WIKIDATA_REQUEST_ERROR`  | 502    | 404, 400, 5xx persistente, otro status de error o fallo de red |
+| `WIKIDATA_ABORTED`        | 504    | Quien llamó abortó la request con su `signal`                  |
 | `WIKIDATA_INTERNAL_ERROR` | 500    | Código del provider sin mapeo propio                           |
 
 No hay `WIKIDATA_NOT_FOUND`: una consulta sin resultados devuelve `[]`. Los errores llevan `service: "Wikidata Provider"` y están registrados en los normalizers globales de `common/errors/`.
