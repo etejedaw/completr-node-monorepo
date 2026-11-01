@@ -191,6 +191,9 @@ void describe("POST /games/:id/external-data/refresh — validation", () => {
 
 	void it("answers 400 COMMON_INVALID_JSON for a malformed JSON body", async () => {
 		const game = await createCatalogGame("Hades");
+		const metacritic = metacriticPages([]);
+		const hltb = hltbPages([]);
+		registerFakes({ metacritic, hltb });
 
 		const response = await api()
 			.post(`/games/${game.id}/external-data/refresh`)
