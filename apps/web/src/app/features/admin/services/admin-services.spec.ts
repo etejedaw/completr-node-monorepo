@@ -143,6 +143,29 @@ describe("admin services", () => {
 				.flush({ data: { job: { id: "j1" } } });
 		});
 
+		it("starts the external data population without a limit by default", () => {
+			let result: unknown;
+
+			service.startPopulateExternalData().subscribe(r => (result = r));
+
+			const req = httpTesting.expectOne(
+				`${api}/admin/jobs/populate-external-data`
+			);
+			expect(req.request.method).toBe("POST");
+			req.flush({ data: { job: { id: "j3" } } });
+			expect(result).toEqual({ id: "j3" });
+		});
+
+		it("passes the limit as a query string when starting the external data population", () => {
+			service.startPopulateExternalData(10).subscribe();
+
+			const req = httpTesting.expectOne(
+				`${api}/admin/jobs/populate-external-data?limit=10`
+			);
+			expect(req.request.method).toBe("POST");
+			req.flush({ data: { job: { id: "j3" } } });
+		});
+
 		it.each([
 			["startCalculateRatings", "calculate-ratings"],
 			["startCalculateDurations", "calculate-durations"]

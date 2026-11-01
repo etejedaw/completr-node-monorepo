@@ -26,6 +26,15 @@ export class JobsService {
 			.pipe(map(res => res.data.job));
 	}
 
+	startPopulateExternalData(limit?: number) {
+		const url = limit
+			? `${environment.apiUrl}/admin/jobs/populate-external-data?limit=${limit}`
+			: `${environment.apiUrl}/admin/jobs/populate-external-data`;
+		return this.http
+			.post<{ data: { job: JobEntry } }>(url, {})
+			.pipe(map(res => res.data.job));
+	}
+
 	startCalculateRatings() {
 		return this.http
 			.post<{

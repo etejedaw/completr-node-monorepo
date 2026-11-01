@@ -277,6 +277,90 @@ describe("AdminJobs interaction", () => {
 		expect(starts).toEqual(["/admin/jobs/populate-rawg?limit=2"]);
 	});
 
+	describe("filling missing Metacritic and HLTB data", () => {
+		const label = "Fill missing Metacritic & HLTB";
+
+		it("starts the full run without a hidden limit and shows the new job after reloading", async () => {
+			await renderLoaded();
+
+			await userEvent.click(startButton(label));
+
+			await untilVisible(() =>
+				expect(
+					within(desktopTable()).getByText("populate_external_data")
+				).toBeInTheDocument()
+			);
+			expect(starts).toEqual(["/admin/jobs/populate-external-data"]);
+			expect(
+				within(mobileList()).getByText("populate_external_data")
+			).toBeInTheDocument();
+		});
+
+		it("sends a single request on a triple click and blocks the other jobs while starting", async () => {
+			await renderLoaded();
+			holdStarts = true;
+
+			await userEvent.tripleClick(startButton(label));
+			answerPending();
+
+			expect(heldStarts).toHaveLength(1);
+			expect(
+				screen.getByRole("button", { name: "Starting..." })
+			).toHaveAttribute("aria-busy", "true");
+			expect(startButton("Populate RAWG IDs")).toBeDisabled();
+			expect(startButton("Calculate Ratings")).toBeDisabled();
+			await userEvent.click(startButton("Calculate Ratings"));
+			answerPending();
+			expect(heldStarts).toHaveLength(1);
+
+			holdStarts = false;
+			startResponse(heldStarts[0]);
+			await untilVisible(() => expect(startButton(label)).toBeEnabled());
+			expect(starts).toEqual(["/admin/jobs/populate-external-data"]);
+		});
+
+		it("shows the readable result of a finished run in the history", async () => {
+			jobs = [
+				job({
+					id: "ext1",
+					type: "populate_external_data",
+					status: "completed",
+					result: "Metacritic: 4 updated, 1 not found · HLTB: 2 updated",
+					completedAt: "2026-03-01T10:30:00Z"
+				})
+			];
+			await renderLoaded();
+
+			expect(
+				within(desktopTable()).getByText(
+					"Metacritic: 4 updated, 1 not found · HLTB: 2 updated"
+				)
+			).toBeInTheDocument();
+			expect(
+				within(mobileList()).getByText(
+					"Metacritic: 4 updated, 1 not found · HLTB: 2 updated"
+				)
+			).toBeInTheDocument();
+		});
+
+		it("re-enables the button after a conflict and starts on the retry", async () => {
+			await renderLoaded();
+			failures["POST /admin/jobs/populate-external-data"] = {
+				status: 409,
+				body: { type: "JOB_ALREADY_RUNNING" }
+			};
+
+			await userEvent.click(startButton(label));
+			await untilVisible(() => expect(startButton(label)).toBeEnabled());
+			expect(starts).toEqual([]);
+
+			delete failures["POST /admin/jobs/populate-external-data"];
+			await userEvent.click(startButton(label));
+			await untilVisible(() => expect(starts).toHaveLength(1));
+			expect(starts).toEqual(["/admin/jobs/populate-external-data"]);
+		});
+	});
+
 	it("reloads the list after a job starts and shows the new running job", async () => {
 		await renderLoaded();
 
@@ -530,18 +614,19 @@ describe("AdminJobs interaction", () => {
 		await renderLoaded();
 
 		const order: string[] = [];
-		for (let i = 0; i < 5; i++) {
+		for (let i = 0; i < 6; i++) {
 			await userEvent.tab();
 			order.push(document.activeElement?.textContent?.trim() ?? "");
 		}
 
-		expect(order.slice(0, 4)).toEqual([
+		expect(order.slice(0, 5)).toEqual([
 			expect.stringContaining("Refresh"),
 			expect.stringContaining("Populate RAWG IDs"),
+			expect.stringContaining("Fill missing Metacritic & HLTB"),
 			expect.stringContaining("Calculate Ratings"),
 			expect.stringContaining("Calculate Durations")
 		]);
-		expect(order[4]).toBe("Cancel");
+		expect(order[5]).toBe("Cancel");
 	});
 
 	it("keeps icon glyphs out of the accessible names of the buttons", async () => {
@@ -550,6 +635,7 @@ describe("AdminJobs interaction", () => {
 		for (const name of [
 			"Refresh",
 			"Populate RAWG IDs",
+			"Fill missing Metacritic & HLTB",
 			"Calculate Ratings",
 			"Calculate Durations"
 		]) {

@@ -18,6 +18,11 @@ import { type JobAction, type JobStatusStyle } from "./admin-jobs.model";
 
 const JOB_ACTIONS: JobAction[] = [
 	{ type: "populate_rawg", label: "Populate RAWG IDs", icon: "cloud_sync" },
+	{
+		type: "populate_external_data",
+		label: "Fill missing Metacritic & HLTB",
+		icon: "travel_explore"
+	},
 	{ type: "calculate_ratings", label: "Calculate Ratings", icon: "star" },
 	{
 		type: "calculate_durations",
@@ -74,6 +79,8 @@ export class AdminJobs implements OnInit {
 			() => ReturnType<typeof this.jobsService.startPopulateRawg>
 		> = {
 			populate_rawg: () => this.jobsService.startPopulateRawg(2),
+			populate_external_data: () =>
+				this.jobsService.startPopulateExternalData(),
 			calculate_ratings: () => this.jobsService.startCalculateRatings(),
 			calculate_durations: () =>
 				this.jobsService.startCalculateDurations()
