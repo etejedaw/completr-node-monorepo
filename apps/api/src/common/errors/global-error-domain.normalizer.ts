@@ -14,12 +14,14 @@ import { gameShelfErrorDomainNormalizer } from "../../game-shelf/errors/game-she
 import { gameTimesErrorDomainNormalizer } from "../../game-times/errors/game-times.error-domain.normalizer";
 import { gamesErrorDomainNormalizer } from "../../games/errors/games.error-domain.normalizer";
 import { genresErrorDomainNormalizer } from "../../genres/errors/genres.error-domain.normalizer";
+import { hltbErrorDomainNormalizer } from "../../hltb/errors/hltb.error-domain.normalizer";
 import { iaErrorDomainNormalizer } from "../../ia/errors/ia.error-domain.normalizer";
 import { invitationsErrorDomainNormalizer } from "../../invitations/errors/invitations.error-domain.normalizer";
 import { listFollowersErrorDomainNormalizer } from "../../list-followers/errors/list-followers.error-domain.normalizer";
 import { listItemsErrorDomainNormalizer } from "../../list-items/errors/list-items.error-domain.normalizer";
 import { listsErrorDomainNormalizer } from "../../lists/errors/lists.error-domain.normalizer";
 import { mailErrorDomainNormalizer } from "../../mail/errors/mail.error-domain.normalizer";
+import { metacriticErrorDomainNormalizer } from "../../metacritic/errors/metacritic.error-domain.normalizer";
 import { moodTagsErrorDomainNormalizer } from "../../mood-tags/errors/mood-tags.error-domain.normalizer";
 import { platformsErrorDomainNormalizer } from "../../platforms/errors/platforms.error-domain.normalizer";
 import { premiumAccessErrorDomainNormalizer } from "../../premium-access/errors/premium-access.error-domain.normalizer";
@@ -150,6 +152,12 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "RAWG Provider")
 		return rawgErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "HLTB Provider")
+		return hltbErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "Metacritic Provider")
+		return metacriticErrorDomainNormalizer(error, correlationId);
 
 	if (error.serviceError.service === "IA Provider")
 		return iaErrorDomainNormalizer(error, correlationId);
