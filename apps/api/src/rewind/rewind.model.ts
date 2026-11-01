@@ -1,7 +1,12 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
 import { sequelize } from "../database/sequelize.database";
-import { REWIND_LANGUAGES, type RewindLanguage } from "./rewind.constants";
+import {
+	REWIND_LANGUAGES,
+	REWIND_PREMIUM_ACCESS_KINDS,
+	type RewindLanguage,
+	type RewindPremiumAccessKind
+} from "./rewind.constants";
 import {
 	type RewindAiRecap,
 	type RewindPremiumStats
@@ -29,6 +34,7 @@ class Rewind extends Model {
 	declare aiRecapStatus: RewindAiRecapStatus;
 	declare aiRecapRequestedAt: Date | null;
 	declare premiumStats: RewindPremiumStats | null;
+	declare premiumAccessKind: RewindPremiumAccessKind | null;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 }
@@ -92,6 +98,10 @@ Rewind.init(
 		},
 		premiumStats: {
 			type: DataTypes.JSONB,
+			allowNull: true
+		},
+		premiumAccessKind: {
+			type: DataTypes.ENUM(...REWIND_PREMIUM_ACCESS_KINDS),
 			allowNull: true
 		}
 	},

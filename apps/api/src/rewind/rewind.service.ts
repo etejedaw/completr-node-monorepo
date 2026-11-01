@@ -49,12 +49,14 @@ import { buildRewind } from "./utils/build-rewind.util";
 import { buildRewindOwnerControls } from "./utils/build-rewind-owner-controls.util";
 import { buildRewindYears } from "./utils/build-rewind-years.util";
 import { collectYearRuns } from "./utils/collect-year-runs.util";
+import { hasPremiumContent } from "./utils/has-premium-content.util";
 import { isAiRecapInProgress } from "./utils/is-ai-recap-in-progress.util";
 import { listActiveGameIds } from "./utils/list-active-game-ids.util";
 import { listRewindYears } from "./utils/list-rewind-years.util";
 import { listVisibleRewindYears } from "./utils/list-visible-rewind-years.util";
 import { nextGeneratedAt } from "./utils/next-generated-at.util";
 import { planRewindGeneration } from "./utils/plan-rewind-generation.util";
+import { resolveRewindPremiumAccessKind } from "./utils/resolve-rewind-premium-access-kind.util";
 import { resolveRewindToday } from "./utils/resolve-rewind-today.util";
 
 const logger = new PinoLogger("Rewind Service");
@@ -114,7 +116,10 @@ async function buildViewerContext(
 
 	const isOwner = viewerId === owner.id;
 	const [premiumAccess, runs, records] = await Promise.all([
-		providedPremiumAccess ?? resolvePremiumAccess(owner, "rewind.premium"),
+		isOwner
+			? (providedPremiumAccess ??
+				resolvePremiumAccess(owner, "rewind.premium"))
+			: null,
 		findRuns(owner, !isOwner),
 		findRecordsByUserId(owner.id)
 	]);
@@ -163,6 +168,7 @@ function storedView(
 		generatedAt: record.generatedAt.toISOString(),
 		aiRecap: record.aiRecapStatus === "ready" ? record.aiRecap : null,
 		premiumStats: record.premiumStats,
+		premiumAccessKind: record.premiumAccessKind,
 		ownerControls
 	};
 }
@@ -172,7 +178,7 @@ function ownerControlsFor(context: RewindViewerContext, record: RewindRecord) {
 	return buildRewindOwnerControls(
 		record,
 		context.calendar.today,
-		context.premiumAccess.allowed
+		context.premiumAccess?.allowed === true
 	);
 }
 
@@ -333,7 +339,9 @@ async function regenerateRecord(
 			...(premiumAccess.allowed && {
 				aiRecapStatus: "pending",
 				aiRecapRequestedAt: now
-			})
+			}),
+			...(!premiumAccess.allowed &&
+				!hasPremiumContent(record) && { premiumAccessKind: null })
 		},
 		{ transaction }
 	);
@@ -542,7 +550,10 @@ async function finishRecap(
 		{
 			aiRecapStatus: succeeded ? "ready" : "failed",
 			...(content.aiRecap && { aiRecap: content.aiRecap }),
-			...(content.premiumStats && { premiumStats: content.premiumStats })
+			...(content.premiumStats && { premiumStats: content.premiumStats }),
+			...((content.aiRecap ?? content.premiumStats) && {
+				premiumAccessKind: request.premiumAccessKind
+			})
 		},
 		{
 			where: {
@@ -563,7 +574,8 @@ async function runRecap(
 ): Promise<boolean> {
 	const request: RecapRequest = {
 		recordId: record.id,
-		requestedAt: record.aiRecapRequestedAt ?? new Date()
+		requestedAt: record.aiRecapRequestedAt ?? new Date(),
+		premiumAccessKind: resolveRewindPremiumAccessKind(premiumAccess)
 	};
 	let premiumStats: RewindPremiumStats | null = null;
 	try {

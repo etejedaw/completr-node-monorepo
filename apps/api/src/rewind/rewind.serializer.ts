@@ -41,6 +41,7 @@ export function rewindSerializer(rewind: Rewind): Rewind {
 		generatedAt: rewind.generatedAt,
 		aiRecap: rewind.aiRecap,
 		premiumStats: rewind.premiumStats,
+		premiumAccessKind: rewind.premiumAccessKind,
 		ownerControls: rewind.ownerControls,
 		premiumAccess: rewind.premiumAccess
 	};

@@ -5,6 +5,7 @@ import {
 	type RewindInsightKind,
 	type RewindLanguage,
 	type RewindLengthRange,
+	type RewindPremiumAccessKind,
 	type RewindPersonaCode
 } from "./rewind.constants";
 
@@ -34,7 +35,7 @@ export interface RewindYearSummary {
 export interface RewindYears {
 	spotlightYear: number | null;
 	years: RewindYearSummary[];
-	premiumAccess: PremiumAccess;
+	premiumAccess: PremiumAccess | null;
 }
 
 export interface RewindTotals {
@@ -138,8 +139,9 @@ export interface Rewind {
 	generatedAt: string;
 	aiRecap: RewindAiRecap | null;
 	premiumStats: RewindPremiumStats | null;
+	premiumAccessKind: RewindPremiumAccessKind | null;
 	ownerControls: RewindOwnerControls | null;
-	premiumAccess: PremiumAccess;
+	premiumAccess: PremiumAccess | null;
 }
 
 export interface RewindInsight {

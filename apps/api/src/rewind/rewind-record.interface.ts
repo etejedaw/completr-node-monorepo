@@ -1,7 +1,10 @@
 import { type PremiumAccess } from "../premium-access/premium-access.interface";
 import { type User } from "../users/user.model";
 import { type SectionAccess } from "../users/users.types";
-import { type RewindLanguage } from "./rewind.constants";
+import {
+	type RewindLanguage,
+	type RewindPremiumAccessKind
+} from "./rewind.constants";
 import {
 	type RewindAiRecap,
 	type RewindPremiumStats
@@ -24,6 +27,7 @@ export interface RewindRecord {
 	aiRecapStatus: RewindAiRecapStatus;
 	aiRecapRequestedAt: Date | null;
 	premiumStats: RewindPremiumStats | null;
+	premiumAccessKind: RewindPremiumAccessKind | null;
 }
 
 export interface RewindOwnerClock {
@@ -39,7 +43,7 @@ export interface RewindYearVisibility {
 export interface RewindViewerContext {
 	owner: User;
 	access: SectionAccess;
-	premiumAccess: PremiumAccess;
+	premiumAccess: PremiumAccess | null;
 	isOwner: boolean;
 	runs: RewindRun[];
 	calendar: RewindCalendar;

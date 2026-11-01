@@ -35,6 +35,11 @@ export const REWIND_LANGUAGES = ["en", "es"] as const;
 
 export type RewindLanguage = (typeof REWIND_LANGUAGES)[number];
 
+export const REWIND_PREMIUM_ACCESS_KINDS = ["premium", "gift"] as const;
+
+export type RewindPremiumAccessKind =
+	(typeof REWIND_PREMIUM_ACCESS_KINDS)[number];
+
 export const REWIND_INSIGHT_KINDS = [
 	"taste-vs-critics",
 	"genre-pattern",

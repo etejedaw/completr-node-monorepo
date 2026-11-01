@@ -1,3 +1,4 @@
+import { type RewindPremiumAccessKind } from "./rewind.constants";
 import {
 	type Rewind,
 	type RewindAiRecap,
@@ -18,6 +19,7 @@ export interface RewindGenerationResult {
 export interface RecapRequest {
 	recordId: string;
 	requestedAt: Date;
+	premiumAccessKind: RewindPremiumAccessKind | null;
 }
 
 export interface RecapSources {
