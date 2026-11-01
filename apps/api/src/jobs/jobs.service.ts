@@ -8,16 +8,38 @@ import * as gameExternalService from "../game-external/game-external.service";
 import * as gamePopularityService from "../game-popularity/game-popularity.service";
 import * as gameScoresService from "../game-scores/game-scores.service";
 import * as gameTimesService from "../game-times/game-times.service";
+import {
+	EXTERNAL_DATA_SOURCES,
+	type ExternalDataSource
+} from "../games/games.constants";
 import * as gamesService from "../games/games.service";
+import { type ExternalDataResult } from "../games/games-external-data.interface";
 import * as rawgServiceError from "../rawg/errors/rawg.service-error";
 import { RawgClient } from "../rawg/rawg.provider";
 import * as reviewsService from "../reviews/reviews.service";
 import * as usersService from "../users/users.service";
 import { Job } from "./job.model";
+import {
+	type ExternalDataJobReport,
+	type ExternalDataSourceTally
+} from "./jobs.interface";
 
 const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
 
 const MIN_THRESHOLD_PERCENT = 0.1;
+const EXTERNAL_DATA_STOP_SUFFIXES = [
+	"_RATE_LIMITED",
+	"_BLOCKED",
+	"_PARSE_ERROR"
+];
+const MAX_CONSECUTIVE_TRANSIENT_FAILURES = 3;
+const TALLY_KEY_BY_STATUS = {
+	updated: "updated",
+	not_found: "notFound",
+	ambiguous: "ambiguous",
+	no_data: "noData",
+	failed: "failed"
+} as const;
 
 export async function findAll() {
 	return Job.findAll({
@@ -134,6 +156,142 @@ async function runPopulateRawg(jobId: string, limit?: number) {
 		await failJob(
 			jobId,
 			`Failed after ${processed} processed, ${notFound} not found. Reason: ${describeFailure(error)}`
+		);
+	}
+}
+
+export async function startPopulateExternalData(limit?: number) {
+	gamesService.assertExternalDataSourcesAvailable(EXTERNAL_DATA_SOURCES);
+
+	return startJob("populate_external_data", jobId =>
+		runPopulateExternalData(jobId, limit)
+	);
+}
+
+async function settleRunningJob(
+	jobId: string,
+	status: "completed" | "failed",
+	result: string
+) {
+	const [settled] = await Job.update(
+		{ status, result, completedAt: new Date() },
+		{ where: { id: jobId, status: "running" } }
+	);
+	if (settled === 0)
+		await Job.update(
+			{ result },
+			{ where: { id: jobId, status: "cancelled" } }
+		);
+}
+
+function emptyTally(): ExternalDataSourceTally {
+	return { updated: 0, notFound: 0, ambiguous: 0, noData: 0, failed: 0 };
+}
+
+function emptyExternalDataReport(): ExternalDataJobReport {
+	return {
+		candidates: 0,
+		processed: 0,
+		skippedComplete: 0,
+		metacritic: emptyTally(),
+		hltb: emptyTally()
+	};
+}
+
+function describeTally(label: string, tally: ExternalDataSourceTally) {
+	return `${label} not found: ${tally.notFound}, ambiguous: ${tally.ambiguous}, no data: ${tally.noData}, failed: ${tally.failed}`;
+}
+
+function describeExternalDataReport(report: ExternalDataJobReport) {
+	return [
+		`Candidates: ${report.candidates}, Processed: ${report.processed}, Metacritic scores updated: ${report.metacritic.updated}, HLTB durations updated: ${report.hltb.updated}, Skipped complete: ${report.skippedComplete}`,
+		describeTally("Metacritic", report.metacritic),
+		describeTally("HLTB", report.hltb)
+	].join(". ");
+}
+
+function isStopFailure(result: ExternalDataResult) {
+	return EXTERNAL_DATA_STOP_SUFFIXES.some(suffix =>
+		result.errorCode?.endsWith(suffix)
+	);
+}
+
+function tallyExternalDataResults(
+	report: ExternalDataJobReport,
+	results: ExternalDataResult[],
+	consecutiveFailures: Record<ExternalDataSource, number>
+) {
+	let stopReason: string | null = null;
+	for (const result of results) {
+		report[result.source][TALLY_KEY_BY_STATUS[result.status]]++;
+		if (result.status !== "failed") {
+			consecutiveFailures[result.source] = 0;
+			continue;
+		}
+		const errorCode = result.errorCode ?? "UNKNOWN_ERROR";
+		if (isStopFailure(result)) stopReason ??= errorCode;
+		consecutiveFailures[result.source]++;
+		if (
+			consecutiveFailures[result.source] >=
+			MAX_CONSECUTIVE_TRANSIENT_FAILURES
+		)
+			stopReason ??= `${errorCode} (${MAX_CONSECUTIVE_TRANSIENT_FAILURES} failures in a row)`;
+	}
+	return stopReason;
+}
+
+async function runPopulateExternalData(jobId: string, limit?: number) {
+	const report = emptyExternalDataReport();
+	const consecutiveFailures = { metacritic: 0, hltb: 0 };
+
+	try {
+		const { candidates, completeCount } =
+			await gamesService.findGamesMissingExternalData();
+		report.candidates = candidates.length;
+		report.skippedComplete = completeCount;
+
+		const toProcess = limit ? candidates.slice(0, limit) : candidates;
+		for (const { game, sources } of toProcess) {
+			if (await isCancelled(jobId)) {
+				await settleRunningJob(
+					jobId,
+					"completed",
+					`Cancelled. ${describeExternalDataReport(report)}`
+				);
+				return;
+			}
+
+			const results = await gamesService.refreshExternalDataForGame(
+				game,
+				sources
+			);
+			report.processed++;
+
+			const stopReason = tallyExternalDataResults(
+				report,
+				results,
+				consecutiveFailures
+			);
+			if (stopReason) {
+				await settleRunningJob(
+					jobId,
+					"failed",
+					`${describeExternalDataReport(report)}. Stopped: ${stopReason}`
+				);
+				return;
+			}
+		}
+
+		await settleRunningJob(
+			jobId,
+			"completed",
+			describeExternalDataReport(report)
+		);
+	} catch (error) {
+		await settleRunningJob(
+			jobId,
+			"failed",
+			`${describeExternalDataReport(report)}. Stopped: ${describeFailure(error)}`
 		);
 	}
 }

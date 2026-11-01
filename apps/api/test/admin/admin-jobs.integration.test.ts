@@ -41,6 +41,7 @@ const LOCAL_JOB_ENDPOINTS = [
 
 const ALL_JOB_PATHS = [
 	"populate-rawg",
+	"populate-external-data",
 	...LOCAL_JOB_ENDPOINTS.map(endpoint => endpoint.path)
 ];
 
