@@ -15,6 +15,7 @@ import { ToastService } from "../../core/services/toast";
 import { avatarRing } from "../../core/utils/premium";
 import { LibraryHero } from "../../shared/components/library-hero/library-hero";
 import { type LibraryHeroPoster } from "../../shared/components/library-hero/library-hero.model";
+import { LibraryToolbar } from "../../shared/components/library-toolbar/library-toolbar";
 import { OptionPicker } from "../../shared/components/option-picker/option-picker";
 import { type PickerOption } from "../../shared/components/option-picker/option-picker.model";
 import { PremiumOnly } from "../../shared/directives/premium-only";
@@ -80,6 +81,7 @@ function groupByDay(activities: FeedActivity[]): ActivityDayGroup[] {
 	imports: [
 		RouterLink,
 		LibraryHero,
+		LibraryToolbar,
 		OptionPicker,
 		UiAvatar,
 		UiButton,
