@@ -159,6 +159,13 @@ export const NAV_SECTIONS: readonly NavSection[] = [
 				label: "Jobs",
 				iconColorClass: "text-nav-admin",
 				access: "admin"
+			},
+			{
+				route: "/admin/promotions",
+				icon: "redeem",
+				label: "Promotions",
+				iconColorClass: "text-nav-admin",
+				access: "admin"
 			}
 		]
 	},

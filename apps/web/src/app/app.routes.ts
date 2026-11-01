@@ -410,6 +410,14 @@ export const routes: Routes = [
 					)
 			},
 			{
+				path: "admin/promotions",
+				canActivate: [adminGuard],
+				loadComponent: () =>
+					import("./features/admin/admin-promotions/admin-promotions").then(
+						m => m.AdminPromotions
+					)
+			},
+			{
 				path: "403",
 				loadComponent: () =>
 					import("./features/error-pages/forbidden").then(
