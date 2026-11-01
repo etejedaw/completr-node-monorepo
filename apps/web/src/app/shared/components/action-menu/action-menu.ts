@@ -36,6 +36,7 @@ export class ActionMenu {
 	readonly iconOnly = input(false);
 	readonly placement = input<"toolbar" | "hero">("toolbar");
 	readonly variant = input<"primary" | "secondary">("secondary");
+	readonly size = input<"md" | "lg" | null>(null);
 	readonly busy = input(false);
 	readonly selected = output<string>();
 

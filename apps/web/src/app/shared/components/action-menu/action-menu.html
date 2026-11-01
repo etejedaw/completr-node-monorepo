@@ -2,14 +2,18 @@
 	uiButton
 	type="button"
 	[variant]="variant()"
-	[size]="placement() === 'hero' ? 'md' : 'sm'"
+	[size]="size() ?? (placement() === 'hero' ? 'md' : 'sm')"
 	[class]="
 		(placement() === 'toolbar'
 			? 'h-9'
 			: variant() === 'secondary'
 				? '!bg-surface/70 backdrop-blur'
 				: '') +
-		(iconOnly() ? ' min-w-[44px] sm:min-w-9 !px-2' : '')
+		(size() === 'lg'
+			? ' h-11 !rounded-card' + (iconOnly() ? ' w-11 !px-0' : '')
+			: iconOnly()
+				? ' min-w-[44px] sm:min-w-9 !px-2'
+				: '')
 	"
 	[ngpMenuTrigger]="menu"
 	[ngpMenuTriggerDisabled]="isMobile()"
@@ -78,7 +82,8 @@
 		class="material-icons shrink-0"
 		[class.text-base]="!sheet"
 		[class.text-2xl]="sheet"
-		[class.text-fg-muted]="!item.premium || item.locked"
+		[class]="item.iconClass ?? ''"
+		[class.text-fg-muted]="!item.iconClass && (!item.premium || item.locked)"
 		[class.text-premium]="item.premium && !item.locked"
 		[class.animate-spin]="item.busy"
 		>{{ item.busy ? 'autorenew' : item.icon }}</span
