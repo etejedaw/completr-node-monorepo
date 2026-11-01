@@ -2,8 +2,7 @@ import { type Request, type Response } from "express";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
-import { resolvePremiumStatus } from "../premium-access/premium-access.service";
-import { userMeSerializer } from "../users";
+import { buildUserMe } from "../users";
 import * as authService from "./auth.service";
 import {
 	type ChangePasswordDto,
@@ -44,10 +43,7 @@ export async function postRegister(request: Request, response: Response) {
 	setRefreshCookie(response, userRegister.refreshToken);
 
 	const data = {
-		user: userMeSerializer(
-			userPlain,
-			await resolvePremiumStatus(userPlain)
-		),
+		user: await buildUserMe(userPlain),
 		access_token: userRegister.accessToken,
 		session_id: userRegister.sessionId
 	};

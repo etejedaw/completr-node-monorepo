@@ -72,7 +72,7 @@ void describe("user serializers", () => {
 		const user = buildUser();
 
 		for (const serialized of [
-			userMeSerializer(user, NO_FULL_PREMIUM),
+			userMeSerializer(user, NO_FULL_PREMIUM, []),
 			userPublicSerializer(user),
 			userProfileSerializer(user, false),
 			userSummarySerializer(user)
@@ -89,11 +89,19 @@ void describe("user serializers", () => {
 	});
 
 	void it("include every visibility setting and theme in the me serializer", () => {
-		const result = userMeSerializer(buildUser(), NO_FULL_PREMIUM);
+		const result = userMeSerializer(buildUser(), NO_FULL_PREMIUM, []);
 
 		assert.equal(result.queueVisibility, "friends");
 		assert.equal(result.acceptFollowRequests, true);
 		assert.equal(result.theme, "refined-dark");
+	});
+
+	void it("exposes the premium features resolved for the user", () => {
+		const result = userMeSerializer(buildUser(), NO_FULL_PREMIUM, [
+			"themes.premium"
+		]);
+
+		assert.deepEqual(result.premiumFeatures, ["themes.premium"]);
 	});
 
 	void it("leave the public serializer with identity fields only", () => {

@@ -4,6 +4,7 @@ import {
 	backlogSerializer
 } from "../backlog/backlog.serializer";
 import { listSummarySerializer } from "../lists/lists.serializer";
+import { type PremiumFeature } from "../premium-access/premium-access.constants";
 import { type PremiumStatus } from "../premium-access/premium-access.interface";
 import { userReviewSerializer } from "../reviews/reviews.serializer";
 import { type User } from "./user.model";
@@ -17,12 +18,17 @@ import {
 	type UserReviewsBundle
 } from "./users.interface";
 
-export function userMeSerializer(user: User, premiumAccess: PremiumStatus) {
+export function userMeSerializer(
+	user: User,
+	premiumAccess: PremiumStatus,
+	premiumFeatures: PremiumFeature[]
+) {
 	return {
 		id: user.id,
 		username: user.username,
 		role: user.role,
 		premiumAccess,
+		premiumFeatures,
 		name: user.name,
 		bio: user.bio,
 		avatarUrl: user.avatarUrl,

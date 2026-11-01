@@ -6,7 +6,6 @@ import {
 	listSerializer,
 	listSummarySerializer
 } from "../lists/lists.serializer";
-import { resolvePremiumStatus } from "../premium-access/premium-access.service";
 import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
 import { type UpdateUserDto } from "./dtos";
 import * as userDomain from "./errors/users.domain-error";
@@ -27,10 +26,10 @@ import {
 	userCardSerializer,
 	userCompletionsSerializer,
 	userHighlightsSerializer,
-	userMeSerializer,
 	userReviewsSerializer
 } from "./users.serializer";
 import * as usersService from "./users.service";
+import { buildUserMe } from "./users-me.service";
 import * as usersProfileService from "./users-profile.service";
 
 export async function getUserByUsername(request: Request, response: Response) {
@@ -59,7 +58,7 @@ export async function getUserMe(request: Request, response: Response) {
 	const userPlain = user.get({ plain: true });
 
 	const data = {
-		user: userMeSerializer(userPlain, await resolvePremiumStatus(userPlain))
+		user: await buildUserMe(userPlain)
 	};
 	return response.status(200).json({ data });
 }
@@ -81,7 +80,7 @@ export async function patchUser(request: Request, response: Response) {
 	const userPlain = user.get({ plain: true });
 
 	const data = {
-		user: userMeSerializer(userPlain, await resolvePremiumStatus(userPlain))
+		user: await buildUserMe(userPlain)
 	};
 	return response.status(200).json({ data });
 }
