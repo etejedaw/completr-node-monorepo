@@ -2113,7 +2113,7 @@ describe("AdminGames interaction", () => {
 			expect(toast.success).not.toHaveBeenCalled();
 		});
 
-		it("explains partial results with text and asks for the HLTB ID when it is not found", async () => {
+		it("explains partial results with text and points to the game editor for the HLTB ID and the Metacritic slug", async () => {
 			refreshOutcome = game =>
 				ok({
 					data: {
@@ -2150,7 +2150,12 @@ describe("AdminGames interaction", () => {
 			expect(within(status).getByText("Not found")).toBeInTheDocument();
 			expect(
 				within(status).getByText(
-					/Save the HowLongToBeat ID of this game first/
+					/HowLongToBeat ID of this game couldn't be found automatically\. Add it by hand from the game editor/
+				)
+			).toBeInTheDocument();
+			expect(
+				within(status).getByText(
+					/Set the Metacritic slug from the game editor/
 				)
 			).toBeInTheDocument();
 			expect(

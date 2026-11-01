@@ -81,8 +81,14 @@ function updatedView(result: ExternalDataRefreshResult) {
 
 function notFoundDetail(source: ExternalDataSource): string {
 	return source === "hltb"
-		? "Save the HowLongToBeat ID of this game first: the refresh only works with an ID that is already saved."
-		: "No Metacritic page was found for this game.";
+		? "The HowLongToBeat ID of this game couldn't be found automatically. Add it by hand from the game editor and refresh again."
+		: "No Metacritic page was found for this game. If its slug differs from the title, set the Metacritic slug from the game editor and refresh again.";
+}
+
+function ambiguousHint(source: ExternalDataSource): string {
+	return source === "hltb"
+		? "Add the HowLongToBeat ID by hand from the game editor and refresh again."
+		: "Set the Metacritic slug from the game editor to point to the right page and refresh again.";
 }
 
 function noDataDetail(source: ExternalDataSource): string {
@@ -111,6 +117,7 @@ function resultView(
 				tone: "warning",
 				details: [
 					"The page found doesn't clearly match this game, so nothing was saved.",
+					ambiguousHint(result.source),
 					...rawScoreDetails(result)
 				]
 			};
