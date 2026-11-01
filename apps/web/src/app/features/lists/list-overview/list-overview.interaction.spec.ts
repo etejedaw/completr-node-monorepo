@@ -518,7 +518,14 @@ describe("Lists interaction", () => {
 		await createListWithGames(user);
 		expect(screen.getByText("Public")).toBeInTheDocument();
 
-		await user.click(screen.getByRole("button", { name: /^Edit$/ }));
+		await user.click(
+			screen.getByRole("button", { name: "More list actions" })
+		);
+		await user.click(
+			within(
+				await screen.findByRole("menu", { name: "List actions" })
+			).getByRole("menuitem", { name: "Edit list" })
+		);
 		const dialog = await screen.findByRole("dialog", { name: "Edit list" });
 		answerPending();
 		const visibility = within(dialog).getByRole("switch", {
