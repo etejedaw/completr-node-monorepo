@@ -2,11 +2,14 @@ import { type HttpErrorResponse } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	input,
+	type OnInit,
 	signal
 } from "@angular/core";
 
+import { AuthService } from "../../../core/services/auth";
 import {
 	type ExportFormat,
 	type ExportParams,
@@ -14,15 +17,16 @@ import {
 } from "../../../core/services/export";
 import { type ExportResource } from "../../../core/services/export.model";
 import { ToastService } from "../../../core/services/toast";
-import { PremiumOnly } from "../../directives/premium-only";
 import { UiButton } from "../../ui/button/ui-button";
 import { UiPremiumBadge } from "../../ui/premium-badge/ui-premium-badge";
+import { GiftOfferCard } from "../gift-offer-card/gift-offer-card";
+import { GiftOffersService } from "../gift-offer-card/gift-offers.service";
 
 const STATUSES_TOASTED_BY_INTERCEPTOR = new Set([402, 409, 422, 429]);
 
 @Component({
 	selector: "app-export-actions",
-	imports: [UiButton, UiPremiumBadge, PremiumOnly],
+	imports: [UiButton, UiPremiumBadge, GiftOfferCard],
 	template: `
 		<button
 			uiButton
@@ -44,7 +48,7 @@ const STATUSES_TOASTED_BY_INTERCEPTOR = new Set([402, 409, 422, 429]);
 			>
 			CSV
 		</button>
-		<ng-container *appPremiumOnly>
+		@if (canExportJson()) {
 			<button
 				uiButton
 				type="button"
@@ -73,22 +77,46 @@ const STATUSES_TOASTED_BY_INTERCEPTOR = new Set([402, 409, 422, 429]);
 				label="Premium perk: JSON export"
 				message="JSON export is a Premium perk. Free accounts can download their collections as CSV."
 			/>
-		</ng-container>
+		}
+		@if (!auth.isPremium()) {
+			<app-gift-offer-card
+				offerCode="json-export-trial-1m"
+				variant="compact"
+				(claimed)="jsonFeatureAccess.set(true)"
+			/>
+		}
 	`,
 	host: {
 		class: "flex shrink-0 items-center gap-[8px]"
 	},
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExportActions {
+export class ExportActions implements OnInit {
 	private readonly exportService = inject(ExportService);
+	private readonly giftOffersService = inject(GiftOffersService);
 	private readonly toast = inject(ToastService);
+	protected readonly auth = inject(AuthService);
 
 	readonly resource = input.required<ExportResource>();
 	readonly label = input.required<string>();
 	readonly params = input<ExportParams>({});
 
 	private readonly downloading = signal<ReadonlySet<ExportFormat>>(new Set());
+	protected readonly jsonFeatureAccess = signal(false);
+	protected readonly canExportJson = computed(
+		() => this.auth.isPremium() || this.jsonFeatureAccess()
+	);
+
+	ngOnInit() {
+		this.giftOffersService.listOffers().subscribe({
+			next: offers => {
+				const offer = offers.find(
+					candidate => candidate.code === "json-export-trial-1m"
+				);
+				this.jsonFeatureAccess.set(offer?.hasAccess ?? false);
+			}
+		});
+	}
 
 	protected isDownloading(format: ExportFormat): boolean {
 		return this.downloading().has(format);

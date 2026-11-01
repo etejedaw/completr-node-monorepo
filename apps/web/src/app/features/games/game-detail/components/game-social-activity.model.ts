@@ -5,6 +5,7 @@ export interface FriendActivity {
 	name: string;
 	avatarUrl: string | null;
 	role: UserRole;
+	hasPremium?: boolean;
 	status: BacklogStatus;
 	finishedAt: string | null;
 	userRating: number | null;
@@ -15,5 +16,6 @@ export interface OtherPlayer {
 	name: string;
 	avatarUrl: string | null;
 	role: UserRole;
+	hasPremium?: boolean;
 	status: BacklogStatus;
 }

@@ -1,5 +1,11 @@
 import { type UserRole } from "./user.model";
 
+export interface RewindPremiumAccess {
+	allowed: boolean;
+	source: "role" | "full-grant" | "feature-grant" | null;
+	expiresAt: string | null;
+}
+
 export interface RewindGameRef {
 	gameId: string;
 	code: string;
@@ -26,6 +32,7 @@ export interface RewindYearSummary {
 export interface RewindYears {
 	spotlightYear: number | null;
 	years: RewindYearSummary[];
+	premiumAccess: RewindPremiumAccess;
 }
 
 export interface RewindTotals {
@@ -149,6 +156,7 @@ export interface Rewind {
 	aiRecap: RewindAiRecap | null;
 	premiumStats: RewindPremiumStats | null;
 	ownerControls: RewindOwnerControls | null;
+	premiumAccess: RewindPremiumAccess;
 }
 
 export const REWIND_LANGUAGES = ["en", "es"] as const;

@@ -3,12 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { HttpErrorResponse } from "@angular/common/http";
 import { signal } from "@angular/core";
 import { ActivatedRoute, provideRouter } from "@angular/router";
-import {
-	render,
-	screen,
-	waitFor,
-	within
-} from "@testing-library/angular";
+import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 import { of, Subject, throwError } from "rxjs";
 
@@ -95,9 +90,7 @@ describe("User in common interaction", () => {
 		getComparison.mockReturnValueOnce(of(comparison(["Initial"])));
 		await renderPage();
 		await screen.findAllByText("Initial");
-		getComparison
-			.mockReturnValueOnce(stale)
-			.mockReturnValueOnce(latest);
+		getComparison.mockReturnValueOnce(stale).mockReturnValueOnce(latest);
 
 		await user.click(comparisonOption("To play"));
 		await waitFor(() =>
@@ -128,7 +121,9 @@ describe("User in common interaction", () => {
 		async status => {
 			const user = userEvent.setup();
 			getComparison
-				.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status })))
+				.mockReturnValueOnce(
+					throwError(() => new HttpErrorResponse({ status }))
+				)
 				.mockReturnValueOnce(of(comparison(["Recovered"])));
 			await renderPage();
 

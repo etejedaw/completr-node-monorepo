@@ -9,7 +9,10 @@ import {
 } from "@angular/core";
 import { Router, RouterLink } from "@angular/router";
 
-import { type RewindYearSummary } from "../../../core/models/rewind.model";
+import {
+	type RewindPremiumAccess,
+	type RewindYearSummary
+} from "../../../core/models/rewind.model";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { InView } from "../../../shared/directives/in-view";
 import { UiButton } from "../../../shared/ui";
@@ -286,6 +289,7 @@ const FAN_STAGGER_MS = 60;
 				[username]="username()"
 				[year]="summary().year"
 				[rewind]="generation.latestRewind()"
+				[premiumAccess]="premiumAccess()"
 				[pending]="generation.isPending()"
 				[error]="generation.error()"
 				(submitted)="generation.submit($event)"
@@ -301,6 +305,7 @@ export class ProfileRewindSpotlight {
 	readonly summary = input.required<RewindYearSummary>();
 	readonly isSelf = input(false);
 	readonly hasMoreYears = input(false);
+	readonly premiumAccess = input<RewindPremiumAccess | null>(null);
 
 	private readonly router = inject(Router);
 	private readonly generatedHere = signal<ReadonlySet<string>>(new Set());

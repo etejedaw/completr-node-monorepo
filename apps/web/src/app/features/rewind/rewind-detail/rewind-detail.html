@@ -52,6 +52,7 @@
 		[username]="username()"
 		[year]="generationYear"
 		[rewind]="generation.latestRewind()"
+		[premiumAccess]="generationPremiumAccess()"
 		[pending]="generation.isPending()"
 		[error]="generation.error()"
 		(submitted)="generation.submit($event)"
@@ -167,6 +168,7 @@
 			[recap]="recap"
 			[year]="data.year"
 			[language]="data.language"
+			[premiumAccess]="data.premiumAccess"
 		/>
 		} @if (hasHighlights()) {
 		<section
@@ -193,6 +195,7 @@
 			class="min-w-0 lg:[grid-area:stats]"
 			[stats]="stats"
 			[language]="data.language"
+			[premiumAccess]="data.premiumAccess"
 		/>
 		} @if (data.finishedGames.length > 0) {
 		<section

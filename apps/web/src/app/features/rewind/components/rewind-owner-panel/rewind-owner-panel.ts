@@ -10,7 +10,6 @@ import {
 } from "@angular/core";
 
 import { type Rewind } from "../../../../core/models/rewind.model";
-import { PremiumOnly } from "../../../../shared/directives/premium-only";
 import { UiAlert, UiButton } from "../../../../shared/ui";
 import { RewindService } from "../../rewind";
 import {
@@ -31,7 +30,7 @@ const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 
 @Component({
 	selector: "app-rewind-owner-panel",
-	imports: [PremiumOnly, RewindGenerateDialog, UiAlert, UiButton],
+	imports: [RewindGenerateDialog, UiAlert, UiButton],
 	template: `
 		@if (rewind().ownerControls; as controls) {
 			<section
@@ -139,7 +138,6 @@ const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 					</div>
 				} @else if (controls.aiRecapState === "available") {
 					<div
-						*appPremiumOnly
 						class="flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between"
 					>
 						<p class="m-0 text-sm text-fg-secondary text-pretty">
@@ -188,6 +186,9 @@ const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 				[username]="rewind().user.username"
 				[year]="rewind().year"
 				[rewind]="generation.latestRewind()"
+				[premiumAccess]="
+					generation.latestRewind()?.premiumAccess ?? null
+				"
 				[pending]="generation.isPending()"
 				[error]="generation.error()"
 				(submitted)="generation.submit($event)"

@@ -38,7 +38,7 @@
 			<ui-avatar
 				[src]="profile()?.user?.avatarUrl"
 				[name]="profile()?.user?.username || username()"
-				[ring]="avatarRing(profile()?.user?.role)"
+				[ring]="avatarRing(profile()?.user?.role, profile()?.user?.hasPremium)"
 				class="w-28 h-28 text-4xl ring-4 ring-canvas shadow-2xl shadow-black/60"
 			/>
 			<span
@@ -125,6 +125,7 @@
 	[username]="username()"
 	[summary]="spotlight"
 	[isSelf]="isSelf()"
+	[premiumAccess]="rewindYears()?.premiumAccess ?? null"
 />
 } @if (visibility().favorites && (favoritesData()?.length ?? 0) > 0) {
 <section class="mt-10" aria-labelledby="favorites-heading">
@@ -213,7 +214,11 @@
 	</app-poster-shelf>
 	} } } @if (pastRewinds().length > 0) { @defer (on viewport; prefetch on
 	idle) {
-	<app-profile-rewinds [username]="username()" [years]="pastRewinds()" />
+	<app-profile-rewinds
+		[username]="username()"
+		[years]="pastRewinds()"
+		[premiumAccess]="rewindYears()?.premiumAccess ?? null"
+	/>
 	} @placeholder {
 	<div class="h-56"></div>
 	} }

@@ -8,7 +8,10 @@ export function isPremiumRole(role: string | null | undefined): boolean {
 	return !!role && PREMIUM_ROLES.includes(role as UserRole);
 }
 
-export function avatarRing(role: string | null | undefined): AvatarRing {
+export function avatarRing(
+	role: string | null | undefined,
+	hasPremium = false
+): AvatarRing {
 	if (role === "admin") return "admin";
-	return isPremiumRole(role) ? "premium" : null;
+	return hasPremium || isPremiumRole(role) ? "premium" : null;
 }

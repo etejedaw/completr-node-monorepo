@@ -70,10 +70,15 @@ const EMPTY_STATS: RewindPremiumStatsData = {
 
 async function renderStats(
 	data: RewindPremiumStatsData = stats(),
-	language: RewindLanguage = "en"
+	language: RewindLanguage = "en",
+	source: "role" | "full-grant" | "feature-grant" = "role"
 ) {
 	return render(RewindPremiumStats, {
-		inputs: { stats: data, language },
+		inputs: {
+			stats: data,
+			language,
+			premiumAccess: { allowed: true, source, expiresAt: null }
+		},
 		providers: [{ provide: ToastService, useValue: { premium: vi.fn() } }]
 	});
 }
@@ -105,6 +110,23 @@ describe("RewindPremiumStats", () => {
 		expect(figure("You vs. the critics")).toBeInTheDocument();
 		expect(figure("Did your backlog grow or shrink?")).toBeInTheDocument();
 		expect(figure("Genre share")).toBeInTheDocument();
+	});
+
+	it.each(["role", "full-grant"] as const)(
+		"keeps the Premium label for access from %s",
+		async source => {
+			await renderStats(stats(), "en", source);
+
+			expect(screen.getByLabelText("Premium")).toBeInTheDocument();
+			expect(screen.queryByLabelText("Launch gift")).toBeNull();
+		}
+	);
+
+	it("labels a feature-specific Rewind grant as Launch gift", async () => {
+		await renderStats(stats(), "en", "feature-grant");
+
+		expect(screen.getByLabelText("Launch gift")).toBeInTheDocument();
+		expect(screen.queryByLabelText("Premium")).toBeNull();
 	});
 
 	it("gives screen readers a table for every chart and hides the drawing", async () => {

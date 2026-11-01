@@ -83,7 +83,12 @@ describe("RewindArchive", () => {
 	it("shows the owner a Generate card for each year still unpublished", async () => {
 		await renderArchive("Ada", {
 			spotlightYear: 2026,
-			years: [year(2026, false), year(2025, true)]
+			years: [year(2026, false), year(2025, true)],
+			premiumAccess: {
+				allowed: true,
+				source: "feature-grant",
+				expiresAt: null
+			}
 		});
 
 		expect(
@@ -101,7 +106,8 @@ describe("RewindArchive", () => {
 	it("shows a visitor only the published years the API sends, with no Generate action", async () => {
 		await renderArchive("grace", {
 			spotlightYear: null,
-			years: [year(2025, true)]
+			years: [year(2025, true)],
+			premiumAccess: { allowed: false, source: null, expiresAt: null }
 		});
 
 		expect(
@@ -111,7 +117,11 @@ describe("RewindArchive", () => {
 	});
 
 	it("tells a visitor the user hasn't shared a Rewind yet", async () => {
-		await renderArchive(null, { spotlightYear: null, years: [] });
+		await renderArchive(null, {
+			spotlightYear: null,
+			years: [],
+			premiumAccess: { allowed: false, source: null, expiresAt: null }
+		});
 
 		expect(
 			await screen.findByText("@ada hasn't shared a Rewind yet.")

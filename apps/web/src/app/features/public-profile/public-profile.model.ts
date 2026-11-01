@@ -5,6 +5,7 @@ export interface PublicUser {
 	id: string;
 	username: string;
 	role: string;
+	hasPremium: boolean;
 	name: string;
 	bio?: string;
 	avatarUrl?: string;

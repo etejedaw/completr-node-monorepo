@@ -147,6 +147,8 @@ describe("BacklogList interaction", () => {
 			exportRequests.push(req.request);
 			return req.flush(new Blob(["gameTitle\n"], { type: "text/csv" }));
 		}
+		if (method === "GET" && url === `${api}/users/me/gift-offers`)
+			return req.flush({ data: { offers: [] } });
 		if (method === "PATCH" && entryMatch)
 			return patchBacklog(req, entryMatch[1]);
 		if (method === "DELETE" && entryMatch) {

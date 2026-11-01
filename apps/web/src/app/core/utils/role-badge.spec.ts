@@ -20,6 +20,11 @@ describe("elevatedRoleBadge", () => {
 		expect(elevatedRoleBadge("premium")?.label).toBe("Premium");
 	});
 
+	it("returns the premium badge for temporary full access without changing the role", () => {
+		expect(elevatedRoleBadge("user", true)?.label).toBe("Premium");
+		expect(elevatedRoleBadge("admin", true)?.label).toBe("Admin");
+	});
+
 	it.each(["user", "toString", "", null, undefined])(
 		"returns null for %s",
 		role => {

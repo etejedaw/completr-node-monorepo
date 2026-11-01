@@ -40,7 +40,7 @@ export class ProfileHero {
 		() => this.user().name || this.user().username
 	);
 	protected readonly avatarRing = computed(() =>
-		avatarRing(this.user().role)
+		avatarRing(this.user().role, this.user().hasPremium)
 	);
 	protected readonly avatarHaloClass = computed(() => {
 		const ring = this.avatarRing();
@@ -49,7 +49,7 @@ export class ProfileHero {
 		return "from-brand via-brand/40";
 	});
 	protected readonly roleBadge = computed(() =>
-		elevatedRoleBadge(this.user().role)
+		elevatedRoleBadge(this.user().role, this.user().hasPremium)
 	);
 	protected readonly memberSince = computed(() =>
 		MEMBER_SINCE_FORMAT.format(new Date(this.user().createdAt))

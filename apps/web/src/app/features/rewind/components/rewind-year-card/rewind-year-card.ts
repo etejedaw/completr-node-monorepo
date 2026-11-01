@@ -10,6 +10,7 @@ import { Router, RouterLink } from "@angular/router";
 
 import {
 	type RewindLanguage,
+	type RewindPremiumAccess,
 	type RewindYearSummary
 } from "../../../../core/models/rewind.model";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
@@ -129,6 +130,7 @@ const CARD_COVER_COUNT = 3;
 				[username]="username()"
 				[year]="summary().year"
 				[rewind]="generation.latestRewind()"
+				[premiumAccess]="premiumAccess()"
 				[pending]="generation.isPending()"
 				[error]="generation.error()"
 				(submitted)="generation.submit($event)"
@@ -142,6 +144,7 @@ const CARD_COVER_COUNT = 3;
 export class RewindYearCard {
 	readonly username = input.required<string>();
 	readonly summary = input.required<RewindYearSummary>();
+	readonly premiumAccess = input<RewindPremiumAccess | null>(null);
 	readonly language = input<RewindLanguage>("en");
 
 	private readonly router = inject(Router);

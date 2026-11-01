@@ -42,7 +42,7 @@ export class ReviewCard {
 		() => this.review().game?.coverUrl ?? this.review().game?.backgroundUrl
 	);
 	protected readonly authorAvatarRing = computed(() =>
-		avatarRing(this.review().user?.role)
+		avatarRing(this.review().user?.role, this.review().user?.hasPremium)
 	);
 	protected readonly authorName = computed(() => {
 		const user = this.review().user;

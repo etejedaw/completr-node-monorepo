@@ -9,7 +9,8 @@ import {
 	type RewindAiRecap as RewindAiRecapData,
 	type RewindInsight,
 	type RewindInsightKind,
-	type RewindLanguage
+	type RewindLanguage,
+	type RewindPremiumAccess
 } from "../../../../core/models/rewind.model";
 import { UiPremiumBadge } from "../../../../shared/ui";
 import { rewindCopy } from "../../rewind-copy";
@@ -80,7 +81,7 @@ function isInsightKind(kind: unknown): kind is RewindInsightKind {
 				<ui-premium-badge
 					class="ml-auto"
 					interactive
-					[label]="text.premiumLabel"
+					[label]="premiumLabel()"
 					[message]="premiumPerk"
 				/>
 			</header>
@@ -199,7 +200,13 @@ export class RewindAiRecap {
 	readonly recap = input.required<RewindAiRecapData>();
 	readonly year = input.required<number>();
 	readonly language = input<RewindLanguage>("en");
+	readonly premiumAccess = input<RewindPremiumAccess | null>(null);
 
+	protected readonly premiumLabel = computed(() =>
+		this.premiumAccess()?.source === "feature-grant"
+			? "Launch gift"
+			: "Premium"
+	);
 	protected readonly frameClass = REWIND_PREMIUM_FRAME_CLASS;
 	protected readonly tintSecondaryClass = TONE_TINT_SECONDARY_CLASS;
 

@@ -163,10 +163,13 @@ export class Layout implements OnInit {
 	}
 
 	protected readonly roleBadge = computed(() =>
-		elevatedRoleBadge(this.user()?.role)
+		elevatedRoleBadge(this.user()?.role, this.isPremium())
 	);
 	protected readonly avatarRing = computed(() =>
-		avatarRing(this.user()?.role)
+		avatarRing(
+			this.user()?.role,
+			this.user()?.premiumAccess?.active ?? false
+		)
 	);
 
 	ngOnInit() {

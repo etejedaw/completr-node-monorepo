@@ -7,6 +7,7 @@ export interface UserResult {
 	avatarUrl: string | null;
 	profileVisibility: VisibilityLevel;
 	role?: UserRole;
+	hasPremium?: boolean;
 	isSelf?: boolean;
 	followerCount?: number | null;
 	isFollowing?: boolean;

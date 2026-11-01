@@ -22,7 +22,9 @@ function isElevatedRole(role: string): role is ElevatedRole {
 }
 
 export function elevatedRoleBadge(
-	role: string | null | undefined
+	role: string | null | undefined,
+	hasPremium = false
 ): RoleBadge | null {
-	return role && isElevatedRole(role) ? ELEVATED_ROLE_BADGES[role] : null;
+	if (role && isElevatedRole(role)) return ELEVATED_ROLE_BADGES[role];
+	return hasPremium ? ELEVATED_ROLE_BADGES.premium : null;
 }

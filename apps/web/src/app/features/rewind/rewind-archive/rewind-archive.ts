@@ -46,13 +46,19 @@ export class RewindArchive {
 		stream: ({ params: username }) =>
 			this.rewindService
 				.getYears(username)
-				.pipe(map(result => ({ username, years: result.years })))
+				.pipe(map(result => ({ username, ...result })))
 	});
 
 	protected readonly years = computed(() => {
 		if (!this.archive.hasValue()) return null;
 		const { username, years } = this.archive.value();
 		return username === this.username() ? years : null;
+	});
+
+	protected readonly premiumAccess = computed(() => {
+		if (!this.archive.hasValue()) return null;
+		const { username, premiumAccess } = this.archive.value();
+		return username === this.username() ? premiumAccess : null;
 	});
 
 	protected readonly loadError = computed(() =>

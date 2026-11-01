@@ -6,7 +6,6 @@ import { map, type Observable, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { type User } from "../models";
 import { buildHttpParams } from "../utils/http-params";
-import { isPremiumRole } from "../utils/premium";
 import {
 	type AcceptInvitationRequest,
 	type AuthResponse,
@@ -35,7 +34,9 @@ export class AuthService {
 	readonly isLoggedIn = computed(
 		() => this._user() !== null || this.storage.get(TOKEN_KEY) !== null
 	);
-	readonly isPremium = computed(() => isPremiumRole(this._user()?.role));
+	readonly isPremium = computed(
+		() => this._user()?.premiumAccess?.active ?? false
+	);
 
 	token(): string | null {
 		return this.storage.get(TOKEN_KEY);

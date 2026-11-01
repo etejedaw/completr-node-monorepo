@@ -92,7 +92,9 @@ describe("UserFavorites", () => {
 	});
 
 	it("shows the private state when the owner does not share it", async () => {
-		getUserFavorites.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 403 })));
+		getUserFavorites.mockReturnValue(
+			throwError(() => new HttpErrorResponse({ status: 403 }))
+		);
 		await renderPage();
 
 		expect(
@@ -104,7 +106,9 @@ describe("UserFavorites", () => {
 	});
 
 	it("shows the not-found state when the player does not exist", async () => {
-		getUserFavorites.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
+		getUserFavorites.mockReturnValue(
+			throwError(() => new HttpErrorResponse({ status: 404 }))
+		);
 		await renderPage();
 
 		expect(

@@ -14,5 +14,6 @@ export interface ReviewCardReview {
 		name?: string | null;
 		avatarUrl?: string | null;
 		role?: string | null;
+		hasPremium?: boolean;
 	} | null;
 }

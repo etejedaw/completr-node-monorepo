@@ -87,7 +87,11 @@ describe("adminErrorMessage", () => {
 		const error = apiError(422, {
 			type: "COMMON_SCHEMA_INVALID",
 			issues: [
-				{ path: "scores.0.score", code: "too_small", message: "Too small" }
+				{
+					path: "scores.0.score",
+					code: "too_small",
+					message: "Too small"
+				}
 			]
 		});
 
@@ -98,7 +102,11 @@ describe("adminErrorMessage", () => {
 		const error = apiError(422, {
 			type: "COMMON_SCHEMA_INVALID",
 			issues: [
-				{ path: "times.1.duration", code: "too_small", message: "Too small" }
+				{
+					path: "times.1.duration",
+					code: "too_small",
+					message: "Too small"
+				}
 			]
 		});
 
@@ -111,8 +119,16 @@ describe("adminErrorMessage", () => {
 		const error = apiError(422, {
 			type: "COMMON_SCHEMA_INVALID",
 			issues: [
-				{ path: "scores.0.score", code: "too_small", message: "Too small" },
-				{ path: "times.0.duration", code: "too_small", message: "Too small" }
+				{
+					path: "scores.0.score",
+					code: "too_small",
+					message: "Too small"
+				},
+				{
+					path: "times.0.duration",
+					code: "too_small",
+					message: "Too small"
+				}
 			]
 		});
 
@@ -124,15 +140,21 @@ describe("adminErrorMessage", () => {
 	it("summarizes the issues of any other invalid field", () => {
 		const error = apiError(422, {
 			type: "COMMON_SCHEMA_INVALID",
-			issues: [{ path: "title", code: "too_small", message: "Title is empty" }]
+			issues: [
+				{ path: "title", code: "too_small", message: "Title is empty" }
+			]
 		});
 
 		expect(adminErrorMessage(error)).toBe("Title is empty");
 	});
 
 	it("returns null for unknown codes, plain errors and empty bodies", () => {
-		expect(adminErrorMessage(apiError(500, { type: "SOMETHING_ELSE" }))).toBeNull();
-		expect(adminErrorMessage(apiError(500, { type: "constructor" }))).toBeNull();
+		expect(
+			adminErrorMessage(apiError(500, { type: "SOMETHING_ELSE" }))
+		).toBeNull();
+		expect(
+			adminErrorMessage(apiError(500, { type: "constructor" }))
+		).toBeNull();
 		expect(adminErrorMessage(apiError(0, null))).toBeNull();
 		expect(adminErrorMessage(new Error("boom"))).toBeNull();
 		expect(adminErrorMessage(undefined)).toBeNull();

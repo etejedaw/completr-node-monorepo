@@ -7,5 +7,6 @@ export interface IncomingFollowRequest {
 		name: string;
 		avatarUrl?: string;
 		role?: string;
+		hasPremium?: boolean;
 	};
 }

@@ -144,8 +144,7 @@ export class UserConnections {
 
 	private readonly errorStatus = computed(() => {
 		const error = this.connections.error() as
-			| { status?: number }
-			| undefined;
+			{ status?: number } | undefined;
 		return error ? (error.status ?? 0) : null;
 	});
 

@@ -121,6 +121,21 @@
 				>
 					<td class="px-4 py-2.5 align-middle">
 						<div class="flex items-center gap-2.5">
+							<button
+								uiButton
+								size="sm"
+								variant="ghost"
+								type="button"
+								[attr.aria-label]="'Premium access for ' + user.username"
+								(click)="$event.stopPropagation(); openPremiumAccess(user)"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-base"
+									>workspace_premium</span
+								>
+								<span class="sr-only">Premium access</span>
+							</button>
 							<ui-avatar
 								class="size-8"
 								[name]="user.username"
@@ -184,7 +199,21 @@
 	>
 		@for (user of users(); track user.id) { @let badge =
 		roleBadge(user.role);
-		<li>
+		<li class="flex items-center">
+			<button
+				uiButton
+				size="sm"
+				variant="ghost"
+				type="button"
+				class="ml-2 shrink-0"
+				[attr.aria-label]="'Premium access for ' + user.username"
+				(click)="openPremiumAccess(user)"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>workspace_premium</span
+				>
+				<span class="sr-only">Premium access</span>
+			</button>
 			<button
 				type="button"
 				class="w-full min-h-[44px] flex items-center gap-3 px-4 py-3 bg-transparent border-0 text-left cursor-pointer text-fg transition hover:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
@@ -500,6 +529,19 @@
 	<ng-container dialogFooter>
 		<button
 			uiButton
+			variant="premium"
+			type="button"
+			class="mr-auto"
+			[disabled]="isEditing()"
+			(click)="openPremiumAccess(user)"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>workspace_premium</span
+			>
+			Premium access
+		</button>
+		<button
+			uiButton
 			variant="ghost"
 			type="button"
 			[disabled]="isEditing()"
@@ -518,4 +560,6 @@
 		</button>
 	</ng-container>
 </ui-dialog>
+} @if (showPremiumAccess() && premiumAccessUser(); as user) {
+<app-admin-premium-access [user]="user" (closed)="closePremiumAccess()" />
 }

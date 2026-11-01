@@ -105,7 +105,9 @@ describe("UserQueue", () => {
 	});
 
 	it("shows the private state when the owner does not share the queue", async () => {
-		getUserQueue.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 403 })));
+		getUserQueue.mockReturnValue(
+			throwError(() => new HttpErrorResponse({ status: 403 }))
+		);
 		await renderPage();
 
 		expect(
@@ -119,7 +121,9 @@ describe("UserQueue", () => {
 	});
 
 	it("shows the not-found state when the player does not exist", async () => {
-		getUserQueue.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
+		getUserQueue.mockReturnValue(
+			throwError(() => new HttpErrorResponse({ status: 404 }))
+		);
 		await renderPage();
 
 		expect(

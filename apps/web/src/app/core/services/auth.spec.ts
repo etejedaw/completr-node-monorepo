@@ -175,7 +175,12 @@ describe("AuthService", () => {
 	});
 
 	describe("loadUser", () => {
-		const user = { id: "u1", username: "ada", role: "premium" } as User;
+		const user = {
+			id: "u1",
+			username: "ada",
+			role: "premium",
+			premiumAccess: { active: true, source: "role", expiresAt: null }
+		} as User;
 
 		it("loads the current user and exposes premium status", () => {
 			service.loadUser().subscribe();
@@ -187,6 +192,26 @@ describe("AuthService", () => {
 			expect(service.isLoggedIn()).toBe(true);
 			expect(service.isPremium()).toBe(true);
 			expect(setLocal).not.toHaveBeenCalled();
+		});
+
+		it("uses effective premium access instead of the permanent role", () => {
+			service.loadUser().subscribe();
+
+			httpTesting.expectOne(`${api}/users/me`).flush({
+				data: {
+					user: {
+						...user,
+						role: "user",
+						premiumAccess: {
+							active: true,
+							source: "full-grant",
+							expiresAt: "2027-01-01T00:00:00.000Z"
+						}
+					}
+				}
+			});
+
+			expect(service.isPremium()).toBe(true);
 		});
 
 		it("applies the theme saved in the user profile", () => {

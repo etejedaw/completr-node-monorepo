@@ -52,6 +52,7 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 		aiRecap: null,
 		premiumStats: null,
 		ownerControls: controls(),
+		premiumAccess: { allowed: true, source: "role", expiresAt: null },
 		...overrides
 	} as Rewind;
 }
@@ -246,17 +247,28 @@ describe("RewindOwnerPanel", () => {
 		requests[0].flush({ data: rewindFixture() });
 	});
 
-	it("never shows Add AI recap to an owner who isn't premium anymore", async () => {
+	it("shows Add AI recap to a free role when a feature grant makes it available", async () => {
 		isPremium.set(false);
 		await renderPanel(
 			rewindFixture({
+				user: {
+					username: "ada",
+					name: "Ada",
+					avatarUrl: null,
+					role: "user"
+				},
+				premiumAccess: {
+					allowed: true,
+					source: "feature-grant",
+					expiresAt: "2027-01-31T23:59:59.999Z"
+				},
 				ownerControls: controls({ aiRecapState: "available" })
 			})
 		);
 
 		expect(
-			screen.queryByRole("button", { name: "Add AI recap" })
-		).toBeNull();
+			screen.getByRole("button", { name: "Add AI recap" })
+		).toBeInTheDocument();
 	});
 
 	it("explains a lost premium and reloads the Rewind", async () => {

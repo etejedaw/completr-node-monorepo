@@ -8,6 +8,7 @@ import { of, Subject } from "rxjs";
 import { type PlatinumEntry } from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
+import { GiftOffersService } from "../../../shared/components/gift-offer-card/gift-offers.service";
 import { PlatinumService } from "../platinum";
 import { PlatinumDialog } from "../platinum-dialog/platinum-dialog";
 import { PlatinumList } from "./platinum-list";
@@ -80,7 +81,11 @@ describe("PlatinumList", () => {
 				provideRouter([]),
 				{ provide: PlatinumService, useValue: platinumService },
 				{ provide: DialogService, useValue: dialogs },
-				{ provide: ToastService, useValue: toast }
+				{ provide: ToastService, useValue: toast },
+				{
+					provide: GiftOffersService,
+					useValue: { listOffers: () => of([]) }
+				}
 			]
 		});
 	}

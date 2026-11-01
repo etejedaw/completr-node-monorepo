@@ -30,7 +30,7 @@ export class UserCard {
 	readonly followToggled = output<void>();
 
 	protected readonly avatarRing = computed(() =>
-		avatarRing(this.user().role)
+		avatarRing(this.user().role, this.user().hasPremium)
 	);
 	protected readonly displayName = computed(
 		() => this.user().name || this.user().username

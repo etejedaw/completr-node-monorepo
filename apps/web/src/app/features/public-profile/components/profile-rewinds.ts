@@ -6,7 +6,10 @@ import {
 	input
 } from "@angular/core";
 
-import { type RewindYearSummary } from "../../../core/models/rewind.model";
+import {
+	type RewindPremiumAccess,
+	type RewindYearSummary
+} from "../../../core/models/rewind.model";
 import { ViewportService } from "../../../core/services/viewport";
 import { RewindYearCard } from "../../rewind/components/rewind-year-card/rewind-year-card";
 import { ProfileSectionHeader } from "./profile-section-header";
@@ -48,6 +51,7 @@ const PROFILE_REWIND_LIMIT = 4;
 							<app-rewind-year-card
 								[username]="username()"
 								[summary]="summary"
+								[premiumAccess]="premiumAccess()"
 							/>
 						</li>
 					}
@@ -61,6 +65,7 @@ const PROFILE_REWIND_LIMIT = 4;
 export class ProfileRewinds {
 	readonly username = input.required<string>();
 	readonly years = input.required<RewindYearSummary[]>();
+	readonly premiumAccess = input<RewindPremiumAccess | null>(null);
 
 	protected readonly isMobile = inject(ViewportService).isMobile;
 	protected readonly limit = PROFILE_REWIND_LIMIT;

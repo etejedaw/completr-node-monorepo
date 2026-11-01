@@ -29,7 +29,11 @@ describe("RewindMoreYears", () => {
 
 	it("lists the other years and leaves out the one on screen", async () => {
 		await renderMoreYears(() =>
-			of({ spotlightYear: null, years: [2026, 2025, 2024].map(summary) })
+			of({
+				spotlightYear: null,
+				years: [2026, 2025, 2024].map(summary),
+				premiumAccess: { allowed: false, source: null, expiresAt: null }
+			})
 		);
 
 		expect(

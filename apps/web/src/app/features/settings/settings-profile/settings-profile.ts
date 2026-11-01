@@ -50,7 +50,10 @@ export class SettingsProfile implements OnInit {
 
 	protected readonly user = this.authService.user;
 	protected readonly avatarRing = computed(() =>
-		avatarRing(this.authService.user()?.role)
+		avatarRing(
+			this.authService.user()?.role,
+			this.authService.user()?.premiumAccess?.active ?? false
+		)
 	);
 	protected readonly backdropUrl = injectProfileBackdrop(
 		() => this.user()?.username

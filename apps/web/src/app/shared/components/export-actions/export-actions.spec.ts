@@ -3,7 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { signal } from "@angular/core";
 import { render, screen, waitFor } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
-import { type Observable, Subject, throwError } from "rxjs";
+import { type Observable, of, Subject, throwError } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
 import {
@@ -14,6 +14,7 @@ import {
 import { type ExportResource } from "../../../core/services/export.model";
 import { ToastService } from "../../../core/services/toast";
 import { QueueBrowser } from "../../../features/queue/queue-browser/queue-browser";
+import { GiftOffersService } from "../gift-offer-card/gift-offers.service";
 import { ExportActions } from "./export-actions";
 
 describe("ExportActions", () => {
@@ -38,6 +39,10 @@ describe("ExportActions", () => {
 		return [
 			{ provide: AuthService, useValue: { isPremium } },
 			{ provide: ExportService, useValue: exportService },
+			{
+				provide: GiftOffersService,
+				useValue: { listOffers: vi.fn(() => of([])) }
+			},
 			{ provide: ToastService, useValue: toast }
 		];
 	}

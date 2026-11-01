@@ -310,14 +310,18 @@ describe("UserConnections", () => {
 			expect(element(fixture).textContent).toContain(
 				"Couldn't load the connections"
 			);
-			expect(element(fixture).textContent).not.toContain("Player not found");
+			expect(element(fixture).textContent).not.toContain(
+				"Player not found"
+			);
 			const retry = Array.from(
 				element(fixture).querySelectorAll("button")
 			).find(button => button.textContent?.includes("Try again"))!;
 			retry.click();
 			await settle(fixture);
 
-			expectConnections("followers").flush(playersPage(1, 1, "recovered"));
+			expectConnections("followers").flush(
+				playersPage(1, 1, "recovered")
+			);
 			await settle(fixture);
 			expect(renderedPlayers(fixture)).toBe(1);
 			expect(element(fixture).textContent).not.toContain(

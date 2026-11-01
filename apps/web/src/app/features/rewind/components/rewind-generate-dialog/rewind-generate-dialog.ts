@@ -2,7 +2,6 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
-	inject,
 	input,
 	linkedSignal,
 	output
@@ -12,9 +11,9 @@ import { RouterLink } from "@angular/router";
 import {
 	type GenerateRewindRequest,
 	type Rewind,
-	type RewindLanguage
+	type RewindLanguage,
+	type RewindPremiumAccess
 } from "../../../../core/models/rewind.model";
-import { AuthService } from "../../../../core/services/auth";
 import { SegmentedControl } from "../../../../shared/components/segmented-control/segmented-control";
 import { type SegmentedOption } from "../../../../shared/components/segmented-control/segmented-control.model";
 import { UiAlert, UiButton, UiDialog, UiSwitch } from "../../../../shared/ui";
@@ -100,7 +99,7 @@ export function formatGraceDate(isoDate: string): string {
 					</p>
 				</fieldset>
 
-				@if (isPremium()) {
+				@if (hasPremiumAccess()) {
 					<div class="flex flex-col gap-2">
 						<ui-switch
 							label="Include private runs"
@@ -210,12 +209,15 @@ export class RewindGenerateDialog {
 	readonly username = input.required<string>();
 	readonly year = input.required<number>();
 	readonly rewind = input<Rewind | null>(null);
+	readonly premiumAccess = input<RewindPremiumAccess | null>(null);
 	readonly pending = input(false);
 	readonly error = input<RewindGenerateError | null>(null);
 	readonly submitted = output<GenerateRewindRequest>();
 	readonly closed = output<void>();
 
-	protected readonly isPremium = inject(AuthService).isPremium;
+	protected readonly hasPremiumAccess = computed(
+		() => this.premiumAccess()?.allowed ?? false
+	);
 	protected readonly languageOptions = LANGUAGE_OPTIONS;
 	protected readonly language = linkedSignal<RewindLanguage>(
 		() => this.rewind()?.language ?? "en"
@@ -260,7 +262,7 @@ export class RewindGenerateDialog {
 			: "Regenerating replaces your current Rewind."
 	);
 	protected readonly progressLine = computed(() =>
-		this.isPremium()
+		this.hasPremiumAccess()
 			? "Rewinding your year… this can take up to a minute."
 			: "Rewinding your year…"
 	);
@@ -269,7 +271,7 @@ export class RewindGenerateDialog {
 		return error !== null && RETRYABLE_ERRORS.includes(error);
 	});
 	protected readonly canSubmit = computed(() => {
-		if (this.pending()) return false;
+		if (this.pending() || this.premiumAccess() === null) return false;
 		const error = this.error();
 		if (error !== null && BLOCKING_ERRORS.includes(error)) return false;
 		const controls = this.controls();
@@ -306,8 +308,9 @@ export class RewindGenerateDialog {
 		if (!this.canSubmit()) return;
 		this.submitted.emit({
 			language: this.language(),
-			includePrivateRuns: this.isPremium() && this.includePrivateRuns(),
-			includeNotes: this.isPremium() && this.includeNotes(),
+			includePrivateRuns:
+				this.hasPremiumAccess() && this.includePrivateRuns(),
+			includeNotes: this.hasPremiumAccess() && this.includeNotes(),
 			expectedGeneratedAt: this.rewind()?.generatedAt ?? null
 		});
 	}

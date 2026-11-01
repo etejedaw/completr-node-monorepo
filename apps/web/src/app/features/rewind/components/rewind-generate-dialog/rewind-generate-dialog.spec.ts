@@ -8,6 +8,7 @@ import {
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	signal,
 	type WritableSignal
 } from "@angular/core";
@@ -17,8 +18,10 @@ import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../../environments/environment";
-import { type Rewind } from "../../../../core/models/rewind.model";
-import { AuthService } from "../../../../core/services/auth";
+import {
+	type Rewind,
+	type RewindPremiumAccess
+} from "../../../../core/models/rewind.model";
 import { ToastService } from "../../../../core/services/toast";
 import { RewindGenerateDialog } from "./rewind-generate-dialog";
 import { injectRewindGenerateFlow } from "./rewind-generate-flow";
@@ -78,9 +81,12 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 			canRegenerate: true,
 			aiRecapState: "unavailable"
 		},
+		premiumAccess: { allowed: false, source: null, expiresAt: null },
 		...overrides
 	};
 }
+
+let isPremium: WritableSignal<boolean>;
 
 @Component({
 	imports: [RewindGenerateDialog],
@@ -91,6 +97,7 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 				username="ada"
 				[year]="2026"
 				[rewind]="flow.latestRewind()"
+				[premiumAccess]="premiumAccess()"
 				[pending]="flow.isPending()"
 				[error]="flow.error()"
 				(submitted)="flow.submit($event)"
@@ -102,6 +109,11 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 })
 class GeneratorHost {
 	readonly current = signal<Rewind | null>(null);
+	readonly premiumAccess = computed<RewindPremiumAccess>(() => ({
+		allowed: isPremium(),
+		source: isPremium() ? "feature-grant" : null,
+		expiresAt: null
+	}));
 	readonly generated: Rewind[] = [];
 	readonly finishedInDialog: Rewind[] = [];
 	readonly flow = injectRewindGenerateFlow({
@@ -115,7 +127,6 @@ class GeneratorHost {
 
 describe("RewindGenerateDialog", () => {
 	let httpTesting: HttpTestingController;
-	let isPremium: WritableSignal<boolean>;
 	let toast: {
 		pending: ReturnType<typeof vi.fn>;
 		error: ReturnType<typeof vi.fn>;
@@ -127,7 +138,6 @@ describe("RewindGenerateDialog", () => {
 				provideHttpClient(),
 				provideHttpClientTesting(),
 				provideRouter([]),
-				{ provide: AuthService, useValue: { isPremium } },
 				{ provide: ToastService, useValue: toast }
 			]
 		});

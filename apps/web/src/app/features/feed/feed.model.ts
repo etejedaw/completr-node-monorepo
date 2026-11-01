@@ -9,6 +9,7 @@ export interface ActivityTarget {
 	backgroundUrl?: string;
 	avatarUrl?: string;
 	role?: string;
+	hasPremium?: boolean;
 }
 
 export interface FeedActivity {
@@ -21,6 +22,7 @@ export interface FeedActivity {
 		name: string;
 		avatarUrl: string | null;
 		role?: string;
+		hasPremium?: boolean;
 	} | null;
 	target: ActivityTarget | null;
 	game: ActivityTarget | null;

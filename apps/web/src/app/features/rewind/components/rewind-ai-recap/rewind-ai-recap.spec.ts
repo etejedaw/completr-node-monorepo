@@ -44,10 +44,16 @@ function recap(overrides: Partial<RewindAiRecapData> = {}): RewindAiRecapData {
 
 async function renderRecap(
 	data: RewindAiRecapData = recap(),
-	language: RewindLanguage = "en"
+	language: RewindLanguage = "en",
+	source: "role" | "full-grant" | "feature-grant" = "role"
 ) {
 	return render(RewindAiRecap, {
-		inputs: { recap: data, year: 2026, language },
+		inputs: {
+			recap: data,
+			year: 2026,
+			language,
+			premiumAccess: { allowed: true, source, expiresAt: null }
+		},
 		providers: [{ provide: ToastService, useValue: { premium: vi.fn() } }]
 	});
 }
@@ -114,6 +120,23 @@ describe("RewindAiRecap", () => {
 			"true"
 		);
 		expect(section.className).toContain("border-premium");
+	});
+
+	it.each(["role", "full-grant"] as const)(
+		"keeps the Premium label for access from %s",
+		async source => {
+			await renderRecap(recap(), "en", source);
+
+			expect(screen.getByLabelText("Premium")).toBeInTheDocument();
+			expect(screen.queryByLabelText("Launch gift")).toBeNull();
+		}
+	);
+
+	it("labels a feature-specific Rewind grant as Launch gift", async () => {
+		await renderRecap(recap(), "en", "feature-grant");
+
+		expect(screen.getByLabelText("Launch gift")).toBeInTheDocument();
+		expect(screen.queryByLabelText("Premium")).toBeNull();
 	});
 
 	it("renders HTML and scripts from the AI as plain text", async () => {

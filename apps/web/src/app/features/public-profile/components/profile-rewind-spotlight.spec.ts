@@ -235,7 +235,12 @@ describe("ProfileRewindSpotlight", () => {
 					username: "ada",
 					summary: summary({ isGenerated: false }),
 					isSelf,
-					hasMoreYears: false
+					hasMoreYears: false,
+					premiumAccess: {
+						allowed: true,
+						source: "feature-grant",
+						expiresAt: "2027-01-31T23:59:59.999Z"
+					}
 				},
 				providers: [
 					provideRouter([]),
@@ -324,6 +329,14 @@ describe("ProfileRewindSpotlight", () => {
 				name: "Generate your 2026 Rewind"
 			});
 			expect(dialogs).toHaveLength(1);
+			expect(
+				within(dialogs[0]).getByRole("switch", {
+					name: "Include private runs"
+				})
+			).toBeInTheDocument();
+			expect(
+				within(dialogs[0]).getByRole("switch", { name: "Use my notes" })
+			).toBeInTheDocument();
 			await userEvent.click(
 				within(dialogs[0]).getByRole("button", { name: "Generate" })
 			);

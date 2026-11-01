@@ -40,7 +40,7 @@
 					<ui-avatar
 						[src]="req.user.avatarUrl"
 						[name]="req.user.username"
-						[ring]="avatarRing(req.user.role)"
+						[ring]="avatarRing(req.user.role, req.user.hasPremium)"
 						class="w-10 h-10 text-sm"
 					/>
 				</a>

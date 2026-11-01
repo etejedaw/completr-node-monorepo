@@ -9,6 +9,7 @@ import {
 } from "@angular/core";
 import { rxResource, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, RouterLink } from "@angular/router";
+import { map } from "rxjs";
 
 import {
 	type Rewind,
@@ -151,6 +152,23 @@ export class RewindDetail {
 		this.year() === null
 			? "not_found"
 			: detailLoadError(this.resource.error())
+	);
+
+	private readonly generationAccess = rxResource({
+		params: () =>
+			this.loadError() === "not_generated" ? this.username() : undefined,
+		stream: ({ params: username }) =>
+			this.rewindService
+				.getYears(username)
+				.pipe(map(result => result.premiumAccess))
+	});
+
+	protected readonly generationPremiumAccess = computed(
+		() =>
+			this.rewind()?.premiumAccess ??
+			(this.generationAccess.hasValue()
+				? this.generationAccess.value()
+				: null)
 	);
 
 	protected readonly language = linkedSignal<

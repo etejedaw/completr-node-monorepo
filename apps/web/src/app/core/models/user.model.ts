@@ -1,10 +1,17 @@
 export type VisibilityLevel = "private" | "friends" | "public";
 
+export interface PremiumAccess {
+	active: boolean;
+	source: "role" | "full-grant" | null;
+	expiresAt: string | null;
+}
+
 export interface User {
 	id: string;
 	username: string;
 	email: string;
 	role: UserRole;
+	premiumAccess: PremiumAccess;
 	name: string;
 	bio?: string;
 	avatarUrl?: string;

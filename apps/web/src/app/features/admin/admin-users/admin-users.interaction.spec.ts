@@ -1042,6 +1042,29 @@ describe("Admin users interaction", () => {
 			);
 		});
 
+		it("opens premium access from a user action without opening the editor", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			await user.click(
+				screen.getAllByRole("button", {
+					name: "Premium access for bob"
+				})[0]!
+			);
+			const dialog = await screen.findByRole("dialog", {
+				name: "Premium access"
+			});
+			expect(dialog).toHaveTextContent("bob");
+			expect(
+				screen.queryByRole("dialog", { name: "Edit user" })
+			).not.toBeInTheDocument();
+			http.expectOne(`${USERS_URL}/u2/premium-grants`).flush({
+				data: { grants: [] }
+			});
+			http.expectOne(`${api}/admin/premium-features`).flush({
+				data: { features: [] }
+			});
+		});
+
 		it("clicking a table row opens the editor for that row's user", async () => {
 			const user = userEvent.setup();
 			await renderUsers();

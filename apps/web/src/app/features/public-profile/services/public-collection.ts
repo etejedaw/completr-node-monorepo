@@ -58,9 +58,7 @@ export function injectPublicCollection<T>(
 	);
 	const items = computed(() => page()?.items ?? []);
 	const total = computed(() => page()?.total ?? 0);
-	const isLoading = computed(
-		() => !viewerReady() || collection.isLoading()
-	);
+	const isLoading = computed(() => !viewerReady() || collection.isLoading());
 
 	const errorStatus = computed(() => {
 		const error = collection.error() as { status?: number } | undefined;

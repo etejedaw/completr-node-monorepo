@@ -49,6 +49,7 @@ import {
 	validationSummary
 } from "../../../shared/utils/validation-errors";
 import { AdminInvitations } from "../admin-invitations/admin-invitations";
+import { AdminPremiumAccess } from "../admin-premium-access/admin-premium-access";
 import { type AdminUser } from "../services/user-admin.model";
 import { UserAdminService } from "../services/user-admin.service";
 import { type CreateUserRequest } from "./admin-users.model";
@@ -136,6 +137,7 @@ function editedSince(snapshot: FormSnapshot | null, current: FormSnapshot) {
 	selector: "app-admin-users",
 	imports: [
 		AdminInvitations,
+		AdminPremiumAccess,
 		DatePipe,
 		FormField,
 		LibraryHero,
@@ -231,6 +233,8 @@ export class AdminUsers implements OnInit {
 	protected readonly editFieldErrors = signal<Record<string, string>>({});
 	private readonly editServerSnapshot = signal<FormSnapshot | null>(null);
 	protected readonly showEditPassword = signal(false);
+	protected readonly showPremiumAccess = signal(false);
+	protected readonly premiumAccessUser = signal<AdminUser | null>(null);
 
 	protected readonly editModel = signal({
 		name: "",
@@ -395,6 +399,17 @@ export class AdminUsers implements OnInit {
 	closeEdit() {
 		this.showEditModal.set(false);
 		this.editingUser.set(null);
+	}
+
+	openPremiumAccess(user: AdminUser) {
+		this.closeEdit();
+		this.premiumAccessUser.set(user);
+		this.showPremiumAccess.set(true);
+	}
+
+	closePremiumAccess() {
+		this.showPremiumAccess.set(false);
+		this.premiumAccessUser.set(null);
 	}
 
 	submitEdit(event: Event) {

@@ -117,7 +117,11 @@ describe("injectPublicCollection", () => {
 		[404, "not_found"]
 	])("maps a %s response to the %s error", (status, expected) => {
 		const { collection } = create(
-			vi.fn().mockReturnValue(throwError(() => new HttpErrorResponse({ status })))
+			vi
+				.fn()
+				.mockReturnValue(
+					throwError(() => new HttpErrorResponse({ status }))
+				)
 		);
 
 		expect(collection.error()).toBe(expected);
@@ -128,7 +132,11 @@ describe("injectPublicCollection", () => {
 		"marks a %s failure as recoverable without changing the access error",
 		status => {
 			const { collection } = create(
-				vi.fn().mockReturnValue(throwError(() => new HttpErrorResponse({ status })))
+				vi
+					.fn()
+					.mockReturnValue(
+						throwError(() => new HttpErrorResponse({ status }))
+					)
 			);
 
 			expect(collection.error()).toBeNull();
@@ -140,7 +148,9 @@ describe("injectPublicCollection", () => {
 	it("reloads the current page after a recoverable failure", () => {
 		const fetchPage = vi
 			.fn()
-			.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 500 })))
+			.mockReturnValueOnce(
+				throwError(() => new HttpErrorResponse({ status: 500 }))
+			)
 			.mockReturnValue(of({ items, total: 3 }));
 		const { collection } = create(fetchPage);
 
@@ -148,7 +158,10 @@ describe("injectPublicCollection", () => {
 		TestBed.tick();
 
 		expect(fetchPage).toHaveBeenCalledTimes(2);
-		expect(fetchPage).toHaveBeenLastCalledWith("ada", { limit: 2, offset: 0 });
+		expect(fetchPage).toHaveBeenLastCalledWith("ada", {
+			limit: 2,
+			offset: 0
+		});
 		expect(collection.items()).toEqual(items);
 		expect(collection.hasLoadFailed()).toBe(false);
 	});
@@ -223,7 +236,9 @@ describe("injectPublicCollection", () => {
 	it("clears a previous error when loading another page", () => {
 		const fetchPage = vi
 			.fn()
-			.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 403 })))
+			.mockReturnValueOnce(
+				throwError(() => new HttpErrorResponse({ status: 403 }))
+			)
 			.mockReturnValue(of({ items, total: 3 }));
 		const { collection } = create(fetchPage);
 		expect(collection.error()).toBe("private");

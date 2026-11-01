@@ -129,7 +129,8 @@ function rewindFor(year: number, otherYears: number[]): Rewind {
 		generatedAt: `${year}-12-02T10:00:00.000Z`,
 		aiRecap: null,
 		premiumStats: null,
-		ownerControls: null
+		ownerControls: null,
+		premiumAccess: { allowed: true, source: "role", expiresAt: null }
 	};
 }
 
@@ -217,7 +218,12 @@ describe("Rewind interaction", () => {
 			return req.flush({
 				data: {
 					spotlightYear: null,
-					years: availableYears.map(summaryFor)
+					years: availableYears.map(summaryFor),
+					premiumAccess: {
+						allowed: true,
+						source: "feature-grant",
+						expiresAt: "2027-01-31T23:59:59.999Z"
+					}
 				}
 			});
 		}

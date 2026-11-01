@@ -28,4 +28,8 @@ describe("avatarRing", () => {
 	it.each(["user", null, undefined])("returns no ring for %s", role => {
 		expect(avatarRing(role)).toBeNull();
 	});
+
+	it("returns the premium ring for effective full premium access", () => {
+		expect(avatarRing("user", true)).toBe("premium");
+	});
 });

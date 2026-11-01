@@ -31,7 +31,11 @@ describe("RewindService", () => {
 	afterEach(() => httpTesting.verify());
 
 	it("gets the years of a user and unwraps the data", () => {
-		const years: RewindYears = { spotlightYear: 2026, years: [] };
+		const years: RewindYears = {
+			spotlightYear: 2026,
+			years: [],
+			premiumAccess: { allowed: false, source: null, expiresAt: null }
+		};
 		let result: RewindYears | undefined;
 
 		service.getYears("ada").subscribe(value => (result = value));

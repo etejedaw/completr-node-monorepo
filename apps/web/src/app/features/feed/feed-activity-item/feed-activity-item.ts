@@ -45,7 +45,7 @@ export class FeedActivityItem {
 				username: target.username ?? "",
 				displayName: target.name,
 				avatarUrl: target.avatarUrl,
-				avatarRing: avatarRing(target.role)
+				avatarRing: avatarRing(target.role, target.hasPremium)
 			};
 		}
 		if (!activity.user) return null;
@@ -53,7 +53,7 @@ export class FeedActivityItem {
 			username: activity.user.username,
 			displayName: activity.user.name || activity.user.username,
 			avatarUrl: activity.user.avatarUrl,
-			avatarRing: avatarRing(activity.user.role)
+			avatarRing: avatarRing(activity.user.role, activity.user.hasPremium)
 		};
 	});
 
