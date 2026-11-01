@@ -189,23 +189,20 @@ void describe("POST /games/:id/external-data/refresh — validation", () => {
 		});
 	}
 
-	void it(
-		"answers 400 for a malformed JSON body",
-		{
-			todo: "the global error handler turns body-parser's entity.parse.failed into a 500 on every route"
-		},
-		async () => {
-			const game = await createCatalogGame("Hades");
+	void it("answers 400 COMMON_INVALID_JSON for a malformed JSON body", async () => {
+		const game = await createCatalogGame("Hades");
 
-			const response = await api()
-				.post(`/games/${game.id}/external-data/refresh`)
-				.set("Authorization", moderator)
-				.set("Content-Type", "application/json")
-				.send('{"sources": [');
+		const response = await api()
+			.post(`/games/${game.id}/external-data/refresh`)
+			.set("Authorization", moderator)
+			.set("Content-Type", "application/json")
+			.send('{"sources": [');
 
-			assert.equal(response.status, 400);
-		}
-	);
+		assert.equal(response.status, 400);
+		assert.equal(response.body.type, "COMMON_INVALID_JSON");
+		assert.equal(metacritic.calls.length, 0);
+		assert.equal(hltb.calls.length, 0);
+	});
 
 	void it("answers 422 for an id that is not a UUID", async () => {
 		const response = await refresh("not-a-uuid", { sources: ["hltb"] });
