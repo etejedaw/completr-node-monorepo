@@ -6,6 +6,10 @@ export const SUPPRESS_VALIDATION_TOAST = new HttpContextToken<boolean>(
 	() => false
 );
 
+export const SUPPRESS_CONFLICT_TOAST = new HttpContextToken<boolean>(
+	() => false
+);
+
 function getIssues(err: unknown): ServerValidationIssue[] {
 	const body = (err as HttpErrorResponse | undefined)?.error;
 	if (body?.type !== "COMMON_SCHEMA_INVALID") return [];
