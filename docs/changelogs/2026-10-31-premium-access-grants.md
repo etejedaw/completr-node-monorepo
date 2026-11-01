@@ -4,12 +4,12 @@
 
 ## Summary
 
-El acceso premium deja de depender exclusivamente de `User.role`. El módulo nuevo `premium-access` resuelve el premium efectivo a partir del rol permanente, concesiones completas temporales y regalos de funcionalidades individuales o globales. Las concesiones se evalúan contra su vencimiento en cada operación, sin cron ni cambios de rol, y todos los gates existentes conservan sus errores, límites y reglas de degradación suave. Admin puede gestionar las concesiones, los usuarios pueden activar ofertas definidas en el backend y el regalo global de Rewind habilita su contenido premium hasta el 31 de enero de 2027 sin generar Rewinds automáticamente.
+El acceso premium deja de depender exclusivamente de `User.role`. El módulo nuevo `premium-access` resuelve el premium efectivo a partir del rol permanente, concesiones completas temporales y regalos de funcionalidades individuales. Las concesiones se evalúan contra su vencimiento en cada operación, sin cron ni cambios de rol, y todos los gates existentes conservan sus errores, límites y reglas de degradación suave. Admin puede gestionar las concesiones y los usuarios pueden activar ofertas definidas en el backend.
 
 ## Highlights
 
 - Premium completo temporal equivalente al rol premium en límites, filtros del feed, temas, exportación JSON y Rewind, sin modificar `User.role`.
-- Regalos individuales con vencimiento opcional y una concesión global de `rewind.premium` vigente hasta `2027-01-31T23:59:59.999Z`.
+- Regalos individuales de funcionalidades con vencimiento opcional.
 - Administración de concesiones desde Admin → Users y ofertas de 30 días activables por el usuario con claims idempotentes.
 - `GiftOfferCard` reutilizable, integrado en la exportación JSON, y distintivos públicos compatibles con premium temporal sin falsificar roles.
 
@@ -36,7 +36,7 @@ El acceso premium deja de depender exclusivamente de `User.role`. El módulo nue
 
 ## Migration
 
-- `apps/api/migrations/20261031044624-create-premium-grants-table.js` crea `PremiumGrants`, el índice único parcial `PremiumGrants_userId_offerCode_unique` y la concesión global de Rewind. Debe aplicarse con `npm run migrate:dev` en local y `npm run migrate:prod` en producción antes de usar los endpoints nuevos.
+- `apps/api/migrations/20261031044624-create-premium-grants-table.js` crea `PremiumGrants`, y el índice único parcial `PremiumGrants_userId_offerCode_unique`; no siembra concesiones. Debe aplicarse con `npm run migrate:dev` en local y `npm run migrate:prod` en producción antes de usar los endpoints nuevos.
 
 ## Files of interest
 
