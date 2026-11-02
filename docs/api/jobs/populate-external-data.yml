@@ -52,14 +52,18 @@ docs: |-
     - Games are processed one at a time; cancellation is checked before each game. A cancelled job stays `cancelled` and records its partial result.
     - `not_found`, `ambiguous` and `no_data` are counted and the job continues.
     - A `*_RATE_LIMITED`, `*_BLOCKED` or `*_PARSE_ERROR` failure, or a database error, stops the job as `failed`. `*_TIMEOUT`, `*_REQUEST_ERROR` and unknown failures are counted and the job continues, unless the same source fails three times in a row.
+    - Wikidata failures (the HLTB id lookup) never stop the job. `WIKIDATA_RATE_LIMITED`, `WIKIDATA_BLOCKED`, `WIKIDATA_PARSE_ERROR`, or three Wikidata timeouts/request errors in a row, pause the HLTB id lookup for the rest of the run: games without a known HLTB id skip HLTB, games with one still read it, and Metacritic goes on. In the background, Wikidata's `Retry-After` is honored up to 10 minutes before giving up.
     - Values saved before a stop are kept.
 
     ### Result string
 
     `Candidates: C, Processed: P, Metacritic scores updated: M, HLTB durations updated: H, Skipped complete: S. Metacritic not found: n, ambiguous: a, no data: d, failed: f. HLTB not found: n, ambiguous: a, no data: d, failed: f`
 
+    - Running: prefixed with `Running. ` and updated after each game.
     - Cancelled: prefixed with `Cancelled. `
+    - HLTB id lookup paused: followed by `. HLTB ID lookup paused: <reason>, HLTB skipped without ID: N`.
     - Failed: followed by `. Stopped: <reason>` (for example `METACRITIC_BLOCKED` or `HLTB_TIMEOUT (3 failures in a row)`).
+    - When the site answered with an HTTP status or a `Retry-After`, the reason includes them: `METACRITIC_RATE_LIMITED (HTTP 429, Retry-After 3600 s)`.
 
     ### Errors
 

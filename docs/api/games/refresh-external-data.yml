@@ -65,7 +65,7 @@ docs: |-
     }
     ```
 
-    `game` has the same shape as `PATCH /games/:id`. Each result has `source`, `status` (`updated`, `not_found`, `ambiguous`, `no_data`, `failed`) and `errorCode` (the provider code on `failed`, `SOURCE_UNAVAILABLE` when the scraper is not registered, `EXTERNAL_DATA_DEADLINE_EXCEEDED` when the 45 s deadline expired before the source finished, otherwise `null`). Metacritic adds `score` (the stored 0-100 value) on `updated` and the raw `metaScore`/`userScore` whenever there was a match. HLTB adds `duration` (hours) on `updated`.
+    `game` has the same shape as `PATCH /games/:id`. Each result has `source`, `status` (`updated`, `not_found`, `ambiguous`, `no_data`, `failed`) and `errorCode` (the provider code on `failed`, `SOURCE_UNAVAILABLE` when the scraper is not registered, `EXTERNAL_DATA_DEADLINE_EXCEEDED` when the 45 s deadline expired before the source finished, otherwise `null`). A `failed` result also carries `httpStatus` and `retryAfterSeconds` when the site answered with an HTTP error status or a `Retry-After` header; otherwise those fields are absent. Metacritic adds `score` (the stored 0-100 value) on `updated` and the raw `metaScore`/`userScore` whenever there was a match. HLTB adds `duration` (hours) on `updated`.
 
     Records the audit action `game_external_data_refreshed`.
 
