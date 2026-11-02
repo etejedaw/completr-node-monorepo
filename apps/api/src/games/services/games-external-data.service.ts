@@ -6,12 +6,14 @@ import * as gameTimesService from "../../game-times/game-times.service";
 import * as gamesServiceError from "../errors/games.service-error";
 import {
 	EXTERNAL_DATA_DEADLINE_EXCEEDED,
-	type ExternalDataSource
+	type ExternalDataSource,
+	HLTB_ID_LOOKUP_PAUSED
 } from "../games.constants";
 import {
 	type ExternalDataCandidate,
 	type ExternalDataCandidates,
 	type ExternalDataGame,
+	type ExternalDataRefreshOptions,
 	type ExternalDataRequestOptions,
 	type ExternalDataResult,
 	type HltbSource,
@@ -87,7 +89,7 @@ async function refreshWithinDeadline(
 export async function refreshExternalDataForGame(
 	game: ExternalDataGame,
 	sources: readonly ExternalDataSource[],
-	options: ExternalDataRequestOptions = {}
+	options: ExternalDataRefreshOptions = {}
 ) {
 	const externals = await gameExternalService.findByGameId(game.id);
 	const externalIdOf = (source: ExternalSource) =>
@@ -287,10 +289,12 @@ async function fetchUnlessNotFound<T>(fetchDetail: () => Promise<T>) {
 async function refreshHltb(
 	game: ExternalDataGame,
 	externalId: string | null,
-	options: ExternalDataRequestOptions
+	options: ExternalDataRefreshOptions
 ): Promise<ExternalDataResult> {
 	const hltb = getHltbSource();
 	if (!hltb) return failedResult("hltb", SOURCE_UNAVAILABLE);
+	if (!externalId && options.resolveHltbId === false)
+		return failedResult("hltb", HLTB_ID_LOOKUP_PAUSED);
 
 	let lookup: HltbLookup;
 	try {

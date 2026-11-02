@@ -79,6 +79,45 @@ void describe("classifyExternalDataError", () => {
 		});
 	}
 
+	void it("keeps the HTTP status and the Retry-After of a request failure, rounded up to seconds", () => {
+		const error = new ServiceError("WIKIDATA_RATE_LIMITED", {
+			service: "Wikidata Provider",
+			raw: {
+				kind: "RATE_LIMITED",
+				url: "https://query.wikidata.org/sparql",
+				status: 429,
+				attempts: 1,
+				retryAfterMs: 900_400
+			}
+		});
+
+		assert.deepEqual(classifyExternalDataError(error), {
+			status: "failed",
+			errorCode: "WIKIDATA_RATE_LIMITED",
+			httpStatus: 429,
+			retryAfterSeconds: 901
+		});
+	});
+
+	void it("leaves the request detail out when it is missing or malformed", () => {
+		for (const raw of [
+			{ kind: "TIMEOUT", attempts: 2 },
+			{ status: "429", retryAfterMs: "soon" },
+			"text",
+			null
+		]) {
+			assert.deepEqual(
+				classifyExternalDataError(
+					new ServiceError("HLTB_TIMEOUT", {
+						service: "HLTB Provider",
+						raw
+					})
+				),
+				{ status: "failed", errorCode: "HLTB_TIMEOUT" }
+			);
+		}
+	});
+
 	void it("maps an error without code to failed with a null code", () => {
 		assert.deepEqual(classifyExternalDataError(new Error("boom")), {
 			status: "failed",

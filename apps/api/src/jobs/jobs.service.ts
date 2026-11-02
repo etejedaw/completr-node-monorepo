@@ -3,6 +3,7 @@ import { Op } from "sequelize";
 import * as backlogService from "../backlog/backlog.service";
 import { apiKeysConfig } from "../common/config/api-keys.config";
 import { ServiceError } from "../common/errors/service-error";
+import { PinoLogger } from "../common/logger/pino.logger";
 import * as coopRunsService from "../coop-runs/coop-runs.service";
 import * as gameExternalService from "../game-external/game-external.service";
 import * as gamePopularityService from "../game-popularity/game-popularity.service";
@@ -11,7 +12,7 @@ import * as gameTimesService from "../game-times/game-times.service";
 import {
 	EXTERNAL_DATA_SOURCES,
 	EXTERNAL_DATA_THROTTLE_SUFFIXES,
-	type ExternalDataSource
+	HLTB_ID_LOOKUP_PAUSED
 } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import { type ExternalDataResult } from "../games/games-external-data.interface";
@@ -21,11 +22,13 @@ import * as reviewsService from "../reviews/reviews.service";
 import * as usersService from "../users/users.service";
 import { Job } from "./job.model";
 import {
+	type ExternalDataFailureStreaks,
 	type ExternalDataJobReport,
 	type ExternalDataSourceTally
 } from "./jobs.interface";
 
 const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
+const logger = new PinoLogger("Jobs");
 
 const MIN_THRESHOLD_PERCENT = 0.1;
 const EXTERNAL_DATA_STOP_SUFFIXES = [
@@ -33,6 +36,8 @@ const EXTERNAL_DATA_STOP_SUFFIXES = [
 	"_PARSE_ERROR"
 ];
 const MAX_CONSECUTIVE_TRANSIENT_FAILURES = 3;
+const HLTB_ID_LOOKUP_ERROR_PREFIX = "WIKIDATA_";
+const EXTERNAL_DATA_JOB_OPERATION = "populate_external_data";
 const TALLY_KEY_BY_STATUS = {
 	updated: "updated",
 	not_found: "notFound",
@@ -216,7 +221,9 @@ function emptyExternalDataReport(): ExternalDataJobReport {
 		processed: 0,
 		skippedComplete: 0,
 		metacritic: emptyTally(),
-		hltb: emptyTally()
+		hltb: emptyTally(),
+		hltbIdLookupPausedReason: null,
+		hltbSkippedWithoutId: 0
 	};
 }
 
@@ -224,47 +231,125 @@ function describeTally(label: string, tally: ExternalDataSourceTally) {
 	return `${label} not found: ${tally.notFound}, ambiguous: ${tally.ambiguous}, no data: ${tally.noData}, failed: ${tally.failed}`;
 }
 
+function describeHltbIdLookupPause(report: ExternalDataJobReport) {
+	return report.hltbIdLookupPausedReason === null
+		? []
+		: [
+				`HLTB ID lookup paused: ${report.hltbIdLookupPausedReason}, HLTB skipped without ID: ${report.hltbSkippedWithoutId}`
+			];
+}
+
 function describeExternalDataReport(report: ExternalDataJobReport) {
 	return [
 		`Candidates: ${report.candidates}, Processed: ${report.processed}, Metacritic scores updated: ${report.metacritic.updated}, HLTB durations updated: ${report.hltb.updated}, Skipped complete: ${report.skippedComplete}`,
 		describeTally("Metacritic", report.metacritic),
-		describeTally("HLTB", report.hltb)
+		describeTally("HLTB", report.hltb),
+		...describeHltbIdLookupPause(report)
 	].join(". ");
 }
 
-function isStopFailure(result: ExternalDataResult) {
+function describeFailureDetail(result: ExternalDataResult) {
+	const details = [
+		...(result.httpStatus === undefined
+			? []
+			: [`HTTP ${result.httpStatus}`]),
+		...(result.retryAfterSeconds === undefined
+			? []
+			: [`Retry-After ${result.retryAfterSeconds} s`])
+	];
+	return details.length > 0 ? ` (${details.join(", ")})` : "";
+}
+
+function isStopFailure(errorCode: string) {
 	return EXTERNAL_DATA_STOP_SUFFIXES.some(suffix =>
-		result.errorCode?.endsWith(suffix)
+		errorCode.endsWith(suffix)
 	);
+}
+
+function isHltbIdLookupFailure(errorCode: string) {
+	return errorCode.startsWith(HLTB_ID_LOOKUP_ERROR_PREFIX);
+}
+
+function failureReason(
+	result: ExternalDataResult,
+	errorCode: string,
+	streak: number
+) {
+	if (isStopFailure(errorCode))
+		return `${errorCode}${describeFailureDetail(result)}`;
+	if (streak >= MAX_CONSECUTIVE_TRANSIENT_FAILURES)
+		return `${errorCode} (${MAX_CONSECUTIVE_TRANSIENT_FAILURES} failures in a row)`;
+	return null;
 }
 
 function tallyExternalDataResults(
 	report: ExternalDataJobReport,
 	results: ExternalDataResult[],
-	consecutiveFailures: Record<ExternalDataSource, number>
+	streaks: ExternalDataFailureStreaks
 ) {
 	let stopReason: string | null = null;
 	for (const result of results) {
-		report[result.source][TALLY_KEY_BY_STATUS[result.status]]++;
-		if (result.status !== "failed") {
-			consecutiveFailures[result.source] = 0;
+		if (result.errorCode === HLTB_ID_LOOKUP_PAUSED) {
+			report.hltbSkippedWithoutId++;
 			continue;
 		}
+
+		report[result.source][TALLY_KEY_BY_STATUS[result.status]]++;
+		if (result.status !== "failed") {
+			streaks[result.source] = 0;
+			if (result.source === "hltb") streaks.wikidata = 0;
+			continue;
+		}
+
 		const errorCode = result.errorCode ?? "UNKNOWN_ERROR";
-		if (isStopFailure(result)) stopReason ??= errorCode;
-		consecutiveFailures[result.source]++;
-		if (
-			consecutiveFailures[result.source] >=
-			MAX_CONSECUTIVE_TRANSIENT_FAILURES
-		)
-			stopReason ??= `${errorCode} (${MAX_CONSECUTIVE_TRANSIENT_FAILURES} failures in a row)`;
+		if (isHltbIdLookupFailure(errorCode)) {
+			streaks.wikidata++;
+			report.hltbIdLookupPausedReason ??= failureReason(
+				result,
+				errorCode,
+				streaks.wikidata
+			);
+			continue;
+		}
+
+		streaks[result.source]++;
+		stopReason ??= failureReason(result, errorCode, streaks[result.source]);
 	}
 	return stopReason;
 }
 
+async function stopExternalDataJob(
+	jobId: string,
+	report: ExternalDataJobReport,
+	stopReason: string
+) {
+	logger.warn(EXTERNAL_DATA_JOB_OPERATION, "stopped", { jobId, stopReason });
+	await settleRunningJob(
+		jobId,
+		"failed",
+		`${describeExternalDataReport(report)}. Stopped: ${stopReason}`
+	);
+}
+
+function warnIfHltbIdLookupJustPaused(
+	jobId: string,
+	report: ExternalDataJobReport,
+	wasPaused: boolean
+) {
+	if (wasPaused || report.hltbIdLookupPausedReason === null) return;
+	logger.warn(EXTERNAL_DATA_JOB_OPERATION, "HLTB ID lookup paused", {
+		jobId,
+		reason: report.hltbIdLookupPausedReason
+	});
+}
+
 async function runPopulateExternalData(jobId: string, limit?: number) {
 	const report = emptyExternalDataReport();
-	const consecutiveFailures = { metacritic: 0, hltb: 0 };
+	const streaks: ExternalDataFailureStreaks = {
+		metacritic: 0,
+		hltb: 0,
+		wikidata: 0
+	};
 
 	try {
 		const { candidates, completeCount } =
@@ -284,23 +369,22 @@ async function runPopulateExternalData(jobId: string, limit?: number) {
 				return;
 			}
 
+			const wasPaused = report.hltbIdLookupPausedReason !== null;
 			const results = await gamesService.refreshExternalDataForGame(
 				game,
-				sources
+				sources,
+				{ resolveHltbId: !wasPaused }
 			);
 			report.processed++;
 
 			const stopReason = tallyExternalDataResults(
 				report,
 				results,
-				consecutiveFailures
+				streaks
 			);
+			warnIfHltbIdLookupJustPaused(jobId, report, wasPaused);
 			if (stopReason) {
-				await settleRunningJob(
-					jobId,
-					"failed",
-					`${describeExternalDataReport(report)}. Stopped: ${stopReason}`
-				);
+				await stopExternalDataJob(jobId, report, stopReason);
 				return;
 			}
 			await reportRunningProgress(
@@ -315,11 +399,7 @@ async function runPopulateExternalData(jobId: string, limit?: number) {
 			describeExternalDataReport(report)
 		);
 	} catch (error) {
-		await settleRunningJob(
-			jobId,
-			"failed",
-			`${describeExternalDataReport(report)}. Stopped: ${describeFailure(error)}`
-		);
+		await stopExternalDataJob(jobId, report, describeFailure(error));
 	}
 }
 

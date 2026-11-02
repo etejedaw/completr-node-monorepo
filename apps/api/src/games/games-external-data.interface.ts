@@ -27,6 +27,10 @@ export interface ExternalDataRequestOptions {
 	signal?: AbortSignal;
 }
 
+export interface ExternalDataRefreshOptions extends ExternalDataRequestOptions {
+	resolveHltbId?: boolean;
+}
+
 export interface MetacriticSource {
 	getGameBySlug(
 		slug: string,
@@ -85,6 +89,8 @@ export interface ExternalDataResult {
 	userScore?: number | null;
 	duration?: number;
 	errorCode: string | null;
+	httpStatus?: number;
+	retryAfterSeconds?: number;
 }
 
 export interface MetacriticSlugCandidate {

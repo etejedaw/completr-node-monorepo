@@ -10,7 +10,12 @@ export type ExternalDataStatus =
 
 export type ExternalDataErrorOutcome =
 	| { status: "not_found"; errorCode: null }
-	| { status: "failed"; errorCode: string | null };
+	| {
+			status: "failed";
+			errorCode: string | null;
+			httpStatus?: number;
+			retryAfterSeconds?: number;
+	  };
 
 export type MetacriticLookup =
 	| { status: "matched"; detail: MetacriticSourceDetail; isNewMatch: boolean }

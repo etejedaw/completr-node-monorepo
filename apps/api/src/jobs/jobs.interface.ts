@@ -12,4 +12,12 @@ export interface ExternalDataJobReport {
 	skippedComplete: number;
 	metacritic: ExternalDataSourceTally;
 	hltb: ExternalDataSourceTally;
+	hltbIdLookupPausedReason: string | null;
+	hltbSkippedWithoutId: number;
+}
+
+export interface ExternalDataFailureStreaks {
+	metacritic: number;
+	hltb: number;
+	wikidata: number;
 }

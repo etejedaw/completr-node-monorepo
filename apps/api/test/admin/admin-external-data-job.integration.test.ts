@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, it } from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { AuditLog } from "../../src/audit/audit.model";
+import { ServiceError } from "../../src/common/errors/service-error";
 import { GameExternal } from "../../src/game-external/game-external.model";
 import { GameScore } from "../../src/game-scores/game-score.model";
 import { GameTime } from "../../src/game-times/game-time.model";
@@ -91,6 +92,7 @@ function report(fields: {
 	skipped?: number;
 	mc?: [number, number, number, number];
 	hltb?: [number, number, number, number];
+	hltbIdLookupPaused?: { reason: string; skippedWithoutId: number };
 }) {
 	const [mcNotFound, mcAmbiguous, mcNoData, mcFailed] = fields.mc ?? [
 		0, 0, 0, 0
@@ -101,8 +103,26 @@ function report(fields: {
 	return [
 		`Candidates: ${fields.candidates}, Processed: ${fields.processed}, Metacritic scores updated: ${fields.mcUpdated ?? 0}, HLTB durations updated: ${fields.hltbUpdated ?? 0}, Skipped complete: ${fields.skipped ?? 0}`,
 		`Metacritic not found: ${mcNotFound}, ambiguous: ${mcAmbiguous}, no data: ${mcNoData}, failed: ${mcFailed}`,
-		`HLTB not found: ${hNotFound}, ambiguous: ${hAmbiguous}, no data: ${hNoData}, failed: ${hFailed}`
+		`HLTB not found: ${hNotFound}, ambiguous: ${hAmbiguous}, no data: ${hNoData}, failed: ${hFailed}`,
+		...(fields.hltbIdLookupPaused
+			? [
+					`HLTB ID lookup paused: ${fields.hltbIdLookupPaused.reason}, HLTB skipped without ID: ${fields.hltbIdLookupPaused.skippedWithoutId}`
+				]
+			: [])
 	].join(". ");
+}
+
+function rateLimitedWithDetail(code: string, retryAfterMs: number) {
+	return new ServiceError(code, {
+		service: "Fake Provider",
+		raw: {
+			kind: "RATE_LIMITED",
+			url: "https://example.test/",
+			status: 429,
+			attempts: 1,
+			retryAfterMs
+		}
+	});
 }
 
 function scorePage(slug: string, title: string, metaScore: number) {
@@ -677,43 +697,53 @@ void describe("POST /admin/jobs/populate-external-data — HLTB id through Wikid
 	});
 
 	for (const suffix of ["BLOCKED", "RATE_LIMITED", "PARSE_ERROR"]) {
-		void it(`stops at once on WIKIDATA_${suffix} after saving the Metacritic score of the same game`, async () => {
-			const game = await createCatalogGame("Alpha");
+		void it(`pauses the HLTB ID lookup on WIKIDATA_${suffix} and keeps going with Metacritic and known HLTB IDs`, async () => {
+			await createCatalogGame("Alpha");
 			await createCatalogGame("Bravo");
+			const known = await createCatalogGame("Charlie");
+			await linkExternal(known.id, "hltb", "c");
 			const metacritic = metacriticPages([
 				scorePage("alpha", "Alpha", 80),
-				scorePage("bravo", "Bravo", 70)
+				scorePage("bravo", "Bravo", 70),
+				scorePage("charlie", "Charlie", 60)
 			]);
 			const wikidata = fakeWikidata(() =>
 				providerError(`WIKIDATA_${suffix}`)
 			);
-			const hltb = hltbPages([]);
+			const hltb = hltbPages([
+				hltbDetail({ id: "c", mainStoryHours: 5 })
+			]);
 			registerFakes({ metacritic, hltb, wikidata });
 
 			const job = await runJob();
 
-			assert.equal(job.status, "failed");
+			assert.equal(job.status, "completed");
 			assert.equal(
 				job.result,
-				`${report({
-					candidates: 2,
-					processed: 1,
-					mcUpdated: 1,
-					hltb: [0, 0, 0, 1]
-				})}. Stopped: WIKIDATA_${suffix}`
+				report({
+					candidates: 3,
+					processed: 3,
+					mcUpdated: 3,
+					hltbUpdated: 1,
+					hltb: [0, 0, 0, 1],
+					hltbIdLookupPaused: {
+						reason: `WIKIDATA_${suffix}`,
+						skippedWithoutId: 1
+					}
+				})
 			);
-			assert.deepEqual(metacritic.calls, ["alpha"]);
+			assert.deepEqual(metacritic.calls, ["alpha", "bravo", "charlie"]);
 			assert.equal(wikidata.calls.length, 1);
-			assert.equal(hltb.calls.length, 0);
+			assert.deepEqual(hltb.calls, ["c"]);
 			assert.equal(
-				(await GameScore.findOne({ where: { gameId: game.id } }))
-					?.score,
-				80
+				(await GameTime.findOne({ where: { gameId: known.id } }))
+					?.duration,
+				5
 			);
 		});
 	}
 
-	void it("counts Wikidata timeouts and request errors in the HLTB transient streak", async () => {
+	void it("pauses the HLTB ID lookup after three Wikidata timeouts or request errors in a row", async () => {
 		for (const title of ["Alpha", "Bravo", "Charlie", "Delta"])
 			await createCatalogGame(title);
 		const wikidata = fakeWikidata(({ title }) =>
@@ -731,17 +761,58 @@ void describe("POST /admin/jobs/populate-external-data — HLTB id through Wikid
 
 		const job = await runJob();
 
-		assert.equal(job.status, "failed");
+		assert.equal(job.status, "completed");
 		assert.equal(
 			job.result,
-			`${report({
+			report({
 				candidates: 4,
-				processed: 3,
-				mc: [3, 0, 0, 0],
-				hltb: [0, 0, 0, 3]
-			})}. Stopped: WIKIDATA_TIMEOUT (3 failures in a row)`
+				processed: 4,
+				mc: [4, 0, 0, 0],
+				hltb: [0, 0, 0, 3],
+				hltbIdLookupPaused: {
+					reason: "WIKIDATA_TIMEOUT (3 failures in a row)",
+					skippedWithoutId: 1
+				}
+			})
 		);
 		assert.equal(wikidata.calls.length, 3);
+	});
+
+	void it("shows the HTTP status and the Retry-After that paused the HLTB ID lookup", async () => {
+		await createCatalogGame("Alpha");
+		registerFakes({
+			metacritic: metacriticPages([]),
+			hltb: hltbPages([]),
+			wikidata: fakeWikidata(() =>
+				rateLimitedWithDetail("WIKIDATA_RATE_LIMITED", 900_000)
+			)
+		});
+
+		const job = await runJob();
+
+		assert.equal(job.status, "completed");
+		assert.match(
+			job.result ?? "",
+			/\. HLTB ID lookup paused: WIKIDATA_RATE_LIMITED \(HTTP 429, Retry-After 900 s\), HLTB skipped without ID: 0$/
+		);
+	});
+
+	void it("shows the HTTP status and the Retry-After that stopped the job", async () => {
+		await createCatalogGame("Alpha");
+		registerFakes({
+			metacritic: fakeMetacritic(() =>
+				rateLimitedWithDetail("METACRITIC_RATE_LIMITED", 3_600_000)
+			),
+			hltb: hltbPages([])
+		});
+
+		const job = await runJob();
+
+		assert.equal(job.status, "failed");
+		assert.match(
+			job.result ?? "",
+			/\. Stopped: METACRITIC_RATE_LIMITED \(HTTP 429, Retry-After 3600 s\)$/
+		);
 	});
 
 	void it("keeps going after an isolated Wikidata timeout", async () => {
