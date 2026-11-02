@@ -40,6 +40,9 @@ const TALLY_KEY_BY_STATUS = {
 	no_data: "noData",
 	failed: "failed"
 } as const;
+const ACTIVE_JOB_STATUSES = ["pending", "running"];
+const INTERRUPTED_JOB_RESULT =
+	"Interrupted: the API restarted before the job finished";
 
 export async function findAll() {
 	return Job.findAll({
@@ -56,13 +59,25 @@ async function startJob(
 	runner: (jobId: string) => Promise<void>
 ) {
 	const existing = await Job.findOne({
-		where: { type, status: { [Op.in]: ["pending", "running"] } }
+		where: { type, status: { [Op.in]: ACTIVE_JOB_STATUSES } }
 	});
 	if (existing) return existing;
 
 	const job = await Job.create({ type, status: "running" });
 	runner(job.id).catch(Function.prototype as () => void);
 	return job;
+}
+
+export async function failInterruptedJobs() {
+	const [interruptedCount] = await Job.update(
+		{
+			status: "failed",
+			result: INTERRUPTED_JOB_RESULT,
+			completedAt: new Date()
+		},
+		{ where: { status: { [Op.in]: ACTIVE_JOB_STATUSES } } }
+	);
+	return interruptedCount;
 }
 
 async function completeJob(jobId: string, result: string) {
@@ -184,6 +199,13 @@ async function settleRunningJob(
 		);
 }
 
+async function reportRunningProgress(jobId: string, progress: string) {
+	await Job.update(
+		{ result: `Running. ${progress}` },
+		{ where: { id: jobId, status: "running" } }
+	);
+}
+
 function emptyTally(): ExternalDataSourceTally {
 	return { updated: 0, notFound: 0, ambiguous: 0, noData: 0, failed: 0 };
 }
@@ -251,6 +273,7 @@ async function runPopulateExternalData(jobId: string, limit?: number) {
 		report.skippedComplete = completeCount;
 
 		const toProcess = limit ? candidates.slice(0, limit) : candidates;
+		await reportRunningProgress(jobId, describeExternalDataReport(report));
 		for (const { game, sources } of toProcess) {
 			if (await isCancelled(jobId)) {
 				await settleRunningJob(
@@ -280,6 +303,10 @@ async function runPopulateExternalData(jobId: string, limit?: number) {
 				);
 				return;
 			}
+			await reportRunningProgress(
+				jobId,
+				describeExternalDataReport(report)
+			);
 		}
 
 		await settleRunningJob(

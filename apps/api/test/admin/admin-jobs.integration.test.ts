@@ -10,6 +10,7 @@ import { GamePopularity } from "../../src/game-popularity/game-popularity.model"
 import { GameScore } from "../../src/game-scores/game-score.model";
 import { GameTime } from "../../src/game-times/game-time.model";
 import { Job } from "../../src/jobs/job.model";
+import { failInterruptedJobs } from "../../src/jobs/jobs.service";
 import { Review } from "../../src/reviews/review.model";
 import { User } from "../../src/users/user.model";
 import { type UserRole } from "../../src/users/user-role.type";
@@ -486,5 +487,78 @@ void describe("POST /admin/jobs/*", () => {
 		assert.equal(orphanBacklog.coopRunId, null);
 		await sharedHostBacklog.reload();
 		assert.equal(sharedHostBacklog.coopRunId, sharedRun.id);
+	});
+});
+
+void describe("failInterruptedJobs (API startup)", () => {
+	void it("fails the pending and running jobs and leaves the finished ones untouched", async () => {
+		await failInterruptedJobs();
+		const running = await Job.create({
+			type: "interrupted_running",
+			status: "running"
+		});
+		const pending = await Job.create({
+			type: "interrupted_pending",
+			status: "pending"
+		});
+		const finished = await Promise.all(
+			(["completed", "failed", "cancelled"] as const).map(status =>
+				Job.create({
+					type: `already_${status}`,
+					status,
+					result: `kept ${status}`,
+					completedAt: new Date("2026-01-01T00:00:00.000Z")
+				})
+			)
+		);
+
+		const interruptedCount = await failInterruptedJobs();
+
+		assert.equal(interruptedCount, 2);
+		for (const job of [running, pending]) {
+			await job.reload();
+			assert.equal(job.status, "failed");
+			assert.equal(
+				job.result,
+				"Interrupted: the API restarted before the job finished"
+			);
+			assert.ok(job.completedAt);
+		}
+		for (const job of finished) {
+			const before = job.toJSON();
+			await job.reload();
+			assert.equal(job.status, before.status);
+			assert.equal(job.result, before.result);
+			assert.equal(
+				job.completedAt?.toISOString(),
+				"2026-01-01T00:00:00.000Z"
+			);
+		}
+	});
+
+	void it("does nothing when no job is active, also when called twice", async () => {
+		await failInterruptedJobs();
+		await Job.create({ type: "interrupted_twice", status: "running" });
+
+		assert.equal(await failInterruptedJobs(), 1);
+		assert.equal(await failInterruptedJobs(), 0);
+	});
+
+	void it("lets a new job of the same type start after a restart", async () => {
+		const admin = await createUserWithSession("admin");
+		const stuck = await Job.create({
+			type: "calculate_ratings",
+			status: "running"
+		});
+
+		await failInterruptedJobs();
+		const response = await api()
+			.post("/admin/jobs/calculate-ratings")
+			.set("Authorization", admin.authorization);
+
+		assert.equal(response.status, 202);
+		assert.notEqual(response.body.data.job.id, stuck.id);
+		const job = await finishedJob(response.body.data.job.id as string);
+		assert.equal(job.status, "completed");
 	});
 });

@@ -517,6 +517,86 @@ void describe("POST /admin/jobs/populate-external-data — outcomes", () => {
 	});
 });
 
+void describe("POST /admin/jobs/populate-external-data — progress", () => {
+	void it("shows the partial report while running and the final one without the prefix", async () => {
+		await createCatalogGame("Alpha");
+		await createCatalogGame("Bravo");
+		const gate = deferred<ReturnType<typeof metacriticDetail>>();
+		const metacritic = fakeMetacritic(slug =>
+			slug === "bravo" ? gate.promise : scorePage("alpha", "Alpha", 80)
+		);
+		registerFakes({ metacritic, hltb: hltbPages([]) });
+
+		const started = await startJob();
+		const jobId = started.body.data.job.id as string;
+		const afterFirstGame = report({
+			candidates: 2,
+			processed: 1,
+			mcUpdated: 1,
+			hltb: [1, 0, 0, 0]
+		});
+		await eventually(async () => {
+			const current = await Job.findByPk(jobId);
+			assert.equal(current?.status, "running");
+			assert.equal(current?.result, `Running. ${afterFirstGame}`);
+		});
+
+		const listing = await api()
+			.get("/admin/jobs")
+			.set("Authorization", authorization)
+			.expect(200);
+		const listed = listing.body.data.jobs.find(
+			(entry: { id: string }) => entry.id === jobId
+		);
+		assert.equal(listed.result, `Running. ${afterFirstGame}`);
+
+		gate.resolve(scorePage("bravo", "Bravo", 70));
+		const job = await finishedJob(jobId);
+		assert.equal(job.status, "completed");
+		assert.equal(
+			job.result,
+			report({
+				candidates: 2,
+				processed: 2,
+				mcUpdated: 2,
+				hltb: [2, 0, 0, 0]
+			})
+		);
+	});
+
+	void it("does not overwrite the result of a job cancelled between games", async () => {
+		await createCatalogGame("Alpha");
+		await createCatalogGame("Bravo");
+		const gate = deferred<ReturnType<typeof metacriticDetail>>();
+		const metacritic = fakeMetacritic(slug =>
+			slug === "alpha" ? gate.promise : scorePage("bravo", "Bravo", 70)
+		);
+		registerFakes({ metacritic, hltb: hltbPages([]) });
+
+		const started = await startJob();
+		const jobId = started.body.data.job.id as string;
+		await eventually(async () =>
+			assert.deepEqual(metacritic.calls, ["alpha"])
+		);
+		await api()
+			.delete(`/admin/jobs/${jobId}`)
+			.set("Authorization", authorization)
+			.expect(204);
+		gate.resolve(scorePage("alpha", "Alpha", 80));
+
+		const job = await eventually(async () => {
+			const current = await Job.findByPk(jobId);
+			assert.ok(current);
+			assert.ok(current.result?.startsWith("Cancelled."));
+			return current;
+		});
+		await delay(JOB_POLL_INTERVAL_MS * 4);
+		await job.reload();
+		assert.equal(job.status, "cancelled");
+		assert.ok(job.result?.startsWith("Cancelled."));
+	});
+});
+
 void describe("POST /admin/jobs/populate-external-data — cancellation", () => {
 	void it("stops before the next game once cancelled and keeps it cancelled", async () => {
 		await createCatalogGame("Alpha");
@@ -541,7 +621,8 @@ void describe("POST /admin/jobs/populate-external-data — cancellation", () => 
 
 		const job = await eventually(async () => {
 			const current = await Job.findByPk(jobId);
-			assert.ok(current?.result);
+			assert.ok(current);
+			assert.ok(current.result?.startsWith("Cancelled."));
 			return current;
 		});
 		assert.equal(job.status, "cancelled");

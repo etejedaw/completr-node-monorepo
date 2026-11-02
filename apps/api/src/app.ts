@@ -4,6 +4,7 @@ import { PinoLogger } from "./common/logger/pino.logger";
 import { initDatabase } from "./database/init.database";
 import { registerExternalDataSources } from "./games/services/external-data-sources.service";
 import { HltbClient } from "./hltb/hltb.provider";
+import * as jobsService from "./jobs/jobs.service";
 import { MetacriticClient } from "./metacritic/metacritic.provider";
 import { createApp } from "./server";
 import { WikidataClient } from "./wikidata/wikidata.provider";
@@ -26,8 +27,17 @@ function registerScrapingProviders() {
 	});
 }
 
+async function failJobsInterruptedByRestart() {
+	const interruptedCount = await jobsService.failInterruptedJobs();
+	if (interruptedCount === 0) return;
+	logger.warn("startup", "jobs interrupted by the restart marked as failed", {
+		count: interruptedCount
+	});
+}
+
 async function bootstrap() {
 	await initDatabase();
+	await failJobsInterruptedByRestart();
 	warnIfRawgDisabled();
 	registerScrapingProviders();
 
