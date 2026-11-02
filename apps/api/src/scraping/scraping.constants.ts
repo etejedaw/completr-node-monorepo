@@ -7,7 +7,8 @@ export const SCRAPING_DEFAULTS = {
 	timeoutMs: 15_000,
 	maxRetries: 1,
 	retryBaseDelayMs: 10_000,
-	maxRetryAfterMs: 60_000
+	maxRetryAfterMs: 60_000,
+	backgroundMaxRetryAfterMs: 60_000
 } as const;
 
 export const CHALLENGE_HEADER = "cf-mitigated";

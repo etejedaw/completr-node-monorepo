@@ -12,6 +12,7 @@ export interface ScrapingHttpClientOptions {
 	maxRetries: number;
 	retryBaseDelayMs: number;
 	maxRetryAfterMs: number;
+	backgroundMaxRetryAfterMs: number;
 	fetch: ScrapingFetch;
 	sleep: ScrapingSleep;
 	now: () => number;

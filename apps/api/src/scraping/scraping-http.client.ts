@@ -187,7 +187,7 @@ export class ScrapingHttpClient {
 	private async dispatch(request: QueuedRequest) {
 		request.attempts += 1;
 		const outcome = await this.attempt(request);
-		this.scheduleNextRequest(request.url.host, outcome, request.attempts);
+		this.scheduleNextRequest(request, outcome);
 
 		if (outcome.ok) {
 			request.resolve(outcome.body);
@@ -196,7 +196,7 @@ export class ScrapingHttpClient {
 
 		if (outcome.retryable && request.attempts <= this.options.maxRetries) {
 			request.notBefore =
-				this.options.now() + this.retryDelay(outcome, request.attempts);
+				this.options.now() + this.retryDelay(request, outcome);
 			this.enqueue(request);
 			return;
 		}
@@ -205,43 +205,54 @@ export class ScrapingHttpClient {
 	}
 
 	private scheduleNextRequest(
-		host: string,
-		outcome: ScrapingAttemptOutcome,
-		attempt: number
+		request: QueuedRequest,
+		outcome: ScrapingAttemptOutcome
 	) {
 		const { minDelayMs, jitterMs, random, now } = this.options;
 		const throttleDelay = minDelayMs + Math.round(random() * jitterMs);
 		const hostPenalty = outcome.ok
 			? 0
-			: this.hostPenaltyDelay(outcome, attempt);
+			: this.hostPenaltyDelay(request, outcome);
 
 		this.nextRequestAt.set(
-			host,
+			request.url.host,
 			now() + Math.max(throttleDelay, hostPenalty)
 		);
 	}
 
+	private maxRetryAfterFor(priority: ScrapingPriority) {
+		return priority === "background"
+			? this.options.backgroundMaxRetryAfterMs
+			: this.options.maxRetryAfterMs;
+	}
+
 	private hostPenaltyDelay(
-		outcome: Extract<ScrapingAttemptOutcome, { ok: false }>,
-		attempt: number
+		request: QueuedRequest,
+		outcome: Extract<ScrapingAttemptOutcome, { ok: false }>
 	) {
 		if (outcome.retryAfterMs !== undefined)
-			return Math.min(outcome.retryAfterMs, this.options.maxRetryAfterMs);
+			return Math.min(
+				outcome.retryAfterMs,
+				this.maxRetryAfterFor(request.priority)
+			);
 
 		if (outcome.retryable && outcome.error.kind === "RATE_LIMITED")
-			return this.exponentialBackoff(attempt);
+			return this.exponentialBackoff(request.attempts);
 
 		return 0;
 	}
 
 	private retryDelay(
-		outcome: Extract<ScrapingAttemptOutcome, { ok: false }>,
-		attempt: number
+		request: QueuedRequest,
+		outcome: Extract<ScrapingAttemptOutcome, { ok: false }>
 	) {
 		if (outcome.retryAfterMs !== undefined)
-			return Math.min(outcome.retryAfterMs, this.options.maxRetryAfterMs);
+			return Math.min(
+				outcome.retryAfterMs,
+				this.maxRetryAfterFor(request.priority)
+			);
 
-		return this.exponentialBackoff(attempt);
+		return this.exponentialBackoff(request.attempts);
 	}
 
 	private exponentialBackoff(attempt: number) {
@@ -271,7 +282,7 @@ export class ScrapingHttpClient {
 			});
 			const body = await response.text();
 			if (signal?.aborted) return this.abortedOutcome(url, attempts);
-			return this.classifyResponse(url, attempts, response, body);
+			return this.classifyResponse(request, response, body);
 		} catch (error) {
 			if (signal?.aborted) return this.abortedOutcome(url, attempts);
 
@@ -311,11 +322,11 @@ export class ScrapingHttpClient {
 	}
 
 	private classifyResponse(
-		url: URL,
-		attempt: number,
+		request: QueuedRequest,
 		response: Response,
 		body: string
 	): ScrapingAttemptOutcome {
+		const { url, attempts: attempt } = request;
 		const { status } = response;
 
 		if (isChallengePage(response.headers, body) || status === 403)
@@ -332,7 +343,7 @@ export class ScrapingHttpClient {
 			const kind = status === 429 ? "RATE_LIMITED" : "REQUEST_ERROR";
 			const retryable =
 				retryAfterMs === undefined ||
-				retryAfterMs <= this.options.maxRetryAfterMs;
+				retryAfterMs <= this.maxRetryAfterFor(request.priority);
 			return this.failure(
 				kind,
 				url,

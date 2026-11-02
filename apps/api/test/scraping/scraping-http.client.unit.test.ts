@@ -236,6 +236,61 @@ void describe("ScrapingHttpClient retries", () => {
 		assert.equal(calls.length, 1);
 	});
 
+	void it("background requests wait a Retry-After up to their own cap and then retry", async () => {
+		const clock = createFakeClock();
+		const { fetch, calls } = scriptedFetch(clock, [
+			htmlResponse("slow down", 429, { "Retry-After": "300" }),
+			htmlResponse("<p>ok</p>")
+		]);
+		const client = buildClient(clock, fetch, {
+			backgroundMaxRetryAfterMs: 600_000
+		});
+
+		const body = await client.getHtml(PAGE_A, { priority: "background" });
+
+		assert.equal(body, "<p>ok</p>");
+		assert.equal(calls[1]!.at - calls[0]!.at, 300_000);
+	});
+
+	void it("interactive requests keep the regular cap even when the background cap is longer", async () => {
+		const clock = createFakeClock();
+		const { fetch, calls } = scriptedFetch(clock, [
+			htmlResponse("slow down", 429, { "Retry-After": "300" }),
+			htmlResponse("<p>never</p>")
+		]);
+		const client = buildClient(clock, fetch, {
+			backgroundMaxRetryAfterMs: 600_000
+		});
+
+		const error = await captureRejection(
+			client.getHtml(PAGE_A, { priority: "interactive" })
+		);
+
+		const failure = assertFailure(error, "RATE_LIMITED");
+		assert.equal(failure.detail.status, 429);
+		assert.equal(failure.detail.retryAfterMs, 300_000);
+		assert.equal(calls.length, 1);
+	});
+
+	void it("a background Retry-After above its cap fails at once and holds the host up to that cap", async () => {
+		const clock = createFakeClock();
+		const { fetch, calls } = scriptedFetch(clock, [
+			htmlResponse("slow down", 429, { "Retry-After": "3600" }),
+			htmlResponse("next")
+		]);
+		const client = buildClient(clock, fetch, {
+			backgroundMaxRetryAfterMs: 600_000
+		});
+
+		const error = await captureRejection(
+			client.getHtml(PAGE_A, { priority: "background" })
+		);
+		await client.getHtml(PAGE_B, { priority: "background" });
+
+		assertFailure(error, "RATE_LIMITED");
+		assert.equal(calls[1]!.at - calls[0]!.at, 600_000);
+	});
+
 	void it("a garbage Retry-After falls back to the exponential backoff", async () => {
 		const clock = createFakeClock();
 		const { fetch, calls } = scriptedFetch(clock, [
