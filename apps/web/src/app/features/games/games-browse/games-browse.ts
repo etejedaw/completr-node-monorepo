@@ -33,10 +33,8 @@ import { AuthService } from "../../../core/services/auth";
 import { ViewportService } from "../../../core/services/viewport";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { ListCard } from "../../../shared/components/list-card/list-card";
-import {
-	OptionPicker,
-	type PickerOption
-} from "../../../shared/components/option-picker/option-picker";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shelf";
 import {
 	UiBottomSheet,
@@ -49,10 +47,8 @@ import {
 import { ListsService } from "../../lists/lists";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import { GamesService } from "../games";
-import {
-	BrowseFilters,
-	type BrowseSortOption
-} from "./components/browse-filters";
+import { BrowseFilters } from "./components/browse-filters";
+import { type BrowseSortOption } from "./components/browse-filters.model";
 import { BrowseHero } from "./components/browse-hero";
 
 const FEATURED_GAMES_LIMIT = 5;

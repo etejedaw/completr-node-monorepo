@@ -1,5 +1,5 @@
-import { computed, DestroyRef, inject, signal } from "@angular/core";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { computed, inject, signal } from "@angular/core";
+import { rxResource, takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { ActivatedRoute } from "@angular/router";
 import { type Observable } from "rxjs";
 
@@ -9,21 +9,11 @@ import {
 	matchesPlatform
 } from "../../../shared/components/platform-filter/platform-filter";
 import { type ProfileAccessError } from "../components/profile-access-state";
-
-interface CollectionPlatform {
-	id: string;
-	abbreviation: string;
-}
-
-interface CollectionGame {
-	title: string;
-	backgroundUrl?: string;
-}
-
-interface CollectionPage<T> {
-	items: T[];
-	total: number;
-}
+import {
+	type CollectionGame,
+	type CollectionPage,
+	type CollectionPlatform
+} from "./public-collection.model";
 
 type CollectionFetcher<T> = (
 	username: string,
@@ -42,16 +32,49 @@ export function injectPublicCollection<T>(
 	const platformOf = options.platformOf;
 	const route = inject(ActivatedRoute);
 	const authService = inject(AuthService);
-	const destroyRef = inject(DestroyRef);
 
 	const username = signal(route.snapshot.paramMap.get("username") ?? "");
-	const items = signal<T[]>([]);
-	const total = signal(0);
 	const offset = signal(0);
-	const isLoading = signal(true);
-	const error = signal<ProfileAccessError | null>(null);
+	const requestVersion = signal(0);
 	const query = signal("");
 	const platform = signal("");
+	const viewerReady = signal(!authService.token() || !!authService.user());
+
+	const collection = rxResource({
+		params: () =>
+			viewerReady()
+				? {
+						username: username(),
+						offset: offset(),
+						version: requestVersion()
+					}
+				: undefined,
+		stream: ({ params }) =>
+			fetchPage(params.username, { limit, offset: params.offset })
+	});
+
+	const page = computed(() =>
+		collection.hasValue() ? collection.value() : null
+	);
+	const items = computed(() => page()?.items ?? []);
+	const total = computed(() => page()?.total ?? 0);
+	const isLoading = computed(() => !viewerReady() || collection.isLoading());
+
+	const errorStatus = computed(() => {
+		const error = collection.error() as { status?: number } | undefined;
+		return error ? (error.status ?? 0) : null;
+	});
+
+	const error = computed<ProfileAccessError | null>(() => {
+		const status = errorStatus();
+		if (status === 403) return "private";
+		if (status === 404) return "not_found";
+		return null;
+	});
+
+	const hasLoadFailed = computed(
+		() => errorStatus() !== null && error() === null
+	);
 
 	const platformCounts = computed(() =>
 		platformOf ? countByPlatform(items(), platformOf) : []
@@ -78,51 +101,41 @@ export function injectPublicCollection<T>(
 		}))
 	);
 
-	const load = () => {
-		isLoading.set(true);
-		error.set(null);
-		fetchPage(username(), { limit, offset: offset() })
-			.pipe(takeUntilDestroyed(destroyRef))
-			.subscribe({
-				next: page => {
-					items.set(page.items);
-					total.set(page.total);
-					isLoading.set(false);
-				},
-				error: err => {
-					if (err.status === 403) error.set("private");
-					else if (err.status === 404) error.set("not_found");
-					isLoading.set(false);
-				}
-			});
-	};
+	const retry = () => collection.reload();
 
 	const goToOffset = (nextOffset: number) => {
-		offset.set(nextOffset);
 		query.set("");
 		platform.set("");
-		load();
+		if (nextOffset === offset())
+			requestVersion.update(version => version + 1);
+		else offset.set(nextOffset);
 	};
 
-	if (authService.token() && !authService.user()) {
-		authService.loadUser().subscribe({ next: load, error: load });
-	} else {
-		load();
+	if (!viewerReady()) {
+		authService
+			.loadUser()
+			.pipe(takeUntilDestroyed())
+			.subscribe({
+				next: () => viewerReady.set(true),
+				error: () => viewerReady.set(true)
+			});
 	}
 
 	return {
 		username: username.asReadonly(),
-		items: items.asReadonly(),
+		items,
 		visibleItems,
 		posters,
-		total: total.asReadonly(),
+		total,
 		offset: offset.asReadonly(),
 		limit,
-		isLoading: isLoading.asReadonly(),
-		error: error.asReadonly(),
+		isLoading,
+		error,
+		hasLoadFailed,
 		query,
 		platform,
 		platformCounts,
-		goToOffset
+		goToOffset,
+		retry
 	};
 }

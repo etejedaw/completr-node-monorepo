@@ -6,7 +6,7 @@ import { NgpDialogRef } from "ng-primitives/dialog";
 import { provideExitAnimationManager } from "ng-primitives/internal";
 
 import { type BacklogEntry } from "../../../../core/models";
-import { type QueueableRun } from "../queue-intent";
+import { type QueueableRun } from "../queue-intent.model";
 import { GameQueueRunPicker } from "./game-queue-run-picker";
 
 const entry = (overrides: Partial<BacklogEntry>) =>

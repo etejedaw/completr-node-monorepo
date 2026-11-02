@@ -115,7 +115,9 @@ describe("WishlistView interaction", () => {
 
 	function answerPending() {
 		for (let round = 0; round < 10; round++) {
-			const pending = httpTesting.match(() => true);
+			const pending = httpTesting
+				.match(() => true)
+				.filter(req => !req.cancelled);
 			if (pending.length === 0) return;
 			pending.forEach(answer);
 		}
@@ -206,6 +208,16 @@ describe("WishlistView interaction", () => {
 		Reflect.deleteProperty(URL, "revokeObjectURL");
 	});
 
+	async function downloadCsv(user: ReturnType<typeof userEvent.setup>) {
+		await user.click(screen.getByRole("button", { name: "Export" }));
+		const menu = await screen.findByRole("menu", {
+			name: "Export Want to Get"
+		});
+		await user.click(
+			within(menu).getByRole("menuitem", { name: "Download CSV" })
+		);
+	}
+
 	it("exports the whole Want to Get as CSV when no filter is active", async () => {
 		const user = userEvent.setup();
 		const click = vi
@@ -213,9 +225,7 @@ describe("WishlistView interaction", () => {
 			.mockImplementation(() => undefined);
 		await renderWishlist();
 
-		await user.click(
-			screen.getByRole("button", { name: "Download Want to Get as CSV" })
-		);
+		await downloadCsv(user);
 		answerPending();
 
 		expect(exportRequests).toEqual([{ accept: "text/csv", params: {} }]);
@@ -230,17 +240,10 @@ describe("WishlistView interaction", () => {
 			.mockImplementation(() => undefined);
 		await renderWishlist();
 
-		expect(
-			screen.queryByRole("button", {
-				name: "Download Want to Get as JSON"
-			})
-		).not.toBeInTheDocument();
 		await user.click(platformFilter().getByRole("button", { name: /PC/ }));
 		await user.type(searchBox(), "hades");
 		await untilVisible(() => expect(coverTitles()).toEqual(["Hades"]));
-		await user.click(
-			screen.getByRole("button", { name: "Download Want to Get as CSV" })
-		);
+		await downloadCsv(user);
 		answerPending();
 
 		expect(exportRequests).toEqual([
@@ -249,10 +252,8 @@ describe("WishlistView interaction", () => {
 		expect(click).toHaveBeenCalledTimes(1);
 		await untilVisible(() =>
 			expect(
-				screen.getByRole("button", {
-					name: "Download Want to Get as CSV"
-				})
-			).not.toBeDisabled()
+				screen.getByRole("button", { name: "Export" })
+			).not.toHaveAttribute("aria-busy")
 		);
 		click.mockRestore();
 	});

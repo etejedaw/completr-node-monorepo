@@ -8,19 +8,12 @@ import {
 import { injectDialogRef } from "ng-primitives/dialog";
 import { forkJoin, map } from "rxjs";
 
-import {
-	type BacklogEntry,
-	type Game,
-	type GamePlatinum,
-	type Platform
-} from "../../../core/models";
+import { type Game } from "../../../core/models";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
 import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
-import {
-	OptionPicker,
-	type PickerOption
-} from "../../../shared/components/option-picker/option-picker";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import {
 	UiAlert,
 	UiButton,
@@ -39,29 +32,13 @@ import { BacklogService } from "../../backlog/backlog";
 import { injectGameSearch } from "../../games/game-search";
 import { GamesService } from "../../games/games";
 import { PlatinumService } from "../platinum";
+import {
+	type PlatinumContext,
+	type PlatinumDialogData,
+	type PlatinumDialogResult
+} from "./platinum-dialog.model";
 
 export const PLATINUM_NOTES_MAX_LENGTH = 500;
-
-export interface PlatinumDialogGame {
-	id: string;
-	code: string;
-	title: string;
-	backgroundUrl?: string;
-	platforms: Platform[];
-}
-
-export interface PlatinumContext {
-	game: PlatinumDialogGame;
-	runs: BacklogEntry[];
-	platinum: GamePlatinum | null;
-}
-
-export interface PlatinumDialogData {
-	context?: PlatinumContext;
-	game?: { id: string; code: string };
-}
-
-export type PlatinumDialogResult = { platinum: GamePlatinum } | "removed";
 
 type PlatinumDialogStep = "search" | "loading" | "load-error" | "form";
 

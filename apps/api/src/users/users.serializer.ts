@@ -4,6 +4,8 @@ import {
 	backlogSerializer
 } from "../backlog/backlog.serializer";
 import { listSummarySerializer } from "../lists/lists.serializer";
+import { type PremiumFeature } from "../premium-access/premium-access.constants";
+import { type PremiumStatus } from "../premium-access/premium-access.interface";
 import { userReviewSerializer } from "../reviews/reviews.serializer";
 import { type User } from "./user.model";
 import {
@@ -16,11 +18,17 @@ import {
 	type UserReviewsBundle
 } from "./users.interface";
 
-export function userMeSerializer(user: User) {
+export function userMeSerializer(
+	user: User,
+	premiumAccess: PremiumStatus,
+	premiumFeatures: PremiumFeature[]
+) {
 	return {
 		id: user.id,
 		username: user.username,
 		role: user.role,
+		premiumAccess,
+		premiumFeatures,
 		name: user.name,
 		bio: user.bio,
 		avatarUrl: user.avatarUrl,
@@ -33,6 +41,8 @@ export function userMeSerializer(user: User) {
 		shelfVisibility: user.shelfVisibility,
 		listVisibility: user.listVisibility,
 		platinumVisibility: user.platinumVisibility,
+		franchiseVisibility: user.franchiseVisibility,
+		rewindVisibility: user.rewindVisibility,
 		acceptFollowRequests: user.acceptFollowRequests,
 		theme: user.theme,
 		createdAt: user.createdAt
@@ -49,11 +59,12 @@ export function userPublicSerializer(user: User) {
 	};
 }
 
-export function userProfileSerializer(user: User) {
+export function userProfileSerializer(user: User, hasPremium: boolean) {
 	return {
 		id: user.id,
 		username: user.username,
 		role: user.role,
+		hasPremium,
 		name: user.name,
 		bio: user.bio,
 		avatarUrl: user.avatarUrl,
@@ -66,6 +77,8 @@ export function userProfileSerializer(user: User) {
 		shelfVisibility: user.shelfVisibility,
 		listVisibility: user.listVisibility,
 		platinumVisibility: user.platinumVisibility,
+		franchiseVisibility: user.franchiseVisibility,
+		rewindVisibility: user.rewindVisibility,
 		createdAt: user.createdAt
 	};
 }
@@ -103,7 +116,10 @@ export function fullProfileSerializer(profile: FullUserProfile) {
 		? backlogSerializer
 		: backlogPublicSerializer;
 	return {
-		user: userProfileSerializer(user.get({ plain: true })),
+		user: userProfileSerializer(
+			user.get({ plain: true }),
+			profile.hasPremium
+		),
 		followerCount: profile.followerCount,
 		followingCount: profile.followingCount,
 		isFollowing: profile.isFollowing,
@@ -111,7 +127,9 @@ export function fullProfileSerializer(profile: FullUserProfile) {
 		backlogTotal: profile.backlogTotal,
 		backlogStats: profile.backlogStats,
 		listsTotal: profile.listsTotal,
-		recentActivity: profile.recentActivity.map(activitySerializer),
+		recentActivity: profile.recentActivity.map(activity =>
+			activitySerializer(activity, profile.activityPremiumUserIds)
+		),
 		access: profile.access
 	};
 }
@@ -130,6 +148,7 @@ export function userCardSerializer(card: UserCardInsights) {
 	return {
 		...userSummarySerializer(card.user),
 		role: card.user.role,
+		hasPremium: card.hasPremium ?? false,
 		isSelf: card.isSelf,
 		followerCount: card.followerCount,
 		isFollowing: card.isFollowing,

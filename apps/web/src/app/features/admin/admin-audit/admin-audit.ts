@@ -12,10 +12,8 @@ import { type Subscription } from "rxjs";
 
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
-import {
-	OptionPicker,
-	type PickerOption
-} from "../../../shared/components/option-picker/option-picker";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import {
 	UiButton,
 	UiEmptyState,
@@ -23,7 +21,8 @@ import {
 	UiPagination,
 	UiSkeleton
 } from "../../../shared/ui";
-import { type AuditLogEntry, AuditService } from "../services/audit.service";
+import { type AuditLogEntry } from "../services/audit.model";
+import { AuditService } from "../services/audit.service";
 
 const ACTION_OPTIONS = [
 	"user_created",
@@ -34,6 +33,7 @@ const ACTION_OPTIONS = [
 	"game_edited",
 	"game_deleted",
 	"game_deactivated",
+	"game_external_data_refreshed",
 	"job_started",
 	"report_approved",
 	"report_rejected"

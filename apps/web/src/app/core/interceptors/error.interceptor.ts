@@ -19,6 +19,7 @@ import {
 } from "rxjs";
 
 import {
+	SUPPRESS_CONFLICT_TOAST,
 	SUPPRESS_VALIDATION_TOAST,
 	validationSummary
 } from "../../shared/utils/validation-errors";
@@ -46,6 +47,8 @@ export function errorInterceptor(
 			withParsedBlobBody(rawError).pipe(
 				switchMap(error => {
 					if (error.status === 409) {
+						if (req.context.get(SUPPRESS_CONFLICT_TOAST))
+							return throwError(() => error);
 						const detail =
 							adminErrorMessage(error) ??
 							error.error?.detail ??

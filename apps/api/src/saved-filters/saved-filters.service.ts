@@ -6,6 +6,7 @@ import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
+import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import { type RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
 import { type UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
 import * as savedFilterServiceError from "./errors/saved-filters.service-error";
@@ -13,12 +14,16 @@ import { SavedFilter } from "./saved-filter.model";
 
 const FREE_FILTER_LIMIT = 5;
 
-function isPremium(role: string) {
-	return role === "premium" || role === "moderator" || role === "admin";
+async function hasPremiumAccess(userId: string, role: string) {
+	return resolvePremiumAccess(
+		{ id: userId, role },
+		"saved-filters.unlimited"
+	);
 }
 
 async function areFrozen(userId: string, role: string) {
-	if (isPremium(role)) return false;
+	const premiumAccess = await hasPremiumAccess(userId, role);
+	if (premiumAccess.allowed) return false;
 	const count = await SavedFilter.count({ where: { userId } });
 	return count > FREE_FILTER_LIMIT;
 }
@@ -28,7 +33,8 @@ export async function createSavedFilter(
 	role: string,
 	dto: RegisterSavedFilterDto
 ) {
-	if (!isPremium(role)) {
+	const premiumAccess = await hasPremiumAccess(userId, role);
+	if (!premiumAccess.allowed) {
 		const count = await SavedFilter.count({ where: { userId } });
 		if (count >= FREE_FILTER_LIMIT)
 			throw savedFilterServiceError.limitReachedError();

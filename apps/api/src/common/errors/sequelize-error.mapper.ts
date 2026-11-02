@@ -4,13 +4,7 @@ import {
 	ValidationError
 } from "sequelize";
 
-import { type ServiceError } from "./service-error";
-
-export interface SequelizeErrorMappers {
-	unique?: (rawError: unknown) => ServiceError;
-	validation?: (rawError: unknown) => ServiceError;
-	foreignKey?: (rawError: unknown) => ServiceError;
-}
+import { type SequelizeErrorMappers } from "./errors.interface";
 
 export function rethrowSequelizeError(
 	error: unknown,

@@ -58,6 +58,118 @@
 
 	<div class="px-5 py-5 md:px-6 border-b border-line">
 		<h4
+			class="font-display m-0 mb-1 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
+		>
+			External IDs
+		</h4>
+		<p class="m-0 mb-4 text-xs text-fg-muted text-pretty">
+			Used by Refresh external data. Type the ID or paste the game page
+			URL.
+		</p>
+
+		<div class="grid gap-4 md:grid-cols-2">
+			<div class="min-w-0">
+				<label uiFieldLabel for="editor-hltb-id"
+					>HowLongToBeat ID</label
+				>
+				<input
+					uiInput
+					id="editor-hltb-id"
+					type="text"
+					autocomplete="off"
+					autocapitalize="off"
+					spellcheck="false"
+					placeholder="e.g. 10270"
+					[class.border-danger]="!!hltbIdError()"
+					[attr.aria-invalid]="hltbIdError() ? 'true' : null"
+					[attr.aria-describedby]="hltbIdError() ? 'editor-hltb-id-error' : hltbIdCleared() ? 'editor-hltb-id-note' : null"
+					[formField]="form.hltbId"
+					(blur)="normalizeHltbIdField()"
+				/>
+				@if (hltbIdError()) {
+				<p
+					class="m-0 mt-1 text-xs text-danger"
+					id="editor-hltb-id-error"
+				>
+					{{ hltbIdError() }}
+				</p>
+				} @else if (hltbIdCleared()) {
+				<p
+					class="m-0 mt-1 text-xs text-warning text-pretty"
+					id="editor-hltb-id-note"
+				>
+					Clearing this field doesn't delete the saved ID ({{
+					savedHltbId() }}): it stays as it is.
+				</p>
+				} @if (hltbSearchUrl(); as url) {
+				<a
+					class="inline-flex items-center gap-1 min-h-[44px] text-xs font-semibold text-brand hover:underline underline-offset-2 rounded focus-visible:outline-2 focus-visible:outline-brand"
+					target="_blank"
+					rel="noopener noreferrer"
+					[href]="url"
+				>
+					Search on HowLongToBeat
+					<span aria-hidden="true" class="material-icons text-sm"
+						>open_in_new</span
+					>
+					<span class="sr-only">(opens in a new tab)</span>
+				</a>
+				}
+			</div>
+
+			<div class="min-w-0">
+				<label uiFieldLabel for="editor-metacritic-slug"
+					>Metacritic slug</label
+				>
+				<input
+					uiInput
+					id="editor-metacritic-slug"
+					type="text"
+					autocomplete="off"
+					autocapitalize="off"
+					spellcheck="false"
+					placeholder="e.g. the-witcher-3-wild-hunt"
+					[class.border-danger]="!!metacriticSlugError()"
+					[attr.aria-invalid]="metacriticSlugError() ? 'true' : null"
+					[attr.aria-describedby]="metacriticSlugError() ? 'editor-metacritic-slug-error' : metacriticSlugCleared() ? 'editor-metacritic-slug-note' : null"
+					[formField]="form.metacriticSlug"
+					(blur)="normalizeMetacriticSlugField()"
+				/>
+				@if (metacriticSlugError()) {
+				<p
+					class="m-0 mt-1 text-xs text-danger"
+					id="editor-metacritic-slug-error"
+				>
+					{{ metacriticSlugError() }}
+				</p>
+				} @else if (metacriticSlugCleared()) {
+				<p
+					class="m-0 mt-1 text-xs text-warning text-pretty"
+					id="editor-metacritic-slug-note"
+				>
+					Clearing this field doesn't delete the saved slug ({{
+					savedMetacriticSlug() }}): it stays as it is.
+				</p>
+				} @if (metacriticPageUrl(); as url) {
+				<a
+					class="inline-flex items-center gap-1 min-h-[44px] text-xs font-semibold text-brand hover:underline underline-offset-2 rounded focus-visible:outline-2 focus-visible:outline-brand"
+					target="_blank"
+					rel="noopener noreferrer"
+					[href]="url"
+				>
+					Open on Metacritic
+					<span aria-hidden="true" class="material-icons text-sm"
+						>open_in_new</span
+					>
+					<span class="sr-only">(opens in a new tab)</span>
+				</a>
+				}
+			</div>
+		</div>
+	</div>
+
+	<div class="px-5 py-5 md:px-6 border-b border-line">
+		<h4
 			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
 		>
 			Game Info
@@ -565,7 +677,7 @@
 <ui-dialog
 	heading="Split game into variants"
 	eyebrow="Admin"
-	subheading="Use this when an external source (e.g. RAWG) bundles distinct titles in one record. The first variant overwrites the current game; the rest are created as new games sharing platforms, genres, scores, times and external ids."
+	subheading="Use this when an external source (e.g. RAWG) bundles distinct titles in one record. This game is not kept as a bundle: it is renamed to the first variant, and the rest are created as new games sharing platforms, genres, scores, times and external ids. To keep the bundle as a compilation, create it again afterwards with its own variant label."
 	size="lg"
 	[dismissible]="!splitting()"
 	(closed)="closeSplitModal()"

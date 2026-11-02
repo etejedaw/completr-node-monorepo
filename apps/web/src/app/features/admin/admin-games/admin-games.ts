@@ -15,17 +15,13 @@ import { type Game } from "../../../core/models";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { adminErrorMessage } from "../../../core/utils/admin-error-message";
-import {
-	ChipGroup,
-	type ChipOption
-} from "../../../shared/components/chip-group/chip-group";
+import { ChipGroup } from "../../../shared/components/chip-group/chip-group";
+import { type ChipOption } from "../../../shared/components/chip-group/chip-group.model";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
-import {
-	SegmentedControl,
-	type SegmentedOption
-} from "../../../shared/components/segmented-control/segmented-control";
+import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
+import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
 import {
 	UiAlert,
 	UiButton,
@@ -38,13 +34,22 @@ import {
 	UiSkeleton
 } from "../../../shared/ui";
 import { AdminGameEditor } from "../../games/admin-game-editor/admin-game-editor";
-import { type GamesQuery, GamesService } from "../../games/games";
+import { GamesService } from "../../games/games";
+import {
+	type ExternalDataRefreshResponse,
+	type ExternalDataSource,
+	type GamesQuery
+} from "../../games/games.model";
+import { AdminExternalDataDialog } from "../admin-external-data-dialog/admin-external-data-dialog";
+import { type ExternalDataRefreshState } from "../admin-external-data-dialog/admin-external-data-dialog.model";
+import { externalDataRefreshErrorMessage } from "../admin-external-data-dialog/external-data-refresh-error";
 import { ReportsService } from "../services/reports.service";
 
 @Component({
 	selector: "app-admin-games",
 	imports: [
 		RouterLink,
+		AdminExternalDataDialog,
 		AdminGameEditor,
 		ChipGroup,
 		GamePoster,
@@ -104,6 +109,11 @@ export class AdminGames implements OnInit {
 	protected readonly loadingEditorId = signal<string | null>(null);
 	protected readonly deactivateTarget = signal<Game | null>(null);
 	protected readonly isDeactivating = signal(false);
+	protected readonly externalDataTarget = signal<Game | null>(null);
+	protected readonly externalDataState = signal<ExternalDataRefreshState>({
+		status: "idle"
+	});
+	protected readonly refreshingExternalIds = signal<Set<string>>(new Set());
 
 	private readonly scoreSourcesService = inject(ScoreSourcesService);
 	protected readonly manualScoreSources = computed(() =>
@@ -349,6 +359,84 @@ export class AdminGames implements OnInit {
 				this.reportActionError(err, "Could not deactivate game.");
 			}
 		});
+	}
+
+	isRefreshingExternal(gameId: string): boolean {
+		return this.refreshingExternalIds().has(gameId);
+	}
+
+	openExternalData(game: Game) {
+		this.externalDataTarget.set(game);
+		this.externalDataState.set(
+			this.isRefreshingExternal(game.id)
+				? { status: "pending" }
+				: { status: "idle" }
+		);
+	}
+
+	closeExternalData() {
+		this.externalDataTarget.set(null);
+	}
+
+	refreshExternalData(sources: ExternalDataSource[]) {
+		const game = this.externalDataTarget();
+		if (!game || this.isRefreshingExternal(game.id)) return;
+		this.setRefreshingExternal(game.id, true);
+		this.externalDataState.set({ status: "pending" });
+		this.gamesService
+			.refreshExternalData(game.id, sources)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: response => this.applyExternalDataRefresh(game, response),
+				error: error => this.failExternalDataRefresh(game, error)
+			});
+	}
+
+	private applyExternalDataRefresh(
+		requested: Game,
+		{ game: updated, results }: ExternalDataRefreshResponse
+	) {
+		this.setRefreshingExternal(requested.id, false);
+		const refreshed = this.replaceGameRow(requested.id, updated);
+		if (this.externalDataTarget()?.id !== requested.id) {
+			this.toast.success(
+				`Finished refreshing external data for "${requested.title}"`
+			);
+			return;
+		}
+		this.externalDataTarget.set(refreshed ?? { ...requested, ...updated });
+		this.externalDataState.set({ status: "done", results });
+	}
+
+	private failExternalDataRefresh(requested: Game, error: unknown) {
+		this.setRefreshingExternal(requested.id, false);
+		const message = externalDataRefreshErrorMessage(error);
+		if (this.externalDataTarget()?.id !== requested.id) {
+			this.toast.warning(
+				`Couldn't refresh external data for "${requested.title}". ${message}`
+			);
+			return;
+		}
+		this.externalDataState.set({ status: "error", message });
+	}
+
+	private setRefreshingExternal(gameId: string, refreshing: boolean) {
+		const next = new Set(this.refreshingExternalIds());
+		if (refreshing) next.add(gameId);
+		else next.delete(gameId);
+		this.refreshingExternalIds.set(next);
+	}
+
+	private replaceGameRow(gameId: string, updated: Game): Game | null {
+		let replaced: Game | null = null;
+		this.games.set(
+			this.games().map(row => {
+				if (row.id !== gameId) return row;
+				replaced = { ...row, ...updated };
+				return replaced;
+			})
+		);
+		return replaced;
 	}
 
 	private reportActionError(err: { status?: number }, fallback: string) {

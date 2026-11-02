@@ -288,6 +288,10 @@ textarea.ui-input {
 	user-select: none;
 }
 
+.ui-checkbox[data-disabled] {
+	cursor: not-allowed;
+}
+
 .ui-checkbox__box {
 	display: inline-flex;
 	align-items: center;

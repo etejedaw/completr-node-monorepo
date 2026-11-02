@@ -7,16 +7,8 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { type BacklogStats } from "../public-profile.service";
-
-interface LibrarySegment {
-	status: keyof Omit<BacklogStats, "total">;
-	label: string;
-	count: number;
-	percent: number;
-	barClass: string;
-	dotClass: string;
-}
+import { type BacklogStats } from "../public-profile.model";
+import { type LibrarySegment } from "./profile-stats.model";
 
 const SEGMENT_STYLES: Omit<LibrarySegment, "count" | "percent">[] = [
 	{

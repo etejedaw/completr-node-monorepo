@@ -6,14 +6,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-export interface FeaturedList {
-	id: string;
-	name: string;
-	description?: string;
-	isOfficial: boolean;
-	completed: boolean;
-	owner: { username: string } | null;
-}
+import { type FeaturedList } from "./game-featured-lists.model";
 
 @Component({
 	selector: "app-game-featured-lists",

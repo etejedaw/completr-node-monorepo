@@ -1,0 +1,211 @@
+info:
+    name: Get User Rewind
+    type: http
+    seq: 2
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/:username/rewinds/:year"
+    auth: inherit
+    params:
+        - name: username
+          value: ""
+          type: path
+        - name: year
+          value: "2025"
+          type: path
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get User Rewind
+
+    Returns the Rewind of `:username` for one calendar year: totals, every finished game and the highlights of the year. Powers the `/user/:username/rewind/:year` page and the share images.
+
+    The owner must have generated the year with `POST /users/me/rewinds/:year`: until then visitors get 404 `REWIND_NOT_FOUND` and the owner gets 404 `REWIND_NOT_GENERATED`. The base numbers are computed live for each viewer; `language`, `generatedAt`, `aiRecap` and `premiumStats` come from the stored generation and are the same for every viewer, free or premium.
+
+    The year must be open (a past year, or the current year from December 1, UTC), not earlier than the year the user signed up (`createdAt`, UTC), and have data for the viewer, as in `GET /users/:username/rewinds`. The owner sees every run; everyone else gets the Rewind built from public runs only. Notes are never returned. The platinum total is only sent to viewers who can see the platinums section (`platinumVisibility`); for everyone else it is `null`. For non-self viewers the target's `profile` and `rewind` sections must be visible.
+
+    **Authentication:** optional (Bearer token). Required to see a Rewind whose privacy needs it.
+    **Rate Limit:** 300 requests per minute (public).
+
+    ### Path Params
+
+    | Param    | Type    | Required | Description                                   |
+    |----------|---------|----------|-----------------------------------------------|
+    | username | string  | Yes      | Profile username                              |
+    | year     | integer | Yes      | Calendar year, digits only, from 2000 to 2100 |
+
+    ### Response (200)
+
+    As a visitor sees it (`premiumAccess` and `ownerControls` are `null`).
+
+    ```json
+    {
+      "data": {
+        "year": 2025,
+        "persona": "marathoner",
+        "user": {
+          "username": "johndoe",
+          "name": "John Doe",
+          "avatarUrl": "https://example.com/avatar.png",
+          "role": "user"
+        },
+        "isSpotlight": false,
+        "premiumAccess": null,
+        "otherYears": [2024, 2023],
+        "totals": {
+          "finished": 18,
+          "abandoned": 4,
+          "started": 23,
+          "hoursPlayed": 212.5,
+          "platinums": 3,
+          "finishRate": 82,
+          "averageRating": 4.2,
+          "genresPlayed": 9,
+          "platformsPlayed": 3
+        },
+        "finishedGames": [
+          {
+            "gameId": "uuid",
+            "code": "hades",
+            "title": "Hades",
+            "coverUrl": "https://media.example.com/hades.jpg",
+            "backgroundUrl": "https://media.example.com/hades-bg.jpg",
+            "finishedAt": "2025-03-10",
+            "platformAbbreviation": "PS5"
+          }
+        ],
+        "highlights": {
+          "topRated": {
+            "gameId": "uuid",
+            "code": "hades",
+            "title": "Hades",
+            "coverUrl": "https://media.example.com/hades.jpg",
+            "backgroundUrl": "https://media.example.com/hades-bg.jpg",
+            "finishedAt": "2025-03-10",
+            "platformAbbreviation": "PS5",
+            "userRating": 5
+          },
+          "bestRatio": {
+            "gameId": "uuid",
+            "code": "celeste",
+            "title": "Celeste",
+            "coverUrl": "https://media.example.com/celeste.jpg",
+            "backgroundUrl": "https://media.example.com/celeste-bg.jpg",
+            "finishedAt": "2025-07-01",
+            "platformAbbreviation": "NSW",
+            "personalRatio": 9
+          },
+          "longest": {
+            "gameId": "uuid",
+            "code": "elden-ring",
+            "title": "Elden Ring",
+            "coverUrl": "https://media.example.com/elden-ring.jpg",
+            "backgroundUrl": "https://media.example.com/elden-ring-bg.jpg",
+            "finishedAt": "2025-05-01",
+            "platformAbbreviation": "PS5",
+            "hours": 100,
+            "isEstimate": false
+          },
+          "fastest": {
+            "gameId": "uuid",
+            "code": "gris",
+            "title": "Gris",
+            "coverUrl": "https://media.example.com/gris.jpg",
+            "backgroundUrl": "https://media.example.com/gris-bg.jpg",
+            "finishedAt": "2025-02-14",
+            "platformAbbreviation": "NSW",
+            "hours": 3.5,
+            "isEstimate": true
+          },
+          "favoriteGenre": { "code": "action", "name": "Action", "count": 7 },
+          "topPlatform": { "name": "PlayStation 5", "abbreviation": "PS5", "count": 12 },
+          "busiestMonth": { "month": 3, "count": 5 },
+          "firstFinished": {
+            "gameId": "uuid",
+            "code": "gris",
+            "title": "Gris",
+            "coverUrl": "https://media.example.com/gris.jpg",
+            "backgroundUrl": "https://media.example.com/gris-bg.jpg",
+            "finishedAt": "2025-02-14",
+            "platformAbbreviation": "NSW"
+          },
+          "lastFinished": {
+            "gameId": "uuid",
+            "code": "hades",
+            "title": "Hades",
+            "coverUrl": "https://media.example.com/hades.jpg",
+            "backgroundUrl": "https://media.example.com/hades-bg.jpg",
+            "finishedAt": "2025-12-20",
+            "platformAbbreviation": "PS5"
+          },
+          "topGenres": [
+            { "code": "action", "name": "Action", "count": 7 },
+            { "code": "rpg", "name": "RPG", "count": 5 },
+            { "code": "indie", "name": "Indie", "count": 4 }
+          ],
+          "topPlatforms": [
+            { "name": "PlayStation 5", "abbreviation": "PS5", "count": 12 },
+            { "name": "Nintendo Switch", "abbreviation": "NSW", "count": 5 },
+            { "name": "PC", "abbreviation": "PC", "count": 1 }
+          ],
+          "longestStreak": { "months": 5, "fromMonth": 3, "toMonth": 7 }
+        },
+        "yearMix": {
+          "lengthMix": [
+            { "range": "under-5", "count": 3 },
+            { "range": "5-15", "count": 8 },
+            { "range": "15-30", "count": 4 },
+            { "range": "over-30", "count": 2 }
+          ],
+          "releaseDecades": [
+            { "decade": 1990, "count": 1 },
+            { "decade": 2010, "count": 6 },
+            { "decade": 2020, "count": 10 }
+          ],
+          "gamesWithoutHours": 1,
+          "gamesWithoutRelease": 1
+        },
+        "language": "en",
+        "generatedAt": "2025-12-03T20:15:00.000Z",
+        "aiRecap": null,
+        "premiumStats": null,
+        "premiumAccessKind": null,
+        "ownerControls": null
+      }
+    }
+    ```
+
+    - `persona`: the title of the year, the first rule that matches: `trophy-hunter` (`platinums` >= 3, never when `platinums` is `null`), `marathoner` (`finished` >= 3 and an average of 30 hours or more per finished game), `short-and-sweet` (`finished` >= 5 and an average of 8 hours or less), `finisher` (`finished` >= 10 and `finishRate` >= 80), `genre-explorer` (`genresPlayed` >= 6), `picky-player` (`abandoned` > `finished` and `abandoned` >= 3), otherwise `steady-player`. The average uses the hours of `longest` / `fastest` (real or estimated) of the latest run of each finished game, leaving out games without hours.
+    - `isSpotlight`: `true` while today (UTC) is between December 1 of `year` and January 31 of the next year.
+    - `premiumAccess`: only for the owner, `null` for everyone else. The owner's current access to `rewind.premium`: `source` is `role`, `full-grant`, `feature-grant` or null; `expiresAt` is the applicable grant expiration or null. It controls premium generation actions, not access to already generated content nor the badge.
+    - `premiumAccessKind`: same for every viewer. How the stored premium part (`aiRecap`, `premiumStats`) was generated: `gift` with a specific Rewind grant, `premium` with a premium role or temporary full premium, `null` without premium content or for Rewinds generated before this field existed. It is stored with the content, so it stays correct after the owner's access expires; the client shows the badge from it.
+    - `otherYears`: the other years `GET /users/:username/rewinds` lists for the same viewer, newest first (only generated years for visitors).
+    - `language`: `en` or `es`, chosen by the owner when generating; the page is shown in it for every viewer.
+    - `generatedAt`: ISO date of the last generation. The owner sends it back as `expectedGeneratedAt` to regenerate.
+    - `aiRecap`: the stored AI recap (`headline`, `summary`, `insights` with `kind` / `title` / `body`, `funFact`, `nextYearChallenge`), only when it finished successfully; `null` otherwise. Losing premium never removes it.
+    - `premiumStats`: `hoursByMonth`, `tasteVsCritics`, `backlogFlow` and `genreShare`, stored with the AI recap; `null` when the year was never generated with premium access.
+    - `ownerControls`: only for the owner, `null` for everyone else. `includesPrivateRuns` and `includesNotes` repeat the last generation choices; `regenerationsLeft` is `1 - regenerationsUsed`; `graceEndsAt` is `"<year+1>-01-07"` from January 1 to 7 (UTC) of the next year while the grace regeneration is unused, `null` otherwise; `canRegenerate` is `graceEndsAt !== null || regenerationsLeft > 0`; `aiRecapState` is `ready` (recap stored), `failed` (failed or still pending), `available` (no recap and the owner has `rewind.premium` access today) or `unavailable`.
+    - `totals`: distinct games `finished` (`completed`) and `abandoned` with `finishedAt` in the year, distinct games `started` (`startedAt` in the year), `hoursPlayed` as in the years list, and `platinums` with `platinumedAt` in the year (`null` without access to the platinums). `finishRate` is `round(finished / (finished + abandoned) * 100)`, `null` when both are 0. `averageRating` is the mean `userRating` of the rated finished runs, 1 decimal, `null` without ratings. `genresPlayed` / `platformsPlayed` count the distinct genres of the finished games and the distinct platforms of the finished runs.
+    - `finishedGames`: one entry per finished game (its latest run of the year), by `finishedAt` ascending and then run id.
+    - `topRated`: the finished run with the highest `userRating`; ties go to the latest `finishedAt`, then the run id.
+    - `bestRatio`: the finished run with the highest personal ratio (`score` per hour of `realDuration`, same formula as the backlog); ties like `topRated`.
+    - `longest` / `fastest`: by `realDuration`, or by the estimated `duration` (`isEstimate: true`) when the run has no real hours; ties go to the earliest `finishedAt`, then the run id. `fastest` is `null` when it would be the same game as `longest`.
+    - `favoriteGenre`: the genre with the most distinct finished games; ties by name. `topPlatform`: the platform with the most finished runs; ties by name. `busiestMonth`: the month (1-12) with the most finished games; ties go to the earliest month.
+    - `firstFinished` / `lastFinished`: the first and last entries of `finishedGames` (the same game when only one was finished).
+    - `topGenres` / `topPlatforms`: up to 3, with the criteria and ties of `favoriteGenre` / `topPlatform`, which are their first entries; empty arrays when there is nothing to rank.
+    - `longestStreak`: the longest run of consecutive months of the year with at least one finished game (by the latest run of each game); ties go to the earliest; `null` when it is shorter than 2 months.
+    - Every other highlight is `null` when there is nothing to pick from.
+    - `yearMix`: computed live from the latest finished run of each game in the year, so a replayed game counts once. `lengthMix` always has the four ranges in this order: `under-5`, `5-15`, `15-30` and `over-30` hours, by `realDuration` or, without real hours, the estimated `duration` (a range includes its lower edge: exactly 5 hours is `5-15`). `releaseDecades` lists only the decades with games (`decade` is 1990, 2000...), oldest first, by the release year of the game. `gamesWithoutHours` counts the finished games left out of `lengthMix` (no hours above 0) and `gamesWithoutRelease` the ones left out of `releaseDecades` (no release date, or a release year before 1950 or after `year`).
+
+    ### Errors
+
+    | Status | Code                  | Description                                                     |
+    |--------|-----------------------|-----------------------------------------------------------------|
+    | 403    | USER_PRIVATE          | Profile or its rewind section is not visible                    |
+    | 404    | USER_NOT_FOUND        | No active user with that username                               |
+    | 404    | REWIND_NOT_FOUND      | The year is not open yet, is before the sign-up, has no data, or (for visitors) is not generated |
+    | 404    | REWIND_NOT_GENERATED  | The owner reads an open year with data they have not generated  |
+    | 422    | COMMON_SCHEMA_INVALID | `year` is not an integer from 2000 to 2100, or bad `username`   |

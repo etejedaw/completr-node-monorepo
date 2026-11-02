@@ -1,9 +1,5 @@
-import { type AuthSession } from "../../../core/services/auth";
-
-export interface SessionDevice {
-	name: string;
-	icon: string;
-}
+import { type AuthSession } from "../../../core/services/auth.model";
+import { type SessionDevice } from "./session-device.model";
 
 const OPERATING_SYSTEMS: { pattern: RegExp; name: string; icon: string }[] = [
 	{ pattern: /iPad/i, name: "iPad", icon: "tablet_mac" },

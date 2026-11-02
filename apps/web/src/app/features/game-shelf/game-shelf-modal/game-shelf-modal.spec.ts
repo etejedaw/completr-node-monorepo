@@ -12,7 +12,8 @@ import { NgpDialogRef } from "ng-primitives/dialog";
 
 import { environment } from "../../../../environments/environment";
 import { type Game, type GameShelfEntry } from "../../../core/models";
-import { GameShelfModal, type GameShelfModalData } from "./game-shelf-modal";
+import { GameShelfModal } from "./game-shelf-modal";
+import { type GameShelfModalData } from "./game-shelf-modal.model";
 
 const shelfUrl = `${environment.apiUrl}/users/me/game-shelf`;
 

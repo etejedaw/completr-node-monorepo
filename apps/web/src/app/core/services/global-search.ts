@@ -3,26 +3,8 @@ import { inject, Injectable } from "@angular/core";
 import { forkJoin, map, of } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type UserResult } from "./users";
-
-interface GameResult {
-	id: string;
-	title: string;
-	code: string;
-	backgroundUrl?: string;
-}
-
-interface ListResult {
-	id: string;
-	name: string;
-	description?: string;
-}
-
-export interface SearchResults {
-	users: UserResult[];
-	games: GameResult[];
-	lists: ListResult[];
-}
+import { type GameResult, type ListResult } from "./global-search.model";
+import { type UserResult } from "./users.model";
 
 @Injectable({ providedIn: "root" })
 export class GlobalSearchService {

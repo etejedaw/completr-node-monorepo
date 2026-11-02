@@ -16,14 +16,13 @@ import {
 } from "../../../shared/components/info-page-links/info-page-links";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
-import {
-	type PageSection,
-	PageToc
-} from "../../../shared/components/page-toc/page-toc";
+import { PageToc } from "../../../shared/components/page-toc/page-toc";
+import { type PageSection } from "../../../shared/components/page-toc/page-toc.model";
 import { injectSectionScrollSpy } from "../../../shared/components/page-toc/section-scroll-spy";
 import { InView } from "../../../shared/directives/in-view";
 import { UiButton, UiEmptyState, UiSkeleton } from "../../../shared/ui";
-import { LANDING_PRIVACY_URL, type PrivacyPolicy } from "./privacy-policy";
+import { LANDING_PRIVACY_URL } from "./privacy-policy";
+import { type PrivacyPolicy } from "./privacy-policy.model";
 
 const SKELETON_SECTIONS = [1, 2, 3];
 

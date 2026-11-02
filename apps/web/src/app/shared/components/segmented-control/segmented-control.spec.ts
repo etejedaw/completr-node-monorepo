@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 
-import { SegmentedControl, type SegmentedOption } from "./segmented-control";
+import { SegmentedControl } from "./segmented-control";
+import { type SegmentedOption } from "./segmented-control.model";
 
 const options: SegmentedOption[] = [
 	{ value: "all", label: "All", count: 12 },

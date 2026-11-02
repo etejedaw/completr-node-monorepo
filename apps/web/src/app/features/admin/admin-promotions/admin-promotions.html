@@ -1,0 +1,488 @@
+<app-library-hero heading="Promotions">
+	<span
+		heroEyebrow
+		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+		>Admin</span
+	>
+	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
+		<span class="font-semibold text-fg tabular-nums"
+			>{{ promotions().length }}</span
+		>
+		{{ promotions().length === 1 ? 'promotion' : 'promotions' }}
+	</p>
+	<div heroActions class="flex items-center gap-2">
+		<button
+			uiButton
+			variant="secondary"
+			class="!bg-surface/70 backdrop-blur min-w-[44px] !px-2"
+			aria-label="Refresh"
+			title="Refresh"
+			(click)="refresh()"
+			[disabled]="isLoading() || isBusy()"
+		>
+			<span aria-hidden="true" class="material-icons text-xl"
+				>refresh</span
+			>
+		</button>
+		<button
+			uiButton
+			variant="primary"
+			[disabled]="isBusy() || isLoading() || loadFailed()"
+			(click)="openCreate()"
+		>
+			<span aria-hidden="true" class="material-icons text-base">add</span>
+			New promotion
+		</button>
+	</div>
+</app-library-hero>
+
+@if (pageError()) {
+<ui-alert class="mb-4">{{ pageError() }}</ui-alert>
+} @if (isLoading()) {
+<div
+	aria-busy="true"
+	aria-label="Loading promotions"
+	class="flex flex-col divide-y divide-line"
+>
+	@for (i of skeletonRows; track i) {
+	<div class="flex items-center gap-4 py-3">
+		<ui-skeleton variant="text" class="block w-40 h-4" />
+		<ui-skeleton variant="text" class="block w-24 h-5 rounded-full" />
+		<ui-skeleton variant="text" class="block flex-1 h-4" />
+		<ui-skeleton variant="text" class="block w-28 max-sm:hidden" />
+	</div>
+	}
+</div>
+} @else if (loadFailed()) {
+<ui-empty-state
+	icon="cloud_off"
+	title="Couldn't load the promotions"
+	hint="Something went wrong while fetching the promotions."
+>
+	<button uiButton variant="secondary" (click)="refresh()">Try again</button>
+</ui-empty-state>
+} @else if (rows().length === 0) {
+<ui-empty-state
+	icon="redeem"
+	title="No promotions yet"
+	hint="Create one to let users claim temporary premium access for a feature."
+/>
+} @else {
+<div class="max-md:hidden overflow-x-auto">
+	<table class="w-full border-collapse text-[0.8125rem]">
+		<thead>
+			<tr>
+				<th
+					scope="col"
+					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
+				>
+					Code
+				</th>
+				<th
+					scope="col"
+					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
+				>
+					Feature
+				</th>
+				<th
+					scope="col"
+					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
+				>
+					Status
+				</th>
+				<th
+					scope="col"
+					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
+				>
+					Starts
+				</th>
+				<th
+					scope="col"
+					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
+				>
+					Ends
+				</th>
+				<th
+					scope="col"
+					class="text-right px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
+				>
+					Claims
+				</th>
+				<th scope="col" class="border-b border-line">
+					<span class="sr-only">Actions</span>
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			@for (row of rows(); track row.promotion.id) {
+			<tr class="border-b border-line transition hover:bg-surface-hover">
+				<td class="px-3 py-2.5 text-fg align-middle font-medium">
+					<code class="break-all">{{ row.promotion.code }}</code>
+				</td>
+				<td class="px-3 py-2.5 text-fg-secondary align-middle">
+					{{ featureLabel(row.promotion.feature) }}
+				</td>
+				<td class="px-3 py-2.5 align-middle">
+					<span
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold"
+						[class]="statusStyle(row.status).classes"
+					>
+						<span aria-hidden="true" class="material-icons text-sm"
+							>{{ statusStyle(row.status).icon }}</span
+						>
+						{{ statusStyle(row.status).label }}
+					</span>
+				</td>
+				<td
+					class="px-3 py-2.5 text-fg-secondary align-middle tabular-nums whitespace-nowrap"
+				>
+					{{ row.promotion.startsAt | date : "yyyy-MM-dd HH:mm" }}
+				</td>
+				<td
+					class="px-3 py-2.5 text-fg-secondary align-middle tabular-nums whitespace-nowrap"
+				>
+					{{ row.promotion.endsAt | date : "yyyy-MM-dd HH:mm" }}
+				</td>
+				<td
+					class="px-3 py-2.5 text-fg align-middle tabular-nums text-right"
+				>
+					{{ row.promotion.claimCount }}
+				</td>
+				<td class="px-3 py-2.5 align-middle text-right">
+					@if (row.status !== 'ended') {
+					<div class="inline-flex gap-2">
+						<button
+							uiButton
+							variant="secondary"
+							size="sm"
+							[disabled]="isBusy()"
+							[attr.aria-label]="'Edit ' + row.promotion.code"
+							(click)="openEdit(row.promotion)"
+						>
+							Edit
+						</button>
+						<button
+							uiButton
+							variant="danger"
+							size="sm"
+							[disabled]="isBusy()"
+							[attr.aria-busy]="busyKey() === 'revoke:' + row.promotion.id || null"
+							[attr.aria-label]="'End ' + row.promotion.code + ' early'"
+							(click)="openRevoke(row.promotion)"
+						>
+							End early
+						</button>
+					</div>
+					}
+				</td>
+			</tr>
+			}
+		</tbody>
+	</table>
+</div>
+
+<ul class="md:hidden list-none m-0 p-0 flex flex-col gap-3">
+	@for (row of rows(); track row.promotion.id) {
+	<li
+		class="p-4 bg-surface border border-line rounded-card flex flex-col gap-3"
+	>
+		<div class="flex items-center justify-between gap-3">
+			<code class="font-medium text-sm text-fg break-all"
+				>{{ row.promotion.code }}</code
+			>
+			<span
+				class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold shrink-0"
+				[class]="statusStyle(row.status).classes"
+			>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>{{ statusStyle(row.status).icon }}</span
+				>
+				{{ statusStyle(row.status).label }}
+			</span>
+		</div>
+		<p class="m-0 text-xs text-fg-secondary">
+			{{ featureLabel(row.promotion.feature) }}
+		</p>
+		<dl class="m-0 grid grid-cols-3 gap-3 text-xs">
+			<div>
+				<dt
+					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					Starts
+				</dt>
+				<dd class="m-0 mt-0.5 text-fg-secondary tabular-nums">
+					{{ row.promotion.startsAt | date : "yyyy-MM-dd HH:mm" }}
+				</dd>
+			</div>
+			<div>
+				<dt
+					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					Ends
+				</dt>
+				<dd class="m-0 mt-0.5 text-fg-secondary tabular-nums">
+					{{ row.promotion.endsAt | date : "yyyy-MM-dd HH:mm" }}
+				</dd>
+			</div>
+			<div>
+				<dt
+					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					Claims
+				</dt>
+				<dd class="m-0 mt-0.5 text-fg tabular-nums">
+					{{ row.promotion.claimCount }}
+				</dd>
+			</div>
+		</dl>
+		@if (row.status !== 'ended') {
+		<div class="flex gap-2">
+			<button
+				uiButton
+				variant="secondary"
+				size="sm"
+				class="flex-1"
+				[disabled]="isBusy()"
+				[attr.aria-label]="'Edit ' + row.promotion.code"
+				(click)="openEdit(row.promotion)"
+			>
+				Edit
+			</button>
+			<button
+				uiButton
+				variant="danger"
+				size="sm"
+				class="flex-1"
+				[disabled]="isBusy()"
+				[attr.aria-label]="'End ' + row.promotion.code + ' early'"
+				(click)="openRevoke(row.promotion)"
+			>
+				End early
+			</button>
+		</div>
+		}
+	</li>
+	}
+</ul>
+} @if (dialog(); as current) {
+<ui-dialog
+	eyebrow="Promotions"
+	[heading]="current.kind === 'create' ? 'New promotion' : 'Edit dates'"
+	[subheading]="
+		current.kind === 'create'
+			? 'The code and feature cannot be changed after the promotion is created.'
+			: current.promotion.code + ' · ' + featureLabel(current.promotion.feature)
+	"
+	size="sm"
+	[dismissible]="!isBusy()"
+	(closed)="closeDialog()"
+>
+	@if (dialogError()) {
+	<ui-alert class="mb-4">{{ dialogError() }}</ui-alert>
+	} @if (current.kind === 'create') {
+	<form
+		id="promotion-form"
+		class="flex flex-col gap-4"
+		(submit)="submitCreate($event)"
+		novalidate
+	>
+		<div uiFormField>
+			<label uiLabel uiFieldLabel for="promotion-feature"
+				>Feature <span class="text-danger font-bold">*</span></label
+			>
+			<select
+				uiSelect
+				id="promotion-feature"
+				[formField]="createForm.feature"
+			>
+				<option value="" disabled>Choose a feature</option>
+				@for (option of featureOptions; track option.feature) {
+				<option [value]="option.feature">{{ option.label }}</option>
+				}
+			</select>
+			@if (createForm.feature().touched() &&
+			createForm.feature().invalid()) {
+			<p class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger">
+				<span aria-hidden="true" class="material-icons text-sm"
+					>error_outline</span
+				>
+				{{ createForm.feature().errors()[0]?.message }}
+			</p>
+			}
+		</div>
+		<div uiFormField>
+			<label uiLabel uiFieldLabel for="promotion-code"
+				>Code <span class="text-danger font-bold">*</span></label
+			>
+			<input
+				id="promotion-code"
+				uiInput
+				type="text"
+				autocomplete="off"
+				autocapitalize="none"
+				spellcheck="false"
+				placeholder="rewind-launch-2026"
+				[formField]="createForm.code"
+			/>
+			@if (createForm.code().touched() && createForm.code().invalid()) {
+			<p class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger">
+				<span aria-hidden="true" class="material-icons text-sm"
+					>error_outline</span
+				>
+				{{ createForm.code().errors()[0]?.message }}
+			</p>
+			}
+		</div>
+		<div uiFormField>
+			<label uiLabel uiFieldLabel for="promotion-starts-at"
+				>Starts at <span class="text-danger font-bold">*</span></label
+			>
+			<input
+				id="promotion-starts-at"
+				uiInput
+				type="datetime-local"
+				[formField]="createForm.startsAt"
+			/>
+			@if (createForm.startsAt().touched() &&
+			createForm.startsAt().invalid()) {
+			<p class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger">
+				<span aria-hidden="true" class="material-icons text-sm"
+					>error_outline</span
+				>
+				{{ createForm.startsAt().errors()[0]?.message }}
+			</p>
+			}
+		</div>
+		<div uiFormField>
+			<label uiLabel uiFieldLabel for="promotion-ends-at"
+				>Ends at <span class="text-danger font-bold">*</span></label
+			>
+			<input
+				id="promotion-ends-at"
+				uiInput
+				type="datetime-local"
+				[formField]="createForm.endsAt"
+			/>
+			@if (createForm.endsAt().touched() && createForm.endsAt().invalid())
+			{
+			<p class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger">
+				<span aria-hidden="true" class="material-icons text-sm"
+					>error_outline</span
+				>
+				{{ createForm.endsAt().errors()[0]?.message }}
+			</p>
+			}
+		</div>
+	</form>
+	} @else {
+	<form
+		id="promotion-form"
+		class="flex flex-col gap-4"
+		(submit)="submitEdit($event)"
+		novalidate
+	>
+		<p class="m-0 text-xs text-fg-secondary">
+			Moving the end date also moves the access of everyone who already
+			claimed this promotion.
+		</p>
+		<div uiFormField>
+			<label uiLabel uiFieldLabel for="promotion-starts-at"
+				>Starts at</label
+			>
+			<input
+				id="promotion-starts-at"
+				uiInput
+				type="datetime-local"
+				[formField]="editForm.startsAt"
+			/>
+			@if (editForm.startsAt().touched() && editForm.startsAt().invalid())
+			{
+			<p class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger">
+				<span aria-hidden="true" class="material-icons text-sm"
+					>error_outline</span
+				>
+				{{ editForm.startsAt().errors()[0]?.message }}
+			</p>
+			}
+		</div>
+		<div uiFormField>
+			<label uiLabel uiFieldLabel for="promotion-ends-at">Ends at</label>
+			<input
+				id="promotion-ends-at"
+				uiInput
+				type="datetime-local"
+				[formField]="editForm.endsAt"
+			/>
+			@if (editForm.endsAt().touched() && editForm.endsAt().invalid()) {
+			<p class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger">
+				<span aria-hidden="true" class="material-icons text-sm"
+					>error_outline</span
+				>
+				{{ editForm.endsAt().errors()[0]?.message }}
+			</p>
+			}
+		</div>
+	</form>
+	}
+
+	<ng-container dialogFooter>
+		<button
+			uiButton
+			type="button"
+			variant="ghost"
+			[disabled]="isBusy()"
+			(click)="closeDialog()"
+		>
+			Cancel
+		</button>
+		<button
+			uiButton
+			variant="primary"
+			type="submit"
+			form="promotion-form"
+			[disabled]="isBusy()"
+		>
+			@if (current.kind === 'create') { {{ isBusy() ? 'Creating...' :
+			'Create promotion' }} } @else { {{ isBusy() ? 'Saving...' : 'Save
+			dates' }} }
+		</button>
+	</ng-container>
+</ui-dialog>
+} @if (revokeTarget(); as target) {
+<ui-dialog
+	eyebrow="Promotions"
+	heading="End promotion early?"
+	size="sm"
+	[dismissible]="!isBusy()"
+	(closed)="closeRevoke()"
+>
+	<p class="m-0 text-sm text-fg-secondary">
+		Ending <strong class="text-fg">{{ target.code }}</strong> now closes it
+		immediately and also finishes the premium access of everyone who already
+		claimed it ({{ target.claimCount }} {{ target.claimCount === 1 ? 'claim'
+		: 'claims' }}). This cannot be undone; create a new promotion to offer
+		it again.
+	</p>
+
+	<ng-container dialogFooter>
+		<button
+			uiButton
+			type="button"
+			variant="ghost"
+			[disabled]="isBusy()"
+			(click)="closeRevoke()"
+		>
+			Keep promotion
+		</button>
+		<button
+			uiButton
+			type="button"
+			variant="danger"
+			[disabled]="isBusy()"
+			(click)="confirmRevoke()"
+		>
+			{{ isBusy() ? 'Ending...' : 'End promotion' }}
+		</button>
+	</ng-container>
+</ui-dialog>
+}

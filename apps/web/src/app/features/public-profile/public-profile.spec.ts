@@ -1,20 +1,23 @@
 import "@testing-library/jest-dom/vitest";
 
 import { signal } from "@angular/core";
+import { DeferBlockState } from "@angular/core/testing";
 import { ActivatedRoute, provideRouter } from "@angular/router";
-import { render, screen, waitFor } from "@testing-library/angular";
+import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 import { BehaviorSubject, of, Subject, throwError } from "rxjs";
 
 import { AuthService } from "../../core/services/auth";
 import { ToastService } from "../../core/services/toast";
+import { GiftOffersService } from "../../shared/components/gift-offer-card/gift-offers.service";
 import { FeedService } from "../feed/feed";
+import { RewindService } from "../rewind/rewind";
 import { PublicProfileComponent } from "./public-profile";
 import {
 	type ProfileSectionAccess,
-	type PublicProfile,
-	PublicProfileService
-} from "./public-profile.service";
+	type PublicProfile
+} from "./public-profile.model";
+import { PublicProfileService } from "./public-profile.service";
 import { PublicLibraryService } from "./services/public-library.service";
 import { PublicListsService } from "./services/public-lists.service";
 import { PublicReviewsService } from "./services/public-reviews.service";
@@ -29,7 +32,9 @@ const openAccess: ProfileSectionAccess = {
 	backlog: true,
 	shelf: true,
 	list: true,
-	platinum: true
+	platinum: true,
+	franchise: true,
+	rewind: true
 };
 
 const closedAccess: ProfileSectionAccess = {
@@ -41,7 +46,9 @@ const closedAccess: ProfileSectionAccess = {
 	backlog: false,
 	shelf: false,
 	list: false,
-	platinum: false
+	platinum: false,
+	franchise: false,
+	rewind: false
 };
 
 const recentActivity = [
@@ -124,6 +131,9 @@ describe("PublicProfileComponent", () => {
 	const getComparison = vi.fn();
 	const getUserReviews = vi.fn();
 	const getHighlights = vi.fn();
+	const getRewindYears = vi.fn();
+	const listOffers = vi.fn();
+	const claimOffer = vi.fn();
 	const toast = { success: vi.fn(), warning: vi.fn(), pending: vi.fn() };
 
 	beforeEach(() => {
@@ -156,7 +166,10 @@ describe("PublicProfileComponent", () => {
 			getUserFranchises,
 			getComparison,
 			getUserReviews,
-			getHighlights
+			getHighlights,
+			getRewindYears,
+			listOffers,
+			claimOffer
 		]) {
 			fn.mockReset();
 		}
@@ -169,6 +182,8 @@ describe("PublicProfileComponent", () => {
 		getUserFranchises.mockReturnValue(of([]));
 		getUserReviews.mockReturnValue(of({ reviews: [], total: 0 }));
 		getHighlights.mockReturnValue(of(emptyHighlights));
+		getRewindYears.mockReturnValue(of({ spotlightYear: null, years: [] }));
+		listOffers.mockReturnValue(of([]));
 		getComparison.mockReturnValue(
 			of({ inCommon: [], counts: { inCommon: 0 } })
 		);
@@ -214,15 +229,23 @@ describe("PublicProfileComponent", () => {
 						token: () => null,
 						user: authUser,
 						isLoggedIn: loggedIn,
-						loadUser: vi.fn()
+						loadUser: vi.fn(() => of(null))
 					}
 				},
 				{ provide: ToastService, useValue: toast },
+				{
+					provide: GiftOffersService,
+					useValue: { listOffers, claimOffer, invalidate: vi.fn() }
+				},
 				{
 					provide: FeedService,
 					useValue: { deleteActivity: vi.fn(() => of({})) }
 				},
 				{ provide: PublicProfileService, useValue: { getProfile } },
+				{
+					provide: RewindService,
+					useValue: { getYears: getRewindYears }
+				},
 				{
 					provide: PublicSocialService,
 					useValue: { follow, unfollow, cancelFollowRequest }
@@ -592,6 +615,260 @@ describe("PublicProfileComponent", () => {
 				expect(getUserPlatinums).not.toHaveBeenCalled();
 				expect(
 					screen.queryByRole("heading", { name: "Platinums" })
+				).not.toBeInTheDocument();
+			});
+		});
+
+		describe("sagas", () => {
+			const trackedSagas = [
+				{
+					franchise: { id: "f1", name: "Metroid", code: "metroid" },
+					gameCount: 3
+				}
+			];
+
+			it("shows the tracked sagas when their section is visible, even with a hidden backlog", async () => {
+				getUserFranchises.mockReturnValue(of(trackedSagas));
+				await renderProfile({
+					data: profile({ access: { ...openAccess, backlog: false } })
+				});
+
+				await waitFor(() =>
+					expect(getUserFranchises).toHaveBeenCalledWith("ada")
+				);
+				expect(await screen.findByText("Metroid")).toBeInTheDocument();
+			});
+
+			it("neither requests nor shows the sagas when they are hidden", async () => {
+				getUserFranchises.mockReturnValue(of(trackedSagas));
+				await renderProfile({
+					data: profile({
+						access: { ...openAccess, franchise: false }
+					})
+				});
+
+				await screen.findByLabelText("Profile stats");
+				expect(getUserFranchises).not.toHaveBeenCalled();
+				expect(screen.queryByText("Metroid")).not.toBeInTheDocument();
+			});
+		});
+
+		describe("rewind", () => {
+			const rewindYear = (year: number, finishedCount: number) => ({
+				year,
+				isGenerated: true,
+				finishedCount,
+				startedCount: 7,
+				hoursPlayed: 212.5,
+				persona: "marathoner" as const,
+				covers: [
+					{
+						gameId: `g-${year}`,
+						code: "hades",
+						title: "Hades",
+						coverUrl: null,
+						backgroundUrl: null
+					}
+				]
+			});
+
+			it("shows the spotlight of the open year to a visitor and the other years in their own section", async () => {
+				getRewindYears.mockReturnValue(
+					of({
+						spotlightYear: 2026,
+						years: [rewindYear(2026, 18), rewindYear(2025, 9)]
+					})
+				);
+				const view = await renderProfile({ data: profile() });
+
+				expect(
+					await screen.findByRole("heading", { name: "Rewind 2026" })
+				).toBeInTheDocument();
+				expect(getRewindYears).toHaveBeenCalledWith("ada");
+				expect(screen.getByText("Marathoner")).toBeInTheDocument();
+				expect(
+					screen.getByRole("link", { name: "See @ada's Rewind" })
+				).toHaveAttribute("href", "/user/ada/rewind/2026");
+				for (const block of await view.fixture.getDeferBlocks())
+					await block.render(DeferBlockState.Complete);
+				const pastSection = await screen.findByRole("region", {
+					name: "Rewind"
+				});
+				expect(
+					within(pastSection).getByRole("link", { name: /2025/ })
+				).toBeInTheDocument();
+				expect(
+					within(pastSection).queryByRole("link", { name: /2026/ })
+				).not.toBeInTheDocument();
+				expect(
+					screen.queryByRole("link", { name: "Past rewinds" })
+				).not.toBeInTheDocument();
+			});
+
+			it("shows no past rewinds section when the spotlight year is the only one", async () => {
+				getRewindYears.mockReturnValue(
+					of({ spotlightYear: 2026, years: [rewindYear(2026, 18)] })
+				);
+				const view = await renderProfile({ data: profile() });
+
+				expect(
+					await screen.findByRole("heading", { name: "Rewind 2026" })
+				).toBeInTheDocument();
+				for (const block of await view.fixture.getDeferBlocks())
+					await block.render(DeferBlockState.Complete);
+				expect(
+					screen.queryByRole("region", { name: "Rewind" })
+				).not.toBeInTheDocument();
+			});
+
+			it("invites the owner to see their own Rewind", async () => {
+				getRewindYears.mockReturnValue(
+					of({ spotlightYear: 2026, years: [rewindYear(2026, 18)] })
+				);
+				await renderProfile({
+					data: profile(),
+					user: { id: "u-ada" }
+				});
+
+				expect(
+					await screen.findByRole("link", { name: "See your Rewind" })
+				).toBeInTheDocument();
+				expect(
+					screen.queryByRole("link", { name: "Past rewinds" })
+				).not.toBeInTheDocument();
+			});
+
+			describe("rewind gift", () => {
+				const rewindGift = (status: "available" | "active") => ({
+					code: "rewind-launch",
+					feature: "rewind.premium" as const,
+					availableFrom: "2026-11-01T00:00:00.000Z",
+					availableUntil: "2099-01-31T00:00:00.000Z",
+					status,
+					expiresAt:
+						status === "active" ? "2099-01-31T00:00:00.000Z" : null,
+					canActivate: status === "available",
+					hasAccess: status === "active"
+				});
+
+				beforeEach(() => {
+					getRewindYears.mockReturnValue(
+						of({
+							spotlightYear: 2026,
+							years: [rewindYear(2026, 18)]
+						})
+					);
+					listOffers.mockReturnValue(of([rewindGift("available")]));
+				});
+
+				it("offers the Rewind gift on the owner's profile and reloads the Rewind after claiming it", async () => {
+					const claim = new Subject<unknown>();
+					claimOffer.mockReturnValue(claim);
+					await renderProfile({
+						data: profile(),
+						user: { id: "u-ada" }
+					});
+					const activate = await screen.findByRole("button", {
+						name: "Activate gift"
+					});
+					expect(getRewindYears).toHaveBeenCalledTimes(1);
+
+					await userEvent.dblClick(activate);
+					claim.next({ offer: rewindGift("active"), created: true });
+					claim.complete();
+
+					expect(claimOffer).toHaveBeenCalledTimes(1);
+					expect(claimOffer).toHaveBeenCalledWith("rewind-launch");
+					expect(
+						await screen.findByText(/Gift active until/)
+					).toBeInTheDocument();
+					await waitFor(() =>
+						expect(getRewindYears).toHaveBeenCalledTimes(2)
+					);
+				});
+
+				it("never offers the owner's Rewind gift to a visitor", async () => {
+					await renderProfile({
+						data: profile(),
+						user: { id: "u-grace" }
+					});
+
+					await screen.findByRole("heading", { name: "Rewind 2026" });
+					expect(listOffers).not.toHaveBeenCalled();
+					expect(
+						screen.queryByRole("button", { name: "Activate gift" })
+					).not.toBeInTheDocument();
+				});
+
+				it("never offers the Rewind gift to an anonymous visitor", async () => {
+					await renderProfile({ data: profile() });
+
+					await screen.findByRole("heading", { name: "Rewind 2026" });
+					expect(listOffers).not.toHaveBeenCalled();
+				});
+
+				it("keeps the Rewind when the claim fails and lets the owner retry", async () => {
+					claimOffer.mockReturnValueOnce(
+						throwError(() => ({ status: 500, error: {} }))
+					);
+					await renderProfile({
+						data: profile(),
+						user: { id: "u-ada" }
+					});
+
+					await userEvent.click(
+						await screen.findByRole("button", {
+							name: "Activate gift"
+						})
+					);
+
+					expect(await screen.findByRole("alert")).toBeInTheDocument();
+					expect(
+						screen.getByRole("heading", { name: "Rewind 2026" })
+					).toBeInTheDocument();
+					expect(getRewindYears).toHaveBeenCalledTimes(1);
+					expect(
+						screen.getByRole("button", { name: "Activate gift" })
+					).toBeEnabled();
+				});
+			});
+
+			it("hides the spotlight outside the December window", async () => {
+				getRewindYears.mockReturnValue(
+					of({ spotlightYear: null, years: [rewindYear(2025, 9)] })
+				);
+				await renderProfile({ data: profile() });
+
+				await waitFor(() =>
+					expect(getRewindYears).toHaveBeenCalledWith("ada")
+				);
+				expect(
+					screen.queryByRole("heading", { name: "Rewind 2025" })
+				).not.toBeInTheDocument();
+			});
+
+			it("neither requests nor shows the Rewind when its section is hidden", async () => {
+				await renderProfile({
+					data: profile({ access: { ...openAccess, rewind: false } })
+				});
+
+				await screen.findByLabelText("Profile stats");
+				expect(getRewindYears).not.toHaveBeenCalled();
+			});
+
+			it("keeps the profile working when the Rewind request fails", async () => {
+				getRewindYears.mockReturnValue(
+					throwError(() =>
+						Object.assign(new Error("down"), { status: 500 })
+					)
+				);
+				await renderProfile({ data: profile() });
+
+				expect(
+					await screen.findByLabelText("Profile stats")
+				).toBeInTheDocument();
+				expect(
+					screen.queryByRole("link", { name: /Rewind/ })
 				).not.toBeInTheDocument();
 			});
 		});

@@ -7,6 +7,7 @@ import {
 	type VisibilitySection
 } from "../constants/visibility.constants";
 import { type User } from "../user.model";
+import { type SectionAccess } from "../users.types";
 
 const SECTION_TO_FIELD: Record<VisibilitySection, keyof User> = {
 	profile: "profileVisibility",
@@ -17,7 +18,9 @@ const SECTION_TO_FIELD: Record<VisibilitySection, keyof User> = {
 	backlog: "backlogVisibility",
 	shelf: "shelfVisibility",
 	list: "listVisibility",
-	platinum: "platinumVisibility"
+	platinum: "platinumVisibility",
+	franchise: "franchiseVisibility",
+	rewind: "rewindVisibility"
 };
 
 export async function canView(
@@ -49,8 +52,6 @@ export function isSectionVisible(
 
 	return !!viewerId && isMutual;
 }
-
-export type SectionAccess = Record<VisibilitySection, boolean>;
 
 export async function resolveSectionAccess(
 	viewerId: string | undefined,

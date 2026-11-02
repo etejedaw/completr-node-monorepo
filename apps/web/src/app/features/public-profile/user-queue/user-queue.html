@@ -24,6 +24,25 @@
 	</p>
 </app-library-hero>
 
+@if (collection.hasLoadFailed()) {
+<ui-empty-state
+	role="alert"
+	icon="cloud_off"
+	title="Couldn't load the queue"
+	hint="Check your connection and try again."
+>
+	<button
+		uiButton
+		type="button"
+		variant="secondary"
+		class="tap:min-h-[44px]"
+		(click)="collection.retry()"
+	>
+		<span aria-hidden="true" class="material-icons text-base">refresh</span>
+		Try again
+	</button>
+</ui-empty-state>
+} @else {
 <app-queue-browser
 	manualLabel="Their order"
 	noMatchesScope="their Up Next"
@@ -54,4 +73,4 @@
 		</ui-plain-empty-state>
 	</ng-template>
 </app-queue-browser>
-}
+} }

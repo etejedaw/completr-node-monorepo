@@ -1,0 +1,73 @@
+info:
+    name: Create Premium Promotion
+    type: http
+    seq: 9
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/premium-promotions"
+    headers:
+        - name: Content-Type
+          value: application/json
+    body:
+        type: json
+        data: |-
+            {
+              "code": "rewind-launch-2026",
+              "feature": "rewind.premium",
+              "startsAt": "2026-12-01T00:00:00.000Z",
+              "endsAt": "2027-01-31T23:59:59.999Z"
+            }
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Create Premium Promotion
+
+    Creates a global promotion definition for an individual feature or temporary full premium. The code is permanent and identifies claims through `PremiumGrant.offerCode`. Creating a promotion does not grant access by itself.
+
+    **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
+
+    ### Request Body
+
+    | Field | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | code | string | Yes | Unique lowercase kebab-case code, 3-80 characters; cannot reuse a static gift offer code |
+    | feature | string | Yes | Catalog feature code or `*` |
+    | startsAt | string | Yes | ISO date when claiming opens |
+    | endsAt | string | Yes | Future ISO date after `startsAt`; all claims expire at this instant |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "promotion": {
+          "id": "uuid",
+          "code": "rewind-launch-2026",
+          "feature": "rewind.premium",
+          "startsAt": "2026-12-01T00:00:00.000Z",
+          "endsAt": "2027-01-31T23:59:59.999Z",
+          "claimCount": 0,
+          "createdAt": "2026-11-01T12:00:00.000Z",
+          "updatedAt": "2026-11-01T12:00:00.000Z"
+        }
+      }
+    }
+    ```
+
+    Records the audit event `premium_promotion_created`.
+
+    ### Errors
+
+    | Status | Code | Description |
+    |--------|------|-------------|
+    | 404 | AUTH_ROUTE_NOT_FOUND | Caller is anonymous or is not an admin |
+    | 409 | PREMIUM_PROMOTION_CODE_CONFLICT | Another promotion already uses this code |
+    | 422 | PREMIUM_PROMOTION_INVALID_DATES | `endsAt` is not after `startsAt` or is not in the future |
+    | 422 | COMMON_SCHEMA_INVALID | Invalid code, feature, ISO date or extra field |

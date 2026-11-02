@@ -1,33 +1,15 @@
-import { type TimeSource } from "../../game-times/game-time.model";
 import { type RawgGameDetail } from "../../rawg/rawg.interface";
-import { type RegisterGameDto } from "../dtos/register-game.dto";
+import {
+	type GameScoreEntry,
+	type GameTimeEntry,
+	type RawgMappedData
+} from "../games.interface";
 import { RAWG_SCORE_EXTRACTORS } from "./extractors/rawg-score.extractors";
 import { RAWG_TIME_EXTRACTORS } from "./extractors/rawg-time.extractors";
 import { extractSourceValues } from "./extractors/source-value-extractor";
 import { mapRawgGenreSlugs } from "./rawg-genre.map";
 import { mapRawgPlatformSlugs } from "./rawg-platform.map";
 import { mapRawgTagSlugsToGenres } from "./rawg-tag-genre.map";
-
-export interface GameScoreEntry {
-	source: string;
-	score: number;
-}
-
-export interface GameTimeEntry {
-	source: TimeSource;
-	duration: number;
-}
-
-export interface RegisterGameEnrichment {
-	scores?: GameScoreEntry[];
-	times?: GameTimeEntry[];
-	genreSlugs?: string[];
-}
-
-interface RawgMappedData {
-	game: RegisterGameDto;
-	enrichment: RegisterGameEnrichment;
-}
 
 export function rawgToGameMapper(rawgGame: RawgGameDetail): RawgMappedData {
 	return {

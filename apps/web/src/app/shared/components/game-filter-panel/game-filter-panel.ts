@@ -7,7 +7,8 @@ import {
 } from "@angular/core";
 
 import { type Genre, type Platform } from "../../../core/models";
-import { ChipGroup, type ChipOption } from "../chip-group/chip-group";
+import { ChipGroup } from "../chip-group/chip-group";
+import { type ChipOption } from "../chip-group/chip-group.model";
 import { FilterSection } from "../filter-section/filter-section";
 import { RangeInputs } from "../range-inputs/range-inputs";
 

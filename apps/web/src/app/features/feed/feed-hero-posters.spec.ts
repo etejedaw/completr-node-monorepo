@@ -1,4 +1,4 @@
-import { type ActivityTarget, type FeedActivity } from "./feed";
+import { type ActivityTarget, type FeedActivity } from "./feed.model";
 import { gamePosters } from "./feed-hero-posters";
 
 function game(id: string, backgroundUrl?: string): ActivityTarget {

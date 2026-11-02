@@ -9,6 +9,7 @@ import * as gameShelfService from "../game-shelf/game-shelf.service";
 import * as listFollowersService from "../list-followers/list-followers.service";
 import * as listDomainError from "../lists/errors/lists.domain-error";
 import * as listsService from "../lists/lists.service";
+import { findFullPremiumUserIds } from "../premium-access/premium-access.service";
 import * as reviewsService from "../reviews/reviews.service";
 import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
 import * as userFollowersService from "../user-followers/user-followers.service";
@@ -21,11 +22,13 @@ import {
 	resolveSectionAccess
 } from "./helpers/visibility.helper";
 import { type ComparisonDimension } from "./schemas/comparison-query.schema";
+import { type UserListsQuery } from "./schemas/user-lists-query.schema";
 import { type User } from "./user.model";
 import * as userCardsService from "./user-cards.service";
 import {
 	type BacklogStatusCounts,
 	type ComparisonGameEntry,
+	type ComparisonOptions,
 	type FullUserProfile,
 	type RestrictedUserProfile,
 	type UserComparisonBundle,
@@ -36,10 +39,10 @@ import {
 	type UserHighlightsBundle,
 	type UserListDetailBundle,
 	type UserListsBundle,
-	type UserProfileResult,
 	type UserReviewsBundle
 } from "./users.interface";
 import * as usersService from "./users.service";
+import { type GameEntryRow, type UserProfileResult } from "./users.types";
 
 const EMPTY_BACKLOG_STATS: BacklogStatusCounts = {
 	not_started: 0,
@@ -133,16 +136,26 @@ async function buildFullProfile(
 			? userFollowersService.isFollowing(viewerId, userId)
 			: Promise.resolve(false)
 	]);
+	const activityPremiumUserIds = await findFullPremiumUserIds([
+		user,
+		...recentActivity.flatMap(activity =>
+			[activity.User, activity.ActivityUser?.TargetUser].filter(
+				activityUser => activityUser !== undefined
+			)
+		)
+	]);
 
 	return {
 		kind: "full",
 		user,
+		hasPremium: activityPremiumUserIds.has(user.id),
 		isSelf,
 		backlogs: backlogResult.rows.map(b => b.get({ plain: true })),
 		backlogTotal: backlogResult.total,
 		backlogStats,
 		listsTotal,
 		recentActivity,
+		activityPremiumUserIds,
 		followerCount,
 		followingCount,
 		isFollowing,
@@ -190,7 +203,8 @@ async function requireVisibleUser(
 
 export async function getListsForUsername(
 	viewer: RequestUser | undefined,
-	username: string
+	username: string,
+	query: UserListsQuery = {}
 ): Promise<UserListsBundle> {
 	const user = await requireVisibleUser(viewer?.id, username, [
 		"profile",
@@ -198,10 +212,10 @@ export async function getListsForUsername(
 	]);
 	const isSelf = viewer?.id === user.id;
 
-	const lists =
+	const { lists, total } =
 		isSelf && viewer
-			? (await listsService.findListsByUserId(viewer)).lists
-			: await listsService.findPublicListsByUserId(user.id);
+			? await listsService.findListsByUserId(viewer, query)
+			: await listsService.findPublicListsByUserId(user.id, query);
 
 	const listIds = lists.map(list => list.id);
 	const [followerCounts, progressByList] = await Promise.all([
@@ -214,13 +228,13 @@ export async function getListsForUsername(
 		progress: progressByList.get(list.id) ?? { completed: 0, total: 0 }
 	}));
 
-	return { lists: enriched, total: enriched.length };
+	return { lists: enriched, total };
 }
 
 export async function getFollowingListsForUsername(
 	viewerId: string | undefined,
 	username: string,
-	query: PaginationQuery
+	query: UserListsQuery
 ): Promise<UserFollowingListsBundle> {
 	const user = await requireVisibleUser(viewerId, username, ["profile"]);
 
@@ -338,16 +352,6 @@ const COMPARISON_SECTION: Record<ComparisonDimension, VisibilitySection> = {
 	wishlist: "wishlist"
 };
 
-type GameEntryRow = {
-	gameId: string;
-	Game?: {
-		id: string;
-		code: string;
-		title: string;
-		backgroundUrl?: string | null;
-	};
-};
-
 function loadComparisonEntries(
 	userId: string,
 	by: ComparisonDimension,
@@ -398,13 +402,6 @@ const EMPTY_COMPARISON = (by: ComparisonDimension): UserComparisonBundle => ({
 	onlyTarget: [],
 	counts: { inCommon: 0, onlyViewer: 0, onlyTarget: 0 }
 });
-
-export interface ComparisonOptions {
-	includeOnlyTarget: boolean;
-	includeOnlyViewer: boolean;
-	limit?: number;
-	offset: number;
-}
 
 function paginate(
 	entries: ComparisonGameEntry[],
@@ -484,31 +481,16 @@ async function loadTargetMap(
 	);
 }
 
-const FRANCHISE_PROGRESS_STATUSES = ["completed", "abandoned", "endless"];
-
 export async function getFranchisesForUsername(
 	viewer: RequestUser | undefined,
 	username: string
 ): Promise<UserFranchisesBundle> {
 	const user = await requireVisibleUser(viewer?.id, username, [
 		"profile",
-		"backlog"
+		"franchise"
 	]);
-	const isSelf = viewer?.id === user.id;
 
-	const [trackedFranchiseIds, completedGameIds] = await Promise.all([
-		franchiseService.findTrackedFranchiseIds(user.id),
-		backlogService.findDistinctGameIdsByUserAndStatuses(
-			user.id,
-			FRANCHISE_PROGRESS_STATUSES,
-			!isSelf
-		)
-	]);
-	const franchises = await franchiseService.findTrackedFranchiseProgress(
-		trackedFranchiseIds,
-		completedGameIds
-	);
-
+	const franchises = await franchiseService.findTrackedFranchises(user.id);
 	return { franchises, total: franchises.length };
 }
 

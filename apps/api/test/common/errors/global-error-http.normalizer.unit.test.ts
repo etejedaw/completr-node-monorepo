@@ -25,6 +25,8 @@ const statusTable: [string, string, number][] = [
 	["SavedFilter Module", "SAVED_FILTER_FROZEN", 402],
 	["MoodTags Module", "MOOD_TAGS_LIMIT_REACHED", 402],
 	["Common Module", "COMMON_SCHEMA_INVALID", 422],
+	["Common Module", "COMMON_INVALID_JSON", 400],
+	["Common Module", "COMMON_PAYLOAD_TOO_LARGE", 413],
 	["Common Module", "COMMON_RESOURCE_IN_USE", 409],
 	["Common Module", "COMMON_REFERENCE_NOT_FOUND", 422],
 	["Common Module", "EXPORT_FORMAT_PREMIUM", 402],

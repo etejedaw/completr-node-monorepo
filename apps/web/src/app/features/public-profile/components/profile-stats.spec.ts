@@ -4,7 +4,7 @@ import { provideRouter } from "@angular/router";
 import { render, screen } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
-import { type BacklogStats } from "../public-profile.service";
+import { type BacklogStats } from "../public-profile.model";
 import { ProfileStats } from "./profile-stats";
 
 const stats: BacklogStats = {

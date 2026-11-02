@@ -6,7 +6,7 @@ info:
 http:
     method: GET
     url: "{{BASE_URL}}/franchises?search=&limit=100&offset=0"
-    auth: inherit
+    auth: none
     params:
         - name: search
           value: ""
@@ -24,9 +24,9 @@ settings:
 docs: |-
     ## Get All Franchises
 
-    Returns franchises ordered by name, with optional name search and pagination. Powers the admin franchise picker and management list.
+    Returns franchises ordered by name, with optional name search and pagination. Each franchise carries its count of active games, a preview of up to 4 of its active games (earliest release first) and whether the viewer tracks it. Powers the Discover `/franchises` page, the admin franchise picker and the management list.
 
-    **Authentication:** Bearer token required.
+    **Authentication:** optional (Bearer token). Without a valid token every `isTracked` is `false`; an invalid token is treated as an anonymous visitor.
     **Rate Limit:** 100 requests per minute (public).
 
     ### Query Params
@@ -48,8 +48,16 @@ docs: |-
             "name": "Resident Evil",
             "code": "resident-evil",
             "description": "Survival horror saga by Capcom.",
-            "createdAt": "2026-07-06T00:00:00.000Z",
-            "updatedAt": "2026-07-06T00:00:00.000Z"
+            "gameCount": 12,
+            "isTracked": true,
+            "previewGames": [
+              {
+                "id": "uuid",
+                "code": "resident-evil",
+                "title": "Resident Evil",
+                "backgroundUrl": "https://media.rawg.io/media/games/resident-evil.jpg"
+              }
+            ]
           }
         ],
         "total": 1
@@ -57,9 +65,10 @@ docs: |-
     }
     ```
 
+    `gameCount` counts only active games. The response carries no personal progress.
+
     ### Errors
 
-    | Status | Code                  | Description                       |
-    |--------|-----------------------|-----------------------------------|
-    | 422    | AUTH_SCHEMA_INVALID   | Missing or malformed Bearer token |
-    | 422    | COMMON_SCHEMA_INVALID | A query param fails validation    |
+    | Status | Code                  | Description                    |
+    |--------|-----------------------|--------------------------------|
+    | 422    | COMMON_SCHEMA_INVALID | A query param fails validation |

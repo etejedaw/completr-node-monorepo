@@ -51,7 +51,7 @@ interface ExpectedCard {
 const QUERY_COUNTER_HOOK = "countCardQueries";
 const SESSION_QUERIES = 2;
 const USER_LOOKUP_QUERIES = 1;
-const CARD_QUERIES = 4;
+const CARD_QUERIES = 5;
 const REQUEST_QUERY_BUDGET =
 	SESSION_QUERIES + USER_LOOKUP_QUERIES + CARD_QUERIES;
 

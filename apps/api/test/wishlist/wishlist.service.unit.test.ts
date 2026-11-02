@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { afterEach, describe, it, mock } from "node:test";
+import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
 import { UniqueConstraintError } from "sequelize";
 
@@ -14,6 +14,7 @@ import {
 	stub,
 	stubTransaction
 } from "../unit-helpers/mocks";
+import { stubPremiumAccess } from "../unit-helpers/premium-access";
 
 const FREE_WISHLIST_LIMIT = 20;
 const FREE_USER = buildRequestUser();
@@ -21,6 +22,10 @@ const FREE_USER = buildRequestUser();
 function errorCode(error: unknown) {
 	return (error as { code: string }).code;
 }
+
+beforeEach(() => {
+	stubPremiumAccess();
+});
 
 function gameIds(count: number) {
 	return Array.from({ length: count }, (_, index) => `g-${index}`);
@@ -54,6 +59,7 @@ void describe("wishlistService.replaceWishlist", () => {
 		assert.equal(errorCode(error), "WISHLIST_LIMIT_REACHED");
 		assert.equal(findGames.mock.callCount(), 0);
 		mock.restoreAll();
+		stubPremiumAccess();
 
 		stub(Game, "findAll", async () =>
 			gameIds(FREE_WISHLIST_LIMIT).map(id => ({ id }))

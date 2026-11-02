@@ -2,7 +2,8 @@ import { type Review } from "./review.model";
 
 export function reviewSerializer(
 	review: Review,
-	playthroughDuration: number | null = null
+	playthroughDuration: number | null = null,
+	hasPremium = false
 ) {
 	return {
 		id: review.id,
@@ -15,7 +16,8 @@ export function reviewSerializer(
 					username: review.User.username,
 					name: review.User.name,
 					avatarUrl: review.User.avatarUrl,
-					role: review.User.role
+					role: review.User.role,
+					hasPremium
 				}
 			: null,
 		createdAt: review.createdAt,

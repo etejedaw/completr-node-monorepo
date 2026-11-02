@@ -6,10 +6,8 @@ import {
 import { TestBed } from "@angular/core/testing";
 
 import { environment } from "../../../environments/environment";
-import {
-	FollowRequestsService,
-	type IncomingFollowRequest
-} from "./follow-requests";
+import { FollowRequestsService } from "./follow-requests";
+import { type IncomingFollowRequest } from "./follow-requests.model";
 
 function incoming(requesterId: string): IncomingFollowRequest {
 	return {

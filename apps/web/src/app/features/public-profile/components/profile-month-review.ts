@@ -9,20 +9,8 @@ import { RouterLink } from "@angular/router";
 
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
-import { type HighlightEntry } from "../services/public-reviews.service";
-
-type MonthHighlightKey = "longestPlayed" | "bestPersonalRatio" | "highestRated";
-
-interface MonthHighlight {
-	key: MonthHighlightKey;
-	label: string;
-	icon: string;
-	emptyIcon: string;
-	labelClass: string;
-	emptyText: string;
-	entry: HighlightEntry | null;
-	value: string | null;
-}
+import { type HighlightEntry } from "../services/public-reviews.model";
+import { type MonthHighlight } from "./profile-month-review.model";
 
 function formatNumber(value: number, decimals: number): string {
 	return value.toFixed(decimals).replace(/\.?0+$/, "");

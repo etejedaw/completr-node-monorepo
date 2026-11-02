@@ -1,7 +1,4 @@
-interface PendingRemoval<T> {
-	item: T;
-	previousKey: string | null;
-}
+import { type PendingRemoval } from "./pending-removals.model";
 
 export class PendingRemovals<T> {
 	private readonly removals = new Map<string, PendingRemoval<T>>();

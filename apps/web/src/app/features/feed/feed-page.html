@@ -12,6 +12,45 @@
 	</p>
 </app-library-hero>
 
+<app-library-toolbar *appPremiumOnly="'activity.feed-filters'">
+	<div class="w-full max-w-3xl mx-auto">
+		<div class="md:hidden flex items-center gap-2">
+			<app-option-picker
+				class="flex-1"
+				label="Show"
+				heading="Show in your feed"
+				[options]="filterOptions"
+				[value]="filter()"
+				(valueChange)="setFilter($event)"
+			/>
+			<ui-premium-badge
+				class="shrink-0 inline-flex w-11 justify-center"
+				size="sm"
+				interactive
+				label="Premium perk: feed filters"
+				message="Filter your feed by activity type to see only what you care about."
+			/>
+		</div>
+		<div class="max-md:hidden flex items-center gap-2">
+			<app-option-picker
+				variant="compact"
+				label="Show"
+				heading="Show in your feed"
+				placeholderIcon="dynamic_feed"
+				[options]="filterOptions"
+				[value]="filter()"
+				(valueChange)="setFilter($event)"
+			/>
+			<ui-premium-badge
+				size="sm"
+				interactive
+				label="Premium perk: feed filters"
+				message="Filter your feed by activity type to see only what you care about."
+			/>
+		</div>
+	</div>
+</app-library-toolbar>
+
 <div class="max-w-3xl mx-auto">
 	@if (followRequests(); as requests) { @if (requests.length > 0) {
 	<section
@@ -40,7 +79,7 @@
 					<ui-avatar
 						[src]="req.user.avatarUrl"
 						[name]="req.user.username"
-						[ring]="avatarRing(req.user.role)"
+						[ring]="avatarRing(req.user.role, req.user.hasPremium)"
 						class="w-10 h-10 text-sm"
 					/>
 				</a>
@@ -79,46 +118,7 @@
 			}
 		</ul>
 	</section>
-	} }
-
-	<div *appPremiumOnly class="mb-6">
-		<div class="md:hidden flex items-center gap-2">
-			<app-option-picker
-				class="flex-1"
-				label="Show"
-				heading="Show in your feed"
-				[options]="filterOptions"
-				[value]="filter()"
-				(valueChange)="setFilter($event)"
-			/>
-			<ui-premium-badge
-				class="shrink-0 inline-flex w-11 justify-center"
-				size="sm"
-				interactive
-				label="Premium perk: feed filters"
-				message="Filter your feed by activity type to see only what you care about."
-			/>
-		</div>
-		<div class="max-md:hidden flex items-center gap-2">
-			<app-option-picker
-				variant="compact"
-				label="Show"
-				heading="Show in your feed"
-				placeholderIcon="dynamic_feed"
-				[options]="filterOptions"
-				[value]="filter()"
-				(valueChange)="setFilter($event)"
-			/>
-			<ui-premium-badge
-				size="sm"
-				interactive
-				label="Premium perk: feed filters"
-				message="Filter your feed by activity type to see only what you care about."
-			/>
-		</div>
-	</div>
-
-	@if (isLoading()) {
+	} } @if (isLoading()) {
 	<div aria-busy="true" aria-label="Loading feed">
 		<ui-skeleton variant="text" class="block w-20 h-3 mb-3" />
 		<div class="divide-y divide-line">

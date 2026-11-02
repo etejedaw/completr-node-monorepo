@@ -20,6 +20,8 @@ export const UpdateUserSchema = z
 		shelfVisibility: visibility,
 		listVisibility: visibility,
 		platinumVisibility: visibility,
+		franchiseVisibility: visibility,
+		rewindVisibility: visibility,
 		acceptFollowRequests: z.boolean().optional(),
 		theme: z.enum(THEME_IDS as [string, ...string[]]).optional()
 	})

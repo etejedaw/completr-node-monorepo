@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 
-export type RangeWhere<T> = { [Op.gte]?: T; [Op.lte]?: T };
+import { type RangeWhere } from "../types/sequelize-range.types";
 
 export function buildRangeWhere<T>(
 	min: T | undefined,

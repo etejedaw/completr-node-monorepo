@@ -1,0 +1,123 @@
+<ui-dialog
+	size="sm"
+	eyebrow="Games"
+	heading="Refresh external data"
+	[subheading]="game().title"
+	(closed)="closed.emit()"
+>
+	<div class="flex flex-col gap-5">
+		<p class="m-0 text-sm text-fg-secondary text-pretty">
+			Reads the selected data from each source's game page and saves it on
+			the game. It can take up to 30 seconds.
+		</p>
+
+		<fieldset class="m-0 p-0 border-0 min-w-0 flex flex-col gap-2">
+			<legend
+				class="p-0 mb-2 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+			>
+				Sources
+			</legend>
+			@for (option of sourceOptions; track option.source) {
+			<ui-checkbox
+				class="min-h-[44px] w-full px-3 py-2 rounded-card border border-line bg-surface/60 transition hover:border-line-hover"
+				[label]="option.label"
+				[checked]="isSelected(option.source)"
+				[disabled]="isPending()"
+				(checkedChange)="setSelected(option.source, $event)"
+			>
+				<span class="ml-auto pl-3 text-xs text-fg-muted tabular-nums"
+					>{{ storedValue(option.source) }}</span
+				>
+			</ui-checkbox>
+			}
+		</fieldset>
+
+		<div role="status" aria-live="polite" class="empty:hidden">
+			@if (isPending()) {
+			<div
+				class="flex items-start gap-3 rounded-card border border-line bg-surface/60 px-3 py-3"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons shrink-0 text-xl text-brand motion-safe:animate-spin"
+					>autorenew</span
+				>
+				<div class="min-w-0">
+					<p class="m-0 text-sm font-medium text-fg">
+						Refreshing external data...
+					</p>
+					<p class="m-0 mt-0.5 text-xs text-fg-muted text-pretty">
+						Each source is read with a pause in between, so this can
+						take 10 to 30 seconds. You can close this dialog: the
+						row updates when it finishes.
+					</p>
+				</div>
+			</div>
+			} @else if (resultViews().length > 0) {
+			<section aria-label="Results" class="flex flex-col gap-2">
+				<h3
+					class="m-0 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				>
+					Results
+				</h3>
+				<ul class="list-none m-0 p-0 flex flex-col gap-2">
+					@for (result of resultViews(); track result.source) {
+					<li
+						class="flex flex-col gap-1.5 rounded-card border border-line bg-surface/60 px-3 py-2.5"
+					>
+						<div
+							class="flex flex-wrap items-center gap-x-3 gap-y-1"
+						>
+							<span class="text-sm font-medium text-fg"
+								>{{ result.sourceName }}</span
+							>
+							<span
+								class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold"
+								[class]="toneClasses(result.tone)"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-sm"
+									>{{ result.icon }}</span
+								>
+								{{ result.statusLabel }}
+							</span>
+						</div>
+						@for (detail of result.details; track detail) {
+						<p class="m-0 text-xs text-fg-secondary text-pretty">
+							{{ detail }}
+						</p>
+						}
+					</li>
+					}
+				</ul>
+			</section>
+			}
+		</div>
+
+		@if (errorMessage(); as message) {
+		<ui-alert>{{ message }}</ui-alert>
+		}
+	</div>
+
+	<ng-container dialogFooter>
+		<button uiButton variant="ghost" type="button" (click)="closed.emit()">
+			Close
+		</button>
+		<button
+			uiButton
+			type="button"
+			[disabled]="isPending() ? 'soft' : !canSubmit()"
+			[attr.aria-busy]="isPending() || null"
+			(click)="submit()"
+		>
+			<span
+				aria-hidden="true"
+				class="material-icons text-base"
+				[class.motion-safe:animate-spin]="isPending()"
+				>{{ isPending() ? "autorenew" : "cloud_sync" }}</span
+			>
+			{{ isPending() ? "Refreshing..." : "Refresh selected" }}
+		</button>
+	</ng-container>
+</ui-dialog>

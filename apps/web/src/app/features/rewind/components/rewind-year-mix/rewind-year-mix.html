@@ -1,0 +1,179 @@
+@if (hasAnyChart()) { @let text = copy();
+<section aria-labelledby="rewind-year-mix-heading" class="min-w-0">
+	<app-profile-section-header
+		headingId="rewind-year-mix-heading"
+		[heading]="text.heading"
+	/>
+	<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+		@if (lengthRows().length > 0) {
+		<figure
+			appRewindReveal
+			class="m-0 flex min-w-0 flex-col gap-4 rounded-card border border-line bg-canvas/40 p-4"
+			aria-labelledby="rewind-year-mix-length-title"
+		>
+			<figcaption class="flex flex-col gap-0.5">
+				<h3
+					id="rewind-year-mix-length-title"
+					class="m-0 font-display text-base sm:text-lg font-bold"
+				>
+					{{ text.gameLength }}
+				</h3>
+				<span class="text-xs text-fg-secondary"
+					>{{ text.gameLengthHint }}</span
+				>
+			</figcaption>
+			<ul
+				aria-hidden="true"
+				data-chart="game-length"
+				class="m-0 flex flex-1 list-none flex-col justify-between gap-3 p-0"
+			>
+				@for (row of lengthRows(); track row.range) {
+				<li
+					class="group flex min-w-0 flex-col gap-1"
+					[title]="text.lengthRanges[row.range] + ': ' + number(row.count)"
+					[attr.data-range]="row.range"
+				>
+					<div
+						class="flex min-w-0 items-baseline justify-between gap-2"
+					>
+						<span class="truncate text-sm font-semibold text-fg"
+							>{{ text.lengthRanges[row.range] }}</span
+						>
+						<span
+							class="shrink-0 text-xs tabular-nums text-fg-secondary"
+							><span class="font-semibold text-fg"
+								>{{ number(row.count) }}</span
+							>
+							· {{ percent(row.sharePercent) }}</span
+						>
+					</div>
+					<span class="block h-2 w-full rounded-[4px] bg-line">
+						<span
+							class="block h-full rounded-[4px] bg-nav-lists group-hover:brightness-125"
+							[style.width.%]="row.widthPercent"
+							[style.min-width.px]="row.count > 0 ? 3 : 0"
+						></span>
+					</span>
+				</li>
+				}
+			</ul>
+			@if (withoutHoursText(); as withoutHours) {
+			<p
+				class="m-0 text-xs text-fg-muted"
+				data-testid="rewind-year-mix-without-hours"
+			>
+				{{ withoutHours }}
+			</p>
+			}
+			<table class="sr-only">
+				<caption>
+					{{ text.gameLength }}
+				</caption>
+				<thead>
+					<tr>
+						<th scope="col">{{ text.length }}</th>
+						<th scope="col">{{ text.games }}</th>
+						<th scope="col">{{ text.share }}</th>
+					</tr>
+				</thead>
+				<tbody>
+					@for (row of lengthRows(); track row.range) {
+					<tr>
+						<th scope="row">{{ text.lengthRanges[row.range] }}</th>
+						<td>{{ number(row.count) }}</td>
+						<td>{{ percent(row.sharePercent) }}</td>
+					</tr>
+					}
+				</tbody>
+			</table>
+		</figure>
+		} @if (decadeColumns().length > 0) {
+		<figure
+			appRewindReveal
+			[revealDelay]="80"
+			class="m-0 flex min-w-0 flex-col gap-4 rounded-card border border-line bg-canvas/40 p-4"
+			aria-labelledby="rewind-year-mix-decades-title"
+		>
+			<figcaption class="flex flex-col gap-0.5">
+				<h3
+					id="rewind-year-mix-decades-title"
+					class="m-0 font-display text-base sm:text-lg font-bold"
+				>
+					{{ text.releaseDecades }}
+				</h3>
+				<span class="text-xs text-fg-secondary"
+					>{{ topDecadeText() ?? text.releaseDecadesHint }}</span
+				>
+			</figcaption>
+			<div class="flex min-h-40 flex-1 flex-col gap-2">
+				<div
+					aria-hidden="true"
+					data-chart="release-decades"
+					class="flex flex-1 items-end justify-center gap-1.5 border-b border-line-hover pt-5 sm:gap-2"
+				>
+					@for (column of decadeColumns(); track column.decade) {
+					<div
+						class="group flex h-full min-w-0 max-w-14 flex-1 flex-col items-center justify-end"
+						[title]="decadeLabel(column.decade) + ': ' + number(column.count)"
+						[attr.data-peak]="column.isPeak"
+					>
+						<span
+							class="relative block w-full max-w-9 rounded-t-[4px] transition-[filter] group-hover:brightness-125"
+							[class]="column.isPeak ? 'bg-brand' : 'bg-brand/35'"
+							[style.height.%]="column.heightPercent"
+							[style.min-height.px]="3"
+						>
+							<span
+								class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap text-[0.6875rem] font-semibold tabular-nums"
+								[class]="column.isPeak ? 'text-fg' : 'text-fg-secondary'"
+								>{{ number(column.count) }}</span
+							>
+						</span>
+					</div>
+					}
+				</div>
+				<div
+					aria-hidden="true"
+					class="flex justify-center gap-1.5 sm:gap-2"
+				>
+					@for (column of decadeColumns(); track column.decade) {
+					<span
+						class="min-w-0 max-w-14 flex-1 text-center text-[0.625rem] leading-tight sm:text-xs"
+						[class]="column.isPeak ? 'font-semibold text-fg' : 'text-fg-muted'"
+						>{{ decadeLabel(column.decade) }}</span
+					>
+					}
+				</div>
+			</div>
+			@if (withoutReleaseText(); as withoutRelease) {
+			<p
+				class="m-0 text-xs text-fg-muted"
+				data-testid="rewind-year-mix-without-release"
+			>
+				{{ withoutRelease }}
+			</p>
+			}
+			<table class="sr-only">
+				<caption>
+					{{ text.releaseDecades }}
+				</caption>
+				<thead>
+					<tr>
+						<th scope="col">{{ text.decade }}</th>
+						<th scope="col">{{ text.games }}</th>
+					</tr>
+				</thead>
+				<tbody>
+					@for (column of decadeColumns(); track column.decade) {
+					<tr>
+						<th scope="row">{{ decadeLabel(column.decade) }}</th>
+						<td>{{ number(column.count) }}</td>
+					</tr>
+					}
+				</tbody>
+			</table>
+		</figure>
+		}
+	</div>
+</section>
+}

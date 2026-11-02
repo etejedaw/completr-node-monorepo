@@ -22,10 +22,7 @@ import {
 } from "../../../shared/utils/backlog-status";
 import { BacklogService } from "../../backlog/backlog";
 import { QueueService } from "../queue";
-
-export interface QueueAddModalData {
-	onAdded: () => void;
-}
+import { type QueueAddModalData } from "./queue-add-modal.model";
 
 @Component({
 	selector: "app-queue-add-modal",

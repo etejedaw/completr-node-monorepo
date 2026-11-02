@@ -15,6 +15,7 @@ import {
 	type UsernameParam
 } from "./schemas";
 import { type UserDiscoverQuery } from "./schemas/user-discover-query.schema";
+import { type UserListsQuery } from "./schemas/user-lists-query.schema";
 import { type UserSearchQuery } from "./schemas/user-search-query.schema";
 import { type UsernameListParams } from "./schemas/username-list-params.schema";
 import * as userCardsService from "./user-cards.service";
@@ -25,10 +26,10 @@ import {
 	userCardSerializer,
 	userCompletionsSerializer,
 	userHighlightsSerializer,
-	userMeSerializer,
 	userReviewsSerializer
 } from "./users.serializer";
 import * as usersService from "./users.service";
+import { buildUserMe } from "./users-me.service";
 import * as usersProfileService from "./users-profile.service";
 
 export async function getUserByUsername(request: Request, response: Response) {
@@ -56,7 +57,9 @@ export async function getUserMe(request: Request, response: Response) {
 
 	const userPlain = user.get({ plain: true });
 
-	const data = { user: userMeSerializer(userPlain) };
+	const data = {
+		user: await buildUserMe(userPlain)
+	};
 	return response.status(200).json({ data });
 }
 
@@ -76,7 +79,9 @@ export async function patchUser(request: Request, response: Response) {
 
 	const userPlain = user.get({ plain: true });
 
-	const data = { user: userMeSerializer(userPlain) };
+	const data = {
+		user: await buildUserMe(userPlain)
+	};
 	return response.status(200).json({ data });
 }
 
@@ -117,11 +122,13 @@ export async function getDiscoverUsers(request: Request, response: Response) {
 
 export async function getUserLists(request: Request, response: Response) {
 	const { username } = request.locals.params as UsernameParam;
+	const query = (request.locals.query ?? {}) as UserListsQuery;
 	const currentUser = request.locals.user as RequestUser | undefined;
 
 	const bundle = await usersProfileService.getListsForUsername(
 		currentUser,
-		username
+		username,
+		query
 	);
 
 	const data = {
@@ -136,7 +143,7 @@ export async function getUserFollowingLists(
 	response: Response
 ) {
 	const { username } = request.locals.params as UsernameParam;
-	const query = (request.locals.query ?? {}) as PaginationQuery;
+	const query = (request.locals.query ?? {}) as UserListsQuery;
 	const currentUser = request.locals.user as RequestUser | undefined;
 
 	const bundle = await usersProfileService.getFollowingListsForUsername(

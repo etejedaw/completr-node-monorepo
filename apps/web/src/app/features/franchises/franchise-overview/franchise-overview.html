@@ -1,0 +1,89 @@
+<app-library-hero heading="Sagas" [posters]="heroPosters()">
+	<span
+		heroEyebrow
+		class="inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+	>
+		<span aria-hidden="true" class="material-icons text-sm"
+			>collections_bookmark</span
+		>
+		Discover
+	</span>
+	<p heroSubtitle class="m-0 mt-2 max-w-2xl text-sm text-fg-secondary">
+		@if (shownPage(); as current) { @if (!hasSearch()) {
+		<span class="font-semibold text-fg tabular-nums"
+			>{{ current.total }}</span
+		>
+		{{ current.total === 1 ? 'saga' : 'sagas' }} in the catalog · } } Track
+		the ones you follow and they show up on your profile.
+	</p>
+</app-library-hero>
+
+<app-library-toolbar>
+	<ui-search-bar
+		class="flex-1 min-w-[12rem] max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+		placeholder="Search sagas..."
+		ariaLabel="Search sagas"
+		[value]="searchQuery()"
+		(valueChange)="onSearch($event)"
+	/>
+</app-library-toolbar>
+
+@if (isFirstLoad()) {
+<div
+	class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+	aria-busy="true"
+	aria-label="Loading sagas"
+>
+	@for (i of skeletonRange; track i) {
+	<ui-skeleton variant="rect" class="block aspect-[16/10] rounded-card" />
+	}
+</div>
+} @else if (page.error() && !page.isLoading()) {
+<ui-empty-state
+	icon="cloud_off"
+	title="Couldn't load sagas"
+	hint="Check your connection and try again."
+>
+	<button uiButton variant="secondary" type="button" (click)="page.reload()">
+		Try again
+	</button>
+</ui-empty-state>
+} @else if (shownPage(); as current) { @if (current.franchises.length === 0) {
+@if (hasSearch()) {
+<ui-no-matches
+	[hint]="'No sagas match “' + searchQuery().trim() + '”. Try another name.'"
+	(cleared)="clearSearch()"
+/>
+} @else {
+<ui-empty-state
+	icon="collections_bookmark"
+	title="No sagas yet"
+	hint="Sagas show up here as they're added to the catalog. Meanwhile, browse every game."
+>
+	<a uiButton variant="secondary" routerLink="/games">Browse games</a>
+</ui-empty-state>
+} } @else {
+<section aria-label="Sagas" [attr.aria-busy]="isRefreshing()">
+	<ul
+		class="list-none m-0 p-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3 transition-opacity"
+		[class.opacity-60]="isRefreshing()"
+	>
+		@for (franchise of current.franchises; track franchise.id) {
+		<li>
+			<app-franchise-card
+				[franchise]="franchise"
+				[tracked]="tracking.isTracked(franchise)"
+				[pending]="tracking.isPending(franchise)"
+				(trackToggled)="tracking.toggle(franchise)"
+			/>
+		</li>
+		}
+	</ul>
+	<ui-pagination
+		[offset]="offset()"
+		[limit]="limit"
+		[total]="current.total"
+		(offsetChange)="goToOffset($event)"
+	/>
+</section>
+} }

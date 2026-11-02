@@ -135,4 +135,11 @@ void describe("activitySerializer", () => {
 			null
 		);
 	});
+
+	void it("marks effective premium without changing the permanent role", () => {
+		const result = activitySerializer(buildActivity(), new Set(["u-1"]));
+
+		assert.equal(result.user?.role, "user");
+		assert.equal(result.user?.hasPremium, true);
+	});
 });

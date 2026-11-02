@@ -1,0 +1,63 @@
+info:
+    name: Claim Gift Offer
+    type: http
+    seq: 7
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/users/me/gift-offers/:offerCode/claim"
+    headers:
+        - name: Content-Type
+          value: application/json
+    params:
+        - name: offerCode
+          value: lists-unlimited-launch
+          type: path
+    body:
+        type: json
+        data: |-
+            {}
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Claim Gift Offer
+
+    Activates a gift offer, which is always an admin-managed promotion, with its server-defined feature and expiration. The client cannot choose the feature or the expiration. The grant expires for everyone on the promotion's fixed `endsAt`, so claiming late gives less access. Repeating a claim returns the original offer state without extending or reactivating it; concurrent claims produce one grant.
+
+    **Authentication:** Bearer token required. Body must be an empty JSON object.
+
+    ### Response (201, first claim)
+
+    ```json
+    {
+      "data": {
+        "offer": {
+          "code": "lists-unlimited-launch",
+          "feature": "lists.unlimited",
+          "availableFrom": "2026-11-01T00:00:00.000Z",
+          "availableUntil": "2026-12-01T00:00:00.000Z",
+          "status": "active",
+          "expiresAt": "2026-12-01T00:00:00.000Z",
+          "canActivate": false,
+          "hasAccess": true
+        },
+        "created": true
+      }
+    }
+    ```
+
+    A repeated claim returns 200 with `created: false`. The `offer` is the same serialized state returned by `GET /users/me/gift-offers`, so a previous grant that already expired or was revoked comes back with `status: "used"` and `hasAccess: false`, never as `active`. Clients must only treat the offer as activated when `status` is `active`.
+
+    ### Errors
+
+    | Status | Code | Description |
+    |--------|------|-------------|
+    | 404 | GIFT_OFFER_NOT_FOUND | Unknown promotion code, or a promotion that has not started yet (indistinguishable from an unknown code, so scheduled campaigns stay hidden) |
+    | 409 | GIFT_OFFER_NOT_ELIGIBLE | Offer already ended, promotion revoked, or the account already has access to its feature |
+    | 422 | COMMON_SCHEMA_INVALID | Body is not empty or the offer code is invalid |

@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { type UserResult } from "../../../core/services/users";
+import { type UserResult } from "../../../core/services/users.model";
 import { avatarRing } from "../../../core/utils/premium";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
 import { UiAvatar, UiButton } from "../../../shared/ui";
@@ -30,7 +30,7 @@ export class UserCard {
 	readonly followToggled = output<void>();
 
 	protected readonly avatarRing = computed(() =>
-		avatarRing(this.user().role)
+		avatarRing(this.user().role, this.user().hasPremium)
 	);
 	protected readonly displayName = computed(
 		() => this.user().name || this.user().username

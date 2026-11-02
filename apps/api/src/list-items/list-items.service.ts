@@ -1,11 +1,9 @@
-import { col, fn, Op, type Transaction } from "sequelize";
+import { col, fn, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { sequelize } from "../database/sequelize.database";
-import { type GameScore } from "../game-scores/game-score.model";
 import * as gameScoresService from "../game-scores/game-scores.service";
-import { type GameTime } from "../game-times/game-time.model";
 import { type TimeSource } from "../game-times/game-time.model";
 import * as gameTimesService from "../game-times/game-times.service";
 import { Game } from "../games/game.model";
@@ -13,25 +11,20 @@ import * as gamesService from "../games/games.service";
 import * as gamesProfileService from "../games/services/games-profile.service";
 import { List } from "../lists/list.model";
 import * as listsService from "../lists/lists.service";
-import { type ScoreSource } from "../score-sources/score-source.model";
+import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import * as listItemsServiceError from "./errors/list-items.service-error";
 import { ListItem } from "./list-item.model";
+import { type FrozenScoreContext } from "./list-items.types";
 
 const FREE_OWNED_LISTS_LIMIT = 5;
 
-type FrozenScoreContext = {
-	scoresByGameId: Map<string, GameScore>;
-	timesByGameId: Map<string, GameTime>;
-	scoreSource: ScoreSource | null;
-};
-
-function isPremium(role: string) {
-	return role === "premium" || role === "moderator" || role === "admin";
-}
-
 async function checkFrozen(userId: string, role: string) {
-	if (isPremium(role)) return;
+	const premiumAccess = await resolvePremiumAccess(
+		{ id: userId, role },
+		"lists.unlimited"
+	);
+	if (premiumAccess.allowed) return;
 	const total = await listsService.countListsByUserId(userId);
 	if (total > FREE_OWNED_LISTS_LIMIT)
 		throw listItemsServiceError.frozenError();
@@ -348,9 +341,7 @@ export async function removeItem(
 }
 
 async function loadOwnedLists(listIds: string[], ownedListIds: Set<string>) {
-	const lists = await List.findAll({
-		where: { id: { [Op.in]: listIds } }
-	});
+	const lists = await listsService.findListsByIds(listIds);
 	const listById = new Map(lists.map(list => [list.id, list]));
 	return listIds.map(listId => {
 		const list = listById.get(listId);
@@ -460,4 +451,67 @@ export async function refreshScores(listId: string, user: RequestUser) {
 	});
 
 	return items.length;
+}
+
+export async function findGameIdsByListId(listId: string) {
+	const items = await ListItem.findAll({
+		where: { listId },
+		attributes: ["gameId"]
+	});
+	return items.map(item => item.gameId);
+}
+
+export async function copyItemsToList(
+	listId: string,
+	items: {
+		gameId: string;
+		position: number;
+		score?: number | null;
+		duration?: number | null;
+	}[],
+	transaction: Transaction
+) {
+	if (items.length === 0) return;
+	await ListItem.bulkCreate(
+		items.map(item => ({
+			listId,
+			gameId: item.gameId,
+			position: item.position,
+			score: item.score,
+			duration: item.duration
+		})),
+		{ transaction }
+	);
+}
+
+export async function findListIdsContainingGameOwnedBy(
+	gameId: string,
+	userId: string
+) {
+	const rows = (await ListItem.findAll({
+		where: { gameId },
+		attributes: ["listId"],
+		include: [
+			{
+				model: List,
+				where: { userId },
+				attributes: []
+			}
+		],
+		raw: true
+	})) as unknown as { listId: string }[];
+	return rows.map(row => row.listId);
+}
+
+export async function existsByGameId(
+	gameId: string,
+	transaction?: Transaction
+) {
+	return (
+		(await ListItem.findOne({
+			where: { gameId: gameId },
+			attributes: ["id"],
+			transaction
+		})) !== null
+	);
 }

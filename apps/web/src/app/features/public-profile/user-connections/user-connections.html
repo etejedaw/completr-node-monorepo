@@ -65,7 +65,7 @@
 	</nav>
 </app-library-hero>
 
-@if (!hasNoConnections()) {
+@if (!hasNoConnections() && !hasLoadFailed()) {
 <app-library-toolbar>
 	<ui-search-bar
 		class="flex-1 max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
@@ -91,6 +91,24 @@
 	</div>
 	}
 </div>
+} @else if (hasLoadFailed()) {
+<ui-empty-state
+	role="alert"
+	icon="cloud_off"
+	title="Couldn't load the connections"
+	hint="Check your connection and try again."
+>
+	<button
+		uiButton
+		type="button"
+		variant="secondary"
+		class="tap:min-h-[44px]"
+		(click)="retry()"
+	>
+		<span aria-hidden="true" class="material-icons text-base">refresh</span>
+		Try again
+	</button>
+</ui-empty-state>
 } @else if (hasNoConnections()) {
 <ui-empty-state
 	icon="group"

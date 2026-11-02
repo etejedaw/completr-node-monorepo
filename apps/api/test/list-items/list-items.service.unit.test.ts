@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { afterEach, describe, it, mock } from "node:test";
+import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
 import { sequelize } from "../../src/database/sequelize.database";
 import * as gameScoresService from "../../src/game-scores/game-scores.service";
@@ -16,6 +16,7 @@ import {
 	stub,
 	stubTransaction
 } from "../unit-helpers/mocks";
+import { stubPremiumAccess } from "../unit-helpers/premium-access";
 
 const FREE_OWNED_LISTS_LIMIT = 5;
 const FREE_USER = buildRequestUser();
@@ -35,6 +36,10 @@ function stubList(overrides: Record<string, unknown> = {}) {
 		})
 	);
 }
+
+beforeEach(() => {
+	stubPremiumAccess();
+});
 
 function stubOwnedListCount(count: number) {
 	return stub(List, "count", async () => count);
@@ -383,5 +388,76 @@ void describe("listItemsService.refreshScores", () => {
 			replacements: ["li-1", 4, 10, "li-2", null, null],
 			transaction
 		});
+	});
+});
+
+void describe("listItemsService.copyItemsToList", () => {
+	afterEach(() => {
+		mock.restoreAll();
+	});
+
+	void it("does not touch the database when there are no items to copy", async () => {
+		const bulkCreate = stub(ListItem, "bulkCreate", async () => []);
+
+		await listItemsService.copyItemsToList("l-1", [], {
+			id: "tx"
+		} as never);
+
+		assert.equal(bulkCreate.mock.callCount(), 0);
+	});
+
+	void it("copies position, score and duration into the target list inside the transaction", async () => {
+		const bulkCreate = stub(ListItem, "bulkCreate", async () => []);
+		const transaction = { id: "tx" } as never;
+
+		await listItemsService.copyItemsToList(
+			"l-2",
+			[
+				{ gameId: "g-1", position: 1, score: 4, duration: 10 },
+				{ gameId: "g-2", position: 2, score: null, duration: null }
+			],
+			transaction
+		);
+
+		assert.deepEqual(bulkCreate.mock.calls[0]?.arguments, [
+			[
+				{
+					listId: "l-2",
+					gameId: "g-1",
+					position: 1,
+					score: 4,
+					duration: 10
+				},
+				{
+					listId: "l-2",
+					gameId: "g-2",
+					position: 2,
+					score: null,
+					duration: null
+				}
+			],
+			{ transaction }
+		]);
+	});
+});
+
+void describe("listItemsService.findGameIdsByListId", () => {
+	afterEach(() => {
+		mock.restoreAll();
+	});
+
+	void it("returns only the game ids and an empty array for an empty list", async () => {
+		stub(ListItem, "findAll", async () => [
+			{ gameId: "g-1" },
+			{ gameId: "g-2" }
+		]);
+		assert.deepEqual(await listItemsService.findGameIdsByListId("l-1"), [
+			"g-1",
+			"g-2"
+		]);
+
+		mock.restoreAll();
+		stub(ListItem, "findAll", async () => []);
+		assert.deepEqual(await listItemsService.findGameIdsByListId("l-1"), []);
 	});
 });

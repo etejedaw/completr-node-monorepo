@@ -8,11 +8,11 @@ import {
 } from "@angular/core";
 
 import { AuthService } from "../../../core/services/auth";
+import { ThemeService } from "../../../core/services/theme";
 import {
 	type ThemeId,
-	type ThemeOption,
-	ThemeService
-} from "../../../core/services/theme";
+	type ThemeOption
+} from "../../../core/services/theme.model";
 import { ToastService } from "../../../core/services/toast";
 import { UiPremiumBadge } from "../../../shared/ui";
 import { SettingsPanel } from "../components/settings-panel";
@@ -34,11 +34,13 @@ export class SettingsAppearance implements OnInit {
 	protected readonly saving = signal<ThemeId | null>(null);
 	protected readonly user = this.authService.user;
 
-	protected readonly isPremium = this.authService.isPremium;
+	protected readonly canUsePremiumThemes = computed(() =>
+		this.authService.hasPremiumFeature("themes.premium")
+	);
 	protected readonly previewTiles = [0, 1, 2];
 
 	protected readonly visibleThemes = computed(() =>
-		this.isPremium()
+		this.canUsePremiumThemes()
 			? this.catalog
 			: this.catalog.filter(theme => theme.tier === "free")
 	);
@@ -54,7 +56,7 @@ export class SettingsAppearance implements OnInit {
 	}
 
 	canUse(theme: ThemeOption): boolean {
-		return theme.tier === "free" || this.isPremium();
+		return theme.tier === "free" || this.canUsePremiumThemes();
 	}
 
 	select(theme: ThemeOption) {

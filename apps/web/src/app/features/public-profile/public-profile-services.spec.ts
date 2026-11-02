@@ -146,15 +146,39 @@ describe("public profile services", () => {
 
 			const req = httpTesting.expectOne(`${users}/ada/lists`);
 			expect(req.request.method).toBe("GET");
+			expect(req.request.params.keys()).toEqual([]);
 			req.flush({ data: { lists: [{ id: "l1" }], total: 1 } });
 			expect(result).toEqual({ items: [{ id: "l1" }], total: 1 });
+		});
+
+		it("sends pagination and search for the user lists and omits an empty search", () => {
+			service
+				.getUserLists("ada", { limit: 24, offset: 48, search: "zelda" })
+				.subscribe();
+			service
+				.getUserLists("ada", { limit: 24, offset: 0, search: "" })
+				.subscribe();
+
+			const [searched, unsearched] = httpTesting.match(
+				r => r.url === `${users}/ada/lists`
+			);
+			expect(searched!.request.params.get("limit")).toBe("24");
+			expect(searched!.request.params.get("offset")).toBe("48");
+			expect(searched!.request.params.get("search")).toBe("zelda");
+			expect(unsearched!.request.params.has("search")).toBe(false);
+			searched!.flush({ data: { lists: [], total: 0 } });
+			unsearched!.flush({ data: { lists: [], total: 0 } });
 		});
 
 		it("maps the followed lists to items and total, with pagination", () => {
 			let result: unknown;
 
 			service
-				.getUserFollowingLists("ada", { limit: 3, offset: 6 })
+				.getUserFollowingLists("ada", {
+					limit: 3,
+					offset: 6,
+					search: "metroid"
+				})
 				.subscribe(r => (result = r));
 
 			const req = httpTesting.expectOne(
@@ -162,6 +186,7 @@ describe("public profile services", () => {
 			);
 			expect(req.request.params.get("limit")).toBe("3");
 			expect(req.request.params.get("offset")).toBe("6");
+			expect(req.request.params.get("search")).toBe("metroid");
 			req.flush({ data: { followingLists: [{ id: "l2" }], total: 9 } });
 			expect(result).toEqual({ items: [{ id: "l2" }], total: 9 });
 		});

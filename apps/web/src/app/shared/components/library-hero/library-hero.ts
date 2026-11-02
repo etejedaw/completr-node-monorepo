@@ -6,11 +6,7 @@ import {
 } from "@angular/core";
 
 import { GamePoster } from "../game-poster/game-poster";
-
-export interface LibraryHeroPoster {
-	src: string | null | undefined;
-	title: string;
-}
+import { type LibraryHeroPoster } from "./library-hero.model";
 
 const MOSAIC_LENGTH = 14;
 

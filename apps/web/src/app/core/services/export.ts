@@ -4,13 +4,9 @@ import { map, type Observable } from "rxjs";
 
 import { environment } from "../../../environments/environment";
 import { type Appendable, buildHttpParams } from "../utils/http-params";
+import { type ExportResource } from "./export.model";
 
 export type ExportFormat = "csv" | "json";
-
-export type ExportCollection =
-	"backlog" | "queue" | "game-shelf" | "wishlist" | "favorites" | "platinums";
-
-export type ExportResource = ExportCollection | { listId: string };
 
 export type ExportParams = Record<string, Appendable>;
 
@@ -43,7 +39,7 @@ export class ExportService {
 			})
 			.pipe(
 				map(response =>
-					this.save(
+					this.saveFile(
 						response.body ?? new Blob([]),
 						fileNameFrom(response, resource, format)
 					)
@@ -51,7 +47,7 @@ export class ExportService {
 			);
 	}
 
-	private save(file: Blob, fileName: string) {
+	saveFile(file: Blob, fileName: string) {
 		const objectUrl = URL.createObjectURL(file);
 		const link = this.document.createElement("a");
 		link.href = objectUrl;

@@ -12,7 +12,8 @@ import { type Subscription } from "rxjs";
 import { ToastService } from "../../../core/services/toast";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { UiButton, UiEmptyState, UiSkeleton } from "../../../shared/ui";
-import { type GameReport, ReportsService } from "../services/reports.service";
+import { type GameReport } from "../services/reports.model";
+import { ReportsService } from "../services/reports.service";
 
 @Component({
 	selector: "app-admin-reports",

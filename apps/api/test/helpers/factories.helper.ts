@@ -153,9 +153,12 @@ export function createFranchise(overrides: { name?: string } = {}) {
 	});
 }
 
-export async function createFranchiseGame(franchiseId: string) {
-	const game = await createGame();
-	return game.update({ franchiseId });
+export async function createFranchiseGame(
+	franchiseId: string,
+	overrides: { isActive?: boolean; releaseAt?: Date } = {}
+) {
+	const game = await createGame({ isActive: overrides.isActive });
+	return game.update({ franchiseId, releaseAt: overrides.releaseAt });
 }
 
 export function createSavedFilter(

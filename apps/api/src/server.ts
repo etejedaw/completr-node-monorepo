@@ -28,7 +28,11 @@ import listItemsRouter from "./list-items/list-items.routes";
 import listsRouter from "./lists/lists.routes";
 import moodTagsRouter from "./mood-tags/mood-tags.routes";
 import platformRouter from "./platforms/platforms.routes";
+import giftOffersRouter from "./premium-access/gift-offers.routes";
+import premiumAccessAdminRouter from "./premium-access/premium-access-admin.routes";
 import privacyRouter from "./privacy/privacy.routes";
+import rewindRouter from "./rewind/rewind.routes";
+import rewindShareRouter from "./rewind-share/rewind-share.routes";
 import scoreSourcesRouter from "./score-sources/score-sources.routes";
 import userFollowRequestsRouter from "./user-follow-requests/user-follow-requests.routes";
 import userFollowersRouter from "./user-followers/user-followers.routes";
@@ -72,6 +76,10 @@ export function createApp() {
 	app.use(coopRunsRouter);
 	app.use(changelogRouter);
 	app.use(privacyRouter);
+	app.use(giftOffersRouter);
+	app.use(premiumAccessAdminRouter);
+	app.use(rewindRouter);
+	app.use(rewindShareRouter);
 	app.use(errorHandlerMiddleware);
 
 	return app;

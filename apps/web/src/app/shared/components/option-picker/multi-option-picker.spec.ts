@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 
 import { ViewportService } from "../../../core/services/viewport";
 import { MultiOptionPicker } from "./multi-option-picker";
-import { type PickerOption } from "./option-picker";
+import { type PickerOption } from "./option-picker.model";
 
 const platforms: PickerOption[] = [
 	{ value: "pc", label: "PC", shortLabel: "PC" },

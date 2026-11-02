@@ -8,25 +8,9 @@ import {
 
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { getRatingLabel } from "../../../../shared/constants/rating-labels";
-import { type CanonicalScore } from "../../../../shared/utils/canonical-score";
+import { type CanonicalScore } from "../../../../shared/utils/canonical-score.model";
 import { metascoreColorClass } from "../../../../shared/utils/metascore-color";
-
-interface ScoreRow {
-	label: string;
-	value: string;
-	unit?: string;
-	valueClass?: string;
-	stars?: number;
-}
-
-interface ScoreCardVariant {
-	title: string;
-	icon: string | null;
-	description: string;
-	frameClass: string;
-	accentClass: string;
-	rows: ScoreRow[];
-}
+import { type ScoreCardVariant } from "./game-score-card.model";
 
 function buildVariant(score: CanonicalScore): ScoreCardVariant | null {
 	const duration = score.duration ?? 0;

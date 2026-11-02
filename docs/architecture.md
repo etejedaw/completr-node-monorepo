@@ -31,6 +31,7 @@ El resto de este documento describe el backend.
 | Validación     | Zod v4                                   |
 | Logging        | Pino                                     |
 | Seguridad      | Helmet, CORS, rate-limiter-flexible      |
+| Imágenes       | satori (SVG) + @resvg/resvg-js (PNG)     |
 
 ## Estructura de carpetas
 
@@ -43,9 +44,9 @@ apps/api/src/
 │   ├── errors/             # Clases base (ServiceError, DomainError, HttpError) + normalizers globales
 │   ├── middlewares/        # correlation-id, logger, validate-schema, rate-limiter, error-handler
 │   ├── schemas/            # Schemas Zod reusables (paginación, búsqueda)
-│   ├── interfaces/         # Tipos compartidos (RequestUser, JwtPayload)
+│   ├── interfaces/         # Interfaces compartidas (RequestUser, JwtPayload)
 │   ├── logger/             # Pino + interface
-│   ├── types/              # Augmentations de tipos globales (express.d.ts)
+│   ├── types/              # Alias type compartidos (ExportRow, RangeWhere) y augmentations globales (express.d.ts)
 │   └── utils/              # Helpers genéricos
 ├── database/               # Conexión Sequelize, asociaciones, init
 ├── auth/  users/  games/   # Módulos de negocio
@@ -54,10 +55,14 @@ apps/api/src/
 ├── lists/  list-items/     # ...
 ├── wishlist/  favorites/   # ...
 ├── rawg/                   # Provider de RAWG API (adapter externo)
+├── hltb/  metacritic/      # Providers de scraping (solo páginas de detalle)
+├── scraping/               # Cliente HTTP compartido de los scrapers: cola y throttle por host
 └── jobs/                   # Cron jobs y tareas programadas
 ```
 
 Cada módulo de negocio sigue la **misma estructura interna**. Ver [`context/modules.md`](./context/modules.md).
+
+En `common/`, en los módulos y en las capacidades, los `*.interface.ts` solo declaran `interface` y los `*.types.ts` los alias `type`; la regla completa y sus excepciones están en la anatomía de [`context/modules.md`](./context/modules.md#modulointerfacets-y-modulotypests).
 
 ## Capas dentro de un módulo
 
@@ -91,6 +96,38 @@ Los servicios externos (RAWG, HLTB, Metacritic, Steam) viven como **providers** 
 
 Ver [`context/providers.md`](./context/providers.md).
 
+### Provider con modelo inyectable
+
+Cuando una capacidad puede cumplirla más de un proveedor externo (IA con DeepSeek, OpenAI u otro), el provider no es el proveedor: es una clase propia de la capacidad que recibe por constructor la implementación concreta. Siguen esta forma `apps/api/src/ia/` (`IaProvider` con `DeepseekModel`) y `apps/api/src/mail/` (`MailProvider` con `NodemailerModel`, o `InMemoryMailModel` en tests).
+
+```
+apps/api/src/<capacidad>/
+├── <capacidad>.interface.ts    Tipos de request/response y la interfaz <Capacidad>Model
+├── <capacidad>.provider.ts     class <Capacidad>Provider { constructor(private readonly model: <Capacidad>Model) }
+│                               export const <capacidad>Provider = new <Capacidad>Provider(<Proveedor>Model.create(...))
+├── errors/                     Errores en 3 capas de la capacidad, no del proveedor
+└── <proveedor>/
+    └── <proveedor>.provider.ts <Proveedor>Model implements <Capacidad>Model, con static create y su variante Disabled
+```
+
+- **Un solo punto de entrada.** El resto de la API importa solo la instancia `<capacidad>Provider` de `<capacidad>/<capacidad>.provider`. Nadie crea su propia instancia ni importa el submódulo del proveedor desde `apps/api/src/`: lo prohíbe una regla `no-restricted-imports` en `eslint.config.mjs`, que hay que ampliar con cada capacidad nueva. Los tests sí pueden importar los modelos internos.
+- **El contrato es la interfaz `<Capacidad>Model`**, escrita en términos de la capacidad (por ejemplo `generateText` e `isEnabled`), nunca en los del proveedor. Los tipos propios del proveedor (settings, forma de la respuesta) quedan dentro de su submódulo.
+- **La clase de la capacidad hace lo común a todos los proveedores:** validar la entrada, normalizarla, exponer si hay un modelo configurado y rechazar con el error de "no configurado" de la capacidad (por ejemplo `mailProvider.assertConfigured()`), en vez de que cada consumidor lo compruebe por su cuenta. El submódulo del proveedor solo habla con el servicio externo y traduce sus fallos a los errores de la capacidad.
+- **Cambiar de proveedor** es escribir otro submódulo que implemente la interfaz y cambiar la línea que crea la instancia. Los consumidores no se tocan.
+- **Configuración:** las keys de servicios externos van en `common/config/api-keys.config.ts`, y los ajustes que sí cambian por entorno, en el `*.config.ts` de la capacidad (por ejemplo `mail.config.ts` con el servidor SMTP). El archivo `<capacidad>.provider.ts` los lee y se los pasa al modelo por constructor. Lo que es fijo del proveedor (modelo, timeout, URL base) es una constante de su clase, no una variable de entorno.
+- **Tests:** la clase de la capacidad se prueba con un modelo falso que implementa la interfaz; cada proveedor se prueba aparte con `fetch` (o su transporte) simulado.
+
+Un servicio externo que no tiene alternativas intercambiables sigue la forma simple de un provider, como `rawg/`: clase base abstracta con `static create`, la implementación activa y la `Disabled`.
+
+## Imágenes para compartir
+
+`rewind-share/` dibuja en el servidor la imagen del Rewind (story 1080×1920 y og 1200×630) y la página HTML de vista previa de enlaces. No tiene modelo propio: pide los datos a `rewind.service` y por eso hereda su privacidad y sus errores.
+
+- **Render:** satori convierte un árbol de elementos (objetos `{ type, props }`, sin JSX; solo flexbox) en SVG con el texto ya trazado, y resvg lo pasa a PNG con `loadSystemFonts: false`. Las fuentes son los `.woff` estáticos de `@fontsource/chakra-petch` y `@fontsource/manrope` (satori no lee woff2 ni fuentes variables), resueltas con `require.resolve` y leídas una sola vez por proceso.
+- **Portadas:** se descargan del `coverUrl` con un timeout de 3 s y un tope de 5 MB, y se incrustan como data URI. Solo se aceptan PNG y JPEG (por firma de bytes) y URLs `http(s)`; las de RAWG se piden redimensionadas a 420 px. Si fallan, se dibuja un degradado con el título.
+- **Caché:** LRU en memoria de 100 PNG por proceso, con clave usuario, año, formato y hash SHA-256 del JSON del Rewind; un cambio en los datos genera otra entrada. Las peticiones simultáneas a la misma imagen comparten el render, y una imagen con portadas que no se pudieron descargar no se guarda. Se pierde al reiniciar la API.
+- **URLs absolutas:** el `og:image` y la redirección se arman con `WEB_APP_URL`. La imagen vive bajo `/share/rewind/:username/:year/` (`og.png` y `story.png`), junto a la página de vista previa, porque en el dominio de la web `/users` es una ruta de Angular. En producción el nginx de la web hace proxy de `/share/` a la API (ver [`context/frontend.md`](./context/frontend.md)); en local lo hace `proxy.conf.json` de `ng serve`.
+
 ## Decisiones clave
 
 - **UUIDs en todas las PKs y FKs.** Nunca `id: number`.
@@ -102,6 +139,7 @@ Ver [`context/providers.md`](./context/providers.md).
 - **Toda lógica de cálculo vive en backend** (ratio, estadísticas, derivados). El frontend solo renderiza.
 - **El esquema de la DB lo definen solo las migraciones.** Cada FK declara su `ON DELETE` en la migración (`REFERENCES "Tabla"(id) ON DELETE CASCADE`), igual al `onDelete` de su asociación en `associations.database.ts`.
 - **Los modelos nunca se importan entre módulos** — se accede vía el `service` del módulo dueño. Excepción: tablas pivote para asociaciones Sequelize. Ver [`context/modules.md`](./context/modules.md).
+- **No hay tests intermitentes.** Un test que falla en una corrida y pasa en otra es un bug, del código o del test. Se busca su causa (estado compartido entre tests, timers vivos tras destruir un servicio, elementos que quedan en el DOM, dos registros con el mismo `createdAt`, orden sin desempate por id) y se corrige. No se da por bueno porque pasa al repetirlo, aislado o en otra máquina. Un cambio que toque la suite se valida con 3 corridas seguidas sin fallos antes de integrarse.
 
 ## Documentación relacionada
 

@@ -8,11 +8,8 @@ import {
 } from "@angular/core";
 import { NgpToast } from "ng-primitives/toast";
 
-import {
-	type Toast,
-	ToastService,
-	UNDO_WINDOW_MS
-} from "../../../core/services/toast";
+import { ToastService, UNDO_WINDOW_MS } from "../../../core/services/toast";
+import { type Toast } from "../../../core/services/toast.model";
 import { UiButton } from "../../ui";
 
 @Component({

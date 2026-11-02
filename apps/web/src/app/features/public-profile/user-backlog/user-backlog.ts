@@ -16,10 +16,8 @@ import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/
 import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import {
-	type ViewModeOption,
-	ViewModeToggle
-} from "../../../shared/components/view-mode-toggle/view-mode-toggle";
+import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
+import { type ViewModeOption } from "../../../shared/components/view-mode-toggle/view-mode-toggle.model";
 import {
 	UiButton,
 	UiPagination,

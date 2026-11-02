@@ -1,0 +1,71 @@
+info:
+    name: Create Premium Grant
+    type: http
+    seq: 3
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/users/:userId/premium-grants"
+    headers:
+        - name: Content-Type
+          value: application/json
+    params:
+        - name: userId
+          value: ""
+          type: path
+    body:
+        type: json
+        data: |-
+            {
+              "feature": "*",
+              "expiresAt": "2026-11-30T12:00:00.000Z"
+            }
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Create Premium Grant
+
+    Grants an individual premium feature or temporary full premium to a user. Individual features accept `expiresAt: null` for access without expiration; full premium (`*`) always requires a future expiration date. This endpoint cannot create global grants or set `offerCode`.
+
+    **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
+
+    ### Request Body
+
+    | Field | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | feature | string | Yes | Catalog code or `*` |
+    | expiresAt | string \| null | Yes | Future ISO date, or null for an individual feature |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "grant": {
+          "id": "uuid",
+          "userId": "uuid",
+          "feature": "*",
+          "expiresAt": "2026-11-30T12:00:00.000Z",
+          "offerCode": null,
+          "createdAt": "2026-10-31T12:00:00.000Z",
+          "updatedAt": "2026-10-31T12:00:00.000Z"
+        }
+      }
+    }
+    ```
+
+    Records the audit event `premium_grant_created`.
+
+    ### Errors
+
+    | Status | Code | Description |
+    |--------|------|-------------|
+    | 404 | USER_NOT_FOUND | User does not exist |
+    | 422 | PREMIUM_GRANT_INVALID_EXPIRATION | Full premium has no expiration or the date is not future |
+    | 422 | COMMON_SCHEMA_INVALID | Unknown feature, invalid UUID, invalid date or extra field |

@@ -45,10 +45,8 @@ import {
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { UiButton, UiPremiumBadge, UiSearchBar } from "../../../shared/ui";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
-import {
-	type FavoriteReorderAction,
-	FavoriteReorderCard
-} from "../components/favorite-reorder-card/favorite-reorder-card";
+import { FavoriteReorderCard } from "../components/favorite-reorder-card/favorite-reorder-card";
+import { type FavoriteReorderAction } from "../components/favorite-reorder-card/favorite-reorder-card.model";
 import { FavoritesService } from "../favorites";
 
 @Component({

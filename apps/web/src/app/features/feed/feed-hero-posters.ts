@@ -1,5 +1,5 @@
-import { type LibraryHeroPoster } from "../../shared/components/library-hero/library-hero";
-import { type ActivityTarget, type FeedActivity } from "./feed";
+import { type LibraryHeroPoster } from "../../shared/components/library-hero/library-hero.model";
+import { type ActivityTarget, type FeedActivity } from "./feed.model";
 
 export function gamePosters(activities: FeedActivity[]): LibraryHeroPoster[] {
 	const seenGameKeys = new Set<string>();

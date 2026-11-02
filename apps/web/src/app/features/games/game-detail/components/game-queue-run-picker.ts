@@ -9,12 +9,7 @@ import {
 	backlogStatusIcon,
 	backlogStatusLabel
 } from "../../../../shared/utils/backlog-status";
-import { type QueueableRun } from "../queue-intent";
-
-export interface GameQueueRunPickerData {
-	gameTitle: string;
-	runs: QueueableRun[];
-}
+import { type GameQueueRunPickerData } from "./game-queue-run-picker.model";
 
 export type GameQueueRunPickerResult = BacklogEntry | "newRun";
 

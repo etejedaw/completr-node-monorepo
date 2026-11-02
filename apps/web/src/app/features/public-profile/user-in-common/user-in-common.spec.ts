@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 
+import { HttpErrorResponse } from "@angular/common/http";
 import { signal } from "@angular/core";
 import { ActivatedRoute, provideRouter } from "@angular/router";
 import { render, screen, within } from "@testing-library/angular";
@@ -161,7 +162,9 @@ describe("UserInCommon", () => {
 	});
 
 	it("shows the private state when the other library is private", async () => {
-		getComparison.mockReturnValue(throwError(() => ({ status: 403 })));
+		getComparison.mockReturnValue(
+			throwError(() => new HttpErrorResponse({ status: 403 }))
+		);
 		await renderPage();
 
 		expect(

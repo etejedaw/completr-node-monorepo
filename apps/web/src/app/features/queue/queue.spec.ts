@@ -112,18 +112,6 @@ describe("QueueService", () => {
 		expect(result).toEqual([{ id: "q3" }]);
 	});
 
-	it("moves an entry to the top keeping the order of the rest", () => {
-		service.moveToTop("b3").subscribe();
-
-		httpTesting
-			.expectOne(`${url}/backlog-ids`)
-			.flush({ data: { backlogIds: ["b1", "b2", "b3"] } });
-		const put = httpTesting.expectOne(url);
-		expect(put.request.method).toBe("PUT");
-		expect(put.request.body).toEqual({ backlogIds: ["b3", "b1", "b2"] });
-		put.flush({ data: { queue: [] } });
-	});
-
 	it("removes an entry by putting the remaining ids", () => {
 		let result: unknown;
 
@@ -139,15 +127,48 @@ describe("QueueService", () => {
 		expect(result).toEqual([{ id: "q1" }]);
 	});
 
-	it("does not reorder when loading the ids fails", () => {
-		const onError = vi.fn();
+	it("moves one entry with PATCH and returns the whole queue", () => {
+		let result: unknown;
 
-		service.moveToTop("b1").subscribe({ error: onError });
+		service.moveToPosition("b1", 3).subscribe(r => (result = r));
+
+		const req = httpTesting.expectOne(`${url}/b1/position`);
+		expect(req.request.method).toBe("PATCH");
+		expect(req.request.body).toEqual({ position: 3 });
+		req.flush({ data: { queue: [{ id: "q1" }, { id: "q2" }] } });
+		expect(result).toEqual([{ id: "q1" }, { id: "q2" }]);
+	});
+
+	it("moves to the top without reading the queue first", () => {
+		service.moveToTop("b9").subscribe();
+
+		const req = httpTesting.expectOne(`${url}/b9/position`);
+		expect(req.request.body).toEqual({ position: 1 });
+		req.flush({ data: { queue: [] } });
+	});
+
+	it("translates a visible move into a position in the whole queue", () => {
+		service.moveWithinVisible("b3", ["b3", "b1"]).subscribe();
+
 		httpTesting
 			.expectOne(`${url}/backlog-ids`)
-			.flush(null, { status: 500, statusText: "Server Error" });
+			.flush({ data: { backlogIds: ["b1", "b2", "b3", "b4"] } });
+		const req = httpTesting.expectOne(`${url}/b3/position`);
+		expect(req.request.body).toEqual({ position: 1 });
+		req.flush({ data: { queue: [] } });
+	});
 
-		expect(onError).toHaveBeenCalledTimes(1);
-		httpTesting.expectNone(url);
+	it("does not send the move when reading the queue fails", () => {
+		let failed = false;
+
+		service
+			.moveWithinVisible("b3", ["b3"])
+			.subscribe({ error: () => (failed = true) });
+
+		httpTesting
+			.expectOne(`${url}/backlog-ids`)
+			.flush(null, { status: 500, statusText: "error" });
+		expect(failed).toBe(true);
+		httpTesting.expectNone(`${url}/b3/position`);
 	});
 });

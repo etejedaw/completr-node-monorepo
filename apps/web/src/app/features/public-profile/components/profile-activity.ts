@@ -13,7 +13,7 @@ import {
 	activityIconColorClass,
 	activityLabel
 } from "../../../shared/utils/activity-labels";
-import { type PublicActivity } from "../public-profile.service";
+import { type PublicActivity } from "../public-profile.model";
 
 const DATE_FORMAT = new Intl.DateTimeFormat("en", {
 	month: "short",

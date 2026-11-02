@@ -1,43 +1,83 @@
-import { inject, Injectable, type TemplateRef } from "@angular/core";
-import { NgpToastManager, type NgpToastRef } from "ng-primitives/toast";
+import {
+	createEnvironmentInjector,
+	DestroyRef,
+	EnvironmentInjector,
+	inject,
+	Injectable,
+	InjectionToken,
+	type TemplateRef
+} from "@angular/core";
+import type * as ToastLibraryModule from "ng-primitives/toast";
+import type { NgpToastManager, NgpToastRef } from "ng-primitives/toast";
 
-export type ToastVariant = "info" | "success" | "warning" | "error" | "premium";
+import {
+	type PendingEntry,
+	type PendingToastOptions,
+	type Toast,
+	type ToastVariant
+} from "./toast.model";
 
-export const UNDO_WINDOW_MS = 5000;
+export const TOAST_CONFIG = {
+	placement: "bottom-end",
+	offsetRight: 16,
+	offsetBottom: 16,
+	mobileTabBarClearance: 80,
+	gap: 8,
+	maxToasts: 4,
+	durationMs: 4000,
+	premiumDurationMs: 5000,
+	undoWindowMs: 5000
+} as const;
 
-export interface Toast {
-	id: number;
-	title?: string;
-	message: string;
-	variant: ToastVariant;
-	undoLabel?: string;
-	durationMs?: number;
-	onUndo?: () => void;
-	onDismiss?: () => void;
+export const UNDO_WINDOW_MS = TOAST_CONFIG.undoWindowMs;
+
+type ToastLibrary = typeof ToastLibraryModule;
+
+export const TOAST_LIBRARY_LOADER = new InjectionToken<
+	() => Promise<ToastLibrary>
+>("TOAST_LIBRARY_LOADER", {
+	providedIn: "root",
+	factory: () => () => import("ng-primitives/toast")
+});
+
+const PRELOAD_FALLBACK_DELAY_MS = 2000;
+
+function toastOffsetBottom(): number {
+	const isMobile =
+		typeof window !== "undefined" &&
+		window.matchMedia?.("(max-width: 767px)").matches;
+	return isMobile
+		? TOAST_CONFIG.mobileTabBarClearance
+		: TOAST_CONFIG.offsetBottom;
 }
 
-interface PendingEntry {
-	ref: NgpToastRef;
-	timer: ReturnType<typeof setTimeout>;
-	onCommit: () => void;
-	onUndo?: () => void;
-	committed: boolean;
-}
-
-export interface PendingToastOptions {
-	message: string;
-	onCommit: () => void;
-	onUndo?: () => void;
-	undoLabel?: string;
-	variant?: ToastVariant;
+function whenIdle(task: () => void) {
+	if (typeof window === "undefined") return;
+	if (typeof window.requestIdleCallback === "function") {
+		window.requestIdleCallback(task);
+		return;
+	}
+	setTimeout(task, PRELOAD_FALLBACK_DELAY_MS);
 }
 
 @Injectable({ providedIn: "root" })
 export class ToastService {
-	private readonly manager = inject(NgpToastManager);
+	private readonly injector = inject(EnvironmentInjector);
+	private readonly loadLibrary = inject(TOAST_LIBRARY_LOADER);
+	private manager: NgpToastManager | null = null;
+	private loading: Promise<void> | null = null;
+	private readonly waiting: ((manager: NgpToastManager) => void)[] = [];
 	private template: TemplateRef<void> | null = null;
 	private nextId = 1;
 	private readonly pendings = new Map<number, PendingEntry>();
+	private readonly shownByContent = new Map<string, NgpToastRef>();
+	private toastInjector: EnvironmentInjector | null = null;
+	private destroyed = false;
+
+	constructor() {
+		inject(DestroyRef).onDestroy(() => this.teardown());
+		whenIdle(() => this.load());
+	}
 
 	registerTemplate(tpl: TemplateRef<unknown>) {
 		this.template = tpl as TemplateRef<void>;
@@ -46,10 +86,10 @@ export class ToastService {
 	show(
 		message: string,
 		variant: ToastVariant = "info",
-		durationMs = 4000,
+		durationMs: number = TOAST_CONFIG.durationMs,
 		title?: string
 	) {
-		if (!this.template) return;
+		if (!this.template || this.destroyed) return;
 		const id = this.nextId++;
 		const ctx: Toast = {
 			id,
@@ -57,11 +97,17 @@ export class ToastService {
 			message,
 			variant
 		};
-		const ref = this.manager.show(this.template, {
-			duration: durationMs,
-			context: ctx
+		const template = this.template;
+		const contentKey = [variant, title ?? "", message].join("\u0000");
+		this.whenReady(manager => {
+			this.shownByContent.get(contentKey)?.dismiss();
+			const ref = manager.show(template, {
+				duration: durationMs,
+				context: ctx
+			});
+			this.shownByContent.set(contentKey, ref);
+			ctx.onDismiss = () => ref.dismiss();
 		});
-		ctx.onDismiss = () => ref.dismiss();
 	}
 
 	info(message: string, durationMs?: number) {
@@ -80,12 +126,16 @@ export class ToastService {
 		this.show(message, "error", durationMs);
 	}
 
-	premium(title: string, message: string, durationMs = 5000) {
+	premium(
+		title: string,
+		message: string,
+		durationMs: number = TOAST_CONFIG.premiumDurationMs
+	) {
 		this.show(message, "premium", durationMs, title);
 	}
 
 	pending(opts: PendingToastOptions): number {
-		if (!this.template) return -1;
+		if (!this.template || this.destroyed) return -1;
 		const id = this.nextId++;
 		const durationMs = UNDO_WINDOW_MS;
 		const ctx: Toast = {
@@ -97,18 +147,23 @@ export class ToastService {
 			onUndo: () => this.undo(id),
 			onDismiss: () => this.dismiss(id)
 		};
-		const ref = this.manager.show(this.template, {
-			persistent: true,
-			dismissible: false,
-			context: ctx
-		});
+		const template = this.template;
 		const timer = setTimeout(() => this.commit(id), durationMs);
-		this.pendings.set(id, {
-			ref,
+		const entry: PendingEntry = {
+			ref: null,
 			timer,
 			onCommit: opts.onCommit,
 			onUndo: opts.onUndo,
 			committed: false
+		};
+		this.pendings.set(id, entry);
+		this.whenReady(manager => {
+			if (entry.committed) return;
+			entry.ref = manager.show(template, {
+				persistent: true,
+				dismissible: false,
+				context: ctx
+			});
 		});
 		return id;
 	}
@@ -119,7 +174,7 @@ export class ToastService {
 		clearTimeout(entry.timer);
 		entry.committed = true;
 		this.pendings.delete(id);
-		entry.ref.dismiss();
+		entry.ref?.dismiss();
 		entry.onUndo?.();
 	}
 
@@ -130,13 +185,63 @@ export class ToastService {
 		}
 	}
 
+	private teardown() {
+		this.destroyed = true;
+		this.waiting.length = 0;
+		this.pendings.forEach(entry => clearTimeout(entry.timer));
+		this.pendings.clear();
+		this.shownByContent.clear();
+		this.manager = null;
+		this.toastInjector?.destroy();
+	}
+
+	private whenReady(task: (manager: NgpToastManager) => void) {
+		if (this.destroyed) return;
+		if (this.manager) {
+			task(this.manager);
+			return;
+		}
+		this.waiting.push(task);
+		this.load();
+	}
+
+	private load() {
+		if (this.manager || this.loading || this.destroyed) return;
+		this.loading = this.loadLibrary()
+			.then(({ NgpToastManager, provideToastConfig }) => {
+				if (this.destroyed) return;
+				const injector = createEnvironmentInjector(
+					[
+						provideToastConfig({
+							placement: TOAST_CONFIG.placement,
+							offsetBottom: toastOffsetBottom(),
+							offsetRight: TOAST_CONFIG.offsetRight,
+							gap: TOAST_CONFIG.gap,
+							maxToasts: TOAST_CONFIG.maxToasts,
+							ariaLive: "polite"
+						}),
+						NgpToastManager
+					],
+					this.injector
+				);
+				this.toastInjector = injector;
+				const manager = injector.get(NgpToastManager);
+				this.manager = manager;
+				this.loading = null;
+				this.waiting.splice(0).forEach(task => task(manager));
+			})
+			.catch(() => {
+				this.loading = null;
+			});
+	}
+
 	private commit(id: number) {
 		const entry = this.pendings.get(id);
 		if (!entry || entry.committed) return;
 		clearTimeout(entry.timer);
 		entry.committed = true;
 		this.pendings.delete(id);
-		entry.ref.dismiss();
+		entry.ref?.dismiss();
 		entry.onCommit();
 	}
 }

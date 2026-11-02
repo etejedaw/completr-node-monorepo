@@ -10,7 +10,7 @@ import {
 } from "../../src/common/utils/one-time-token.util";
 import { UserInvitation } from "../../src/invitations/user-invitation.model";
 import { sendError } from "../../src/mail/errors/mail.service-error";
-import { InMemoryMailProvider } from "../../src/mail/mail.provider";
+import { InMemoryMailModel } from "../../src/mail/in-memory/in-memory.provider";
 import { User } from "../../src/users/user.model";
 import { type UserRole } from "../../src/users/user-role.type";
 import { api } from "../helpers/app.helper";
@@ -332,8 +332,7 @@ void describe("POST /admin/invitations", () => {
 		assert.equal(mail.subject, "You're invited to Completr");
 		assert.ok(mail.html.length > 0);
 		assert.equal(
-			InMemoryMailProvider.outbox.filter(sent => sent.to === email)
-				.length,
+			InMemoryMailModel.outbox.filter(sent => sent.to === email).length,
 			1
 		);
 	});
@@ -544,7 +543,7 @@ void describe("POST /admin/invitations", () => {
 			await postInvitation(admin.authorization, { email }).expect(201);
 
 			assert.equal(
-				InMemoryMailProvider.outbox.filter(sent => sent.to === email)
+				InMemoryMailModel.outbox.filter(sent => sent.to === email)
 					.length,
 				2
 			);
@@ -588,7 +587,7 @@ void describe("POST /admin/invitations", () => {
 		void it("answers 502 MAIL_SEND_ERROR and discards the invitation when the email cannot be sent", async () => {
 			const admin = await createUserWithSession("admin");
 			const email = inviteeEmail();
-			mock.method(InMemoryMailProvider.prototype, "send", () =>
+			mock.method(InMemoryMailModel.prototype, "send", () =>
 				Promise.reject(sendError(new Error("smtp down")))
 			);
 
@@ -604,7 +603,7 @@ void describe("POST /admin/invitations", () => {
 		void it("keeps no pending invitation after a failed resend", async () => {
 			const admin = await createUserWithSession("admin");
 			const { email, rawToken } = await inviteAndReadMail(admin);
-			mock.method(InMemoryMailProvider.prototype, "send", () =>
+			mock.method(InMemoryMailModel.prototype, "send", () =>
 				Promise.reject(sendError(new Error("smtp down")))
 			);
 
@@ -638,7 +637,7 @@ void describe("POST /admin/invitations", () => {
 			void it(`rejects ${name} with 422 COMMON_SCHEMA_INVALID`, async () => {
 				const admin = await createUserWithSession("admin");
 				const invitationsBefore = await UserInvitation.count();
-				const mailsBefore = InMemoryMailProvider.outbox.length;
+				const mailsBefore = InMemoryMailModel.outbox.length;
 
 				const response = await postInvitation(
 					admin.authorization,
@@ -648,7 +647,7 @@ void describe("POST /admin/invitations", () => {
 				assert.equal(response.status, 422);
 				assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
 				assert.equal(await UserInvitation.count(), invitationsBefore);
-				assert.equal(InMemoryMailProvider.outbox.length, mailsBefore);
+				assert.equal(InMemoryMailModel.outbox.length, mailsBefore);
 			});
 		}
 	});

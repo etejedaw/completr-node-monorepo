@@ -7,17 +7,10 @@ import {
 import { injectDialogRef } from "ng-primitives/dialog";
 
 import { UiButton, UiDialog } from "../../../shared/ui";
-import {
-	WishlistPlatformChoice,
-	type WishlistPlatformOption
-} from "../components/wishlist-platform-choice";
+import { WishlistPlatformChoice } from "../components/wishlist-platform-choice";
 import { WishlistService } from "../wishlist";
+import { type WishlistPlatformModalData } from "./wishlist-platform-modal.model";
 
-export interface WishlistPlatformModalData {
-	gameId: string;
-	gameTitle: string;
-	platforms: WishlistPlatformOption[];
-}
 export type WishlistPlatformModalResult = "saved";
 
 @Component({

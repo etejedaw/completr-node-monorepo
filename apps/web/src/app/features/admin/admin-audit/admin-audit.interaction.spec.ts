@@ -12,7 +12,7 @@ import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
-import { type AuditLogEntry } from "../services/audit.service";
+import { type AuditLogEntry } from "../services/audit.model";
 import { AdminAudit } from "./admin-audit";
 
 const api = environment.apiUrl;
@@ -308,6 +308,28 @@ describe("AdminAudit interaction", () => {
 				action: "game_created",
 				targetType: "job"
 			})
+		);
+	});
+
+	it("filters by the external data refresh action on games", async () => {
+		await renderLoaded();
+
+		await chooseAction("game_external_data_refreshed");
+		await untilVisible(() =>
+			expect(lastQuery().action).toBe("game_external_data_refreshed")
+		);
+		await chooseTarget("game");
+
+		await untilVisible(() =>
+			expect(lastQuery()).toEqual({
+				limit: "50",
+				offset: "0",
+				action: "game_external_data_refreshed",
+				targetType: "game"
+			})
+		);
+		expect(picker("Action")).toHaveAccessibleName(
+			"Action: game_external_data_refreshed"
 		);
 	});
 

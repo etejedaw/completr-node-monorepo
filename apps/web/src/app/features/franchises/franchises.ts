@@ -3,35 +3,13 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type Game } from "../../core/models";
 import { buildHttpParams } from "../../core/utils/http-params";
-
-export interface Franchise {
-	id: string;
-	name: string;
-	code: string;
-	description?: string | null;
-}
-
-export interface FranchiseProgress {
-	franchise: { id: string; name: string; code: string };
-	completed: number;
-	total: number;
-}
-
-export interface FranchiseDetail {
-	franchise: Franchise;
-	games: (Game & { backlogStatus: string | null })[];
-	progress: { completed: number; total: number };
-	isTracked: boolean;
-	hasMore: boolean;
-}
-
-export interface FranchiseDto {
-	name: string;
-	description?: string | null;
-	gameIds?: string[];
-}
+import {
+	type Franchise,
+	type FranchiseDetail,
+	type FranchiseDto,
+	type FranchisePage
+} from "./franchises.model";
 
 @Injectable({ providedIn: "root" })
 export class FranchisesService {
@@ -43,9 +21,7 @@ export class FranchisesService {
 	) {
 		const params = buildHttpParams(query);
 		return this.http
-			.get<{
-				data: { franchises: Franchise[]; total: number };
-			}>(this.baseUrl, { params })
+			.get<{ data: FranchisePage }>(this.baseUrl, { params })
 			.pipe(map(res => res.data));
 	}
 
@@ -78,6 +54,12 @@ export class FranchisesService {
 
 	deleteFranchise(id: string) {
 		return this.http.delete<void>(`${this.baseUrl}/${id}`);
+	}
+
+	setTracked(code: string, tracked: boolean) {
+		return tracked
+			? this.trackFranchise(code)
+			: this.untrackFranchise(code);
 	}
 
 	trackFranchise(code: string) {

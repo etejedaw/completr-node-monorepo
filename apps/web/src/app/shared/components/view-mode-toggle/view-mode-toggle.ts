@@ -5,12 +5,7 @@ import {
 	model
 } from "@angular/core";
 
-export interface ViewModeOption<T extends string> {
-	value: T;
-	label: string;
-	icon: string;
-	title?: string;
-}
+import { type ViewModeOption } from "./view-mode-toggle.model";
 
 @Component({
 	selector: "app-view-mode-toggle",
@@ -33,7 +28,7 @@ export interface ViewModeOption<T extends string> {
 					<span aria-hidden="true" class="material-icons text-base">{{
 						option.icon
 					}}</span>
-					<span class="max-lg:sr-only">{{ option.label }}</span>
+					<span class="sr-only">{{ option.label }}</span>
 				</button>
 			}
 		</div>

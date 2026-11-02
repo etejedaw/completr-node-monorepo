@@ -5,25 +5,13 @@ import { map, type Observable, of, shareReplay, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { type WishlistEntry } from "../../core/models";
 import { AuthService } from "../../core/services/auth";
-import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
-
-interface WishlistResponse {
-	data: { wishlist: WishlistEntry[]; total?: number };
-}
-
-interface WishlistAddResponse {
-	data: { wishlist: WishlistEntry };
-}
-
-interface WishlistGameIdsResponse {
-	data: { gameIds: string[] };
-}
-
-export interface WishlistPagination extends Record<string, Appendable> {
-	limit?: number;
-	offset?: number;
-	search?: string;
-}
+import { buildHttpParams } from "../../core/utils/http-params";
+import {
+	type WishlistAddResponse,
+	type WishlistGameIdsResponse,
+	type WishlistPagination,
+	type WishlistResponse
+} from "./wishlist.model";
 
 @Injectable({ providedIn: "root" })
 export class WishlistService {

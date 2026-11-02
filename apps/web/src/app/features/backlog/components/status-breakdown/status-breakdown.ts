@@ -11,16 +11,9 @@ import {
 	backlogStatusFillClass,
 	backlogStatusLabel
 } from "../../../../shared/utils/backlog-status";
+import { type StatusShare } from "./status-breakdown.model";
 
 export type StatusCounts = Record<BacklogStatus, number>;
-
-interface StatusShare {
-	status: BacklogStatus;
-	label: string;
-	count: number;
-	percent: number;
-	fillClass: string;
-}
 
 @Component({
 	selector: "app-status-breakdown",

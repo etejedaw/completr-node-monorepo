@@ -14,15 +14,17 @@
 		heading="Lists"
 		headingId="profile-lists-heading"
 		eyebrow="Curated"
+		[seeAllLink]="seeAllLink()"
+		[seeAllQueryParams]="seeAllQueryParams()"
 	/>
 	<div class="flex flex-col gap-8">
-		@for (group of groups(); track group.title) {
+		@for (group of groups(); track group.tab) {
 		<div>
 			<h3
 				class="m-0 mb-3 flex items-baseline gap-2 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
 			>
 				{{ group.title }}
-				<span class="tabular-nums">{{ group.items.length }}</span>
+				<span class="tabular-nums">{{ group.total }}</span>
 			</h3>
 			<ul
 				class="list-none m-0 p-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
@@ -31,7 +33,7 @@
 				<li>
 					<app-list-card
 						[list]="list"
-						[showVisibility]="isSelf() && group.title === 'Created'"
+						[showVisibility]="isSelf() && group.tab === 'created'"
 						[linkQueryParams]="{ from: username() }"
 					/>
 				</li>
@@ -40,19 +42,5 @@
 		</div>
 		}
 	</div>
-	@if (hasHiddenLists()) {
-	<button
-		uiButton
-		variant="ghost"
-		class="mt-4"
-		[attr.aria-expanded]="expanded()"
-		(click)="expanded.set(!expanded())"
-	>
-		{{ expanded() ? 'Show fewer' : 'Show all lists' }}
-		<span aria-hidden="true" class="material-icons text-lg"
-			>{{ expanded() ? 'expand_less' : 'expand_more' }}</span
-		>
-	</button>
-	}
 </section>
 }

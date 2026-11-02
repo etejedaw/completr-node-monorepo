@@ -31,25 +31,15 @@ import {
 	UiSkeleton,
 	UiTextarea
 } from "../../../shared/ui";
-import {
-	type Franchise,
-	type FranchiseDto,
-	FranchisesService
-} from "../../franchises/franchises";
+import { FranchisesService } from "../../franchises/franchises";
+import { type FranchiseDto } from "../../franchises/franchises.model";
 import { GamesService } from "../../games/games";
+import {
+	type AdminFranchiseModalData,
+	type SelectedGame
+} from "./admin-franchise-modal.model";
 
-export interface AdminFranchiseModalData {
-	franchise: Franchise | null;
-}
 export type AdminFranchiseModalResult = "saved";
-
-interface SelectedGame {
-	id: string;
-	title: string;
-	backgroundUrl?: string;
-	releaseAt?: string;
-	franchiseName?: string | null;
-}
 
 @Component({
 	selector: "app-admin-franchise-modal",
@@ -108,6 +98,10 @@ export class AdminFranchiseModal implements OnInit {
 			current.some(id => !initial.has(id))
 		);
 	});
+	protected readonly missingGames = computed(
+		() =>
+			this.games().length === 0 && (!this.isEdit() || this.gamesChanged())
+	);
 	protected readonly results = signal<SelectedGame[]>([]);
 
 	protected readonly model = signal({ name: "", description: "" });
@@ -232,7 +226,12 @@ export class AdminFranchiseModal implements OnInit {
 
 	onSubmit(event: Event) {
 		event.preventDefault();
-		if (this.form().invalid() || this.isLoading() || this.isLoadingGames())
+		if (
+			this.form().invalid() ||
+			this.missingGames() ||
+			this.isLoading() ||
+			this.isLoadingGames()
+		)
 			return;
 		this.isLoading.set(true);
 		this.error.set("");

@@ -1,20 +1,45 @@
 import { type TemplateRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { NgpToastManager } from "ng-primitives/toast";
 
-import { type Toast, ToastService, UNDO_WINDOW_MS } from "./toast";
+import { TOAST_LIBRARY_LOADER, ToastService, UNDO_WINDOW_MS } from "./toast";
+import { type Toast } from "./toast.model";
+
+const IDLE_PRELOAD_MS = 2000;
 
 describe("ToastService", () => {
 	const template = {} as TemplateRef<unknown>;
 	let toasts: ToastService;
 	let refs: { dismiss: ReturnType<typeof vi.fn> }[];
-	const manager = { show: vi.fn() };
+	const manager = { show: vi.fn(), destroyed: vi.fn() };
+	let loadLibrary: ReturnType<typeof vi.fn>;
 
 	function lastContext() {
 		return manager.show.mock.lastCall?.[1].context as Toast;
 	}
 
-	beforeEach(() => {
+	function fakeLibrary() {
+		return {
+			NgpToastManager: class {
+				show = manager.show;
+				ngOnDestroy() {
+					manager.destroyed();
+				}
+			},
+			provideToastConfig: () => []
+		};
+	}
+
+	function createService(loader: () => Promise<unknown>) {
+		loadLibrary = vi.fn(loader);
+		TestBed.configureTestingModule({
+			providers: [
+				{ provide: TOAST_LIBRARY_LOADER, useValue: loadLibrary }
+			]
+		});
+		return TestBed.inject(ToastService);
+	}
+
+	beforeEach(async () => {
 		vi.useFakeTimers();
 		refs = [];
 		manager.show.mockReset().mockImplementation(() => {
@@ -22,10 +47,8 @@ describe("ToastService", () => {
 			refs.push(ref);
 			return ref;
 		});
-		TestBed.configureTestingModule({
-			providers: [{ provide: NgpToastManager, useValue: manager }]
-		});
-		toasts = TestBed.inject(ToastService);
+		toasts = createService(() => Promise.resolve(fakeLibrary()));
+		await vi.advanceTimersByTimeAsync(IDLE_PRELOAD_MS);
 	});
 
 	afterEach(() => {
@@ -96,6 +119,57 @@ describe("ToastService", () => {
 				variant: "premium"
 			});
 			expect(manager.show.mock.lastCall?.[1].duration).toBe(5000);
+		});
+	});
+
+	describe("repeated toasts", () => {
+		beforeEach(() => toasts.registerTemplate(template));
+
+		it("replaces a toast with the same content instead of stacking it", () => {
+			toasts.premium("Premium perk", "No limit");
+			toasts.premium("Premium perk", "No limit");
+			toasts.premium("Premium perk", "No limit");
+
+			expect(manager.show).toHaveBeenCalledTimes(3);
+			expect(refs[0].dismiss).toHaveBeenCalledOnce();
+			expect(refs[1].dismiss).toHaveBeenCalledOnce();
+			expect(refs[2].dismiss).not.toHaveBeenCalled();
+		});
+
+		it("keeps toasts whose message, variant or title differ", () => {
+			toasts.info("Saved");
+			toasts.success("Saved");
+			toasts.info("Saved again");
+			toasts.premium("Perk A", "Saved");
+
+			expect(manager.show).toHaveBeenCalledTimes(4);
+			refs.forEach(ref => expect(ref.dismiss).not.toHaveBeenCalled());
+		});
+
+		it("never collapses undo toasts, even with the same message", () => {
+			toasts.pending({ message: "Removed", onCommit: vi.fn() });
+			toasts.pending({ message: "Removed", onCommit: vi.fn() });
+
+			refs.forEach(ref => expect(ref.dismiss).not.toHaveBeenCalled());
+		});
+
+		it("leaves only the last one when repeats fire before the library loads", async () => {
+			TestBed.resetTestingModule();
+			let release!: () => void;
+			const gate = new Promise<void>(resolve => (release = resolve));
+			manager.show.mockClear();
+			refs = [];
+			const lazy = createService(() => gate.then(() => fakeLibrary()));
+			lazy.registerTemplate(template);
+
+			lazy.error("Offline");
+			lazy.error("Offline");
+			release();
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(refs).toHaveLength(2);
+			expect(refs[0].dismiss).toHaveBeenCalledOnce();
+			expect(refs[1].dismiss).not.toHaveBeenCalled();
 		});
 	});
 
@@ -205,6 +279,185 @@ describe("ToastService", () => {
 				toasts.undo(99);
 				toasts.dismiss(99);
 			}).not.toThrow();
+		});
+	});
+
+	describe("lazy loading", () => {
+		let release: () => void;
+		let lazy: ToastService;
+
+		function gatedLoader() {
+			const gate = new Promise<void>(resolve => (release = resolve));
+			return () => gate.then(() => fakeLibrary());
+		}
+
+		async function setUpLazy(loader: () => Promise<unknown>) {
+			TestBed.resetTestingModule();
+			manager.show.mockClear();
+			manager.destroyed.mockClear();
+			lazy = createService(loader);
+			lazy.registerTemplate(template);
+		}
+
+		it("shows every toast fired before the import ends, in order and once", async () => {
+			await setUpLazy(gatedLoader());
+
+			lazy.info("One");
+			lazy.error("Two");
+			lazy.success("Three");
+			expect(manager.show).not.toHaveBeenCalled();
+
+			release();
+			await vi.advanceTimersByTimeAsync(0);
+
+			const messages = manager.show.mock.calls.map(
+				call => (call[1].context as Toast).message
+			);
+			expect(messages).toEqual(["One", "Two", "Three"]);
+			expect(loadLibrary).toHaveBeenCalledOnce();
+		});
+
+		it("keeps ids in call order across queued toasts and pendings", async () => {
+			await setUpLazy(gatedLoader());
+
+			lazy.info("One");
+			const id = lazy.pending({ message: "Two", onCommit: vi.fn() });
+			lazy.info("Three");
+			release();
+			await vi.advanceTimersByTimeAsync(0);
+
+			const ids = manager.show.mock.calls.map(
+				call => (call[1].context as Toast).id
+			);
+			expect(ids).toEqual([1, id, 3]);
+		});
+
+		it("does not show a queued pending that was undone before the import ended", async () => {
+			await setUpLazy(gatedLoader());
+			const onUndo = vi.fn();
+			const onCommit = vi.fn();
+			const id = lazy.pending({ message: "x", onCommit, onUndo });
+
+			lazy.undo(id);
+			release();
+			await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS);
+
+			expect(manager.show).not.toHaveBeenCalled();
+			expect(onUndo).toHaveBeenCalledOnce();
+			expect(onCommit).not.toHaveBeenCalled();
+		});
+
+		it("commits a pending whose window ends before the import does", async () => {
+			await setUpLazy(gatedLoader());
+			const onCommit = vi.fn();
+			lazy.pending({ message: "x", onCommit });
+
+			await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS);
+			release();
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(onCommit).toHaveBeenCalledOnce();
+			expect(manager.show).not.toHaveBeenCalled();
+		});
+
+		it("survives a failed import and retries on the next call", async () => {
+			let attempts = 0;
+			await setUpLazy(() =>
+				++attempts === 1
+					? Promise.reject(new Error("offline"))
+					: Promise.resolve(fakeLibrary())
+			);
+
+			lazy.info("Lost?");
+			await vi.advanceTimersByTimeAsync(0);
+			expect(manager.show).not.toHaveBeenCalled();
+
+			lazy.info("Again");
+			await vi.advanceTimersByTimeAsync(0);
+
+			const messages = manager.show.mock.calls.map(
+				call => (call[1].context as Toast).message
+			);
+			expect(messages).toEqual(["Lost?", "Again"]);
+			expect(loadLibrary).toHaveBeenCalledTimes(2);
+		});
+
+		it("imports once when the idle preload overlaps a manual call", async () => {
+			await setUpLazy(gatedLoader());
+
+			await vi.advanceTimersByTimeAsync(IDLE_PRELOAD_MS);
+			lazy.info("During");
+			lazy.info("Also during");
+			release();
+			await vi.advanceTimersByTimeAsync(0);
+			await vi.advanceTimersByTimeAsync(IDLE_PRELOAD_MS);
+
+			expect(loadLibrary).toHaveBeenCalledOnce();
+			expect(manager.show).toHaveBeenCalledTimes(2);
+		});
+
+		it("shows synchronously once the library is loaded", async () => {
+			await setUpLazy(() => Promise.resolve(fakeLibrary()));
+			await vi.advanceTimersByTimeAsync(IDLE_PRELOAD_MS);
+
+			lazy.info("Now");
+
+			expect(manager.show).toHaveBeenCalledOnce();
+		});
+
+		it("drops queued toasts when the app is destroyed before the import ends", async () => {
+			await setUpLazy(gatedLoader());
+
+			lazy.info("Too late");
+			TestBed.resetTestingModule();
+			release();
+			await vi.advanceTimersByTimeAsync(IDLE_PRELOAD_MS);
+			lazy.info("After destroy");
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(manager.show).not.toHaveBeenCalled();
+			expect(loadLibrary).toHaveBeenCalledOnce();
+		});
+
+		it("destroys the toast manager with the app so no toast outlives it", async () => {
+			await setUpLazy(() => Promise.resolve(fakeLibrary()));
+			lazy.info("Visible");
+			await vi.advanceTimersByTimeAsync(0);
+			expect(manager.destroyed).not.toHaveBeenCalled();
+
+			TestBed.resetTestingModule();
+
+			expect(manager.destroyed).toHaveBeenCalledOnce();
+		});
+
+		it("shows nothing once the app is destroyed, even with the library loaded", async () => {
+			await setUpLazy(() => Promise.resolve(fakeLibrary()));
+			lazy.info("Visible");
+			await vi.advanceTimersByTimeAsync(0);
+			manager.show.mockClear();
+
+			TestBed.resetTestingModule();
+			lazy.info("After destroy");
+			const pendingId = lazy.pending({
+				message: "After destroy",
+				onCommit: vi.fn()
+			});
+			await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS);
+
+			expect(manager.show).not.toHaveBeenCalled();
+			expect(pendingId).toBe(-1);
+		});
+
+		it("never commits a pending whose window ends after the app is destroyed", async () => {
+			await setUpLazy(() => Promise.resolve(fakeLibrary()));
+			const onCommit = vi.fn();
+			lazy.pending({ message: "Removed", onCommit });
+			await vi.advanceTimersByTimeAsync(0);
+
+			TestBed.resetTestingModule();
+			await vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS);
+
+			expect(onCommit).not.toHaveBeenCalled();
 		});
 	});
 });

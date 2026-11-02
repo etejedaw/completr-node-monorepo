@@ -16,6 +16,7 @@ import { GamesQuerySchema } from "./schemas/games-query.schema";
 import { LatestReviewedQuerySchema } from "./schemas/latest-reviewed-query.schema";
 import { MarkCompilationSchema } from "./schemas/mark-compilation.schema";
 import { RawgIdParamSchema } from "./schemas/rawg-id-params.schema";
+import { RefreshExternalDataSchema } from "./schemas/refresh-external-data.schema";
 import { RegisterGameSchema } from "./schemas/register-game.schema";
 import { SplitGameSchema } from "./schemas/split-game.schema";
 import { UpdateGameSchema } from "./schemas/update-game.schema";
@@ -118,6 +119,17 @@ router.post(
 		validateSchemaMiddleware(SplitGameSchema, "body")
 	],
 	gamesController.postSplitGame
+);
+
+router.post(
+	"/games/:id/external-data/refresh",
+	[
+		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
+		validateSchemaMiddleware(GameIdParamSchema, "params"),
+		validateSchemaMiddleware(RefreshExternalDataSchema, "body")
+	],
+	gamesController.postRefreshExternalData
 );
 
 router.put(

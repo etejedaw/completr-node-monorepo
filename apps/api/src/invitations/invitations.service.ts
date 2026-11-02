@@ -1,14 +1,12 @@
 import { Op } from "sequelize";
 
 import { environmentConfig } from "../common/config/environment.config";
-import { smtpSettings } from "../common/config/mail.config";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import {
 	generateOneTimeToken,
 	hashOneTimeToken
 } from "../common/utils/one-time-token.util";
-import * as mailServiceError from "../mail/errors/mail.service-error";
-import { MailClient } from "../mail/mail.provider";
+import { mailProvider } from "../mail/mail.provider";
 import * as invitationsServiceError from "./errors/invitations.service-error";
 import { buildInvitationEmail } from "./invitation-email.util";
 import { UserInvitation } from "./user-invitation.model";
@@ -16,16 +14,14 @@ import { UserInvitation } from "./user-invitation.model";
 const ACCEPT_INVITATION_PATH = "/accept-invite";
 const DAYS_TO_MS = 24 * 60 * 60 * 1000;
 
-const mail = MailClient.create(smtpSettings);
-
 export async function inviteUser(email: string, invitedById: string) {
-	if (!mail.isEnabled) throw mailServiceError.disabledError();
+	mailProvider.assertConfigured();
 
 	const { rawToken, tokenHash } = generateOneTimeToken();
 	const invitation = await replaceInvitation(email, tokenHash, invitedById);
 
 	try {
-		await mail.send({ to: email, ...invitationEmail(rawToken) });
+		await mailProvider.send({ to: email, ...invitationEmail(rawToken) });
 	} catch (error) {
 		await invitation.destroy();
 		throw error;

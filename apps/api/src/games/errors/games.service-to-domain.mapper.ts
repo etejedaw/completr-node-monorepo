@@ -39,5 +39,8 @@ export function gamesServiceToDomainMapper(
 
 	if (error.code === "GAME_IN_USE") return gameDomainError.gameInUse(context);
 
+	if (error.code === "GAME_EXTERNAL_DATA_SOURCE_UNAVAILABLE")
+		return gameDomainError.gameExternalDataSourceUnavailable(context);
+
 	return gameDomainError.gameInternalError(context);
 }

@@ -1,12 +1,12 @@
 import { HttpContextToken, type HttpErrorResponse } from "@angular/common/http";
 
-export interface ServerValidationIssue {
-	path: string;
-	code: string;
-	message: string;
-}
+import { type ServerValidationIssue } from "./validation-errors.model";
 
 export const SUPPRESS_VALIDATION_TOAST = new HttpContextToken<boolean>(
+	() => false
+);
+
+export const SUPPRESS_CONFLICT_TOAST = new HttpContextToken<boolean>(
 	() => false
 );
 

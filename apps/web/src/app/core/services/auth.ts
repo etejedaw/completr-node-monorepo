@@ -4,57 +4,23 @@ import { Router } from "@angular/router";
 import { map, type Observable, tap } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type User } from "../models";
+import { type PremiumFeature, type User } from "../models";
 import { buildHttpParams } from "../utils/http-params";
-import { isPremiumRole } from "../utils/premium";
+import {
+	type AcceptInvitationRequest,
+	type AuthResponse,
+	type AuthSession,
+	type LoginRequest,
+	type PendingInvitation,
+	type RegisterRequest,
+	type UserResponse
+} from "./auth.model";
 import { StorageService } from "./storage";
-import { type ThemeId, ThemeService } from "./theme";
+import { ThemeService } from "./theme";
+import { type ThemeId } from "./theme.model";
 
 const TOKEN_KEY = "access_token";
 const SESSION_ID_KEY = "session_id";
-
-interface LoginRequest {
-	email: string;
-	password: string;
-}
-
-interface RegisterRequest {
-	username: string;
-	email: string;
-	password: string;
-	name: string;
-}
-
-export interface PendingInvitation {
-	email: string;
-	expiresAt: string;
-}
-
-export interface AcceptInvitationRequest {
-	token: string;
-	username: string;
-	name: string;
-	password: string;
-}
-
-interface AuthResponse {
-	data: {
-		access_token: string;
-		session_id: string;
-	};
-}
-
-interface UserResponse {
-	data: { user: User };
-}
-
-export interface AuthSession {
-	id: string;
-	deviceInfo: string | null;
-	lastUsedAt: string | null;
-	createdAt: string;
-	expiresAt: string;
-}
 
 @Injectable({ providedIn: "root" })
 export class AuthService {
@@ -68,7 +34,16 @@ export class AuthService {
 	readonly isLoggedIn = computed(
 		() => this._user() !== null || this.storage.get(TOKEN_KEY) !== null
 	);
-	readonly isPremium = computed(() => isPremiumRole(this._user()?.role));
+	readonly isPremium = computed(
+		() => this._user()?.premiumAccess?.active ?? false
+	);
+	private readonly premiumFeatures = computed(
+		() => new Set(this._user()?.premiumFeatures ?? [])
+	);
+
+	hasPremiumFeature(feature: PremiumFeature): boolean {
+		return this.isPremium() || this.premiumFeatures().has(feature);
+	}
 
 	token(): string | null {
 		return this.storage.get(TOKEN_KEY);

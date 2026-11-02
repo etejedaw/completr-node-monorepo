@@ -1,4 +1,7 @@
-import { type ValidationIssue } from "./domain-error";
+import {
+	type HttpErrorOptions,
+	type ValidationIssue
+} from "./errors.interface";
 
 export class HttpError extends Error {
 	readonly type: string;
@@ -24,16 +27,4 @@ export class HttpError extends Error {
 		this.context = httpErrorOptions.context;
 		this.issues = httpErrorOptions.issues;
 	}
-}
-
-export interface HttpErrorOptions {
-	type: string;
-	title: string;
-	status: number;
-	detail?: string;
-	instance: string;
-	timestamp: Date;
-	correlationId: string;
-	context?: Record<string, unknown>;
-	issues?: ValidationIssue[];
 }

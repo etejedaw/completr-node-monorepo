@@ -4,6 +4,7 @@ import {
 	fieldErrorsFromResponse,
 	validationSummary
 } from "../../shared/utils/validation-errors";
+import { type ScoreOutOfRangeBody } from "./admin-error-message.model";
 
 const SCORE_PATH = /^scores?(\.|$)/;
 const DURATION_PATH = /^(times|duration)(\.|$)/;
@@ -32,10 +33,6 @@ const ADMIN_ERROR_MESSAGES: Record<string, string> = {
 	PLATFORM_IN_USE:
 		"This platform is used by games, shelves, backlogs or wishlist entries. Remove those references before deleting it."
 };
-
-interface ScoreOutOfRangeBody {
-	context?: { raw?: { source?: unknown; scale?: unknown } };
-}
 
 function scoreOutOfRangeMessage(body: ScoreOutOfRangeBody): string {
 	const raw = body.context?.raw;

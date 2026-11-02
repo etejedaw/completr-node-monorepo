@@ -2,12 +2,15 @@ import { Op, QueryTypes } from "sequelize";
 
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
-import { ListFollower } from "../list-followers/list-follower.model";
+import * as listFollowersService from "../list-followers/list-followers.service";
 import { ListItem } from "../list-items/list-item.model";
+import * as listItemsService from "../list-items/list-items.service";
+import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import { visibleListsCondition } from "../users/helpers/visibility.helper";
 import { User } from "../users/user.model";
@@ -16,22 +19,19 @@ import { type RegisterListDto } from "./dtos/register-list.dto";
 import { type UpdateListDto } from "./dtos/update-list.dto";
 import * as listsServiceError from "./errors/lists.service-error";
 import { List } from "./list.model";
+import { type BacklogSummary, type ListProgress } from "./lists.interface";
 
 const FREE_LIST_LIMIT = 5;
 export const LIST_PREVIEW_SIZE = 4;
 const FINISHED_STATUSES = ["completed", "abandoned", "endless"];
 
-export interface ListProgress {
-	completed: number;
-	total: number;
-}
-
-function isPremium(role: string) {
-	return role === "premium" || role === "moderator" || role === "admin";
+async function hasPremiumAccess(userId: string, role: string) {
+	return resolvePremiumAccess({ id: userId, role }, "lists.unlimited");
 }
 
 async function areFrozen(userId: string, role: string) {
-	if (isPremium(role)) return false;
+	const premiumAccess = await hasPremiumAccess(userId, role);
+	if (premiumAccess.allowed) return false;
 	const count = await List.count({ where: { userId } });
 	return count > FREE_LIST_LIMIT;
 }
@@ -40,7 +40,8 @@ export async function createList(
 	user: RequestUser,
 	registerList: RegisterListDto
 ) {
-	if (!isPremium(user.role)) {
+	const premiumAccess = await hasPremiumAccess(user.id, user.role);
+	if (!premiumAccess.allowed) {
 		const count = await List.count({ where: { userId: user.id } });
 		if (count >= FREE_LIST_LIMIT)
 			throw listsServiceError.limitReachedError();
@@ -77,7 +78,8 @@ export async function duplicateList(
 	if (!(await isListVisibleToViewer(source.id, user.id)))
 		throw listsServiceError.notFoundError();
 
-	if (!isPremium(user.role)) {
+	const premiumAccess = await hasPremiumAccess(user.id, user.role);
+	if (!premiumAccess.allowed) {
 		const count = await List.count({ where: { userId: user.id } });
 		if (count >= FREE_LIST_LIMIT)
 			throw listsServiceError.limitReachedError();
@@ -98,18 +100,7 @@ export async function duplicateList(
 			{ transaction }
 		);
 
-		if (items.length > 0) {
-			await ListItem.bulkCreate(
-				items.map(item => ({
-					listId: list.id,
-					gameId: item.gameId,
-					position: item.position,
-					score: item.score,
-					duration: item.duration
-				})),
-				{ transaction }
-			);
-		}
+		await listItemsService.copyItemsToList(list.id, items, transaction);
 
 		return list;
 	});
@@ -151,6 +142,10 @@ const LIST_DETAIL_INCLUDE = [
 	}
 ];
 
+export async function findListsByIds(ids: string[]) {
+	return List.findAll({ where: { id: { [Op.in]: ids } } });
+}
+
 export async function findListById(id: string) {
 	return List.findOne({ where: { id }, include: LIST_DETAIL_INCLUDE });
 }
@@ -190,7 +185,7 @@ export async function findVisibleListById(
 }
 
 export async function getFollowerCount(listId: string) {
-	return ListFollower.count({ where: { listId } });
+	return listFollowersService.countListFollowers(listId);
 }
 
 export async function getListFollowerCounts(
@@ -199,25 +194,13 @@ export async function getListFollowerCounts(
 	const counts = new Map<string, number>(listIds.map(id => [id, 0]));
 	if (listIds.length === 0) return counts;
 
-	const rows = (await ListFollower.count({
-		where: { listId: { [Op.in]: listIds } },
-		group: ["listId"]
-	})) as unknown as { listId: string; count: number }[];
+	const rows = await listFollowersService.countFollowersByListIds(listIds);
 	for (const row of rows) counts.set(row.listId, Number(row.count));
 	return counts;
 }
 
 export async function getIsFollowing(listId: string, userId: string) {
-	const follower = await ListFollower.findOne({
-		where: { listId, userId }
-	});
-	return !!follower;
-}
-
-export interface BacklogSummary {
-	status: string;
-	realDuration: number | null;
-	personalRatio: number | null;
+	return listFollowersService.isUserFollowingList(listId, userId);
 }
 
 export async function getBacklogSummaryMap(
@@ -249,13 +232,9 @@ export async function getListProgress(
 	userId: string,
 	publicOnly = false
 ): Promise<ListProgress> {
-	const items = await ListItem.findAll({
-		where: { listId },
-		attributes: ["gameId"]
-	});
-	if (items.length === 0) return { completed: 0, total: 0 };
+	const gameIds = await listItemsService.findGameIdsByListId(listId);
+	if (gameIds.length === 0) return { completed: 0, total: 0 };
 
-	const gameIds = items.map(i => i.gameId);
 	const completed =
 		await backlogService.countDistinctGamesByUserStatusAndGameIds(
 			userId,
@@ -263,7 +242,7 @@ export async function getListProgress(
 			FINISHED_STATUSES,
 			publicOnly
 		);
-	return { completed, total: items.length };
+	return { completed, total: gameIds.length };
 }
 
 export async function getListsProgress(
@@ -310,12 +289,19 @@ export async function getListsProgress(
 	return progressByList;
 }
 
+function listsOfUserWhere(userId: string, search?: string) {
+	const nameWhere = search
+		? buildTextSearchWhere(search, ["List.name"])
+		: null;
+	return nameWhere ? { userId, ...nameWhere } : { userId };
+}
+
 export async function findListsByUserId(
 	user: RequestUser,
-	pagination: { limit?: number; offset?: number } = {}
+	pagination: PaginatedSearchQuery = {}
 ) {
 	const query: Record<string, unknown> = {
-		where: { userId: user.id },
+		where: listsOfUserWhere(user.id, pagination.search),
 		include: [
 			{
 				model: User,
@@ -357,9 +343,15 @@ export async function findListsByUserId(
 	return { lists: rows, total: count, frozen };
 }
 
-export async function findPublicListsByUserId(userId: string) {
-	return List.findAll({
-		where: { userId, isPublic: true },
+export async function findPublicListsByUserId(
+	userId: string,
+	pagination: PaginatedSearchQuery = {}
+) {
+	const query: Record<string, unknown> = {
+		where: {
+			...listsOfUserWhere(userId, pagination.search),
+			isPublic: true
+		},
 		include: [
 			{
 				model: ListItem,
@@ -387,7 +379,12 @@ export async function findPublicListsByUserId(userId: string) {
 			["createdAt", "DESC"],
 			["id", "DESC"]
 		]
-	});
+	};
+	if (pagination.limit) query.limit = pagination.limit;
+	if (pagination.offset) query.offset = pagination.offset;
+
+	const { rows, count } = await List.findAndCountAll(query);
+	return { lists: rows, total: count };
 }
 
 export async function countListsByUserId(userId: string, publicOnly = false) {
@@ -442,7 +439,7 @@ export async function findUserListsWithGameFlag(
 	userId: string,
 	gameId: string
 ) {
-	const [allLists, containingIds] = await Promise.all([
+	const [allLists, containingListIds] = await Promise.all([
 		List.findAll({
 			where: { userId },
 			attributes: ["id", "name", "isPublic"],
@@ -451,23 +448,10 @@ export async function findUserListsWithGameFlag(
 				["id", "DESC"]
 			]
 		}),
-		ListItem.findAll({
-			where: { gameId },
-			attributes: ["listId"],
-			include: [
-				{
-					model: List,
-					where: { userId },
-					attributes: []
-				}
-			],
-			raw: true
-		})
+		listItemsService.findListIdsContainingGameOwnedBy(gameId, userId)
 	]);
 
-	const containsSet = new Set(
-		(containingIds as unknown as { listId: string }[]).map(r => r.listId)
-	);
+	const containsSet = new Set(containingListIds);
 
 	return allLists.map(l => ({
 		id: l.id,

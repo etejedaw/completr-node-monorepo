@@ -10,19 +10,15 @@ import {
 import { form, FormField, required } from "@angular/forms/signals";
 import { injectDialogRef } from "ng-primitives/dialog";
 
-import { type Game, type GameShelfEntry } from "../../../core/models";
-import {
-	ChipGroup,
-	type ChipOption
-} from "../../../shared/components/chip-group/chip-group";
+import { type Game } from "../../../core/models";
+import { ChipGroup } from "../../../shared/components/chip-group/chip-group";
+import { type ChipOption } from "../../../shared/components/chip-group/chip-group.model";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
 import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
-import {
-	OptionPicker,
-	type PickerOption
-} from "../../../shared/components/option-picker/option-picker";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import {
 	UiAlert,
 	UiButton,
@@ -31,16 +27,13 @@ import {
 	UiTextarea
 } from "../../../shared/ui";
 import { injectGameSearch } from "../../games/game-search";
+import { GameShelfService } from "../game-shelf";
 import {
 	type CreateGameShelfDto,
-	GameShelfService,
 	type UpdateGameShelfDto
-} from "../game-shelf";
+} from "../game-shelf.model";
+import { type GameShelfModalData } from "./game-shelf-modal.model";
 
-export interface GameShelfModalData {
-	entry: GameShelfEntry | null;
-	preselectedGame: Game | null;
-}
 export type GameShelfModalResult = "saved";
 
 const EDITION_SUGGESTIONS = [

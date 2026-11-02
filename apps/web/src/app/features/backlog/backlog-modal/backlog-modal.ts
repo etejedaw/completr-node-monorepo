@@ -16,7 +16,7 @@ import { injectDialogRef } from "ng-primitives/dialog";
 import { type Observable, of } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
-import { type BacklogEntry, type GamePlatinum } from "../../../core/models";
+import { type GamePlatinum } from "../../../core/models";
 import { type Game } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
@@ -26,11 +26,11 @@ import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
 import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import {
-	OptionPicker,
 	type PickerAction,
 	type PickerOption
-} from "../../../shared/components/option-picker/option-picker";
+} from "../../../shared/components/option-picker/option-picker.model";
 import { PlatinumTrophy } from "../../../shared/components/platinum-trophy/platinum-trophy";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import {
@@ -54,19 +54,17 @@ import {
 	backlogStatusIconColor,
 	backlogStatusLabel
 } from "../../../shared/utils/backlog-status";
-import {
-	BacklogProgressService,
-	type ProgressNote
-} from "../../backlog-progress/backlog-progress";
+import { BacklogProgressService } from "../../backlog-progress/backlog-progress";
+import { type ProgressNote } from "../../backlog-progress/backlog-progress.model";
+import { CoopRunsService, type SyncField } from "../../coop-runs/coop-runs";
 import {
 	type CoopCandidate,
-	type CoopMember,
-	CoopRunsService,
-	type SyncField
-} from "../../coop-runs/coop-runs";
+	type CoopMember
+} from "../../coop-runs/coop-runs.model";
 import { injectGameSearch } from "../../games/game-search";
 import { GamesService } from "../../games/games";
-import { type Review, ReviewsService } from "../../games/reviews";
+import { ReviewsService } from "../../games/reviews";
+import { type Review } from "../../games/reviews.model";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
 import { PlatinumService } from "../../platinum/platinum";
 import {
@@ -74,12 +72,13 @@ import {
 	type PublicSocialUser
 } from "../../public-profile/services/public-social.service";
 import { QueueService } from "../../queue/queue";
+import { BacklogService } from "../backlog";
 import {
 	type BacklogReviewDraft,
-	BacklogService,
 	type CreateBacklogDto,
 	type UpdateBacklogDto
-} from "../backlog";
+} from "../backlog.model";
+import { type BacklogModalData } from "./backlog-modal.model";
 import { BacklogEntrySummary } from "./components/backlog-entry-summary";
 import {
 	BacklogReferenceFields,
@@ -91,18 +90,11 @@ import {
 	MIN_REFERENCE_VALUE,
 	NO_REFERENCE_PICK,
 	pickDefaultDuration,
-	type ReferencePick,
 	roundReferenceValue,
 	toCriticScore
 } from "./reference-values";
+import { type ReferencePick } from "./reference-values.model";
 
-export interface BacklogModalData {
-	entry: BacklogEntry | null;
-	preselectedGame: Game | null;
-	preselectedCompilationParent: Game | null;
-	preselectAddToQueue: boolean;
-	allowNewRun?: boolean;
-}
 export type BacklogModalResult = "saved" | "newRun";
 
 const BACKLOG_FORM_STATUS_OPTIONS: readonly PickerOption[] =

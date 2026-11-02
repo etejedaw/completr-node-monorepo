@@ -14,7 +14,8 @@ import {
 import { BacklogService } from "../../backlog/backlog";
 import { GamesService } from "../../games/games";
 import { PlatinumService } from "../platinum";
-import { PlatinumDialog, type PlatinumDialogData } from "./platinum-dialog";
+import { PlatinumDialog } from "./platinum-dialog";
+import { type PlatinumDialogData } from "./platinum-dialog.model";
 
 const dialogRef = vi.hoisted(() => ({
 	data: {} as PlatinumDialogData,

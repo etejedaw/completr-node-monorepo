@@ -21,26 +21,7 @@ import {
 
 import { ViewportService } from "../../../core/services/viewport";
 import { UiBottomSheet } from "../../ui";
-
-export interface PickerOption {
-	value: string;
-	label: string;
-	shortLabel?: string;
-	icon?: string;
-	iconClass?: string;
-	iconColor?: string | null;
-	count?: number | null;
-	hint?: string;
-	locked?: boolean;
-	link?: string;
-	fragment?: string;
-}
-
-export interface PickerAction {
-	id: string;
-	label: string;
-	icon: string;
-}
+import { type PickerAction, type PickerOption } from "./option-picker.model";
 
 @Component({
 	selector: "app-option-picker",

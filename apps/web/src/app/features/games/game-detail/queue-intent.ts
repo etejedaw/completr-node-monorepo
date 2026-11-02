@@ -1,14 +1,5 @@
 import { type BacklogEntry } from "../../../core/models";
-
-export interface QueueableRun {
-	run: BacklogEntry;
-	number: number;
-}
-
-export type QueueIntent =
-	| { kind: "newRun" }
-	| { kind: "direct"; run: BacklogEntry }
-	| { kind: "pick"; runs: QueueableRun[] };
+import { type QueueableRun, type QueueIntent } from "./queue-intent.model";
 
 export function queueableRuns(
 	runs: readonly BacklogEntry[],

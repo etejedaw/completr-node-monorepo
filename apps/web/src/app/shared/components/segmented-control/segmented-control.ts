@@ -5,13 +5,7 @@ import {
 	model
 } from "@angular/core";
 
-export interface SegmentedOption<T extends string = string> {
-	value: T;
-	label: string;
-	count?: number;
-	icon?: string;
-	hint?: string;
-}
+import { type SegmentedOption } from "./segmented-control.model";
 
 @Component({
 	selector: "app-segmented-control",

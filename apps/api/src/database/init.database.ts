@@ -36,6 +36,9 @@ import "../activity/targets/activity-user.model";
 import "../audit/audit.model";
 import "../reviews/review.model";
 import "../jobs/job.model";
+import "../rewind/rewind.model";
+import "../premium-access/premium-grant.model";
+import "../premium-access/premium-promotion.model";
 
 import { databaseConfig } from "../common/config/database.config";
 import { PinoLogger } from "../common/logger/pino.logger";

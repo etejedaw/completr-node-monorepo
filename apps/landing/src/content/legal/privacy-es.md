@@ -1,14 +1,14 @@
 ---
 lang: es
-version: "2.0"
-updated: 2026-08-16
+version: "2.2"
+updated: 2026-11-01
 title: Política de privacidad
-summary: "La idea de fondo es simple: recojo lo mínimo para que la app funcione, no vendo ni cedo tus datos a nadie, y puedes borrarlos cuando quieras."
+summary: "La idea de fondo es simple: recojo lo mínimo para que la app funcione, no vendo tus datos ni los cedo con fines comerciales, y puedes borrarlos cuando quieras."
 highlights:
     - section: use
       icon: block
-      title: Nunca se venden ni se ceden
-      text: No vendo ni cedo tus datos a terceros.
+      title: Nunca se venden
+      text: No vendo tus datos ni los cedo con fines comerciales.
     - section: use
       icon: visibility_off
       title: Sin publicidad ni rastreo
@@ -42,17 +42,17 @@ sections:
 
 Completr es un proyecto personal desarrollado y operado por **Esteban Tejeda**, responsable del tratamiento de los datos descritos aquí. Esta política aplica tanto a la página de inscripción (completr.app) como a la aplicación (web.completr.app).
 
-La idea de fondo es simple: recojo lo mínimo para que la app funcione, no vendo ni cedo tus datos a nadie, y puedes borrarlos cuando quieras.
+La idea de fondo es simple: recojo lo mínimo para que la app funcione, no vendo tus datos ni los cedo con fines comerciales, y puedes borrarlos cuando quieras.
 
-Las personas cuyos datos trato son quienes se inscriben a la beta y quienes crean una cuenta en la app. Todos los datos los entregas tú: no compro bases de datos ni obtengo tu información de terceros.
+Las personas cuyos datos trato son quienes piden una invitación y quienes crean una cuenta en la app. Todos los datos los entregas tú: no compro bases de datos ni obtengo tu información de terceros.
 
 ## Qué datos recojo
 
-**Inscripción a la beta.** Si te inscribes desde la página de inicio, guardo solo tu correo electrónico, para avisarte cuando abramos cupos.
+**Pedido de invitación.** Si pides una invitación desde la página de inicio, guardo solo tu correo electrónico, para avisarte cuando haya un cupo.
 
 **Cuenta en la app.** Al registrarte guardo tu correo, una versión cifrada de tu contraseña (nunca la contraseña en texto plano), tu nombre de usuario y, opcionalmente, nombre visible, biografía y avatar.
 
-**Contenido que creas.** Lo que registras dentro de la app: tu backlog de juegos, listas, reseñas, etiquetas, notas de progreso y partidas cooperativas. Es la razón de ser del servicio.
+**Contenido que creas.** Lo que registras dentro de la app: tu backlog de juegos, listas, reseñas, etiquetas, notas de progreso, partidas cooperativas, platinos y los Rewind anuales que generas. Es la razón de ser del servicio.
 
 **Datos técnicos.** Estadísticas de uso agregadas, sin identificarte (ver más abajo), y registros técnicos del servidor que guardo para detectar fallas y ataques.
 
@@ -61,13 +61,14 @@ Las personas cuyos datos trato son quienes se inscriben a la beta y quienes crea
 - Operar el servicio y mostrarte tu propio contenido.
 - Autenticarte y mantener tu sesión de forma segura.
 - Entender de forma agregada cómo se usa la app para mejorarla.
-- Comunicarme contigo sobre tu cuenta o el acceso a la beta.
+- Generar tu Rewind cuando lo pides, incluido su resumen escrito con IA cuando tu cuenta lo tiene.
+- Comunicarme contigo sobre tu cuenta o tu invitación.
 
-Lo que **no** hago: no vendo ni cedo tus datos con fines comerciales, no hago publicidad, no te suscribo a newsletters y no construyo perfiles tuyos.
+Lo que **no** hago: no vendo ni cedo tus datos con fines comerciales, no hago publicidad, no te suscribo a newsletters y no construyo perfiles tuyos, salvo el Rewind que generas tú (ver "Decisiones automatizadas" más abajo).
 
 ## Base legal
 
-Trato tus datos de cuenta y tu contenido para poder prestarte el servicio que solicitas al registrarte (ejecución de un contrato, artículo 13 letra c de la Ley 21.719). La analítica agregada y los registros de seguridad se apoyan en mi interés legítimo en mantener la app funcionando y mejorarla (artículo 13 letra d). La inscripción a la beta se apoya en tu consentimiento (artículo 12).
+Trato tus datos de cuenta y tu contenido para poder prestarte el servicio que solicitas al registrarte (ejecución de un contrato, artículo 13 letra c de la Ley 21.719). La analítica agregada y los registros de seguridad se apoyan en mi interés legítimo en mantener la app funcionando y mejorarla (artículo 13 letra d). El Rewind, incluido su resumen con IA, es parte del servicio que solicitas al generarlo (artículo 13 letra c). Tus notas y tus partidas privadas solo entran si activas el interruptor correspondiente en ese Rewind. El pedido de invitación se apoya en tu consentimiento (artículo 12).
 
 Puedes retirar ese consentimiento cuando quieras, sin explicar por qué y sin costo: escríbeme y saco tu correo de la lista. Retirarlo no afecta lo que hice antes con tu permiso.
 
@@ -81,17 +82,18 @@ La aplicación usa una sola cookie: la estrictamente necesaria para que no tenga
 
 Completr es una app social: parte de lo que registras está pensado para que otros lo vean. Tú decides cuánto, pero conviene que sepas cómo funciona.
 
-Cada sección de tu cuenta (perfil, backlog, estantería, cola, wishlist, favoritos, feed de actividad y listas) tiene su propio nivel de visibilidad, y puedes cambiarlo por separado cuando quieras:
+Cada sección de tu cuenta (perfil, My Games, My Shelf, Platinums, Sagas, Rewind, Up Next, Want to Get, Favorites, Lists y tu feed de actividad) tiene su propio nivel de visibilidad, y puedes cambiarlo por separado cuando quieras:
 
-- **Público:** lo ve cualquiera, incluso alguien sin cuenta en Completr.
-- **Amigos:** lo ven solo las personas a las que sigues y que además te siguen a ti.
-- **Privado:** lo ves solo tú.
+- **Everyone (todos):** lo ve cualquiera, incluso alguien sin cuenta en Completr.
+- **Friends (amigos):** lo ven solo las personas a las que sigues y que además te siguen a ti.
+- **Only you (solo tú):** nadie más lo ve.
 
-**Por defecto esas ocho secciones están en público.** Es una decisión de diseño: una app para compartir backlogs sin nada visible no sirve de mucho. Pero significa que si no cambias nada, tu perfil y lo que anotas son visibles desde internet. Si prefieres lo contrario, puedes dejarlo todo en privado desde los ajustes.
+**Por defecto esas once secciones las ve todo el mundo.** Es una decisión de diseño: una app para compartir backlogs sin nada visible no sirve de mucho. Pero significa que si no cambias nada, tu perfil y lo que anotas son visibles desde internet. Si prefieres lo contrario, puedes dejarlo todo en Only you desde los ajustes.
 
-Hay dos excepciones, y van en sentidos opuestos:
+Hay algunas excepciones, y van en sentidos opuestos:
 
 - **Las listas nacen privadas.** Cada lista que creas empieza siendo solo tuya; la publicas por separado cuando tú decides.
+- **El Rewind queda oculto hasta que lo generas.** Aunque su sección esté en Everyone, nadie ve el Rewind de un año hasta que lo creas desde tu perfil. Quien pueda verlo ve también su resumen con IA, que puede parafrasear tus notas si las incluiste, pero nunca las cita.
 - **Las reseñas no tienen control de visibilidad.** Si escribes una reseña o pones una nota a un juego, cualquier persona con cuenta en Completr puede verla en la ficha de ese juego, aunque el resto de tu perfil esté en privado. Si no quieres que algo se vea, no lo publiques como reseña.
 
 ## Por dónde pasan tus datos
@@ -100,28 +102,35 @@ A nadie se los cedo con fines comerciales. Pero para que la app funcione tus dat
 
 - **Cloudflare** (Estados Unidos). Todo lo que envías y recibes pasa por su red antes de llegar a mis servidores, así que técnicamente puede verlo.
 - **Mis servidores** (São Paulo, Brasil). Aquí corren la aplicación, la base de datos y la analítica. Los administro yo directamente.
-- **Servicio de correo** (São Paulo, Brasil). Recibe el correo que dejas en el formulario de la beta.
+- **Servicio de correo** (São Paulo, Brasil). Recibe el correo que dejas al pedir una invitación.
+- **DeepSeek** (China). Escribe el resumen con IA del Rewind. Solo recibe datos cuando generas un Rewind que incluye ese resumen, y solo los de ese año: tus juegos, con sus fechas, plataforma, géneros, horas y tus puntuaciones, y las estadísticas calculadas a partir de ellos. Tus notas escritas y tus partidas privadas solo van si activas sus interruptores. No recibe nada que te identifique: ni tu correo, ni tu nombre de usuario, ni tu nombre visible, ni el identificador de tu cuenta, solo tus partidas. La petición sale desde mis servidores, así que tampoco ve tu dirección IP. La única excepción es lo que tú mismo escribas en tus notas que pueda identificarte, y solo si eliges incluirlas. DeepSeek almacena y procesa esos datos en China. Sus condiciones no fijan cuánto tiempo conserva lo que recibe por su API ni aclaran si lo usa para entrenar sus modelos: su política general contempla ese uso para sus propios servicios y permite oponerse escribiendo a privacy@deepseek.com. Como la petición no lleva nada que te identifique, esa copia no queda asociada a ti.
 
-Los datos de los videojuegos provienen de catálogos externos (como RAWG), pero esa es información que _recibo_: nunca envío tus datos personales a esos servicios.
+Los datos de los videojuegos provienen de catálogos y sitios externos (como RAWG, Metacritic, HowLongToBeat y Wikidata), pero esa es información que _recibo_: nunca envío tus datos personales a esos servicios.
 
-Fuera de eso no hay terceros. Las tipografías y los iconos se sirven desde mis propios servidores, así que tu navegador no se conecta a Google ni a ninguna CDN externa mientras navegas por Completr.
+Fuera de esos, no hay terceros. Las tipografías y los iconos se sirven desde mis propios servidores, así que tu navegador no se conecta a Google ni a ninguna CDN externa mientras navegas por Completr.
 
 ## Salida de tus datos fuera de Chile
 
 Mis servidores están en Brasil y Cloudflare es un servicio estadounidense, así que tus datos salen de Chile. Esas transferencias están amparadas en los acuerdos de tratamiento de datos suscritos con cada proveedor, que incluyen cláusulas contractuales con garantías de protección.
 
+Cuando generas un Rewind con resumen con IA, los datos descritos para DeepSeek también salen de Chile, hacia China. Esa transferencia solo ocurre cuando pides ese resumen, porque sin ella no se puede escribir, y se limita a lo que el resumen necesita.
+
 ## Decisiones automatizadas
 
-No hay ninguna. Nada de lo que ocurre en tu cuenta se decide por un sistema automatizado, no elaboro perfiles tuyos y no uso tus datos para entrenar modelos.
+Ningún sistema automatizado toma decisiones sobre tu cuenta: nada de lo que puedes hacer en Completr depende de uno. No uso tus datos para entrenar modelos.
+
+El único perfil es el Rewind, y solo existe si lo pides. Al generarlo, la app te asigna una persona (como Trophy Hunter o The Finisher) a partir de tus números del año y, con el resumen con IA, DeepSeek escribe una descripción de tus hábitos como jugador. No tiene ningún efecto sobre tu cuenta, tú decides quién lo ve desde su sección de privacidad y puedes regenerarlo para reemplazarlo.
 
 ## Cuánto tiempo los conservo
 
 - **Tu cuenta y tu contenido:** mientras tú quieras. No hay un plazo máximo ni borrados automáticos por inactividad: tu backlog sigue ahí hasta que decidas darte de baja.
-- **Correo de la lista de beta:** hasta que pidas eliminarlo, o como máximo 12 meses después de que termine la fase de beta.
+- **Correo de un pedido de invitación:** hasta que pidas eliminarlo, o como máximo 12 meses después de que se abra el registro.
+- **Tus Rewind:** se guardan con tu cuenta, resumen con IA incluido, hasta que la borras. Regenerar un Rewind reemplaza la versión anterior.
+- **Lo que recibe DeepSeek:** no controlo cuánto lo conserva. Sus condiciones no fijan un plazo y no puedo pedir que borre tus datos en particular, así que eliminar tu cuenta de Completr no borra esa copia.
 - **Registros técnicos del servidor:** 30 días, y después se eliminan.
 - **Analítica:** es agregada y anónima, así que no queda asociada a ti ni hay nada que borrar.
 
-Cuando borras tu cuenta, el borrado es inmediato y definitivo: no guardo copias de respaldo, así que no queda una versión tuya sobreviviendo en otro lado.
+Cuando borras tu cuenta, el borrado es inmediato y definitivo: no guardo copias de respaldo, así que no queda una versión tuya sobreviviendo en otro lado. La única excepción es lo que recibió DeepSeek al generar un resumen con IA, descrito arriba.
 
 ## Tus derechos
 

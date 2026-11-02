@@ -9,12 +9,8 @@ import {
 import { form, FormField, maxLength, required } from "@angular/forms/signals";
 import { injectDialogRef } from "ng-primitives/dialog";
 
-import { type List } from "../../../core/models";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
-import {
-	ChipGroup,
-	type ChipOption
-} from "../../../shared/components/chip-group/chip-group";
+import { ChipGroup } from "../../../shared/components/chip-group/chip-group";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import {
 	UiAlert,
@@ -28,29 +24,15 @@ import {
 	UiSwitch,
 	UiTextarea
 } from "../../../shared/ui";
-import { type CreateListDto, ListsService, type UpdateListDto } from "../lists";
-
-export interface ListModalData {
-	list: List | null;
-}
-export type ListModalResult =
-	| { status: "created"; list: List }
-	| { status: "saved" }
-	| { status: "deleted" };
-
-interface SourceOption {
-	value: string;
-	label: string;
-}
-
-type SourceField = "scoreSource" | "durationSource";
-
-interface SourceGroup {
-	field: SourceField;
-	label: string;
-	options: readonly ChipOption[];
-	selected: readonly string[];
-}
+import { ListsService } from "../lists";
+import { type CreateListDto, type UpdateListDto } from "../lists.model";
+import {
+	type ListModalData,
+	type ListModalResult,
+	type SourceField,
+	type SourceGroup,
+	type SourceOption
+} from "./list-modal.model";
 
 const DURATION_SOURCES: readonly SourceOption[] = [
 	{ value: "hltb", label: "HLTB" },

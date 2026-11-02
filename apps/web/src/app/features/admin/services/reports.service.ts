@@ -3,18 +3,7 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
-
-export interface GameReport {
-	id: string;
-	gameId: string;
-	userId: string;
-	message: string;
-	status: "pending" | "approved" | "rejected";
-	createdAt: string;
-	updatedAt: string;
-	Game: { id: string; title: string; code: string };
-	User: { id: string; username: string };
-}
+import { type GameReport } from "./reports.model";
 
 @Injectable({ providedIn: "root" })
 export class ReportsService {

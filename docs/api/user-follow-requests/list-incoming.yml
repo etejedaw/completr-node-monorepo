@@ -34,7 +34,9 @@ docs: |-
               "id": "uuid",
               "username": "alice",
               "name": "Alice",
-              "avatarUrl": "https://..."
+              "avatarUrl": "https://...",
+              "role": "user",
+              "hasPremium": true
             }
           }
         ]

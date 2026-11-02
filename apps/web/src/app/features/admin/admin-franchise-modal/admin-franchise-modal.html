@@ -214,8 +214,12 @@
 						class="material-icons text-2xl text-fg-muted"
 						>sports_esports</span
 					>
-					<p class="m-0 text-sm text-fg-muted">
-						No games yet. Search above to add some.
+					<p
+						id="franchise-games-required"
+						class="m-0 text-sm text-fg-muted"
+					>
+						A saga needs at least one game. Search above to add
+						some.
 					</p>
 				</div>
 				} @else {
@@ -277,7 +281,8 @@
 			variant="primary"
 			type="submit"
 			form="franchise-form"
-			[disabled]="form().invalid() || isLoading() || isLoadingGames()"
+			[disabled]="form().invalid() || missingGames() || isLoading() || isLoadingGames()"
+			[attr.aria-describedby]="missingGames() ? 'franchise-games-required' : null"
 		>
 			{{ isLoading() ? "Saving..." : isEdit() ? "Save" : "Create" }}
 		</button>

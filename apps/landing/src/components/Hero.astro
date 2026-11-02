@@ -29,36 +29,53 @@ const promises = [
 		class="relative max-w-6xl mx-auto grid gap-14 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-10 items-center"
 	>
 		<div class="flex flex-col items-start gap-6">
-			<span
-				class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-[var(--color-brand)]/15 text-[var(--color-brand)] border border-[var(--color-brand)]/30"
+			<a
+				href="#v1"
+				class="hero-reveal group inline-flex items-center gap-2 min-h-[44px] pl-1.5 pr-3 rounded-full text-sm font-medium no-underline text-[var(--color-fg-secondary)] border border-[var(--color-line-strong)] bg-[var(--color-surface)]/70 transition-colors hover:border-[var(--color-brand)]/50 hover:text-[var(--color-fg)]"
 			>
 				<span
-					class="w-1.5 h-1.5 rounded-full bg-[var(--color-brand)] animate-pulse"
-					aria-hidden="true"></span>
-				Beta cerrada
-			</span>
+					class="inline-flex items-center h-7 px-2.5 rounded-full font-display font-bold text-xs tracking-wide text-white"
+					style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
+					>1.0</span
+				>
+				Ya salió Completr 1.0
+				<span
+					class="material-icons text-[1rem] transition-transform group-hover:translate-x-0.5"
+					aria-hidden="true">arrow_forward</span
+				>
+			</a>
 
 			<h1
-				class="font-display m-0 text-[2.5rem] sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-[1.05] text-balance"
+				class="hero-reveal font-display m-0 text-[2.5rem] sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-[1.05] text-balance"
 			>
 				Juega lo que <span class="text-gradient">vale tu tiempo</span>.
 			</h1>
 
 			<p
-				class="m-0 text-base md:text-lg text-[var(--color-fg-secondary)] leading-relaxed max-w-xl"
+				class="hero-reveal m-0 text-base md:text-lg text-[var(--color-fg-secondary)] leading-relaxed max-w-xl"
 			>
 				Tu backlog crece más rápido que tu tiempo libre. Completr cruza
 				la nota de cada juego con lo que dura y te dice cuál jugar a
-				continuación. Déjame tu correo y te aviso cuando abra cupos de
-				la <strong class="text-[var(--color-fg)]">beta cerrada</strong>.
+				continuación. La 1.0 suma tu año en juegos, platinos y sagas.
 			</p>
 
-			<div class="w-full max-w-xl [&_form]:mx-0 [&_p]:text-left">
-				<BetaSignupForm />
+			<div class="hero-reveal w-full max-w-xl flex flex-col gap-3">
+				<p
+					class="m-0 inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-fg)]"
+				>
+					<span
+						class="material-icons text-[1.125rem] text-[var(--color-brand)]"
+						aria-hidden="true">mail</span
+					>
+					Acceso por invitación. Pide la tuya.
+				</p>
+				<div class="[&_form]:mx-0 [&_p]:text-left">
+					<BetaSignupForm />
+				</div>
 			</div>
 
 			<ul
-				class="m-0 p-0 list-none flex flex-wrap gap-x-5 gap-y-2 text-sm text-[var(--color-fg-muted)]"
+				class="hero-reveal m-0 p-0 list-none flex flex-wrap gap-x-5 gap-y-2 text-sm text-[var(--color-fg-muted)]"
 			>
 				{
 					promises.map(item => (
@@ -76,7 +93,11 @@ const promises = [
 			</ul>
 		</div>
 
-		<div class="lg:-mr-24 xl:-mr-40">
+		<div class="hero-reveal relative lg:mt-32 lg:-mr-24 xl:-mr-40">
+			<span
+				class="hero-version font-display absolute -top-16 right-2 sm:-top-24 lg:-top-44 lg:right-24 xl:right-40 font-bold leading-none select-none pointer-events-none"
+				aria-hidden="true">1.0</span
+			>
 			<DeviceFrames
 				desktop={backlogDesktop}
 				desktopAlt="My Games: la biblioteca con el Ratio de cada juego, tu nota y tu run"
@@ -90,3 +111,46 @@ const promises = [
 		</div>
 	</div>
 </section>
+
+<style>
+	.hero-version {
+		font-size: clamp(7rem, 22vw, 17rem);
+		letter-spacing: -0.04em;
+		color: transparent;
+		-webkit-text-stroke: 1.5px rgba(196, 168, 255, 0.35);
+		background-image: linear-gradient(
+			180deg,
+			rgba(139, 92, 246, 0.22),
+			transparent 75%
+		);
+		-webkit-background-clip: text;
+		background-clip: text;
+	}
+
+	.hero-reveal {
+		animation: hero-reveal 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+	}
+
+	.hero-reveal:nth-child(2) {
+		animation-delay: 80ms;
+	}
+
+	.hero-reveal:nth-child(3) {
+		animation-delay: 160ms;
+	}
+
+	.hero-reveal:nth-child(4) {
+		animation-delay: 240ms;
+	}
+
+	.hero-reveal:nth-child(5) {
+		animation-delay: 320ms;
+	}
+
+	@keyframes hero-reveal {
+		from {
+			opacity: 0;
+			transform: translateY(12px);
+		}
+	}
+</style>

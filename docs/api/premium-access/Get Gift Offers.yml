@@ -1,0 +1,57 @@
+info:
+    name: Get Gift Offers
+    type: http
+    seq: 6
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/me/gift-offers"
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Get Gift Offers
+
+    Lists the gift offers visible to the authenticated user and their server-resolved state. Every offer comes from an admin-managed promotion, which expires on a fixed end date, ordered by start date and code.
+
+    **Authentication:** Bearer token required.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "offers": [
+          {
+            "code": "json-export-launch",
+            "feature": "export.json",
+            "availableFrom": "2026-11-01T00:00:00.000Z",
+            "availableUntil": "2026-12-01T00:00:00.000Z",
+            "status": "available",
+            "expiresAt": null,
+            "canActivate": true,
+            "hasAccess": false
+          },
+          {
+            "code": "lists-unlimited-launch",
+            "feature": "lists.unlimited",
+            "availableFrom": "2026-11-01T00:00:00.000Z",
+            "availableUntil": "2026-12-01T00:00:00.000Z",
+            "status": "active",
+            "expiresAt": "2026-12-01T00:00:00.000Z",
+            "canActivate": false,
+            "hasAccess": true
+          }
+        ]
+      }
+    }
+    ```
+
+    `status` is `available`, `active`, `used`, `expired` or `not-eligible`. `canActivate` is true only for `available`. `hasAccess` reports current access to the offer feature from any source, including a role or another grant. `availableFrom` and `availableUntil` are the promotion's start and end dates.
+
+    Promotions that have not started are not returned, so scheduled campaigns stay hidden. Ended or revoked promotions are returned only to users who claimed them, with `status: "used"`. An existing grant for the user and code always decides the state, even if it already expired or was revoked.

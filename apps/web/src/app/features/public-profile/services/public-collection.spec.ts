@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from "@angular/common/http";
 import { Injector, runInInjectionContext, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { ActivatedRoute } from "@angular/router";
@@ -57,6 +58,7 @@ describe("injectPublicCollection", () => {
 				platformOf: withPlatform ? item => item.platform : undefined
 			})
 		);
+		TestBed.tick();
 		return { collection, fetchPage };
 	}
 
@@ -71,14 +73,15 @@ describe("injectPublicCollection", () => {
 		expect(collection.error()).toBeNull();
 	});
 
-	it("is loading until the page arrives", () => {
+	it("is loading until the page arrives", async () => {
 		const pending = new Subject<{ items: Item[]; total: number }>();
 
 		const { collection } = create(vi.fn().mockReturnValue(pending));
 
 		expect(collection.isLoading()).toBe(true);
 		pending.next({ items, total: 3 });
-		expect(collection.isLoading()).toBe(false);
+		pending.complete();
+		await vi.waitFor(() => expect(collection.isLoading()).toBe(false));
 	});
 
 	it("loads the viewer before the page when there is a token but no user", () => {
@@ -114,20 +117,53 @@ describe("injectPublicCollection", () => {
 		[404, "not_found"]
 	])("maps a %s response to the %s error", (status, expected) => {
 		const { collection } = create(
-			vi.fn().mockReturnValue(throwError(() => ({ status })))
+			vi
+				.fn()
+				.mockReturnValue(
+					throwError(() => new HttpErrorResponse({ status }))
+				)
 		);
 
 		expect(collection.error()).toBe(expected);
 		expect(collection.isLoading()).toBe(false);
 	});
 
-	it("leaves the error empty for other failures but stops loading", () => {
-		const { collection } = create(
-			vi.fn().mockReturnValue(throwError(() => ({ status: 500 })))
-		);
+	it.each([0, 500])(
+		"marks a %s failure as recoverable without changing the access error",
+		status => {
+			const { collection } = create(
+				vi
+					.fn()
+					.mockReturnValue(
+						throwError(() => new HttpErrorResponse({ status }))
+					)
+			);
 
-		expect(collection.error()).toBeNull();
-		expect(collection.isLoading()).toBe(false);
+			expect(collection.error()).toBeNull();
+			expect(collection.hasLoadFailed()).toBe(true);
+			expect(collection.isLoading()).toBe(false);
+		}
+	);
+
+	it("reloads the current page after a recoverable failure", () => {
+		const fetchPage = vi
+			.fn()
+			.mockReturnValueOnce(
+				throwError(() => new HttpErrorResponse({ status: 500 }))
+			)
+			.mockReturnValue(of({ items, total: 3 }));
+		const { collection } = create(fetchPage);
+
+		collection.retry();
+		TestBed.tick();
+
+		expect(fetchPage).toHaveBeenCalledTimes(2);
+		expect(fetchPage).toHaveBeenLastCalledWith("ada", {
+			limit: 2,
+			offset: 0
+		});
+		expect(collection.items()).toEqual(items);
+		expect(collection.hasLoadFailed()).toBe(false);
 	});
 
 	it("filters the visible items by title ignoring case and spaces around", () => {
@@ -186,6 +222,7 @@ describe("injectPublicCollection", () => {
 		collection.platform.set("pc");
 
 		collection.goToOffset(2);
+		TestBed.tick();
 
 		expect(fetchPage).toHaveBeenLastCalledWith("ada", {
 			limit: 2,
@@ -199,12 +236,15 @@ describe("injectPublicCollection", () => {
 	it("clears a previous error when loading another page", () => {
 		const fetchPage = vi
 			.fn()
-			.mockReturnValueOnce(throwError(() => ({ status: 403 })))
+			.mockReturnValueOnce(
+				throwError(() => new HttpErrorResponse({ status: 403 }))
+			)
 			.mockReturnValue(of({ items, total: 3 }));
 		const { collection } = create(fetchPage);
 		expect(collection.error()).toBe("private");
 
 		collection.goToOffset(0);
+		TestBed.tick();
 
 		expect(collection.error()).toBeNull();
 	});

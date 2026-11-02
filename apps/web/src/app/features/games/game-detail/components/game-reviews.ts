@@ -17,7 +17,8 @@ import { StarRating } from "../../../../shared/components/star-rating/star-ratin
 import { getRatingLabel } from "../../../../shared/constants/rating-labels";
 import { UiButton, UiTextarea } from "../../../../shared/ui";
 import { BacklogService } from "../../../backlog/backlog";
-import { type Review, ReviewsService } from "../../reviews";
+import { ReviewsService } from "../../reviews";
+import { type Review } from "../../reviews.model";
 
 const RATING_BUCKETS = [5, 4, 3, 2, 1];
 

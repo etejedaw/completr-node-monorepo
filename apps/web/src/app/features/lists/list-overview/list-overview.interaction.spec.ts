@@ -19,6 +19,7 @@ import userEvent from "@testing-library/user-event";
 import { environment } from "../../../../environments/environment";
 import { type List, type ListItem } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
+import { type GiftOffer } from "../../../shared/components/gift-offer-card/gift-offer-card.model";
 import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
 import { ListDetail } from "../list-detail/list-detail";
 import { ListOverview } from "./list-overview";
@@ -39,6 +40,23 @@ const owner = {
 	role: "user"
 };
 
+const LISTS_GIFT: GiftOffer = {
+	code: "lists-launch",
+	feature: "lists.unlimited",
+	availableFrom: "2026-10-01T00:00:00.000Z",
+	availableUntil: "2099-12-01T00:00:00.000Z",
+	status: "available",
+	expiresAt: null,
+	canActivate: true,
+	hasAccess: false
+};
+
+const JSON_EXPORT_GIFT: GiftOffer = {
+	...LISTS_GIFT,
+	code: "json-launch",
+	feature: "export.json"
+};
+
 const catalog = [
 	{ id: "g1", code: "hades", title: "Hades", isDlc: false },
 	{ id: "g2", code: "celeste", title: "Celeste", isDlc: false },
@@ -50,6 +68,12 @@ describe("Lists interaction", () => {
 	let lists: List[];
 	const itemReplacements: string[][] = [];
 	const listUpdates: unknown[] = [];
+	let currentUser: Record<string, unknown>;
+	let giftOffers: GiftOffer[];
+	let listsFrozen: boolean;
+	let giftOfferListings: number;
+	let giftClaims: string[];
+	let myListsLoads: number;
 
 	function itemsFor(gameIds: string[]): ListItem[] {
 		return gameIds.map((gameId, index) => ({
@@ -65,11 +89,43 @@ describe("Lists interaction", () => {
 		const { method, url, body } = req.request;
 		const listMatch = url.match(/\/lists\/(list-\d+)(\/items)?$/);
 		if (url === `${api}/users/me`)
-			return req.flush({ data: { user: owner } });
-		if (method === "GET" && url === `${api}/lists/me`)
+			return req.flush({ data: { user: currentUser } });
+		if (method === "GET" && url === `${api}/users/me/gift-offers`) {
+			giftOfferListings++;
+			return req.flush({ data: { offers: giftOffers } });
+		}
+		const claimMatch = url.match(
+			/\/users\/me\/gift-offers\/([^/]+)\/claim$/
+		);
+		if (method === "POST" && claimMatch) {
+			giftClaims.push(claimMatch[1]);
+			const offer = giftOffers.find(
+				candidate => candidate.code === claimMatch[1]
+			);
+			if (!offer)
+				return req.flush(
+					{ title: "Gift offer not found" },
+					{ status: 404, statusText: "Not Found" }
+				);
+			const claimed: GiftOffer = {
+				...offer,
+				status: "active",
+				canActivate: false,
+				hasAccess: true,
+				expiresAt: offer.availableUntil
+			};
+			giftOffers = giftOffers.map(candidate =>
+				candidate.code === claimed.code ? claimed : candidate
+			);
+			listsFrozen = false;
+			return req.flush({ data: { offer: claimed, created: true } });
+		}
+		if (method === "GET" && url === `${api}/lists/me`) {
+			myListsLoads++;
 			return req.flush({
-				data: { lists, total: lists.length, frozen: false }
+				data: { lists, total: lists.length, frozen: listsFrozen }
 			});
+		}
 		if (url === `${api}/lists/following`)
 			return req.flush({ data: { lists: [] } });
 		if (url === `${api}/users/me/backlog`)
@@ -127,7 +183,9 @@ describe("Lists interaction", () => {
 
 	function answerPending() {
 		for (let round = 0; round < 10; round++) {
-			const pending = httpTesting.match(() => true);
+			const pending = httpTesting
+				.match(() => true)
+				.filter(req => !req.cancelled);
 			if (pending.length === 0) return;
 			pending.forEach(answer);
 		}
@@ -237,6 +295,12 @@ describe("Lists interaction", () => {
 		lists = [];
 		itemReplacements.length = 0;
 		listUpdates.length = 0;
+		currentUser = owner;
+		giftOffers = [];
+		listsFrozen = false;
+		giftOfferListings = 0;
+		giftClaims = [];
+		myListsLoads = 0;
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -460,7 +524,14 @@ describe("Lists interaction", () => {
 		await createListWithGames(user);
 		expect(screen.getByText("Public")).toBeInTheDocument();
 
-		await user.click(screen.getByRole("button", { name: /^Edit$/ }));
+		await user.click(
+			screen.getByRole("button", { name: "More list actions" })
+		);
+		await user.click(
+			within(
+				await screen.findByRole("menu", { name: "List actions" })
+			).getByRole("menuitem", { name: "Edit list" })
+		);
 		const dialog = await screen.findByRole("dialog", { name: "Edit list" });
 		answerPending();
 		const visibility = within(dialog).getByRole("switch", {
@@ -486,5 +557,150 @@ describe("Lists interaction", () => {
 		expect(listUpdates).toEqual([
 			expect.objectContaining({ name: "Metroidvanias", isPublic: false })
 		]);
+	});
+
+	describe("json export gift on the list detail", () => {
+		async function openListMenu(user: ReturnType<typeof userEvent.setup>) {
+			await waitFor(() =>
+				expect(
+					screen.queryByRole("menu", { name: "List actions" })
+				).not.toBeInTheDocument()
+			);
+			await user.click(
+				screen.getByRole("button", { name: "More list actions" })
+			);
+			return screen.findByRole("menu", { name: "List actions" });
+		}
+
+		it("offers the gift next to the list actions and unlocks JSON once activated", async () => {
+			const user = userEvent.setup();
+			giftOffers = [JSON_EXPORT_GIFT];
+			await renderLists();
+			await createListWithGames(user);
+
+			const lockedMenu = await openListMenu(user);
+			expect(
+				within(lockedMenu).getByRole("menuitem", {
+					name: "Download JSON"
+				})
+			).toHaveAccessibleDescription("Premium perk");
+			await user.keyboard("{Escape}");
+
+			await user.dblClick(
+				await screen.findByRole("button", { name: "Activate gift" })
+			);
+			await untilVisible(() =>
+				expect(
+					screen.getByText(/Gift active until/)
+				).toBeInTheDocument()
+			);
+
+			expect(giftClaims).toEqual(["json-launch"]);
+			const unlockedMenu = await openListMenu(user);
+			expect(
+				within(unlockedMenu).getByRole("menuitem", {
+					name: "Download JSON"
+				})
+			).toHaveAccessibleDescription("Full data, for backups");
+		});
+
+		it("does not offer the gift to a premium owner", async () => {
+			const user = userEvent.setup();
+			giftOffers = [JSON_EXPORT_GIFT];
+			currentUser = {
+				...owner,
+				premiumAccess: { active: true, source: "role", expiresAt: null }
+			};
+			await renderLists();
+			await createListWithGames(user);
+			answerPending();
+
+			expect(
+				screen.queryByRole("button", { name: "Activate gift" })
+			).not.toBeInTheDocument();
+		});
+	});
+
+	describe("lists gift", () => {
+		it("activates the unlimited lists gift once and unfreezes the lists", async () => {
+			const user = userEvent.setup();
+			giftOffers = [LISTS_GIFT];
+			listsFrozen = true;
+			await renderLists();
+			await untilVisible(() =>
+				expect(
+					screen.getByRole("heading", {
+						name: "Unlimited lists, on us"
+					})
+				).toBeInTheDocument()
+			);
+			expect(screen.getByText(/Lists are frozen/)).toBeInTheDocument();
+			const loadsBeforeClaim = myListsLoads;
+
+			await user.dblClick(
+				screen.getByRole("button", { name: "Activate gift" })
+			);
+			await untilVisible(() =>
+				expect(
+					screen.getByText(/Gift active until/)
+				).toBeInTheDocument()
+			);
+
+			expect(giftClaims).toEqual(["lists-launch"]);
+			expect(myListsLoads).toBe(loadsBeforeClaim + 1);
+			expect(
+				screen.queryByText(/Lists are frozen/)
+			).not.toBeInTheDocument();
+			expect(giftOfferListings).toBe(1);
+		});
+
+		it("asks for the offers once when the view opens", async () => {
+			await renderLists();
+
+			expect(giftOfferListings).toBe(1);
+			expect(
+				screen.queryByRole("button", { name: "Activate gift" })
+			).not.toBeInTheDocument();
+		});
+
+		it("hides the gift when the promotion disappears before the claim", async () => {
+			const user = userEvent.setup();
+			giftOffers = [LISTS_GIFT];
+			await renderLists();
+			await untilVisible(() =>
+				expect(
+					screen.getByRole("button", { name: "Activate gift" })
+				).toBeInTheDocument()
+			);
+			giftOffers = [];
+
+			await user.click(
+				screen.getByRole("button", { name: "Activate gift" })
+			);
+			await untilVisible(() =>
+				expect(
+					screen.queryByRole("button", { name: "Activate gift" })
+				).not.toBeInTheDocument()
+			);
+
+			expect(giftOfferListings).toBe(2);
+			expect(
+				screen.queryByText(/Gift active until/)
+			).not.toBeInTheDocument();
+		});
+
+		it("does not offer the gift to a premium user", async () => {
+			giftOffers = [LISTS_GIFT];
+			currentUser = {
+				...owner,
+				premiumAccess: { active: true, source: "role", expiresAt: null }
+			};
+			await renderLists();
+			answerPending();
+
+			expect(
+				screen.queryByRole("button", { name: "Activate gift" })
+			).not.toBeInTheDocument();
+		});
 	});
 });

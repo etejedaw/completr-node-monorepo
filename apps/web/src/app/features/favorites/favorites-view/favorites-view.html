@@ -22,16 +22,42 @@
 			message="Your favorites have no limit. Showcase as many games as you like."
 		/>
 	</p>
-	<a
-		heroActions
-		uiButton
-		variant="secondary"
-		class="!bg-surface/70 backdrop-blur"
-		routerLink="/games"
-	>
-		<span aria-hidden="true" class="material-icons text-base">explore</span>
-		Browse games
-	</a>
+	<div heroActions class="flex flex-wrap items-center gap-2">
+		@if (reordering()) {
+		<button uiButton variant="primary" (click)="finishReordering()">
+			<span aria-hidden="true" class="material-icons text-base"
+				>check</span
+			>
+			Done
+		</button>
+		} @else {
+		<a
+			uiButton
+			variant="secondary"
+			class="!bg-surface/70 backdrop-blur"
+			routerLink="/games"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>explore</span
+			>
+			Browse games
+		</a>
+		@if (entries().length > 1) {
+		<button
+			uiButton
+			variant="secondary"
+			class="!bg-surface/70 backdrop-blur"
+			[disabled]="!canReorder()"
+			[title]="canReorder() ? 'Change the order of your favorites' : 'Clear the search to reorder'"
+			(click)="startReordering()"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>swap_horiz</span
+			>
+			Reorder
+		</button>
+		} }
+	</div>
 </app-library-hero>
 
 <app-library-page
@@ -63,12 +89,6 @@
 				profile.</span
 			>
 		</p>
-		<button uiButton variant="primary" (click)="finishReordering()">
-			<span aria-hidden="true" class="material-icons text-base"
-				>check</span
-			>
-			Done
-		</button>
 		} @else {
 		<ui-search-bar
 			class="flex-1 min-w-[12rem] max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
@@ -76,19 +96,6 @@
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"
 		/>
-		<button
-			uiButton
-			variant="secondary"
-			class="tap:min-h-[44px]"
-			[disabled]="!canReorder()"
-			[title]="canReorder() ? 'Change the order of your favorites' : 'Clear the search to reorder'"
-			(click)="startReordering()"
-		>
-			<span aria-hidden="true" class="material-icons text-base"
-				>swap_horiz</span
-			>
-			Reorder
-		</button>
 		@if (!isLoading()) {
 		<app-export-actions
 			resource="favorites"

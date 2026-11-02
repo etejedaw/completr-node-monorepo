@@ -11,7 +11,7 @@ import { avatarRing } from "../../../core/utils/premium";
 import { elevatedRoleBadge } from "../../../core/utils/role-badge";
 import { ProfileBackdrop } from "../../../shared/components/profile-backdrop/profile-backdrop";
 import { UiAvatar, UiButton } from "../../../shared/ui";
-import { type PublicProfile } from "../public-profile.service";
+import { type PublicProfile } from "../public-profile.model";
 
 const MEMBER_SINCE_FORMAT = new Intl.DateTimeFormat("en", {
 	month: "long",
@@ -40,7 +40,7 @@ export class ProfileHero {
 		() => this.user().name || this.user().username
 	);
 	protected readonly avatarRing = computed(() =>
-		avatarRing(this.user().role)
+		avatarRing(this.user().role, this.user().hasPremium)
 	);
 	protected readonly avatarHaloClass = computed(() => {
 		const ring = this.avatarRing();
@@ -49,7 +49,7 @@ export class ProfileHero {
 		return "from-brand via-brand/40";
 	});
 	protected readonly roleBadge = computed(() =>
-		elevatedRoleBadge(this.user().role)
+		elevatedRoleBadge(this.user().role, this.user().hasPremium)
 	);
 	protected readonly memberSince = computed(() =>
 		MEMBER_SINCE_FORMAT.format(new Date(this.user().createdAt))

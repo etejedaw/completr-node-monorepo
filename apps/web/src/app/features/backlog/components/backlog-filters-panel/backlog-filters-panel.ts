@@ -12,18 +12,14 @@ import { RouterLink } from "@angular/router";
 
 import { type Genre, type Platform } from "../../../../core/models";
 import { ViewportService } from "../../../../core/services/viewport";
-import {
-	ChipGroup,
-	type ChipOption
-} from "../../../../shared/components/chip-group/chip-group";
+import { ChipGroup } from "../../../../shared/components/chip-group/chip-group";
+import { type ChipOption } from "../../../../shared/components/chip-group/chip-group.model";
 import { FilterSection } from "../../../../shared/components/filter-section/filter-section";
 import { GameFilterPanel } from "../../../../shared/components/game-filter-panel/game-filter-panel";
 import { MoodTagsInput } from "../../../../shared/components/mood-tags-input/mood-tags-input";
 import { MultiOptionPicker } from "../../../../shared/components/option-picker/multi-option-picker";
-import {
-	OptionPicker,
-	type PickerOption
-} from "../../../../shared/components/option-picker/option-picker";
+import { OptionPicker } from "../../../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../../../shared/components/option-picker/option-picker.model";
 import { RangeInputs } from "../../../../shared/components/range-inputs/range-inputs";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import {

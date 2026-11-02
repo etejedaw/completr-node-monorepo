@@ -214,6 +214,59 @@ describe("GamesService", () => {
 			expect(result).toEqual({ id: "g1" });
 		});
 
+		it("refreshes the external data of a game with the requested sources and returns the game and results", () => {
+			const body = {
+				data: {
+					game: { id: "g1", title: "Hades" },
+					results: [
+						{
+							source: "metacritic",
+							status: "updated",
+							score: 92,
+							metaScore: 92,
+							userScore: 9.1
+						},
+						{ source: "hltb", status: "not_found", errorCode: null }
+					]
+				}
+			};
+			let result: unknown;
+
+			service
+				.refreshExternalData("g1", ["metacritic", "hltb"])
+				.subscribe(r => (result = r));
+
+			const req = httpTesting.expectOne(
+				`${api}/games/g1/external-data/refresh`
+			);
+			expect(req.request.method).toBe("POST");
+			expect(req.request.body).toEqual({
+				sources: ["metacritic", "hltb"]
+			});
+			expect(req.request.context.get(SUPPRESS_VALIDATION_TOAST)).toBe(
+				true
+			);
+			req.flush(body);
+			expect(result).toEqual(body.data);
+		});
+
+		it("propagates a failed external data refresh without toasting", () => {
+			let failure: HttpErrorResponse | undefined;
+
+			service
+				.refreshExternalData("g1", ["hltb"])
+				.subscribe({ error: e => (failure = e) });
+
+			httpTesting
+				.expectOne(`${api}/games/g1/external-data/refresh`)
+				.flush(
+					{ type: "GAME_NOT_FOUND" },
+					{ status: 404, statusText: "Not Found" }
+				);
+			expect(failure?.status).toBe(404);
+			expect(toast.warning).not.toHaveBeenCalled();
+		});
+
 		it("deactivates with a soft delete and hard deletes with the hard flag", () => {
 			service.deactivate("g1").subscribe();
 			const soft = httpTesting.expectOne(`${api}/games/g1`);

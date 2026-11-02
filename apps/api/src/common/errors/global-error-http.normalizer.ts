@@ -15,21 +15,27 @@ import { gameShelfDomainToHttpMapper } from "../../game-shelf/errors/game-shelf.
 import { gameTimesDomainToHttpMapper } from "../../game-times/errors/game-times.domain-to-http.mapper";
 import { gamesDomainToHttpMapper } from "../../games/errors/games.domain-to-http.mapper";
 import { genresDomainToHttpMapper } from "../../genres/errors/genres.domain-to-http.mapper";
+import { hltbDomainToHttpMapper } from "../../hltb/errors/hltb.domain-to-http.mapper";
+import { iaDomainToHttpMapper } from "../../ia/errors/ia.domain-to-http.mapper";
 import { invitationsDomainToHttpMapper } from "../../invitations/errors/invitations.domain-to-http.mapper";
 import { listFollowersDomainToHttpMapper } from "../../list-followers/errors/list-followers.domain-to-http.mapper";
 import { listItemsDomainToHttpMapper } from "../../list-items/errors/list-items.domain-to-http.mapper";
 import { listsDomainToHttpMapper } from "../../lists/errors/lists.domain-to-http.mapper";
 import { mailDomainToHttpMapper } from "../../mail/errors/mail.domain-to-http.mapper";
+import { metacriticDomainToHttpMapper } from "../../metacritic/errors/metacritic.domain-to-http.mapper";
 import { moodTagsDomainToHttpMapper } from "../../mood-tags/errors/mood-tags.domain-to-http.mapper";
 import { platformsDomainToHttpMapper } from "../../platforms/errors/platforms.domain-to-http.mapper";
+import { premiumAccessDomainToHttpMapper } from "../../premium-access/errors/premium-access.domain-to-http.mapper";
 import { queueDomainToHttpMapper } from "../../queue/errors/queue.domain-to-http.mapper";
 import { rawgDomainToHttpMapper } from "../../rawg/errors/rawg.domain-to-http.mapper";
 import { reviewsDomainToHttpMapper } from "../../reviews/errors/reviews.domain-to-http.mapper";
+import { rewindDomainToHttpMapper } from "../../rewind/errors/rewind.domain-to-http.mapper";
 import { savedFiltersDomainToHttpMapper } from "../../saved-filters/errors/saved-filters.domain-to-http.mapper";
 import { scoreSourcesDomainToHttpMapper } from "../../score-sources/errors/score-sources.domain-to-http.mapper";
 import { userFollowRequestsDomainToHttpMapper } from "../../user-follow-requests/errors/user-follow-requests.domain-to-http.mapper";
 import { userFollowersDomainToHttpMapper } from "../../user-followers/errors/user-followers.domain-to-http.mapper";
 import { usersDomainToHttpMapper } from "../../users/errors/users.domain-to-http.mapper";
+import { wikidataDomainToHttpMapper } from "../../wikidata/errors/wikidata.domain-to-http.mapper";
 import { wishlistDomainToHttpMapper } from "../../wishlist/errors/wishlist.domain-to-http.mapper";
 import { commonDomainToHttpMapper } from "./common.domain-to-http.mapper";
 import { type DomainError } from "./domain-error";
@@ -108,6 +114,9 @@ export function globalErrorHttpNormalizer(
 	if (error.module === "Review Module")
 		return reviewsDomainToHttpMapper(error, request);
 
+	if (error.module === "Rewind Module")
+		return rewindDomainToHttpMapper(error, request);
+
 	if (error.module === "MoodTags Module")
 		return moodTagsDomainToHttpMapper(error, request);
 
@@ -120,11 +129,26 @@ export function globalErrorHttpNormalizer(
 	if (error.module === "CoopRuns Module")
 		return coopRunsDomainToHttpMapper(error, request);
 
+	if (error.module === "Premium Access Module")
+		return premiumAccessDomainToHttpMapper(error, request);
+
 	if (error.module === "Activity Module")
 		return activityDomainToHttpMapper(error, request);
 
 	if (error.module === "RAWG Provider")
 		return rawgDomainToHttpMapper(error, request);
+
+	if (error.module === "HLTB Provider")
+		return hltbDomainToHttpMapper(error, request);
+
+	if (error.module === "Metacritic Provider")
+		return metacriticDomainToHttpMapper(error, request);
+
+	if (error.module === "Wikidata Provider")
+		return wikidataDomainToHttpMapper(error, request);
+
+	if (error.module === "IA Provider")
+		return iaDomainToHttpMapper(error, request);
 
 	if (error.module === "Invitation Module")
 		return invitationsDomainToHttpMapper(error, request);

@@ -57,7 +57,14 @@ docs: |-
           "content": "...",
           "rating": 5,
           "playthroughDuration": null,
-          "user": null,
+          "user": {
+            "id": "uuid",
+            "username": "johndoe",
+            "name": "John Doe",
+            "avatarUrl": null,
+            "role": "user",
+            "hasPremium": true
+          },
           "createdAt": "...",
           "updatedAt": "..."
         }

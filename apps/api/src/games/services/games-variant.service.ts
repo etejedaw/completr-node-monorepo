@@ -7,11 +7,13 @@ import { GameExternal } from "../../game-external/game-external.model";
 import * as gameGenresService from "../../game-genre/game-genre.service";
 import * as gamePlatformsService from "../../game-platform/game-platform.service";
 import * as gameScoresService from "../../game-scores/game-scores.service";
-import { type TimeSource } from "../../game-times/game-time.model";
 import * as gameTimesService from "../../game-times/game-times.service";
 import * as gamesServiceError from "../errors/games.service-error";
 import { Game } from "../game.model";
-import { type SplitVariantInput } from "../games.interface";
+import {
+	type InheritedAssets,
+	type SplitVariantInput
+} from "../games.interface";
 
 export async function assertVariantConsistency(
 	externalIds: readonly { source: string; externalId: string }[],
@@ -119,14 +121,6 @@ function assertSplitVariantsValid(variants: readonly SplitVariantInput[]) {
 			throw gamesServiceError.splitInvalidError();
 		labels.add(label);
 	}
-}
-
-interface InheritedAssets {
-	platformIds: string[];
-	genreIds: string[];
-	scores: { source: string; score: number }[];
-	times: { source: TimeSource; duration: number }[];
-	externals: { source: string; externalId: string }[];
 }
 
 function extractInheritedAssets(original: Game): InheritedAssets {

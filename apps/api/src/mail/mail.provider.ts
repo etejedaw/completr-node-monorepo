@@ -1,71 +1,37 @@
-import nodemailer, { type Transporter } from "nodemailer";
-
 import { environmentConfig } from "../common/config/environment.config";
+import { mailConfig } from "../common/config/mail.config";
 import * as mailServiceError from "./errors/mail.service-error";
-import { type MailMessage, type SmtpSettings } from "./mail.interface";
+import { InMemoryMailModel } from "./in-memory/in-memory.provider";
+import { type MailMessage, type MailModel } from "./mail.interface";
+import { NodemailerModel } from "./nodemailer/nodemailer.provider";
 
-const SMTP_TIMEOUT_MS = 10_000;
+export class MailProvider {
+	constructor(private readonly model: MailModel) {}
 
-export abstract class MailClient {
-	abstract readonly isEnabled: boolean;
-
-	static create(settings: SmtpSettings): MailClient {
-		if (environmentConfig.NODE_ENV === "test")
-			return new InMemoryMailProvider();
-		if (!settings.host) return new DisabledMailProvider();
-		return new SmtpMailProvider({ ...settings, host: settings.host });
+	get isConfigured(): boolean {
+		return this.model.isEnabled;
 	}
 
-	abstract send(message: MailMessage): Promise<void>;
-}
-
-export class SmtpMailProvider extends MailClient {
-	readonly isEnabled = true;
-
-	private readonly transporter: Transporter;
-
-	constructor(private readonly settings: SmtpSettings & { host: string }) {
-		super();
-		this.transporter = nodemailer.createTransport({
-			host: settings.host,
-			port: settings.port,
-			secure: settings.secure,
-			auth: settings.user
-				? { user: settings.user, pass: settings.password }
-				: undefined,
-			connectionTimeout: SMTP_TIMEOUT_MS,
-			greetingTimeout: SMTP_TIMEOUT_MS,
-			socketTimeout: SMTP_TIMEOUT_MS
-		});
+	assertConfigured(): void {
+		if (!this.isConfigured) throw mailServiceError.disabledError();
 	}
 
 	async send(message: MailMessage): Promise<void> {
-		try {
-			await this.transporter.sendMail({
-				from: this.settings.from,
-				...message
-			});
-		} catch (error) {
-			throw mailServiceError.sendError(error);
-		}
+		this.assertConfigured();
+		await this.model.send(message);
 	}
 }
 
-export class DisabledMailProvider extends MailClient {
-	readonly isEnabled = false;
-
-	send(): Promise<void> {
-		throw mailServiceError.disabledError();
-	}
+function createMailModel(): MailModel {
+	if (environmentConfig.NODE_ENV === "test") return new InMemoryMailModel();
+	return NodemailerModel.create({
+		host: mailConfig.SMTP_HOST,
+		port: mailConfig.SMTP_PORT,
+		secure: mailConfig.SMTP_SECURE,
+		user: mailConfig.SMTP_USER,
+		password: mailConfig.SMTP_PASSWORD,
+		from: mailConfig.MAIL_FROM
+	});
 }
 
-export class InMemoryMailProvider extends MailClient {
-	static readonly outbox: MailMessage[] = [];
-
-	readonly isEnabled = true;
-
-	send(message: MailMessage): Promise<void> {
-		InMemoryMailProvider.outbox.push(message);
-		return Promise.resolve();
-	}
-}
+export const mailProvider = new MailProvider(createMailModel());

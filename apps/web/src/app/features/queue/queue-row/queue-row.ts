@@ -12,16 +12,7 @@ import { RouterLink } from "@angular/router";
 import { type QueueEntry } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { UiBottomSheet } from "../../../shared/ui";
-
-type RowActionId = "favorite" | "top" | "up" | "down" | "remove";
-
-interface RowAction {
-	id: RowActionId;
-	icon: string;
-	label: string;
-	iconClass: string;
-	disabled: boolean;
-}
+import { type RowAction, type RowActionId } from "./queue-row.model";
 
 @Component({
 	selector: "app-queue-row",

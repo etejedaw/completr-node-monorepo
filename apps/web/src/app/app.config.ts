@@ -12,22 +12,12 @@ import {
 	withPreloading
 } from "@angular/router";
 import { provideServiceWorker } from "@angular/service-worker";
-import { provideToastConfig } from "ng-primitives/toast";
 import { catchError, firstValueFrom, of } from "rxjs";
 
 import { routes } from "./app.routes";
 import { authInterceptor } from "./core/interceptors/auth.interceptor";
 import { errorInterceptor } from "./core/interceptors/error.interceptor";
 import { AuthService } from "./core/services/auth";
-
-const MOBILE_TAB_BAR_CLEARANCE = 80;
-
-function toastOffsetBottom(): number {
-	const isMobile =
-		typeof window !== "undefined" &&
-		window.matchMedia?.("(max-width: 767px)").matches;
-	return isMobile ? MOBILE_TAB_BAR_CLEARANCE : 16;
-}
 
 export const appConfig: ApplicationConfig = {
 	providers: [
@@ -46,14 +36,6 @@ export const appConfig: ApplicationConfig = {
 		provideServiceWorker("ngsw-worker.js", {
 			enabled: !isDevMode(),
 			registrationStrategy: "registerWhenStable:30000"
-		}),
-		provideToastConfig({
-			placement: "bottom-end",
-			offsetBottom: toastOffsetBottom(),
-			offsetRight: 16,
-			gap: 8,
-			maxToasts: 4,
-			ariaLive: "polite"
 		})
 	]
 };

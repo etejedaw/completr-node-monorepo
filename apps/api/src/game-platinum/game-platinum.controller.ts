@@ -1,10 +1,10 @@
 import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
-import { type ExportFormat } from "../common/interfaces/export-format.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { type ExportFormat } from "../common/types/export-format.types";
 import { sendExport } from "../common/utils/send-export.util";
 import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";

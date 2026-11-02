@@ -76,6 +76,29 @@ export default defineConfig(
 	},
 
 	{
+		files: ["apps/api/src/**/*.ts"],
+		rules: {
+			"no-restricted-imports": [
+				"error",
+				{
+					patterns: [
+						{
+							regex: "(^|/)ia/deepseek(/|$)",
+							message:
+								"DeepSeek is internal to the ia module: import ia/ia.provider instead."
+						},
+						{
+							regex: "(^|/)mail/(nodemailer|in-memory)(/|$)",
+							message:
+								"Mail models are internal to the mail module: import mail/mail.provider instead."
+						}
+					]
+				}
+			]
+		}
+	},
+
+	{
 		files: ["apps/web/**/*.ts"],
 		extends: [angular.configs.tsRecommended],
 		processor: angular.processInlineTemplates,

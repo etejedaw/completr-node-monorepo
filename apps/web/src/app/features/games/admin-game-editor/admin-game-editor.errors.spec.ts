@@ -72,7 +72,9 @@ describe("AdminGameEditor API errors and value validation", () => {
 
 	function answerPending() {
 		for (let round = 0; round < 10; round++) {
-			const pending = httpTesting.match(() => true);
+			const pending = httpTesting
+				.match(() => true)
+				.filter(req => !req.cancelled);
 			if (pending.length === 0) break;
 			pending.forEach(answer);
 		}
@@ -107,7 +109,9 @@ describe("AdminGameEditor API errors and value validation", () => {
 		});
 		httpTesting = TestBed.inject(HttpTestingController);
 		await untilVisible(() =>
-			expect(screen.getByLabelText("metacritic score")).toBeInTheDocument()
+			expect(
+				screen.getByLabelText("metacritic score")
+			).toBeInTheDocument()
 		);
 	}
 

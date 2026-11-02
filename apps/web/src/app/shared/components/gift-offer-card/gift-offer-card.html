@@ -1,0 +1,107 @@
+@if (offer(); as currentOffer) { @if (currentOffer.status === "available") {
+<article
+	[attr.aria-labelledby]="titleId"
+	class="rounded-card border border-premium/30 bg-premium/5"
+	[class.p-4]="variant() === 'card'"
+	[class.px-3]="variant() === 'compact'"
+	[class.py-2]="variant() === 'compact'"
+>
+	@if (variant() === "card") {
+	<div class="flex items-start gap-3">
+		<span
+			aria-hidden="true"
+			class="material-icons shrink-0 text-xl text-premium"
+			>redeem</span
+		>
+		<div class="min-w-0 flex-1">
+			<p
+				class="m-0 text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-premium"
+			>
+				Gift
+			</p>
+			<h3
+				[id]="titleId"
+				class="m-0 mt-0.5 font-display text-base font-semibold text-fg"
+			>
+				{{ copy().title }}
+			</h3>
+			<p class="m-0 mt-1 text-sm text-fg-secondary">
+				{{ copy().description }}
+			</p>
+			<p class="m-0 mt-2 text-xs text-fg-muted">
+				Available until
+				<time [attr.datetime]="currentOffer.availableUntil"
+					>{{ currentOffer.availableUntil | date: dateFormat }}</time
+				>. Once activated, it lasts until then.
+			</p>
+			@if (claimError()) {
+			<p role="alert" class="m-0 mt-2 text-xs text-danger">
+				{{ claimError() }}
+			</p>
+			}
+			<button
+				uiButton
+				type="button"
+				variant="premium"
+				size="sm"
+				class="mt-3"
+				[disabled]="isClaiming()"
+				[attr.aria-busy]="isClaiming() || null"
+				(click)="claim()"
+			>
+				{{ isClaiming() ? "Activating..." : "Activate gift" }}
+			</button>
+		</div>
+	</div>
+	} @else {
+	<div class="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+		<span
+			aria-hidden="true"
+			class="material-icons shrink-0 text-base text-premium"
+			>redeem</span
+		>
+		<p class="m-0 min-w-0 text-xs text-fg-secondary">
+			<span [id]="titleId" class="font-semibold text-fg"
+				>{{ copy().shortTitle }} gift</span
+			>
+			· until
+			<time [attr.datetime]="currentOffer.availableUntil"
+				>{{ currentOffer.availableUntil | date: dateFormat }}</time
+			>
+		</p>
+		<button
+			uiButton
+			type="button"
+			variant="premium"
+			size="sm"
+			[disabled]="isClaiming()"
+			[attr.aria-busy]="isClaiming() || null"
+			(click)="claim()"
+		>
+			{{ isClaiming() ? "Activating..." : "Activate gift" }}
+		</button>
+		@if (claimError()) {
+		<p role="alert" class="m-0 basis-full text-xs text-danger">
+			{{ claimError() }}
+		</p>
+		}
+	</div>
+	}
+</article>
+} @else {
+<p
+	role="status"
+	class="m-0 flex items-center gap-1.5 text-xs text-fg-secondary"
+>
+	<span aria-hidden="true" class="material-icons text-sm text-premium"
+		>redeem</span
+	>
+	<span>
+		<span class="font-semibold text-fg">{{ copy().shortTitle }}</span> ·
+		Gift active until
+		<time [attr.datetime]="activeUntil(currentOffer)"
+			>{{ activeUntil(currentOffer) | date: dateFormat }}</time
+		>
+	</span>
+</p>
+} }

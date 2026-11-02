@@ -2,8 +2,9 @@ import { type Request, type Response } from "express";
 
 import * as auditService from "../audit/audit.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type JobIdParam } from "./job-id-params.schema";
 import * as jobsService from "./jobs.service";
+import { type JobIdParam } from "./schemas/job-id-params.schema";
+import { type PopulateExternalDataQuery } from "./schemas/populate-external-data-query.schema";
 
 export async function getJobs(_request: Request, response: Response) {
 	const jobs = await jobsService.findAll();
@@ -34,6 +35,19 @@ export async function postPopulateRawg(request: Request, response: Response) {
 	const limit = request.query.limit ? Number(request.query.limit) : undefined;
 
 	const job = await jobsService.startPopulateRawg(limit);
+	auditService.record(user.id, "job_started", "job", job.id);
+
+	return response.status(202).json(startJobResponse(job));
+}
+
+export async function postPopulateExternalData(
+	request: Request,
+	response: Response
+) {
+	const user = request.locals.user as RequestUser;
+	const { limit } = request.locals.query as PopulateExternalDataQuery;
+
+	const job = await jobsService.startPopulateExternalData(limit);
 	auditService.record(user.id, "job_started", "job", job.id);
 
 	return response.status(202).json(startJobResponse(job));

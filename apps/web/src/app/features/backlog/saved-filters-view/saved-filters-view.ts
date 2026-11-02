@@ -14,10 +14,8 @@ import { ToastService } from "../../../core/services/toast";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
-import {
-	OptionPicker,
-	type PickerOption
-} from "../../../shared/components/option-picker/option-picker";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiBottomSheet,
@@ -41,7 +39,8 @@ import {
 	savedFilterColorHex,
 	supportedSavedFilterColor
 } from "../saved-filter-appearance";
-import { type SavedFilter, SavedFiltersService } from "../saved-filters";
+import { SavedFiltersService } from "../saved-filters";
+import { type SavedFilter } from "../saved-filters.model";
 import { SavedViewCard } from "../saved-view-card/saved-view-card";
 
 type SortMode =

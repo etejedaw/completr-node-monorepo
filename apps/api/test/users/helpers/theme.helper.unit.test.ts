@@ -1,19 +1,31 @@
 import assert from "node:assert/strict";
-import { afterEach, beforeEach, describe, it } from "node:test";
+import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
+import * as premiumAccessService from "../../../src/premium-access/premium-access.service";
 import { THEME_CATALOG } from "../../../src/users/constants/theme.constants";
 import {
 	canUseTheme,
 	getThemeTier
 } from "../../../src/users/helpers/theme.helper";
+import { stub } from "../../unit-helpers/mocks";
 
 void describe("theme helper", () => {
 	beforeEach(() => {
 		THEME_CATALOG.push({ id: "gold-rush", tier: "premium" });
+		stub(
+			premiumAccessService,
+			"resolvePremiumAccess",
+			async (user: { role: string }) => ({
+				allowed: user.role !== "user",
+				source: user.role === "user" ? null : "role",
+				expiresAt: null
+			})
+		);
 	});
 
 	afterEach(() => {
 		THEME_CATALOG.pop();
+		mock.restoreAll();
 	});
 
 	void it("returns the tier of a catalog theme and null for unknown ones", () => {
@@ -22,18 +34,26 @@ void describe("theme helper", () => {
 		assert.equal(getThemeTier("ghost"), null);
 	});
 
-	void it("lets every role use free themes", () => {
-		assert.equal(canUseTheme("refined-dark", "user"), true);
+	void it("lets every role use free themes", async () => {
+		assert.equal(
+			await canUseTheme("refined-dark", { id: "user-1", role: "user" }),
+			true
+		);
 	});
 
-	void it("restricts premium themes to premium, moderator and admin", () => {
-		assert.equal(canUseTheme("gold-rush", "user"), false);
-		assert.equal(canUseTheme("gold-rush", "premium"), true);
-		assert.equal(canUseTheme("gold-rush", "moderator"), true);
-		assert.equal(canUseTheme("gold-rush", "admin"), true);
+	void it("restricts premium themes to premium, moderator and admin", async () => {
+		for (const role of ["user", "premium", "moderator", "admin"]) {
+			assert.equal(
+				await canUseTheme("gold-rush", { id: "user-1", role }),
+				role !== "user"
+			);
+		}
 	});
 
-	void it("rejects unknown themes for every role", () => {
-		assert.equal(canUseTheme("ghost", "admin"), false);
+	void it("rejects unknown themes for every role", async () => {
+		assert.equal(
+			await canUseTheme("ghost", { id: "user-1", role: "admin" }),
+			false
+		);
 	});
 });

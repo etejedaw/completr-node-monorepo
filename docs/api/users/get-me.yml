@@ -14,7 +14,9 @@ settings:
 docs: |-
     ## Get Current User
 
-    Returns the profile of the authenticated user.
+    Returns the profile of the authenticated user. `premiumAccess.active` reports effective full premium from the permanent role or a temporary `*` grant; `source` is `role`, `full-grant` or null, and `expiresAt` is the temporary grant expiration. Individual feature grants do not activate this global status and `role` is never changed by a grant.
+
+    `premiumFeatures` lists the premium features the user can effectively use, in catalog order: every feature for a premium role or an active `*` grant, otherwise the ones with an active individual or global feature grant (expired grants are omitted). It is `[]` for a free user without grants. `PATCH /users/me`, registration, invitation acceptance and admin user creation return the same shape.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
@@ -29,6 +31,12 @@ docs: |-
           "username": "johndoe",
           "email": "johndoe@example.com",
           "role": "user",
+          "premiumAccess": {
+            "active": true,
+            "source": "full-grant",
+            "expiresAt": "2026-11-30T12:00:00.000Z"
+          },
+          "premiumFeatures": ["themes.premium", "activity.feed-filters"],
           "name": "John Doe",
           "bio": "Gamer since 1990",
           "avatarUrl": "https://example.com/avatar.png"

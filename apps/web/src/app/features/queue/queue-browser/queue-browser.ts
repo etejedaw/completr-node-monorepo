@@ -34,11 +34,7 @@ import {
 import { QueueRow } from "../queue-row/queue-row";
 import { QueueSkeleton } from "../queue-skeleton/queue-skeleton";
 import { QueueSortControl } from "../queue-sort-control/queue-sort-control";
-
-export interface QueueEntryMove {
-	fromIndex: number;
-	toIndex: number;
-}
+import { type QueueEntryMove } from "./queue-browser.model";
 
 @Component({
 	selector: "app-queue-browser",

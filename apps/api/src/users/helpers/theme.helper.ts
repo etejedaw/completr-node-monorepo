@@ -1,12 +1,16 @@
-import { THEME_CATALOG, type ThemeTier } from "../constants/theme.constants";
+import { type PremiumAccessUser } from "../../premium-access/premium-access.interface";
+import { resolvePremiumAccess } from "../../premium-access/premium-access.service";
+import { THEME_CATALOG } from "../constants/theme.constants";
+import { type ThemeTier } from "../users.types";
 
 export function getThemeTier(id: string): ThemeTier | null {
 	return THEME_CATALOG.find(t => t.id === id)?.tier ?? null;
 }
 
-export function canUseTheme(themeId: string, role: string): boolean {
+export async function canUseTheme(themeId: string, user: PremiumAccessUser) {
 	const tier = getThemeTier(themeId);
 	if (!tier) return false;
 	if (tier === "free") return true;
-	return role === "premium" || role === "moderator" || role === "admin";
+	const premiumAccess = await resolvePremiumAccess(user, "themes.premium");
+	return premiumAccess.allowed;
 }

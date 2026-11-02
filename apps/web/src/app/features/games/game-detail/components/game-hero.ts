@@ -11,14 +11,8 @@ import { RouterLink } from "@angular/router";
 import { type Game } from "../../../../core/models";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
 import { CoverUrlPipe } from "../../../../shared/pipes/cover-url";
-import { type CanonicalScore } from "../../../../shared/utils/canonical-score";
-
-export interface GameFact {
-	label: string;
-	value: string;
-	unit?: string;
-	valueClass?: string;
-}
+import { type CanonicalScore } from "../../../../shared/utils/canonical-score.model";
+import { type GameFact } from "./game-hero.model";
 
 const SCORE_TYPE_LABELS: Record<NonNullable<CanonicalScore["type"]>, string> = {
 	completr: "Completr ratio",

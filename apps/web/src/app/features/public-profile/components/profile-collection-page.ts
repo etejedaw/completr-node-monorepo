@@ -8,10 +8,8 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import {
-	LibraryHero,
-	type LibraryHeroPoster
-} from "../../../shared/components/library-hero/library-hero";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { type LibraryHeroPoster } from "../../../shared/components/library-hero/library-hero.model";
 import {
 	LibraryPage,
 	type LibraryPageSkeleton,
@@ -22,11 +20,9 @@ import {
 	LibraryPageEmptyAction,
 	LibraryPageToolbar
 } from "../../../shared/components/library-page/library-page-slots";
-import {
-	type PlatformCount,
-	PlatformFilter
-} from "../../../shared/components/platform-filter/platform-filter";
-import { UiButton, UiSearchBar } from "../../../shared/ui";
+import { PlatformFilter } from "../../../shared/components/platform-filter/platform-filter";
+import { type PlatformCount } from "../../../shared/components/platform-filter/platform-filter.model";
+import { UiButton, UiEmptyState, UiSearchBar } from "../../../shared/ui";
 import {
 	type ProfileAccessError,
 	ProfileAccessState
@@ -44,6 +40,7 @@ import {
 		PlatformFilter,
 		ProfileAccessState,
 		UiButton,
+		UiEmptyState,
 		UiSearchBar
 	],
 	templateUrl: "./profile-collection-page.html",
@@ -66,6 +63,7 @@ export class ProfileCollectionPage {
 	readonly visibleCount = input(0);
 	readonly isLoading = input(false);
 	readonly error = input<ProfileAccessError | null>(null);
+	readonly hasLoadFailed = input(false);
 	readonly privateTitle = input("This is private");
 	readonly emptyTitle = input("Nothing here yet");
 	readonly emptyText = input("");
@@ -74,6 +72,7 @@ export class ProfileCollectionPage {
 	readonly query = model("");
 	readonly platform = model("");
 	readonly offsetChange = output<number>();
+	readonly retry = output<void>();
 
 	protected readonly pageState = computed<LibraryPageState>(() => {
 		if (this.isLoading()) return "loading";

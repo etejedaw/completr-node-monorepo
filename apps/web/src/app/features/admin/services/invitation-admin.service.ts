@@ -3,14 +3,7 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
-
-export interface AdminInvitation {
-	id: string;
-	email: string;
-	createdAt: string;
-	expiresAt: string;
-	isExpired: boolean;
-}
+import { type AdminInvitation } from "./invitation-admin.model";
 
 @Injectable({ providedIn: "root" })
 export class InvitationAdminService {

@@ -278,4 +278,55 @@ describe("UserConnections", () => {
 			"These connections are private"
 		);
 	});
+
+	it("shows the not-found state only when the player does not exist", async () => {
+		const fixture = setup("followers");
+
+		expectConnections("followers").flush(null, {
+			status: 404,
+			statusText: "Not Found"
+		});
+		flushProfile(0, 0);
+		await settle(fixture);
+
+		expect(element(fixture).textContent).toContain("Player not found");
+		expect(element(fixture).textContent).not.toContain("Try again");
+	});
+
+	it.each([0, 500])(
+		"offers to try again after a %s failure and reloads the connections",
+		async status => {
+			const fixture = setup("followers");
+			const request = expectConnections("followers");
+			if (status === 0) request.error(new ProgressEvent("error"));
+			else
+				request.flush(null, {
+					status,
+					statusText: "Internal Server Error"
+				});
+			flushProfile(0, 0);
+			await settle(fixture);
+
+			expect(element(fixture).textContent).toContain(
+				"Couldn't load the connections"
+			);
+			expect(element(fixture).textContent).not.toContain(
+				"Player not found"
+			);
+			const retry = Array.from(
+				element(fixture).querySelectorAll("button")
+			).find(button => button.textContent?.includes("Try again"))!;
+			retry.click();
+			await settle(fixture);
+
+			expectConnections("followers").flush(
+				playersPage(1, 1, "recovered")
+			);
+			await settle(fixture);
+			expect(renderedPlayers(fixture)).toBe(1);
+			expect(element(fixture).textContent).not.toContain(
+				"Couldn't load the connections"
+			);
+		}
+	);
 });

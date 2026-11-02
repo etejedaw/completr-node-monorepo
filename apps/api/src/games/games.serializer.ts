@@ -127,24 +127,29 @@ export function gameListSummarySerializer(entry: EnrichedGameList) {
 	};
 }
 
-export function gameFriendActivitySerializer(entry: Backlog) {
+export function gameFriendActivitySerializer(
+	entry: Backlog,
+	hasPremium = false
+) {
 	return {
 		username: entry.User!.username,
 		name: entry.User!.name,
 		avatarUrl: entry.User!.avatarUrl ?? null,
 		role: entry.User!.role,
+		hasPremium,
 		status: entry.status,
 		finishedAt: entry.finishedAt ?? null,
 		userRating: entry.userRating ?? null
 	};
 }
 
-export function gamePlayerSerializer(entry: Backlog) {
+export function gamePlayerSerializer(entry: Backlog, hasPremium = false) {
 	return {
 		username: entry.User!.username,
 		name: entry.User!.name,
 		avatarUrl: entry.User!.avatarUrl ?? null,
 		role: entry.User!.role,
+		hasPremium,
 		status: entry.status
 	};
 }

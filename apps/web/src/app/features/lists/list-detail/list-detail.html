@@ -111,57 +111,24 @@
 			>
 			{{ showAddSearch() ? 'Done adding' : 'Add game' }}
 		</button>
-		<button
-			uiButton
-			variant="secondary"
-			class="max-sm:!hidden !bg-surface/70 backdrop-blur"
-			(click)="openEdit()"
-		>
-			<span aria-hidden="true" class="material-icons text-base"
-				>edit</span
-			>
-			Edit
-		</button>
-		<button
-			uiButton
-			variant="secondary"
-			class="max-sm:!hidden !bg-surface/70 backdrop-blur"
-			[disabled]="refreshing()"
-			(click)="refreshScores()"
-		>
-			<span aria-hidden="true" class="material-icons text-base"
-				>refresh</span
-			>
-			{{ refreshing() ? 'Refreshing…' : 'Refresh scores' }}
-		</button>
-		<button
-			uiButton
-			variant="secondary"
-			class="max-sm:!hidden !bg-surface/70 backdrop-blur"
-			(click)="openDuplicate()"
-		>
-			<span aria-hidden="true" class="material-icons text-base"
-				>content_copy</span
-			>
-			Duplicate
-		</button>
-		<button
-			uiButton
-			variant="secondary"
-			class="sm:!hidden !bg-surface/70 backdrop-blur min-w-[44px]"
-			aria-haspopup="dialog"
-			aria-label="More list actions"
-			(click)="listSheetOpen.set(true)"
-		>
-			<span aria-hidden="true" class="material-icons text-xl"
-				>more_horiz</span
-			>
-		</button>
-		<app-export-actions
-			[resource]="{ listId: current.id }"
-			[label]="current.name"
+		<app-action-menu
+			placement="hero"
+			label="More list actions"
+			heading="List actions"
+			[iconOnly]="true"
+			[items]="listMenuItems()"
+			[busy]="listMenuBusy()"
+			(selected)="runListAction($event)"
 		/>
-		} @else if (current.isPublic) {
+		@if (!exporter.isPremium()) {
+		<app-gift-offer-card
+			feature="export.json"
+			variant="compact"
+			class="block min-w-0 max-w-full empty:hidden"
+			(claimed)="exporter.jsonGiftClaimed.set(true)"
+			(expired)="exporter.jsonGiftClaimed.set(false)"
+		/>
+		} } @else if (current.isPublic) {
 		<button
 			uiButton
 			[variant]="current.isFollowing ? 'secondary' : 'primary'"
@@ -403,31 +370,6 @@
 	</li>
 	}
 </ol>
-} @if (listSheetOpen()) {
-<ui-bottom-sheet
-	[heading]="current.name"
-	subheading="List actions"
-	(closed)="listSheetOpen.set(false)"
->
-	<ul class="list-none m-0 p-0 flex flex-col gap-1">
-		@for (action of listActions; track action.id) {
-		<li>
-			<button
-				type="button"
-				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border-0 text-base font-medium text-fg text-left cursor-pointer transition active:bg-surface"
-				(click)="runListAction(action.id)"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-2xl text-fg-muted"
-					>{{ action.icon }}</span
-				>
-				{{ action.label }}
-			</button>
-		</li>
-		}
-	</ul>
-</ui-bottom-sheet>
 } @if (itemSheet(); as sheet) {
 <ui-bottom-sheet
 	[heading]="sheet.item.game.title"

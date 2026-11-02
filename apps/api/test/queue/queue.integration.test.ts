@@ -254,6 +254,225 @@ void describe("POST /users/me/queue", () => {
 	});
 });
 
+function moveEntry(
+	authorization: string,
+	backlogId: string,
+	position: unknown
+) {
+	return api()
+		.patch(`${QUEUE_PATH}/${backlogId}/position`)
+		.set("Authorization", authorization)
+		.send({ position });
+}
+
+async function storedOrder(userId: string) {
+	const rows = await Queue.findAll({
+		where: { userId },
+		order: [["position", "ASC"]]
+	});
+	return {
+		backlogIds: rows.map(row => row.backlogId),
+		positions: rows.map(row => row.position)
+	};
+}
+
+void describe("PATCH /users/me/queue/:backlogId/position", () => {
+	void it("moves an entry and shifts the rest keeping positions contiguous", async () => {
+		const owner = await createUserWithSession();
+		const [a, b, c, d] = await fillQueue(owner.user.id, 4);
+
+		const response = await moveEntry(owner.authorization, d!.id, 2);
+
+		assert.equal(response.status, 200);
+		assert.deepEqual(
+			response.body.data.queue.map(
+				(entry: { backlog: { id: string } }) => entry.backlog.id
+			),
+			[a!.id, d!.id, b!.id, c!.id]
+		);
+		const stored = await storedOrder(owner.user.id);
+		assert.deepEqual(stored.backlogIds, [a!.id, d!.id, b!.id, c!.id]);
+		assert.deepEqual(stored.positions, [1, 2, 3, 4]);
+	});
+
+	void it("clamps positions beyond the end to the last place", async () => {
+		const owner = await createUserWithSession();
+		const [a, b, c] = await fillQueue(owner.user.id, 3);
+
+		const response = await moveEntry(owner.authorization, a!.id, 500);
+
+		assert.equal(response.status, 200);
+		const stored = await storedOrder(owner.user.id);
+		assert.deepEqual(stored.backlogIds, [b!.id, c!.id, a!.id]);
+		assert.deepEqual(stored.positions, [1, 2, 3]);
+	});
+
+	void it("keeps every entry of a premium queue larger than one page", async () => {
+		const owner = await createUserWithSession("premium");
+		const backlogs = await fillQueue(owner.user.id, 120);
+		const last = backlogs[119]!;
+
+		const response = await moveEntry(owner.authorization, last.id, 1);
+
+		assert.equal(response.status, 200);
+		assert.equal(response.body.data.queue.length, 120);
+		assert.equal(
+			await Queue.count({ where: { userId: owner.user.id } }),
+			120
+		);
+		const stored = await storedOrder(owner.user.id);
+		assert.equal(stored.backlogIds[0], last.id);
+		assert.deepEqual(
+			stored.positions,
+			Array.from({ length: 120 }, (_, index) => index + 1)
+		);
+	});
+
+	void it("does not lose entries hidden by a search or a later page", async () => {
+		const owner = await createUserWithSession("premium");
+		const backlogs = await fillQueue(owner.user.id, 105);
+		const beforeIds = backlogs.map(backlog => backlog.id);
+
+		await moveEntry(owner.authorization, beforeIds[104]!, 3);
+		await moveEntry(owner.authorization, beforeIds[0]!, 104);
+
+		const secondPage = await api()
+			.get(QUEUE_PATH)
+			.query({ limit: 100, offset: 100 })
+			.set("Authorization", owner.authorization);
+		assert.equal(secondPage.body.data.total, 105);
+		assert.equal(secondPage.body.data.queue.length, 5);
+		const stored = await storedOrder(owner.user.id);
+		assert.deepEqual([...stored.backlogIds].sort(), [...beforeIds].sort());
+	});
+
+	void it("is idempotent when the entry is already in that position", async () => {
+		const owner = await createUserWithSession();
+		const backlogs = await fillQueue(owner.user.id, 3);
+		const expected = backlogs.map(backlog => backlog.id);
+
+		const first = await moveEntry(owner.authorization, backlogs[1]!.id, 2);
+		const second = await moveEntry(owner.authorization, backlogs[1]!.id, 2);
+
+		assert.equal(first.status, 200);
+		assert.equal(second.status, 200);
+		assert.deepEqual(
+			(await storedOrder(owner.user.id)).backlogIds,
+			expected
+		);
+	});
+
+	void it("serializes concurrent moves without duplicating or losing positions", async () => {
+		const owner = await createUserWithSession("premium");
+		const backlogs = await fillQueue(owner.user.id, 8);
+
+		const responses = await Promise.all(
+			backlogs.map((backlog, index) =>
+				moveEntry(owner.authorization, backlog.id, 8 - index)
+			)
+		);
+
+		assert.ok(responses.every(response => response.status === 200));
+		const stored = await storedOrder(owner.user.id);
+		assert.deepEqual(
+			stored.positions,
+			Array.from({ length: 8 }, (_, index) => index + 1)
+		);
+		assert.deepEqual(
+			[...stored.backlogIds].sort(),
+			backlogs.map(backlog => backlog.id).sort()
+		);
+	});
+
+	void it("rejects a backlog that is not in the queue with 404 QUEUE_BACKLOG_NOT_FOUND", async () => {
+		const owner = await createUserWithSession();
+		await fillQueue(owner.user.id, 2);
+		const outside = await createOwnedBacklog(owner.user.id);
+
+		const response = await moveEntry(owner.authorization, outside.id, 1);
+
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "QUEUE_BACKLOG_NOT_FOUND");
+	});
+
+	void it("answers 404 for an unknown backlog id", async () => {
+		const owner = await createUserWithSession();
+
+		const response = await moveEntry(owner.authorization, randomUUID(), 1);
+
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "QUEUE_BACKLOG_NOT_FOUND");
+	});
+
+	void it("does not touch another user's queue", async () => {
+		const owner = await createUserWithSession();
+		const other = await createUserWithSession();
+		const [foreignA, foreignB] = await fillQueue(other.user.id, 2);
+		await fillQueue(owner.user.id, 2);
+
+		const response = await moveEntry(owner.authorization, foreignB!.id, 1);
+
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "QUEUE_BACKLOG_NOT_FOUND");
+		assert.deepEqual((await storedOrder(other.user.id)).backlogIds, [
+			foreignA!.id,
+			foreignB!.id
+		]);
+	});
+
+	void it("rejects garbage positions with 422 COMMON_SCHEMA_INVALID", async () => {
+		const owner = await createUserWithSession();
+		const [first] = await fillQueue(owner.user.id, 2);
+		const garbage: unknown[] = [
+			0,
+			-1,
+			1.5,
+			"2",
+			"",
+			null,
+			undefined,
+			"<script>alert(1)</script>",
+			"🎮",
+			Number.MAX_SAFE_INTEGER,
+			[1],
+			{ value: 1 }
+		];
+
+		for (const position of garbage) {
+			const response = await moveEntry(
+				owner.authorization,
+				first!.id,
+				position
+			);
+			assert.equal(response.status, 422, JSON.stringify(position));
+			assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		}
+	});
+
+	void it("rejects extra body fields and malformed ids with 422", async () => {
+		const owner = await createUserWithSession();
+		const [first] = await fillQueue(owner.user.id, 1);
+
+		const extra = await api()
+			.patch(`${QUEUE_PATH}/${first!.id}/position`)
+			.set("Authorization", owner.authorization)
+			.send({ position: 1, backlogId: first!.id });
+		const malformed = await moveEntry(owner.authorization, "not-a-uuid", 1);
+
+		assert.equal(extra.status, 422);
+		assert.equal(malformed.status, 422);
+	});
+
+	void it("rejects an invalid token with 401", async () => {
+		const response = await api()
+			.patch(`${QUEUE_PATH}/${randomUUID()}/position`)
+			.set("Authorization", "Bearer invalid-token")
+			.send({ position: 1 });
+
+		assert.equal(response.status, 401);
+	});
+});
+
 void describe("PUT /users/me/queue", () => {
 	void it("replaces the queue keeping the requested order", async () => {
 		const owner = await createUserWithSession();

@@ -5,10 +5,7 @@ import {
 	input
 } from "@angular/core";
 
-export interface RatingDistributionBucket {
-	stars: number;
-	count: number;
-}
+import { type RatingDistributionBucket } from "./rating-distribution.model";
 
 @Component({
 	selector: "app-rating-distribution",

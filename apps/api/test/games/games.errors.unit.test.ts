@@ -73,6 +73,12 @@ describeModuleErrors({
 			code: "GAME_IN_USE",
 			message:
 				"Game is referenced by user data or other games and cannot be deleted"
+		},
+		{
+			serviceCode: "GAME_EXTERNAL_DATA_SOURCE_UNAVAILABLE",
+			module: "Game Module",
+			code: "GAME_EXTERNAL_DATA_SOURCE_UNAVAILABLE",
+			message: "External data source is not available"
 		}
 	],
 	fallback: {
@@ -96,6 +102,7 @@ describeDomainToHttpMapper({
 		{ code: "GAME_VARIANT_REQUIRED", status: 422 },
 		{ code: "GAME_SPLIT_INVALID", status: 400 },
 		{ code: "GAME_COMPILATION_INVALID", status: 400 },
-		{ code: "GAME_IN_USE", status: 409 }
+		{ code: "GAME_IN_USE", status: 409 },
+		{ code: "GAME_EXTERNAL_DATA_SOURCE_UNAVAILABLE", status: 503 }
 	]
 });

@@ -1,6 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 
-import { ChipGroup, type ChipOption } from "./chip-group";
+import { ChipGroup } from "./chip-group";
+import { type ChipOption } from "./chip-group.model";
 
 const options: ChipOption[] = [
 	{ value: "a", label: "Alpha", count: 3 },

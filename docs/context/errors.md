@@ -167,6 +167,17 @@ Si el callback de la transacción tiene un try/catch con `rethrowSequelizeError`
 
 El fallback es una red de seguridad: un borrado que puede quedar bloqueado por una FK se sigue mapeando en su módulo con `foreignKey` a `<MODULO>_IN_USE`.
 
+### Errores al leer el body
+
+`express.json()` corre antes que cualquier ruta, así que sus errores llegan directo a `errorHandlerMiddleware` sin pasar por ningún módulo. `globalErrorDomainNormalizer` los reconoce por su `type` (`body-parser-error.mapper.ts`) y los convierte en un `DomainError` de `Common Module`, en todas las rutas y antes de la autenticación:
+
+| `type` de body-parser | Código                     | Status |
+| --------------------- | -------------------------- | ------ |
+| `entity.parse.failed` | `COMMON_INVALID_JSON`      | 400    |
+| `entity.too.large`    | `COMMON_PAYLOAD_TOO_LARGE` | 413    |
+
+Cualquier otro error sin mapear sigue siendo `INTERNAL_ERROR` (500). Un body bien formado que no cumple el schema de la ruta sigue respondiendo 422 `COMMON_SCHEMA_INVALID`.
+
 ## Ejemplos concretos
 
 ### Service lanza ServiceError

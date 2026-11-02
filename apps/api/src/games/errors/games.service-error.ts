@@ -71,3 +71,10 @@ export function inUseError(rawError: unknown) {
 		raw: rawError
 	});
 }
+
+export function externalDataSourceUnavailableError(sources: string[]) {
+	return new ServiceError("GAME_EXTERNAL_DATA_SOURCE_UNAVAILABLE", {
+		...BASE_OPTIONS,
+		raw: { sources }
+	});
+}

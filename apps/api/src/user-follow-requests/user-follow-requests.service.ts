@@ -5,10 +5,7 @@ import { User } from "../users/user.model";
 import * as usersService from "../users/users.service";
 import * as serviceError from "./errors/user-follow-requests.service-error";
 import { UserFollowRequest } from "./user-follow-request.model";
-
-export type FollowResult =
-	| { status: "accepted"; targetId: string }
-	| { status: "pending"; targetId: string };
+import { type FollowResult } from "./user-follow-requests.types";
 
 export async function createOrAcceptFollow(
 	requesterId: string,

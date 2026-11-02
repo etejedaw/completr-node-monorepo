@@ -17,7 +17,8 @@ import {
 	type BacklogStatus,
 	type GamePlatinum
 } from "../../../core/models";
-import { BacklogModal, type BacklogModalData } from "./backlog-modal";
+import { BacklogModal } from "./backlog-modal";
+import { type BacklogModalData } from "./backlog-modal.model";
 
 const api = environment.apiUrl;
 const platinumUrl = `${api}/users/me/games/g1/platinum`;
@@ -115,7 +116,9 @@ describe("BacklogModal platinum", () => {
 
 	function answerPending() {
 		for (let round = 0; round < 10; round++) {
-			const pending = httpTesting.match(() => true);
+			const pending = httpTesting
+				.match(() => true)
+				.filter(req => !req.cancelled);
 			if (pending.length === 0) return;
 			pending.forEach(answer);
 		}

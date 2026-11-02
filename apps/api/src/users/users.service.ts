@@ -103,7 +103,10 @@ export async function updateUser(
 	const user = await findUserById(id);
 	if (!user) throw usersServiceError.notFoundError();
 
-	if (updateUserDto.theme && !canUseTheme(updateUserDto.theme, user.role)) {
+	if (
+		updateUserDto.theme &&
+		!(await canUseTheme(updateUserDto.theme, user))
+	) {
 		throw usersServiceError.themeForbiddenError();
 	}
 

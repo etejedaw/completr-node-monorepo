@@ -6,13 +6,7 @@ import {
 	model
 } from "@angular/core";
 
-export interface ChipOption {
-	value: string;
-	label: string;
-	icon?: string;
-	count?: number | null;
-	hint?: string;
-}
+import { type ChipOption } from "./chip-group.model";
 
 export type ChipGroupMode = "multiple" | "single";
 

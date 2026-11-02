@@ -9,8 +9,9 @@ import { type PaginationQuery } from "../common/schemas/pagination-query.schema"
 import { type AdminUpdateUserDto } from "./dtos";
 import * as userDomain from "./errors/users.domain-error";
 import { type UserIdParam } from "./schemas/user-id-params.schema";
-import { userAdminSerializer, userMeSerializer } from "./users.serializer";
+import { userAdminSerializer } from "./users.serializer";
 import * as usersService from "./users.service";
+import { buildUserMe } from "./users-me.service";
 
 export async function postAdminCreateUser(
 	request: Request,
@@ -24,7 +25,9 @@ export async function postAdminCreateUser(
 
 	const userPlain = user.get({ plain: true });
 
-	const data = { user: userMeSerializer(userPlain) };
+	const data = {
+		user: await buildUserMe(userPlain)
+	};
 	return response.status(201).json({ data });
 }
 

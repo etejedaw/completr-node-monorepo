@@ -13,6 +13,8 @@ apps/api/src/games/
 ├── games.controller.ts            Handlers de request/response
 ├── games.routes.ts                Router Express
 ├── games.serializer.ts            Transformación al formato del frontend
+├── games.interface.ts             Interfaces del módulo
+├── games.types.ts                 Alias type del módulo
 ├── dtos/                          DTOs (z.infer<typeof Schema>)
 │   ├── register-game.dto.ts
 │   └── update-game.dto.ts
@@ -92,6 +94,14 @@ apps/api/src/genres/
 - **Aquí van los cálculos derivados** (ratio, estadísticas, banderas booleanas).
 - Si hay variantes de salida (tiny, full), se hacen archivos separados en `serializers/`.
 
+### `<modulo>.interface.ts` y `<modulo>.types.ts`
+
+- Toda declaración `interface` del módulo, exportada o de uso interno, vive en `<modulo>.interface.ts`; todo alias `type` (objetos, uniones, intersecciones, utilitarios, firmas de función), en `<modulo>.types.ts`. Nunca se declaran en services, controllers, routes, serializers, mappers, utils, helpers, templates, constants, errors ni middlewares.
+- Un `*.interface.ts` solo contiene interfaces y un `*.types.ts` solo alias `type`. Las constantes en tiempo de ejecución van a `<modulo>.constants.ts`, aunque solo existan para derivar un tipo.
+- Si mezclarlo con el contrato HTTP lo ensucia, el módulo separa sus tipos por tema: `<modulo>-<tema>.interface.ts` y `<modulo>-<tema>.types.ts` (por ejemplo `rewind-run.interface.ts`, `rewind-build.interface.ts`, `rewind-generation.types.ts`). En `common/`, las interfaces van en `common/interfaces/` o en un `*.interface.ts` junto a su carpeta (`common/errors/errors.interface.ts`), y los alias en `common/types/`.
+- Los tipos se exportan siempre desde su archivo y se importan con `import { type X }`.
+- **Excepciones**, que se quedan donde están: el tipo derivado de una constante en tiempo de ejecución, junto a ella (`type X = (typeof X_VALUES)[number]`, `keyof typeof X`, `ExportRow<(typeof COLUMNS)[number]>`); el `z.infer<typeof Schema>` junto a su schema o en su DTO, y los DTOs en general, que son su propio archivo de tipos; lo que un modelo Sequelize necesita para declarar su clase (atributos, `InferAttributes`, la forma de sus includes); los `*.d.ts` de augmentations.
+
 ### `dtos/`
 
 - Tipo del body de un request, inferido de su schema Zod: `export type RegisterGameDto = z.infer<typeof RegisterGameSchema>`.
@@ -146,7 +156,7 @@ import { Backlog } from "../backlog/backlog.model"; // ✗ no
 
 ### Excepción: tablas pivote
 
-Los módulos pivote (`game-platform/`, `game-shelf/`, `list-items/`, etc.) pueden importar **modelos** de otros módulos cuando los necesitan para asociaciones e `include` de Sequelize:
+La excepción es una lista cerrada, no un criterio abierto. Los únicos módulos pivote que pueden importar **modelos** de otros módulos son `game-platform/`, `game-genre/`, `game-shelf/`, `list-items/`, `game-reports/`, `user-followers/`, `user-follow-requests/` y `list-followers/`, y solo cuando los necesitan para asociaciones, `include` y `order` de Sequelize:
 
 ```ts
 // game-shelf.service.ts — válido
@@ -158,7 +168,7 @@ const shelf = await GameShelf.findAll({
 });
 ```
 
-Pero **solo para asociaciones e includes**. Para CRUD de Game o Platform, siguen importando el service respectivo.
+Pero **solo para `include`, asociaciones y `order`**. Nunca para CRUD (`find*`, `count`, `create`, `update`, `destroy`, `bulkCreate`) sobre el modelo ajeno: para eso, los pivotes también importan el service respectivo (`gamesService`, `platformsService`, `usersService`, `listsService`). Un módulo que no esté en la lista no tiene esta excepción, aunque sea una tabla de relación; si necesita una, se añade a la lista en este archivo.
 
 ## Cómo crear un módulo nuevo
 

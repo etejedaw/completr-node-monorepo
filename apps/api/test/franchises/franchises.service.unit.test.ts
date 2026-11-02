@@ -166,57 +166,72 @@ void describe("franchisesService tracking", () => {
 	});
 });
 
-void describe("franchisesService.findTrackedFranchiseProgress", () => {
+void describe("franchisesService.findTrackedFranchiseIdsAmong", () => {
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	void it("returns nothing without querying when no franchise is tracked", async () => {
+	void it("returns an empty set without querying when no franchise is given", async () => {
+		const find = stub(UserFranchise, "findAll", async () => []);
+
+		assert.deepEqual(
+			await franchisesService.findTrackedFranchiseIdsAmong("u-1", []),
+			new Set()
+		);
+		assert.equal(find.mock.callCount(), 0);
+	});
+
+	void it("returns the given franchise ids the user tracks", async () => {
+		stub(UserFranchise, "findAll", async () => [{ franchiseId: "f-2" }]);
+
+		assert.deepEqual(
+			await franchisesService.findTrackedFranchiseIdsAmong("u-1", [
+				"f-1",
+				"f-2"
+			]),
+			new Set(["f-2"])
+		);
+	});
+});
+
+void describe("franchisesService.findTrackedFranchises", () => {
+	afterEach(() => {
+		mock.restoreAll();
+	});
+
+	void it("returns nothing without querying franchises when none is tracked", async () => {
+		stub(UserFranchise, "findAll", async () => []);
 		const find = stub(Franchise, "findAll", async () => []);
 
 		assert.deepEqual(
-			await franchisesService.findTrackedFranchiseProgress([], ["g-1"]),
+			await franchisesService.findTrackedFranchises("u-1"),
 			[]
 		);
 		assert.equal(find.mock.callCount(), 0);
 	});
 
-	void it("counts completed games per franchise and sorts by completed descending", async () => {
-		stub(gamesSearchService, "findFranchiseIdsForGameIds", async () => [
-			"f-2",
-			"f-2",
-			"f-1"
+	void it("returns each tracked franchise with its active game count", async () => {
+		stub(UserFranchise, "findAll", async () => [
+			{ franchiseId: "f-1" },
+			{ franchiseId: "f-2" }
 		]);
 		stub(
 			gamesSearchService,
 			"countActiveGamesByFranchiseIds",
-			async () =>
-				new Map([
-					["f-1", 4],
-					["f-2", 3]
-				])
+			async () => new Map([["f-1", 4]])
 		);
 		stub(Franchise, "findAll", async () => [
 			{ id: "f-1", name: "One", code: "one" },
-			{ id: "f-2", name: "Two", code: "two" },
-			{ id: "f-3", name: "Three", code: "three" }
+			{ id: "f-2", name: "Two", code: "two" }
 		]);
 
-		const progress = await franchisesService.findTrackedFranchiseProgress(
-			["f-1", "f-2", "f-3"],
-			["g-1", "g-2", "g-3"]
-		);
+		const franchises = await franchisesService.findTrackedFranchises("u-1");
 
 		assert.deepEqual(
-			progress.map(entry => [
-				entry.franchise.code,
-				entry.completed,
-				entry.total
-			]),
+			franchises.map(entry => [entry.franchise.code, entry.gameCount]),
 			[
-				["two", 2, 3],
-				["one", 1, 4],
-				["three", 0, 0]
+				["one", 4],
+				["two", 0]
 			]
 		);
 	});

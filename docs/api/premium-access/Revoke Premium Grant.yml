@@ -1,0 +1,56 @@
+info:
+    name: Revoke Premium Grant
+    type: http
+    seq: 5
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/users/:userId/premium-grants/:grantId/revoke"
+    params:
+        - name: userId
+          value: ""
+          type: path
+        - name: grantId
+          value: ""
+          type: path
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Revoke Premium Grant
+
+    Revokes a grant immediately by setting `expiresAt` to the current server time. The row and its `offerCode` are preserved. Repeating the action is safe and returns the grant again.
+
+    **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "grant": {
+          "id": "uuid",
+          "userId": "uuid",
+          "feature": "*",
+          "expiresAt": "2026-10-31T12:00:00.000Z",
+          "offerCode": null,
+          "createdAt": "2026-10-01T12:00:00.000Z",
+          "updatedAt": "2026-10-31T12:00:00.000Z"
+        }
+      }
+    }
+    ```
+
+    Records the audit event `premium_grant_revoked`.
+
+    ### Errors
+
+    | Status | Code | Description |
+    |--------|------|-------------|
+    | 404 | PREMIUM_GRANT_NOT_FOUND | Grant does not exist or belongs to another user |
+    | 422 | COMMON_SCHEMA_INVALID | `userId` or `grantId` is not a UUID |

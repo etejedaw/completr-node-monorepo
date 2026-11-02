@@ -22,7 +22,7 @@ router.get(
 	"/franchises",
 	[
 		rateLimiterMiddleware(publicLimiter),
-		authMiddleware(),
+		authOptionalMiddleware,
 		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],
 	franchiseController.getAllFranchises

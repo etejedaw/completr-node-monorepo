@@ -14,22 +14,32 @@ import { gameShelfErrorDomainNormalizer } from "../../game-shelf/errors/game-she
 import { gameTimesErrorDomainNormalizer } from "../../game-times/errors/game-times.error-domain.normalizer";
 import { gamesErrorDomainNormalizer } from "../../games/errors/games.error-domain.normalizer";
 import { genresErrorDomainNormalizer } from "../../genres/errors/genres.error-domain.normalizer";
+import { hltbErrorDomainNormalizer } from "../../hltb/errors/hltb.error-domain.normalizer";
+import { iaErrorDomainNormalizer } from "../../ia/errors/ia.error-domain.normalizer";
 import { invitationsErrorDomainNormalizer } from "../../invitations/errors/invitations.error-domain.normalizer";
 import { listFollowersErrorDomainNormalizer } from "../../list-followers/errors/list-followers.error-domain.normalizer";
 import { listItemsErrorDomainNormalizer } from "../../list-items/errors/list-items.error-domain.normalizer";
 import { listsErrorDomainNormalizer } from "../../lists/errors/lists.error-domain.normalizer";
 import { mailErrorDomainNormalizer } from "../../mail/errors/mail.error-domain.normalizer";
+import { metacriticErrorDomainNormalizer } from "../../metacritic/errors/metacritic.error-domain.normalizer";
 import { moodTagsErrorDomainNormalizer } from "../../mood-tags/errors/mood-tags.error-domain.normalizer";
 import { platformsErrorDomainNormalizer } from "../../platforms/errors/platforms.error-domain.normalizer";
+import { premiumAccessErrorDomainNormalizer } from "../../premium-access/errors/premium-access.error-domain.normalizer";
 import { queueErrorDomainNormalizer } from "../../queue/errors/queue.error-domain.normalizer";
 import { rawgErrorDomainNormalizer } from "../../rawg/errors/rawg.error-domain.normalizer";
 import { reviewsErrorDomainNormalizer } from "../../reviews/errors/reviews.error-domain.normalizer";
+import { rewindErrorDomainNormalizer } from "../../rewind/errors/rewind.error-domain.normalizer";
 import { savedFiltersErrorDomainNormalizer } from "../../saved-filters/errors/saved-filters.error-domain.normalizer";
 import { scoreSourcesErrorDomainNormalizer } from "../../score-sources/errors/score-sources.error-domain.normalizer";
 import { userFollowRequestsErrorDomainNormalizer } from "../../user-follow-requests/errors/user-follow-requests.error-domain.normalizer";
 import { userFollowersErrorDomainNormalizer } from "../../user-followers/errors/user-followers.error-domain.normalizer";
 import { usersErrorDomainNormalizer } from "../../users/errors/users.error-domain.normalizer";
+import { wikidataErrorDomainNormalizer } from "../../wikidata/errors/wikidata.error-domain.normalizer";
 import { wishlistErrorDomainNormalizer } from "../../wishlist/errors/wishlist.error-domain.normalizer";
+import {
+	bodyParserErrorMapper,
+	isBodyParserError
+} from "./body-parser-error.mapper";
 import * as commonDomainError from "./common.domain-error";
 import { DomainError } from "./domain-error";
 import { ServiceError } from "./service-error";
@@ -45,6 +55,9 @@ export function globalErrorDomainNormalizer(
 
 	if (error instanceof ForeignKeyConstraintError)
 		return foreignKeyErrorMapper(error, correlationId);
+
+	if (isBodyParserError(error))
+		return bodyParserErrorMapper(error, correlationId);
 
 	return new DomainError(
 		"COMMON",
@@ -127,6 +140,9 @@ function globalServiceErrorMapper(
 	if (error.serviceError.service === "Review Service")
 		return reviewsErrorDomainNormalizer(error, correlationId);
 
+	if (error.serviceError.service === "Rewind Service")
+		return rewindErrorDomainNormalizer(error, correlationId);
+
 	if (error.serviceError.service === "MoodTags Service")
 		return moodTagsErrorDomainNormalizer(error, correlationId);
 
@@ -139,8 +155,23 @@ function globalServiceErrorMapper(
 	if (error.serviceError.service === "CoopRuns Service")
 		return coopRunsErrorDomainNormalizer(error, correlationId);
 
+	if (error.serviceError.service === "Premium Access Service")
+		return premiumAccessErrorDomainNormalizer(error, correlationId);
+
 	if (error.serviceError.service === "RAWG Provider")
 		return rawgErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "HLTB Provider")
+		return hltbErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "Metacritic Provider")
+		return metacriticErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "Wikidata Provider")
+		return wikidataErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "IA Provider")
+		return iaErrorDomainNormalizer(error, correlationId);
 
 	if (error.serviceError.service === "Invitation Service")
 		return invitationsErrorDomainNormalizer(error, correlationId);

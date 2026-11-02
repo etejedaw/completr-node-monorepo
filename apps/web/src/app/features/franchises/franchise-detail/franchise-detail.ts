@@ -4,8 +4,7 @@ import {
 	Component,
 	computed,
 	inject,
-	linkedSignal,
-	signal
+	linkedSignal
 } from "@angular/core";
 import { rxResource, toSignal } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, RouterLink } from "@angular/router";
@@ -18,10 +17,9 @@ import { LibraryHero } from "../../../shared/components/library-hero/library-her
 import { UiButton, UiEmptyState, UiPagination } from "../../../shared/ui";
 import { backlogStatusLabel } from "../../../shared/utils/backlog-status";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
-import {
-	type FranchiseDetail as FranchiseDetailData,
-	FranchisesService
-} from "../franchises";
+import { injectFranchiseTracking } from "../franchise-tracking";
+import { FranchisesService } from "../franchises";
+import { type FranchiseDetail as FranchiseDetailData } from "../franchises.model";
 
 const PAGE_SIZE = 24;
 
@@ -89,10 +87,30 @@ export class FranchiseDetail {
 			(this.page.error() as HttpErrorResponse | undefined)?.status === 404
 	);
 
-	protected readonly tracked = linkedSignal(
-		() => this.detail()?.isTracked ?? false
-	);
-	protected readonly toggling = signal(false);
+	private readonly tracking = injectFranchiseTracking({
+		onMissing: () => this.page.reload()
+	});
+
+	private readonly trackable = computed(() => {
+		const current = this.detail();
+		return current
+			? {
+					code: current.franchise.code,
+					name: current.franchise.name,
+					isTracked: current.isTracked
+				}
+			: undefined;
+	});
+
+	protected readonly tracked = computed(() => {
+		const franchise = this.trackable();
+		return franchise ? this.tracking.isTracked(franchise) : false;
+	});
+
+	protected readonly toggling = computed(() => {
+		const franchise = this.trackable();
+		return franchise ? this.tracking.isPending(franchise) : false;
+	});
 
 	protected readonly openBacklogQuickAdd = injectBacklogQuickAdd(() =>
 		this.page.reload()
@@ -120,19 +138,7 @@ export class FranchiseDetail {
 	}
 
 	protected toggleTrack() {
-		if (this.toggling()) return;
-		const next = !this.tracked();
-		const code = this.code();
-		this.toggling.set(true);
-		const request$ = next
-			? this.franchisesService.trackFranchise(code)
-			: this.franchisesService.untrackFranchise(code);
-		request$.subscribe({
-			next: () => {
-				this.tracked.set(next);
-				this.toggling.set(false);
-			},
-			error: () => this.toggling.set(false)
-		});
+		const franchise = this.trackable();
+		if (franchise) this.tracking.toggle(franchise);
 	}
 }

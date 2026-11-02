@@ -1,4 +1,5 @@
 import { type NextFunction, type Request, type Response } from "express";
+import jwt from "jsonwebtoken";
 
 import { type UserRole } from "../users/user-role.type";
 import * as userService from "../users/users.service";
@@ -36,7 +37,9 @@ export function hiddenRouteMiddleware(...roles: UserRole[]) {
 			if (user.role === "admin") return next();
 			if (roles.includes(user.role)) return next();
 			throw authDomainsErrors.authRouteNotFound();
-		} catch {
+		} catch (error) {
+			if (error instanceof jwt.TokenExpiredError)
+				throw authDomainsErrors.authInvalidToken({ error });
 			throw authDomainsErrors.authRouteNotFound();
 		}
 	};

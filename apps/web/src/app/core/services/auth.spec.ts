@@ -175,7 +175,12 @@ describe("AuthService", () => {
 	});
 
 	describe("loadUser", () => {
-		const user = { id: "u1", username: "ada", role: "premium" } as User;
+		const user = {
+			id: "u1",
+			username: "ada",
+			role: "premium",
+			premiumAccess: { active: true, source: "role", expiresAt: null }
+		} as User;
 
 		it("loads the current user and exposes premium status", () => {
 			service.loadUser().subscribe();
@@ -187,6 +192,80 @@ describe("AuthService", () => {
 			expect(service.isLoggedIn()).toBe(true);
 			expect(service.isPremium()).toBe(true);
 			expect(setLocal).not.toHaveBeenCalled();
+		});
+
+		it("uses effective premium access instead of the permanent role", () => {
+			service.loadUser().subscribe();
+
+			httpTesting.expectOne(`${api}/users/me`).flush({
+				data: {
+					user: {
+						...user,
+						role: "user",
+						premiumAccess: {
+							active: true,
+							source: "full-grant",
+							expiresAt: "2027-01-01T00:00:00.000Z"
+						}
+					}
+				}
+			});
+
+			expect(service.isPremium()).toBe(true);
+		});
+
+		describe("hasPremiumFeature", () => {
+			function loadWith(overrides: Record<string, unknown>) {
+				service.loadUser().subscribe();
+				httpTesting
+					.expectOne(`${api}/users/me`)
+					.flush({ data: { user: { ...user, ...overrides } } });
+			}
+
+			const freeAccess = {
+				role: "user",
+				premiumAccess: { active: false, source: null, expiresAt: null }
+			};
+
+			it("is false for every feature when signed out", () => {
+				expect(service.hasPremiumFeature("themes.premium")).toBe(false);
+			});
+
+			it("is true only for the granted features of a free account", () => {
+				loadWith({
+					...freeAccess,
+					premiumFeatures: ["themes.premium"]
+				});
+
+				expect(service.hasPremiumFeature("themes.premium")).toBe(true);
+				expect(service.hasPremiumFeature("activity.feed-filters")).toBe(
+					false
+				);
+				expect(service.isPremium()).toBe(false);
+			});
+
+			it("is true for every feature with full premium even without a list", () => {
+				loadWith({ premiumFeatures: undefined });
+
+				expect(service.hasPremiumFeature("export.json")).toBe(true);
+			});
+
+			it("tolerates a response without the feature list", () => {
+				loadWith({ ...freeAccess, premiumFeatures: undefined });
+
+				expect(service.hasPremiumFeature("themes.premium")).toBe(false);
+			});
+
+			it("follows the list when the account is reloaded", () => {
+				loadWith({
+					...freeAccess,
+					premiumFeatures: ["themes.premium"]
+				});
+				expect(service.hasPremiumFeature("themes.premium")).toBe(true);
+
+				loadWith({ ...freeAccess, premiumFeatures: [] });
+				expect(service.hasPremiumFeature("themes.premium")).toBe(false);
+			});
 		});
 
 		it("applies the theme saved in the user profile", () => {

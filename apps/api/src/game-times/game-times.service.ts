@@ -2,7 +2,7 @@ import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { sequelize } from "../database/sequelize.database";
-import { Game } from "../games/game.model";
+import * as gamesService from "../games/games.service";
 import * as gameTimeServiceError from "./errors/game-times.service-error";
 import { GameTime, TIME_SOURCES_API, type TimeSource } from "./game-time.model";
 
@@ -75,6 +75,14 @@ export async function findTimesByGameIdAndSources(
 	return GameTime.findAll({ where: { gameId, source: sources } });
 }
 
+export async function findGameIdsBySource(source: TimeSource) {
+	const rows = await GameTime.findAll({
+		where: { source },
+		attributes: ["gameId"]
+	});
+	return rows.map(row => row.gameId);
+}
+
 export async function upsertTime(
 	gameId: string,
 	source: TimeSource,
@@ -132,7 +140,7 @@ export async function replaceGameTimes(
 }
 
 async function assertGameExists(gameId: string, transaction: Transaction) {
-	if ((await Game.count({ where: { id: gameId }, transaction })) === 0)
+	if (!(await gamesService.existsGameById(gameId, transaction)))
 		throw gameTimeServiceError.gameNotFoundError(gameId);
 }
 

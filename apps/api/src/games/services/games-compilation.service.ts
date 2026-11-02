@@ -7,11 +7,11 @@ import { sequelize } from "../../database/sequelize.database";
 import * as gameGenresService from "../../game-genre/game-genre.service";
 import * as gamePlatformsService from "../../game-platform/game-platform.service";
 import * as gameScoresService from "../../game-scores/game-scores.service";
-import { type TimeSource } from "../../game-times/game-time.model";
 import * as gameTimesService from "../../game-times/game-times.service";
 import * as gamesServiceError from "../errors/games.service-error";
 import { Game } from "../game.model";
-import { type SetCompilationItemInput } from "../games.interface";
+import { type InheritedParentAssets } from "../games.interface";
+import { type SetCompilationItemInput } from "../games.types";
 
 export async function setCompilationItems(
 	parentGameId: string,
@@ -197,13 +197,6 @@ async function assertLinkedGamesExist(linkedIds: readonly string[]) {
 	if (found.length !== linkedIds.length) {
 		throw gamesServiceError.notFoundError();
 	}
-}
-
-interface InheritedParentAssets {
-	platformIds: string[];
-	genreIds: string[];
-	scores: { source: string; score: number }[];
-	times: { source: TimeSource; duration: number }[];
 }
 
 function extractParentAssets(parent: Game): InheritedParentAssets {

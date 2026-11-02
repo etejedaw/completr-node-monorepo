@@ -48,6 +48,25 @@
 	}
 </app-library-hero>
 
+@if (hasLoadFailed()) {
+<ui-empty-state
+	role="alert"
+	icon="cloud_off"
+	[title]="'Couldn\'t load the ' + heading().toLowerCase()"
+	hint="Check your connection and try again."
+>
+	<button
+		uiButton
+		type="button"
+		variant="secondary"
+		class="tap:min-h-[44px]"
+		(click)="retry.emit()"
+	>
+		<span aria-hidden="true" class="material-icons text-base">refresh</span>
+		Try again
+	</button>
+</ui-empty-state>
+} @else {
 <app-library-page
 	[state]="pageState()"
 	[showToolbar]="isLoading() || itemCount() > 0"
@@ -83,4 +102,4 @@
 		<ng-content />
 	</ng-template>
 </app-library-page>
-}
+} }

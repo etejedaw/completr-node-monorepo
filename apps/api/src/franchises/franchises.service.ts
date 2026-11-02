@@ -1,4 +1,4 @@
-import { Op, type Transaction } from "sequelize";
+import { Op, QueryTypes, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
@@ -11,6 +11,10 @@ import { type RegisterFranchiseDto } from "./dtos/register-franchise.dto";
 import { type UpdateFranchiseDto } from "./dtos/update-franchise.dto";
 import * as franchiseServiceError from "./errors/franchises.service-error";
 import { Franchise } from "./franchise.model";
+import {
+	type GameFranchiseRef,
+	type TrackedFranchiseEntry
+} from "./franchises.interface";
 import { UserFranchise } from "./user-franchise.model";
 
 async function replaceFranchiseGames(
@@ -20,25 +24,22 @@ async function replaceFranchiseGames(
 ) {
 	const targetGameIds = [...new Set(gameIds)];
 
-	const existingGames = await Game.findAll({
-		where: { id: { [Op.in]: targetGameIds } },
-		attributes: ["id"],
-		transaction
-	});
-	const existingGameIds = new Set(existingGames.map(game => game.id));
+	const existingGameIds = new Set(
+		await gamesService.findExistingGameIds(targetGameIds, transaction)
+	);
 	const missingGameIds = targetGameIds.filter(id => !existingGameIds.has(id));
 	if (missingGameIds.length > 0)
 		throw franchiseServiceError.gamesNotFoundError(missingGameIds);
 
-	const keptGamesFilter =
-		targetGameIds.length > 0 ? { id: { [Op.notIn]: targetGameIds } } : {};
-	await Game.update(
-		{ franchiseId: null },
-		{ where: { franchiseId, ...keptGamesFilter }, transaction }
+	await gamesService.clearFranchiseFromGames(
+		franchiseId,
+		targetGameIds,
+		transaction
 	);
-	await Game.update(
-		{ franchiseId },
-		{ where: { id: { [Op.in]: targetGameIds } }, transaction }
+	await gamesService.assignFranchiseToGames(
+		franchiseId,
+		targetGameIds,
+		transaction
 	);
 }
 
@@ -67,6 +68,21 @@ export async function registerFranchise({
 	}
 }
 
+export async function findFranchisesByGameIds(
+	gameIds: string[]
+): Promise<GameFranchiseRef[]> {
+	const uniqueGameIds = [...new Set(gameIds)];
+	if (uniqueGameIds.length === 0) return [];
+
+	return sequelize.query<GameFranchiseRef>(
+		`SELECT g.id AS "gameId", f.name
+		 FROM "Games" g
+		 JOIN "Franchises" f ON f.id = g."franchiseId"
+		 WHERE g.id IN (:gameIds)`,
+		{ replacements: { gameIds: uniqueGameIds }, type: QueryTypes.SELECT }
+	);
+}
+
 export async function findFranchiseByCode(code: string) {
 	return await Franchise.findOne({ where: { code } });
 }
@@ -74,6 +90,20 @@ export async function findFranchiseByCode(code: string) {
 export async function findFranchiseById(id: string) {
 	return await Franchise.findOne({ where: { id } });
 }
+
+export const FRANCHISE_PREVIEW_SIZE = 4;
+
+const FRANCHISE_PREVIEW_GAMES_INCLUDE = {
+	model: Game,
+	separate: true,
+	limit: FRANCHISE_PREVIEW_SIZE,
+	where: { isActive: true },
+	attributes: ["id", "code", "title", "backgroundUrl", "franchiseId"],
+	order: [
+		["releaseAt", "ASC"],
+		["id", "ASC"]
+	] as [string, string][]
+};
 
 export async function findAllFranchises(pagination: PaginatedSearchQuery = {}) {
 	const where = pagination.search
@@ -83,6 +113,7 @@ export async function findAllFranchises(pagination: PaginatedSearchQuery = {}) {
 
 	const query: Record<string, unknown> = {
 		where,
+		include: [FRANCHISE_PREVIEW_GAMES_INCLUDE],
 		order: [
 			["name", "ASC"],
 			["id", "ASC"]
@@ -133,12 +164,6 @@ export async function removeFranchise(id: string) {
 	return true;
 }
 
-export interface FranchiseProgressEntry {
-	franchise: { id: string; name: string; code: string };
-	completed: number;
-	total: number;
-}
-
 export async function trackFranchise(userId: string, franchiseId: string) {
 	await UserFranchise.findOrCreate({
 		where: { userId, franchiseId }
@@ -165,36 +190,41 @@ export async function findTrackedFranchiseIds(userId: string) {
 	return rows.map(row => row.franchiseId);
 }
 
-export async function findTrackedFranchiseProgress(
-	trackedFranchiseIds: string[],
-	completedGameIds: string[]
-): Promise<FranchiseProgressEntry[]> {
+export async function findTrackedFranchiseIdsAmong(
+	userId: string,
+	franchiseIds: string[]
+) {
+	if (franchiseIds.length === 0) return new Set<string>();
+	const rows = await UserFranchise.findAll({
+		where: { userId, franchiseId: { [Op.in]: franchiseIds } },
+		attributes: ["franchiseId"]
+	});
+	return new Set(rows.map(row => row.franchiseId));
+}
+
+export async function findTrackedFranchises(
+	userId: string
+): Promise<TrackedFranchiseEntry[]> {
+	const trackedFranchiseIds = await findTrackedFranchiseIds(userId);
 	if (trackedFranchiseIds.length === 0) return [];
 
-	const franchiseIdsOfCompleted =
-		await gamesService.findFranchiseIdsForGameIds(completedGameIds);
-	const completedByFranchise = new Map<string, number>();
-	for (const franchiseId of franchiseIdsOfCompleted) {
-		completedByFranchise.set(
-			franchiseId,
-			(completedByFranchise.get(franchiseId) ?? 0) + 1
-		);
-	}
-
-	const [totalByFranchise, franchises] = await Promise.all([
+	const [gameCountByFranchise, franchises] = await Promise.all([
 		gamesService.countActiveGamesByFranchiseIds(trackedFranchiseIds),
-		Franchise.findAll({ where: { id: { [Op.in]: trackedFranchiseIds } } })
+		Franchise.findAll({
+			where: { id: { [Op.in]: trackedFranchiseIds } },
+			order: [
+				["name", "ASC"],
+				["id", "ASC"]
+			]
+		})
 	]);
 
-	return franchises
-		.map(franchise => ({
-			franchise: {
-				id: franchise.id,
-				name: franchise.name,
-				code: franchise.code
-			},
-			completed: completedByFranchise.get(franchise.id) ?? 0,
-			total: totalByFranchise.get(franchise.id) ?? 0
-		}))
-		.sort((a, b) => b.completed - a.completed);
+	return franchises.map(franchise => ({
+		franchise: {
+			id: franchise.id,
+			name: franchise.name,
+			code: franchise.code
+		},
+		gameCount: gameCountByFranchise.get(franchise.id) ?? 0
+	}));
 }

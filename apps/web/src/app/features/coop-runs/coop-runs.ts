@@ -3,44 +3,13 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-
-export interface CoopMember {
-	userId: string;
-	username: string;
-	name: string;
-	avatarUrl: string | null;
-	backlogId: string;
-	status: string;
-	startedAt: string | null;
-	finishedAt: string | null;
-	realDuration: number | null;
-}
+import {
+	type AddResponse,
+	type CandidatesResponse,
+	type MembersResponse
+} from "./coop-runs.model";
 
 export type SyncField = "status" | "startedAt" | "finishedAt" | "realDuration";
-
-interface MembersResponse {
-	data: { members: CoopMember[] };
-}
-
-interface AddResponse {
-	data: { coopRunId: string; targetBacklogId: string };
-}
-
-export interface CoopCandidate {
-	id: string;
-	status: string;
-	startedAt: string | null;
-	finishedAt: string | null;
-	realDuration: number | null;
-	coopRunId: string | null;
-}
-
-interface CandidatesResponse {
-	data: {
-		accessible: boolean;
-		candidates: CoopCandidate[];
-	};
-}
 
 @Injectable({ providedIn: "root" })
 export class CoopRunsService {

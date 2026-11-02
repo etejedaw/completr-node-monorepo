@@ -15,7 +15,7 @@ import { NgpPopover, NgpPopoverTrigger } from "ng-primitives/popover";
 
 import { ViewportService } from "../../../core/services/viewport";
 import { UiBottomSheet, UiButton, UiInput } from "../../ui";
-import { type PickerOption } from "./option-picker";
+import { type PickerOption } from "./option-picker.model";
 
 const MAX_NAMED_OPTIONS = 3;
 

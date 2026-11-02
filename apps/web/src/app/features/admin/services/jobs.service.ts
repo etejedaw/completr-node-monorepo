@@ -3,15 +3,7 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
-
-export interface JobEntry {
-	id: string;
-	type: string;
-	status: string;
-	result?: string;
-	createdAt: string;
-	completedAt?: string;
-}
+import { type JobEntry } from "./jobs.model";
 
 @Injectable({ providedIn: "root" })
 export class JobsService {
@@ -29,6 +21,15 @@ export class JobsService {
 		const url = limit
 			? `${environment.apiUrl}/admin/jobs/populate-rawg?limit=${limit}`
 			: `${environment.apiUrl}/admin/jobs/populate-rawg`;
+		return this.http
+			.post<{ data: { job: JobEntry } }>(url, {})
+			.pipe(map(res => res.data.job));
+	}
+
+	startPopulateExternalData(limit?: number) {
+		const url = limit
+			? `${environment.apiUrl}/admin/jobs/populate-external-data?limit=${limit}`
+			: `${environment.apiUrl}/admin/jobs/populate-external-data`;
 		return this.http
 			.post<{ data: { job: JobEntry } }>(url, {})
 			.pipe(map(res => res.data.job));

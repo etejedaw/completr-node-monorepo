@@ -11,17 +11,16 @@ import {
 
 import { type PlatinumEntry } from "../../../../core/models";
 import {
-	type CalendarAgendaItem,
 	CalendarDayTemplate,
 	isSameMonth,
 	MonthCalendar,
 	shortDate
 } from "../../../../shared/components/month-calendar/month-calendar";
+import { type CalendarAgendaItem } from "../../../../shared/components/month-calendar/month-calendar.model";
+import { type DatedPlatinum } from "./platinum-calendar.model";
 
 const MAX_CHIPS = 3;
 const PLATINUM_DOT = "bg-platinum";
-
-type DatedPlatinum = PlatinumEntry & { platinumedAt: string };
 
 function parseDateOnly(iso: string): Date {
 	const [year, month, day] = iso.split("T")[0].split("-").map(Number);

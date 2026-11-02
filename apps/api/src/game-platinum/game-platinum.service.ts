@@ -1,4 +1,4 @@
-import { literal, type Order, type Transaction } from "sequelize";
+import { literal, Op, type Order, type Transaction } from "sequelize";
 
 import { Backlog } from "../backlog/backlog.model";
 import * as backlogService from "../backlog/backlog.service";
@@ -13,13 +13,9 @@ import * as gamesService from "../games/games.service";
 import { Platform } from "../platforms/platform.model";
 import * as platformsService from "../platforms/platforms.service";
 import * as gamePlatinumServiceError from "./errors/game-platinum.service-error";
+import { type UpsertedGamePlatinum } from "./game-platinum.interface";
 import { GamePlatinum } from "./game-platinum.model";
 import { type UpsertGamePlatinumDto } from "./upsert-game-platinum.dto";
-
-export interface UpsertedGamePlatinum {
-	platinum: GamePlatinum;
-	created: boolean;
-}
 
 async function resolveRunPlatformId(
 	userId: string,
@@ -204,4 +200,29 @@ export async function findPlatinumsForExport(
 		],
 		order: LATEST_PLATINUMS_FIRST
 	});
+}
+
+export async function countPlatinumsByUserIdAndYear(
+	userId: string,
+	year: number
+): Promise<number> {
+	return GamePlatinum.count({
+		where: {
+			userId,
+			platinumedAt: { [Op.between]: [`${year}-01-01`, `${year}-12-31`] }
+		}
+	});
+}
+
+export async function existsByGameId(
+	gameId: string,
+	transaction?: Transaction
+) {
+	return (
+		(await GamePlatinum.findOne({
+			where: { gameId: gameId },
+			attributes: ["id"],
+			transaction
+		})) !== null
+	);
 }

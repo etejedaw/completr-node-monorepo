@@ -49,5 +49,8 @@ export function gamesDomainToHttpMapper(
 	if (error.code === "GAME_IN_USE")
 		return new HttpError({ ...baseOptions, status: 409 });
 
+	if (error.code === "GAME_EXTERNAL_DATA_SOURCE_UNAVAILABLE")
+		return new HttpError({ ...baseOptions, status: 503 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

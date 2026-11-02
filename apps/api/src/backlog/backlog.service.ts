@@ -26,7 +26,16 @@ import * as queueService from "../queue/queue.service";
 import * as reviewsService from "../reviews/reviews.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { User } from "../users/user.model";
+import {
+	type BacklogHighlight,
+	type BacklogStats,
+	type BacklogSummary,
+	type CreatedBacklog,
+	type MonthlyCount,
+	type RatingBucket
+} from "./backlog.interface";
 import { Backlog, type BacklogStatus } from "./backlog.model";
+import { type BacklogFields, type BacklogReview } from "./backlog.types";
 import { type RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { type UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import * as backlogServiceError from "./errors/backlog.service-error";
@@ -62,20 +71,6 @@ async function assertCompilationContext(
 		))
 	)
 		throw backlogServiceError.compilationContextInvalidError();
-}
-
-type BacklogFields = Omit<
-	RegisterBacklogDto,
-	"addToQueue" | "addToShelf" | "moodTags" | "review" | "progressNote"
->;
-
-type BacklogReview = NonNullable<RegisterBacklogDto["review"]>;
-
-export interface CreatedBacklog {
-	backlog: Backlog;
-	reviewCreated: boolean;
-	addedToQueue: boolean;
-	addedToShelf: boolean;
 }
 
 async function insertBacklog(
@@ -232,13 +227,6 @@ export async function findGameIdsInBacklogByUser(
 	return rows.map(row => row.gameId);
 }
 
-export interface BacklogSummary {
-	gameId: string;
-	status: string;
-	score: number | null;
-	realDuration: number | null;
-}
-
 export async function findBacklogSummariesByUserAndGameIds(
 	userId: string,
 	gameIds: string[],
@@ -331,6 +319,64 @@ export async function createNotStartedBacklog(
 		{ userId, gameId, platformId, status: "not_started" },
 		{ transaction }
 	);
+}
+
+const QUEUE_PLATFORM_ATTRS = ["id", "abbreviation"];
+
+export function buildQueueBacklogInclude(search?: string, publicOnly = false) {
+	const titleWhere = search
+		? buildTextSearchWhere(search, ["Backlog->Game.title"])
+		: null;
+	if (titleWhere) {
+		return [
+			{
+				model: Backlog,
+				required: true,
+				where: publicOnly ? { isPublic: true } : undefined,
+				include: [
+					{
+						model: Game,
+						required: true,
+						attributes: BACKLOG_GAME_ATTRS,
+						where: titleWhere
+					},
+					{ model: Platform, attributes: QUEUE_PLATFORM_ATTRS }
+				]
+			}
+		];
+	}
+
+	return [
+		{
+			model: Backlog,
+			...(publicOnly && { required: true, where: { isPublic: true } }),
+			include: [
+				{ model: Game, attributes: BACKLOG_GAME_ATTRS },
+				{ model: Platform, attributes: QUEUE_PLATFORM_ATTRS }
+			]
+		}
+	];
+}
+
+export function buildQueueExportBacklogInclude(search?: string) {
+	const titleWhere = search
+		? buildTextSearchWhere(search, ["Backlog->Game.title"])
+		: null;
+	return [
+		{
+			model: Backlog,
+			attributes: ["id", "status", "score", "duration"],
+			required: titleWhere !== null,
+			include: [
+				{
+					model: Game,
+					attributes: ["id", "title"],
+					...(titleWhere && { required: true, where: titleWhere })
+				},
+				{ model: Platform, attributes: ["id", "name"] }
+			]
+		}
+	];
 }
 
 function buildIncludes(filters: BacklogQuery) {
@@ -476,55 +522,6 @@ export async function countBacklogByStatusForUsers(
 		counts.total += n;
 	}
 	return countsByUser;
-}
-
-export interface BacklogHighlightGame {
-	id: string;
-	code: string;
-	title: string;
-	backgroundUrl: string | null;
-}
-
-export interface BacklogHighlight {
-	backlogId: string;
-	game: BacklogHighlightGame;
-	value: number;
-}
-
-export interface BacklogStats {
-	totalEntries: number;
-	countByStatus: {
-		not_started: number;
-		playing: number;
-		completed: number;
-		abandoned: number;
-		endless: number;
-	};
-	totalRealHours: number | null;
-	avgRealDuration: number | null;
-	avgEstimatedDuration: number | null;
-	avgScore: number | null;
-	avgUserRating: number | null;
-	avgRatio: number | null;
-	avgPersonalRatio: number | null;
-	estimatedVsRealDelta: number | null;
-	completionRate: number | null;
-	abandonmentRate: number | null;
-	longestPlayed: BacklogHighlight | null;
-	bestPersonalRatio: BacklogHighlight | null;
-	highestRated: BacklogHighlight | null;
-	ratingDistribution: RatingBucket[];
-	completionsByMonth: MonthlyCount[];
-}
-
-export interface RatingBucket {
-	stars: number;
-	count: number;
-}
-
-export interface MonthlyCount {
-	month: string;
-	count: number;
 }
 
 const RATING_STARS = [5, 4, 3, 2, 1];
@@ -1125,6 +1122,54 @@ export async function findLatestCompletedDurations(
 	return map;
 }
 
+const REWIND_GAME_ATTRS = [
+	"id",
+	"code",
+	"title",
+	"coverUrl",
+	"backgroundUrl",
+	"releaseAt"
+];
+const REWIND_RUN_ATTRS = [
+	"id",
+	"gameId",
+	"status",
+	"startedAt",
+	"finishedAt",
+	"realDuration",
+	"duration",
+	"score",
+	"userRating",
+	"createdAt"
+];
+
+export async function findDatedRunsByUserId(
+	userId: string,
+	options: { publicOnly: boolean; includeNotes?: boolean }
+) {
+	return Backlog.findAll({
+		where: {
+			userId,
+			...(options.publicOnly && { isPublic: true }),
+			[Op.or]: [
+				{ startedAt: { [Op.ne]: null } },
+				{
+					status: ["completed", "abandoned"],
+					finishedAt: { [Op.ne]: null }
+				}
+			]
+		},
+		attributes: options.includeNotes
+			? [...REWIND_RUN_ATTRS, "notes"]
+			: REWIND_RUN_ATTRS,
+		include: [
+			{ model: Game, attributes: REWIND_GAME_ATTRS },
+			{ model: Platform, attributes: BACKLOG_PLATFORM_ATTRS }
+		],
+		order: [["id", "ASC"]]
+	});
+}
+
 export async function removeBacklog(id: string, userId: string) {
 	const backlogEntry = await Backlog.findOne({
 		where: { id },
@@ -1140,4 +1185,197 @@ export async function removeBacklog(id: string, userId: string) {
 		await queueService.compactPositions(userId, transaction);
 	});
 	return true;
+}
+
+const COOP_PEER_USER_INCLUDE = [
+	{
+		model: User,
+		attributes: ["id", "username", "name", "avatarUrl"]
+	}
+];
+
+export async function findCoopMembership(coopRunId: string, userId: string) {
+	return Backlog.findOne({ where: { coopRunId, userId } });
+}
+
+export async function findCoopBacklogForTarget(
+	filters: {
+		id: string;
+		userId: string;
+		gameId: string;
+		platformId: string | null;
+	},
+	transaction: Transaction
+) {
+	return Backlog.findOne({ where: filters, transaction });
+}
+
+export async function findOpenCoopCandidate(
+	userId: string,
+	gameId: string,
+	platformId: string | null,
+	transaction: Transaction
+) {
+	return Backlog.findOne({
+		where: {
+			userId,
+			gameId,
+			platformId,
+			status: { [Op.in]: ["playing", "not_started", "endless"] },
+			coopRunId: null
+		},
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		],
+		transaction
+	});
+}
+
+export async function createCoopBacklog(
+	values: {
+		userId: string;
+		gameId: string;
+		platformId: string | null;
+		score: number | null;
+		duration: number | null;
+		coopRunId: string;
+	},
+	transaction: Transaction
+) {
+	return Backlog.create({ ...values, status: "playing" }, { transaction });
+}
+
+export async function findBacklogCandidatesForCoop(
+	userId: string,
+	gameId: string,
+	platformId: string | null
+) {
+	return Backlog.findAll({
+		where: { userId, gameId, platformId },
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		],
+		attributes: [
+			"id",
+			"status",
+			"startedAt",
+			"finishedAt",
+			"realDuration",
+			"coopRunId"
+		]
+	});
+}
+
+export async function countBacklogsInCoopRun(coopRunId: string) {
+	return Backlog.count({ where: { coopRunId } });
+}
+
+export async function findAnyBacklogInCoopRun(coopRunId: string) {
+	return Backlog.findOne({ where: { coopRunId } });
+}
+
+export async function findBacklogInCoopRun(id: string, coopRunId: string) {
+	return Backlog.findOne({ where: { id, coopRunId } });
+}
+
+export async function findCoopPeersWithUser(
+	coopRunId: string,
+	excludedBacklogId: string
+) {
+	return Backlog.findAll({
+		where: { coopRunId, id: { [Op.ne]: excludedBacklogId } },
+		include: COOP_PEER_USER_INCLUDE
+	});
+}
+
+export async function findBacklogsInCoopRunsByIds(ids: string[]) {
+	return Backlog.findAll({
+		where: { id: { [Op.in]: ids }, coopRunId: { [Op.ne]: null } },
+		attributes: ["id", "coopRunId"]
+	});
+}
+
+export async function findBacklogsOfCoopRunsWithUser(coopRunIds: string[]) {
+	return Backlog.findAll({
+		where: { coopRunId: { [Op.in]: coopRunIds } },
+		include: COOP_PEER_USER_INCLUDE
+	});
+}
+
+export async function findCoopBacklogsOfUsersForGame(
+	gameId: string,
+	userIds: string[]
+) {
+	return Backlog.findAll({
+		where: {
+			gameId,
+			coopRunId: { [Op.ne]: null },
+			userId: { [Op.in]: userIds }
+		},
+		include: COOP_PEER_USER_INCLUDE
+	});
+}
+
+export async function clearCoopRunFromBacklogs(coopRunIds: string[]) {
+	await Backlog.update(
+		{ coopRunId: null },
+		{ where: { coopRunId: { [Op.in]: coopRunIds } } }
+	);
+}
+
+export async function existsByGameId(
+	gameId: string,
+	transaction?: Transaction
+) {
+	return (
+		(await Backlog.findOne({
+			where: { gameId: gameId },
+			attributes: ["id"],
+			transaction
+		})) !== null
+	);
+}
+
+export async function existsByCompilationGameId(
+	gameId: string,
+	transaction?: Transaction
+) {
+	return (
+		(await Backlog.findOne({
+			where: { compilationGameId: gameId },
+			attributes: ["id"],
+			transaction
+		})) !== null
+	);
+}
+
+const MONTHS_IN_YEAR = 12;
+
+export async function countRunsAddedByMonth(
+	userId: string,
+	year: number,
+	visibility: { publicOnly: boolean }
+): Promise<number[]> {
+	const rows = await sequelize.query<{ month: number; count: number }>(
+		`SELECT EXTRACT(MONTH FROM "createdAt" AT TIME ZONE 'UTC')::int AS month,
+		        COUNT(*)::int AS count
+		 FROM "Backlogs"
+		 WHERE "userId" = :userId
+		   AND "createdAt" >= make_timestamptz(:year, 1, 1, 0, 0, 0, 'UTC')
+		   AND "createdAt" < make_timestamptz(:year + 1, 1, 1, 0, 0, 0, 'UTC')
+		   AND ("createdAt" AT TIME ZONE 'UTC')::date <> (
+		     SELECT MIN("createdAt" AT TIME ZONE 'UTC')::date
+		     FROM "Backlogs"
+		     WHERE "userId" = :userId
+		   )
+		   ${visibility.publicOnly ? `AND "isPublic" = true` : ""}
+		 GROUP BY month`,
+		{ replacements: { userId, year }, type: QueryTypes.SELECT }
+	);
+
+	const counts = Array.from({ length: MONTHS_IN_YEAR }, () => 0);
+	for (const row of rows) counts[row.month - 1] = row.count;
+	return counts;
 }

@@ -3,7 +3,8 @@ import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 
 import { ViewportService } from "../../../core/services/viewport";
-import { OptionPicker, type PickerOption } from "./option-picker";
+import { OptionPicker } from "./option-picker";
+import { type PickerOption } from "./option-picker.model";
 
 const options: PickerOption[] = [
 	{ value: "", label: "All", icon: "apps", count: 10 },

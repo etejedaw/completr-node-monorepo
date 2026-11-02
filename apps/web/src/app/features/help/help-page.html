@@ -456,6 +456,20 @@
 				</li>
 				}
 			</ul>
+			<p
+				class="m-0 mt-4 flex items-start gap-2 max-w-[68ch] text-sm text-fg-muted leading-relaxed"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-brand"
+					>download</span
+				>
+				My Games, Up Next, My Shelf, Want to Get, Favorites and
+				Platinums can be downloaded as CSV from the Export menu at the
+				end of their toolbar, and your own lists from their ⋯ menu. The
+				file follows the filters, search and sort you have active. JSON
+				is a Premium perk.
+			</p>
 		</section>
 
 		<section
@@ -515,8 +529,8 @@
 					<dd
 						class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed"
 					>
-						Shows up as a tab at the top of My Games, so you can
-						switch with one click.
+						Listed in the View menu next to the search bar in My
+						Games, so you can switch to it from there.
 					</dd>
 				</div>
 			</dl>
@@ -536,6 +550,164 @@
 		</section>
 
 		<section
+			id="rewind"
+			aria-labelledby="rewind-title"
+			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
+			appInView
+			inViewRootMargin="-30% 0px -65% 0px"
+			(inViewChange)="scrollSpy.onSectionInView('rewind', $event)"
+		>
+			<span
+				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+				>07 · Rewind</span
+			>
+			<h2
+				id="rewind-title"
+				class="font-display m-0 mt-1 text-2xl sm:text-3xl font-bold tracking-tight"
+			>
+				Your year in games, once a year
+			</h2>
+			<p
+				class="m-0 mt-4 max-w-[68ch] text-[1.0625rem] leading-relaxed text-fg-secondary"
+			>
+				Rewind is a summary of one calendar year of your runs: the games
+				you
+				<strong class="text-fg">finished, dropped and started</strong>,
+				the hours you played, your highlights, a persona that sums up
+				how you played, a month-by-month timeline and a few charts. You
+				get one Rewind per year.
+			</p>
+			<dl class="m-0 mt-6 grid gap-3 sm:grid-cols-2 max-w-3xl">
+				<div class="p-4 rounded-card border border-line bg-surface/40">
+					<dt
+						class="flex items-center gap-2 text-sm font-semibold text-fg"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base text-brand"
+							>auto_awesome</span
+						>
+						You generate it
+					</dt>
+					<dd
+						class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed"
+					>
+						Nothing happens on its own. From your profile, press
+						<strong class="text-fg">Generate your Rewind</strong>.
+						Until then nobody else can see that year.
+					</dd>
+				</div>
+				<div class="p-4 rounded-card border border-line bg-surface/40">
+					<dt
+						class="flex items-center gap-2 text-sm font-semibold text-fg"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base text-brand"
+							>event</span
+						>
+						When it opens
+					</dt>
+					<dd
+						class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed"
+					>
+						The current year opens on 1 December. Earlier years are
+						available too, but only from the year you joined and
+						only if you have games started or finished in them. From
+						1 December to 31 January that year's Rewind is featured
+						on your profile.
+					</dd>
+				</div>
+				<div class="p-4 rounded-card border border-line bg-surface/40">
+					<dt
+						class="flex items-center gap-2 text-sm font-semibold text-fg"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base text-brand"
+							>translate</span
+						>
+						Language
+					</dt>
+					<dd
+						class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed"
+					>
+						Pick English or Spanish when you generate it. Everyone
+						who opens your Rewind reads it in that language.
+					</dd>
+				</div>
+				<div class="p-4 rounded-card border border-line bg-surface/40">
+					<dt
+						class="flex items-center gap-2 text-sm font-semibold text-fg"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base text-brand"
+							>autorenew</span
+						>
+						Regenerating
+					</dt>
+					<dd
+						class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed"
+					>
+						Each year can be regenerated once. From 1 to 7 January
+						of the following year you get one extra regeneration on
+						top of that.
+					</dd>
+				</div>
+				<div class="p-4 rounded-card border border-line bg-surface/40">
+					<dt
+						class="flex items-center gap-2 text-sm font-semibold text-fg"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base text-brand"
+							>ios_share</span
+						>
+						Sharing
+					</dt>
+					<dd
+						class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed"
+					>
+						Every Rewind has an image made for stories and a link
+						preview. Use Share, Download or Copy link from the
+						Rewind page.
+					</dd>
+				</div>
+				<div class="p-4 rounded-card border border-line bg-surface/40">
+					<dt
+						class="flex items-center gap-2 text-sm font-semibold text-fg"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base text-premium"
+							>workspace_premium</span
+						>
+						Premium extras
+					</dt>
+					<dd
+						class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed"
+					>
+						An AI-written summary and extra charts. When generating,
+						two switches decide whether it includes your private
+						runs and uses your notes.
+					</dd>
+				</div>
+			</dl>
+			<a
+				uiButton
+				variant="secondary"
+				[routerLink]="rewindLink()"
+				class="mt-5"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>history</span
+				>
+				Open my Rewinds
+			</a>
+		</section>
+
+		<section
 			id="privacy"
 			aria-labelledby="privacy-title"
 			class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
@@ -545,7 +717,7 @@
 		>
 			<span
 				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-				>07 · Privacy</span
+				>08 · Privacy</span
 			>
 			<h2
 				id="privacy-title"
@@ -557,8 +729,9 @@
 				class="m-0 mt-4 max-w-[68ch] text-[1.0625rem] leading-relaxed text-fg-secondary"
 			>
 				Choose a level for your whole profile, or fine-tune each section
-				on its own: My Games, My Shelf, Lists, Up Next, Want to Get,
-				Favorites and your activity in other people's feeds.
+				on its own: My Games, My Shelf, Platinums, Sagas, Rewind, Up
+				Next, Want to Get, Favorites, Lists and your activity in other
+				people's feeds.
 			</p>
 			<ul class="m-0 mt-6 p-0 list-none grid gap-3 sm:grid-cols-3">
 				<li class="p-4 rounded-card border border-line bg-surface/40">
@@ -570,7 +743,7 @@
 							class="material-icons text-base text-success"
 							>public</span
 						>
-						Public
+						Everyone
 					</span>
 					<p
 						class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed"
@@ -604,13 +777,13 @@
 							class="material-icons text-base text-fg-muted"
 							>lock</span
 						>
-						Private
+						Only you
 					</span>
 					<p
 						class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed"
 					>
-						Only you. Hidden sections don't appear on your profile
-						at all.
+						Hidden from everyone else. Hidden sections don't appear
+						on your profile at all.
 					</p>
 				</li>
 			</ul>

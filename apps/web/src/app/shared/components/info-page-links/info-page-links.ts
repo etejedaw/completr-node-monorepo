@@ -6,15 +6,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-export type InfoPageId = "help" | "whats-new" | "about" | "privacy";
-
-interface InfoPageLink {
-	id: InfoPageId;
-	route: string;
-	icon: string;
-	label: string;
-	hint: string;
-}
+import { type InfoPageId, type InfoPageLink } from "./info-page-links.model";
 
 const INFO_PAGE_LINKS: readonly InfoPageLink[] = [
 	{

@@ -68,6 +68,13 @@ const publicProfileRoutes: Routes = [
 			)
 	},
 	{
+		path: "user/:username/lists",
+		loadComponent: () =>
+			import("./features/public-profile/user-lists/user-lists").then(
+				m => m.UserLists
+			)
+	},
+	{
 		path: "user/:username/reviews",
 		loadComponent: () =>
 			import("./features/public-profile/user-reviews/user-reviews").then(
@@ -96,6 +103,20 @@ const publicProfileRoutes: Routes = [
 		loadComponent: () =>
 			import("./features/public-profile/user-connections/user-connections").then(
 				m => m.UserConnections
+			)
+	},
+	{
+		path: "user/:username/rewind",
+		loadComponent: () =>
+			import("./features/rewind/rewind-archive/rewind-archive").then(
+				m => m.RewindArchive
+			)
+	},
+	{
+		path: "user/:username/rewind/:year",
+		loadComponent: () =>
+			import("./features/rewind/rewind-detail/rewind-detail").then(
+				m => m.RewindDetail
 			)
 	},
 	{
@@ -227,6 +248,13 @@ export const routes: Routes = [
 				loadComponent: () =>
 					import("./features/games/game-detail/game-detail").then(
 						m => m.GameDetail
+					)
+			},
+			{
+				path: "franchises",
+				loadComponent: () =>
+					import("./features/franchises/franchise-overview/franchise-overview").then(
+						m => m.FranchiseOverview
 					)
 			},
 			{
@@ -379,6 +407,14 @@ export const routes: Routes = [
 				loadComponent: () =>
 					import("./features/admin/admin-jobs/admin-jobs").then(
 						m => m.AdminJobs
+					)
+			},
+			{
+				path: "admin/promotions",
+				canActivate: [adminGuard],
+				loadComponent: () =>
+					import("./features/admin/admin-promotions/admin-promotions").then(
+						m => m.AdminPromotions
 					)
 			},
 			{

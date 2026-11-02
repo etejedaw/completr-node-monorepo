@@ -1,7 +1,7 @@
 import { inject, signal } from "@angular/core";
 
 import { ToastService } from "../../core/services/toast";
-import { type UserResult } from "../../core/services/users";
+import { type UserResult } from "../../core/services/users.model";
 import { PublicSocialService } from "../public-profile/services/public-social.service";
 import { type FollowState } from "./user-card/user-card";
 

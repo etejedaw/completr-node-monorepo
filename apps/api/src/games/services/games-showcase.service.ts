@@ -1,7 +1,7 @@
 import { QueryTypes } from "sequelize";
 
 import { sequelize } from "../../database/sequelize.database";
-import { type ShowcaseGameRow } from "../games.interface";
+import { type CachedShowcase, type ShowcaseGameRow } from "../games.interface";
 import {
 	CANONICAL_DURATION_SUBQUERY,
 	CANONICAL_SCORE_SUBQUERY
@@ -10,11 +10,6 @@ import {
 const SHOWCASE_SIZE = 21;
 const SHOWCASE_POOL_SIZE = 80;
 const SHOWCASE_CACHE_TTL_MS = 30 * 60 * 1000;
-
-interface CachedShowcase {
-	games: ShowcaseGameRow[];
-	fetchedAt: number;
-}
 
 let cachedShowcase: CachedShowcase | null = null;
 let inflightShowcase: Promise<ShowcaseGameRow[]> | null = null;

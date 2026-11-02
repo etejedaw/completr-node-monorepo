@@ -1,53 +1,15 @@
 import { type VisibilityLevel } from "../../../core/models/user.model";
 import { NAV_SECTIONS } from "../../../layout/nav-sections";
-import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control";
-
-export type SectionVisibilityKey =
-	| "backlogVisibility"
-	| "shelfVisibility"
-	| "listVisibility"
-	| "queueVisibility"
-	| "wishlistVisibility"
-	| "favoriteVisibility"
-	| "feedVisibility"
-	| "platinumVisibility";
-
-export interface PrivacyDraft extends Record<
-	SectionVisibilityKey | "profileVisibility",
-	VisibilityLevel
-> {
-	acceptFollowRequests: boolean;
-}
-
-interface PrivacySectionDisplay {
-	title: string;
-	icon: string;
-	iconColor: string;
-}
-
-interface PrivacySectionConfig {
-	key: SectionVisibilityKey;
-	description: string;
-	route?: string;
-	display?: PrivacySectionDisplay;
-}
-
-export interface PrivacySection
-	extends Omit<PrivacySectionConfig, "display">, PrivacySectionDisplay {}
-
-interface PrivacySectionGroup<T> {
-	title: string;
-	sections: T[];
-}
-
-export type PrivacyMode = VisibilityLevel | "custom";
-
-export interface PrivacyPreset {
-	value: PrivacyMode;
-	label: string;
-	icon: string;
-	description: string;
-}
+import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
+import {
+	type PrivacyMode,
+	type PrivacyPreset,
+	type PrivacySection,
+	type PrivacySectionConfig,
+	type PrivacySectionDisplay,
+	type PrivacySectionGroup,
+	type SectionVisibilityKey
+} from "./privacy-options.model";
 
 export const VISIBILITY_OPTIONS: SegmentedOption<VisibilityLevel>[] = [
 	{
@@ -126,6 +88,21 @@ const PRIVACY_SECTION_CONFIG: PrivacySectionGroup<PrivacySectionConfig>[] = [
 					title: "Platinums",
 					icon: "emoji_events",
 					iconColor: "text-platinum"
+				}
+			},
+			{
+				key: "franchiseVisibility",
+				route: "/franchises",
+				description: "The sagas you track, shown on your profile."
+			},
+			{
+				key: "rewindVisibility",
+				description:
+					"Your yearly Rewind: games finished, hours played and highlights.",
+				display: {
+					title: "Rewind",
+					icon: "history",
+					iconColor: "text-brand"
 				}
 			}
 		]

@@ -9,17 +9,33 @@ import * as gamesService from "../games/games.service";
 import { type RegisterFranchiseDto } from "./dtos/register-franchise.dto";
 import { type UpdateFranchiseDto } from "./dtos/update-franchise.dto";
 import * as franchiseDomainError from "./errors/franchises.domain-error";
+import { franchiseSummarySerializer } from "./franchises.serializer";
 import * as franchiseService from "./franchises.service";
 import { type FranchiseCodeParam } from "./schemas/franchise-code-params.schema";
 import { type FranchiseIdParam } from "./schemas/franchise-id-params.schema";
 
-const COMPLETED_STATUSES = ["completed", "abandoned", "endless"];
-
 export async function getAllFranchises(request: Request, response: Response) {
 	const query = request.locals.query as PaginatedSearchQuery;
+	const viewer = request.locals.user as RequestUser | undefined;
 
 	const { rows, total } = await franchiseService.findAllFranchises(query);
-	const franchises = rows.map(franchise => franchise.get({ plain: true }));
+	const franchiseIds = rows.map(franchise => franchise.id);
+	const [gameCountByFranchise, trackedFranchiseIds] = await Promise.all([
+		gamesService.countActiveGamesByFranchiseIds(franchiseIds),
+		viewer
+			? franchiseService.findTrackedFranchiseIdsAmong(
+					viewer.id,
+					franchiseIds
+				)
+			: Promise.resolve(new Set<string>())
+	]);
+
+	const franchises = rows.map(franchise =>
+		franchiseSummarySerializer(franchise, {
+			gameCount: gameCountByFranchise.get(franchise.id) ?? 0,
+			isTracked: trackedFranchiseIds.has(franchise.id)
+		})
+	);
 
 	const data = { franchises, total };
 	return response.status(200).json({ data });
@@ -42,14 +58,7 @@ export async function getFranchiseByCode(request: Request, response: Response) {
 	]);
 
 	const pageGameIds = rows.map(game => game.id);
-	const [completed, statusMap, isTracked] = await Promise.all([
-		viewer
-			? backlogService.countDistinctGamesByUserStatusAndGameIds(
-					viewer.id,
-					allGameIds,
-					COMPLETED_STATUSES
-				)
-			: Promise.resolve(0),
+	const [statusMap, isTracked] = await Promise.all([
 		viewer
 			? buildStatusMap(viewer.id, pageGameIds)
 			: Promise.resolve(new Map<string, string>()),
@@ -66,7 +75,7 @@ export async function getFranchiseByCode(request: Request, response: Response) {
 	const data = {
 		franchise: franchise.get({ plain: true }),
 		games,
-		progress: { completed, total: allGameIds.length },
+		gameCount: allGameIds.length,
 		isTracked,
 		hasMore
 	};

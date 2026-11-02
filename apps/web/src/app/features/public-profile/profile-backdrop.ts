@@ -2,22 +2,12 @@ import { computed, inject, type Signal } from "@angular/core";
 import { rxResource } from "@angular/core/rxjs-interop";
 import { catchError, map, type Observable, of, switchMap } from "rxjs";
 
-import {
-	type PublicProfile,
-	PublicProfileService
-} from "./public-profile.service";
-import {
-	type PublicFavorite,
-	PublicLibraryService
-} from "./services/public-library.service";
+import { type ProfileBackdropSources } from "./profile-backdrop.model";
+import { PublicProfileService } from "./public-profile.service";
+import { type PublicFavorite } from "./services/public-library.model";
+import { PublicLibraryService } from "./services/public-library.service";
 
 export const PROFILE_FAVORITES_LIMIT = 8;
-
-export interface ProfileBackdropSources {
-	profile: Pick<PublicProfile, "backlogs" | "recentActivity"> | null;
-	favorites: readonly Pick<PublicFavorite, "game">[] | null;
-	showsFavorites: boolean;
-}
 
 export function pickProfileBackdrop({
 	profile,

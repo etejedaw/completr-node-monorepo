@@ -6,17 +6,13 @@ import {
 } from "@angular/core";
 
 import { type BacklogEntry } from "../../../../core/models";
-import { type BacklogStatusOption } from "../../../../shared/components/backlog-entry-card/backlog-entry-card";
+import { type BacklogStatusOption } from "../../../../shared/components/backlog-entry-card/backlog-entry-card.model";
 import { UiBottomSheet } from "../../../../shared/ui";
 import {
 	backlogStatusIcon,
 	backlogStatusIconColor
 } from "../../../../shared/utils/backlog-status";
-
-export interface EntryStatusSelection {
-	status: string;
-	event: Event;
-}
+import { type EntryStatusSelection } from "./entry-status-sheet.model";
 
 @Component({
 	selector: "app-entry-status-sheet",

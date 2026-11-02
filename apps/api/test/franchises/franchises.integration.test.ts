@@ -46,13 +46,81 @@ void describe("GET /franchises", () => {
 		);
 	});
 
-	void it("rejects an invalid token with 401 AUTH_INVALID_TOKEN", async () => {
+	void it("serves each franchise with its active game count and a preview of its first games by release date", async () => {
+		const franchise = await createFranchise({
+			name: `Preview ${randomUUID()}`
+		});
+		const games = await Promise.all(
+			[2005, 2001, 2003, 2002, 2004].map(year =>
+				createFranchiseGame(franchise.id, {
+					releaseAt: new Date(`${year}-01-01`)
+				})
+			)
+		);
+		await createFranchiseGame(franchise.id, { isActive: false });
+
 		const response = await api()
 			.get("/franchises")
+			.query({ search: franchise.name });
+
+		assert.equal(response.status, 200);
+		const [summary] = response.body.data.franchises;
+		assert.equal(summary.id, franchise.id);
+		assert.equal(summary.gameCount, 5);
+		assert.equal(summary.isTracked, false);
+		assert.deepEqual(
+			summary.previewGames.map((game: { id: string }) => game.id),
+			[games[1]!.id, games[3]!.id, games[2]!.id, games[4]!.id]
+		);
+		assert.deepEqual(Object.keys(summary.previewGames[0]).sort(), [
+			"backgroundUrl",
+			"code",
+			"id",
+			"title"
+		]);
+	});
+
+	void it("marks only the franchises the viewer tracks", async () => {
+		const viewer = await createUserWithSession();
+		const prefix = randomUUID();
+		const tracked = await createFranchise({ name: `${prefix} A` });
+		await createFranchise({ name: `${prefix} B` });
+		await api()
+			.post(trackPath(tracked.code))
+			.set("Authorization", viewer.authorization);
+
+		const response = await api()
+			.get("/franchises")
+			.query({ search: prefix })
+			.set("Authorization", viewer.authorization);
+
+		assert.equal(response.status, 200);
+		assert.deepEqual(
+			response.body.data.franchises.map(
+				(franchise: { name: string; isTracked: boolean }) => [
+					franchise.name,
+					franchise.isTracked
+				]
+			),
+			[
+				[`${prefix} A`, true],
+				[`${prefix} B`, false]
+			]
+		);
+	});
+
+	void it("treats an invalid token as an anonymous visitor", async () => {
+		const franchise = await createFranchise({
+			name: `Anonymous ${randomUUID()}`
+		});
+
+		const response = await api()
+			.get("/franchises")
+			.query({ search: franchise.name })
 			.set("Authorization", "Bearer invalid");
 
-		assert.equal(response.status, 401);
-		assert.equal(response.body.type, "AUTH_INVALID_TOKEN");
+		assert.equal(response.status, 200);
+		assert.equal(response.body.data.franchises[0].isTracked, false);
 	});
 });
 
@@ -74,14 +142,12 @@ void describe("GET /franchises/:code", () => {
 			),
 			new Set(games.map(game => game.id))
 		);
-		assert.deepEqual(response.body.data.progress, {
-			completed: 0,
-			total: 2
-		});
+		assert.equal(response.body.data.gameCount, 2);
+		assert.equal(response.body.data.progress, undefined);
 		assert.equal(response.body.data.isTracked, false);
 	});
 
-	void it("reports the viewer's progress and backlog status per game", async () => {
+	void it("reports the viewer's backlog status per game", async () => {
 		const viewer = await createUserWithSession();
 		const franchise = await createFranchise();
 		const [completed, playing] = await Promise.all([
@@ -102,10 +168,7 @@ void describe("GET /franchises/:code", () => {
 			.set("Authorization", viewer.authorization);
 
 		assert.equal(response.status, 200);
-		assert.deepEqual(response.body.data.progress, {
-			completed: 1,
-			total: 3
-		});
+		assert.equal(response.body.data.gameCount, 3);
 		const statusByGame = new Map(
 			response.body.data.games.map(
 				(game: { id: string; backlogStatus: string | null }) => [
@@ -180,11 +243,16 @@ void describe("POST and DELETE /franchises/:code/track", () => {
 void describe("franchise management", () => {
 	void it("lets a moderator create a franchise with a slug code", async () => {
 		const moderator = await createUserWithSession("moderator");
+		const game = await createGame();
 
 		const response = await api()
 			.post("/franchises")
 			.set("Authorization", moderator.authorization)
-			.send({ name: "The Legend of Zelda", description: "Hyrule" });
+			.send({
+				name: "The Legend of Zelda",
+				description: "Hyrule",
+				gameIds: [game.id]
+			});
 
 		assert.equal(response.status, 201);
 		assert.equal(response.body.data.franchise.code, "the-legend-of-zelda");
@@ -194,11 +262,12 @@ void describe("franchise management", () => {
 	void it("rejects a duplicated name with 409 FRANCHISE_UNIQUE_CONSTRAINT", async () => {
 		const moderator = await createUserWithSession("moderator");
 		const existing = await createFranchise();
+		const game = await createGame();
 
 		const response = await api()
 			.post("/franchises")
 			.set("Authorization", moderator.authorization)
-			.send({ name: existing.name });
+			.send({ name: existing.name, gameIds: [game.id] });
 
 		assert.equal(response.status, 409);
 		assert.equal(response.body.type, "FRANCHISE_UNIQUE_CONSTRAINT");
@@ -356,21 +425,6 @@ void describe("franchise management with gameIds", () => {
 		assert.equal(detached?.franchiseId, null);
 	});
 
-	void it("detaches every game when gameIds is empty", async () => {
-		const moderator = await createUserWithSession("moderator");
-		const franchise = await createFranchise();
-		const game = await createFranchiseGame(franchise.id);
-
-		const response = await api()
-			.patch(`/franchises/${franchise.id}`)
-			.set("Authorization", moderator.authorization)
-			.send({ name: franchise.name, gameIds: [] });
-
-		assert.equal(response.status, 200);
-		const detached = await Game.findByPk(game.id);
-		assert.equal(detached?.franchiseId, null);
-	});
-
 	void it("leaves the games untouched when gameIds is omitted", async () => {
 		const moderator = await createUserWithSession("moderator");
 		const franchise = await createFranchise();
@@ -409,6 +463,44 @@ void describe("franchise management with gameIds", () => {
 			franchise.id
 		);
 		assert.equal((await Game.findByPk(candidate.id))?.franchiseId, null);
+	});
+
+	void it("rejects a franchise without games with 422 COMMON_SCHEMA_INVALID", async () => {
+		const moderator = await createUserWithSession("moderator");
+
+		for (const body of [
+			{ name: "No Games Field" },
+			{ name: "Empty Games", gameIds: [] }
+		]) {
+			const response = await api()
+				.post("/franchises")
+				.set("Authorization", moderator.authorization)
+				.send(body);
+
+			assert.equal(response.status, 422);
+			assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		}
+		assert.equal(
+			await Franchise.count({
+				where: { name: ["No Games Field", "Empty Games"] }
+			}),
+			0
+		);
+	});
+
+	void it("refuses to empty a franchise and keeps its games", async () => {
+		const moderator = await createUserWithSession("moderator");
+		const franchise = await createFranchise();
+		const game = await createFranchiseGame(franchise.id);
+
+		const response = await api()
+			.patch(`/franchises/${franchise.id}`)
+			.set("Authorization", moderator.authorization)
+			.send({ name: franchise.name, gameIds: [] });
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		assert.equal((await Game.findByPk(game.id))?.franchiseId, franchise.id);
 	});
 
 	void it("rejects a gameIds entry that is not a uuid with 422 COMMON_SCHEMA_INVALID", async () => {

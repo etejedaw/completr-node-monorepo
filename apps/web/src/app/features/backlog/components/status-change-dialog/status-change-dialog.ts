@@ -6,7 +6,6 @@ import {
 	output
 } from "@angular/core";
 
-import { type BacklogEntry, type BacklogStatus } from "../../../../core/models";
 import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/platinum-trophy";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import {
@@ -22,20 +21,7 @@ import {
 	backlogStatusIconColor,
 	backlogStatusLabel
 } from "../../../../shared/utils/backlog-status";
-
-export interface PendingStatusUpdate {
-	entry: BacklogEntry;
-	status: BacklogStatus;
-	startedAt: string;
-	finishedAt: string;
-	realDuration: string;
-	rating: number | null;
-	reviewToggle: boolean;
-	reviewContent: string;
-	notes: string;
-	markPlatinum: boolean;
-	platinumedAt: string;
-}
+import { type PendingStatusUpdate } from "./status-change-dialog.model";
 
 @Component({
 	selector: "app-status-change-dialog",

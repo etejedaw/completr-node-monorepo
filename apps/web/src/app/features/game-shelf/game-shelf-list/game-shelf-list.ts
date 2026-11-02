@@ -33,10 +33,8 @@ import {
 	matchesPlatform,
 	PlatformFilter
 } from "../../../shared/components/platform-filter/platform-filter";
-import {
-	type ViewModeOption,
-	ViewModeToggle
-} from "../../../shared/components/view-mode-toggle/view-mode-toggle";
+import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
+import { type ViewModeOption } from "../../../shared/components/view-mode-toggle/view-mode-toggle.model";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { UiButton, UiPremiumBadge, UiSearchBar } from "../../../shared/ui";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
@@ -46,9 +44,9 @@ import { GameShelfService } from "../game-shelf";
 import { GameShelfCalendar } from "../game-shelf-calendar/game-shelf-calendar";
 import {
 	GameShelfModal,
-	type GameShelfModalData,
 	type GameShelfModalResult
 } from "../game-shelf-modal/game-shelf-modal";
+import { type GameShelfModalData } from "../game-shelf-modal/game-shelf-modal.model";
 
 type ShelfViewMode = "grid" | "table" | "calendar";
 

@@ -12,7 +12,7 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type BacklogEntry, type Platform } from "../../../core/models";
-import { type SavedFilter } from "../saved-filters";
+import { type SavedFilter } from "../saved-filters.model";
 import { BacklogList } from "./backlog-list";
 
 const api = environment.apiUrl;
@@ -147,6 +147,8 @@ describe("BacklogList interaction", () => {
 			exportRequests.push(req.request);
 			return req.flush(new Blob(["gameTitle\n"], { type: "text/csv" }));
 		}
+		if (method === "GET" && url === `${api}/users/me/gift-offers`)
+			return req.flush({ data: { offers: [] } });
 		if (method === "PATCH" && entryMatch)
 			return patchBacklog(req, entryMatch[1]);
 		if (method === "DELETE" && entryMatch) {
@@ -194,7 +196,9 @@ describe("BacklogList interaction", () => {
 
 	function answerPending() {
 		for (let round = 0; round < 10; round++) {
-			const pending = httpTesting.match(() => true);
+			const pending = httpTesting
+				.match(() => true)
+				.filter(req => !req.cancelled);
 			if (pending.length === 0) return;
 			pending.forEach(answer);
 		}
@@ -311,8 +315,11 @@ describe("BacklogList interaction", () => {
 			expect(visibleTitles()).toEqual(["Hollow Knight"])
 		);
 
+		await user.click(screen.getByRole("button", { name: "Export" }));
 		await user.click(
-			screen.getByRole("button", { name: "Download My Games as CSV" })
+			within(
+				await screen.findByRole("menu", { name: "Export My Games" })
+			).getByRole("menuitem", { name: "Download CSV" })
 		);
 		answerPending();
 

@@ -1,9 +1,9 @@
 import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
-import { type ExportFormat } from "../common/interfaces/export-format.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type SearchQuery } from "../common/schemas/search-query.schema";
+import { type ExportFormat } from "../common/types/export-format.types";
 import { sendExport } from "../common/utils/send-export.util";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
 import { type DuplicateListDto } from "./dtos/duplicate-list.dto";

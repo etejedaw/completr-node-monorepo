@@ -6,21 +6,9 @@ import {
 	model
 } from "@angular/core";
 
-import {
-	OptionPicker,
-	type PickerOption
-} from "../option-picker/option-picker";
-
-export interface PlatformCount {
-	id: string;
-	label: string;
-	count: number;
-}
-
-interface PlatformRef {
-	id: string;
-	abbreviation: string;
-}
+import { OptionPicker } from "../option-picker/option-picker";
+import { type PickerOption } from "../option-picker/option-picker.model";
+import { type PlatformCount, type PlatformRef } from "./platform-filter.model";
 
 export const ANY_PLATFORM_ID = "any";
 

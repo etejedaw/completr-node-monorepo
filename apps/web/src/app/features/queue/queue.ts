@@ -3,26 +3,14 @@ import { inject, Injectable } from "@angular/core";
 import { map, switchMap } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type QueueEntry } from "../../core/models";
-import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
-
-interface QueueListResponse {
-	data: { queue: QueueEntry[]; total?: number };
-}
-
-interface QueueSingleResponse {
-	data: { queue: QueueEntry };
-}
-
-interface QueueBacklogIdsResponse {
-	data: { backlogIds: string[] };
-}
-
-export interface QueuePagination extends Record<string, Appendable> {
-	limit?: number;
-	offset?: number;
-	search?: string;
-}
+import { buildHttpParams } from "../../core/utils/http-params";
+import { moveIntoFullOrder } from "../../shared/utils/full-order";
+import {
+	type QueueBacklogIdsResponse,
+	type QueueListResponse,
+	type QueuePagination,
+	type QueueSingleResponse
+} from "./queue.model";
 
 @Injectable({ providedIn: "root" })
 export class QueueService {
@@ -77,11 +65,30 @@ export class QueueService {
 		);
 	}
 
+	moveToPosition(backlogId: string, position: number) {
+		return this.http
+			.patch<QueueListResponse>(`${this.baseUrl}/${backlogId}/position`, {
+				position
+			})
+			.pipe(map(res => res.data.queue));
+	}
+
+	moveWithinVisible(backlogId: string, visibleOrder: readonly string[]) {
+		return this.getMyQueueBacklogIds().pipe(
+			map(ids => {
+				const arranged = moveIntoFullOrder(
+					ids,
+					backlogId,
+					visibleOrder
+				);
+				return arranged.indexOf(backlogId) + 1;
+			}),
+			switchMap(position => this.moveToPosition(backlogId, position))
+		);
+	}
+
 	moveToTop(backlogId: string) {
-		return this.updateOrder(ids => [
-			backlogId,
-			...ids.filter(id => id !== backlogId)
-		]);
+		return this.moveToPosition(backlogId, 1);
 	}
 
 	removeByBacklogId(backlogId: string) {

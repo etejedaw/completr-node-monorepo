@@ -1,0 +1,321 @@
+<ui-dialog
+	eyebrow="Users · Premium"
+	heading="Premium access"
+	size="lg"
+	[subheading]="user().username + ' · Grants do not change the account role.'"
+	[dismissible]="!busy()"
+	(closed)="closed.emit()"
+>
+	<span
+		dialogLead
+		class="flex size-11 items-center justify-center rounded-full bg-premium/10 text-premium"
+	>
+		<span aria-hidden="true" class="material-icons text-2xl"
+			>workspace_premium</span
+		>
+	</span>
+
+	@if (isLoading()) {
+	<div
+		class="flex flex-col gap-4"
+		aria-busy="true"
+		aria-label="Loading premium access"
+	>
+		<ui-skeleton variant="rect" class="block h-32 w-full rounded-card" />
+		<ui-skeleton variant="rect" class="block h-48 w-full rounded-card" />
+	</div>
+	} @else if (loadError()) {
+	<ui-alert>
+		<div class="flex flex-wrap items-center gap-3">
+			<span>{{ loadError() }}</span>
+			<button uiButton size="sm" variant="secondary" (click)="load()">
+				Try again
+			</button>
+		</div>
+	</ui-alert>
+	} @else { @if (mutationError()) {
+	<ui-alert class="mb-4">{{ mutationError() }}</ui-alert>
+	} @if (successMessage()) {
+	<p
+		role="status"
+		class="m-0 mb-4 rounded-card border border-success/30 bg-success/10 px-3 py-2 text-sm text-success"
+	>
+		{{ successMessage() }}
+	</p>
+	}
+
+	<section
+		aria-labelledby="full-premium-heading"
+		class="rounded-card border border-premium/30 bg-premium/5 p-4"
+	>
+		<div class="mb-4">
+			<h2
+				id="full-premium-heading"
+				class="m-0 font-display text-base font-semibold text-premium"
+			>
+				Full premium
+			</h2>
+			<p class="m-0 mt-1 text-xs text-fg-secondary">
+				Unlock every feature until a fixed date. Permanent full premium
+				is not available.
+			</p>
+		</div>
+		<form
+			id="full-premium-form"
+			class="flex flex-col gap-3 sm:flex-row sm:items-end"
+			(submit)="createFull($event)"
+			novalidate
+		>
+			<div uiFormField class="min-w-0 flex-1">
+				<label uiLabel uiFieldLabel for="full-premium-expiration"
+					>Expires at</label
+				>
+				<input
+					id="full-premium-expiration"
+					uiInput
+					type="datetime-local"
+					[min]="minimumExpiration"
+					[formField]="fullForm.expiresAt"
+				/>
+				@if (fullForm.expiresAt().touched() &&
+				fullForm.expiresAt().invalid()) {
+				<p class="m-0 mt-1 text-xs text-danger">
+					{{ fullForm.expiresAt().errors()[0]?.message }}
+				</p>
+				}
+			</div>
+			<button
+				uiButton
+				variant="primary"
+				type="submit"
+				[disabled]="!!busy()"
+			>
+				{{ busy() === "create" ? "Granting..." : "Grant full premium" }}
+			</button>
+		</form>
+		<div class="mt-4 flex flex-col gap-3">
+			@for (grant of fullGrants(); track grant.id) {
+			<article class="rounded-card border border-line bg-surface p-3">
+				<div
+					class="mb-3 flex flex-wrap items-center justify-between gap-2"
+				>
+					<strong class="text-sm text-fg">Full premium</strong>
+					<span
+						class="rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold"
+						[class.bg-success/10]="isActive(grant)"
+						[class.text-success]="isActive(grant)"
+						[class.bg-fg-muted/10]="!isActive(grant)"
+						[class.text-fg-muted]="!isActive(grant)"
+						>{{ isActive(grant) ? "Active" : "Expired" }}</span
+					>
+				</div>
+				<p class="m-0 mb-3 text-xs text-fg-secondary">
+					Current expiration: {{ grant.expiresAt | date: "medium" }}
+				</p>
+				<div class="flex flex-col gap-2 sm:flex-row sm:items-end">
+					<div uiFormField class="min-w-0 flex-1">
+						<label
+							uiLabel
+							uiFieldLabel
+							[for]="'expiration-' + grant.id"
+							>New expiration</label
+						>
+						<input
+							uiInput
+							type="datetime-local"
+							[id]="'expiration-' + grant.id"
+							[min]="minimumExpiration"
+							[value]="toLocalInput(grant.expiresAt)"
+							#expiration
+						/>
+					</div>
+					<div class="flex gap-2">
+						<button
+							uiButton
+							size="sm"
+							variant="secondary"
+							type="button"
+							[disabled]="!!busy()"
+							(click)="extend(grant, expiration.value)"
+						>
+							Save date
+						</button>
+						<button
+							uiButton
+							size="sm"
+							variant="danger"
+							type="button"
+							[disabled]="!!busy()"
+							(click)="requestRevoke(grant)"
+						>
+							{{ pendingFullRevoke() === grant.id ? "Confirm
+							revoke" : "Revoke" }}
+						</button>
+					</div>
+				</div>
+			</article>
+			} @empty {
+			<p class="m-0 text-xs text-fg-muted">No full-premium grants yet.</p>
+			}
+		</div>
+	</section>
+
+	<section aria-labelledby="individual-features-heading" class="mt-5">
+		<div class="mb-3">
+			<h2
+				id="individual-features-heading"
+				class="m-0 font-display text-base font-semibold text-fg"
+			>
+				Individual features
+			</h2>
+			<p class="m-0 mt-1 text-xs text-fg-secondary">
+				Leave the date empty to grant one feature permanently.
+			</p>
+		</div>
+		<form
+			id="feature-grant-form"
+			class="grid grid-cols-1 gap-3 rounded-card border border-line bg-surface/60 p-3 sm:grid-cols-2"
+			(submit)="createFeature($event)"
+			novalidate
+		>
+			<div uiFormField>
+				<label uiLabel uiFieldLabel for="premium-feature"
+					>Feature</label
+				>
+				<select
+					uiSelect
+					id="premium-feature"
+					[formField]="featureForm.feature"
+				>
+					@for (feature of features(); track feature.feature) {
+					<option [value]="feature.feature">
+						{{ featureLabel(feature.feature) }}
+					</option>
+					}
+				</select>
+			</div>
+			<div uiFormField>
+				<label uiLabel uiFieldLabel for="feature-expiration"
+					>Expires at
+					<span class="font-normal text-fg-muted"
+						>(optional)</span
+					></label
+				>
+				<input
+					id="feature-expiration"
+					uiInput
+					type="datetime-local"
+					[min]="minimumExpiration"
+					[formField]="featureForm.expiresAt"
+				/>
+			</div>
+			<button
+				uiButton
+				variant="secondary"
+				type="submit"
+				class="sm:col-span-2 sm:justify-self-start"
+				[disabled]="!!busy()"
+			>
+				Grant feature
+			</button>
+		</form>
+		<div class="mt-3 flex flex-col gap-3">
+			@for (grant of individualGrants(); track grant.id) {
+			<article class="rounded-card border border-line bg-surface p-3">
+				<div
+					class="mb-3 flex flex-wrap items-center justify-between gap-2"
+				>
+					<div>
+						<h3 class="m-0 text-sm font-semibold text-fg">
+							{{ featureLabel(grant.feature) }}
+						</h3>
+						<p class="m-0 mt-0.5 text-xs text-fg-muted">
+							{{ grant.feature }} @if (grant.offerCode) {
+							<span> · Offer: {{ grant.offerCode }}</span>
+							}
+						</p>
+					</div>
+					<span
+						class="rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold"
+						[class.bg-success/10]="isActive(grant)"
+						[class.text-success]="isActive(grant)"
+						[class.bg-fg-muted/10]="!isActive(grant)"
+						[class.text-fg-muted]="!isActive(grant)"
+						>{{ isActive(grant) ? "Active" : "Expired" }}</span
+					>
+				</div>
+				<p class="m-0 mb-3 text-xs text-fg-secondary">
+					{{ grant.expiresAt ? (grant.expiresAt | date: "medium") :
+					"No expiration" }}
+				</p>
+				<div class="flex flex-col gap-2 sm:flex-row sm:items-end">
+					<div uiFormField class="min-w-0 flex-1">
+						<label
+							uiLabel
+							uiFieldLabel
+							[for]="'expiration-' + grant.id"
+							>New expiration</label
+						>
+						<input
+							uiInput
+							type="datetime-local"
+							[id]="'expiration-' + grant.id"
+							[min]="minimumExpiration"
+							[value]="toLocalInput(grant.expiresAt)"
+							#expiration
+						/>
+					</div>
+					<div class="flex gap-2">
+						<button
+							uiButton
+							size="sm"
+							variant="secondary"
+							type="button"
+							[disabled]="!!busy()"
+							(click)="extend(grant, expiration.value)"
+						>
+							Save date
+						</button>
+						<button
+							uiButton
+							size="sm"
+							variant="danger"
+							type="button"
+							[disabled]="!!busy()"
+							(click)="requestRevoke(grant)"
+						>
+							{{ pendingFullRevoke() === grant.id ? "Confirm
+							revoke" : "Revoke" }}
+						</button>
+					</div>
+				</div>
+			</article>
+			} @empty {
+			<div
+				class="rounded-card border border-dashed border-line px-4 py-6 text-center"
+			>
+				<p class="m-0 text-sm font-medium text-fg">
+					No individual grants
+				</p>
+				<p class="m-0 mt-1 text-xs text-fg-muted">
+					Choose a feature above to grant access without changing the
+					user's role.
+				</p>
+			</div>
+			}
+		</div>
+	</section>
+	}
+
+	<ng-container dialogFooter>
+		<button
+			uiButton
+			variant="ghost"
+			type="button"
+			[disabled]="!!busy()"
+			(click)="closed.emit()"
+		>
+			Done
+		</button>
+	</ng-container>
+</ui-dialog>

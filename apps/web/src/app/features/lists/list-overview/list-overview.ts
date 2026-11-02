@@ -13,6 +13,7 @@ import { debounceTime, of, Subject, switchMap } from "rxjs";
 import { type FollowingList, type List } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
+import { GiftOfferCard } from "../../../shared/components/gift-offer-card/gift-offer-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { ListCard } from "../../../shared/components/list-card/list-card";
@@ -26,17 +27,18 @@ import {
 	UiSkeleton
 } from "../../../shared/ui";
 import { injectLibraryPosters } from "../../backlog/library-posters";
+import { ListModal } from "../list-modal/list-modal";
 import {
-	ListModal,
 	type ListModalData,
 	type ListModalResult
-} from "../list-modal/list-modal";
+} from "../list-modal/list-modal.model";
 import { ListsService } from "../lists";
 
 @Component({
 	selector: "app-list-overview",
 	imports: [
 		NgTemplateOutlet,
+		GiftOfferCard,
 		LibraryHero,
 		LibraryToolbar,
 		ListCard,
@@ -112,6 +114,10 @@ export class ListOverview implements OnInit {
 		this.searchQuery.set(query);
 		if (query.length >= 2) this.isSearching.set(true);
 		this.searchSubject.next(query);
+	}
+
+	onGiftClaimed() {
+		this.loadLists();
 	}
 
 	openCreate() {

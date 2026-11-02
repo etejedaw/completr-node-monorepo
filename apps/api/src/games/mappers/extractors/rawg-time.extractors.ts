@@ -1,6 +1,6 @@
 import { type TimeSource } from "../../../game-times/game-time.model";
 import { type RawgGameDetail } from "../../../rawg/rawg.interface";
-import { type SourceValueExtractor } from "./source-value-extractor";
+import { type SourceValueExtractor } from "../../games.interface";
 
 export const RAWG_TIME_EXTRACTORS: readonly SourceValueExtractor<
 	RawgGameDetail,

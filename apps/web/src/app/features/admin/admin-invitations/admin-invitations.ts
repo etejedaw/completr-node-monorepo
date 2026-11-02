@@ -19,10 +19,8 @@ import {
 	UiInput,
 	UiLabel
 } from "../../../shared/ui";
-import {
-	type AdminInvitation,
-	InvitationAdminService
-} from "../services/invitation-admin.service";
+import { type AdminInvitation } from "../services/invitation-admin.model";
+import { InvitationAdminService } from "../services/invitation-admin.service";
 
 @Component({
 	selector: "app-admin-invitations",

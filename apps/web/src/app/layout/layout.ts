@@ -35,11 +35,8 @@ import {
 	UiSeparator
 } from "../shared/ui";
 import { GlobalSearch } from "./global-search/global-search";
-import {
-	NAV_ACTIVE_CLASSES,
-	type NavItem,
-	visibleNavSections
-} from "./nav-sections";
+import { NAV_ACTIVE_CLASSES, visibleNavSections } from "./nav-sections";
+import { type NavItem } from "./nav-sections.model";
 
 const SIDEBAR_COLLAPSED_KEY = "completr.sidebar.collapsed";
 const TABLET_QUERY = "(min-width: 768px) and (max-width: 1023px)";
@@ -166,10 +163,13 @@ export class Layout implements OnInit {
 	}
 
 	protected readonly roleBadge = computed(() =>
-		elevatedRoleBadge(this.user()?.role)
+		elevatedRoleBadge(this.user()?.role, this.isPremium())
 	);
 	protected readonly avatarRing = computed(() =>
-		avatarRing(this.user()?.role)
+		avatarRing(
+			this.user()?.role,
+			this.user()?.premiumAccess?.active ?? false
+		)
 	);
 
 	ngOnInit() {

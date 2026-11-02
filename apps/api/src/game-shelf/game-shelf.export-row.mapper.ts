@@ -1,4 +1,4 @@
-import { type ExportRow } from "../common/interfaces/export-row.interface";
+import { type ExportRow } from "../common/types/export-row.types";
 import { toIsoDateTime } from "../common/utils/to-iso-date-time.util";
 import { type GameShelf } from "./game-shelf.model";
 

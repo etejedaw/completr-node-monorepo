@@ -173,3 +173,16 @@ export async function deleteReview(id: string, userId: string) {
 
 	await review.destroy();
 }
+
+export async function existsByGameId(
+	gameId: string,
+	transaction?: Transaction
+) {
+	return (
+		(await Review.findOne({
+			where: { gameId: gameId },
+			attributes: ["id"],
+			transaction
+		})) !== null
+	);
+}

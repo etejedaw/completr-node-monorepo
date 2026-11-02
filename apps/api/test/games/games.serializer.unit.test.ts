@@ -291,10 +291,18 @@ void describe("friend activity and player serializers", () => {
 	void it("serializes the player status without rating or dates", () => {
 		assert.deepEqual(Object.keys(gamePlayerSerializer(entry)).sort(), [
 			"avatarUrl",
+			"hasPremium",
 			"name",
 			"role",
 			"status",
 			"username"
 		]);
+	});
+
+	void it("marks effective premium without changing the permanent role", () => {
+		const result = gamePlayerSerializer(entry, true);
+
+		assert.equal(result.role, "user");
+		assert.equal(result.hasPremium, true);
 	});
 });

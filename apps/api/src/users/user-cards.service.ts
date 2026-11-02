@@ -2,18 +2,15 @@ import { QueryTypes } from "sequelize";
 
 import * as backlogService from "../backlog/backlog.service";
 import { sequelize } from "../database/sequelize.database";
+import { findFullPremiumUserIds } from "../premium-access/premium-access.service";
 import * as userFollowersService from "../user-followers/user-followers.service";
 import { isSectionVisible } from "./helpers/visibility.helper";
 import { type User } from "./user.model";
-import { type UserCardInsights } from "./users.interface";
-
-type FeaturedGame = UserCardInsights["featuredGame"];
-
-interface FeaturedFavoriteRow {
-	userId: string;
-	title: string | null;
-	backgroundUrl: string | null;
-}
+import {
+	type FeaturedFavoriteRow,
+	type UserCardInsights
+} from "./users.interface";
+import { type FeaturedGame } from "./users.types";
 
 export async function buildUserCards(
 	viewerId: string | undefined,
@@ -36,21 +33,25 @@ export async function buildUserCards(
 		.filter(user => canSee(user, "favorite"))
 		.map(user => user.id);
 
-	const [followerCounts, backlogCounts, featuredGames] = await Promise.all([
-		userFollowersService.getFollowerCounts(
-			visibleUsers.map(user => user.id)
-		),
-		backlogService.countBacklogByStatusForUsers(backlogOwners),
-		findFeaturedFavorites(favoriteOwnerIds)
-	]);
+	const [followerCounts, backlogCounts, featuredGames, premiumUserIds] =
+		await Promise.all([
+			userFollowersService.getFollowerCounts(
+				visibleUsers.map(user => user.id)
+			),
+			backlogService.countBacklogByStatusForUsers(backlogOwners),
+			findFeaturedFavorites(favoriteOwnerIds),
+			findFullPremiumUserIds(users)
+		]);
 
 	return users.map(user => {
 		const isSelf = viewerId === user.id;
+		const hasPremium = premiumUserIds.has(user.id);
 		const profileVisible = canSee(user, "profile");
 		const isFollowing = !isSelf && edges.followingIds.has(user.id);
 		if (!profileVisible) {
 			return {
 				user,
+				hasPremium,
 				isSelf,
 				profileVisible,
 				followerCount: null,
@@ -64,6 +65,7 @@ export async function buildUserCards(
 		const backlogStats = backlogCounts.get(user.id);
 		return {
 			user,
+			hasPremium,
 			isSelf,
 			profileVisible,
 			followerCount: followerCounts.get(user.id) ?? 0,

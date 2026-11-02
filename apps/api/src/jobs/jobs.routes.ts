@@ -4,8 +4,9 @@ import { hiddenRouteMiddleware } from "../auth/hidden-route.middleware";
 import { userLimiter } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { JobIdParamSchema } from "./job-id-params.schema";
 import * as jobsController from "./jobs.controller";
+import { JobIdParamSchema } from "./schemas/job-id-params.schema";
+import { PopulateExternalDataQuerySchema } from "./schemas/populate-external-data-query.schema";
 
 const router = Router();
 
@@ -19,6 +20,16 @@ router.post(
 	"/admin/jobs/populate-rawg",
 	[rateLimiterMiddleware(userLimiter), hiddenRouteMiddleware()],
 	jobsController.postPopulateRawg
+);
+
+router.post(
+	"/admin/jobs/populate-external-data",
+	[
+		rateLimiterMiddleware(userLimiter),
+		hiddenRouteMiddleware(),
+		validateSchemaMiddleware(PopulateExternalDataQuerySchema, "query")
+	],
+	jobsController.postPopulateExternalData
 );
 
 router.post(

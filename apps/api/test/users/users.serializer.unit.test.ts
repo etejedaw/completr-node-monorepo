@@ -44,6 +44,8 @@ function buildUser(overrides: Record<string, unknown> = {}) {
 		shelfVisibility: "private",
 		listVisibility: "public",
 		platinumVisibility: "private",
+		franchiseVisibility: "private",
+		rewindVisibility: "private",
 		acceptFollowRequests: true,
 		theme: "refined-dark",
 		createdAt: new Date("2024-01-01"),
@@ -51,6 +53,12 @@ function buildUser(overrides: Record<string, unknown> = {}) {
 	};
 	return asModel<User>({ ...plain, get: () => plain });
 }
+
+const NO_FULL_PREMIUM = {
+	active: false,
+	source: null,
+	expiresAt: null
+} as const;
 
 const SENSITIVE = ["private@example.com", "hash"];
 
@@ -64,9 +72,9 @@ void describe("user serializers", () => {
 		const user = buildUser();
 
 		for (const serialized of [
-			userMeSerializer(user),
+			userMeSerializer(user, NO_FULL_PREMIUM, []),
 			userPublicSerializer(user),
-			userProfileSerializer(user),
+			userProfileSerializer(user, false),
 			userSummarySerializer(user)
 		]) {
 			assert.equal(leaksSensitiveData(serialized), false);
@@ -81,11 +89,19 @@ void describe("user serializers", () => {
 	});
 
 	void it("include every visibility setting and theme in the me serializer", () => {
-		const result = userMeSerializer(buildUser());
+		const result = userMeSerializer(buildUser(), NO_FULL_PREMIUM, []);
 
 		assert.equal(result.queueVisibility, "friends");
 		assert.equal(result.acceptFollowRequests, true);
 		assert.equal(result.theme, "refined-dark");
+	});
+
+	void it("exposes the premium features resolved for the user", () => {
+		const result = userMeSerializer(buildUser(), NO_FULL_PREMIUM, [
+			"themes.premium"
+		]);
+
+		assert.deepEqual(result.premiumFeatures, ["themes.premium"]);
 	});
 
 	void it("leave the public serializer with identity fields only", () => {
@@ -120,6 +136,7 @@ void describe("fullProfileSerializer", () => {
 		return {
 			kind: "full" as const,
 			user: buildUser(),
+			hasPremium: false,
 			isSelf,
 			backlogs: [buildBacklog()],
 			backlogTotal: 1,
@@ -145,7 +162,9 @@ void describe("fullProfileSerializer", () => {
 				backlog: true,
 				shelf: false,
 				list: true,
-				platinum: false
+				platinum: false,
+				franchise: false,
+				rewind: false
 			}
 		};
 	}
@@ -190,6 +209,7 @@ void describe("userCardSerializer", () => {
 		assert.equal(result.role, "premium");
 		assert.equal(result.username, "player");
 		assert.equal(result.completedTotal, 4);
+		assert.equal(result.hasPremium, false);
 		assert.equal(leaksSensitiveData(result), false);
 	});
 });

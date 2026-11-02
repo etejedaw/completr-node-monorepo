@@ -3,27 +3,8 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type UserRole, type VisibilityLevel } from "../models/user.model";
 import { buildHttpParams } from "../utils/http-params";
-
-export interface UserResult {
-	id: string;
-	username: string;
-	name: string;
-	avatarUrl: string | null;
-	profileVisibility: VisibilityLevel;
-	role?: UserRole;
-	isSelf?: boolean;
-	followerCount?: number | null;
-	isFollowing?: boolean;
-	gamesTotal?: number | null;
-	completedTotal?: number | null;
-	featuredGame?: { title: string; backgroundUrl: string | null } | null;
-}
-
-interface UsersResponse {
-	data: { users: UserResult[] };
-}
+import { type UsersResponse } from "./users.model";
 
 @Injectable({ providedIn: "root" })
 export class UsersService {

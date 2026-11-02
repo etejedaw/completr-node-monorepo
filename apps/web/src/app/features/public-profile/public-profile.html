@@ -38,7 +38,7 @@
 			<ui-avatar
 				[src]="profile()?.user?.avatarUrl"
 				[name]="profile()?.user?.username || username()"
-				[ring]="avatarRing(profile()?.user?.role)"
+				[ring]="avatarRing(profile()?.user?.role, profile()?.user?.hasPremium)"
 				class="w-28 h-28 text-4xl ring-4 ring-canvas shadow-2xl shadow-black/60"
 			/>
 			<span
@@ -119,7 +119,21 @@
 	(listsOpened)="scrollToLists()"
 />
 
-@if (visibility().favorites && (favoritesData()?.length ?? 0) > 0) {
+@if (rewindSpotlight(); as spotlight) {
+<app-profile-rewind-spotlight
+	class="mt-10"
+	[username]="username()"
+	[summary]="spotlight"
+	[isSelf]="isSelf()"
+	[premiumAccess]="rewindYears()?.premiumAccess ?? null"
+/>
+@if (isSelf()) {
+<app-gift-offer-card
+	feature="rewind.premium"
+	class="mt-4 block empty:hidden"
+	(claimed)="loadRewinds(username())"
+/>
+} } @if (visibility().favorites && (favoritesData()?.length ?? 0) > 0) {
 <section class="mt-10" aria-labelledby="favorites-heading">
 	<app-profile-section-header
 		heading="Favorite games"
@@ -204,7 +218,16 @@
 		/>
 		}
 	</app-poster-shelf>
-	} } }
+	} } } @if (pastRewinds().length > 0) { @defer (on viewport; prefetch on
+	idle) {
+	<app-profile-rewinds
+		[username]="username()"
+		[years]="pastRewinds()"
+		[premiumAccess]="rewindYears()?.premiumAccess ?? null"
+	/>
+	} @placeholder {
+	<div class="h-56"></div>
+	} }
 
 	<app-profile-reviews
 		[username]="username()"

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { afterEach, describe, it, mock } from "node:test";
+import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
 import * as backlogService from "../../src/backlog/backlog.service";
 import { sequelize } from "../../src/database/sequelize.database";
@@ -14,6 +14,7 @@ import {
 	spy,
 	stub
 } from "../unit-helpers/mocks";
+import { stubPremiumAccess } from "../unit-helpers/premium-access";
 
 const FREE_LIST_LIMIT = 5;
 const FREE_USER = buildRequestUser();
@@ -28,6 +29,10 @@ const registerDto = {
 function errorCode(error: unknown) {
 	return (error as { code: string }).code;
 }
+
+beforeEach(() => {
+	stubPremiumAccess();
+});
 
 function stubScoreSource(exists: boolean) {
 	return stub(scoreSourcesService, "existsByCode", async () => exists);

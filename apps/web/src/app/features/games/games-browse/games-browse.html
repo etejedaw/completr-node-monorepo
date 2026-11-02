@@ -5,17 +5,48 @@
 ></div>
 } @else if (featuredGames().length > 0) {
 <app-browse-hero [games]="featuredGames()" />
+} @if (isAdmin()) {
+<div class="flex justify-end mt-4 mb-2">
+	<button
+		uiButton
+		variant="secondary"
+		[attr.aria-expanded]="showCreateEditor()"
+		(click)="showCreateEditor.set(!showCreateEditor())"
+		[title]="showCreateEditor() ? 'Close editor' : 'Add a game to the catalog'"
+	>
+		<span aria-hidden="true" class="material-icons text-lg"
+			>{{ showCreateEditor() ? 'close' : 'add' }}</span
+		>
+		{{ showCreateEditor() ? 'Close' : 'Add game' }}
+	</button>
+</div>
 } } @else {
-<header class="mb-2">
-	<span
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Catalog</span
+<header class="mb-2 flex flex-wrap items-end justify-between gap-3">
+	<div>
+		<span
+			class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+			>Catalog</span
+		>
+		<h1
+			class="m-0 mt-1 font-display text-3xl sm:text-4xl font-bold tracking-tight"
+		>
+			Browse
+		</h1>
+	</div>
+	@if (isAdmin()) {
+	<button
+		uiButton
+		variant="secondary"
+		[attr.aria-expanded]="showCreateEditor()"
+		(click)="showCreateEditor.set(!showCreateEditor())"
+		[title]="showCreateEditor() ? 'Close editor' : 'Add a game to the catalog'"
 	>
-	<h1
-		class="m-0 mt-1 font-display text-3xl sm:text-4xl font-bold tracking-tight"
-	>
-		Browse
-	</h1>
+		<span aria-hidden="true" class="material-icons text-lg"
+			>{{ showCreateEditor() ? 'close' : 'add' }}</span
+		>
+		{{ showCreateEditor() ? 'Close' : 'Add game' }}
+	</button>
+	}
 </header>
 }
 
@@ -41,16 +72,6 @@
 			[placeholder]="genrePickerPlaceholder()"
 			(valueChange)="pickGenre($event)"
 		/>
-		<app-option-picker
-			class="max-md:hidden shrink-0"
-			variant="compact"
-			size="md"
-			label="Sort"
-			heading="Sort games by"
-			[options]="sortPickerOptions"
-			[value]="sortBy()"
-			(valueChange)="setSortBy($event)"
-		/>
 		<button
 			type="button"
 			class="shrink-0 inline-flex items-center gap-1.5 h-10 tap:min-h-[44px] tap:min-w-[44px] px-3 rounded-card border text-sm font-medium cursor-pointer transition"
@@ -66,23 +87,16 @@
 			<ui-count-badge [count]="activeFiltersCount()" />
 			}
 		</button>
-		@if (isAdmin()) {
-		<button
-			uiButton
-			variant="secondary"
-			class="!h-10 shrink-0"
-			[attr.aria-expanded]="showCreateEditor()"
-			(click)="showCreateEditor.set(!showCreateEditor())"
-			[title]="showCreateEditor() ? 'Close editor' : 'Add a game to the catalog'"
-		>
-			<span aria-hidden="true" class="material-icons text-lg"
-				>{{ showCreateEditor() ? 'close' : 'add' }}</span
-			>
-			<span class="max-lg:sr-only"
-				>{{ showCreateEditor() ? 'Close' : 'Add game' }}</span
-			>
-		</button>
-		}
+		<app-option-picker
+			class="max-md:hidden shrink-0"
+			variant="compact"
+			size="md"
+			label="Sort"
+			heading="Sort games by"
+			[options]="sortPickerOptions"
+			[value]="sortBy()"
+			(valueChange)="setSortBy($event)"
+		/>
 	</div>
 
 	<div class="md:hidden mt-3 grid grid-cols-2 gap-2">

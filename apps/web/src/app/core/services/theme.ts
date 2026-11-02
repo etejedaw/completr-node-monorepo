@@ -2,18 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 
 import { environment } from "../../../environments/environment";
-
-export type ThemeId = "refined-dark" | "midnight-cyan" | "twilight-arcade";
-export type ThemeTier = "free" | "premium";
-
-export interface ThemeOption {
-	id: ThemeId;
-	name: string;
-	description: string;
-	tier: ThemeTier;
-	swatches: string[];
-	metaColor: string;
-}
+import { type ThemeId, type ThemeOption } from "./theme.model";
 
 const STORAGE_KEY = "completr.theme";
 const DEFAULT_THEME: ThemeId = "refined-dark";

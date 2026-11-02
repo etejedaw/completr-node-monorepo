@@ -1,5 +1,5 @@
 import { type RawgGameDetail } from "../../../rawg/rawg.interface";
-import { type SourceValueExtractor } from "./source-value-extractor";
+import { type SourceValueExtractor } from "../../games.interface";
 
 const positiveOrNull = (value: number | null) =>
 	value !== null && value > 0 ? value : null;

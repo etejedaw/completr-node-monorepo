@@ -12,7 +12,10 @@ import {
 import { TestBed } from "@angular/core/testing";
 import { Subject } from "rxjs";
 
-import { SUPPRESS_VALIDATION_TOAST } from "../../shared/utils/validation-errors";
+import {
+	SUPPRESS_CONFLICT_TOAST,
+	SUPPRESS_VALIDATION_TOAST
+} from "../../shared/utils/validation-errors";
 import { AuthService } from "../services/auth";
 import { ToastService } from "../services/toast";
 import { errorInterceptor } from "./error.interceptor";
@@ -205,6 +208,24 @@ describe("errorInterceptor", () => {
 
 		expect(toast.warning).not.toHaveBeenCalled();
 		expect(onError).toHaveBeenCalledTimes(1);
+	});
+
+	it("skips the 409 toast when the request suppresses it and still rethrows", () => {
+		const context = new HttpContext().set(SUPPRESS_CONFLICT_TOAST, true);
+
+		const onError = failWith(409, { detail: "Code already used" }, context);
+
+		expect(toast.warning).not.toHaveBeenCalled();
+		expect(onError).toHaveBeenCalledTimes(1);
+		expect(onError.mock.calls[0][0].status).toBe(409);
+	});
+
+	it("keeps the 409 toast when only validation toasts are suppressed", () => {
+		const context = new HttpContext().set(SUPPRESS_VALIDATION_TOAST, true);
+
+		failWith(409, { detail: "Code already used" }, context);
+
+		expect(toast.warning).toHaveBeenCalledWith("Code already used");
 	});
 
 	it("skips the 422 toast when the body has no validation issues", () => {

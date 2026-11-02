@@ -1,34 +1,32 @@
 import { type Transaction } from "sequelize";
 
-import { Backlog } from "../backlog/backlog.model";
 import * as backlogService from "../backlog/backlog.service";
 import * as backlogServiceError from "../backlog/errors/backlog.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
-import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
-import { Game } from "../games/game.model";
 import * as gamesService from "../games/games.service";
-import { Platform } from "../platforms/platform.model";
 import * as platformsService from "../platforms/platforms.service";
+import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import * as queueServiceError from "./errors/queue.service-error";
+import { moveInOrder } from "./move-in-order.util";
 import { Queue } from "./queue.model";
 import { type QueueExportQuery } from "./schemas/queue-export-query.schema";
 import { sortQueueExport } from "./sort-queue-export.util";
 
 const FREE_QUEUE_LIMIT = 10;
 
-function isPremium(role: string) {
-	return role === "premium" || role === "moderator" || role === "admin";
-}
-
 async function checkLimit(
 	userId: string,
 	role: string,
 	transaction?: Transaction
 ) {
-	if (isPremium(role)) return;
+	const premiumAccess = await resolvePremiumAccess(
+		{ id: userId, role },
+		"queue.unlimited"
+	);
+	if (premiumAccess.allowed) return;
 	const count = await Queue.count({ where: { userId }, transaction });
 	if (count >= FREE_QUEUE_LIMIT) throw queueServiceError.limitReachedError();
 }
@@ -48,19 +46,6 @@ async function findNextPosition(userId: string, transaction: Transaction) {
 	});
 	return (lastPosition ?? 0) + 1;
 }
-
-const QUEUE_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
-const QUEUE_PLATFORM_ATTRS = ["id", "abbreviation"];
-
-const BACKLOG_INCLUDE = [
-	{
-		model: Backlog,
-		include: [
-			{ model: Game, attributes: QUEUE_GAME_ATTRS },
-			{ model: Platform, attributes: QUEUE_PLATFORM_ATTRS }
-		]
-	}
-];
 
 export async function addFromGame(
 	gameId: string,
@@ -100,7 +85,7 @@ export async function addFromGame(
 
 		return Queue.findOne({
 			where: { backlogId: backlogEntry.id, userId: user.id },
-			include: BACKLOG_INCLUDE
+			include: backlogService.buildQueueBacklogInclude()
 		});
 	} catch (error) {
 		await transaction.rollback();
@@ -151,7 +136,7 @@ export async function addFromBacklog(
 			);
 		return Queue.findOne({
 			where: { backlogId, userId: user.id },
-			include: BACKLOG_INCLUDE,
+			include: backlogService.buildQueueBacklogInclude(),
 			transaction
 		});
 	} catch (error) {
@@ -167,7 +152,8 @@ export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
 		return [];
 	}
 
-	if (!isPremium(user.role) && backlogIds.length > FREE_QUEUE_LIMIT)
+	const premiumAccess = await resolvePremiumAccess(user, "queue.unlimited");
+	if (!premiumAccess.allowed && backlogIds.length > FREE_QUEUE_LIMIT)
 		throw queueServiceError.limitReachedError();
 
 	const backlogs = await backlogService.findBacklogsByUserAndIds(
@@ -198,12 +184,64 @@ export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
 
 	return Queue.findAll({
 		where: { userId: user.id },
-		include: BACKLOG_INCLUDE,
+		include: backlogService.buildQueueBacklogInclude(),
 		order: [
 			["position", "ASC"],
 			["id", "ASC"]
 		]
 	});
+}
+
+async function applyOrder(
+	userId: string,
+	orderedQueueIds: string[],
+	transaction: Transaction
+) {
+	await sequelize.query(
+		`UPDATE "Queues" AS q
+		SET "position" = ordered."position", "updatedAt" = NOW()
+		FROM (
+			SELECT "id", "position"
+			FROM unnest(ARRAY[:queueIds]::uuid[]) WITH ORDINALITY AS t("id", "position")
+		) AS ordered
+		WHERE q."id" = ordered."id" AND q."userId" = :userId AND q."position" <> ordered."position"`,
+		{ replacements: { userId, queueIds: orderedQueueIds }, transaction }
+	);
+}
+
+export async function moveQueueEntry(
+	user: RequestUser,
+	backlogId: string,
+	position: number
+) {
+	await sequelize.transaction(async transaction => {
+		await lockUserQueue(user.id, transaction);
+		const entries = await Queue.findAll({
+			where: { userId: user.id },
+			attributes: ["id", "backlogId"],
+			order: [
+				["position", "ASC"],
+				["id", "ASC"]
+			],
+			transaction
+		});
+		const queueIdByBacklogId = new Map(
+			entries.map(entry => [entry.backlogId, entry.id])
+		);
+		const reordered = moveInOrder(
+			entries.map(entry => entry.backlogId),
+			backlogId,
+			position
+		);
+		if (!reordered) throw queueServiceError.backlogNotFoundError();
+		await applyOrder(
+			user.id,
+			reordered.map(id => queueIdByBacklogId.get(id)!),
+			transaction
+		);
+	});
+
+	return findQueueByUserId(user.id);
 }
 
 export async function findQueueBacklogIdsByUserId(userId: string) {
@@ -220,7 +258,7 @@ export async function findQueueBacklogIdsByUserId(userId: string) {
 export async function findQueueByUserId(userId: string) {
 	return Queue.findAll({
 		where: { userId },
-		include: BACKLOG_INCLUDE,
+		include: backlogService.buildQueueBacklogInclude(),
 		order: [
 			["position", "ASC"],
 			["id", "ASC"]
@@ -233,35 +271,10 @@ export async function findQueueByUserIdPaginated(
 	pagination: PaginatedSearchQuery = {},
 	publicOnly = false
 ) {
-	const titleWhere = pagination.search
-		? buildTextSearchWhere(pagination.search, ["Backlog->Game.title"])
-		: null;
-	const include = titleWhere
-		? [
-				{
-					model: Backlog,
-					required: true,
-					where: publicOnly ? { isPublic: true } : undefined,
-					include: [
-						{
-							model: Game,
-							required: true,
-							attributes: QUEUE_GAME_ATTRS,
-							where: titleWhere
-						},
-						{ model: Platform, attributes: QUEUE_PLATFORM_ATTRS }
-					]
-				}
-			]
-		: publicOnly
-			? [
-					{
-						...BACKLOG_INCLUDE[0]!,
-						required: true,
-						where: { isPublic: true }
-					}
-				]
-			: BACKLOG_INCLUDE;
+	const include = backlogService.buildQueueBacklogInclude(
+		pagination.search,
+		publicOnly
+	);
 
 	const query: Record<string, unknown> = {
 		where: { userId },
@@ -313,27 +326,9 @@ export async function findQueueForExport(
 	userId: string,
 	filters: QueueExportQuery
 ) {
-	const titleWhere = filters.search
-		? buildTextSearchWhere(filters.search, ["Backlog->Game.title"])
-		: null;
-
 	const entries = await Queue.findAll({
 		where: { userId },
-		include: [
-			{
-				model: Backlog,
-				attributes: ["id", "status", "score", "duration"],
-				required: titleWhere !== null,
-				include: [
-					{
-						model: Game,
-						attributes: ["id", "title"],
-						...(titleWhere && { required: true, where: titleWhere })
-					},
-					{ model: Platform, attributes: ["id", "name"] }
-				]
-			}
-		],
+		include: backlogService.buildQueueExportBacklogInclude(filters.search),
 		order: [
 			["position", "ASC"],
 			["id", "ASC"]

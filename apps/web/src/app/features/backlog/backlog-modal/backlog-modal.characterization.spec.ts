@@ -15,11 +15,8 @@ import { config } from "rxjs";
 import { environment } from "../../../../environments/environment";
 import { type Game } from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
-import {
-	BacklogModal,
-	type BacklogModalData,
-	type BacklogModalResult
-} from "./backlog-modal";
+import { BacklogModal, type BacklogModalResult } from "./backlog-modal";
+import { type BacklogModalData } from "./backlog-modal.model";
 
 const hades = {
 	id: "g1",

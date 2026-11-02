@@ -1,10 +1,8 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { type GameSummary } from "../../../../core/models";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
-
-export type PosterGridGame = GameSummary & { ratio?: number | null };
+import { type PosterGridGame } from "./game-poster-grid.model";
 
 @Component({
 	selector: "app-game-poster-grid",

@@ -26,11 +26,9 @@ import {
 	USERNAME_PATTERN,
 	USERNAME_PATTERN_MESSAGE
 } from "../../../core/utils/account-fields";
-import { avatarRing } from "../../../core/utils/premium";
-import {
-	elevatedRoleBadge,
-	type RoleBadge
-} from "../../../core/utils/role-badge";
+import { avatarRing, isPremiumRole } from "../../../core/utils/premium";
+import { elevatedRoleBadge } from "../../../core/utils/role-badge";
+import { type RoleBadge } from "../../../core/utils/role-badge.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import {
 	UiAlert,
@@ -51,17 +49,10 @@ import {
 	validationSummary
 } from "../../../shared/utils/validation-errors";
 import { AdminInvitations } from "../admin-invitations/admin-invitations";
-import {
-	type AdminUser,
-	UserAdminService
-} from "../services/user-admin.service";
-
-interface CreateUserRequest {
-	username: string;
-	email: string;
-	password: string;
-	name: string;
-}
+import { AdminPremiumAccess } from "../admin-premium-access/admin-premium-access";
+import { type AdminUser } from "../services/user-admin.model";
+import { UserAdminService } from "../services/user-admin.service";
+import { type CreateUserRequest } from "./admin-users.model";
 
 // Mirrors the API's RegisterSchema / PasswordPolicySchema, which rejects
 // anything else with a 400.
@@ -146,6 +137,7 @@ function editedSince(snapshot: FormSnapshot | null, current: FormSnapshot) {
 	selector: "app-admin-users",
 	imports: [
 		AdminInvitations,
+		AdminPremiumAccess,
 		DatePipe,
 		FormField,
 		LibraryHero,
@@ -241,6 +233,8 @@ export class AdminUsers implements OnInit {
 	protected readonly editFieldErrors = signal<Record<string, string>>({});
 	private readonly editServerSnapshot = signal<FormSnapshot | null>(null);
 	protected readonly showEditPassword = signal(false);
+	protected readonly showPremiumAccess = signal(false);
+	protected readonly premiumAccessUser = signal<AdminUser | null>(null);
 
 	protected readonly editModel = signal({
 		name: "",
@@ -405,6 +399,34 @@ export class AdminUsers implements OnInit {
 	closeEdit() {
 		this.showEditModal.set(false);
 		this.editingUser.set(null);
+	}
+
+	protected hasPremiumRole(user: AdminUser): boolean {
+		return isPremiumRole(user.role);
+	}
+
+	protected premiumAccessLabel(user: AdminUser): string {
+		return this.hasPremiumRole(user)
+			? `Premium access for ${user.username} comes from the ${user.role} role`
+			: `Premium access for ${user.username}`;
+	}
+
+	protected premiumAccessHint(user: AdminUser): string | null {
+		return this.hasPremiumRole(user)
+			? `Premium through the ${user.role} role`
+			: null;
+	}
+
+	openPremiumAccess(user: AdminUser) {
+		if (this.hasPremiumRole(user)) return;
+		this.closeEdit();
+		this.premiumAccessUser.set(user);
+		this.showPremiumAccess.set(true);
+	}
+
+	closePremiumAccess() {
+		this.showPremiumAccess.set(false);
+		this.premiumAccessUser.set(null);
 	}
 
 	submitEdit(event: Event) {

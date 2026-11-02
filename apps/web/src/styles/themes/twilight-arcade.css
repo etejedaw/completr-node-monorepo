@@ -7,7 +7,7 @@
 
 	--color-fg: #f4eeff;
 	--color-fg-secondary: #b9a8d4;
-	--color-fg-muted: #7e6e9a;
+	--color-fg-muted: #9a8eb0;
 
 	--color-brand: #ff5d8f;
 	--color-brand-hover: #ff7da9;
@@ -40,6 +40,7 @@
 	--color-nav-tags: #bef264;
 	--color-nav-browse: #5bd8a1;
 	--color-nav-lists: #5eead4;
+	--color-nav-sagas: #93c5fd;
 	--color-nav-users: #f0abfc;
 	--color-nav-admin: var(--color-admin);
 	--color-nav-more: var(--color-fg-secondary);

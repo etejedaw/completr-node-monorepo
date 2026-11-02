@@ -29,8 +29,11 @@ import { type Game, type List, type ListItem } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
-import { ExportActions } from "../../../shared/components/export-actions/export-actions";
+import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
+import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
+import { injectExportDownload } from "../../../shared/components/export-actions/export-download";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { GiftOfferCard } from "../../../shared/components/gift-offer-card/gift-offer-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { ProgressMeter } from "../../../shared/components/progress-meter/progress-meter";
 import {
@@ -45,24 +48,23 @@ import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { GamesService } from "../../games/games";
 import {
 	DuplicateListModal,
-	type DuplicateListModalData,
 	type DuplicateListModalResult
 } from "../duplicate-list-modal/duplicate-list-modal";
+import { type DuplicateListModalData } from "../duplicate-list-modal/duplicate-list-modal.model";
 import {
 	ListItemRow,
 	type ListItemRowMode
 } from "../list-item-row/list-item-row";
+import { ListModal } from "../list-modal/list-modal";
 import {
-	ListModal,
 	type ListModalData,
 	type ListModalResult
-} from "../list-modal/list-modal";
+} from "../list-modal/list-modal.model";
 import { ListsService } from "../lists";
 
-type ListActionId = "refresh" | "duplicate" | "edit";
 type ItemActionId = "up" | "down" | "remove";
 
-const LIST_ACTIONS: { id: ListActionId; icon: string; label: string }[] = [
+const LIST_ACTIONS: ActionMenuItem[] = [
 	{ id: "edit", icon: "edit", label: "Edit list" },
 	{ id: "refresh", icon: "refresh", label: "Refresh scores" },
 	{ id: "duplicate", icon: "content_copy", label: "Duplicate" }
@@ -71,7 +73,8 @@ const LIST_ACTIONS: { id: ListActionId; icon: string; label: string }[] = [
 @Component({
 	selector: "app-list-detail",
 	imports: [
-		ExportActions,
+		ActionMenu,
+		GiftOfferCard,
 		RouterLink,
 		CdkDropList,
 		CdkDrag,
@@ -116,8 +119,23 @@ export class ListDetail implements OnInit {
 	protected readonly isSearching = signal(false);
 	protected readonly isSearchingOnline = signal(false);
 	protected readonly togglingFollow = signal(false);
-	protected readonly listSheetOpen = signal(false);
-	protected readonly listActions = LIST_ACTIONS;
+	protected readonly exporter = injectExportDownload({
+		resource: () => ({ listId: this.listId }),
+		label: () => this.list()?.name ?? "list"
+	});
+	protected readonly listMenuItems = computed<ActionMenuItem[]>(() => [
+		...LIST_ACTIONS.map(action =>
+			action.id === "refresh"
+				? { ...action, busy: this.refreshing() }
+				: action
+		),
+		...this.exporter
+			.menuItems()
+			.map((item, index) => ({ ...item, separated: index === 0 }))
+	]);
+	protected readonly listMenuBusy = computed(
+		() => this.refreshing() || this.exporter.isBusy()
+	);
 	protected readonly itemSheet = signal<{
 		item: ListItem;
 		index: number;
@@ -304,8 +322,8 @@ export class ListDetail implements OnInit {
 			.map(item => item.game.id);
 	}
 
-	runListAction(id: ListActionId) {
-		this.listSheetOpen.set(false);
+	runListAction(id: string) {
+		if (this.exporter.runMenuAction(id)) return;
 		if (id === "refresh") this.refreshScores();
 		else if (id === "duplicate") this.openDuplicate();
 		else this.openEdit();

@@ -14,10 +14,8 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Router } from "@angular/router";
 import { debounceTime, of, Subject, switchMap } from "rxjs";
 
-import {
-	GlobalSearchService,
-	type SearchResults
-} from "../../core/services/global-search";
+import { GlobalSearchService } from "../../core/services/global-search";
+import { type SearchResults } from "../../core/services/global-search.model";
 import { avatarRing } from "../../core/utils/premium";
 import { GamePoster } from "../../shared/components/game-poster/game-poster";
 import { UiAvatar } from "../../shared/ui";

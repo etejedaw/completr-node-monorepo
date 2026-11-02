@@ -9,6 +9,7 @@ import { buildPlatformFilterWhere } from "../common/utils/platform-filter-where.
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
+import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import { type RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import { type UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import * as gameShelfServiceError from "./errors/game-shelf.service-error";
@@ -27,10 +28,6 @@ const PLATFORM_ATTRS = [
 
 const FREE_SHELF_LIMIT = 250;
 
-function isPremium(role: string) {
-	return role === "premium" || role === "moderator" || role === "admin";
-}
-
 const shelfInclude = [
 	{ model: Game, attributes: GAME_ATTRS },
 	{ model: Platform, attributes: PLATFORM_ATTRS }
@@ -41,7 +38,11 @@ export async function registerGameShelf(
 	registerGameShelfDto: RegisterGameShelfDto,
 	transaction?: Transaction
 ) {
-	if (!isPremium(user.role)) {
+	const premiumAccess = await resolvePremiumAccess(
+		user,
+		"game-shelf.unlimited"
+	);
+	if (!premiumAccess.allowed) {
 		const count = await GameShelf.count({
 			where: { userId: user.id },
 			transaction
@@ -202,4 +203,17 @@ export async function findGameShelfForExport(
 			["createdAt", "ASC"]
 		]
 	});
+}
+
+export async function existsByGameId(
+	gameId: string,
+	transaction?: Transaction
+) {
+	return (
+		(await GameShelf.findOne({
+			where: { gameId: gameId },
+			attributes: ["id"],
+			transaction
+		})) !== null
+	);
 }

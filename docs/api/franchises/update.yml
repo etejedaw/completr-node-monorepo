@@ -29,7 +29,7 @@ settings:
 docs: |-
     ## Update Franchise
 
-    Updates a franchise's name and description. The `code` slug is re-derived from `name`. When `gameIds` is sent it is the final set of games of the franchise: those listed get this `franchiseId` and the franchise's games that are not listed are detached, all in a single transaction. If any game does not exist, nothing is applied. Without `gameIds` the games are not touched.
+    Updates a franchise's name and description. The `code` slug is re-derived from `name`. When `gameIds` is sent it is the final set of games of the franchise: those listed get this `franchiseId` and the franchise's games that are not listed are detached, all in a single transaction. If any game does not exist, nothing is applied. Without `gameIds` the games are not touched. An empty `gameIds` is rejected: a franchise always keeps at least one game.
 
     **Authentication:** Bearer token required (role: moderator).
     **Rate Limit:** 50 requests per minute.
@@ -46,7 +46,7 @@ docs: |-
     |-------------|---------------|----------|--------------------|
     | name        | string        | Yes      | Max 100 characters |
     | description | string / null | No       | Max 500 characters |
-    | gameIds     | uuid[]        | No       | Final set of games of the franchise (max 500) |
+    | gameIds     | uuid[]        | No       | Final set of games of the franchise (1 to 500) |
 
     ### Response (200)
 

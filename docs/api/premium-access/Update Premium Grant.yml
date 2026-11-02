@@ -1,0 +1,72 @@
+info:
+    name: Update Premium Grant
+    type: http
+    seq: 4
+
+http:
+    method: PATCH
+    url: "{{BASE_URL}}/admin/users/:userId/premium-grants/:grantId"
+    headers:
+        - name: Content-Type
+          value: application/json
+    params:
+        - name: userId
+          value: ""
+          type: path
+        - name: grantId
+          value: ""
+          type: path
+    body:
+        type: json
+        data: |-
+            {
+              "expiresAt": "2026-12-31T12:00:00.000Z"
+            }
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Update Premium Grant
+
+    Extends or corrects a grant expiration. The grant must belong to `:userId`. Full premium requires a future date; an individual feature also accepts null for access without expiration.
+
+    **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
+
+    ### Request Body
+
+    | Field | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | expiresAt | string \| null | Yes | Future ISO date, or null for an individual feature |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "grant": {
+          "id": "uuid",
+          "userId": "uuid",
+          "feature": "export.json",
+          "expiresAt": "2026-12-31T12:00:00.000Z",
+          "offerCode": null,
+          "createdAt": "2026-10-31T12:00:00.000Z",
+          "updatedAt": "2026-11-01T12:00:00.000Z"
+        }
+      }
+    }
+    ```
+
+    Records the audit event `premium_grant_updated`.
+
+    ### Errors
+
+    | Status | Code | Description |
+    |--------|------|-------------|
+    | 404 | PREMIUM_GRANT_NOT_FOUND | Grant does not exist or belongs to another user |
+    | 422 | PREMIUM_GRANT_INVALID_EXPIRATION | Full premium has no expiration or the date is not future |
+    | 422 | COMMON_SCHEMA_INVALID | Invalid UUID, invalid date or extra field |

@@ -1,7 +1,7 @@
 import { type NextFunction, type Request, type Response } from "express";
 
 import * as commonDomainError from "../errors/common.domain-error";
-import { type ExportFormat } from "../interfaces/export-format.interface";
+import { type ExportFormat } from "../types/export-format.types";
 
 const EXPORT_FORMAT_BY_MEDIA_TYPE: Record<string, ExportFormat> = {
 	"text/csv": "csv",

@@ -38,6 +38,7 @@ import {
 import { AdminUpdateUserSchema } from "./schemas/admin-update-user.schema";
 import { UserDiscoverQuerySchema } from "./schemas/user-discover-query.schema";
 import { UserIdParamSchema } from "./schemas/user-id-params.schema";
+import { UserListsQuerySchema } from "./schemas/user-lists-query.schema";
 import { UserSearchQuerySchema } from "./schemas/user-search-query.schema";
 import { UsernameListParamsSchema } from "./schemas/username-list-params.schema";
 import * as usersController from "./users.controller";
@@ -233,7 +234,8 @@ router.get(
 	[
 		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
-		validateSchemaMiddleware(UsernameParamSchema, "params")
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		validateSchemaMiddleware(UserListsQuerySchema, "query")
 	],
 	usersController.getUserLists
 );
@@ -244,7 +246,7 @@ router.get(
 		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
-		validateSchemaMiddleware(PaginationQuerySchema, "query")
+		validateSchemaMiddleware(UserListsQuerySchema, "query")
 	],
 	usersController.getUserFollowingLists
 );

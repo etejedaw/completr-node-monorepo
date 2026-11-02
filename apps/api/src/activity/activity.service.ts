@@ -1,4 +1,4 @@
-import { literal, Op } from "sequelize";
+import { literal, Op, type Transaction } from "sequelize";
 
 import { Game } from "../games/game.model";
 import { List } from "../lists/list.model";
@@ -231,4 +231,17 @@ export async function deleteActivity(activityId: string, userId: string) {
 	if (!activity) return false;
 	await activity.destroy();
 	return true;
+}
+
+export async function existsByGameId(
+	gameId: string,
+	transaction?: Transaction
+) {
+	return (
+		(await ActivityGame.findOne({
+			where: { gameId: gameId },
+			attributes: ["id"],
+			transaction
+		})) !== null
+	);
 }

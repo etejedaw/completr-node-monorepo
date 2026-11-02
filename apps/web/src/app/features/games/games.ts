@@ -10,13 +10,26 @@ import { environment } from "../../../environments/environment";
 import {
 	type BacklogStatus,
 	type Game,
-	type Genre,
-	type Platform,
 	type UserRole
 } from "../../core/models";
 import { ToastService } from "../../core/services/toast";
-import { type Appendable, buildHttpParams } from "../../core/utils/http-params";
+import { buildHttpParams } from "../../core/utils/http-params";
 import { SUPPRESS_VALIDATION_TOAST } from "../../shared/utils/validation-errors";
+import {
+	type CompilationItemResponse,
+	type CreateGameDto,
+	type ExternalDataRefreshResponse,
+	type ExternalDataSource,
+	type GamesQuery,
+	type GamesResponse,
+	type GamesSearchResponse,
+	type GenresResponse,
+	type PlatformsResponse,
+	type RawgDetail,
+	type SetCompilationItemsDto,
+	type SplitGameDto,
+	type UpdateGameDto
+} from "./games.model";
 
 const RATE_LIMITED_STATUS = 429;
 const ONLINE_SEARCH_FAILED_MESSAGE =
@@ -26,109 +39,6 @@ const SUPPRESS_TOAST_CONTEXT = new HttpContext().set(
 	SUPPRESS_VALIDATION_TOAST,
 	true
 );
-
-interface GamesResponse {
-	data: { games: Game[]; total: number; limit: number; offset: number };
-}
-
-interface GamesSearchResponse {
-	data: { games: Game[] };
-}
-
-interface PlatformsResponse {
-	data: { platforms: Platform[] };
-}
-
-interface GenresResponse {
-	data: { genres: Genre[] };
-}
-
-export interface RawgDetail {
-	rawgId: number;
-	title: string;
-	description: string | null;
-	coverUrl: string | null;
-	releaseAt: string | null;
-	platforms: string[];
-	genres: string[];
-	scores: { source: string; score: number }[];
-	times: { source: string; duration: number }[];
-}
-
-export interface CreateGameDto {
-	title: string;
-	description?: string;
-	platforms?: string[];
-	releaseAt?: string;
-	coverUrl?: string;
-	backgroundUrl?: string;
-	isDlc?: boolean;
-	parentGameId?: string;
-	variant?: string;
-	genres?: string[];
-	scores?: { source: string; score: number }[];
-	times?: { source: string; duration: number }[];
-	externalIds?: { source: string; externalId: string }[];
-}
-
-export interface UpdateGameDto {
-	title?: string;
-	description?: string;
-	platforms?: string[];
-	releaseAt?: string;
-	coverUrl?: string;
-	backgroundUrl?: string;
-	isDlc?: boolean;
-	parentGameId?: string | null;
-	franchiseId?: string | null;
-	variant?: string | null;
-	genres?: string[];
-	externalIds?: { source: string; externalId: string }[];
-}
-
-export interface SplitGameDto {
-	variants: { title: string; variant: string }[];
-}
-
-export type CompilationItemInput =
-	{ mode: "link"; gameId: string } | { mode: "create"; title: string };
-
-export interface SetCompilationItemsDto {
-	items: CompilationItemInput[];
-}
-
-export interface CompilationItemResponse {
-	id: string;
-	position: number;
-	childGameId: string;
-	childGame: Game | null;
-}
-
-export interface GamesQuery extends Record<string, Appendable> {
-	limit?: number;
-	offset?: number;
-	sort_by?: string;
-	sort_order?: string;
-	search?: string;
-	genre?: string;
-	genres?: string;
-	platforms?: string;
-	release_year_from?: number;
-	release_year_to?: number;
-	min_score?: number;
-	max_score?: number;
-	min_duration?: number;
-	max_duration?: number;
-	is_dlc?: boolean;
-	no_scores?: boolean;
-	no_times?: boolean;
-	no_platforms?: boolean;
-	no_score_source?: string;
-	no_time_source?: string;
-	include_inactive?: boolean;
-	only_inactive?: boolean;
-	detailed?: boolean;
-}
 
 @Injectable({ providedIn: "root" })
 export class GamesService {
@@ -222,6 +132,18 @@ export class GamesService {
 				data: { game: Game };
 			}>(`${environment.apiUrl}/games/${id}`, dto)
 			.pipe(map(res => res.data.game));
+	}
+
+	refreshExternalData(gameId: string, sources: ExternalDataSource[]) {
+		return this.http
+			.post<{
+				data: ExternalDataRefreshResponse;
+			}>(
+				`${environment.apiUrl}/games/${gameId}/external-data/refresh`,
+				{ sources },
+				{ context: SUPPRESS_TOAST_CONTEXT }
+			)
+			.pipe(map(res => res.data));
 	}
 
 	splitGame(id: string, dto: SplitGameDto) {
