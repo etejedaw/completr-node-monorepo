@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import {
 	buildHltbCandidatesQuery,
 	escapeSparqlString,
+	WIKIDATA_HTTP_OPTIONS,
 	WikidataClient
 } from "../../src/wikidata/wikidata.provider";
 import {
@@ -271,6 +272,45 @@ void describe("WikidataClient.findHltbCandidates failures", () => {
 			(error.serviceError.raw as { status: number }).status,
 			429
 		);
+	});
+
+	void it("waits out the two-minute Retry-After that Wikidata sends with a 429 and retries", async () => {
+		const clock = createFakeClock();
+		const scripted = scriptedFetch(clock, [
+			htmlResponse("", 429, { "Retry-After": "120" }),
+			sparqlResponse([binding({ hltbId: "10270" })])
+		]);
+		const client = new WikidataClient(
+			buildClient(clock, scripted.fetch, WIKIDATA_HTTP_OPTIONS)
+		);
+
+		const candidates = await client.findHltbCandidates(WITCHER_QUERY);
+
+		assert.equal(scripted.calls.length, 2);
+		assert.ok(
+			scripted.calls[1]!.at - scripted.calls[0]!.at >= 120_000,
+			"the retry waits for Retry-After"
+		);
+		assert.deepEqual(
+			candidates.map(candidate => candidate.hltbId),
+			["10270"]
+		);
+	});
+
+	void it("a Retry-After longer than five minutes fails as WIKIDATA_RATE_LIMITED without retrying", async () => {
+		const clock = createFakeClock();
+		const scripted = scriptedFetch(clock, [
+			htmlResponse("", 429, { "Retry-After": "301" })
+		]);
+		const client = new WikidataClient(
+			buildClient(clock, scripted.fetch, WIKIDATA_HTTP_OPTIONS)
+		);
+
+		await expectCode(
+			client.findHltbCandidates(WITCHER_QUERY),
+			"WIKIDATA_RATE_LIMITED"
+		);
+		assert.equal(scripted.calls.length, 1);
 	});
 
 	void it("403 fails as WIKIDATA_BLOCKED without retrying", async () => {
