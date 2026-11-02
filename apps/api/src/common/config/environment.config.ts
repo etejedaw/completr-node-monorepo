@@ -25,10 +25,6 @@ const EnvironmentConfigSchema = z
 		PRIVACY_SOURCE_URL: z
 			.url()
 			.default("http://localhost:4321/privacy.json"),
-		CLIENT_IP_HEADER: z.preprocess(
-			value => value || undefined,
-			z.string().trim().toLowerCase().optional()
-		),
 		RATE_LIMIT_ENABLED: z.preprocess(
 			value => value || undefined,
 			z.stringbool().default(true)
