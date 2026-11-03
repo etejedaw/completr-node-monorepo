@@ -9,6 +9,7 @@ import { Backlog } from "../backlog/backlog.model";
 import { BacklogProgress } from "../backlog-progress/backlog-progress.model";
 import { CompilationItem } from "../compilation-items/compilation-item.model";
 import { CoopRun } from "../coop-runs/coop-run.model";
+import { ExternalDataAttempt } from "../external-data-attempts/external-data-attempt.model";
 import { Favorite } from "../favorites/favorite.model";
 import { Franchise } from "../franchises/franchise.model";
 import { UserFranchise } from "../franchises/user-franchise.model";
@@ -62,6 +63,7 @@ export function setupAssociations() {
 	favorites();
 	gamePlatinums();
 	gameExternalIds();
+	externalDataAttempts();
 	scoreSources();
 	refreshTokens();
 	passwordResetTokens();
@@ -303,6 +305,14 @@ function gamePlatinums() {
 function gameExternalIds() {
 	Game.hasMany(GameExternal, { foreignKey: "gameId", onDelete: "CASCADE" });
 	GameExternal.belongsTo(Game, { foreignKey: "gameId" });
+}
+
+function externalDataAttempts() {
+	Game.hasMany(ExternalDataAttempt, {
+		foreignKey: "gameId",
+		onDelete: "CASCADE"
+	});
+	ExternalDataAttempt.belongsTo(Game, { foreignKey: "gameId" });
 }
 
 function gameReports() {
