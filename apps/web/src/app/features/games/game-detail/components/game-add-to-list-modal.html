@@ -1,6 +1,7 @@
 <ui-dialog
 	heading="Add to your lists"
 	eyebrow="Lists"
+	icon="playlist_add"
 	size="sm"
 	[subheading]="gameTitle"
 	[dismissible]="!state().saving"
@@ -67,7 +68,7 @@
 			<button
 				uiButton
 				variant="secondary"
-				class="shrink-0 max-md:min-h-[44px]"
+				class="shrink-0"
 				[disabled]="!state().newListName.trim() || state().creatingNew"
 				(click)="createNewList()"
 			>
