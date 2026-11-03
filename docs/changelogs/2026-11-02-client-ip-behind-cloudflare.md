@@ -18,13 +18,18 @@ El rate limit usa la IP del cliente como clave. Hasta ahora se tomaba de la cabe
 
 ## Changed
 
-- `resolveClientIp` (`common/utils/client-ip.util.ts`) ya no recibe el nombre de la cabecera: resuelve el peer, normaliza las IPv4 mapeadas (`::ffff:a.b.c.d`) y decide con los rangos de Cloudflare.
-- `apps/web/nginx.conf`: `proxy_set_header X-Real-IP $http_x_real_ip` en el `location ^~ /share/`.
-- `docs/invariants.md` (Rate limiting) y `docs/context/frontend.md` documentan el mecanismo y por qué `API_UPSTREAM` tiene que ser `http://srv-captain--<app-de-la-api>:<puerto>`.
+- `resolveClientIp` (`common/utils/client-ip.util.ts`) ya no recibe el nombre de la cabecera: toma como peer `x-real-ip` si trae una IP válida o, si no, `request.ip`, y normaliza las IPv4 mapeadas (`::ffff:a.b.c.d`). Si el peer está en los rangos de Cloudflare (`BlockList` de `node:net`) y `cf-connecting-ip` trae una IP válida, la clave es esa; en cualquier otro caso, el peer.
+- `apps/web/nginx.conf`: el `location ^~ /share/` reenvía `X-Real-IP` con `$http_x_real_ip` en lugar de `$remote_addr`.
+- `docs/invariants.md` (Rate limiting) describe la resolución de la IP, por qué `x-real-ip` es confiable y que los rangos de Cloudflare no se actualizan solos. `docs/context/frontend.md` explica por qué `API_UPSTREAM` tiene que ser `http://srv-captain--<app-de-la-api>:<puerto>`: con el valor por defecto el pedido vuelve a pasar por Cloudflare y todas las visitas a `/share/` comparten un solo cupo de rate limit.
 
 ## Removed
 
 - Variable de entorno `CLIENT_IP_HEADER` (en `environment.config.ts` y `.env.example`).
+
+## Fixed
+
+- Un cliente que se conecta al servidor sin pasar por Cloudflare ya no puede cambiar su clave de rate limit enviando `cf-connecting-ip`.
+- Las visitas a `/share/` dejan de compartir la clave de rate limit del contenedor de la web.
 
 ## Migration
 
@@ -35,6 +40,7 @@ El rate limit usa la IP del cliente como clave. Hasta ahora se tomaba de la cabe
 
 - `apps/api/src/common/utils/client-ip.util.ts`
 - `apps/api/src/common/config/cloudflare-ip-ranges.config.ts`
+- `apps/api/test/common/utils/client-ip.util.unit.test.ts`
 - `apps/web/nginx.conf`
 
 ## Commits

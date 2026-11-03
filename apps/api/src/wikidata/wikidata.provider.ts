@@ -10,7 +10,7 @@ import {
 
 const SPARQL_ENDPOINT = "https://query.wikidata.org/sparql";
 const SPARQL_JSON_HEADERS = { Accept: "application/sparql-results+json" };
-const WIKIDATA_THROTTLE = {
+export const WIKIDATA_HTTP_OPTIONS = {
 	minDelayMs: 1000,
 	jitterMs: 500,
 	backgroundMaxRetryAfterMs: 10 * 60_000
@@ -34,7 +34,7 @@ export class WikidataClient {
 
 	static create(): WikidataClient {
 		WikidataClient.sharedInstance ??= new WikidataClient(
-			new ScrapingHttpClient(WIKIDATA_THROTTLE)
+			new ScrapingHttpClient(WIKIDATA_HTTP_OPTIONS)
 		);
 		return WikidataClient.sharedInstance;
 	}

@@ -4,7 +4,7 @@
 
 ## Summary
 
-La primera corrida del job `populate_external_data` en producción se detuvo a los seis juegos con `WIKIDATA_RATE_LIMITED`, sin forma de saber qué había pedido Wikidata ni cuánto faltaba. Además, los jobs corren dentro del proceso de la API: un deploy a mitad de corrida dejaba el job en `running` para siempre y bloqueaba los siguientes de su tipo. Esta entrega cubre las tres cosas. Al arrancar, la API marca como fallidos los jobs que quedaron activos. El job de datos externos informa su avance mientras corre y el motivo de un corte incluye el status HTTP y el `Retry-After`. Wikidata, que solo resuelve ids de HowLongToBeat, deja de detener el job: en segundo plano se esperan sus pausas de hasta 10 minutos y, si sigue limitando, se pausa la búsqueda de ids por el resto de la corrida mientras Metacritic y los juegos con id conocido siguen avanzando.
+La primera corrida del job `populate_external_data` en producción se detuvo a los seis juegos con `WIKIDATA_RATE_LIMITED`, sin forma de saber qué había pedido Wikidata ni cuánto faltaba. El servicio de consultas de Wikidata responde a veces 429 con `Retry-After: 120`, y `ScrapingHttpClient` solo reintentaba si la espera no superaba 60 s: ese 429 fallaba en el acto y el job terminaba en `failed`. Además, los jobs corren dentro del proceso de la API: un deploy a mitad de corrida dejaba el job en `running` para siempre y bloqueaba los siguientes de su tipo. Esta entrega cubre las tres cosas. Al arrancar, la API marca como fallidos los jobs que quedaron activos. El job de datos externos informa su avance mientras corre y el motivo de un corte incluye el status HTTP y el `Retry-After`. Wikidata, que solo resuelve ids de HowLongToBeat, deja de detener el job: en segundo plano se esperan sus pausas de hasta 10 minutos y, si sigue limitando, se pausa la búsqueda de ids por el resto de la corrida mientras Metacritic y los juegos con id conocido siguen avanzando.
 
 ## Highlights
 
@@ -17,7 +17,7 @@ La primera corrida del job `populate_external_data` en producción se detuvo a l
 
 - `failInterruptedJobs` en `jobs/jobs.service.ts`, llamado desde `app.ts` antes de escuchar.
 - Progreso del job `populate_external_data`: el `result` se escribe con el prefijo `Running.` al encontrar los candidatos y después de cada juego, solo mientras el job sigue en `running`.
-- `backgroundMaxRetryAfterMs` en `ScrapingHttpClient`: tope de `Retry-After` para las requests de fondo, separado del de las interactivas (`maxRetryAfterMs`). Por defecto 60 s; el cliente de Wikidata usa 10 minutos.
+- `backgroundMaxRetryAfterMs` en `ScrapingHttpClient`: tope de `Retry-After` para las requests de fondo, separado del de las interactivas (`maxRetryAfterMs`). Por defecto 60 s; el cliente de Wikidata usa 10 minutos, así que espera los 120 s de su 429 y reintenta. Sus opciones se exportan como `WIKIDATA_HTTP_OPTIONS` (`wikidata.provider.ts`).
 - `httpStatus` y `retryAfterSeconds` en los resultados `failed` de datos externos (`classifyExternalDataError`), también en la respuesta de `POST /games/:id/external-data/refresh`.
 - Opción `resolveHltbId` de `refreshExternalDataForGame` y código interno `HLTB_ID_LOOKUP_PAUSED`.
 - Warnings en el log al detener el job y al pausar la búsqueda de ids.
@@ -34,6 +34,8 @@ La primera corrida del job `populate_external_data` en producción se detuvo a l
 - `apps/api/src/scraping/scraping-http.client.ts`
 - `apps/api/src/games/services/games-external-data.service.ts`
 - `apps/api/src/games/utils/classify-external-data-error.util.ts`
+- `apps/api/src/wikidata/wikidata.provider.ts`
+- `apps/api/test/wikidata/wikidata.provider.unit.test.ts`
 
 ## Commits
 
@@ -42,3 +44,5 @@ La primera corrida del job `populate_external_data` en producción se detuvo a l
 - `cd6a4289` — feat(scraping): let background requests wait a longer retry-after and give wikidata ten minutes
 - `ab0d571d` — feat(jobs): pause the hltb id lookup on wikidata failures and show http details in stop reasons
 - `a90f5445` — docs(api): document wikidata pause, background retry-after cap and failure details
+- `2f8633c5` — fix(wikidata): wait out the two-minute retry-after instead of stopping the job
+- `72a80a15` — docs(api): document the wikidata retry-after cap

@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "material-icons/iconfont/material-icons.css" layer(base);
+@import "material-icons/iconfont/filled.css" layer(base);
 @import "../public/fonts/chakra-petch.css";
 @import "../public/fonts/manrope.css";
 @import "./styles/ui.css";
