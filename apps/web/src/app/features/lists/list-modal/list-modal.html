@@ -1,5 +1,6 @@
 <ui-dialog
 	eyebrow="Lists"
+	[icon]="isEdit() ? 'edit_note' : 'playlist_add'"
 	size="md"
 	[heading]="isEdit() ? 'Edit list' : 'Create list'"
 	subheading="Its games are ranked by ratio, using the score and duration sources you pick."
@@ -12,9 +13,7 @@
 
 	<form id="list-form" (submit)="onSubmit($event)">
 		<div uiFormField class="mb-4">
-			<label uiLabel for="list-name" uiFieldLabel
-				>Name <span class="text-danger font-bold">*</span></label
-			>
+			<label uiLabel for="list-name" uiFieldLabel>Name</label>
 			<input
 				uiInput
 				id="list-name"
@@ -38,8 +37,8 @@
 
 		<div uiFormField class="mb-4">
 			<label uiLabel for="list-description" uiFieldLabel
-				>Description</label
-			>
+				>Description <ui-field-optional
+			/></label>
 			<textarea
 				uiTextarea
 				id="list-description"
@@ -52,10 +51,7 @@
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-3">
 			@for (group of sourceGroups(); track group.field) {
 			<fieldset class="m-0 mb-4 p-0 border-0 min-w-0">
-				<legend uiFieldLabel>
-					{{ group.label }}
-					<span class="text-danger font-bold">*</span>
-				</legend>
+				<legend uiFieldLabel>{{ group.label }}</legend>
 				<app-chip-group
 					mode="single"
 					[allowEmpty]="false"

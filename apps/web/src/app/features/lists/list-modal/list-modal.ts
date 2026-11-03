@@ -18,6 +18,7 @@ import {
 	UiDescription,
 	UiDialog,
 	UiFieldLabel,
+	UiFieldOptional,
 	UiFormField,
 	UiInput,
 	UiLabel,
@@ -45,6 +46,7 @@ const DURATION_SOURCES: readonly SourceOption[] = [
 	imports: [
 		UiAlert,
 		UiFieldLabel,
+		UiFieldOptional,
 		ChipGroup,
 		DialogDeleteAction,
 		FormField,
