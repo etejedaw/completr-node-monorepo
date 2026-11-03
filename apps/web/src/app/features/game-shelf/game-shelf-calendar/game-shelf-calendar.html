@@ -13,22 +13,17 @@
 
 	<ng-template appCalendarDay let-date>
 		@for (item of itemsForDay(date).slice(0, maxChips); track item.id) {
-		<button
-			type="button"
-			class="-mx-px h-[18px] flex items-center px-1.5 rounded bg-brand-subtle text-brand text-[0.6875rem] font-medium leading-none truncate cursor-pointer transition hover:brightness-110"
+		<app-calendar-event-chip
+			toneClass="bg-brand-subtle text-brand"
 			[title]="item.game.title"
-			(click)="entryClick.emit(item)"
-		>
-			<span class="truncate">{{ item.game.title }}</span>
-		</button>
+			[ariaLabel]="item.game.title + ', added to your shelf'"
+			(pressed)="entryClick.emit(item)"
+		/>
 		} @if (overflowFor(date) > 0) {
-		<button
-			type="button"
-			class="self-start px-1.5 text-[0.625rem] font-medium text-fg-muted leading-none bg-transparent border-0 cursor-pointer hover:text-brand"
-			(click)="selectDay(date)"
-		>
-			+{{ overflowFor(date) }} more
-		</button>
+		<app-calendar-day-overflow
+			[count]="overflowFor(date)"
+			(pressed)="selectDay(date)"
+		/>
 		}
 	</ng-template>
 

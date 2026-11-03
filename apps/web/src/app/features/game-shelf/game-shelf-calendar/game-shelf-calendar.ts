@@ -10,6 +10,8 @@ import {
 } from "@angular/core";
 
 import { type GameShelfEntry } from "../../../core/models";
+import { CalendarDayOverflow } from "../../../shared/components/month-calendar/calendar-day-overflow";
+import { CalendarEventChip } from "../../../shared/components/month-calendar/calendar-event-chip";
 import {
 	CalendarDayTemplate,
 	isSameMonth,
@@ -23,7 +25,12 @@ const ACQUIRED_DOT = "bg-brand";
 
 @Component({
 	selector: "app-game-shelf-calendar",
-	imports: [MonthCalendar, CalendarDayTemplate],
+	imports: [
+		CalendarDayOverflow,
+		CalendarDayTemplate,
+		CalendarEventChip,
+		MonthCalendar
+	],
 	templateUrl: "./game-shelf-calendar.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

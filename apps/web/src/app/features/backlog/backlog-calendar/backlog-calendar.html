@@ -15,31 +15,22 @@
 
 	<ng-template appCalendarDay let-date>
 		@for (slot of slotsFor(date); track $index) { @if (slot) {
-		<button
-			type="button"
-			class="-mx-px h-[18px] flex items-center px-1.5 text-[0.6875rem] font-medium leading-none truncate cursor-pointer transition hover:brightness-110"
-			[class]="barClass(slot.status)"
-			[class.rounded-l]="slot.roundLeft"
-			[class.rounded-r]="slot.roundRight"
+		<app-calendar-event-chip
 			[title]="slot.entry.game.title"
-			[attr.aria-label]="slot.entry.game.title + ', ' + statusLabel(slot.status)"
-			[attr.tabindex]="slot.showTitle ? null : -1"
-			(click)="entryClick.emit(slot.entry)"
-		>
-			<span class="truncate"
-				>{{ slot.showTitle ? slot.entry.game.title : "" }}</span
-			>
-		</button>
+			[toneClass]="barClass(slot.status)"
+			[roundLeft]="slot.roundLeft"
+			[roundRight]="slot.roundRight"
+			[showTitle]="slot.showTitle"
+			[ariaLabel]="slot.entry.game.title + ', ' + statusLabel(slot.status)"
+			(pressed)="entryClick.emit(slot.entry)"
+		/>
 		} @else {
 		<div class="h-[18px]"></div>
 		} } @if (overflowFor(date) > 0) {
-		<button
-			type="button"
-			class="self-start px-1.5 text-[0.625rem] font-medium text-fg-muted leading-none bg-transparent border-0 cursor-pointer hover:text-brand"
-			(click)="selectDay(date)"
-		>
-			+{{ overflowFor(date) }} more
-		</button>
+		<app-calendar-day-overflow
+			[count]="overflowFor(date)"
+			(pressed)="selectDay(date)"
+		/>
 		}
 	</ng-template>
 
@@ -61,7 +52,8 @@
 		"games have" }} no dates and aren't shown here ·
 		<button
 			type="button"
-			class="tap-area bg-transparent border-0 p-0 text-brand font-medium cursor-pointer hover:underline"
+			uiButton
+			variant="link"
 			(click)="viewUnscheduled.emit()"
 		>
 			View in Diary
