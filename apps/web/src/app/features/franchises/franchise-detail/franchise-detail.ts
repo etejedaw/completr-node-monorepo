@@ -14,7 +14,12 @@ import { type BacklogStatus, type Game } from "../../../core/models";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { UiButton, UiEmptyState, UiPagination } from "../../../shared/ui";
+import {
+	UiButton,
+	UiEmptyState,
+	UiPagination,
+	UiSkeleton
+} from "../../../shared/ui";
 import { backlogStatusLabel } from "../../../shared/utils/backlog-status";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { injectFranchiseTracking } from "../franchise-tracking";
@@ -32,7 +37,8 @@ const PAGE_SIZE = 24;
 		LibraryHero,
 		UiButton,
 		UiEmptyState,
-		UiPagination
+		UiPagination,
+		UiSkeleton
 	],
 	templateUrl: "./franchise-detail.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
