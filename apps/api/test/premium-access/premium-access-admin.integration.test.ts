@@ -195,7 +195,7 @@ void describe("premium grant administration", () => {
 		assert.equal(revoked.body.type, "PREMIUM_GRANT_NOT_FOUND");
 	});
 
-	void it("revokes a grant idempotently and records each revoke action", async () => {
+	void it("revokes a permanent grant once and rejects revoking it again without moving the date", async () => {
 		const admin = await createUserWithSession("admin");
 		const user = await createUser();
 		const grant = await PremiumGrant.create({
@@ -215,10 +215,10 @@ void describe("premium grant administration", () => {
 
 		assert.equal(first.status, 200);
 		assert.ok(new Date(firstExpiration).getTime() <= Date.now());
-		assert.equal(second.status, 200);
-		assert.ok(
-			new Date(second.body.data.grant.expiresAt).getTime() <= Date.now()
-		);
+		assert.equal(second.status, 409);
+		assert.equal(second.body.type, "PREMIUM_GRANT_NOT_ACTIVE");
+		await grant.reload();
+		assert.equal(grant.expiresAt?.toISOString(), firstExpiration);
 		assert.equal(
 			await eventually(async () => {
 				const count = await AuditLog.count({
@@ -227,10 +227,65 @@ void describe("premium grant administration", () => {
 						targetId: grant.id
 					}
 				});
-				assert.equal(count, 2);
+				assert.equal(count, 1);
 				return count;
 			}),
-			2
+			1
 		);
+	});
+
+	void it("rejects revoking an expired grant and keeps its real expiration", async () => {
+		const admin = await createUserWithSession("admin");
+		const user = await createUser();
+		const expiredAt = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+		const grant = await PremiumGrant.create({
+			userId: user.id,
+			feature: "*",
+			expiresAt: expiredAt,
+			offerCode: null
+		});
+
+		const response = await api()
+			.post(`/admin/users/${user.id}/premium-grants/${grant.id}/revoke`)
+			.set("Authorization", admin.authorization);
+
+		assert.equal(response.status, 409);
+		assert.equal(response.body.type, "PREMIUM_GRANT_NOT_ACTIVE");
+		await grant.reload();
+		assert.equal(grant.expiresAt?.toISOString(), expiredAt.toISOString());
+		assert.equal(
+			await AuditLog.count({
+				where: { action: "premium_grant_revoked", targetId: grant.id }
+			}),
+			0
+		);
+	});
+
+	void it("rejects changing the date of an expired grant instead of reactivating it", async () => {
+		const admin = await createUserWithSession("admin");
+		const user = await createUser();
+		const expiredAt = new Date(Date.now() - 24 * 60 * 60 * 1000);
+		const grant = await PremiumGrant.create({
+			userId: user.id,
+			feature: "export.json",
+			expiresAt: expiredAt,
+			offerCode: null
+		});
+
+		const future = await api()
+			.patch(`/admin/users/${user.id}/premium-grants/${grant.id}`)
+			.set("Authorization", admin.authorization)
+			.send({ expiresAt: futureDate(30) });
+		const permanent = await api()
+			.patch(`/admin/users/${user.id}/premium-grants/${grant.id}`)
+			.set("Authorization", admin.authorization)
+			.send({ expiresAt: null });
+
+		assert.equal(future.status, 409);
+		assert.equal(future.body.type, "PREMIUM_GRANT_NOT_ACTIVE");
+		assert.equal(permanent.status, 409);
+		assert.equal(permanent.body.type, "PREMIUM_GRANT_NOT_ACTIVE");
+		await grant.reload();
+		assert.equal(grant.expiresAt?.toISOString(), expiredAt.toISOString());
 	});
 });

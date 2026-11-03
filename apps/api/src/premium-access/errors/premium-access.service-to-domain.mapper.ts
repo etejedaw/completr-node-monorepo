@@ -17,5 +17,7 @@ export function premiumAccessServiceToDomainMapper(
 		return premiumAccessDomainError.premiumPromotionEnded(context);
 	if (error.code === "PREMIUM_PROMOTION_CODE_CONFLICT")
 		return premiumAccessDomainError.premiumPromotionCodeConflict(context);
+	if (error.code === "PREMIUM_GRANT_NOT_ACTIVE")
+		return premiumAccessDomainError.premiumGrantNotActive(context);
 	return premiumAccessDomainError.premiumAccessInternalError(context);
 }
