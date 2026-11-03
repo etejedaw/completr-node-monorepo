@@ -12,7 +12,7 @@ import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
 import { avatarRing } from "../../../core/utils/premium";
 import { ProfileBackdrop } from "../../../shared/components/profile-backdrop/profile-backdrop";
-import { UiAvatar, UiInput, UiTextarea } from "../../../shared/ui";
+import { UiAvatar, UiInput, UiSkeleton, UiTextarea } from "../../../shared/ui";
 import { ProfileService } from "../../profile/profile";
 import { type UpdateProfileDto } from "../../profile/profile.model";
 import { injectProfileBackdrop } from "../../public-profile/profile-backdrop";
@@ -37,6 +37,7 @@ const EMPTY_DRAFT: ProfileDraft = { name: "", bio: "", avatarUrl: "" };
 		SettingsSaveBar,
 		UiAvatar,
 		UiInput,
+		UiSkeleton,
 		UiTextarea
 	],
 	templateUrl: "./settings-profile.html",

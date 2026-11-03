@@ -18,7 +18,14 @@ import {
 	PASSWORD_MAX_LENGTH
 } from "../../../core/utils/password-policy";
 import { PasswordRules } from "../../../shared/components/password-rules/password-rules";
-import { UiButton, UiInput, UiPagination } from "../../../shared/ui";
+import {
+	UiBadge,
+	UiButton,
+	UiIconButton,
+	UiInput,
+	UiPagination,
+	UiSkeleton
+} from "../../../shared/ui";
 import { SettingsPanel } from "../components/settings-panel";
 import { SettingsRow } from "../components/settings-row";
 import { currentSessionFirst, describeDevice, timeAgo } from "./session-device";
@@ -33,9 +40,12 @@ const EMPTY_PASSWORDS = { newPassword: "", confirmPassword: "" };
 		PasswordRules,
 		SettingsPanel,
 		SettingsRow,
+		UiBadge,
 		UiButton,
+		UiIconButton,
 		UiInput,
-		UiPagination
+		UiPagination,
+		UiSkeleton
 	],
 	templateUrl: "./settings-security.html",
 	host: { class: "contents" },

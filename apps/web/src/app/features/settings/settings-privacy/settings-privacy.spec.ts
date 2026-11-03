@@ -200,7 +200,7 @@ describe("SettingsPrivacy", () => {
 			})
 		);
 
-		expect(screen.getByRole("note")).toHaveTextContent(
+		expect(screen.getByRole("alert")).toHaveTextContent(
 			"Your profile is set to Only you"
 		);
 		expect(

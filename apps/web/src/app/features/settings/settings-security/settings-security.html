@@ -25,8 +25,10 @@
 						aria-describedby="new-password-rules new-password-error"
 					/>
 					<button
+						uiIconButton
+						size="lg"
 						type="button"
-						class="absolute inset-y-0 right-0 w-[44px] inline-flex items-center justify-center bg-transparent border-0 text-fg-muted cursor-pointer rounded-r-md hover:text-fg focus-visible:outline-2 focus-visible:outline-brand"
+						class="absolute right-1 top-1/2 -translate-y-1/2 tap:min-h-[44px] tap:min-w-[44px] tap:right-0"
 						[attr.aria-label]="showPasswords() ? 'Hide passwords' : 'Show passwords'"
 						[attr.aria-pressed]="showPasswords()"
 						(click)="showPasswords.set(!showPasswords())"
@@ -148,9 +150,7 @@
 			aria-label="Loading devices"
 		>
 			@for (i of [0, 1, 2]; track i) {
-			<div
-				class="h-14 rounded-card bg-input-bg animate-[skeletonPulse_1.4s_ease-in-out_infinite]"
-			></div>
+			<ui-skeleton class="h-14 rounded-card" />
 			}
 		</div>
 		} @else if (sessions().length === 0) {
@@ -175,10 +175,7 @@
 						class="m-0 flex flex-wrap items-center gap-2 text-sm font-medium text-fg"
 					>
 						{{ device.name }} @if (isCurrent) {
-						<span
-							class="px-1.5 py-0.5 rounded-full bg-success/15 text-success text-[0.625rem] font-semibold uppercase tracking-[0.16em]"
-							>This device</span
-						>
+						<ui-badge tone="success">This device</ui-badge>
 						}
 					</p>
 					<p class="m-0 mt-0.5 text-xs text-fg-muted">
