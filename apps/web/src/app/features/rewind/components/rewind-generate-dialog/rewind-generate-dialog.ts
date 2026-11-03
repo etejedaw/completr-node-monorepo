@@ -21,6 +21,8 @@ import {
 	UiAlert,
 	UiButton,
 	UiDialog,
+	UiEyebrow,
+	UiFieldLabel,
 	UiIconButton,
 	UiSwitch
 } from "../../../../shared/ui";
@@ -58,6 +60,8 @@ export function formatGraceDate(isoDate: string): string {
 		UiAlert,
 		UiButton,
 		UiDialog,
+		UiEyebrow,
+		UiFieldLabel,
 		UiIconButton,
 		UiSwitch
 	],
@@ -65,11 +69,13 @@ export function formatGraceDate(isoDate: string): string {
 		<ui-dialog
 			size="sm"
 			eyebrow="Rewind"
+			[icon]="isRegeneration() ? 'refresh' : 'auto_awesome'"
 			[heading]="heading()"
 			[subheading]="subheading()"
 			(closed)="closed.emit()"
 		>
 			<form
+				id="rewind-generate-form"
 				class="flex flex-col gap-5"
 				[attr.aria-busy]="pending()"
 				(submit)="$event.preventDefault(); submit()"
@@ -91,11 +97,7 @@ export function formatGraceDate(isoDate: string): string {
 				}
 
 				<fieldset class="m-0 flex flex-col gap-2 border-0 p-0">
-					<legend
-						class="mb-2 p-0 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-fg-secondary"
-					>
-						Language
-					</legend>
+					<legend uiFieldLabel class="p-0">Language</legend>
 					<app-segmented-control
 						label="Rewind language"
 						[options]="languageOptions"
@@ -110,9 +112,7 @@ export function formatGraceDate(isoDate: string): string {
 				@if (hasPremiumAccess()) {
 					<div class="flex flex-col gap-2">
 						<div class="flex items-center gap-1.5">
-							<span
-								id="rewind-ai-recap-heading"
-								class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-fg-secondary"
+							<span uiEyebrow id="rewind-ai-recap-heading"
 								>AI recap</span
 							>
 							<button
@@ -240,30 +240,27 @@ export function formatGraceDate(isoDate: string): string {
 						}
 					</ui-alert>
 				}
-
-				<div
-					class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
-				>
-					<button
-						uiButton
-						type="button"
-						variant="ghost"
-						class="tap:min-h-[44px] max-sm:!w-full"
-						(click)="closed.emit()"
-					>
-						{{ pending() ? "Close" : "Cancel" }}
-					</button>
-					<button
-						uiButton
-						type="submit"
-						variant="primary"
-						class="tap:min-h-[44px] max-sm:!w-full"
-						[disabled]="!canSubmit()"
-					>
-						{{ submitLabel() }}
-					</button>
-				</div>
 			</form>
+
+			<ng-container dialogFooter>
+				<button
+					uiButton
+					type="button"
+					variant="ghost"
+					(click)="closed.emit()"
+				>
+					{{ pending() ? "Close" : "Cancel" }}
+				</button>
+				<button
+					uiButton
+					type="submit"
+					variant="primary"
+					form="rewind-generate-form"
+					[disabled]="!canSubmit()"
+				>
+					{{ submitLabel() }}
+				</button>
+			</ng-container>
 		</ui-dialog>
 	`,
 	changeDetection: ChangeDetectionStrategy.OnPush
