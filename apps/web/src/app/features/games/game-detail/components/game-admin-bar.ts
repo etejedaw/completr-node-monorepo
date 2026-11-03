@@ -55,6 +55,8 @@ import {
 			<ui-dialog
 				size="sm"
 				eyebrow="Admin"
+				icon="visibility_off"
+				tone="danger"
 				[heading]="'Deactivate ' + gameTitle() + '?'"
 				[dismissible]="!state().deactivating"
 				(closed)="cancel('deactivate')"
@@ -92,6 +94,8 @@ import {
 			<ui-dialog
 				size="sm"
 				eyebrow="Admin"
+				icon="delete_forever"
+				tone="danger"
 				[heading]="'Permanently delete ' + gameTitle() + '?'"
 				[dismissible]="!state().deleting"
 				(closed)="cancel('delete')"
