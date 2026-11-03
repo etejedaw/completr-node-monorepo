@@ -50,7 +50,11 @@
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"
 		/>
-		<app-view-mode-toggle [options]="viewModes" [(value)]="viewMode" />
+		<app-view-mode-toggle
+			[options]="viewModes"
+			[value]="viewMode()"
+			(valueChange)="setViewMode($event)"
+		/>
 		@if (!isLoading()) {
 		<app-export-actions
 			resource="platinums"
@@ -71,8 +75,18 @@
 			[viewMode]="viewMode()"
 			[selectable]="true"
 			[showNotes]="true"
+			[selection]="selection"
 			emptyMonthHint="You didn't get any platinum this month."
 			(selected)="openEdit($event)"
 		/>
 	</ng-template>
 </app-library-page>
+@if (viewMode() === 'hardcore') {
+<app-bulk-action-bar
+	[count]="selection.count()"
+	[actions]="bulkActions()"
+	[noun]="bulkNoun"
+	(actionTriggered)="runBulkAction($event)"
+	(cleared)="selection.clear()"
+/>
+}

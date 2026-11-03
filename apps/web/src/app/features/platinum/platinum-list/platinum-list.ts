@@ -15,6 +15,8 @@ import { type PlatinumEntry } from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
 import { type ExportParams } from "../../../core/services/export";
 import { ToastService } from "../../../core/services/toast";
+import { BulkActionBar } from "../../../shared/components/bulk-action-bar/bulk-action-bar";
+import { type BulkAction } from "../../../shared/components/bulk-action-bar/bulk-action-bar.model";
 import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import {
@@ -33,6 +35,9 @@ import {
 } from "../../../shared/components/platform-filter/platform-filter";
 import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
 import { UiButton, UiSearchBar } from "../../../shared/ui";
+import { countOf } from "../../../shared/utils/bulk-feedback";
+import { injectBulkRemoval } from "../../../shared/utils/bulk-removal";
+import { injectRowSelection } from "../../../shared/utils/row-selection";
 import {
 	PLATINUM_VIEW_MODES,
 	PlatinumCollection,
@@ -47,10 +52,12 @@ import {
 } from "../platinum-dialog/platinum-dialog.model";
 
 const VIEW_MODE_STORAGE_KEY = "completr.platinums.viewMode";
+const PLATINUM_NOUN = { one: "platinum", other: "platinums" };
 
 @Component({
 	selector: "app-platinum-list",
 	imports: [
+		BulkActionBar,
 		ExportActions,
 		LibraryHero,
 		LibraryPage,
@@ -96,6 +103,30 @@ export class PlatinumList implements OnInit {
 			matchesPlatform(platinum.platform, this.selectedPlatform())
 		)
 	);
+	protected readonly selection = injectRowSelection(
+		this.platinums,
+		platinum => platinum.id
+	);
+	private readonly bulkRemoval = injectBulkRemoval<PlatinumEntry>({
+		rows: this.allPlatinums,
+		total: this.total,
+		selection: this.selection,
+		keyOf: platinum => platinum.id,
+		requestIdOf: platinum => platinum.game.id,
+		request: gameIds => this.platinumService.bulk("delete", { gameIds }),
+		pendingMessage: count => `${countOf(count, PLATINUM_NOUN)} removed`,
+		failureMessage: "Couldn't remove the selected platinums. Try again."
+	});
+	protected readonly bulkNoun = PLATINUM_NOUN;
+	protected readonly bulkActions = computed<BulkAction[]>(() => [
+		{
+			id: "remove",
+			label: "Remove platinum",
+			icon: "delete",
+			eligibleCount: this.selection.count(),
+			tone: "danger"
+		}
+	]);
 	protected readonly pageState = computed<LibraryPageState>(() => {
 		if (this.isLoading()) return "loading";
 		if (this.platinums().length > 0) return "ready";
@@ -116,6 +147,16 @@ export class PlatinumList implements OnInit {
 		effect(() =>
 			localStorage.setItem(VIEW_MODE_STORAGE_KEY, this.viewMode())
 		);
+	}
+
+	protected setViewMode(mode: PlatinumViewMode) {
+		this.selection.clear();
+		this.viewMode.set(mode);
+	}
+
+	protected runBulkAction(id: string) {
+		if (id === "remove")
+			this.bulkRemoval.remove(this.selection.selectedRows());
 	}
 
 	ngOnInit() {
@@ -189,7 +230,9 @@ export class PlatinumList implements OnInit {
 			.pipe(takeUntilDestroyed(this.destroyRef))
 			.subscribe({
 				next: res => {
-					this.allPlatinums.set(res.data.platinums);
+					this.allPlatinums.set(
+						this.bulkRemoval.withoutPending(res.data.platinums)
+					);
 					this.total.set(res.data.total);
 					this.isLoading.set(false);
 				},
