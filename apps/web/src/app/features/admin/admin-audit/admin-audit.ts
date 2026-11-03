@@ -15,11 +15,13 @@ import { LibraryToolbar } from "../../../shared/components/library-toolbar/libra
 import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import {
+	UiBadge,
 	UiButton,
 	UiEmptyState,
 	UiNoMatches,
 	UiPagination,
-	UiSkeleton
+	UiSkeleton,
+	UiTable
 } from "../../../shared/ui";
 import { type AuditLogEntry } from "../services/audit.model";
 import { AuditService } from "../services/audit.service";
@@ -57,11 +59,13 @@ const toPickerOptions = (
 		LibraryHero,
 		LibraryToolbar,
 		OptionPicker,
+		UiBadge,
 		UiButton,
 		UiEmptyState,
 		UiNoMatches,
 		UiPagination,
-		UiSkeleton
+		UiSkeleton,
+		UiTable
 	],
 	templateUrl: "./admin-audit.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
