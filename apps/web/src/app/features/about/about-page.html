@@ -11,13 +11,7 @@
 		A game backlog tracker in the spirit of Trakt and Letterboxd, built
 		around one question: what should you play next?
 	</p>
-	<a
-		heroActions
-		uiButton
-		variant="secondary"
-		class="!bg-surface/70 backdrop-blur"
-		routerLink="/help"
-	>
+	<a heroActions uiButton variant="glass" routerLink="/help">
 		<span aria-hidden="true" class="material-icons text-base"
 			>menu_book</span
 		>
@@ -66,10 +60,7 @@
 			aria-hidden="true"
 			class="absolute -z-10 -bottom-24 -left-16 w-72 h-72 rounded-full bg-brand-glow blur-3xl opacity-40"
 		></div>
-		<span
-			class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-fg-muted"
-			>Made by</span
-		>
+		<span uiEyebrow>Made by</span>
 		<div class="flex items-center gap-4">
 			<span
 				aria-hidden="true"
@@ -113,10 +104,7 @@
 		aria-labelledby="about-open-source"
 		class="flex flex-col gap-3 p-6 rounded-card border border-line bg-surface/40"
 	>
-		<span
-			class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-fg-muted"
-			>Open source</span
-		>
+		<span uiEyebrow>Open source</span>
 		<h2
 			id="about-open-source"
 			class="m-0 flex items-center gap-2 font-display text-lg font-semibold text-fg"
@@ -158,18 +146,11 @@
 		aria-labelledby="about-stack"
 		class="flex flex-col gap-3 p-6 rounded-card border border-line bg-surface/40 md:col-span-2 lg:col-span-1"
 	>
-		<span
-			class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-fg-muted"
-			>Built with</span
-		>
+		<span uiEyebrow>Built with</span>
 		<h2 id="about-stack" class="sr-only">Technology</h2>
 		<ul class="m-0 p-0 list-none flex flex-wrap gap-2">
 			@for (tech of stack; track tech) {
-			<li
-				class="px-3 py-1.5 rounded-full border border-line bg-input-bg text-xs font-medium text-fg-secondary"
-			>
-				{{ tech }}
-			</li>
+			<li><ui-badge>{{ tech }}</ui-badge></li>
 			}
 		</ul>
 	</section>
@@ -178,10 +159,7 @@
 		aria-labelledby="about-data"
 		class="flex flex-col gap-3 p-6 rounded-card border border-line bg-surface/40 md:col-span-2 lg:col-span-3"
 	>
-		<span
-			class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-fg-muted"
-			>Data sources</span
-		>
+		<span uiEyebrow>Data sources</span>
 		<h2 id="about-data" class="sr-only">Data sources</h2>
 		<ul class="m-0 p-0 list-none grid gap-3 sm:grid-cols-3">
 			@for (source of dataSources; track source.name) {

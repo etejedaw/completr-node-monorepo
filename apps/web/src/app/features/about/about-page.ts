@@ -6,7 +6,7 @@ import {
 	InfoPageLinks
 } from "../../shared/components/info-page-links/info-page-links";
 import { LibraryHero } from "../../shared/components/library-hero/library-hero";
-import { UiButton } from "../../shared/ui";
+import { UiBadge, UiButton, UiEyebrow } from "../../shared/ui";
 import { injectLibraryPosters } from "../backlog/library-posters";
 import { type DataSource } from "./about-page.model";
 
@@ -42,7 +42,14 @@ const STACK = [
 
 @Component({
 	selector: "app-about-page",
-	imports: [RouterLink, LibraryHero, InfoPageLinks, UiButton],
+	imports: [
+		RouterLink,
+		LibraryHero,
+		InfoPageLinks,
+		UiBadge,
+		UiButton,
+		UiEyebrow
+	],
 	templateUrl: "./about-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
