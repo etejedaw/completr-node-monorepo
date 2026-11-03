@@ -30,6 +30,7 @@ import {
 	LibraryPageEmptyAction,
 	LibraryPageToolbar
 } from "../../../shared/components/library-page/library-page-slots";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import {
 	countByPlatform,
 	matchesPlatform,
@@ -46,7 +47,6 @@ import {
 	UiCheckbox,
 	UiIconButton,
 	UiPremiumBadge,
-	UiSearchBar,
 	UiTable
 } from "../../../shared/ui";
 import { uniqueGameIds } from "../../../shared/utils/backlog-eligibility";
@@ -93,7 +93,6 @@ function readStoredViewMode(): ShelfViewMode {
 		UiBadge,
 		UiButton,
 		UiIconButton,
-		UiSearchBar,
 		UiTable,
 		GameCoverCard,
 		GameTitleCell,
@@ -106,7 +105,8 @@ function readStoredViewMode(): ShelfViewMode {
 		LibraryPageToolbar,
 		PlatformFilter,
 		PremiumOnly,
-		UiPremiumBadge
+		UiPremiumBadge,
+		PageSearch
 	],
 	templateUrl: "./game-shelf-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
