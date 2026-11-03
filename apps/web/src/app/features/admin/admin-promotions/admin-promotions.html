@@ -227,15 +227,9 @@
 				(valueChange)="setFeature($event)"
 			/>
 			@if (showFeatureError()) {
-			<p
-				id="promotion-feature-error"
-				class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger"
+			<ui-field-error id="promotion-feature-error"
+				>{{ createForm.feature().errors()[0]?.message }}</ui-field-error
 			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>error_outline</span
-				>
-				{{ createForm.feature().errors()[0]?.message }}
-			</p>
 			}
 		</div>
 		<div uiFormField>
@@ -251,50 +245,42 @@
 				[formField]="createForm.code"
 			/>
 			@if (createForm.code().touched() && createForm.code().invalid()) {
-			<p class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger">
-				<span aria-hidden="true" class="material-icons text-sm"
-					>error_outline</span
-				>
-				{{ createForm.code().errors()[0]?.message }}
-			</p>
+			<ui-field-error uiDescription id="promotion-code-error"
+				>{{ createForm.code().errors()[0]?.message }}</ui-field-error
+			>
 			}
 		</div>
-		<div uiFormField>
-			<label uiLabel uiFieldLabel for="promotion-starts-at"
-				>Starts at</label
-			>
-			<input
-				id="promotion-starts-at"
-				uiInput
-				type="datetime-local"
+		<div>
+			<label uiFieldLabel for="promotion-starts-at">Starts at</label>
+			<ui-date-picker
+				mode="datetime"
+				triggerId="promotion-starts-at"
+				label="Starts at"
+				describedBy="promotion-starts-at-error"
 				[formField]="createForm.startsAt"
 			/>
 			@if (createForm.startsAt().touched() &&
 			createForm.startsAt().invalid()) {
-			<p class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger">
-				<span aria-hidden="true" class="material-icons text-sm"
-					>error_outline</span
-				>
-				{{ createForm.startsAt().errors()[0]?.message }}
-			</p>
+			<ui-field-error id="promotion-starts-at-error"
+				>{{ createForm.startsAt().errors()[0]?.message
+				}}</ui-field-error
+			>
 			}
 		</div>
-		<div uiFormField>
-			<label uiLabel uiFieldLabel for="promotion-ends-at">Ends at</label>
-			<input
-				id="promotion-ends-at"
-				uiInput
-				type="datetime-local"
+		<div>
+			<label uiFieldLabel for="promotion-ends-at">Ends at</label>
+			<ui-date-picker
+				mode="datetime"
+				triggerId="promotion-ends-at"
+				label="Ends at"
+				describedBy="promotion-ends-at-error"
 				[formField]="createForm.endsAt"
 			/>
 			@if (createForm.endsAt().touched() && createForm.endsAt().invalid())
 			{
-			<p class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger">
-				<span aria-hidden="true" class="material-icons text-sm"
-					>error_outline</span
-				>
-				{{ createForm.endsAt().errors()[0]?.message }}
-			</p>
+			<ui-field-error id="promotion-ends-at-error"
+				>{{ createForm.endsAt().errors()[0]?.message }}</ui-field-error
+			>
 			}
 		</div>
 	</form>
@@ -309,41 +295,35 @@
 			Moving the end date also moves the access of everyone who already
 			claimed this promotion.
 		</p>
-		<div uiFormField>
-			<label uiLabel uiFieldLabel for="promotion-starts-at"
-				>Starts at</label
-			>
-			<input
-				id="promotion-starts-at"
-				uiInput
-				type="datetime-local"
+		<div>
+			<label uiFieldLabel for="promotion-starts-at">Starts at</label>
+			<ui-date-picker
+				mode="datetime"
+				triggerId="promotion-starts-at"
+				label="Starts at"
+				describedBy="promotion-starts-at-error"
 				[formField]="editForm.startsAt"
 			/>
 			@if (editForm.startsAt().touched() && editForm.startsAt().invalid())
 			{
-			<p class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger">
-				<span aria-hidden="true" class="material-icons text-sm"
-					>error_outline</span
-				>
-				{{ editForm.startsAt().errors()[0]?.message }}
-			</p>
+			<ui-field-error id="promotion-starts-at-error"
+				>{{ editForm.startsAt().errors()[0]?.message }}</ui-field-error
+			>
 			}
 		</div>
-		<div uiFormField>
-			<label uiLabel uiFieldLabel for="promotion-ends-at">Ends at</label>
-			<input
-				id="promotion-ends-at"
-				uiInput
-				type="datetime-local"
+		<div>
+			<label uiFieldLabel for="promotion-ends-at">Ends at</label>
+			<ui-date-picker
+				mode="datetime"
+				triggerId="promotion-ends-at"
+				label="Ends at"
+				describedBy="promotion-ends-at-error"
 				[formField]="editForm.endsAt"
 			/>
 			@if (editForm.endsAt().touched() && editForm.endsAt().invalid()) {
-			<p class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger">
-				<span aria-hidden="true" class="material-icons text-sm"
-					>error_outline</span
-				>
-				{{ editForm.endsAt().errors()[0]?.message }}
-			</p>
+			<ui-field-error id="promotion-ends-at-error"
+				>{{ editForm.endsAt().errors()[0]?.message }}</ui-field-error
+			>
 			}
 		</div>
 	</form>

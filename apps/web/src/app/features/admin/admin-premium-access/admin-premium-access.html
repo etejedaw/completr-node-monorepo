@@ -54,27 +54,24 @@
 			(submit)="createFull($event)"
 			novalidate
 		>
-			<div uiFormField class="min-w-0 flex-1">
-				<label uiLabel uiFieldLabel for="full-premium-expiration"
+			<div class="min-w-0 flex-1">
+				<label uiFieldLabel for="full-premium-expiration"
 					>Expires at</label
 				>
-				<input
-					id="full-premium-expiration"
-					uiInput
-					type="datetime-local"
-					[min]="minimumExpiration"
+				<ui-date-picker
+					mode="datetime"
+					triggerId="full-premium-expiration"
+					label="Expires at"
+					[minDate]="minimumExpiration"
+					[describedBy]="fullForm.expiresAt().touched() && fullForm.expiresAt().invalid() ? 'full-premium-expiration-error' : null"
 					[formField]="fullForm.expiresAt"
-					[attr.aria-invalid]="fullForm.expiresAt().touched() && fullForm.expiresAt().invalid() || null"
-					[attr.aria-describedby]="fullForm.expiresAt().touched() && fullForm.expiresAt().invalid() ? 'full-premium-expiration-error' : null"
 				/>
 				@if (fullForm.expiresAt().touched() &&
 				fullForm.expiresAt().invalid()) {
-				<p
-					id="full-premium-expiration-error"
-					class="m-0 mt-1 text-xs text-danger"
+				<ui-field-error id="full-premium-expiration-error"
+					>{{ fullForm.expiresAt().errors()[0]?.message
+					}}</ui-field-error
 				>
-					{{ fullForm.expiresAt().errors()[0]?.message }}
-				</p>
 				}
 			</div>
 			<button
@@ -107,31 +104,25 @@
 				</p>
 				@if (active) {
 				<div class="flex flex-col gap-2 sm:flex-row sm:items-end">
-					<div uiFormField class="min-w-0 flex-1">
-						<label
-							uiLabel
-							uiFieldLabel
-							[for]="'expiration-' + grant.id"
+					<div class="min-w-0 flex-1">
+						<label uiFieldLabel [for]="'expiration-' + grant.id"
 							>New expiration</label
 						>
-						<input
-							uiInput
-							type="datetime-local"
-							[id]="'expiration-' + grant.id"
-							[min]="minimumExpiration"
-							[value]="toLocalInput(grant.expiresAt)"
-							[attr.aria-invalid]="extendError()?.grantId === grant.id || null"
-							[attr.aria-describedby]="extendError()?.grantId === grant.id ? 'expiration-error-' + grant.id : null"
+						<ui-date-picker
 							#expiration
+							mode="datetime"
+							label="New expiration"
+							[triggerId]="'expiration-' + grant.id"
+							[minDate]="minimumExpiration"
+							[value]="toLocalInput(grant.expiresAt)"
+							[invalid]="extendError()?.grantId === grant.id"
+							[describedBy]="extendError()?.grantId === grant.id ? 'expiration-error-' + grant.id : null"
 						/>
 						@if (extendError(); as failed) { @if (failed.grantId ===
 						grant.id) {
-						<p
-							class="m-0 mt-1 text-xs text-danger"
-							[id]="'expiration-error-' + grant.id"
+						<ui-field-error [id]="'expiration-error-' + grant.id"
+							>{{ failed.message }}</ui-field-error
 						>
-							{{ failed.message }}
-						</p>
 						} }
 					</div>
 					<div class="flex gap-2">
@@ -141,7 +132,7 @@
 							type="button"
 							class="min-h-11"
 							[disabled]="!!busy()"
-							(click)="extend(grant, expiration.value)"
+							(click)="extend(grant, expiration.value())"
 						>
 							Save date
 						</button>
@@ -208,23 +199,22 @@
 				/>
 				@if (featureForm.feature().touched() &&
 				featureForm.feature().invalid()) {
-				<p
-					id="feature-grant-feature-error"
-					class="m-0 mt-1 text-xs text-danger"
+				<ui-field-error id="feature-grant-feature-error"
+					>{{ featureForm.feature().errors()[0]?.message
+					}}</ui-field-error
 				>
-					{{ featureForm.feature().errors()[0]?.message }}
-				</p>
 				}
 			</div>
-			<div uiFormField>
-				<label uiLabel uiFieldLabel for="feature-expiration"
+			<div>
+				<label uiFieldLabel for="feature-expiration"
 					>Expires at <ui-field-optional
 				/></label>
-				<input
-					id="feature-expiration"
-					uiInput
-					type="datetime-local"
-					[min]="minimumExpiration"
+				<ui-date-picker
+					mode="datetime"
+					triggerId="feature-expiration"
+					label="Expires at"
+					clearable
+					[minDate]="minimumExpiration"
 					[formField]="featureForm.expiresAt"
 				/>
 			</div>
@@ -269,31 +259,26 @@
 				</p>
 				@if (active) {
 				<div class="flex flex-col gap-2 sm:flex-row sm:items-end">
-					<div uiFormField class="min-w-0 flex-1">
-						<label
-							uiLabel
-							uiFieldLabel
-							[for]="'expiration-' + grant.id"
+					<div class="min-w-0 flex-1">
+						<label uiFieldLabel [for]="'expiration-' + grant.id"
 							>New expiration</label
 						>
-						<input
-							uiInput
-							type="datetime-local"
-							[id]="'expiration-' + grant.id"
-							[min]="minimumExpiration"
-							[value]="toLocalInput(grant.expiresAt)"
-							[attr.aria-invalid]="extendError()?.grantId === grant.id || null"
-							[attr.aria-describedby]="extendError()?.grantId === grant.id ? 'expiration-error-' + grant.id : null"
+						<ui-date-picker
 							#expiration
+							mode="datetime"
+							label="New expiration"
+							clearable
+							[triggerId]="'expiration-' + grant.id"
+							[minDate]="minimumExpiration"
+							[value]="toLocalInput(grant.expiresAt)"
+							[invalid]="extendError()?.grantId === grant.id"
+							[describedBy]="extendError()?.grantId === grant.id ? 'expiration-error-' + grant.id : null"
 						/>
 						@if (extendError(); as failed) { @if (failed.grantId ===
 						grant.id) {
-						<p
-							class="m-0 mt-1 text-xs text-danger"
-							[id]="'expiration-error-' + grant.id"
+						<ui-field-error [id]="'expiration-error-' + grant.id"
+							>{{ failed.message }}</ui-field-error
 						>
-							{{ failed.message }}
-						</p>
 						} }
 					</div>
 					<div class="flex gap-2">
@@ -303,7 +288,7 @@
 							type="button"
 							class="min-h-11"
 							[disabled]="!!busy()"
-							(click)="extend(grant, expiration.value)"
+							(click)="extend(grant, expiration.value())"
 						>
 							Save date
 						</button>

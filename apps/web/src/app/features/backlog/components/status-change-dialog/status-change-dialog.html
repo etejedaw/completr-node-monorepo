@@ -26,12 +26,11 @@
 		@if (pending.status === 'playing') {
 		<div>
 			<label for="pendingStartedAt" uiFieldLabel>Started on</label>
-			<input
-				uiInput
-				id="pendingStartedAt"
-				type="date"
+			<ui-date-picker
+				triggerId="pendingStartedAt"
+				label="Started on"
 				[value]="pending.startedAt"
-				(input)="updatePendingStatus({ startedAt: $any($event.target).value })"
+				(valueChange)="updatePendingStatus({ startedAt: $event })"
 			/>
 		</div>
 		} @if (pending.status === 'completed' || pending.status === 'abandoned')
@@ -41,12 +40,11 @@
 				{{ pending.status === 'abandoned' ? 'Abandoned on' : 'Finished
 				on' }}
 			</label>
-			<input
-				uiInput
-				id="pendingFinishedAt"
-				type="date"
+			<ui-date-picker
+				triggerId="pendingFinishedAt"
+				[label]="pending.status === 'abandoned' ? 'Abandoned on' : 'Finished on'"
 				[value]="pending.finishedAt"
-				(input)="updatePendingStatus({ finishedAt: $any($event.target).value })"
+				(valueChange)="updatePendingStatus({ finishedAt: $event })"
 			/>
 		</div>
 		@if (pending.status === 'completed') {
@@ -95,12 +93,11 @@
 		@if (pending.markPlatinum) {
 		<div>
 			<label for="pendingPlatinumedAt" uiFieldLabel>Platinumed on</label>
-			<input
-				uiInput
-				id="pendingPlatinumedAt"
-				type="date"
+			<ui-date-picker
+				triggerId="pendingPlatinumedAt"
+				label="Platinumed on"
 				[value]="pending.platinumedAt"
-				(input)="updatePendingStatus({ platinumedAt: $any($event.target).value })"
+				(valueChange)="updatePendingStatus({ platinumedAt: $event })"
 			/>
 		</div>
 		} } }

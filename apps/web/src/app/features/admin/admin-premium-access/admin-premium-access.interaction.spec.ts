@@ -5,11 +5,13 @@ import {
 	HttpTestingController,
 	provideHttpClientTesting
 } from "@angular/common/http/testing";
+import { getDebugNode } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
+import { type UiDatePicker } from "../../../shared/ui";
 import { type AdminUser } from "../services/user-admin.model";
 import { AdminPremiumAccess } from "./admin-premium-access";
 
@@ -32,6 +34,13 @@ const FEATURES = [
 	},
 	{ feature: "export.json", allowsExpiration: true, allowsGlobalGrant: true }
 ];
+
+function pickDate(trigger: HTMLElement, value: string) {
+	const picker = getDebugNode(trigger.closest("ui-date-picker"))
+		?.componentInstance as UiDatePicker;
+	picker.value.set(value);
+	picker.touch.emit();
+}
 
 function grant(overrides: Record<string, unknown> = {}) {
 	return {
@@ -245,7 +254,7 @@ describe("AdminPremiumAccess interaction", () => {
 		const date = within(dialog).getByLabelText("Expires at", {
 			selector: "#full-premium-expiration"
 		});
-		await user.clear(date);
+		pickDate(date, "");
 		await user.click(
 			within(dialog).getByRole("button", { name: "Grant full premium" })
 		);
@@ -268,7 +277,7 @@ describe("AdminPremiumAccess interaction", () => {
 		).toHaveLength(1);
 		http.expectNone(`${api}/admin/users/u1/premium-grants`);
 
-		await user.type(date, "2027-02-01T12:30");
+		pickDate(date, "2027-02-01T12:30");
 		await user.click(
 			within(dialog).getByRole("button", { name: "Grant full premium" })
 		);
@@ -312,7 +321,7 @@ describe("AdminPremiumAccess interaction", () => {
 		const date = within(dialog).getByLabelText("New expiration", {
 			selector: "#expiration-full"
 		});
-		await user.clear(date);
+		pickDate(date, "");
 		const [saveFull] = within(dialog).getAllByRole("button", {
 			name: "Save date"
 		});
@@ -335,7 +344,7 @@ describe("AdminPremiumAccess interaction", () => {
 		).not.toHaveAttribute("aria-invalid");
 		http.expectNone(req => req.method === "PATCH");
 
-		await user.type(date, "2027-05-01T10:00");
+		pickDate(date, "2027-05-01T10:00");
 		await user.click(saveFull!);
 		expect(
 			within(dialog).queryByText(
@@ -352,7 +361,7 @@ describe("AdminPremiumAccess interaction", () => {
 			name: "Premium access"
 		});
 		const date = within(dialog).getByLabelText("New expiration");
-		await user.type(date, "2027-03-01T10:00");
+		pickDate(date, "2027-03-01T10:00");
 		await user.click(
 			within(dialog).getByRole("button", { name: "Save date" })
 		);
@@ -461,8 +470,8 @@ describe("AdminPremiumAccess interaction", () => {
 			name: "Premium access"
 		});
 		const date = within(dialog).getByLabelText("New expiration");
-		await user.clear(date);
-		await user.type(date, "2027-06-01T10:00");
+		pickDate(date, "");
+		pickDate(date, "2027-06-01T10:00");
 		await user.click(
 			within(dialog).getByRole("button", { name: "Save date" })
 		);

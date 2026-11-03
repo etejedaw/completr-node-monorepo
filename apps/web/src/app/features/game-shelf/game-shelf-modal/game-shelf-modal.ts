@@ -22,6 +22,7 @@ import { type PickerOption } from "../../../shared/components/option-picker/opti
 import {
 	UiAlert,
 	UiButton,
+	UiDatePicker,
 	UiDialog,
 	UiFieldLabel,
 	UiFieldOptional,
@@ -62,6 +63,7 @@ const EDITION_SUGGESTIONS = [
 		OptionPicker,
 		SelectedGameRow,
 		UiButton,
+		UiDatePicker,
 		UiDialog,
 		UiInput,
 		UiTextarea,

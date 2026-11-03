@@ -25,6 +25,7 @@ import { StarRating } from "../../../../shared/components/star-rating/star-ratin
 import {
 	UiBottomSheet,
 	UiButton,
+	UiDatePicker,
 	UiDrawer,
 	UiInput,
 	UiSwitch
@@ -66,6 +67,7 @@ const SORT_ORDER_OPTIONS: readonly PickerOption[] = [
 		StarRating,
 		UiBottomSheet,
 		UiButton,
+		UiDatePicker,
 		UiDrawer,
 		UiInput,
 		UiSwitch

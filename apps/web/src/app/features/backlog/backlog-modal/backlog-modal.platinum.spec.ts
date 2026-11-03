@@ -17,6 +17,7 @@ import {
 	type BacklogStatus,
 	type GamePlatinum
 } from "../../../core/models";
+import { pickCalendarDate } from "../../../shared/ui/date-picker/ui-date-picker.testing";
 import { BacklogModal } from "./backlog-modal";
 import { type BacklogModalData } from "./backlog-modal.model";
 
@@ -194,8 +195,8 @@ describe("BacklogModal platinum", () => {
 		await userEvent.click(
 			screen.getByRole("switch", { name: "Platinumed in this run" })
 		);
-		expect(screen.getByLabelText("Platinumed on")).toHaveValue(
-			"2026-03-10"
+		expect(screen.getByLabelText("Platinumed on")).toHaveAccessibleName(
+			"Platinumed on: Mar 10, 2026"
 		);
 		await save();
 
@@ -217,11 +218,13 @@ describe("BacklogModal platinum", () => {
 		delete entry.finishedAt;
 		await renderEditModal(entry);
 
-		await userEvent.type(
+		await pickCalendarDate(
+			userEvent,
 			screen.getByLabelText("Started Optional"),
 			"2026-03-01"
 		);
-		await userEvent.type(
+		await pickCalendarDate(
+			userEvent,
 			screen.getByLabelText("Finished Optional"),
 			"2026-03-10"
 		);
@@ -251,8 +254,8 @@ describe("BacklogModal platinum", () => {
 			name: "Platinumed in this run"
 		});
 		expect(toggle).toBeChecked();
-		expect(screen.getByLabelText("Platinumed on")).toHaveValue(
-			"2026-03-12"
+		expect(screen.getByLabelText("Platinumed on")).toHaveAccessibleName(
+			"Platinumed on: Mar 12, 2026"
 		);
 
 		await userEvent.click(toggle);

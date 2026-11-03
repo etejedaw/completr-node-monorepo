@@ -427,9 +427,9 @@ describe("AdminGameEditor interaction", () => {
 			expect(screen.getByLabelText(/^Description/)).toHaveValue(
 				"From RAWG"
 			);
-			expect(screen.getByLabelText(/^Release date/)).toHaveValue(
-				"2020-09-17"
-			);
+			expect(
+				screen.getByRole("button", { name: /^Release date:/ })
+			).toHaveAccessibleName("Release date: Sep 17, 2020");
 			expect(button("PC")).toHaveAttribute("aria-pressed", "true");
 			expect(button("PS5")).toHaveAttribute("aria-pressed", "false");
 			expect(screen.getByLabelText("metacritic score")).toHaveValue(93);

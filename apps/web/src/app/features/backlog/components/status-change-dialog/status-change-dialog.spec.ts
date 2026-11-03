@@ -87,8 +87,8 @@ describe("StatusChangeDialog platinum", () => {
 			pendingUpdate("completed", { markPlatinum: true })
 		);
 
-		expect(dialog.getByLabelText("Platinumed on")).toHaveValue(
-			"2026-03-12"
+		expect(dialog.getByLabelText("Platinumed on")).toHaveAccessibleName(
+			"Platinumed on: Mar 12, 2026"
 		);
 	});
 

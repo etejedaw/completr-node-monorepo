@@ -11,6 +11,7 @@ import {
 	type Game,
 	type GamePlatinum
 } from "../../../core/models";
+import { pickCalendarDate } from "../../../shared/ui/date-picker/ui-date-picker.testing";
 import { BacklogService } from "../../backlog/backlog";
 import { GamesService } from "../../games/games";
 import { PlatinumService } from "../platinum";
@@ -145,7 +146,8 @@ describe("PlatinumDialog", () => {
 		await user.click(
 			screen.getByRole("menuitemradio", { name: /Run #2 · Completed/ })
 		);
-		await user.type(
+		await pickCalendarDate(
+			user,
 			dialog.getByLabelText("Platinumed on Optional"),
 			"2026-03-12"
 		);
@@ -184,9 +186,9 @@ describe("PlatinumDialog", () => {
 		expect(
 			dialog.getByRole("heading", { name: "Edit platinum" })
 		).toBeInTheDocument();
-		expect(dialog.getByLabelText("Platinumed on Optional")).toHaveValue(
-			"2026-03-12"
-		);
+		expect(
+			dialog.getByLabelText("Platinumed on Optional")
+		).toHaveAccessibleName("Platinumed on: Mar 12, 2026");
 		expect(dialog.getByLabelText("Notes Optional")).toHaveValue("Hard");
 
 		await user.click(dialog.getByRole("button", { name: "Remove" }));

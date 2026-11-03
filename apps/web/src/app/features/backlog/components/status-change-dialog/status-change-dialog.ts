@@ -11,6 +11,7 @@ import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/pl
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import {
 	UiButton,
+	UiDatePicker,
 	UiDialog,
 	type UiDialogTone,
 	UiFieldLabel,
@@ -39,6 +40,7 @@ const STATUS_DIALOG_TONES: Partial<Record<BacklogStatus, UiDialogTone>> = {
 		PlatinumTrophy,
 		StarRating,
 		UiButton,
+		UiDatePicker,
 		UiDialog,
 		UiInput,
 		UiSwitch,

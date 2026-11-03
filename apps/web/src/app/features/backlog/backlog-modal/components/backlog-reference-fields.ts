@@ -21,6 +21,7 @@ import { type ChipOption } from "../../../../shared/components/chip-group/chip-g
 import {
 	UiButton,
 	UiEyebrow,
+	UiFieldError,
 	UiFieldLabel,
 	UiInput
 } from "../../../../shared/ui";
@@ -51,7 +52,15 @@ function hasVisibleError(field: FieldTree<number | null>): boolean {
 
 @Component({
 	selector: "app-backlog-reference-fields",
-	imports: [ChipGroup, FormField, UiButton, UiEyebrow, UiFieldLabel, UiInput],
+	imports: [
+		ChipGroup,
+		FormField,
+		UiButton,
+		UiEyebrow,
+		UiFieldError,
+		UiFieldLabel,
+		UiInput
+	],
 	templateUrl: "./backlog-reference-fields.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush

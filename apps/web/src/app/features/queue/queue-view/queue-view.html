@@ -1,8 +1,4 @@
-<app-library-hero
-	heading="Up Next"
-	eyebrow="Library"
-	[posters]="heroPosters()"
->
+<app-library-hero heading="Up Next" eyebrow="Library" [posters]="heroPosters()">
 	<p
 		heroSubtitle
 		class="m-0 mt-2 flex items-center gap-1.5 text-sm text-fg-secondary"
@@ -85,12 +81,11 @@
 		which only holds games you haven't started.
 	</p>
 	<label uiFieldLabel for="queue-play-started-at">Started on</label>
-	<input
-		uiInput
-		id="queue-play-started-at"
-		type="date"
+	<ui-date-picker
+		triggerId="queue-play-started-at"
+		label="Started on"
 		[value]="pendingPlayStartedAt()"
-		(input)="onPendingPlayStartedAtChange($any($event.target).value)"
+		(valueChange)="onPendingPlayStartedAtChange($event)"
 	/>
 	<ng-container dialogFooter>
 		<button uiButton variant="ghost" (click)="cancelPlayConfirmation()">

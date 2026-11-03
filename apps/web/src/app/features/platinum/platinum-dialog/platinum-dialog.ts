@@ -17,10 +17,10 @@ import { type PickerOption } from "../../../shared/components/option-picker/opti
 import {
 	UiAlert,
 	UiButton,
+	UiDatePicker,
 	UiDialog,
 	UiFieldLabel,
 	UiFieldOptional,
-	UiInput,
 	UiSkeleton,
 	UiTextarea
 } from "../../../shared/ui";
@@ -54,9 +54,9 @@ const NO_SELECTION = "";
 		SelectedGameRow,
 		UiAlert,
 		UiButton,
+		UiDatePicker,
 		UiDialog,
 		UiFieldLabel,
-		UiInput,
 		UiSkeleton,
 		UiTextarea,
 		UiFieldOptional

@@ -73,12 +73,11 @@
 			<label for="platinumedAt" uiFieldLabel
 				>Platinumed on <ui-field-optional
 			/></label>
-			<input
-				uiInput
-				id="platinumedAt"
-				type="date"
-				[value]="platinumedAt()"
-				(input)="platinumedAt.set($any($event.target).value)"
+			<ui-date-picker
+				triggerId="platinumedAt"
+				label="Platinumed on"
+				clearable
+				[(value)]="platinumedAt"
 			/>
 		</div>
 		<div>

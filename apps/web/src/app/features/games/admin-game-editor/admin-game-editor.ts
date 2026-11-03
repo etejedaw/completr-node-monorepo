@@ -33,8 +33,10 @@ import {
 	UiAlert,
 	UiBadge,
 	UiButton,
+	UiDatePicker,
 	UiDialog,
 	UiEyebrow,
+	UiFieldError,
 	UiFieldLabel,
 	UiFieldOptional,
 	UiIconButton,
@@ -97,6 +99,7 @@ const COMPILATION_ROW_MODES: SegmentedOption<CompilationRowMode>[] = [
 		UiAlert,
 		UiBadge,
 		UiButton,
+		UiDatePicker,
 		UiDialog,
 		UiEyebrow,
 		UiFieldLabel,
@@ -104,7 +107,8 @@ const COMPILATION_ROW_MODES: SegmentedOption<CompilationRowMode>[] = [
 		UiIconButton,
 		UiInput,
 		UiSwitch,
-		UiTextarea
+		UiTextarea,
+		UiFieldError
 	],
 	templateUrl: "./admin-game-editor.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

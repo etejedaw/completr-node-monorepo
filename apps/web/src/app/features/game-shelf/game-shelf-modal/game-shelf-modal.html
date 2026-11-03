@@ -43,9 +43,7 @@
 
 	@if (e.notes) {
 	<figure class="m-0 mt-5 border-l-2 border-nav-shelf/60 pl-3">
-		<figcaption uiEyebrow class="mb-1">
-			Notes
-		</figcaption>
+		<figcaption uiEyebrow class="mb-1">Notes</figcaption>
 		<p class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap">
 			{{ e.notes }}
 		</p>
@@ -124,10 +122,10 @@
 			<label for="shelf-acquired" uiFieldLabel
 				>Acquired <ui-field-optional
 			/></label>
-			<input
-				uiInput
-				id="shelf-acquired"
-				type="date"
+			<ui-date-picker
+				triggerId="shelf-acquired"
+				label="Acquired"
+				clearable
 				[formField]="form.acquiredAt"
 			/>
 		</div>

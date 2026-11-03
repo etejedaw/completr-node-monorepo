@@ -18,6 +18,7 @@ import userEvent from "@testing-library/user-event";
 import { environment } from "../../../../environments/environment";
 import { type BacklogEntry, type QueueEntry } from "../../../core/models";
 import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
+import { pickCalendarDate } from "../../../shared/ui/date-picker/ui-date-picker.testing";
 import { QueueView } from "./queue-view";
 
 @Component({
@@ -624,10 +625,11 @@ describe("QueueView interaction", () => {
 			name: "Start playing Hades?"
 		});
 		const startedOn = within(dialog).getByLabelText("Started on");
-		expect(startedOn).not.toHaveValue("");
+		expect(startedOn).toHaveAccessibleName(
+			/^Started on: [A-Z][a-z]{2} \d{1,2}, \d{4}$/
+		);
 
-		await user.clear(startedOn);
-		await user.type(startedOn, "2026-10-01");
+		await pickCalendarDate(user, startedOn, "2026-10-01");
 		await user.click(
 			within(dialog).getByRole("button", { name: "Start playing" })
 		);

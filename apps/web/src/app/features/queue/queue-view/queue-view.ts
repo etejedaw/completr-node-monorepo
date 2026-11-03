@@ -26,10 +26,10 @@ import { LibraryHero } from "../../../shared/components/library-hero/library-her
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
+	UiDatePicker,
 	UiDialog,
 	UiEmptyState,
 	UiFieldLabel,
-	UiInput,
 	UiPremiumBadge
 } from "../../../shared/ui";
 import { arrangeIntoFullOrder } from "../../../shared/utils/full-order";
@@ -60,8 +60,8 @@ function isAlreadyReported(error: unknown) {
 		QueueBrowser,
 		UiEmptyState,
 		UiButton,
+		UiDatePicker,
 		UiDialog,
-		UiInput,
 		UiPremiumBadge,
 		PremiumOnly,
 		UiFieldLabel

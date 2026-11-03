@@ -130,15 +130,9 @@
 					>
 				</div>
 				@if (showScoreError()) {
-				<p
-					id="score-error"
-					class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger"
+				<ui-field-error id="score-error"
+					>{{ score()().errors()[0]?.message }}</ui-field-error
 				>
-					<span aria-hidden="true" class="material-icons text-sm"
-						>error_outline</span
-					>
-					{{ score()().errors()[0]?.message }}
-				</p>
 				}
 			</div>
 			<div>
@@ -204,15 +198,9 @@
 					(input)="onDurationInput($event)"
 				/>
 				@if (showDurationError()) {
-				<p
-					id="duration-error"
-					class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger"
+				<ui-field-error id="duration-error"
+					>{{ duration()().errors()[0]?.message }}</ui-field-error
 				>
-					<span aria-hidden="true" class="material-icons text-sm"
-						>error_outline</span
-					>
-					{{ duration()().errors()[0]?.message }}
-				</p>
 				}
 			</div>
 		</div>

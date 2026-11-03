@@ -6,6 +6,7 @@ import {
 	provideHttpClientTesting,
 	type TestRequest
 } from "@angular/common/http/testing";
+import { getDebugNode } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import {
 	fireEvent,
@@ -18,6 +19,7 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { ToastService } from "../../../core/services/toast";
+import { type UiDatePicker } from "../../../shared/ui";
 import { type PremiumPromotion } from "../services/premium-promotions-admin.model";
 import { AdminPromotions } from "./admin-promotions";
 
@@ -228,6 +230,18 @@ describe("AdminPromotions interaction", () => {
 		});
 	}
 
+	function datePicker(label: RegExp) {
+		const trigger = within(dialog()).getByRole("button", { name: label });
+		return getDebugNode(trigger.closest("ui-date-picker"))
+			?.componentInstance as UiDatePicker;
+	}
+
+	function pickDate(label: RegExp, value: string) {
+		const picker = datePicker(label);
+		picker.value.set(value);
+		picker.touch.emit();
+	}
+
 	function submitButton(name: string | RegExp) {
 		return within(dialog()).getByRole("button", { name });
 	}
@@ -255,8 +269,8 @@ describe("AdminPromotions interaction", () => {
 	async function fillValidCreate(code = "launch-gift") {
 		await chooseFeature("Premium Rewind");
 		setField(/^Code/, code);
-		setField(/^Starts at/, localInput(daysFromNow(1)));
-		setField(/^Ends at/, localInput(daysFromNow(15)));
+		pickDate(/^Starts at/, localInput(daysFromNow(1)));
+		pickDate(/^Ends at/, localInput(daysFromNow(15)));
 	}
 
 	async function openEdit(code: string) {
@@ -510,7 +524,7 @@ describe("AdminPromotions interaction", () => {
 			const error = within(dialog()).getByText("Choose a feature.");
 			expect(featurePicker()).toHaveAttribute("aria-invalid", "true");
 			expect(featurePicker().getAttribute("aria-describedby")).toBe(
-				error.closest("p")?.id
+				error.closest("ui-field-error")?.id
 			);
 
 			await chooseFeature("JSON export");
@@ -531,8 +545,8 @@ describe("AdminPromotions interaction", () => {
 			await chooseFeature("Unlimited queue");
 			await chooseFeature("Premium themes");
 			setField(/^Code/, "mind-change");
-			setField(/^Starts at/, localInput(daysFromNow(1)));
-			setField(/^Ends at/, localInput(daysFromNow(15)));
+			pickDate(/^Starts at/, localInput(daysFromNow(1)));
+			pickDate(/^Ends at/, localInput(daysFromNow(15)));
 
 			await userEvent.click(submitButton("Create promotion"));
 			await untilVisible(() =>
@@ -612,26 +626,26 @@ describe("AdminPromotions interaction", () => {
 			await fillValidCreate();
 			requests.length = 0;
 
-			setField(/^Ends at/, localInput(daysFromNow(0.5)));
+			pickDate(/^Ends at/, localInput(daysFromNow(0.5)));
 			await userEvent.click(submitButton("Create promotion"));
 			expect(
 				within(dialog()).getByText("The end must be after the start.")
 			).toBeInTheDocument();
 
-			setField(/^Starts at/, localInput(daysFromNow(-30)));
-			setField(/^Ends at/, localInput(daysFromNow(-3)));
+			pickDate(/^Starts at/, localInput(daysFromNow(-30)));
+			pickDate(/^Ends at/, localInput(daysFromNow(-3)));
 			await userEvent.click(submitButton("Create promotion"));
 			expect(
 				within(dialog()).getByText("The end must be in the future.")
 			).toBeInTheDocument();
 
-			setField(/^Ends at/, "not-a-date");
+			pickDate(/^Ends at/, "not-a-date");
 			await userEvent.click(submitButton("Create promotion"));
 			expect(
 				within(dialog()).getByText("Choose a valid end date.")
 			).toBeInTheDocument();
 
-			setField(/^Starts at/, "");
+			pickDate(/^Starts at/, "");
 			await userEvent.click(submitButton("Create promotion"));
 			expect(
 				within(dialog()).getByText("Choose a valid start date.")
@@ -805,7 +819,7 @@ describe("AdminPromotions interaction", () => {
 			).toBeInTheDocument();
 
 			const newEnd = localInput(daysFromNow(40));
-			setField(/^Ends at/, newEnd);
+			pickDate(/^Ends at/, newEnd);
 			await userEvent.click(submitButton("Save dates"));
 			await untilVisible(() =>
 				expect(screen.queryByRole("dialog")).toBeNull()
@@ -840,20 +854,20 @@ describe("AdminPromotions interaction", () => {
 			await openEdit("scheduled-one");
 			requests.length = 0;
 
-			setField(/^Ends at/, localInput(daysFromNow(2)));
+			pickDate(/^Ends at/, localInput(daysFromNow(2)));
 			await userEvent.click(submitButton("Save dates"));
 			expect(
 				within(dialog()).getByText("The end must be after the start.")
 			).toBeInTheDocument();
 
-			setField(/^Ends at/, "garbage");
+			pickDate(/^Ends at/, "garbage");
 			await userEvent.click(submitButton("Save dates"));
 			expect(
 				within(dialog()).getByText("Choose a valid end date.")
 			).toBeInTheDocument();
 
-			setField(/^Ends at/, localInput(daysFromNow(-1)));
-			setField(/^Starts at/, localInput(daysFromNow(-5)));
+			pickDate(/^Ends at/, localInput(daysFromNow(-1)));
+			pickDate(/^Starts at/, localInput(daysFromNow(-5)));
 			await userEvent.click(submitButton("Save dates"));
 			expect(
 				within(dialog()).getByText("The end must be in the future.")
@@ -864,7 +878,7 @@ describe("AdminPromotions interaction", () => {
 		it("sends one request on a triple click and keeps the dialog open until the answer", async () => {
 			await renderLoaded();
 			await openEdit("active-one");
-			setField(/^Ends at/, localInput(daysFromNow(30)));
+			pickDate(/^Ends at/, localInput(daysFromNow(30)));
 			hold.add("update");
 
 			await userEvent.tripleClick(submitButton("Save dates"));
@@ -892,7 +906,7 @@ describe("AdminPromotions interaction", () => {
 					? { ...item, endsAt: daysFromNow(-1).toISOString() }
 					: item
 			);
-			setField(/^Ends at/, localInput(daysFromNow(30)));
+			pickDate(/^Ends at/, localInput(daysFromNow(30)));
 
 			await userEvent.click(submitButton("Save dates"));
 
@@ -920,7 +934,7 @@ describe("AdminPromotions interaction", () => {
 			await renderLoaded();
 			await openEdit("active-one");
 			backend = backend.filter(item => item.id !== "active-one");
-			setField(/^Ends at/, localInput(daysFromNow(30)));
+			pickDate(/^Ends at/, localInput(daysFromNow(30)));
 
 			await userEvent.click(submitButton("Save dates"));
 
@@ -937,7 +951,7 @@ describe("AdminPromotions interaction", () => {
 		it("keeps the form and shows the server message on a generic failure", async () => {
 			await renderLoaded();
 			await openEdit("active-one");
-			setField(/^Ends at/, localInput(daysFromNow(30)));
+			pickDate(/^Ends at/, localInput(daysFromNow(30)));
 			failures.update = [{ status: 500 }];
 
 			await userEvent.click(submitButton("Save dates"));
@@ -948,7 +962,7 @@ describe("AdminPromotions interaction", () => {
 					)
 				).toBeInTheDocument()
 			);
-			expect(within(dialog()).getByLabelText(/^Ends at/)).toHaveValue(
+			expect(datePicker(/^Ends at/).value()).toBe(
 				localInput(daysFromNow(30))
 			);
 

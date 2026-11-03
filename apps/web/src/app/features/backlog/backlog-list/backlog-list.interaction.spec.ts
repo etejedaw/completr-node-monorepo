@@ -12,6 +12,7 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type BacklogEntry, type Platform } from "../../../core/models";
+import { pickCalendarDate } from "../../../shared/ui/date-picker/ui-date-picker.testing";
 import { type SavedFilter } from "../saved-filters.model";
 import { BacklogList } from "./backlog-list";
 
@@ -506,8 +507,7 @@ describe("BacklogList interaction", () => {
 			within(dialog).getByRole("switch", { name: "Mark as platinumed" })
 		);
 		const platinumedOn = within(dialog).getByLabelText("Platinumed on");
-		await user.clear(platinumedOn);
-		await user.type(platinumedOn, "2026-03-12");
+		await pickCalendarDate(user, platinumedOn, "2026-03-12");
 		await user.click(
 			within(dialog).getByRole("button", { name: "Confirm" })
 		);

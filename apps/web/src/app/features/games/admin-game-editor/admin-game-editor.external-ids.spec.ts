@@ -421,9 +421,9 @@ describe("AdminGameEditor external IDs", () => {
 				).not.toBeInTheDocument();
 				await userEvent.tab();
 
-				const error = screen.getByText(
-					/Enter the HowLongToBeat game ID/
-				);
+				const error = screen
+					.getByText(/Enter the HowLongToBeat game ID/)
+					.closest("ui-field-error") as HTMLElement;
 				expect(hltbInput()).toHaveAttribute("aria-invalid", "true");
 				expect(hltbInput()).toHaveAttribute(
 					"aria-describedby",
