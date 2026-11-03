@@ -84,25 +84,20 @@
 						>{{ user()?.username }}</a
 					>
 					@if (roleBadge(); as badge) {
-					<span
-						class="inline-flex items-center gap-0.5 mt-0.5 px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-[0.16em]"
-						[class]="badge.className"
+					<ui-badge
+						class="mt-0.5"
+						[tone]="badge.tone"
+						[icon]="badge.icon"
+						>{{ badge.label }}</ui-badge
 					>
-						@if (badge.icon; as icon) {
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.6875rem]"
-							>{{ icon }}</span
-						>
-						} {{ badge.label }}
-					</span>
 					}
 				</div>
 				}
 				<div class="flex items-center" [class.flex-col]="railMode()">
 					<a
+						uiIconButton
 						routerLink="/settings"
-						class="flex items-center justify-center w-9 h-9 tap:min-w-[44px] tap:min-h-[44px] rounded-md text-fg-muted no-underline transition hover:text-fg hover:bg-surface"
+						class="!w-9 !h-9 tap:min-w-[44px] tap:min-h-[44px]"
 						title="Settings"
 						aria-label="Settings"
 					>
@@ -171,9 +166,14 @@
 
 				<div class="ml-auto flex items-center gap-1">
 					<button
+						uiIconButton
+						size="lg"
+						shape="circle"
 						type="button"
-						class="md:hidden w-[44px] h-[44px] rounded-full inline-flex items-center justify-center bg-transparent border-0 text-fg-secondary cursor-pointer transition hover:text-fg hover:bg-surface/70"
+						class="md:!hidden"
 						aria-label="Search"
+						aria-haspopup="dialog"
+						[attr.aria-expanded]="mobileSearchOpen()"
 						(click)="mobileSearchOpen.set(true)"
 					>
 						<span aria-hidden="true" class="material-icons"
@@ -182,8 +182,10 @@
 					</button>
 					@if (onFeed()) {
 					<a
+						uiIconButton
+						size="lg"
+						shape="circle"
 						routerLink="/whats-new"
-						class="w-10 h-10 tap:min-w-[44px] tap:min-h-[44px] rounded-full inline-flex items-center justify-center text-fg-secondary no-underline transition hover:text-fg hover:bg-surface/70"
 						routerLinkActive="!text-brand"
 						aria-label="What's new"
 						title="What's new"
@@ -305,27 +307,16 @@
 			<span class="block text-xs text-fg-muted">View your profile</span>
 		</span>
 		@if (roleBadge(); as badge) {
-		<span
-			class="inline-flex items-center gap-0.5 px-1.5 py-px rounded-full text-[0.5625rem] font-bold uppercase tracking-[0.16em]"
-			[class]="badge.className"
+		<ui-badge class="shrink-0" [tone]="badge.tone" [icon]="badge.icon"
+			>{{ badge.label }}</ui-badge
 		>
-			@if (badge.icon; as icon) {
-			<span aria-hidden="true" class="material-icons text-[0.6875rem]"
-				>{{ icon }}</span
-			>
-			} {{ badge.label }}
-		</span>
 		}
 	</a>
 
 	@for (section of sheetSections(); track section.id) {
 	<section class="px-2 mb-3">
 		@if (section.heading) {
-		<h3
-			class="m-0 px-1 mb-2 text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-		>
-			{{ section.heading }}
-		</h3>
+		<h3 uiEyebrow class="m-0 px-1 mb-2">{{ section.heading }}</h3>
 		}
 		<ul class="list-none m-0 p-0 grid grid-cols-3 gap-2">
 			@for (item of section.items; track item.route) {
@@ -354,8 +345,11 @@
 
 	<div class="flex gap-2 px-2 pt-1">
 		<a
+			uiButton
+			variant="secondary"
+			size="lg"
 			routerLink="/settings"
-			class="flex-1 flex items-center justify-center gap-2 h-11 rounded-card bg-surface border border-line no-underline text-sm font-medium text-fg"
+			class="flex-1"
 			(click)="moreOpen.set(false)"
 		>
 			<span aria-hidden="true" class="material-icons text-lg"
@@ -364,8 +358,11 @@
 			Settings
 		</a>
 		<button
+			uiButton
+			variant="danger"
+			size="lg"
 			type="button"
-			class="flex-1 flex items-center justify-center gap-2 h-11 rounded-card bg-transparent border border-danger/30 text-sm font-medium text-danger cursor-pointer"
+			class="flex-1"
 			(click)="logout()"
 		>
 			<span aria-hidden="true" class="material-icons text-lg"
@@ -376,18 +373,7 @@
 	</div>
 </ui-bottom-sheet>
 } @if (mobileSearchOpen()) {
-<div
-	class="md:hidden fixed inset-0 z-[1000] bg-canvas/97 backdrop-blur-xl pt-[env(safe-area-inset-top)] motion-safe:animate-[uiFadeUp_180ms_ease-out]"
-	role="dialog"
-	aria-modal="true"
-	aria-label="Search"
->
-	<app-global-search
-		class="h-full"
-		variant="overlay"
-		(closed)="mobileSearchOpen.set(false)"
-	/>
-</div>
+<app-mobile-search-overlay (closed)="mobileSearchOpen.set(false)" />
 }
 
 <ng-template #sidebarSection let-section let-hideHeading="hideHeading">
@@ -399,10 +385,7 @@
 			class="mx-3 mb-1.5 h-px bg-line"
 		></div>
 		} @else {
-		<span
-			class="block px-3 mb-1 text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted/80"
-			>{{ section.heading }}</span
-		>
+		<span uiEyebrow class="px-3 mb-1">{{ section.heading }}</span>
 		} }
 		<ul class="list-none m-0 p-0 flex flex-col gap-0.5">
 			@for (item of section.items; track item.route) {

@@ -18,13 +18,13 @@ import { GlobalSearchService } from "../../core/services/global-search";
 import { type SearchResults } from "../../core/services/global-search.model";
 import { avatarRing } from "../../core/utils/premium";
 import { GamePoster } from "../../shared/components/game-poster/game-poster";
-import { UiAvatar } from "../../shared/ui";
+import { UiAvatar, UiButton, UiEyebrow, UiIconButton } from "../../shared/ui";
 
 export type GlobalSearchVariant = "inline" | "overlay";
 
 @Component({
 	selector: "app-global-search",
-	imports: [GamePoster, UiAvatar],
+	imports: [GamePoster, UiAvatar, UiButton, UiEyebrow, UiIconButton],
 	templateUrl: "./global-search.html",
 	host: {
 		class: "block",

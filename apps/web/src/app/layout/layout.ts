@@ -30,11 +30,15 @@ import { OnboardingTour } from "../shared/components/onboarding-tour/onboarding-
 import { ToastContainer } from "../shared/components/toast-container/toast-container";
 import {
 	UiAvatar,
+	UiBadge,
 	UiBottomSheet,
+	UiButton,
+	UiEyebrow,
 	UiIconButton,
 	UiSeparator
 } from "../shared/ui";
 import { GlobalSearch } from "./global-search/global-search";
+import { MobileSearchOverlay } from "./mobile-search-overlay/mobile-search-overlay";
 import { NAV_ACTIVE_CLASSES, visibleNavSections } from "./nav-sections";
 import { type NavItem } from "./nav-sections.model";
 
@@ -90,10 +94,14 @@ function matchesRoute(url: string, route: string): boolean {
 		NgTemplateOutlet,
 		UiSeparator,
 		UiAvatar,
+		UiBadge,
 		UiBottomSheet,
+		UiButton,
+		UiEyebrow,
 		UiIconButton,
 		AppLogo,
 		GlobalSearch,
+		MobileSearchOverlay,
 		ToastContainer,
 		OnboardingTour,
 		AttributionFooter

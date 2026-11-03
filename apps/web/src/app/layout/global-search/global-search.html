@@ -43,8 +43,11 @@
 			>
 			} @else if (query()) {
 			<button
+				uiIconButton
+				size="sm"
+				shape="circle"
 				type="button"
-				class="w-7 h-7 tap:min-w-[44px] tap:min-h-[44px] -mr-1.5 rounded-full inline-flex items-center justify-center bg-transparent border-0 text-fg-muted cursor-pointer hover:text-fg hover:bg-surface-hover"
+				class="-mr-1.5"
 				aria-label="Clear search"
 				(click)="clear(); input.focus()"
 			>
@@ -61,8 +64,10 @@
 		</label>
 		@if (variant() === 'overlay') {
 		<button
+			uiButton
+			variant="ghost"
 			type="button"
-			class="h-10 px-2 bg-transparent border-0 text-sm font-medium text-fg-secondary cursor-pointer hover:text-fg"
+			class="h-10 shrink-0"
 			(click)="closed.emit()"
 		>
 			Cancel
@@ -83,11 +88,7 @@
 		</p>
 		} @else if (results(); as r) { @if (r.games.length > 0) {
 		<section class="py-1">
-			<h3
-				class="m-0 px-4 py-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-			>
-				Games
-			</h3>
+			<h3 uiEyebrow class="m-0 px-4 py-1.5">Games</h3>
 			@for (game of r.games.slice(0, 6); track game.id) {
 			<button
 				type="button"
@@ -99,7 +100,8 @@
 					[title]="game.title"
 					[width]="200"
 					[compact]="true"
-					class="w-8 aspect-[2/3] rounded shrink-0 ring-1 ring-white/10"
+					framed
+					class="w-8 aspect-[2/3] rounded shrink-0"
 				/>
 				<span
 					class="flex-1 min-w-0 text-sm font-medium text-fg truncate"
@@ -115,11 +117,7 @@
 		</section>
 		} @if (r.users.length > 0) {
 		<section class="py-1">
-			<h3
-				class="m-0 px-4 py-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-			>
-				Players
-			</h3>
+			<h3 uiEyebrow class="m-0 px-4 py-1.5">Players</h3>
 			@for (user of r.users.slice(0, 5); track user.id) {
 			<button
 				type="button"
@@ -153,11 +151,7 @@
 		</section>
 		} @if (r.lists.length > 0) {
 		<section class="py-1">
-			<h3
-				class="m-0 px-4 py-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-			>
-				Lists
-			</h3>
+			<h3 uiEyebrow class="m-0 px-4 py-1.5">Lists</h3>
 			@for (list of r.lists.slice(0, 5); track list.id) {
 			<button
 				type="button"
