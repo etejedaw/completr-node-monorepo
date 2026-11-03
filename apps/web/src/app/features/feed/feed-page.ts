@@ -22,6 +22,7 @@ import { PremiumOnly } from "../../shared/directives/premium-only";
 import {
 	UiAvatar,
 	UiButton,
+	UiEyebrow,
 	UiPagination,
 	UiPlainEmptyState,
 	UiPremiumBadge,
@@ -85,6 +86,7 @@ function groupByDay(activities: FeedActivity[]): ActivityDayGroup[] {
 		OptionPicker,
 		UiAvatar,
 		UiButton,
+		UiEyebrow,
 		UiPagination,
 		UiPlainEmptyState,
 		UiPremiumBadge,
