@@ -244,7 +244,7 @@ describe("AdminFranchiseModal interaction", () => {
 	}
 
 	function descriptionInput() {
-		return within(dialog()).getByRole("textbox", { name: "Description" });
+		return within(dialog()).getByRole("textbox", { name: /^Description/ });
 	}
 
 	function searchInput() {

@@ -17,7 +17,7 @@ import {
 	UiBadge,
 	UiButton,
 	UiEmptyState,
-	UiFieldLabel,
+	UiEyebrow,
 	UiSkeleton,
 	UiTable
 } from "../../../shared/ui";
@@ -60,7 +60,7 @@ const DEFAULT_JOB_STATUS_STYLE: JobStatusStyle = {
 		UiBadge,
 		UiButton,
 		UiEmptyState,
-		UiFieldLabel,
+		UiEyebrow,
 		UiSkeleton,
 		UiTable
 	],

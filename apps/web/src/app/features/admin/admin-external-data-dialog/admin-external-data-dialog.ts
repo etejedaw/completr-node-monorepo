@@ -16,7 +16,7 @@ import {
 	UiButton,
 	UiCheckbox,
 	UiDialog,
-	UiFieldLabel
+	UiEyebrow
 } from "../../../shared/ui";
 import {
 	type ExternalDataRefreshResult,
@@ -160,7 +160,7 @@ function resultView(
 		UiButton,
 		UiCheckbox,
 		UiDialog,
-		UiFieldLabel
+		UiEyebrow
 	],
 	templateUrl: "./admin-external-data-dialog.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

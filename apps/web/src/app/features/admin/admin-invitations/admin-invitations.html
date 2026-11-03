@@ -114,11 +114,10 @@
 	</ul>
 	}
 </section>
-}
-
-@if (showInviteModal()) {
+} @if (showInviteModal()) {
 <ui-dialog
 	eyebrow="Invitations"
+	icon="forward_to_inbox"
 	heading="Invite by email"
 	subheading="They'll get an email with a link to choose their username, name and password. Inviting the same email again replaces the previous link."
 	size="sm"
@@ -131,9 +130,7 @@
 
 	<form id="invite-form" (submit)="submitInvite($event)" novalidate>
 		<div uiFormField>
-			<label uiLabel for="invite-email" uiFieldLabel
-				>Email <span class="text-danger font-bold">*</span></label
-			>
+			<label uiLabel for="invite-email" uiFieldLabel>Email</label>
 			<input
 				id="invite-email"
 				uiInput

@@ -1,6 +1,7 @@
 <ui-dialog
 	size="sm"
 	eyebrow="Games"
+	icon="cloud_sync"
 	heading="Refresh external data"
 	[subheading]="game().title"
 	(closed)="closed.emit()"
@@ -53,7 +54,7 @@
 			</div>
 			} @else if (resultViews().length > 0) {
 			<section aria-label="Results" class="flex flex-col gap-2">
-				<h3 uiFieldLabel class="m-0 !mb-0">Results</h3>
+				<h3 uiEyebrow class="m-0">Results</h3>
 				<ul class="list-none m-0 p-0 flex flex-col gap-2">
 					@for (result of resultViews(); track result.source) {
 					<li

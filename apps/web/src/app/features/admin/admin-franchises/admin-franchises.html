@@ -123,6 +123,8 @@
 <ui-dialog
 	size="sm"
 	eyebrow="Franchises"
+	icon="delete"
+	tone="danger"
 	[heading]="'Delete ' + target.name + '?'"
 	[dismissible]="!isDeleting()"
 	(closed)="cancelRemove()"

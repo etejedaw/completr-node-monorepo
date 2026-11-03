@@ -1,6 +1,7 @@
 <ui-dialog
 	eyebrow="Franchises"
 	size="md"
+	[icon]="isEdit() ? 'edit_note' : 'library_add'"
 	[heading]="isEdit() ? 'Edit Franchise' : 'New Franchise'"
 	[dismissible]="!isLoading()"
 	(closed)="onClose()"
@@ -11,9 +12,7 @@
 
 	<form id="franchise-form" (submit)="onSubmit($event)">
 		<div uiFormField class="mb-4">
-			<label uiLabel for="name" uiFieldLabel
-				>Name <span class="text-danger font-bold">*</span></label
-			>
+			<label uiLabel for="name" uiFieldLabel>Name</label>
 			<input
 				uiInput
 				id="name"
@@ -36,7 +35,9 @@
 		</div>
 
 		<div uiFormField class="mb-6">
-			<label uiLabel for="description" uiFieldLabel>Description</label>
+			<label uiLabel for="description" uiFieldLabel
+				>Description <ui-field-optional
+			/></label>
 			<textarea
 				uiTextarea
 				id="description"
@@ -59,7 +60,9 @@
 		</div>
 
 		<section aria-labelledby="franchise-games-heading">
-			<h3 id="franchise-games-heading" uiFieldLabel class="m-0">Games</h3>
+			<h3 id="franchise-games-heading" uiEyebrow class="m-0 mb-2">
+				Games
+			</h3>
 
 			<div class="relative">
 				<span
@@ -189,7 +192,7 @@
 				</ui-alert>
 				} @else {
 				<div class="flex items-center justify-between gap-2 mb-2">
-					<span uiFieldLabel class="!mb-0 tabular-nums"
+					<span uiEyebrow class="tabular-nums"
 						>{{ games().length }} game{{ games().length === 1 ? "" :
 						"s" }} in this franchise</span
 					>

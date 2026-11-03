@@ -138,13 +138,13 @@
 		}
 		<dl class="m-0 grid grid-cols-2 gap-3 text-xs">
 			<div>
-				<dt uiFieldLabel class="!mb-0">Started</dt>
+				<dt uiEyebrow>Started</dt>
 				<dd class="m-0 mt-0.5 text-fg-secondary tabular-nums">
 					{{ job.createdAt | date : "yyyy-MM-dd HH:mm" }}
 				</dd>
 			</div>
 			<div>
-				<dt uiFieldLabel class="!mb-0">Completed</dt>
+				<dt uiEyebrow>Completed</dt>
 				<dd class="m-0 mt-0.5 text-fg-secondary tabular-nums">
 					{{ job.completedAt ? (job.completedAt | date : "yyyy-MM-dd
 					HH:mm") : "-" }}

@@ -166,19 +166,19 @@
 		</p>
 		<dl class="m-0 grid grid-cols-3 gap-3 text-xs">
 			<div>
-				<dt uiFieldLabel class="!mb-0">Starts</dt>
+				<dt uiEyebrow>Starts</dt>
 				<dd class="m-0 mt-0.5 text-fg-secondary tabular-nums">
 					{{ row.promotion.startsAt | date : "yyyy-MM-dd HH:mm" }}
 				</dd>
 			</div>
 			<div>
-				<dt uiFieldLabel class="!mb-0">Ends</dt>
+				<dt uiEyebrow>Ends</dt>
 				<dd class="m-0 mt-0.5 text-fg-secondary tabular-nums">
 					{{ row.promotion.endsAt | date : "yyyy-MM-dd HH:mm" }}
 				</dd>
 			</div>
 			<div>
-				<dt uiFieldLabel class="!mb-0">Claims</dt>
+				<dt uiEyebrow>Claims</dt>
 				<dd class="m-0 mt-0.5 text-fg tabular-nums">
 					{{ row.promotion.claimCount }}
 				</dd>
@@ -374,6 +374,8 @@
 } @if (revokeTarget(); as target) {
 <ui-dialog
 	eyebrow="Promotions"
+	icon="event_busy"
+	tone="danger"
 	heading="End promotion early?"
 	size="sm"
 	[dismissible]="!isBusy()"
