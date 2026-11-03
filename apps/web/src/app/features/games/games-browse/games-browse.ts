@@ -32,6 +32,9 @@ import {
 import { AuthService } from "../../../core/services/auth";
 import { ViewportService } from "../../../core/services/viewport";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
+import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { type LibraryHeroPoster } from "../../../shared/components/library-hero/library-hero.model";
+import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { ListCard } from "../../../shared/components/list-card/list-card";
 import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
@@ -39,7 +42,8 @@ import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shel
 import {
 	UiBottomSheet,
 	UiButton,
-	UiCountBadge,
+	UiEmptyState,
+	UiFiltersButton,
 	UiPagination,
 	UiSearchBar,
 	UiSkeleton
@@ -73,11 +77,14 @@ const SORT_ICONS: Record<string, string> = {
 		AdminGameEditor,
 		UiBottomSheet,
 		UiButton,
-		UiCountBadge,
+		UiEmptyState,
+		UiFiltersButton,
 		UiPagination,
 		UiSearchBar,
 		UiSkeleton,
 		BrowseFilters,
+		LibraryHero,
+		LibraryToolbar,
 		BrowseHero,
 		GameCoverCard,
 		ListCard,
@@ -193,6 +200,12 @@ export class GamesBrowse implements OnInit {
 		this.latestGames()
 			.filter(g => !!g.backgroundUrl)
 			.slice(0, FEATURED_GAMES_LIMIT)
+	);
+	protected readonly heroPosters = computed<LibraryHeroPoster[]>(() =>
+		this.latestGames().map(game => ({
+			src: game.backgroundUrl,
+			title: game.title
+		}))
 	);
 	protected readonly viewMode = computed<"discover" | "search" | "filtered">(
 		() => {

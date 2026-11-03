@@ -117,7 +117,8 @@
 					uiIconButton
 					size="lg"
 					type="button"
-					class="tap:min-w-[44px] tap:min-h-[44px] !rounded-full !border !border-line !bg-surface/70 !text-fg-secondary backdrop-blur-md hover:!border-line-hover hover:!text-fg"
+					shape="circle"
+					class="!border !border-line !bg-surface/70 !text-fg-secondary backdrop-blur-md hover:!border-line-hover hover:!text-fg"
 					[attr.aria-label]="paused() ? 'Resume rotation' : 'Pause rotation'"
 					[attr.aria-pressed]="paused()"
 					(click)="togglePaused()"
@@ -130,7 +131,8 @@
 					uiIconButton
 					size="lg"
 					type="button"
-					class="tap:min-w-[44px] tap:min-h-[44px] !rounded-full !border !border-line !bg-surface/70 !text-fg-secondary backdrop-blur-md hover:!border-line-hover hover:!text-fg"
+					shape="circle"
+					class="!border !border-line !bg-surface/70 !text-fg-secondary backdrop-blur-md hover:!border-line-hover hover:!text-fg"
 					aria-label="Previous featured game"
 					(click)="step(-1)"
 				>
@@ -142,7 +144,8 @@
 					uiIconButton
 					size="lg"
 					type="button"
-					class="tap:min-w-[44px] tap:min-h-[44px] !rounded-full !border !border-line !bg-surface/70 !text-fg-secondary backdrop-blur-md hover:!border-line-hover hover:!text-fg"
+					shape="circle"
+					class="!border !border-line !bg-surface/70 !text-fg-secondary backdrop-blur-md hover:!border-line-hover hover:!text-fg"
 					aria-label="Next featured game"
 					(click)="step(1)"
 				>
