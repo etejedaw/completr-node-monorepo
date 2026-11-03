@@ -3,7 +3,6 @@ import {
 	BACKLOG_STATUS_ORDER,
 	BACKLOG_STATUS_PICKER_OPTIONS,
 	backlogStatusCalendarBarClass,
-	backlogStatusClass,
 	backlogStatusFillClass,
 	backlogStatusIcon,
 	backlogStatusIconColor,
@@ -38,7 +37,6 @@ describe("backlog status helpers", () => {
 	});
 
 	it("falls back to neutral values for an unknown status", () => {
-		expect(backlogStatusClass("mystery")).toBe("");
 		expect(backlogStatusIcon("mystery")).toBe("schedule");
 		expect(backlogStatusIconColor("mystery")).toBe("");
 		expect(backlogStatusFillClass("mystery")).toBe("bg-fg-muted");
@@ -49,7 +47,6 @@ describe("backlog status helpers", () => {
 		const statuses = [...BACKLOG_STATUS_ORDER];
 
 		for (const fn of [
-			backlogStatusClass,
 			backlogStatusIcon,
 			backlogStatusIconColor,
 			backlogStatusFillClass,
