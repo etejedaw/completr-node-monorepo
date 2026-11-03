@@ -29,7 +29,8 @@
 				[src]="backlog.game.backgroundUrl"
 				[title]="backlog.game.title"
 				[width]="420"
-				class="w-24 md:w-28 aspect-[2/3] rounded-lg ring-1 ring-white/10 shadow-xl shadow-black/50"
+				framed
+				class="w-24 md:w-28 aspect-[2/3] rounded-lg shadow-xl shadow-black/50"
 			/>
 		</a>
 
@@ -59,11 +60,7 @@
 		>
 			@if (backlog.ratio) {
 			<div class="md:text-right">
-				<dt
-					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Ratio
-				</dt>
+				<dt uiEyebrow>Ratio</dt>
 				<dd
 					class="m-0 font-display text-3xl md:text-5xl font-bold text-brand tabular-nums leading-none"
 				>
@@ -74,11 +71,7 @@
 			<div class="flex items-end gap-6 md:gap-5">
 				@if (backlog.score) {
 				<div class="md:text-right">
-					<dt
-						class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-					>
-						Score
-					</dt>
+					<dt uiEyebrow>Score</dt>
 					<dd
 						class="m-0 text-lg font-semibold text-fg tabular-nums leading-none"
 					>
@@ -87,11 +80,7 @@
 				</div>
 				} @if (backlog.duration) {
 				<div class="md:text-right">
-					<dt
-						class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-					>
-						Length
-					</dt>
+					<dt uiEyebrow>Length</dt>
 					<dd
 						class="m-0 text-lg font-semibold text-fg tabular-nums leading-none"
 					>
@@ -124,9 +113,11 @@
 				Start playing
 			</button>
 			<button
+				uiIconButton
 				type="button"
-				class="shrink-0 w-10 h-10 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-card border border-line bg-canvas/40 cursor-pointer transition hover:border-fg-muted"
-				[class]="isFavorite() ? 'text-nav-favorites' : 'text-fg-muted hover:text-fg'"
+				size="lg"
+				class="shrink-0 !border !border-solid !border-line !bg-canvas/40 hover:!border-fg-muted"
+				[class.!text-nav-favorites]="isFavorite()"
 				[attr.aria-pressed]="isFavorite()"
 				[attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
 				[title]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
@@ -138,8 +129,10 @@
 			</button>
 			@if (canMoveDown()) {
 			<button
+				uiIconButton
 				type="button"
-				class="shrink-0 w-10 h-10 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-card border border-line bg-canvas/40 text-fg-muted cursor-pointer transition hover:text-fg hover:border-fg-muted"
+				size="lg"
+				class="shrink-0 !border !border-solid !border-line !bg-canvas/40 hover:!border-fg-muted"
 				aria-label="Move down"
 				title="Move down"
 				(click)="moveDown.emit()"
@@ -150,8 +143,11 @@
 			</button>
 			}
 			<button
+				uiIconButton
 				type="button"
-				class="shrink-0 w-10 h-10 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-card border border-line bg-canvas/40 text-fg-muted cursor-pointer transition hover:text-danger hover:border-danger/40"
+				size="lg"
+				tone="danger"
+				class="shrink-0 !border !border-solid !border-line !bg-canvas/40 hover:!border-danger/40"
 				aria-label="Remove from Up Next"
 				title="Remove from Up Next"
 				(click)="remove.emit()"

@@ -8,25 +8,30 @@ import {
 import { injectDialogRef } from "ng-primitives/dialog";
 
 import { type BacklogEntry } from "../../../core/models";
+import { BacklogStatusBadge } from "../../../shared/components/backlog-status-badge/backlog-status-badge";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import {
 	UiButton,
 	UiDialog,
 	UiPlainEmptyState,
-	UiSearchBar
+	UiSearchBar,
+	UiSkeleton
 } from "../../../shared/ui";
-import {
-	backlogStatusClass,
-	backlogStatusIcon,
-	backlogStatusLabel
-} from "../../../shared/utils/backlog-status";
 import { BacklogService } from "../../backlog/backlog";
 import { QueueService } from "../queue";
 import { type QueueAddModalData } from "./queue-add-modal.model";
 
 @Component({
 	selector: "app-queue-add-modal",
-	imports: [GamePoster, UiButton, UiDialog, UiPlainEmptyState, UiSearchBar],
+	imports: [
+		BacklogStatusBadge,
+		GamePoster,
+		UiButton,
+		UiDialog,
+		UiPlainEmptyState,
+		UiSearchBar,
+		UiSkeleton
+	],
 	templateUrl: "./queue-add-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -77,8 +82,4 @@ export class QueueAddModal implements OnInit {
 	onClose() {
 		this.dialogRef.close();
 	}
-
-	protected readonly backlogStatusLabel = backlogStatusLabel;
-	protected readonly backlogStatusIcon = backlogStatusIcon;
-	protected readonly backlogStatusClass = backlogStatusClass;
 }

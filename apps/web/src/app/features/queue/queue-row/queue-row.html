@@ -28,7 +28,8 @@
 			[title]="backlog.game.title"
 			[width]="200"
 			[compact]="true"
-			class="w-10 aspect-[2/3] rounded ring-1 ring-white/10"
+			framed
+			class="w-10 aspect-[2/3] rounded"
 		/>
 	</a>
 
@@ -56,8 +57,9 @@
 	>
 		@if (reorderable()) {
 		<button
+			uiIconButton
 			type="button"
-			class="w-8 h-8 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg hover:bg-surface disabled:opacity-30 disabled:cursor-default"
+			shape="circle"
 			[disabled]="isTop() || movingToTop()"
 			aria-label="Move to top"
 			title="Move to top"
@@ -68,8 +70,9 @@
 			>
 		</button>
 		<button
+			uiIconButton
 			type="button"
-			class="w-8 h-8 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg hover:bg-surface disabled:opacity-30 disabled:cursor-default"
+			shape="circle"
 			[disabled]="isFirst()"
 			aria-label="Move up"
 			title="Move up"
@@ -80,8 +83,9 @@
 			>
 		</button>
 		<button
+			uiIconButton
 			type="button"
-			class="w-8 h-8 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg hover:bg-surface disabled:opacity-30 disabled:cursor-default"
+			shape="circle"
 			[disabled]="isLast()"
 			aria-label="Move down"
 			title="Move down"
@@ -93,9 +97,10 @@
 		</button>
 		}
 		<button
+			uiIconButton
 			type="button"
-			class="w-8 h-8 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 cursor-pointer transition hover:bg-surface"
-			[class]="isFavorite() ? 'text-nav-favorites' : 'text-fg-muted hover:text-fg'"
+			shape="circle"
+			[class.!text-nav-favorites]="isFavorite()"
 			[attr.aria-pressed]="isFavorite()"
 			[attr.aria-label]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
 			[title]="isFavorite() ? 'Remove from favorites' : 'Add to favorites'"
@@ -106,8 +111,10 @@
 			>
 		</button>
 		<button
+			uiIconButton
 			type="button"
-			class="w-8 h-8 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-danger hover:bg-surface"
+			shape="circle"
+			tone="danger"
 			aria-label="Remove from Up Next"
 			title="Remove from Up Next"
 			(click)="remove.emit()"
@@ -118,19 +125,24 @@
 		</button>
 	</div>
 
-	<button
-		type="button"
-		class="sm:hidden shrink-0 w-[44px] h-[44px] -mr-1 inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition hover:text-fg hover:bg-surface"
-		aria-haspopup="dialog"
-		[attr.aria-label]="'More actions for ' + backlog.game.title"
-		(click)="sheetOpen.set(true)"
-	>
-		<span aria-hidden="true" class="material-icons text-xl">more_vert</span>
-	</button>
+	<div class="sm:hidden shrink-0 -mr-1">
+		<app-action-menu
+			[iconOnly]="true"
+			icon="more_vert"
+			[label]="'More actions for ' + backlog.game.title"
+			[heading]="backlog.game.title"
+			[items]="menuActions()"
+			(selected)="runMenuAction($event)"
+		/>
+	</div>
 
 	<button
+		uiIconButton
 		type="button"
-		class="shrink-0 w-9 h-9 max-sm:w-[44px] max-sm:h-[44px] tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full border border-line bg-transparent text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-50 disabled:cursor-not-allowed"
+		size="lg"
+		shape="circle"
+		tone="accent"
+		class="shrink-0 !border !border-solid !border-line"
 		[disabled]="statusUpdating()"
 		aria-label="Start playing"
 		title="Start playing"
@@ -142,33 +154,3 @@
 	</button>
 	}
 </div>
-
-@if (sheetOpen()) {
-<ui-bottom-sheet
-	[heading]="backlog.game.title"
-	[subheading]="'Position ' + position()"
-	(closed)="sheetOpen.set(false)"
->
-	<ul class="list-none m-0 p-0 flex flex-col gap-1">
-		@for (action of sheetActions(); track action.id) {
-		<li>
-			<button
-				type="button"
-				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border-0 text-base font-medium text-left cursor-pointer transition active:bg-surface disabled:opacity-40 disabled:cursor-default"
-				[class]="action.id === 'remove' ? 'text-danger' : 'text-fg'"
-				[disabled]="action.disabled"
-				(click)="runSheetAction(action.id)"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-xl"
-					[class]="action.iconClass"
-					>{{ action.icon }}</span
-				>
-				{{ action.label }}
-			</button>
-		</li>
-		}
-	</ul>
-</ui-bottom-sheet>
-}

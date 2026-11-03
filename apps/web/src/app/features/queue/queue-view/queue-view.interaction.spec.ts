@@ -340,6 +340,44 @@ describe("QueueView interaction", () => {
 		expect(queueOrder()).toEqual(["Hollow Knight", "Hades", "Celeste"]);
 	});
 
+	it("moves a game once from the More actions menu even when its option is double clicked", async () => {
+		const user = userEvent.setup();
+		await renderQueue();
+
+		await user.click(
+			row("Celeste").getByRole("button", {
+				name: "More actions for Celeste"
+			})
+		);
+		const menu = await screen.findByRole("menu", { name: "Celeste" });
+		await user.dblClick(
+			within(menu).getByRole("menuitem", { name: "Move to top" })
+		);
+
+		await untilVisible(() => expect(moves).toHaveLength(1));
+		expect(moves[0]).toEqual({ backlogId: "b2", position: 1 });
+		expect(queueOrder()).toEqual(["Celeste", "Hades", "Hollow Knight"]);
+	});
+
+	it("changes nothing when the More actions menu is dismissed with Escape", async () => {
+		const user = userEvent.setup();
+		await renderQueue();
+		const more = row("Hollow Knight").getByRole("button", {
+			name: "More actions for Hollow Knight"
+		});
+
+		await user.click(more);
+		await screen.findByRole("menu", { name: "Hollow Knight" });
+		await user.keyboard("{Escape}");
+
+		await untilVisible(() =>
+			expect(screen.queryByRole("menu")).not.toBeInTheDocument()
+		);
+		await waitFor(() => expect(more).toHaveFocus());
+		expect(moves).toEqual([]);
+		expect(queueOrder()).toEqual(["Hades", "Celeste", "Hollow Knight"]);
+	});
+
 	it("removes a game with undo, then commits the removal", async () => {
 		const user = userEvent.setup();
 		await renderQueue();
