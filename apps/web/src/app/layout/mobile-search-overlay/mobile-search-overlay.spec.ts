@@ -15,6 +15,7 @@ import { MobileSearchOverlay } from "./mobile-search-overlay";
 		<button type="button" (click)="open.set(true)">Search</button>
 		@if (open()) {
 			<app-mobile-search-overlay
+				[initialQuery]="initialQuery()"
 				(closed)="open.set(false); closedCount.set(closedCount() + 1)"
 			/>
 		}
@@ -23,6 +24,7 @@ import { MobileSearchOverlay } from "./mobile-search-overlay";
 })
 class Host {
 	readonly open = signal(false);
+	readonly initialQuery = signal("");
 	readonly closedCount = signal(0);
 }
 
@@ -112,5 +114,49 @@ describe("MobileSearchOverlay", () => {
 		expect(
 			await screen.findByRole("dialog", { name: "Search" })
 		).toBeInTheDocument();
+	});
+
+	it("starts with the text it was opened with", async () => {
+		const user = userEvent.setup();
+		const { fixture } = await renderHost();
+
+		fixture.componentInstance.initialQuery.set("hades");
+		await user.click(opener());
+
+		const dialog = await screen.findByRole("dialog", { name: "Search" });
+		expect(within(dialog).getByRole("searchbox")).toHaveValue("hades");
+	});
+
+	it("clears the text with the first Escape and closes with the next ones only once", async () => {
+		const user = userEvent.setup();
+		const { fixture } = await renderHost();
+
+		await user.click(opener());
+		const dialog = await screen.findByRole("dialog", { name: "Search" });
+		const field = within(dialog).getByRole("searchbox");
+		await waitFor(() => expect(field).toHaveFocus());
+		await user.type(field, "ce");
+		await user.keyboard("{Escape}");
+
+		expect(overlay()).toBeInTheDocument();
+		expect(field).toHaveValue("");
+
+		await user.keyboard("{Escape}{Escape}");
+
+		await waitFor(() => expect(overlay()).not.toBeInTheDocument());
+		expect(fixture.componentInstance.closedCount()).toBe(1);
+	});
+
+	it("does not offer to filter a page when there is no page scope", async () => {
+		const user = userEvent.setup();
+		await renderHost();
+
+		await user.click(opener());
+		const dialog = await screen.findByRole("dialog", { name: "Search" });
+		await user.type(within(dialog).getByRole("searchbox"), "ce");
+
+		expect(
+			within(dialog).queryByRole("button", { name: /^Filter / })
+		).not.toBeInTheDocument();
 	});
 });
