@@ -113,14 +113,14 @@
 					<ui-badge class="mr-1.5">{{ log.targetType }}</ui-badge>
 					@if (log.target?.type === 'game' && log.target.code) {
 					<a
-						class="text-brand no-underline hover:underline"
+						class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px] tap:min-w-[44px]"
 						[routerLink]="['/games', log.target!.code]"
 						>{{ log.target!.label }}</a
 					>
 					} @else if (log.target?.type === 'user' &&
 					log.target.username) {
 					<a
-						class="text-brand no-underline hover:underline"
+						class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px] tap:min-w-[44px]"
 						[routerLink]="['/user', log.target!.username]"
 						>{{ log.target!.label }}</a
 					>
@@ -158,13 +158,13 @@
 			<ui-badge class="mr-1">{{ log.targetType }}</ui-badge>
 			@if (log.target?.type === 'game' && log.target.code) {
 			<a
-				class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px]"
+				class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px] tap:min-w-[44px]"
 				[routerLink]="['/games', log.target!.code]"
 				>{{ log.target!.label }}</a
 			>
 			} @else if (log.target?.type === 'user' && log.target.username) {
 			<a
-				class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px]"
+				class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px] tap:min-w-[44px]"
 				[routerLink]="['/user', log.target!.username]"
 				>{{ log.target!.label }}</a
 			>

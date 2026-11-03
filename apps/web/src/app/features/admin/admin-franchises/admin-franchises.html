@@ -74,7 +74,7 @@
 		<div class="min-w-0 flex-1">
 			<a
 				[routerLink]="['/franchises', f.code]"
-				class="inline-flex items-center min-h-[44px] sm:min-h-0 font-semibold text-fg no-underline transition hover:text-brand"
+				class="inline-flex items-center min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 font-semibold text-fg no-underline transition hover:text-brand"
 				>{{ f.name }}</a
 			>
 			@if (f.description) {
