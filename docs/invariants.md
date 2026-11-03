@@ -16,6 +16,7 @@ Enum `User.role` en `apps/api/src/users/user-role.type.ts`: `user`, `premium`, `
 
 - `isPremiumRole()` de `apps/api/src/common/utils/is-premium-role.util.ts` acepta `premium`, `moderator` y `admin`. Los gates de funcionalidades consultan además el resolvedor de acceso premium, así que el rol permanente y una concesión temporal producen el mismo acceso sin cambiar `User.role`.
 - Qué puede hacer cada rol se hace cumplir en `authMiddleware(...)` de cada `*.routes.ts`: esa es la fuente autoritativa de permisos. Una concesión premium nunca concede permisos de moderación o administración.
+- `GET /admin/users` (solo admin) lista todas las cuentas, activas o no, por `createdAt` descendente con `id` de desempate: `limit` entero entre 1 y 100 (por defecto 50), `offset` desde 0 y `q` opcional, recortado y de hasta 100 caracteres, que busca en `username`, `name` y `email` con las [reglas de búsqueda de texto](#reglas-de-búsqueda-de-texto). Una `q` vacía o sin letras ni dígitos no filtra; `total` cuenta lo que cumple el filtro, sin paginar. Un `limit`, `offset` o `q` fuera de rango responde 422 `COMMON_SCHEMA_INVALID`.
 
 ---
 
@@ -463,7 +464,7 @@ Endpoints: `GET /users/me/backlog/export`, `/users/me/queue/export`, `/users/me/
 
 ## Reglas de búsqueda de texto
 
-Toda búsqueda de texto de la API (el `search` de los listados paginados, `q` de `GET /users/search`, `query` de `GET /lists/search` y `GET /games/search`) usa el mismo mecanismo, definido una sola vez en `apps/api/src/common/utils/text-search.util.ts`. Ningún service arma su propio `ILIKE`.
+Toda búsqueda de texto de la API (el `search` de los listados paginados, `q` de `GET /users/search` y de `GET /admin/users`, `query` de `GET /lists/search` y `GET /games/search`) usa el mismo mecanismo, definido una sola vez en `apps/api/src/common/utils/text-search.util.ts`. Ningún service arma su propio `ILIKE`.
 
 - **Normalización.** La consulta y las columnas se comparan en minúsculas, sin acentos y solo con `a-z0-9`: el signo de puntuación y los espacios no cuentan. En SQL la columna pasa por `regexp_replace(lower(unaccent(columna)), '[^a-z0-9]', '', 'g')` (extensión `unaccent`); en TypeScript la consulta pasa por `tokenizeSearchQuery`. `pokemon` encuentra `Pokémon` y `spiderman` encuentra `Spider-Man`.
 - **Palabras.** La consulta se separa en palabras (cualquier carácter que no sea `a-z0-9` las divide) y el registro tiene que contener todas, en cualquier orden y sin tener que ser contiguas: `evil resident` encuentra `Resident Evil`. Cada palabra se busca como subcadena del texto normalizado.
