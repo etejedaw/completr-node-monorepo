@@ -9,11 +9,13 @@ if (!("getAnimations" in Element.prototype)) {
 	});
 }
 
-if (!("scrollIntoView" in Element.prototype)) {
-	Object.defineProperty(Element.prototype, "scrollIntoView", {
-		configurable: true,
-		value: () => undefined
-	});
+for (const method of ["scrollIntoView", "scrollBy", "scrollTo"] as const) {
+	if (!(method in Element.prototype)) {
+		Object.defineProperty(Element.prototype, method, {
+			configurable: true,
+			value: () => undefined
+		});
+	}
 }
 
 afterEach(() => {
