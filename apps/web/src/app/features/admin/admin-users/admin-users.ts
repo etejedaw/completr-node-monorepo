@@ -52,8 +52,10 @@ import {
 	UiAvatar,
 	UiBadge,
 	UiButton,
+	UiDescription,
 	UiDialog,
 	UiEyebrow,
+	UiFieldError,
 	UiFieldLabel,
 	UiFieldOptional,
 	UiFormField,
@@ -220,7 +222,9 @@ function editedSince(snapshot: FormSnapshot | null, current: FormSnapshot) {
 		UiSearchBar,
 		UiSkeleton,
 		UiSwitch,
-		UiTable
+		UiTable,
+		UiDescription,
+		UiFieldError
 	],
 	templateUrl: "./admin-users.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

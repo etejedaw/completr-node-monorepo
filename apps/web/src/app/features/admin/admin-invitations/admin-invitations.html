@@ -138,15 +138,9 @@
 				aria-describedby="invite-email-error"
 			/>
 			@if (inviteForm.email().touched() && inviteForm.email().invalid()) {
-			<p
-				id="invite-email-error"
-				class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger"
+			<ui-field-error id="invite-email-error"
+				>{{ inviteForm.email().errors()[0]?.message }}</ui-field-error
 			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>error_outline</span
-				>
-				{{ inviteForm.email().errors()[0]?.message }}
-			</p>
 			}
 		</div>
 	</form>

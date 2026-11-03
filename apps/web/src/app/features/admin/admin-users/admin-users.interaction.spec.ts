@@ -451,7 +451,9 @@ describe("Admin users interaction", () => {
 				/Password must be between 8 and 15/
 			])
 				expect(
-					within(dialog).getAllByText(message, { selector: "p" })
+					within(dialog).getAllByText(message, {
+						selector: "ui-field-error span"
+					})
 				).toHaveLength(1);
 			expect(pending("POST", USERS_URL)).toHaveLength(0);
 		});
@@ -479,7 +481,7 @@ describe("Admin users interaction", () => {
 			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
 			expect(
 				within(dialog).getByText(message, {
-					selector: "p",
+					selector: "ui-field-error span",
 					exact: false
 				})
 			).toBeInTheDocument();
@@ -506,7 +508,7 @@ describe("Admin users interaction", () => {
 			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
 			expect(
 				within(dialog).getByText(message, {
-					selector: "p",
+					selector: "ui-field-error span",
 					exact: false
 				})
 			).toBeInTheDocument();
@@ -522,7 +524,9 @@ describe("Admin users interaction", () => {
 
 			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
 			expect(
-				within(dialog).getByText("Name is required.", { selector: "p" })
+				within(dialog).getByText("Name is required.", {
+					selector: "ui-field-error span"
+				})
 			).toBeInTheDocument();
 			expect(pending("POST", USERS_URL)).toHaveLength(0);
 		});
@@ -538,7 +542,7 @@ describe("Admin users interaction", () => {
 			await user.click(submitCreateButton(dialog));
 			expect(
 				within(dialog).getByText("Email is not valid.", {
-					selector: "p"
+					selector: "ui-field-error span"
 				})
 			).toBeInTheDocument();
 
@@ -643,7 +647,7 @@ describe("Admin users interaction", () => {
 			await user.click(submitCreateButton(dialog));
 			expect(
 				within(dialog).getByText("Email is not valid.", {
-					selector: "p"
+					selector: "ui-field-error span"
 				})
 			).toBeInTheDocument();
 			await user.click(
@@ -751,7 +755,7 @@ describe("Admin users interaction", () => {
 
 			expect(
 				await within(dialog).findByText("Email already registered.", {
-					selector: "p"
+					selector: "ui-field-error span"
 				})
 			).toBeInTheDocument();
 			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
@@ -783,7 +787,7 @@ describe("Admin users interaction", () => {
 				{ status: 422, statusText: "Unprocessable" }
 			);
 			await within(dialog).findByText("Email already registered.", {
-				selector: "p"
+				selector: "ui-field-error span"
 			});
 
 			await user.clear(within(dialog).getByLabelText(/^Email/));
@@ -822,7 +826,7 @@ describe("Admin users interaction", () => {
 				{ path: "email", message: "Email already registered." }
 			]);
 			await within(dialog).findByText("Email already registered.", {
-				selector: "p"
+				selector: "ui-field-error span"
 			});
 			return dialog;
 		}
@@ -852,7 +856,7 @@ describe("Admin users interaction", () => {
 			).toHaveLength(1);
 			expect(
 				within(dialog).getByText("Email already registered.", {
-					selector: "p"
+					selector: "ui-field-error span"
 				})
 			).toBeInTheDocument();
 			expect(
@@ -865,7 +869,7 @@ describe("Admin users interaction", () => {
 
 		function emailFieldError(dialog: HTMLElement) {
 			return within(dialog).queryByText("Email already registered.", {
-				selector: "p"
+				selector: "ui-field-error span"
 			});
 		}
 
@@ -930,7 +934,7 @@ describe("Admin users interaction", () => {
 
 			expect(
 				await within(dialog).findByText("Email domain is blocked.", {
-					selector: "p"
+					selector: "ui-field-error span"
 				})
 			).toBeInTheDocument();
 			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
@@ -1339,7 +1343,7 @@ describe("Admin users interaction", () => {
 			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
 			expect(
 				within(dialog).getByText("Name is required.", {
-					selector: "p",
+					selector: "ui-field-error span",
 					exact: false
 				})
 			).toBeInTheDocument();
@@ -1349,7 +1353,7 @@ describe("Admin users interaction", () => {
 			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
 			expect(
 				within(dialog).getByText("Name must be between 4 and 80", {
-					selector: "p",
+					selector: "ui-field-error span",
 					exact: false
 				})
 			).toBeInTheDocument();
@@ -1360,7 +1364,7 @@ describe("Admin users interaction", () => {
 			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
 			expect(
 				within(dialog).getByText("Name must not contain < or >", {
-					selector: "p",
+					selector: "ui-field-error span",
 					exact: false
 				})
 			).toBeInTheDocument();
@@ -1379,7 +1383,7 @@ describe("Admin users interaction", () => {
 			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
 			expect(
 				within(dialog).getByText("Name is required.", {
-					selector: "p",
+					selector: "ui-field-error span",
 					exact: false
 				})
 			).toBeInTheDocument();
@@ -1397,7 +1401,7 @@ describe("Admin users interaction", () => {
 			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
 			expect(
 				within(dialog).getByText("Password must be between 8 and 15", {
-					selector: "p",
+					selector: "ui-field-error span",
 					exact: false
 				})
 			).toBeInTheDocument();
@@ -1408,7 +1412,7 @@ describe("Admin users interaction", () => {
 			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
 			expect(
 				within(dialog).getByText("at least one uppercase", {
-					selector: "p",
+					selector: "ui-field-error span",
 					exact: false
 				})
 			).toBeInTheDocument();
@@ -1501,7 +1505,7 @@ describe("Admin users interaction", () => {
 			);
 			expect(
 				await within(dialog).findByText("Password was breached.", {
-					selector: "p"
+					selector: "ui-field-error span"
 				})
 			).toBeInTheDocument();
 			expect(
@@ -1549,7 +1553,7 @@ describe("Admin users interaction", () => {
 
 		function nameFieldError(dialog: HTMLElement) {
 			return within(dialog).queryByText("Name is not allowed.", {
-				selector: "p"
+				selector: "ui-field-error span"
 			});
 		}
 
@@ -1632,7 +1636,9 @@ describe("Admin users interaction", () => {
 			await user.clear(within(dialog).getByLabelText("Name"));
 			await user.click(submitEditButton(dialog));
 			expect(
-				within(dialog).getByText("Name is required.", { selector: "p" })
+				within(dialog).getByText("Name is required.", {
+					selector: "ui-field-error span"
+				})
 			).toBeInTheDocument();
 			await user.click(
 				within(dialog).getByRole("button", { name: "Cancel" })

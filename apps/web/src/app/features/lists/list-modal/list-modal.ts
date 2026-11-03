@@ -17,6 +17,7 @@ import {
 	UiButton,
 	UiDescription,
 	UiDialog,
+	UiFieldError,
 	UiFieldLabel,
 	UiFieldOptional,
 	UiFormField,
@@ -57,7 +58,8 @@ const DURATION_SOURCES: readonly SourceOption[] = [
 		UiTextarea,
 		UiFormField,
 		UiLabel,
-		UiSwitch
+		UiSwitch,
+		UiFieldError
 	],
 	templateUrl: "./list-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

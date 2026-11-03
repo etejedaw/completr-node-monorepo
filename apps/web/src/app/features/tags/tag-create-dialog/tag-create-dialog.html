@@ -25,15 +25,9 @@
 				[attr.aria-invalid]="name.touched() && name.invalid()"
 			/>
 			@if (name.touched() && name.invalid()) {
-			<p
-				uiDescription
-				class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger"
+			<ui-field-error uiDescription
+				>{{ name.errors()[0]?.message }}</ui-field-error
 			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>error_outline</span
-				>
-				{{ name.errors()[0]?.message }}
-			</p>
 			}
 		</div>
 
@@ -51,15 +45,9 @@
 				[attr.aria-invalid]="description.touched() && description.invalid()"
 			/>
 			@if (description.touched() && description.invalid()) {
-			<p
-				uiDescription
-				class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger"
+			<ui-field-error uiDescription
+				>{{ description.errors()[0]?.message }}</ui-field-error
 			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>error_outline</span
-				>
-				{{ description.errors()[0]?.message }}
-			</p>
 			} @else {
 			<p uiDescription class="m-0 mt-1.5 text-xs text-fg-muted">
 				Shown next to the tag in your list.

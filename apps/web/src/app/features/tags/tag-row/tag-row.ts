@@ -18,6 +18,7 @@ import { type ActionMenuItem } from "../../../shared/components/action-menu/acti
 import {
 	UiButton,
 	UiDescription,
+	UiFieldError,
 	UiFieldLabel,
 	UiFieldOptional,
 	UiFormField,
@@ -54,7 +55,8 @@ let nextRowId = 0;
 		UiDescription,
 		UiFormField,
 		UiInput,
-		UiLabel
+		UiLabel,
+		UiFieldError
 	],
 	templateUrl: "./tag-row.html",
 	host: { class: "block" },

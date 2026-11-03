@@ -16,6 +16,7 @@ import {
 	UiButton,
 	UiDialog,
 	UiEyebrow,
+	UiFieldError,
 	UiFieldLabel,
 	UiFormField,
 	UiInput,
@@ -37,7 +38,8 @@ import { InvitationAdminService } from "../services/invitation-admin.service";
 		UiFieldLabel,
 		UiFormField,
 		UiInput,
-		UiLabel
+		UiLabel,
+		UiFieldError
 	],
 	templateUrl: "./admin-invitations.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

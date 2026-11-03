@@ -23,15 +23,9 @@
 				placeholder="Saga Resident Evil, Top 10 RPGs..."
 			/>
 			@if (form.name().touched() && form.name().invalid()) {
-			<p
-				uiDescription
-				class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger"
+			<ui-field-error uiDescription
+				>{{ form.name().errors()[0]?.message }}</ui-field-error
 			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>error_outline</span
-				>
-				{{ form.name().errors()[0]?.message }}
-			</p>
 			}
 		</div>
 

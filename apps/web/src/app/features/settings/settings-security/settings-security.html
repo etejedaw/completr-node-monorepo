@@ -41,12 +41,10 @@
 				</div>
 				@if (passwordForm.newPassword().touched() &&
 				passwordForm.newPassword().invalid()) {
-				<p
-					id="new-password-error"
-					class="m-0 mt-1.5 text-xs text-danger"
+				<ui-field-error id="new-password-error"
+					>{{ passwordForm.newPassword().errors()[0]?.message
+					}}</ui-field-error
 				>
-					{{ passwordForm.newPassword().errors()[0]?.message }}
-				</p>
 				}
 				<app-password-rules
 					listId="new-password-rules"
@@ -68,12 +66,10 @@
 				/>
 				@if (passwordForm.confirmPassword().touched() &&
 				passwordForm.confirmPassword().invalid()) {
-				<p
-					id="confirm-password-error"
-					class="m-0 mt-1.5 text-xs text-danger"
+				<ui-field-error id="confirm-password-error"
+					>{{ passwordForm.confirmPassword().errors()[0]?.message
+					}}</ui-field-error
 				>
-					{{ passwordForm.confirmPassword().errors()[0]?.message }}
-				</p>
 				}
 			</app-settings-row>
 

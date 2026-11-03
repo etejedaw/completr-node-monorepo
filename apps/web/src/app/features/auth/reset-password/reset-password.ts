@@ -16,6 +16,7 @@ import { PasswordRules } from "../../../shared/components/password-rules/passwor
 import {
 	UiAlert,
 	UiButton,
+	UiFieldError,
 	UiFieldLabel,
 	UiIconButton,
 	UiInput
@@ -35,7 +36,8 @@ type ResetStatus = "editing" | "done" | "invalidLink";
 		UiAlert,
 		UiButton,
 		UiIconButton,
-		UiInput
+		UiInput,
+		UiFieldError
 	],
 	templateUrl: "./reset-password.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

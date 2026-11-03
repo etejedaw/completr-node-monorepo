@@ -22,6 +22,7 @@ import {
 	UiBadge,
 	UiButton,
 	UiDialog,
+	UiFieldError,
 	UiIconButton,
 	UiInput,
 	UiPagination,
@@ -47,7 +48,8 @@ const EMPTY_PASSWORDS = { newPassword: "", confirmPassword: "" };
 		UiIconButton,
 		UiInput,
 		UiPagination,
-		UiSkeleton
+		UiSkeleton,
+		UiFieldError
 	],
 	templateUrl: "./settings-security.html",
 	host: { class: "contents" },

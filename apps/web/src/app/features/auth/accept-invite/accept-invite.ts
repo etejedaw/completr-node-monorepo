@@ -36,6 +36,7 @@ import { PasswordRules } from "../../../shared/components/password-rules/passwor
 import {
 	UiAlert,
 	UiButton,
+	UiFieldError,
 	UiFieldLabel,
 	UiIconButton,
 	UiInput,
@@ -59,7 +60,8 @@ const UNSAFE_TEXT = /[<>]/;
 		UiButton,
 		UiIconButton,
 		UiInput,
-		UiSkeleton
+		UiSkeleton,
+		UiFieldError
 	],
 	templateUrl: "./accept-invite.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

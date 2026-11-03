@@ -25,6 +25,7 @@ import {
 	UiDescription,
 	UiDialog,
 	UiEyebrow,
+	UiFieldError,
 	UiFieldLabel,
 	UiFieldOptional,
 	UiFormField,
@@ -64,7 +65,8 @@ export type AdminFranchiseModalResult = "saved";
 		UiFormField,
 		UiLabel,
 		UiPlainEmptyState,
-		UiSkeleton
+		UiSkeleton,
+		UiFieldError
 	],
 	templateUrl: "./admin-franchise-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
