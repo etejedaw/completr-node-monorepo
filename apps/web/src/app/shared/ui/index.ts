@@ -28,7 +28,9 @@ export type {
 export { UiIconButton } from "./icon-button/ui-icon-button";
 export type { UiInputSize } from "./input/ui-input";
 export { UiInput } from "./input/ui-input";
+export { UiEyebrow } from "./label/ui-eyebrow";
 export { UiFieldLabel } from "./label/ui-field-label";
+export { UiFieldOptional } from "./label/ui-field-optional";
 export { UiPagination } from "./pagination/ui-pagination";
 export { UiPremiumBadge } from "./premium-badge/ui-premium-badge";
 export { UiProgress } from "./progress/ui-progress";
