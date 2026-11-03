@@ -17,12 +17,10 @@
 	</header>
 	}
 
-	<div class="px-5 py-5 md:px-6 border-b border-line">
-		<h4
-			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-		>
-			RAWG Lookup
-		</h4>
+	<app-filter-section
+		class="px-5 py-5 md:px-6 border-b border-line"
+		label="RAWG Lookup"
+	>
 		<div class="flex flex-col gap-2 sm:flex-row">
 			<input
 				uiInput
@@ -50,18 +48,16 @@
 		@if (rawgError()) {
 		<span class="block mt-2 text-xs text-danger">{{ rawgError() }}</span>
 		} @if (rawgId()) {
-		<span class="block mt-2 text-xs text-brand"
-			>RAWG ID: {{ rawgId() }}</span
+		<ui-badge tone="info" icon="cloud_download" class="mt-2"
+			>RAWG ID: {{ rawgId() }}</ui-badge
 		>
 		}
-	</div>
+	</app-filter-section>
 
-	<div class="px-5 py-5 md:px-6 border-b border-line">
-		<h4
-			class="font-display m-0 mb-1 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-		>
-			External IDs
-		</h4>
+	<app-filter-section
+		class="px-5 py-5 md:px-6 border-b border-line"
+		label="External IDs"
+	>
 		<p class="m-0 mb-4 text-xs text-fg-muted text-pretty">
 			Used by Refresh external data. Type the ID or paste the game page
 			URL.
@@ -166,15 +162,12 @@
 				}
 			</div>
 		</div>
-	</div>
+	</app-filter-section>
 
-	<div class="px-5 py-5 md:px-6 border-b border-line">
-		<h4
-			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-		>
-			Game Info
-		</h4>
-
+	<app-filter-section
+		class="px-5 py-5 md:px-6 border-b border-line"
+		label="Game Info"
+	>
 		<div class="grid gap-4 md:grid-cols-2">
 			<div class="md:col-span-2">
 				<label uiFieldLabel for="editor-title">Title</label>
@@ -224,14 +217,22 @@
 
 			@if (backgroundUrl()) {
 			<div
-				class="md:col-span-2 rounded-card overflow-hidden border border-line h-28 md:h-40"
+				class="md:col-span-2 flex items-center gap-4 p-3 rounded-card border border-line bg-surface/60"
+				data-cover-preview
 			>
-				<img
-					class="w-full h-full object-cover block"
+				<app-game-poster
+					class="w-16 aspect-[2/3] shrink-0 rounded ring-1 ring-white/10"
 					[src]="backgroundUrl()"
-					alt="Preview"
-					loading="lazy"
+					[title]="title() || 'Preview'"
+					[width]="200"
 				/>
+				<div class="flex flex-col gap-0.5 min-w-0">
+					<span uiFieldLabel class="!mb-0">Cover preview</span>
+					<span class="text-xs text-fg-muted text-pretty"
+						>How this image shows up on covers across the
+						catalog.</span
+					>
+				</div>
 			</div>
 			}
 
@@ -247,150 +248,90 @@
 			</div>
 
 			<div class="md:col-span-2">
-				<label
-					class="flex items-center gap-3 min-h-11 cursor-pointer text-[0.8125rem] font-medium text-fg"
-				>
-					<input
-						type="checkbox"
-						class="size-5 shrink-0 accent-brand cursor-pointer"
-						[formField]="form.isDlc"
-					/>
-					DLC
-				</label>
+				<app-option-picker
+					label="Franchise"
+					heading="Franchise"
+					placeholderIcon="collections_bookmark"
+					[options]="franchiseOptions()"
+					[value]="selectedFranchiseId()"
+					(valueChange)="selectedFranchiseId.set($event)"
+				/>
+			</div>
+
+			<div
+				class="md:col-span-2 flex items-center gap-3 min-h-[52px] py-2"
+			>
+				<span class="flex-1 min-w-0">
+					<span class="block text-sm text-fg">DLC</span>
+					<span class="block text-[0.6875rem] text-fg-muted"
+						>Downloadable content that belongs to a base game</span
+					>
+				</span>
+				<ui-switch
+					ariaLabel="DLC"
+					[checked]="isDlc()"
+					(checkedChange)="setDlc($event)"
+				/>
 			</div>
 
 			@if (isDlc()) {
-			<div class="md:col-span-2">
-				<span uiFieldLabel>Parent Game</span>
-				@if (parentGame()) {
-				<div
-					class="flex items-center gap-3 py-2 pl-3 pr-2 min-h-11 bg-input-bg border border-line rounded-card"
-				>
-					@if (parentGame()!.backgroundUrl) {
-					<img
-						class="size-9 object-cover rounded shrink-0"
-						[src]="parentGame()!.backgroundUrl"
-						[alt]="parentGame()!.title"
-						loading="lazy"
-					/>
-					}
-					<span
-						class="flex-1 min-w-0 truncate text-[0.8125rem] font-medium"
-						>{{ parentGame()!.title }}</span
-					>
-					<button
-						uiIconButton
-						type="button"
-						aria-label="Clear parent game"
-						(click)="clearParentGame()"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
-							>close</span
-						>
-					</button>
-				</div>
+			<div class="md:col-span-2 flex flex-col gap-2">
+				@if (parentGame(); as parent) {
+				<app-selected-game-row
+					label="Parent game"
+					[game]="parent"
+					[meta]="parent.code"
+					[autofocus]="parentFocus() === 'selected'"
+					(changeRequested)="clearParentGame()"
+				/>
 				} @else {
-				<div class="flex flex-col gap-2 sm:flex-row">
-					<input
-						uiInput
-						type="text"
-						class="sm:flex-1"
-						aria-label="Parent game slug"
-						[formField]="form.parentSlug"
-						(keydown.enter)="fetchParentGame()"
-						placeholder="Completr slug (e.g. resident-evil-4)"
-					/>
-					<button
-						uiButton
-						variant="secondary"
-						type="button"
-						class="shrink-0"
-						(click)="fetchParentGame()"
-						[disabled]="fetchingParent() || !parentSlug().trim()"
-					>
-						{{ fetchingParent() ? '...' : 'Search' }}
-					</button>
-				</div>
-				@if (parentError()) {
-				<span class="block mt-2 text-xs text-danger"
-					>{{ parentError() }}</span
-				>
+				<span uiFieldLabel class="!mb-0">Parent game</span>
+				<app-catalog-game-picker
+					label="Search parent game"
+					placeholder="Search the base game by title..."
+					[excludedIds]="parentExcludedIds()"
+					[autofocus]="parentFocus() === 'search'"
+					(picked)="pickParentGame($event)"
+				/>
+				@if (parentRemovalPending()) {
+				<p class="m-0 text-xs text-warning text-pretty">
+					Saving without picking a game removes the current parent.
+				</p>
 				} }
 			</div>
 			}
 		</div>
-	</div>
+	</app-filter-section>
 
-	<div class="px-5 py-5 md:px-6 border-b border-line">
-		<h4
-			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-		>
-			Platforms
-		</h4>
-		<div class="flex flex-wrap gap-2">
-			@for (p of allPlatforms(); track p.id) {
-			<button
-				type="button"
-				class="inline-flex items-center justify-center min-h-8 tap:min-h-11 px-3 rounded-full text-xs font-semibold cursor-pointer transition border focus-visible:outline-2 focus-visible:outline-brand"
-				[class]="selectedPlatforms().has(p.code) ? 'bg-brand-subtle border-brand text-brand' : 'bg-input-bg border-line text-fg-muted hover:border-line-hover hover:text-fg'"
-				[attr.aria-pressed]="selectedPlatforms().has(p.code)"
-				(click)="togglePlatform(p.code)"
-			>
-				{{ p.abbreviation }}
-			</button>
-			}
-		</div>
-	</div>
+	<app-filter-section
+		class="px-5 py-5 md:px-6 border-b border-line"
+		label="Platforms"
+	>
+		<app-chip-group
+			mode="multiple"
+			[options]="platformOptions()"
+			[value]="platformValues()"
+			(valueChange)="setPlatforms($event)"
+		/>
+	</app-filter-section>
 
-	<div class="px-5 py-5 md:px-6 border-b border-line">
-		<h4
-			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-		>
-			Genres
-		</h4>
-		<div class="flex flex-wrap gap-2">
-			@for (g of allGenres(); track g.id) {
-			<button
-				type="button"
-				class="inline-flex items-center justify-center min-h-8 tap:min-h-11 px-3 rounded-full text-xs font-semibold cursor-pointer transition border focus-visible:outline-2 focus-visible:outline-brand"
-				[class]="selectedGenres().has(g.code) ? 'bg-brand-subtle border-brand text-brand' : 'bg-input-bg border-line text-fg-muted hover:border-line-hover hover:text-fg'"
-				[attr.aria-pressed]="selectedGenres().has(g.code)"
-				(click)="toggleGenre(g.code)"
-			>
-				{{ g.name }}
-			</button>
-			}
-		</div>
-	</div>
-
-	<div class="px-5 py-5 md:px-6 border-b border-line">
-		<h4
-			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-		>
-			Franchise
-		</h4>
-		<select
-			uiSelect
-			aria-label="Franchise"
-			[value]="selectedFranchiseId()"
-			(change)="selectedFranchiseId.set($any($event.target).value)"
-		>
-			<option value="">— None —</option>
-			@for (f of allFranchises(); track f.id) {
-			<option [value]="f.id">{{ f.name }}</option>
-			}
-		</select>
-	</div>
+	<app-filter-section
+		class="px-5 py-5 md:px-6 border-b border-line"
+		label="Genres"
+	>
+		<app-chip-group
+			mode="multiple"
+			[options]="genreOptions()"
+			[value]="genreValues()"
+			(valueChange)="setGenres($event)"
+		/>
+	</app-filter-section>
 
 	<div class="grid lg:grid-cols-2 lg:divide-x lg:divide-line">
-		<div class="px-5 py-5 md:px-6 border-b border-line">
-			<h4
-				class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-			>
-				Scores
-			</h4>
+		<app-filter-section
+			class="px-5 py-5 md:px-6 border-b border-line"
+			label="Scores"
+		>
 			@for (s of scores(); track s.source; let i = $index) {
 			<div class="mb-2">
 				<div class="flex items-center gap-2">
@@ -437,21 +378,20 @@
 				</p>
 				}
 			</div>
-			} @if (availableScoreSources.length > 0) {
+			} @if (availableScoreSources().length > 0) {
 			<div class="flex flex-wrap items-center gap-2 mt-3">
-				<div class="flex-1 min-w-28">
-					<select
-						uiSelect
-						aria-label="New score source"
-						[value]="newScoreSource()"
-						(change)="newScoreSource.set($any($event.target).value)"
-					>
-						<option value="">Source...</option>
-						@for (src of availableScoreSources; track src) {
-						<option [value]="src">{{ src }}</option>
-						}
-					</select>
-				</div>
+				<app-option-picker
+					class="flex-1 min-w-28"
+					variant="compact"
+					size="md"
+					label="Source"
+					heading="New score source"
+					placeholder="Pick one"
+					placeholderIcon="star_outline"
+					[options]="availableScoreSources()"
+					[value]="newScoreSource()"
+					(valueChange)="newScoreSource.set($event)"
+				/>
 				<div class="w-28">
 					<input
 						uiInput
@@ -487,14 +427,12 @@
 				{{ newScoreError() }}
 			</p>
 			} }
-		</div>
+		</app-filter-section>
 
-		<div class="px-5 py-5 md:px-6 border-b border-line">
-			<h4
-				class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-			>
-				Durations
-			</h4>
+		<app-filter-section
+			class="px-5 py-5 md:px-6 border-b border-line"
+			label="Durations"
+		>
 			@for (t of times(); track t.source; let i = $index) {
 			<div class="mb-2">
 				<div class="flex items-center gap-2">
@@ -540,21 +478,20 @@
 				</p>
 				}
 			</div>
-			} @if (availableTimeSources.length > 0) {
+			} @if (availableTimeSources().length > 0) {
 			<div class="flex flex-wrap items-center gap-2 mt-3">
-				<div class="flex-1 min-w-28">
-					<select
-						uiSelect
-						aria-label="New duration source"
-						[value]="newTimeSource()"
-						(change)="newTimeSource.set($any($event.target).value)"
-					>
-						<option value="">Source...</option>
-						@for (src of availableTimeSources; track src) {
-						<option [value]="src">{{ src }}</option>
-						}
-					</select>
-				</div>
+				<app-option-picker
+					class="flex-1 min-w-28"
+					variant="compact"
+					size="md"
+					label="Source"
+					heading="New duration source"
+					placeholder="Pick one"
+					placeholderIcon="schedule"
+					[options]="availableTimeSources()"
+					[value]="newTimeSource()"
+					(valueChange)="newTimeSource.set($event)"
+				/>
 				<div class="w-28">
 					<input
 						uiInput
@@ -589,16 +526,14 @@
 				{{ newTimeError() }}
 			</p>
 			} }
-		</div>
+		</app-filter-section>
 	</div>
 
 	@if (isEditMode()) {
-	<div class="px-5 py-5 md:px-6 border-b border-line">
-		<h4
-			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-		>
-			Structure
-		</h4>
+	<app-filter-section
+		class="px-5 py-5 md:px-6 border-b border-line"
+		label="Structure"
+	>
 		<div class="grid gap-3 md:grid-cols-2">
 			<div
 				class="flex flex-col items-start gap-3 rounded-card border border-line bg-surface p-4"
@@ -644,7 +579,7 @@
 				</button>
 			</div>
 		</div>
-	</div>
+	</app-filter-section>
 	}
 
 	<div
@@ -802,26 +737,13 @@
 					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.16em]"
 					>#{{ i + 1 }}</span
 				>
-				<div class="flex flex-wrap gap-1.5 ml-1">
-					<button
-						type="button"
-						class="inline-flex items-center justify-center min-h-8 tap:min-h-11 px-3 rounded-full text-xs font-semibold cursor-pointer transition border focus-visible:outline-2 focus-visible:outline-brand"
-						[class]="row.mode === 'link' ? 'bg-brand-subtle border-brand text-brand' : 'bg-transparent border-line text-fg-muted hover:border-line-hover hover:text-fg'"
-						[attr.aria-pressed]="row.mode === 'link'"
-						(click)="setCompilationRowMode(i, 'link')"
-					>
-						Link existing
-					</button>
-					<button
-						type="button"
-						class="inline-flex items-center justify-center min-h-8 tap:min-h-11 px-3 rounded-full text-xs font-semibold cursor-pointer transition border focus-visible:outline-2 focus-visible:outline-brand"
-						[class]="row.mode === 'create' ? 'bg-brand-subtle border-brand text-brand' : 'bg-transparent border-line text-fg-muted hover:border-line-hover hover:text-fg'"
-						[attr.aria-pressed]="row.mode === 'create'"
-						(click)="setCompilationRowMode(i, 'create')"
-					>
-						Create new
-					</button>
-				</div>
+				<app-segmented-control
+					class="ml-1"
+					[label]="'Item ' + (i + 1) + ' source'"
+					[options]="compilationRowModes"
+					[value]="row.mode"
+					(valueChange)="setCompilationRowMode(i, $event)"
+				/>
 				<button
 					uiIconButton
 					tone="danger"
@@ -837,77 +759,23 @@
 				</button>
 			</div>
 
-			@if (row.mode === 'link') { @if (row.linkedGame) {
-			<div
-				class="flex items-center gap-3 py-2 pl-3 pr-2 min-h-11 bg-input-bg border border-line rounded-card"
-			>
-				@if (row.linkedGame.backgroundUrl) {
-				<img
-					class="size-9 object-cover rounded shrink-0"
-					[src]="row.linkedGame.backgroundUrl"
-					[alt]="row.linkedGame.title"
-					loading="lazy"
-				/>
-				}
-				<span
-					class="flex-1 min-w-0 truncate text-[0.8125rem] font-medium"
-					>{{ row.linkedGame.title }}</span
-				>
-				<span class="hidden sm:inline text-xs text-fg-muted"
-					>{{ row.linkedGame.code }}</span
-				>
-				<button
-					uiIconButton
-					type="button"
-					class="shrink-0"
-					aria-label="Clear linked game"
-					(click)="clearCompilationRowGame(i)"
-				>
-					<span aria-hidden="true" class="material-icons text-base"
-						>close</span
-					>
-				</button>
-			</div>
-			} @else {
-			<input
-				uiInput
-				type="text"
-				aria-label="Search existing game"
-				placeholder="Search existing game..."
-				[value]="row.searchQuery"
-				(input)="updateCompilationRowQuery(i, $any($event.target).value)"
+			@if (row.mode === 'link') { @if (row.linkedGame; as linked) {
+			<app-selected-game-row
+				label="Linked game"
+				[game]="linked"
+				[meta]="linked.code"
+				[autofocus]="row.focus === 'selected'"
+				(changeRequested)="clearCompilationRowGame(i)"
 			/>
-			@if (row.searching) {
-			<div class="text-xs text-fg-muted mt-2">Searching...</div>
-			} @if (row.searchResults.length > 0) {
-			<div
-				class="border border-line rounded-card mt-2 max-h-56 overflow-y-auto bg-input-bg divide-y divide-line"
-			>
-				@for (g of row.searchResults; track g.id) {
-				<button
-					type="button"
-					class="w-full min-h-11 flex items-center gap-3 px-3 py-2 text-left hover:bg-brand-subtle transition border-0 cursor-pointer bg-transparent text-fg focus-visible:outline-2 focus-visible:outline-brand"
-					(click)="pickCompilationRowGame(i, g)"
-				>
-					@if (g.backgroundUrl) {
-					<img
-						class="size-8 object-cover rounded shrink-0"
-						[src]="g.backgroundUrl"
-						[alt]="g.title"
-						loading="lazy"
-					/>
-					}
-					<span class="flex-1 min-w-0 truncate text-[0.8125rem]"
-						>{{ g.title }}</span
-					>
-					<span
-						class="hidden sm:inline text-[0.6875rem] text-fg-muted"
-						>{{ g.code }}</span
-					>
-				</button>
-				}
-			</div>
-			} } } @else {
+			} @else {
+			<app-catalog-game-picker
+				label="Search existing game"
+				placeholder="Search existing game..."
+				[excludedIds]="compilationExcludedIds().get(row.id) ?? []"
+				[autofocus]="row.focus === 'search'"
+				(picked)="pickCompilationRowGame(i, $event)"
+			/>
+			} } @else {
 			<div>
 				<input
 					uiInput

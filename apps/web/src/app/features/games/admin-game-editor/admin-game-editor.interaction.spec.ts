@@ -113,7 +113,6 @@ describe("AdminGameEditor interaction", () => {
 	let holds: string[];
 	let held: { key: string; req: TestRequest }[];
 	let rawgCatalog: Record<string, typeof rawgHades>;
-	let parentCatalog: Record<string, Game>;
 	let searchLimit: number;
 	let compilationItemsResponse: unknown[];
 	let splitResponse: Game[];
@@ -160,12 +159,6 @@ describe("AdminGameEditor interaction", () => {
 				.filter(game => game.title.toLowerCase().includes(query))
 				.slice(0, searchLimit);
 			return req.flush({ data: { games } });
-		}
-		if (method === "GET" && /^\/games\/[^/?]+$/.test(path)) {
-			const parent = parentCatalog[path.split("/").pop()!];
-			return parent
-				? req.flush({ data: { game: parent } })
-				: req.flush({}, { status: 404, statusText: "Not Found" });
 		}
 		if (method === "POST" && path === "/games")
 			return req.flush(
@@ -294,10 +287,37 @@ describe("AdminGameEditor interaction", () => {
 
 	const titleInput = () => screen.getByLabelText("Title");
 	const rawgInput = () => screen.getByRole("textbox", { name: "RAWG slug" });
-	const parentInput = () =>
-		screen.getByRole("textbox", { name: "Parent game slug" });
+	const parentSearch = () =>
+		screen.getByRole("textbox", { name: "Search parent game" });
+	const dlcSwitch = () => screen.getByRole("switch", { name: "DLC" });
+	const changeGame = () =>
+		screen.getByRole("button", { name: "Change game" });
+
+	async function pickParent(query: string, title: string) {
+		await userEvent.type(parentSearch(), query);
+		const select = await waitFor(() => {
+			answerPending();
+			return button(`Select ${title}`);
+		});
+		await userEvent.click(select);
+	}
 	const button = (name: string | RegExp) =>
 		screen.getByRole("button", { name });
+	const sourcePicker = (sectionName: "Scores" | "Durations") =>
+		within(screen.getByRole("group", { name: sectionName })).getByRole(
+			"button",
+			{ name: /^Source:/ }
+		);
+
+	async function pickSource(
+		sectionName: "Scores" | "Durations",
+		source: string
+	) {
+		await userEvent.click(sourcePicker(sectionName));
+		await userEvent.click(
+			await screen.findByRole("menuitemradio", { name: source })
+		);
+	}
 
 	async function openSplit() {
 		await userEvent.click(button("Split game"));
@@ -340,20 +360,16 @@ describe("AdminGameEditor interaction", () => {
 			name: "Search existing game"
 		})[index];
 
-	const resultName = (title: string, code: string) => (name: string) =>
-		name.startsWith(title) && name.endsWith(code);
-
 	async function pickLinked(
 		dialog: HTMLElement,
 		query: string,
 		title: string
 	) {
 		await userEvent.type(searchBox(dialog, 0), query);
-		const game = catalog.find(item => item.title === title)!;
 		const option = await waitFor(() => {
 			answerPending();
 			return within(dialog).getByRole("button", {
-				name: resultName(game.title, game.code)
+				name: `Select ${title}`
 			});
 		});
 		await userEvent.click(option);
@@ -371,7 +387,6 @@ describe("AdminGameEditor interaction", () => {
 		holds = [];
 		held = [];
 		rawgCatalog = { hades: rawgHades };
-		parentCatalog = { hades: existingGame, "mass-effect": catalog[0] };
 		searchLimit = 8;
 		compilationItemsResponse = [];
 		splitResponse = [
@@ -710,10 +725,7 @@ describe("AdminGameEditor interaction", () => {
 		it("blocks the request and reports an invalid score, then sends once it is fixed", async () => {
 			await renderCreate();
 			await userEvent.type(titleInput(), "Hades");
-			await userEvent.selectOptions(
-				screen.getByRole("combobox", { name: "New score source" }),
-				"metacritic"
-			);
+			await pickSource("Scores", "metacritic");
 			await userEvent.type(
 				screen.getByRole("spinbutton", { name: "New score value" }),
 				"150"
@@ -754,9 +766,7 @@ describe("AdminGameEditor interaction", () => {
 
 		it("adds a duration, removes it and offers its source again", async () => {
 			await renderCreate();
-			const source = () =>
-				screen.getByRole("combobox", { name: "New duration source" });
-			await userEvent.selectOptions(source(), "hltb");
+			await pickSource("Durations", "hltb");
 			await userEvent.type(
 				screen.getByRole("spinbutton", {
 					name: "New duration in hours"
@@ -765,24 +775,30 @@ describe("AdminGameEditor interaction", () => {
 			);
 			await userEvent.click(button("Add duration"));
 			expect(screen.getByLabelText("hltb duration")).toHaveValue(12.5);
+			expect(sourcePicker("Durations")).toHaveAccessibleName(
+				"Source: Pick one"
+			);
+			await userEvent.click(sourcePicker("Durations"));
 			expect(
-				within(source()).queryByRole("option", { name: "hltb" })
+				await screen.findByRole("menuitemradio", { name: "rawg" })
+			).toBeInTheDocument();
+			expect(
+				screen.queryByRole("menuitemradio", { name: "hltb" })
 			).toBeNull();
+			await userEvent.keyboard("{Escape}");
 
 			await userEvent.click(button("Remove hltb duration"));
 
 			expect(screen.queryByLabelText("hltb duration")).toBeNull();
+			await userEvent.click(sourcePicker("Durations"));
 			expect(
-				within(source()).getByRole("option", { name: "hltb" })
+				await screen.findByRole("menuitemradio", { name: "hltb" })
 			).toBeInTheDocument();
 		});
 
 		it("ignores a zero duration and keeps Add duration disabled", async () => {
 			await renderCreate();
-			await userEvent.selectOptions(
-				screen.getByRole("combobox", { name: "New duration source" }),
-				"rawg"
-			);
+			await pickSource("Durations", "rawg");
 			await userEvent.type(
 				screen.getByRole("spinbutton", {
 					name: "New duration in hours"
@@ -821,40 +837,42 @@ describe("AdminGameEditor interaction", () => {
 	});
 
 	describe("parent game of a DLC", () => {
-		it("hides the parent field until DLC is checked", async () => {
+		it("hides the parent search until DLC is switched on", async () => {
 			await renderCreate();
 
 			expect(
-				screen.queryByRole("textbox", { name: "Parent game slug" })
+				screen.queryByRole("textbox", { name: "Search parent game" })
 			).toBeNull();
-			await userEvent.click(
-				screen.getByRole("checkbox", { name: "DLC" })
-			);
-			expect(parentInput()).toBeInTheDocument();
-			await userEvent.click(
-				screen.getByRole("checkbox", { name: "DLC" })
-			);
+			expect(dlcSwitch()).toHaveAttribute("aria-checked", "false");
+			await userEvent.click(dlcSwitch());
+			expect(dlcSwitch()).toHaveAttribute("aria-checked", "true");
+			expect(parentSearch()).toBeInTheDocument();
+			await userEvent.click(dlcSwitch());
 			expect(
-				screen.queryByRole("textbox", { name: "Parent game slug" })
+				screen.queryByRole("textbox", { name: "Search parent game" })
 			).toBeNull();
 		});
 
-		it("links a parent, sends its id and drops it from the request when DLC is unchecked", async () => {
+		it("toggles DLC from the keyboard", async () => {
+			await renderCreate();
+
+			dlcSwitch().focus();
+			await userEvent.keyboard("{Enter}");
+
+			expect(dlcSwitch()).toHaveAttribute("aria-checked", "true");
+			expect(parentSearch()).toBeInTheDocument();
+		});
+
+		it("links a parent picked from the catalog, sends its id and drops it from the request when DLC is switched off", async () => {
 			await renderCreate();
 			await userEvent.type(titleInput(), "Hades DLC");
-			await userEvent.click(
-				screen.getByRole("checkbox", { name: "DLC" })
-			);
-			await userEvent.type(parentInput(), "hades");
-			await userEvent.click(button("Search"));
-			await untilVisible(() =>
-				expect(button("Clear parent game")).toBeInTheDocument()
-			);
-			expect(screen.getByText("Hades")).toBeInTheDocument();
+			await userEvent.click(dlcSwitch());
+			await pickParent("hades", "Hades");
 
-			await userEvent.click(
-				screen.getByRole("checkbox", { name: "DLC" })
-			);
+			expect(changeGame()).toBeInTheDocument();
+			expect(screen.getByText("Parent game")).toBeInTheDocument();
+
+			await userEvent.click(dlcSwitch());
 			await userEvent.click(button("Create Game"));
 			await untilVisible(() => expect(created).toHaveBeenCalledTimes(1));
 
@@ -863,24 +881,15 @@ describe("AdminGameEditor interaction", () => {
 			expect(body?.["isDlc"]).toBe(false);
 		});
 
-		it("remembers the linked parent when DLC is unchecked and checked again", async () => {
+		it("remembers the linked parent when DLC is switched off and on again", async () => {
 			await renderCreate();
-			await userEvent.click(
-				screen.getByRole("checkbox", { name: "DLC" })
-			);
-			await userEvent.type(parentInput(), "hades{Enter}");
-			await untilVisible(() =>
-				expect(button("Clear parent game")).toBeInTheDocument()
-			);
+			await userEvent.click(dlcSwitch());
+			await pickParent("hades", "Hades");
 
-			await userEvent.click(
-				screen.getByRole("checkbox", { name: "DLC" })
-			);
-			await userEvent.click(
-				screen.getByRole("checkbox", { name: "DLC" })
-			);
+			await userEvent.click(dlcSwitch());
+			await userEvent.click(dlcSwitch());
 
-			expect(button("Clear parent game")).toBeInTheDocument();
+			expect(changeGame()).toBeInTheDocument();
 			await userEvent.type(titleInput(), "Hades DLC");
 			await userEvent.click(button("Create Game"));
 			await untilVisible(() => expect(created).toHaveBeenCalled());
@@ -889,67 +898,157 @@ describe("AdminGameEditor interaction", () => {
 			);
 		});
 
-		it("reports an unknown parent, lets the admin retype the slug and clears the error on success", async () => {
+		it("only searches the local catalog once typing stops and from two characters", async () => {
 			await renderCreate();
-			await userEvent.click(
-				screen.getByRole("checkbox", { name: "DLC" })
-			);
-			await userEvent.type(parentInput(), "nope{Enter}");
+			await userEvent.click(dlcSwitch());
+
+			await userEvent.type(parentSearch(), "h");
+			await new Promise(resolve => setTimeout(resolve, 450));
+			answerPending();
+			expect(searchCalls()).toEqual([]);
+
+			await userEvent.type(parentSearch(), "ades");
 			await untilVisible(() =>
-				expect(screen.getByText("Game not found")).toBeInTheDocument()
+				expect(button("Select Hades")).toBeInTheDocument()
 			);
 
-			await replaceText(parentInput(), "mass-effect");
-			await userEvent.click(button("Search"));
-
-			await untilVisible(() =>
-				expect(button("Clear parent game")).toBeInTheDocument()
-			);
-			expect(screen.queryByText("Game not found")).toBeNull();
+			expect(searchCalls().map(call => call.path)).toEqual([
+				"/games/search?query=hades&local_only=true"
+			]);
 		});
 
-		it("clears the parent together with its slug and any old error", async () => {
+		it("shows skeleton rows while the search is pending and never a Searching text", async () => {
 			await renderCreate();
-			await userEvent.click(
-				screen.getByRole("checkbox", { name: "DLC" })
-			);
-			await userEvent.type(parentInput(), "hades{Enter}");
+			await userEvent.click(dlcSwitch());
+			holds = ["GET /games/search"];
+
+			await userEvent.type(parentSearch(), "hades");
 			await untilVisible(() =>
-				expect(button("Clear parent game")).toBeInTheDocument()
+				expect(heldKeys("GET /games/search")).toHaveLength(1)
 			);
 
-			await userEvent.click(button("Clear parent game"));
+			expect(
+				document.querySelector("[data-catalog-skeleton]")
+			).not.toBeNull();
+			expect(screen.getByRole("status")).toHaveTextContent(
+				"Looking up the catalog"
+			);
+			expect(screen.queryByText(/Searching/)).toBeNull();
 
-			expect(parentInput()).toHaveValue("");
-			expect(button("Search")).toBeDisabled();
-			expect(screen.queryByText("Game not found")).toBeNull();
+			releaseAll();
+			await untilVisible(() =>
+				expect(button("Select Hades")).toBeInTheDocument()
+			);
+			expect(
+				document.querySelector("[data-catalog-skeleton]")
+			).toBeNull();
 		});
 
-		it("sends one request when Enter is pressed repeatedly in the parent slug field", async () => {
+		it("shows an empty state for a search without matches and clears it back to the search box", async () => {
 			await renderCreate();
-			holds = ["GET /games/hades"];
-			await userEvent.click(
-				screen.getByRole("checkbox", { name: "DLC" })
+			await userEvent.click(dlcSwitch());
+
+			await userEvent.type(parentSearch(), "zzz 💥 <b>");
+			await untilVisible(() =>
+				expect(screen.getByText("No games found")).toBeInTheDocument()
 			);
-			await userEvent.type(parentInput(), "hades{Enter}{Enter}{Enter}");
+			await userEvent.click(button("New search"));
+
+			expect(parentSearch()).toHaveValue("");
+			expect(parentSearch()).toHaveFocus();
+			expect(screen.queryByText("No games found")).toBeNull();
+		});
+
+		it("shows the empty state instead of breaking when the search fails", async () => {
+			await renderCreate();
+			await userEvent.click(dlcSwitch());
+			failures["GET /games/search?query=hades&local_only=true"] = {
+				status: 500
+			};
+
+			await userEvent.type(parentSearch(), "hades");
+
+			await untilVisible(() =>
+				expect(screen.getByText("No games found")).toBeInTheDocument()
+			);
+			expect(screen.queryByRole("alert")).toBeNull();
+		});
+
+		it("links once when Select is double clicked and moves focus to Change game", async () => {
+			await renderCreate();
+			await userEvent.click(dlcSwitch());
+			await userEvent.type(parentSearch(), "hades");
+			const select = await waitFor(() => {
+				answerPending();
+				return button("Select Hades");
+			});
+
+			await userEvent.dblClick(select);
+
+			expect(
+				screen.getAllByRole("button", { name: "Change game" })
+			).toHaveLength(1);
+			await waitFor(() => expect(changeGame()).toHaveFocus());
+		});
+
+		it("moves through the results with the arrow keys, returns with Escape and picks with Enter", async () => {
+			await renderCreate();
+			await userEvent.click(dlcSwitch());
+			await userEvent.type(parentSearch(), "ma");
+			await untilVisible(() =>
+				expect(button("Select Mass Effect")).toBeInTheDocument()
+			);
+
+			await userEvent.keyboard("{ArrowDown}");
+			expect(button("Select Mass Effect")).toHaveFocus();
+			await userEvent.keyboard("{ArrowDown}");
+			expect(button("Select Mario Kart")).toHaveFocus();
+			await userEvent.keyboard("{ArrowUp}{ArrowUp}");
+			expect(parentSearch()).toHaveFocus();
+			await userEvent.keyboard("{ArrowDown}{ArrowDown}{Escape}");
+			expect(parentSearch()).toHaveFocus();
+			expect(parentSearch()).toHaveValue("ma");
+
+			await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}");
+
+			expect(screen.getByText("Mario Kart")).toBeInTheDocument();
+			expect(changeGame()).toBeInTheDocument();
+		});
+
+		it("returns to an empty, focused search box when Change game is pressed", async () => {
+			await renderCreate();
+			await userEvent.click(dlcSwitch());
+			await pickParent("hades", "Hades");
+
+			await userEvent.click(changeGame());
+
+			expect(parentSearch()).toHaveValue("");
+			await waitFor(() => expect(parentSearch()).toHaveFocus());
+			expect(
+				screen.queryByText(
+					"Saving without picking a game removes the current parent."
+				)
+			).toBeNull();
+		});
+
+		it("drops a late answer when DLC is switched off while the search is pending", async () => {
+			await renderCreate();
+			await userEvent.click(dlcSwitch());
+			holds = ["GET /games/search"];
+			await userEvent.type(parentSearch(), "hades");
+			await untilVisible(() =>
+				expect(heldKeys("GET /games/search")).toHaveLength(1)
+			);
+
+			await userEvent.click(dlcSwitch());
+			releaseAll();
 			answerPending();
 
-			expect(heldKeys("GET /games/hades")).toHaveLength(1);
-		});
-
-		it("sends one request when Search is clicked three times", async () => {
-			await renderCreate();
-			holds = ["GET /games/hades"];
-			await userEvent.click(
-				screen.getByRole("checkbox", { name: "DLC" })
-			);
-			await userEvent.type(parentInput(), "hades");
-
-			await userEvent.tripleClick(button("Search"));
-			answerPending();
-
-			expect(heldKeys("GET /games/hades")).toHaveLength(1);
-			expect(button("...")).toBeDisabled();
+			expect(
+				screen.queryByRole("button", { name: "Select Hades" })
+			).toBeNull();
+			await userEvent.click(dlcSwitch());
+			expect(parentSearch()).toHaveValue("");
 		});
 	});
 
@@ -960,8 +1059,6 @@ describe("AdminGameEditor interaction", () => {
 				isDlc: true,
 				parentGame: summary("p1", "Base Game", "base-game")
 			}) as unknown as Game;
-
-		const dlcCheckbox = () => screen.getByRole("checkbox", { name: "DLC" });
 
 		async function saveAndGetBody() {
 			await userEvent.click(button("Save Changes"));
@@ -978,52 +1075,53 @@ describe("AdminGameEditor interaction", () => {
 			expect(body["isDlc"]).toBe(true);
 		});
 
-		it("clearing the parent and saving sends parentGameId null", async () => {
+		it("changing the parent without picking another one warns and sends parentGameId null", async () => {
 			await renderEdit(dlcWithParent());
 
-			await userEvent.click(button("Clear parent game"));
+			await userEvent.click(changeGame());
+			expect(
+				screen.getByText(
+					"Saving without picking a game removes the current parent."
+				)
+			).toBeInTheDocument();
 			const body = await saveAndGetBody();
 
 			expect(body["parentGameId"]).toBeNull();
 			expect(body["isDlc"]).toBe(true);
 		});
 
-		it("clearing the parent twice in a row still sends a single null", async () => {
+		it("double clicking Change game still sends a single null", async () => {
 			await renderEdit(dlcWithParent());
 
-			await userEvent.dblClick(button("Clear parent game"));
+			await userEvent.dblClick(changeGame());
 			const body = await saveAndGetBody();
 
 			expect(body["parentGameId"]).toBeNull();
 			expect(callsTo("PATCH", "/games/g1")).toHaveLength(1);
 		});
 
-		it("clearing and linking another parent sends the new id", async () => {
-			parentCatalog["other-base"] = {
-				...existingGame,
-				id: "g9",
-				title: "Other Base",
-				code: "other-base"
-			} as unknown as Game;
+		it("changing to another parent sends the new id and hides the warning", async () => {
 			await renderEdit(dlcWithParent());
 
-			await userEvent.click(button("Clear parent game"));
-			await userEvent.type(parentInput(), "other-base{Enter}");
-			await untilVisible(() =>
-				expect(screen.getByText("Other Base")).toBeInTheDocument()
-			);
+			await userEvent.click(changeGame());
+			await pickParent("mass", "Mass Effect");
+			expect(
+				screen.queryByText(
+					"Saving without picking a game removes the current parent."
+				)
+			).toBeNull();
 			const body = await saveAndGetBody();
 
-			expect(body["parentGameId"]).toBe("g9");
+			expect(body["parentGameId"]).toBe("m1");
 		});
 
-		it("clearing, failing to find a new parent and saving still sends null", async () => {
+		it("changing, finding nothing and saving still sends null", async () => {
 			await renderEdit(dlcWithParent());
 
-			await userEvent.click(button("Clear parent game"));
-			await userEvent.type(parentInput(), "nope{Enter}");
+			await userEvent.click(changeGame());
+			await userEvent.type(parentSearch(), "nope");
 			await untilVisible(() =>
-				expect(screen.getByText("Game not found")).toBeInTheDocument()
+				expect(screen.getByText("No games found")).toBeInTheDocument()
 			);
 			const body = await saveAndGetBody();
 
@@ -1048,80 +1146,54 @@ describe("AdminGameEditor interaction", () => {
 			expect(body["isDlc"]).toBe(true);
 		});
 
-		it("unchecking DLC sends isDlc false and no parentGameId so the server clears the parent", async () => {
+		it("switching DLC off sends isDlc false and no parentGameId so the server clears the parent", async () => {
 			await renderEdit(dlcWithParent());
 
-			await userEvent.click(dlcCheckbox());
+			await userEvent.click(dlcSwitch());
 			const body = await saveAndGetBody();
 
 			expect(body["isDlc"]).toBe(false);
 			expect(body).not.toHaveProperty("parentGameId");
 		});
 
-		it("clearing the parent and then unchecking DLC sends no parentGameId", async () => {
+		it("changing the parent and then switching DLC off sends no parentGameId", async () => {
 			await renderEdit(dlcWithParent());
 
-			await userEvent.click(button("Clear parent game"));
-			await userEvent.click(dlcCheckbox());
+			await userEvent.click(changeGame());
+			await userEvent.click(dlcSwitch());
 			const body = await saveAndGetBody();
 
 			expect(body["isDlc"]).toBe(false);
 			expect(body).not.toHaveProperty("parentGameId");
 		});
 
-		it("refuses the game's own slug as its parent and does not link it, even with Enter repeated", async () => {
+		it("never offers the game itself as its own parent", async () => {
 			await renderEdit({ ...existingGame, isDlc: true } as Game);
 
-			await userEvent.type(parentInput(), "hades{Enter}{Enter}{Enter}");
+			await userEvent.type(parentSearch(), "hades");
 			await untilVisible(() =>
-				expect(
-					screen.getByText("A game can't be its own parent.")
-				).toBeInTheDocument()
+				expect(screen.getByText("No games found")).toBeInTheDocument()
 			);
 
 			expect(
-				screen.queryByRole("button", { name: "Clear parent game" })
+				screen.queryByRole("button", { name: "Select Hades" })
 			).toBeNull();
 			const body = await saveAndGetBody();
 			expect(body).not.toHaveProperty("parentGameId");
 		});
 
-		it("refuses the game's own slug even when it replaces the current parent", async () => {
-			await renderEdit(dlcWithParent());
-
-			await userEvent.click(button("Clear parent game"));
-			await userEvent.type(parentInput(), "hades");
-			await userEvent.click(button("Search"));
-			await untilVisible(() =>
-				expect(
-					screen.getByText("A game can't be its own parent.")
-				).toBeInTheDocument()
-			);
-			const body = await saveAndGetBody();
-
-			expect(body["parentGameId"]).toBeNull();
-		});
-
-		it("after the own-parent error a valid slug links normally and clears the error", async () => {
+		it("offers the other matches while hiding the game itself", async () => {
 			await renderEdit({ ...existingGame, isDlc: true } as Game);
-			await userEvent.type(parentInput(), "hades{Enter}");
-			await untilVisible(() =>
-				expect(
-					screen.getByText("A game can't be its own parent.")
-				).toBeInTheDocument()
-			);
 
-			await replaceText(parentInput(), "mass-effect");
-			await userEvent.click(button("Search"));
+			await userEvent.type(parentSearch(), "a");
+			await userEvent.type(parentSearch(), "{Backspace}ma");
 			await untilVisible(() =>
-				expect(button("Clear parent game")).toBeInTheDocument()
+				expect(button("Select Mass Effect")).toBeInTheDocument()
 			);
 
 			expect(
-				screen.queryByText("A game can't be its own parent.")
+				screen.queryByRole("button", { name: "Select Hades" })
 			).toBeNull();
-			const body = await saveAndGetBody();
-			expect(body["parentGameId"]).toBe(catalog[0].id);
 		});
 	});
 
@@ -1134,7 +1206,7 @@ describe("AdminGameEditor interaction", () => {
 			} as unknown as Game);
 
 			expect(screen.getByText("Base Game")).toBeInTheDocument();
-			expect(button("Clear parent game")).toBeInTheDocument();
+			expect(changeGame()).toBeInTheDocument();
 			await userEvent.click(button("Save Changes"));
 
 			await untilVisible(() => expect(saved).toHaveBeenCalledTimes(1));
@@ -1222,14 +1294,23 @@ describe("AdminGameEditor interaction", () => {
 
 		it("sends the franchise chosen in the picker and null when it is set back to none", async () => {
 			await renderEdit();
-			const franchise = screen.getByRole("combobox", {
-				name: "Franchise"
-			});
+			const franchise = () =>
+				screen.getByRole("button", { name: /^Franchise:/ });
+			expect(franchise()).toHaveAccessibleName("Franchise: None");
 
-			await userEvent.selectOptions(franchise, "Mass Effect");
+			await userEvent.click(franchise());
+			await userEvent.click(
+				await screen.findByRole("menuitemradio", {
+					name: "Mass Effect"
+				})
+			);
+			expect(franchise()).toHaveAccessibleName("Franchise: Mass Effect");
 			await userEvent.click(button("Save Changes"));
 			await untilVisible(() => expect(saved).toHaveBeenCalledTimes(1));
-			await userEvent.selectOptions(franchise, "— None —");
+			await userEvent.click(franchise());
+			await userEvent.click(
+				await screen.findByRole("menuitemradio", { name: "None" })
+			);
 			await userEvent.click(button("Save Changes"));
 			await untilVisible(() => expect(saved).toHaveBeenCalledTimes(2));
 
@@ -2176,7 +2257,7 @@ describe("AdminGameEditor interaction", () => {
 			).toBeInTheDocument();
 			expect(
 				within(dialog).getAllByRole("button", {
-					name: "Clear linked game"
+					name: "Change game"
 				})
 			).toHaveLength(2);
 			expect(
@@ -2196,10 +2277,10 @@ describe("AdminGameEditor interaction", () => {
 			);
 
 			await userEvent.click(
-				within(dialog).getAllByRole("button", { name: "Create new" })[0]
+				within(dialog).getAllByRole("radio", { name: "Create new" })[0]
 			);
 			await userEvent.click(
-				within(dialog).getAllByRole("button", { name: "Create new" })[1]
+				within(dialog).getAllByRole("radio", { name: "Create new" })[1]
 			);
 			await userEvent.type(
 				within(dialog).getAllByRole("textbox", {
@@ -2244,26 +2325,26 @@ describe("AdminGameEditor interaction", () => {
 			await untilVisible(() =>
 				expect(
 					within(dialog).getByRole("button", {
-						name: resultName("Mass Effect", "mass-effect")
+						name: "Select Mass Effect"
 					})
 				).toBeInTheDocument()
 			);
 
 			await userEvent.click(
 				within(dialog).getByRole("button", {
-					name: resultName("Mass Effect", "mass-effect")
+					name: "Select Mass Effect"
 				})
 			);
 
 			expect(within(dialog).getByText("mass-effect")).toBeInTheDocument();
 			expect(
 				within(dialog).getByRole("button", {
-					name: "Clear linked game"
+					name: "Change game"
 				})
 			).toBeInTheDocument();
 			expect(
 				within(dialog).queryByRole("button", {
-					name: resultName("Mario Kart", "mario-kart")
+					name: "Select Mario Kart"
 				})
 			).toBeNull();
 		});
@@ -2274,7 +2355,7 @@ describe("AdminGameEditor interaction", () => {
 
 			await userEvent.click(
 				within(dialog).getAllByRole("button", {
-					name: "Clear linked game"
+					name: "Change game"
 				})[0]
 			);
 
@@ -2289,7 +2370,7 @@ describe("AdminGameEditor interaction", () => {
 			await untilVisible(() =>
 				expect(
 					within(dialog).getByRole("button", {
-						name: resultName("Mass Effect", "mass-effect")
+						name: "Select Mass Effect"
 					})
 				).toBeInTheDocument()
 			);
@@ -2301,35 +2382,55 @@ describe("AdminGameEditor interaction", () => {
 
 			expect(
 				within(dialog).queryByRole("button", {
-					name: resultName("Mass Effect", "mass-effect")
+					name: "Select Mass Effect"
 				})
 			).toBeNull();
-			expect(within(dialog).queryByText("Searching...")).toBeNull();
+			expect(within(dialog).queryByText(/Searching/)).toBeNull();
 		});
 
-		it("keeps the results of the latest text when an older search answers after a newer one", async () => {
+		it("keeps the results of the latest text when the admin keeps typing while a search is pending", async () => {
 			await renderEdit();
 			const dialog = await openCompilation("Mark as compilation");
 			holds = ["GET /games/search"];
 
-			await userEvent.type(searchBox(dialog, 0), "mass");
-			answerPending();
-			releaseHeld("GET /games/search?query=mass&local_only=true");
+			await userEvent.type(searchBox(dialog, 0), "ma");
+			await untilVisible(() =>
+				expect(heldKeys("GET /games/search")).toHaveLength(1)
+			);
+			await userEvent.type(searchBox(dialog, 0), "ss");
+			await untilVisible(() =>
+				expect(
+					heldKeys("GET /games/search?query=mass&local_only=true")
+				).toHaveLength(1)
+			);
+			releaseAll();
 			await untilVisible(() =>
 				expect(
 					within(dialog).getByRole("button", {
-						name: resultName("Mass Effect", "mass-effect")
+						name: "Select Mass Effect"
 					})
 				).toBeInTheDocument()
 			);
-			releaseHeld("GET /games/search?query=ma&local_only=true");
-			await new Promise(resolve => setTimeout(resolve, 50));
 
 			expect(
 				within(dialog).queryByRole("button", {
-					name: resultName("Mario Kart", "mario-kart")
+					name: "Select Mario Kart"
 				})
 			).toBeNull();
+		});
+
+		it("ignores clicks on the mode that is already selected", async () => {
+			await renderEdit();
+			const dialog = await openCompilation("Mark as compilation");
+			await userEvent.type(searchBox(dialog, 0), "mass");
+
+			await userEvent.dblClick(
+				within(dialog).getAllByRole("radio", {
+					name: "Link existing"
+				})[0]
+			);
+
+			expect(searchBox(dialog, 0)).toHaveValue("mass");
 		});
 
 		it("does not show a late search answer under a different row after a row above it was removed", async () => {
@@ -2347,7 +2448,7 @@ describe("AdminGameEditor interaction", () => {
 
 			expect(
 				within(dialog).queryByRole("button", {
-					name: resultName("Mass Effect", "mass-effect")
+					name: "Select Mass Effect"
 				})
 			).toBeNull();
 		});
@@ -2357,6 +2458,8 @@ describe("AdminGameEditor interaction", () => {
 			const dialog = await openCompilation("Mark as compilation");
 
 			await userEvent.type(searchBox(dialog, 0), "mass");
+			await untilVisible(() => expect(searchCalls()).toHaveLength(1));
+			await new Promise(resolve => setTimeout(resolve, 450));
 			answerPending();
 
 			expect(searchCalls().map(call => call.path)).toEqual([
@@ -2377,7 +2480,7 @@ describe("AdminGameEditor interaction", () => {
 			await userEvent.type(searchBox(dialog, 0), "qq");
 			await untilVisible(() => expect(searchCalls()).toHaveLength(2));
 
-			expect(within(dialog).queryByText("Searching...")).toBeNull();
+			expect(within(dialog).queryByText(/Searching/)).toBeNull();
 			expect(within(dialog).queryByRole("alert")).toBeNull();
 		});
 
@@ -2400,7 +2503,7 @@ describe("AdminGameEditor interaction", () => {
 			expect(within(dialog).getByText("mass-effect")).toBeInTheDocument();
 
 			await userEvent.click(
-				within(dialog).getAllByRole("button", { name: "Create new" })[0]
+				within(dialog).getAllByRole("radio", { name: "Create new" })[0]
 			);
 			await userEvent.type(
 				within(dialog).getByRole("textbox", {
@@ -2412,14 +2515,14 @@ describe("AdminGameEditor interaction", () => {
 				within(dialog).getByText("legendary-edition")
 			).toBeInTheDocument();
 			await userEvent.click(
-				within(dialog).getAllByRole("button", {
+				within(dialog).getAllByRole("radio", {
 					name: "Link existing"
 				})[0]
 			);
 
 			expect(searchBox(dialog, 0)).toHaveValue("");
 			await userEvent.click(
-				within(dialog).getAllByRole("button", { name: "Create new" })[0]
+				within(dialog).getAllByRole("radio", { name: "Create new" })[0]
 			);
 			expect(
 				within(dialog).getByRole("textbox", {
@@ -2428,28 +2531,62 @@ describe("AdminGameEditor interaction", () => {
 			).toHaveValue("");
 		});
 
-		it("rejects the same game linked twice", async () => {
+		it("does not offer a game that another row already links", async () => {
 			await renderEdit();
 			const dialog = await openCompilation("Mark as compilation");
 			await pickLinked(dialog, "mass", "Mass Effect");
-			await pickLinked(dialog, "mass", "Mass Effect");
 
-			await userEvent.click(compilationSave(dialog));
-
-			expect(within(dialog).getByRole("alert")).toHaveTextContent(
-				"Linked games must be unique."
+			await userEvent.type(searchBox(dialog, 0), "mass");
+			await untilVisible(() =>
+				expect(
+					within(dialog).getByRole("button", {
+						name: "Select Mass Effect 2"
+					})
+				).toBeInTheDocument()
 			);
+
+			expect(
+				within(dialog).queryByRole("button", {
+					name: "Select Mass Effect"
+				})
+			).toBeNull();
 			expect(callsTo("PUT", "/games/g1/compilation-items")).toEqual([]);
+		});
+
+		it("offers a game again once the row that linked it is changed", async () => {
+			await renderEdit();
+			const dialog = await openCompilation("Mark as compilation");
+			await pickLinked(dialog, "mass", "Mass Effect");
+			await userEvent.type(searchBox(dialog, 0), "mass");
+			await untilVisible(() =>
+				expect(
+					within(dialog).getByRole("button", {
+						name: "Select Mass Effect 2"
+					})
+				).toBeInTheDocument()
+			);
+
+			await userEvent.click(
+				within(dialog).getByRole("button", { name: "Change game" })
+			);
+
+			await untilVisible(() =>
+				expect(
+					within(dialog).getAllByRole("button", {
+						name: "Select Mass Effect"
+					})
+				).toHaveLength(1)
+			);
 		});
 
 		it("rejects created titles that collapse to the same slug", async () => {
 			await renderEdit();
 			const dialog = await openCompilation("Mark as compilation");
 			await userEvent.click(
-				within(dialog).getAllByRole("button", { name: "Create new" })[0]
+				within(dialog).getAllByRole("radio", { name: "Create new" })[0]
 			);
 			await userEvent.click(
-				within(dialog).getAllByRole("button", { name: "Create new" })[1]
+				within(dialog).getAllByRole("radio", { name: "Create new" })[1]
 			);
 			const titles = within(dialog).getAllByRole("textbox", {
 				name: "Title for the new game"
@@ -2468,7 +2605,7 @@ describe("AdminGameEditor interaction", () => {
 			await renderEdit();
 			const dialog = await openCompilation("Mark as compilation");
 			await userEvent.click(
-				within(dialog).getAllByRole("button", { name: "Create new" })[0]
+				within(dialog).getAllByRole("radio", { name: "Create new" })[0]
 			);
 			await pasteInto(
 				within(dialog).getByRole("textbox", {
@@ -2492,7 +2629,7 @@ describe("AdminGameEditor interaction", () => {
 			const dialog = await openCompilation("Mark as compilation");
 			await pickLinked(dialog, "mass", "Mass Effect");
 			await userEvent.click(
-				within(dialog).getAllByRole("button", { name: "Create new" })[1]
+				within(dialog).getAllByRole("radio", { name: "Create new" })[1]
 			);
 			await userEvent.type(
 				within(dialog).getByRole("textbox", {
@@ -2773,16 +2910,26 @@ describe("AdminGameEditor interaction", () => {
 			await renderEdit();
 			const dialog = await openCompilation("Mark as compilation");
 
-			const create = within(dialog).getAllByRole("button", {
+			expect(
+				within(dialog).getByRole("radiogroup", {
+					name: "Item 1 source"
+				})
+			).toBeInTheDocument();
+			const create = within(dialog).getAllByRole("radio", {
 				name: "Create new"
 			})[0];
-			expect(create).toHaveAttribute("aria-pressed", "false");
+			expect(create).toHaveAttribute("aria-checked", "false");
 			create.focus();
 			await userEvent.keyboard(" ");
 
 			expect(
-				within(dialog).getAllByRole("button", { name: "Create new" })[0]
-			).toHaveAttribute("aria-pressed", "true");
+				within(dialog).getAllByRole("radio", { name: "Create new" })[0]
+			).toHaveAttribute("aria-checked", "true");
+			expect(
+				within(dialog).getAllByRole("radio", {
+					name: "Link existing"
+				})[0]
+			).toHaveAttribute("aria-checked", "false");
 			expect(
 				within(dialog).getByRole("button", { name: "Remove item 1" })
 			).toBeInTheDocument();
@@ -2832,7 +2979,7 @@ describe("AdminGameEditor interaction", () => {
 
 			expect(
 				within(dialog).queryByRole("button", {
-					name: resultName("Hades", "hades")
+					name: "Select Hades"
 				})
 			).toBeNull();
 		});
@@ -2895,7 +3042,7 @@ describe("AdminGameEditor interaction", () => {
 
 			await userEvent.click(
 				within(dialog).getByRole("button", {
-					name: "Clear linked game"
+					name: "Change game"
 				})
 			);
 			await pickLinked(dialog, "mario", "Mario Kart");
@@ -2921,20 +3068,20 @@ describe("AdminGameEditor interaction", () => {
 			answerPending();
 
 			await userEvent.click(
-				within(dialog).getAllByRole("button", { name: "Create new" })[0]
+				within(dialog).getAllByRole("radio", { name: "Create new" })[0]
 			);
 			await userEvent.click(
-				within(dialog).getAllByRole("button", {
+				within(dialog).getAllByRole("radio", {
 					name: "Link existing"
 				})[0]
 			);
 			releaseAll();
 			await new Promise(resolve => setTimeout(resolve, 50));
 
-			expect(within(dialog).queryByText("Searching...")).toBeNull();
+			expect(within(dialog).queryByText(/Searching/)).toBeNull();
 			expect(
 				within(dialog).queryByRole("button", {
-					name: resultName("Mass Effect", "mass-effect")
+					name: "Select Mass Effect"
 				})
 			).toBeNull();
 		});
@@ -2946,27 +3093,33 @@ describe("AdminGameEditor interaction", () => {
 
 			await userEvent.type(searchBox(dialog, 0), "ma");
 			await userEvent.type(searchBox(dialog, 1), "mar");
-			answerPending();
+			await untilVisible(() =>
+				expect(heldKeys("GET /games/search")).toHaveLength(2)
+			);
 			releaseHeld("GET /games/search?query=mar&local_only=true");
 			releaseHeld("GET /games/search?query=ma&local_only=true");
-			const firstRow = searchBox(dialog, 0).parentElement as HTMLElement;
-			const secondRow = searchBox(dialog, 1).parentElement as HTMLElement;
+			const firstRow = searchBox(dialog, 0).closest(
+				"app-catalog-game-picker"
+			) as HTMLElement;
+			const secondRow = searchBox(dialog, 1).closest(
+				"app-catalog-game-picker"
+			) as HTMLElement;
 			await waitFor(() =>
 				expect(
 					within(firstRow).getByRole("button", {
-						name: resultName("Mass Effect", "mass-effect")
+						name: "Select Mass Effect"
 					})
 				).toBeInTheDocument()
 			);
 
 			expect(
 				within(secondRow).getByRole("button", {
-					name: resultName("Mario Kart", "mario-kart")
+					name: "Select Mario Kart"
 				})
 			).toBeInTheDocument();
 			expect(
 				within(secondRow).queryByRole("button", {
-					name: resultName("Mass Effect", "mass-effect")
+					name: "Select Mass Effect"
 				})
 			).toBeNull();
 		});
@@ -2975,7 +3128,7 @@ describe("AdminGameEditor interaction", () => {
 			await renderEdit();
 			const dialog = await openCompilation("Mark as compilation");
 			await userEvent.click(
-				within(dialog).getAllByRole("button", { name: "Create new" })[0]
+				within(dialog).getAllByRole("radio", { name: "Create new" })[0]
 			);
 			const pasted = Array.from(
 				{ length: 50 },
@@ -3083,10 +3236,10 @@ describe("AdminGameEditor interaction", () => {
 			await new Promise(resolve => setTimeout(resolve, 50));
 
 			expect(searchBox(dialog, 0)).toHaveValue("");
-			expect(within(dialog).queryByText("Searching...")).toBeNull();
+			expect(within(dialog).queryByText(/Searching/)).toBeNull();
 			expect(
 				within(dialog).queryByRole("button", {
-					name: resultName("Mass Effect", "mass-effect")
+					name: "Select Mass Effect"
 				})
 			).toBeNull();
 		});

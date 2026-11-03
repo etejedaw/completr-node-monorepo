@@ -195,8 +195,7 @@ describe("AdminGameEditor characterization", () => {
 	}
 
 	function section(name: string) {
-		return screen.getByRole("heading", { level: 4, name })
-			.parentElement as HTMLElement;
+		return screen.getByRole("group", { name });
 	}
 
 	function row(sectionName: string, source: string) {
@@ -223,9 +222,11 @@ describe("AdminGameEditor characterization", () => {
 
 	async function addDuration(source: string, hours: string) {
 		const durations = within(section("Durations"));
-		await userEvent.selectOptions(
-			durations.getByDisplayValue("Source..."),
-			source
+		await userEvent.click(
+			durations.getByRole("button", { name: /^Source:/ })
+		);
+		await userEvent.click(
+			await screen.findByRole("menuitemradio", { name: source })
 		);
 		await userEvent.type(durations.getByPlaceholderText("Hours"), hours);
 		const buttons = durations.getAllByRole("button");
