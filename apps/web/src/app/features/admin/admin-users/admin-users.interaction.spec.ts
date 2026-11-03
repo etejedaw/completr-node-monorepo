@@ -1842,6 +1842,36 @@ describe("Admin users interaction", () => {
 			expect(searchBox()).toHaveValue("");
 		});
 
+		it("searches again for the same text typed right after clearing it from no matches", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			typeQuickly("zzz");
+			flushUsers(await nextListRequest(), [], 0);
+
+			const hint = await screen.findByText(/No account matches “zzz”/);
+			const noMatches = hint.closest("ui-no-matches") as HTMLElement;
+			await user.click(
+				within(noMatches).getByRole("button", { name: "Clear search" })
+			);
+			typeQuickly("zzz");
+
+			const seen: TestRequest[] = [];
+			await waitFor(() => {
+				seen.push(...listRequests());
+				const open = seen.filter(request => !request.cancelled);
+				expect(open.at(-1)?.request.params.get("q")).toBe("zzz");
+			});
+			flushUsers(
+				seen.filter(request => !request.cancelled).at(-1)!,
+				[],
+				0
+			);
+			expect(
+				await screen.findByText(/No account matches “zzz”/)
+			).toBeInTheDocument();
+			expect(searchBox()).toHaveValue("zzz");
+		});
+
 		it("ignores a search made only of spaces", async () => {
 			await renderUsers();
 			typeQuickly("    ");

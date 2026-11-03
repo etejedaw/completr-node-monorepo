@@ -24,12 +24,7 @@ import {
 	type ValidationError
 } from "@angular/forms/signals";
 import { RouterLink } from "@angular/router";
-import {
-	debounceTime,
-	distinctUntilChanged,
-	Subject,
-	type Subscription
-} from "rxjs";
+import { debounceTime, Subject, type Subscription } from "rxjs";
 
 import {
 	NAME_LENGTH_MESSAGE,
@@ -387,11 +382,7 @@ export class AdminUsers implements OnInit {
 
 	constructor() {
 		this.searchChanges
-			.pipe(
-				debounceTime(SEARCH_DEBOUNCE_MS),
-				distinctUntilChanged(),
-				takeUntilDestroyed()
-			)
+			.pipe(debounceTime(SEARCH_DEBOUNCE_MS), takeUntilDestroyed())
 			.subscribe(search => this.applySearch(search));
 		inject(DestroyRef).onDestroy(() =>
 			this.listSubscription?.unsubscribe()
