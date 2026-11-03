@@ -12,12 +12,15 @@ import { email, form, FormField, required } from "@angular/forms/signals";
 import { ToastService } from "../../../core/services/toast";
 import {
 	UiAlert,
+	UiBadge,
 	UiButton,
 	UiDialog,
 	UiFieldLabel,
 	UiFormField,
 	UiInput,
-	UiLabel
+	UiLabel,
+	UiPlainEmptyState,
+	UiSkeleton
 } from "../../../shared/ui";
 import { type AdminInvitation } from "../services/invitation-admin.model";
 import { InvitationAdminService } from "../services/invitation-admin.service";
@@ -28,12 +31,15 @@ import { InvitationAdminService } from "../services/invitation-admin.service";
 		DatePipe,
 		FormField,
 		UiAlert,
+		UiBadge,
 		UiButton,
 		UiDialog,
 		UiFieldLabel,
 		UiFormField,
 		UiInput,
-		UiLabel
+		UiLabel,
+		UiPlainEmptyState,
+		UiSkeleton
 	],
 	templateUrl: "./admin-invitations.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -43,7 +49,15 @@ export class AdminInvitations implements OnInit {
 	private readonly toast = inject(ToastService);
 
 	protected readonly invitations = signal<AdminInvitation[]>([]);
+	protected readonly isLoading = signal(true);
 	protected readonly loadFailed = signal(false);
+	protected readonly skeletonRows = [1, 2];
+	protected readonly isEmpty = computed(
+		() =>
+			!this.isLoading() &&
+			!this.loadFailed() &&
+			this.invitations().length === 0
+	);
 	protected readonly showInviteModal = signal(false);
 	protected readonly isInviting = signal(false);
 	protected readonly inviteError = signal("");
@@ -68,12 +82,17 @@ export class AdminInvitations implements OnInit {
 	}
 
 	protected loadInvitations() {
+		this.isLoading.set(true);
 		this.invitationAdminService.list().subscribe({
 			next: invitations => {
 				this.invitations.set(invitations);
 				this.loadFailed.set(false);
+				this.isLoading.set(false);
 			},
-			error: () => this.loadFailed.set(true)
+			error: () => {
+				this.loadFailed.set(true);
+				this.isLoading.set(false);
+			}
 		});
 	}
 

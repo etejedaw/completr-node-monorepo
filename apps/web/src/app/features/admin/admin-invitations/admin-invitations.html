@@ -7,10 +7,13 @@
 			>
 				Pending invitations
 			</h2>
+			@if (!isLoading() || invitations().length > 0) {
 			<span class="text-xs text-fg-muted tabular-nums"
 				>{{ invitations().length }}</span
 			>
+			}
 		</div>
+		@if (!isEmpty()) {
 		<button
 			uiButton
 			variant="secondary"
@@ -22,9 +25,31 @@
 			>
 			Invite by email
 		</button>
+		}
 	</div>
 
-	@if (invitations().length === 0) { @if (loadFailed()) {
+	@if (invitations().length === 0) { @if (isLoading()) {
+	<ul
+		class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"
+		aria-busy="true"
+		aria-label="Loading invitations"
+	>
+		@for (i of skeletonRows; track i) {
+		<li
+			class="flex flex-col sm:flex-row sm:items-center gap-x-4 gap-y-2 px-4 py-3"
+		>
+			<div class="min-w-0 flex-1 flex flex-col gap-2">
+				<ui-skeleton variant="text" class="block w-1/3" />
+				<ui-skeleton variant="text" class="block w-1/2" />
+			</div>
+			<div class="flex gap-2">
+				<ui-skeleton variant="rect" class="block h-8 w-24 rounded-card" />
+				<ui-skeleton variant="rect" class="block h-8 w-24 rounded-card" />
+			</div>
+		</li>
+		}
+	</ul>
+	} @else if (loadFailed()) {
 	<ui-alert>
 		<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
 			<span>Could not load the invitations.</span>
@@ -39,15 +64,20 @@
 		</div>
 	</ui-alert>
 	} @else {
-	<p
-		class="m-0 flex items-start gap-2 px-4 py-3 text-sm text-fg-muted rounded-card border border-line bg-surface/60"
+	<ui-plain-empty-state
+		class="rounded-card border border-line bg-surface/60"
+		icon="mark_email_unread"
+		title="No pending invitations"
+		message="Invite someone by email and they'll choose their own username and password."
+		[compact]="true"
 	>
-		<span aria-hidden="true" class="material-icons text-base mt-0.5"
-			>mark_email_unread</span
-		>
-		No pending invitations. Invite someone by email and they'll choose their
-		own username and password.
-	</p>
+		<button uiButton variant="secondary" (click)="openInvite()">
+			<span aria-hidden="true" class="material-icons text-base"
+				>forward_to_inbox</span
+			>
+			Invite by email
+		</button>
+	</ui-plain-empty-state>
 	} } @else {
 	<ul
 		class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"
@@ -58,18 +88,20 @@
 			class="flex flex-col sm:flex-row sm:items-center gap-x-4 gap-y-2 px-4 py-3 text-[0.8125rem]"
 		>
 			<div class="min-w-0 flex-1">
-				<p class="m-0 font-medium text-fg truncate">
-					{{ invitation.email }}
-				</p>
+				<div class="flex min-w-0 items-center gap-2">
+					<p class="m-0 min-w-0 font-medium text-fg truncate">
+						{{ invitation.email }}
+					</p>
+					@if (invitation.isExpired) {
+					<ui-badge tone="warning" icon="schedule">Expired</ui-badge>
+					} @else {
+					<ui-badge tone="info" icon="mail">Pending</ui-badge>
+					}
+				</div>
 				<p class="m-0 mt-0.5 text-xs text-fg-muted">
-					Sent {{ invitation.createdAt | date: 'mediumDate' }} · @if
-					(invitation.isExpired) {
-					<span class="text-warning font-semibold"
-						>Expired {{ invitation.expiresAt | date: 'mediumDate'
-						}}</span
-					>
-					} @else { Expires {{ invitation.expiresAt | date:
-					'mediumDate' }} }
+					Sent {{ invitation.createdAt | date: 'mediumDate' }} · {{
+					invitation.isExpired ? 'Expired' : 'Expires' }} {{
+					invitation.expiresAt | date: 'mediumDate' }}
 				</p>
 			</div>
 
