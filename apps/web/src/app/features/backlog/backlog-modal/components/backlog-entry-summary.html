@@ -55,7 +55,12 @@
 						class="material-icons ml-1 align-middle text-lg text-fg-muted transition group-hover:text-brand"
 						>arrow_outward</span
 					></a
-				>@if (platinum(); as platinum) {
+				>@if (!e.isPublic) {
+				<app-private-run-lock
+					class="ml-1.5 align-middle"
+					iconSizeClass="text-xl"
+				/>
+				} @if (platinum(); as platinum) {
 				<app-platinum-trophy
 					class="ml-1.5 align-middle"
 					iconSizeClass="text-xl"
@@ -198,9 +203,7 @@
 	</section>
 	} @if (e.notes; as notes) {
 	<figure class="m-0 border-l-2 border-line-hover pl-3">
-		<figcaption uiEyebrow class="mb-1">
-			Notes
-		</figcaption>
+		<figcaption uiEyebrow class="mb-1">Notes</figcaption>
 		<div
 			class="text-[0.8125rem] leading-relaxed text-fg-secondary whitespace-pre-wrap break-words"
 		>
@@ -209,7 +212,10 @@
 	</figure>
 	} @if (e.hasReview && e.reviewContent) {
 	<figure class="m-0 border-l-2 border-brand pl-3">
-		<figcaption uiEyebrow class="mb-1 !flex items-center gap-1.5 !text-brand">
+		<figcaption
+			uiEyebrow
+			class="mb-1 !flex items-center gap-1.5 !text-brand"
+		>
 			<span aria-hidden="true" class="material-icons text-sm"
 				>rate_review</span
 			>
@@ -225,9 +231,7 @@
 </div>
 } @if (moodTags().length > 0) {
 <section class="mt-5" aria-labelledby="summary-mood-heading">
-	<h3 uiEyebrow id="summary-mood-heading" class="m-0 mb-2">
-		Mood
-	</h3>
+	<h3 uiEyebrow id="summary-mood-heading" class="m-0 mb-2">Mood</h3>
 	<ul class="list-none m-0 p-0 flex flex-wrap gap-1.5">
 		@for (tag of moodTags(); track tag) {
 		<li class="flex max-w-full">
@@ -238,9 +242,7 @@
 </section>
 } @if (coopMembers().length > 0) {
 <section class="mt-5" aria-labelledby="summary-coop-heading">
-	<h3 uiEyebrow id="summary-coop-heading" class="m-0 mb-2">
-		Played with
-	</h3>
+	<h3 uiEyebrow id="summary-coop-heading" class="m-0 mb-2">Played with</h3>
 	<ul class="list-none m-0 p-0 flex flex-wrap gap-2">
 		@for (member of coopMembers(); track member.userId) {
 		<li>

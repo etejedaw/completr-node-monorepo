@@ -234,4 +234,27 @@ describe("BacklogModal run privacy", () => {
 			expect.objectContaining({ isPublic: false })
 		);
 	});
+
+	it("marks a private run with a lock and its visibility in the run summary", async () => {
+		await renderModal({ entry: buildEntry(false) });
+
+		expect(
+			await screen.findByRole("img", {
+				name: "Private run: only you can see it"
+			})
+		).toBeInTheDocument();
+		expect(screen.getByText("Visibility")).toBeInTheDocument();
+		expect(screen.getByText("Private · only you")).toBeInTheDocument();
+	});
+
+	it("shows a public run as public without the lock in the run summary", async () => {
+		await renderModal({ entry: buildEntry(true) });
+
+		expect(await screen.findByText("Public")).toBeInTheDocument();
+		expect(
+			screen.queryByRole("img", {
+				name: "Private run: only you can see it"
+			})
+		).not.toBeInTheDocument();
+	});
 });
