@@ -227,17 +227,18 @@
 			</div>
 			<div class="max-md:hidden flex items-center justify-end gap-1">
 				@if (reportedGameIds().has(game.id)) {
-				<button
+				<a
 					uiIconButton
 					tone="danger"
 					title="View report"
 					aria-label="View report"
-					(click)="goToGameReport(game.id)"
+					routerLink="/admin/reports"
+					[queryParams]="{ gameId: game.id }"
 				>
 					<span aria-hidden="true" class="material-icons text-base"
 						>flag</span
 					>
-				</button>
+				</a>
 				}
 				<button
 					uiIconButton

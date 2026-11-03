@@ -13,7 +13,7 @@ import {
 	toObservable,
 	toSignal
 } from "@angular/core/rxjs-interop";
-import { Router, RouterLink } from "@angular/router";
+import { RouterLink } from "@angular/router";
 import {
 	catchError,
 	debounceTime,
@@ -117,7 +117,6 @@ function sameValues(a: readonly string[], b: readonly string[]): boolean {
 export class AdminGames implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly reportsService = inject(ReportsService);
-	private readonly router = inject(Router);
 	private readonly toast = inject(ToastService);
 	private readonly destroyRef = inject(DestroyRef);
 	private readonly gamesRequests = new Subject<GamesQuery>();
@@ -595,12 +594,6 @@ export class AdminGames implements OnInit {
 		const alreadyToastedByInterceptor = err.status === 409;
 		if (alreadyToastedByInterceptor) return;
 		this.toast.warning(adminErrorMessage(err) ?? fallback);
-	}
-
-	goToGameReport(gameId: string) {
-		this.router.navigate(["/admin/reports"], {
-			queryParams: { gameId }
-		});
 	}
 
 	onSearch(query: string) {

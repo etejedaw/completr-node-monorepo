@@ -502,7 +502,7 @@ describe("AdminGames interaction", () => {
 
 			expect(screen.getByText("Alpha 001")).toBeInTheDocument();
 			expect(
-				screen.queryByRole("button", { name: "View report" })
+				screen.queryByRole("link", { name: "View report" })
 			).not.toBeInTheDocument();
 			expect(chip("No scores")).toBeInTheDocument();
 			expect(
@@ -1579,28 +1579,19 @@ describe("AdminGames interaction", () => {
 	});
 
 	describe("reports", () => {
-		it("flags games with a pending report and opens the report from the flag", async () => {
-			const user = userEvent.setup();
+		it("flags games with a pending report and links the flag to the report", async () => {
 			pendingReports = [{ id: "r1", gameId: "a002" }];
 			await renderLoaded();
-			const navigate = vi
-				.spyOn(TestBed.inject(Router), "navigate")
-				.mockResolvedValue(true);
 
 			expect(
-				within(rowOf("Alpha 001")).queryByRole("button", {
+				within(rowOf("Alpha 001")).queryByRole("link", {
 					name: "View report"
 				})
 			).not.toBeInTheDocument();
-			const flag = within(rowOf("Alpha 002")).getByRole("button", {
+			const flag = within(rowOf("Alpha 002")).getByRole("link", {
 				name: "View report"
 			});
-			await user.click(flag);
-
-			expect(navigate).toHaveBeenCalledTimes(1);
-			expect(navigate).toHaveBeenCalledWith(["/admin/reports"], {
-				queryParams: { gameId: "a002" }
-			});
+			expect(flag).toHaveAttribute("href", "/admin/reports?gameId=a002");
 		});
 
 		it("keeps the flag when the list is filtered and refetched", async () => {
@@ -1614,7 +1605,7 @@ describe("AdminGames interaction", () => {
 				expect(titlesOnScreen()).toEqual(["Zelda: Breath of the Wild"])
 			);
 			expect(
-				within(rowOf("Zelda: Breath of the Wild")).getByRole("button", {
+				within(rowOf("Zelda: Breath of the Wild")).getByRole("link", {
 					name: "View report"
 				})
 			).toBeInTheDocument();
