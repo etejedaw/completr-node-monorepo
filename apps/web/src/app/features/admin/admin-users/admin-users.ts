@@ -18,6 +18,7 @@ import {
 	validate,
 	type ValidationError
 } from "@angular/forms/signals";
+import { RouterLink } from "@angular/router";
 
 import {
 	NAME_LENGTH_MESSAGE,
@@ -141,6 +142,7 @@ function editedSince(snapshot: FormSnapshot | null, current: FormSnapshot) {
 		DatePipe,
 		FormField,
 		LibraryHero,
+		RouterLink,
 		UiAlert,
 		UiAvatar,
 		UiButton,

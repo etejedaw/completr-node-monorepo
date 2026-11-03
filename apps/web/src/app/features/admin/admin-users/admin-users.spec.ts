@@ -6,6 +6,7 @@ import {
 	provideHttpClientTesting
 } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
+import { provideRouter } from "@angular/router";
 import { render, screen, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
@@ -37,7 +38,11 @@ const USERS = [
 
 async function renderUsers(users = USERS) {
 	const view = await render(AdminUsers, {
-		providers: [provideHttpClient(), provideHttpClientTesting()]
+		providers: [
+			provideHttpClient(),
+			provideHttpClientTesting(),
+			provideRouter([{ path: "user/:username", children: [] }])
+		]
 	});
 	const http = TestBed.inject(HttpTestingController);
 	http.expectOne(
@@ -81,6 +86,25 @@ describe("AdminUsers", () => {
 		expect(within(dialog).getByLabelText("Name")).toHaveValue(
 			"Bob Builder"
 		);
+	});
+
+	it("links each username to the public profile without opening the edit dialog", async () => {
+		await renderUsers();
+		const link = screen.getByRole("link", { name: "bob" });
+		expect(link).toHaveAttribute("href", "/user/bob");
+		await userEvent.click(link);
+		expect(screen.queryByRole("dialog", { name: "Edit user" })).toBeNull();
+	});
+
+	it("offers a view profile link inside the edit dialog", async () => {
+		await renderUsers();
+		await userEvent.click(
+			screen.getAllByRole("button", { name: "Edit bob" })[0]!
+		);
+		const dialog = await screen.findByRole("dialog", { name: "Edit user" });
+		expect(
+			within(dialog).getByRole("link", { name: /View profile/ })
+		).toHaveAttribute("href", "/user/bob");
 	});
 
 	it("opens the create dialog from the hero action", async () => {

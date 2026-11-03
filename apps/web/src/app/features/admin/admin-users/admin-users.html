@@ -110,6 +110,9 @@
 					>
 						Created
 					</th>
+					<th scope="col" class="border-b border-line">
+						<span class="sr-only">Actions</span>
+					</th>
 				</tr>
 			</thead>
 			<tbody class="divide-y divide-line">
@@ -143,13 +146,14 @@
 								[name]="user.username"
 								[ring]="avatarRing(user.role)"
 							/>
-							<button
-								type="button"
-								class="p-0 bg-transparent border-0 cursor-pointer font-medium text-fg text-left text-[0.8125rem] hover:text-brand focus-visible:outline-2 focus-visible:outline-brand rounded-sm"
-								[attr.aria-label]="'Edit ' + user.username"
+							<a
+								class="font-medium text-fg text-[0.8125rem] no-underline hover:text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand rounded-sm"
+								[routerLink]="['/user', user.username]"
+								[attr.title]="'View ' + user.username + ' profile'"
+								(click)="$event.stopPropagation()"
 							>
 								{{ user.username }}
-							</button>
+							</a>
 						</div>
 					</td>
 					<td class="px-4 py-2.5 text-fg-secondary align-middle">
@@ -189,6 +193,22 @@
 						class="px-4 py-2.5 text-fg-muted text-xs whitespace-nowrap align-middle tabular-nums"
 					>
 						{{ user.createdAt | date: "mediumDate" }}
+					</td>
+					<td class="px-2 py-1.5 text-right align-middle">
+						<button
+							uiButton
+							size="sm"
+							variant="ghost"
+							type="button"
+							[attr.aria-label]="'Edit ' + user.username"
+							(click)="$event.stopPropagation(); openEdit(user)"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-base"
+								>edit</span
+							>
+						</button>
 					</td>
 				</tr>
 				}
@@ -267,6 +287,18 @@
 					>chevron_right</span
 				>
 			</button>
+			<a
+				uiButton
+				size="sm"
+				variant="ghost"
+				class="mr-2 shrink-0 tap:min-h-[44px] tap:min-w-[44px]"
+				[routerLink]="['/user', user.username]"
+				[attr.aria-label]="'View ' + user.username + ' profile'"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>account_circle</span
+				>
+			</a>
 		</li>
 		}
 	</ul>
@@ -545,6 +577,12 @@
 			>
 			Premium access
 		</button>
+		<a uiButton variant="ghost" [routerLink]="['/user', user.username]">
+			<span aria-hidden="true" class="material-icons text-base"
+				>account_circle</span
+			>
+			View profile
+		</a>
 		<button
 			uiButton
 			variant="ghost"
