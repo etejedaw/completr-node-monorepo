@@ -39,7 +39,7 @@ let nextDrawerId = 0;
 				<header
 					class="shrink-0 flex items-start gap-3.5 px-5 pt-5 pb-4 md:px-6 md:pt-6 md:pb-5 border-b border-line"
 					[class]="haloClass"
-					[style.--dialog-tone]="toneColor()"
+					[style.--ui-tone]="toneColor()"
 				>
 					@if (icon()) {
 						<span

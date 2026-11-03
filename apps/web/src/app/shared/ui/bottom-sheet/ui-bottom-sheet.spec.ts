@@ -128,7 +128,7 @@ describe("UiBottomSheet header variant", () => {
 
 		expect(hasHalo()).toBe(true);
 		expect(header().classList).toContain("border-b");
-		expect(header().style.getPropertyValue("--dialog-tone")).toBe(
+		expect(header().style.getPropertyValue("--ui-tone")).toBe(
 			"var(--color-premium)"
 		);
 		expect(

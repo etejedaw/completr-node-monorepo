@@ -49,7 +49,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 				<header
 					class="flex items-start gap-3.5 px-5 pt-3 pb-4 mb-2 border-b border-line"
 					[class]="haloClass"
-					[style.--dialog-tone]="toneColor()"
+					[style.--ui-tone]="toneColor()"
 				>
 					@if (icon()) {
 						<span

@@ -39,7 +39,7 @@ describe("UiDrawer header", () => {
 
 		expect(header().className).toContain("radial-gradient");
 		expect(header().classList).toContain("border-b");
-		expect(header().style.getPropertyValue("--dialog-tone")).toBe(
+		expect(header().style.getPropertyValue("--ui-tone")).toBe(
 			"var(--color-brand)"
 		);
 		const title = screen.getByRole("heading", { name: "Filters" });
@@ -59,7 +59,7 @@ describe("UiDrawer header", () => {
 		const icon = header().querySelector('[aria-hidden="true"].rounded-xl')!;
 		expect(icon.textContent?.trim()).toBe("tune");
 		expect(icon.classList).toContain("text-danger");
-		expect(header().style.getPropertyValue("--dialog-tone")).toBe(
+		expect(header().style.getPropertyValue("--ui-tone")).toBe(
 			"var(--color-danger)"
 		);
 		expect(drawer()).toHaveAccessibleName("Filters");

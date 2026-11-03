@@ -171,7 +171,7 @@ describe("UiDialog header icon", () => {
 
 		expect(icon.textContent?.trim()).toBe("delete");
 		expect(icon.classList).toContain("text-danger");
-		expect(header().style.getPropertyValue("--dialog-tone")).toBe(
+		expect(header().style.getPropertyValue("--ui-tone")).toBe(
 			"var(--color-danger)"
 		);
 	});

@@ -13,6 +13,7 @@ import { UiFocusTrap } from "../focus-trap/ui-focus-trap";
 import { injectBodyPortal } from "../portal/body-portal";
 import {
 	UI_TONE_COLOR,
+	UI_TONE_HALO_CLASS,
 	UI_TONE_ICON_CLASS,
 	type UiTone
 } from "../tone/ui-tone";
@@ -73,9 +74,10 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 						class="md:hidden mx-auto mt-2.5 h-1.5 w-10 rounded-full bg-fg-muted/40"
 					></div>
 					<header
-						class="flex items-start gap-3.5 px-5 pt-3 pb-4 md:px-6 md:pt-6 md:pb-5 border-b border-line bg-[radial-gradient(120%_140%_at_0%_0%,color-mix(in_srgb,var(--dialog-tone)_12%,transparent),transparent_60%)]"
+						class="flex items-start gap-3.5 px-5 pt-3 pb-4 md:px-6 md:pt-6 md:pb-5 border-b border-line"
+						[class]="haloClass"
 						[class.mb-4]="!flush()"
-						[style.--dialog-tone]="toneColor()"
+						[style.--ui-tone]="toneColor()"
 					>
 						@if (icon()) {
 							<span
@@ -168,6 +170,7 @@ export class UiDialog {
 	protected readonly iconToneClass = computed(
 		() => UI_TONE_ICON_CLASS[this.tone()]
 	);
+	protected readonly haloClass = UI_TONE_HALO_CLASS;
 	protected readonly toneColor = computed(() => UI_TONE_COLOR[this.tone()]);
 	protected readonly widthClass = computed(() => DIALOG_WIDTH[this.size()]);
 	protected readonly dragTransform = computed(() =>

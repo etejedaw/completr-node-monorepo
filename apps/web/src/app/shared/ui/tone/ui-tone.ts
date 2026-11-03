@@ -17,4 +17,4 @@ export const UI_TONE_ICON_CLASS: Record<UiTone, string> = {
 };
 
 export const UI_TONE_HALO_CLASS =
-	"bg-[radial-gradient(120%_140%_at_0%_0%,color-mix(in_srgb,var(--dialog-tone)_12%,transparent),transparent_60%)]";
+	"bg-[radial-gradient(120%_140%_at_0%_0%,color-mix(in_srgb,var(--ui-tone)_12%,transparent),transparent_60%)]";
