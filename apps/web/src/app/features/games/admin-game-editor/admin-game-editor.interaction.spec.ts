@@ -2100,6 +2100,7 @@ describe("AdminGameEditor interaction", () => {
 				"Mark as compilation"
 			);
 			await userEvent.type(searchBox(compilationDialog, 0), "mass");
+			await userEvent.tab();
 			await userEvent.keyboard("{Escape}");
 			await waitForDialogGone("Mark as compilation");
 
@@ -3236,6 +3237,7 @@ describe("AdminGameEditor interaction", () => {
 			await userEvent.type(searchBox(dialog, 0), "mass");
 			answerPending();
 
+			await userEvent.tab();
 			await userEvent.keyboard("{Escape}");
 			await waitForDialogGone("Mark as compilation");
 			releaseAll();
