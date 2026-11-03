@@ -93,21 +93,24 @@
 			</button>
 		</form>
 		<div class="mt-4 flex flex-col gap-3">
-			@for (grant of fullGrants(); track grant.id) {
+			@for (grant of fullGrants(); track grant.id) { @let active =
+			isActive(grant);
 			<article class="rounded-card border border-line bg-surface p-3">
 				<div
 					class="mb-3 flex flex-wrap items-center justify-between gap-2"
 				>
 					<strong class="text-sm text-fg">Full premium</strong>
-					@if (isActive(grant)) {
+					@if (active) {
 					<ui-badge tone="success">Active</ui-badge>
 					} @else {
 					<ui-badge>Expired</ui-badge>
 					}
 				</div>
-				<p class="m-0 mb-3 text-xs text-fg-secondary">
-					Current expiration: {{ grant.expiresAt | date: "medium" }}
+				<p class="m-0 text-xs text-fg-secondary" [class.mb-3]="active">
+					{{ active ? "Current expiration:" : "Expired on" }} {{
+					grant.expiresAt | date: "medium" }}
 				</p>
+				@if (active) {
 				<div class="flex flex-col gap-2 sm:flex-row sm:items-end">
 					<div uiFormField class="min-w-0 flex-1">
 						<label
@@ -160,6 +163,7 @@
 						</button>
 					</div>
 				</div>
+				}
 			</article>
 			} @empty {
 			<p class="m-0 flex items-center gap-1.5 text-xs text-fg-muted">
@@ -240,7 +244,8 @@
 			</button>
 		</form>
 		<div class="mt-3 flex flex-col gap-3">
-			@for (grant of individualGrants(); track grant.id) {
+			@for (grant of individualGrants(); track grant.id) { @let active =
+			isActive(grant);
 			<article class="rounded-card border border-line bg-surface p-3">
 				<div
 					class="mb-3 flex flex-wrap items-center justify-between gap-2"
@@ -255,16 +260,19 @@
 							}
 						</p>
 					</div>
-					@if (isActive(grant)) {
+					@if (active) {
 					<ui-badge tone="success">Active</ui-badge>
 					} @else {
 					<ui-badge>Expired</ui-badge>
 					}
 				</div>
-				<p class="m-0 mb-3 text-xs text-fg-secondary">
-					{{ grant.expiresAt ? (grant.expiresAt | date: "medium") :
-					"No expiration" }}
+				<p class="m-0 text-xs text-fg-secondary" [class.mb-3]="active">
+					@if (!active) { Expired on {{ grant.expiresAt | date:
+					"medium" }} } @else if (grant.expiresAt) { {{
+					grant.expiresAt | date: "medium" }} } @else { No expiration
+					}
 				</p>
+				@if (active) {
 				<div class="flex flex-col gap-2 sm:flex-row sm:items-end">
 					<div uiFormField class="min-w-0 flex-1">
 						<label
@@ -317,6 +325,7 @@
 						</button>
 					</div>
 				</div>
+				}
 			</article>
 			} @empty {
 			<ui-plain-empty-state

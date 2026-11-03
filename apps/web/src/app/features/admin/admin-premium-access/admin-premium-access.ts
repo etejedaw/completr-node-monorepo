@@ -60,6 +60,10 @@ const FEATURE_LABELS: Partial<Record<PremiumGrantFeature, string>> = {
 	"rewind.premium": "Premium Rewind"
 };
 
+const GRANT_NOT_ACTIVE_ERROR = "PREMIUM_GRANT_NOT_ACTIVE";
+const GRANT_NOT_ACTIVE_MESSAGE =
+	"That grant already expired or was revoked, so it can't be changed. The list is up to date now; grant access again from the form above.";
+
 @Component({
 	selector: "app-admin-premium-access",
 	imports: [
@@ -199,6 +203,10 @@ export class AdminPremiumAccess implements OnInit {
 
 	protected extend(grant: PremiumGrant, value: string) {
 		if (this.busy()) return;
+		if (!this.isActive(grant)) {
+			this.showGrantNoLongerActive();
+			return;
+		}
 		if (grant.feature === "*" && !value) {
 			this.clearFeedback();
 			this.extendError.set({
@@ -228,6 +236,10 @@ export class AdminPremiumAccess implements OnInit {
 
 	protected requestRevoke(grant: PremiumGrant) {
 		if (this.busy()) return;
+		if (!this.isActive(grant)) {
+			this.showGrantNoLongerActive();
+			return;
+		}
 		if (grant.feature === "*" && this.pendingFullRevoke() !== grant.id) {
 			this.clearFeedback();
 			this.pendingFullRevoke.set(grant.id);
@@ -326,11 +338,22 @@ export class AdminPremiumAccess implements OnInit {
 
 	private mutationFailed(
 		generation: number,
-		error: { error?: { title?: string } },
+		error: { error?: { title?: string; type?: string } },
 		fallback: string
 	) {
 		if (!this.isCurrentMutation(generation)) return;
-		this.mutationError.set(error.error?.title ?? fallback);
 		this.busy.set("");
+		if (error.error?.type === GRANT_NOT_ACTIVE_ERROR) {
+			this.showGrantNoLongerActive();
+			return;
+		}
+		this.mutationError.set(error.error?.title ?? fallback);
+	}
+
+	private showGrantNoLongerActive() {
+		this.clearFeedback();
+		this.pendingFullRevoke.set("");
+		this.mutationError.set(GRANT_NOT_ACTIVE_MESSAGE);
+		this.load();
 	}
 }
