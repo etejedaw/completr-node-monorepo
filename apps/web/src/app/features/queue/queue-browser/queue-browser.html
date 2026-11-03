@@ -1,7 +1,8 @@
 @if (isLoading() || !queueIsEmpty()) {
 <app-library-toolbar>
-	<ui-search-bar
+	<app-page-search
 		size="sm"
+		[scopeLabel]="scopeLabel()"
 		class="flex-1 min-w-[12rem]"
 		[placeholder]="searchPlaceholder()"
 		[value]="searchQuery()"
