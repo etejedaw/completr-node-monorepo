@@ -24,7 +24,7 @@ auth:
 docs: |-
     ## Revoke Premium Grant
 
-    Revokes a grant immediately by setting `expiresAt` to the current server time. The row and its `offerCode` are preserved. Repeating the action is safe and returns the grant again.
+    Revokes a grant immediately by setting `expiresAt` to the current server time. The row and its `offerCode` are preserved. Only an active grant can be revoked: a grant that already expired or was revoked is read-only history and keeps its real expiration.
 
     **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
 
@@ -53,4 +53,5 @@ docs: |-
     | Status | Code | Description |
     |--------|------|-------------|
     | 404 | PREMIUM_GRANT_NOT_FOUND | Grant does not exist or belongs to another user |
+    | 409 | PREMIUM_GRANT_NOT_ACTIVE | The grant already expired or was revoked; nothing changes |
     | 422 | COMMON_SCHEMA_INVALID | `userId` or `grantId` is not a UUID |
