@@ -33,6 +33,15 @@ describe("UiBadge", () => {
 		expect(badge.classList).toContain("whitespace-nowrap");
 	});
 
+	it.each([
+		["playing", "text-playing"],
+		["muted", "text-fg-muted"]
+	])("paints the %s status tone", (tone, textClass) => {
+		const badge = renderedBadge({ tone });
+
+		expect(badge.classList).toContain(textClass);
+	});
+
 	it("hides the icon from assistive technologies", () => {
 		const icon = renderedBadge({ icon: "check_circle" }).querySelector(
 			".material-icons"

@@ -13,7 +13,9 @@ export type UiBadgeTone =
 	| "info"
 	| "brand"
 	| "premium"
-	| "admin";
+	| "admin"
+	| "playing"
+	| "muted";
 
 const TONE_CLASSES: Record<UiBadgeTone, string> = {
 	neutral: "bg-surface border-line text-fg-secondary",
@@ -23,7 +25,9 @@ const TONE_CLASSES: Record<UiBadgeTone, string> = {
 	info: "bg-info/15 border-transparent text-info",
 	brand: "bg-brand-subtle border-transparent text-brand",
 	premium: "bg-premium/15 border-transparent text-premium",
-	admin: "bg-admin-metal border-transparent text-admin"
+	admin: "bg-admin-metal border-transparent text-admin",
+	playing: "bg-playing/10 border-transparent text-playing",
+	muted: "bg-fg-muted/10 border-transparent text-fg-muted"
 };
 
 @Component({

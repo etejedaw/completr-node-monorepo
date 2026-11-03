@@ -7,7 +7,8 @@ import {
 	backlogStatusFillClass,
 	backlogStatusIcon,
 	backlogStatusIconColor,
-	backlogStatusLabel
+	backlogStatusLabel,
+	backlogStatusTone
 } from "./backlog-status";
 
 describe("backlog status helpers", () => {
@@ -19,6 +20,17 @@ describe("backlog status helpers", () => {
 		["endless", "Endless"]
 	])("labels %s as %s", (status, label) => {
 		expect(backlogStatusLabel(status)).toBe(label);
+	});
+
+	it.each([
+		["not_started", "muted"],
+		["playing", "playing"],
+		["completed", "success"],
+		["abandoned", "danger"],
+		["endless", "brand"],
+		["mystery", "neutral"]
+	])("gives %s the %s badge tone", (status, tone) => {
+		expect(backlogStatusTone(status)).toBe(tone);
 	});
 
 	it("returns the raw value as label for an unknown status", () => {

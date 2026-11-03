@@ -1,5 +1,6 @@
 import { type BacklogStatus } from "../../core/models";
 import { type PickerOption } from "../components/option-picker/option-picker.model";
+import { type UiBadgeTone } from "../ui/badge/ui-badge";
 
 const STATUS_CLASSES: Record<BacklogStatus, string> = {
 	not_started: "bg-fg-muted/10 text-fg-muted",
@@ -7,6 +8,14 @@ const STATUS_CLASSES: Record<BacklogStatus, string> = {
 	completed: "bg-success/10 text-success",
 	abandoned: "bg-danger/10 text-danger",
 	endless: "bg-brand-subtle text-brand"
+};
+
+const STATUS_TONES: Record<BacklogStatus, UiBadgeTone> = {
+	not_started: "muted",
+	playing: "playing",
+	completed: "success",
+	abandoned: "danger",
+	endless: "brand"
 };
 
 const STATUS_LABELS: Record<BacklogStatus, string> = {
@@ -61,6 +70,10 @@ export function backlogStatusFillClass(status: BacklogStatus | string): string {
 
 export function backlogStatusClass(status: BacklogStatus | string): string {
 	return STATUS_CLASSES[status as BacklogStatus] ?? "";
+}
+
+export function backlogStatusTone(status: BacklogStatus | string): UiBadgeTone {
+	return STATUS_TONES[status as BacklogStatus] ?? "neutral";
 }
 
 export function backlogStatusLabel(status: BacklogStatus | string): string {
