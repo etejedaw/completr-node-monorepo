@@ -17,6 +17,7 @@ import { NgpSwitch, NgpSwitchThumb } from "ng-primitives/switch";
 			[(ngpSwitchChecked)]="checked"
 			[ngpSwitchDisabled]="disabled()"
 			[attr.aria-label]="ariaLabel() || label() || null"
+			(keyup.space)="toggleFromSpace()"
 		>
 			<span ngpSwitchThumb class="ui-switch__thumb"></span>
 		</button>
@@ -33,4 +34,9 @@ export class UiSwitch {
 	disabled = input(false);
 	label = input<string>("");
 	ariaLabel = input<string>("");
+
+	protected toggleFromSpace() {
+		if (this.disabled()) return;
+		this.checked.update(checked => !checked);
+	}
 }
