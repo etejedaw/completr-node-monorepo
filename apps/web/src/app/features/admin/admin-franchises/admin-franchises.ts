@@ -1,6 +1,7 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	type OnInit,
 	signal
@@ -9,13 +10,18 @@ import { RouterLink } from "@angular/router";
 
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
+import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
+import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import {
 	UiAlert,
 	UiButton,
 	UiDialog,
 	UiEmptyState,
 	UiIconButton,
+	UiNoMatches,
+	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
 import { FranchisesService } from "../../franchises/franchises";
@@ -30,12 +36,16 @@ import { type AdminFranchiseModalData } from "../admin-franchise-modal/admin-fra
 	selector: "app-admin-franchises",
 	imports: [
 		RouterLink,
+		ActionMenu,
 		LibraryHero,
+		LibraryToolbar,
 		UiAlert,
 		UiButton,
 		UiDialog,
 		UiEmptyState,
 		UiIconButton,
+		UiNoMatches,
+		UiSearchBar,
 		UiSkeleton
 	],
 	templateUrl: "./admin-franchises.html",
@@ -52,6 +62,28 @@ export class AdminFranchises implements OnInit {
 	protected readonly skeletonRange = [0, 1, 2, 3];
 	protected readonly franchiseToDelete = signal<Franchise | null>(null);
 	protected readonly isDeleting = signal(false);
+	protected readonly searchQuery = signal("");
+	protected readonly rowMenuItems: ActionMenuItem[] = [
+		{ id: "edit", label: "Edit franchise", icon: "edit" },
+		{
+			id: "delete",
+			label: "Delete franchise",
+			icon: "delete",
+			iconClass: "text-danger"
+		}
+	];
+
+	protected readonly hasFranchises = computed(
+		() => !this.loadError() && this.franchises().length > 0
+	);
+
+	protected readonly visibleFranchises = computed(() => {
+		const needle = this.searchQuery().trim().toLowerCase();
+		if (!needle) return this.franchises();
+		return this.franchises().filter(franchise =>
+			franchise.name.toLowerCase().includes(needle)
+		);
+	});
 
 	ngOnInit() {
 		this.load();
@@ -74,6 +106,15 @@ export class AdminFranchises implements OnInit {
 				this.isLoading.set(false);
 			}
 		});
+	}
+
+	protected clearSearch() {
+		this.searchQuery.set("");
+	}
+
+	protected runRowAction(franchise: Franchise, action: string) {
+		if (action === "edit") this.openEdit(franchise);
+		if (action === "delete") this.askRemove(franchise);
 	}
 
 	protected openCreate() {

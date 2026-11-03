@@ -1,9 +1,4 @@
-<app-library-hero heading="Franchises">
-	<span
-		heroEyebrow
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Admin</span
-	>
+<app-library-hero heading="Franchises" eyebrow="Admin">
 	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
 		<span class="font-semibold text-fg tabular-nums"
 			>{{ franchises().length }}</span
@@ -17,7 +12,16 @@
 	</button>
 </app-library-hero>
 
-@if (isLoading()) {
+@if (hasFranchises()) {
+<app-library-toolbar>
+	<ui-search-bar
+		class="flex-1 min-w-[12rem] max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+		placeholder="Search franchises..."
+		ariaLabel="Search franchises"
+		[(value)]="searchQuery"
+	/>
+</app-library-toolbar>
+} @if (isLoading()) {
 <ul
 	class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"
 	aria-busy="true"
@@ -54,11 +58,16 @@
 		New franchise
 	</button>
 </ui-empty-state>
+} @else if (visibleFranchises().length === 0) {
+<ui-no-matches
+	[hint]="'No franchises match “' + searchQuery().trim() + '”.'"
+	(cleared)="clearSearch()"
+/>
 } @else {
 <ul
 	class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"
 >
-	@for (f of franchises(); track f.id) {
+	@for (f of visibleFranchises(); track f.id) {
 	<li
 		class="flex items-center gap-3 px-4 py-3 transition hover:bg-surface-hover"
 	>
@@ -74,7 +83,17 @@
 			</p>
 			}
 		</div>
-		<div class="flex items-center gap-1 shrink-0">
+		<div class="sm:hidden shrink-0">
+			<app-action-menu
+				icon="more_vert"
+				[iconOnly]="true"
+				[label]="'Actions for ' + f.name"
+				[heading]="f.name"
+				[items]="rowMenuItems"
+				(selected)="runRowAction(f, $event)"
+			/>
+		</div>
+		<div class="max-sm:hidden flex items-center gap-1 shrink-0">
 			<button
 				uiIconButton
 				title="Edit"

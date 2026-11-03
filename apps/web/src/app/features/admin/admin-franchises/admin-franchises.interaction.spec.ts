@@ -266,6 +266,154 @@ describe("AdminFranchises interaction", () => {
 		});
 	});
 
+	describe("search", () => {
+		function searchBox() {
+			return screen.getByRole("textbox", { name: "Search franchises" });
+		}
+
+		it("filters by name without asking the API again, ignoring case and surrounding spaces", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+
+			await user.type(searchBox(), "  ZEL ");
+
+			expect(namesOnScreen()).toEqual(["Zelda"]);
+			expect(listRequests).toHaveLength(1);
+		});
+
+		it("follows a burst of fast typing, deleting and retyping to the final text", async () => {
+			const user = userEvent.setup({ delay: null });
+			await renderLoaded();
+
+			await user.type(
+				searchBox(),
+				"metroidx{Backspace}{Backspace}{Backspace}"
+			);
+			expect(namesOnScreen()).toEqual(["Metroid"]);
+			await user.type(
+				searchBox(),
+				"{Backspace}{Backspace}{Backspace}{Backspace}{Backspace}so"
+			);
+
+			expect(namesOnScreen()).toEqual(["Souls"]);
+			expect(listRequests).toHaveLength(1);
+		});
+
+		it("shows every franchise again when the text is only spaces", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+
+			await user.type(searchBox(), "   ");
+
+			expect(namesOnScreen()).toEqual(["Souls", "Zelda", "Metroid"]);
+		});
+
+		it("explains when nothing matches and restores the list with Clear search", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+
+			await user.type(searchBox(), "nothing here");
+
+			expect(screen.getByText("No matches found")).toBeInTheDocument();
+			expect(
+				screen.getByText("No franchises match “nothing here”.")
+			).toBeInTheDocument();
+			expect(namesOnScreen()).toEqual([]);
+
+			const emptyState = screen
+				.getByText("No matches found")
+				.closest("ui-empty-state") as HTMLElement;
+			await user.click(
+				within(emptyState).getByRole("button", { name: "Clear search" })
+			);
+
+			expect(namesOnScreen()).toEqual(["Souls", "Zelda", "Metroid"]);
+			expect(searchBox()).toHaveValue("");
+		});
+
+		it("treats markup, regex symbols and emoji as plain text", async () => {
+			const user = userEvent.setup();
+			franchises = [
+				franchise("f1", "<b>Bold</b> 🎮"),
+				franchise("f2", "Zelda")
+			];
+			await renderFranchises();
+			await untilVisible(() =>
+				expect(
+					screen.getByRole("link", { name: "Zelda" })
+				).toBeInTheDocument()
+			);
+
+			await user.type(searchBox(), "<b>");
+			expect(namesOnScreen()).toEqual(["<b>Bold</b> 🎮"]);
+			expect(document.querySelector("b")).toBeNull();
+
+			await user.clear(searchBox());
+			await user.type(searchBox(), ".*(");
+			expect(screen.getByText("No matches found")).toBeInTheDocument();
+
+			await user.clear(searchBox());
+			await user.type(searchBox(), "🎮");
+			expect(namesOnScreen()).toEqual(["<b>Bold</b> 🎮"]);
+		});
+
+		it("clears with Escape and with the clear button of the bar", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+
+			await user.type(searchBox(), "zel{Escape}");
+			expect(namesOnScreen()).toEqual(["Souls", "Zelda", "Metroid"]);
+
+			await user.type(searchBox(), "met");
+			await user.click(
+				screen.getByRole("button", { name: "Clear search" })
+			);
+			expect(namesOnScreen()).toEqual(["Souls", "Zelda", "Metroid"]);
+		});
+
+		it("keeps the filter and the toolbar while a delete reloads the list", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			await user.type(searchBox(), "o");
+			expect(namesOnScreen()).toEqual(["Souls", "Metroid"]);
+
+			const dialog = await openDeleteFor("Souls", user);
+			await user.click(
+				within(dialog).getByRole("button", { name: "Delete" })
+			);
+
+			await untilVisible(() =>
+				expect(
+					screen.queryByRole("link", { name: "Souls" })
+				).not.toBeInTheDocument()
+			);
+			expect(searchBox()).toHaveValue("o");
+			expect(namesOnScreen()).toEqual(["Metroid"]);
+		});
+
+		it("is not offered when there are no franchises or the load failed", async () => {
+			franchises = [];
+			await renderFranchises();
+			await untilVisible(() =>
+				expect(
+					screen.getByText("No franchises yet")
+				).toBeInTheDocument()
+			);
+			expect(screen.queryByRole("textbox")).toBeNull();
+		});
+
+		it("is not offered after a failed load", async () => {
+			nextListFailure = failure(500);
+			await renderFranchises();
+			await untilVisible(() =>
+				expect(
+					screen.getByText("Could not load franchises.")
+				).toBeInTheDocument()
+			);
+			expect(screen.queryByRole("textbox")).toBeNull();
+		});
+	});
+
 	describe("empty state", () => {
 		it("explains there are no franchises and offers a second way to create one", async () => {
 			franchises = [];
@@ -635,6 +783,41 @@ describe("AdminFranchises interaction", () => {
 	});
 
 	describe("mobile viewport", () => {
+		it("groups edit and delete in a menu per row", async () => {
+			const user = userEvent.setup();
+			await renderLoaded(true);
+
+			await user.click(
+				screen.getByRole("button", { name: "Actions for Zelda" })
+			);
+			const sheet = await screen.findByRole("dialog", { name: "Zelda" });
+			await user.click(
+				within(sheet).getByRole("button", { name: "Delete franchise" })
+			);
+
+			expect(
+				await screen.findByRole("dialog", { name: "Delete Zelda?" })
+			).toBeInTheDocument();
+			expect(screen.queryByRole("dialog", { name: "Zelda" })).toBeNull();
+		});
+
+		it("opens the delete dialog once when the menu item is double tapped", async () => {
+			const user = userEvent.setup();
+			await renderLoaded(true);
+
+			await user.click(
+				screen.getByRole("button", { name: "Actions for Zelda" })
+			);
+			const sheet = await screen.findByRole("dialog", { name: "Zelda" });
+			await user.dblClick(
+				within(sheet).getByRole("button", { name: "Delete franchise" })
+			);
+
+			await screen.findByRole("dialog", { name: "Delete Zelda?" });
+			expect(screen.getAllByRole("dialog")).toHaveLength(1);
+			expect(deletions).toEqual([]);
+		});
+
 		it("deletes a franchise through the same dialog", async () => {
 			const user = userEvent.setup();
 			await renderLoaded(true);
