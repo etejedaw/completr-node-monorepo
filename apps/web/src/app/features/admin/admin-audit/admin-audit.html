@@ -47,8 +47,16 @@
 		(valueChange)="setTargetTypeFilter($event)"
 	/>
 	@if (hasFilters()) {
-	<button uiButton variant="ghost" size="sm" (click)="clearFilters()">
-		<span aria-hidden="true" class="material-icons text-base">close</span>
+	<button
+		uiButton
+		variant="ghost"
+		type="button"
+		class="shrink-0 h-10 max-md:h-12 tap:min-h-[44px]"
+		(click)="clearFilters()"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>filter_alt_off</span
+		>
 		Clear filters
 	</button>
 	}
