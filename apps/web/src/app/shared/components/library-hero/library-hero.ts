@@ -49,7 +49,14 @@ const MOSAIC_LENGTH = 14;
 					class="flex flex-col sm:flex-row sm:items-end justify-between gap-4"
 				>
 					<div class="min-w-0">
-						<ng-content select="[heroEyebrow]" />
+						@if (eyebrow()) {
+							<span
+								class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+								>{{ eyebrow() }}</span
+							>
+						} @else {
+							<ng-content select="[heroEyebrow]" />
+						}
 						<h1
 							class="font-display m-0 mt-1 text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-none"
 						>
@@ -70,6 +77,7 @@ const MOSAIC_LENGTH = 14;
 })
 export class LibraryHero {
 	readonly heading = input.required<string>();
+	readonly eyebrow = input<string | null>(null);
 	readonly posters = input<LibraryHeroPoster[]>([]);
 
 	protected readonly mosaic = computed(() => {
