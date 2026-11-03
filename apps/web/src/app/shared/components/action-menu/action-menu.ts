@@ -2,6 +2,7 @@ import { NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	input,
 	output,
@@ -42,6 +43,11 @@ export class ActionMenu {
 
 	protected readonly isMobile = inject(ViewportService).isMobile;
 	protected readonly sheetOpen = signal(false);
+	protected readonly buttonVariant = computed(() =>
+		this.placement() === "hero" && this.variant() === "secondary"
+			? "glass"
+			: this.variant()
+	);
 
 	protected openSheet() {
 		if (this.isMobile()) this.sheetOpen.set(true);

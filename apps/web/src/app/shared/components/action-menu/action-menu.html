@@ -1,14 +1,10 @@
 <button
 	uiButton
 	type="button"
-	[variant]="variant()"
+	[variant]="buttonVariant()"
 	[size]="size() ?? (placement() === 'hero' ? 'md' : 'sm')"
 	[class]="
-		(placement() === 'toolbar'
-			? 'h-10'
-			: variant() === 'secondary'
-				? '!bg-surface/70 backdrop-blur'
-				: '') +
+		(placement() === 'toolbar' ? 'h-10' : '') +
 		(size() === 'lg'
 			? ' h-11 !rounded-card' + (iconOnly() ? ' w-11 tap:min-w-[44px] !px-0' : '')
 			: iconOnly()

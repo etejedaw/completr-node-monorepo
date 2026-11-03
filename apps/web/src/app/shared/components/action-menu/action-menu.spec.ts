@@ -120,6 +120,34 @@ describe("ActionMenu", () => {
 		expect(selected).toHaveBeenCalledExactlyOnceWith("json");
 	});
 
+	it("uses the glass button over a hero and keeps primary as is", async () => {
+		const { rerender } = await render(ActionMenu, {
+			inputs: {
+				label: "More list actions",
+				heading: "List actions",
+				items: ITEMS,
+				iconOnly: true,
+				placement: "hero"
+			}
+		});
+		const trigger = () =>
+			screen.getByRole("button", { name: "More list actions" });
+
+		expect(trigger()).toHaveAttribute("data-variant", "glass");
+		await rerender({
+			inputs: {
+				label: "More list actions",
+				heading: "List actions",
+				items: ITEMS,
+				iconOnly: true,
+				placement: "hero",
+				variant: "primary"
+			},
+			partialUpdate: true
+		});
+		expect(trigger()).toHaveAttribute("data-variant", "primary");
+	});
+
 	it("marks the trigger busy while an action runs", async () => {
 		await renderMenu({ busy: true });
 
