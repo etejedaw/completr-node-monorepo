@@ -77,6 +77,37 @@ describe("SavedViewCard", () => {
 		}
 	);
 
+	it.each<"card" | "row">(["card", "row"])(
+		"paints the rating filter of the %s with the rating badge tone",
+		async variant => {
+			await render(SavedViewCard, {
+				inputs: {
+					view: savedView({ filters: { min_rating: "4" } }),
+					variant
+				},
+				providers: [
+					provideRouter([]),
+					{
+						provide: ViewportService,
+						useValue: { isMobile: signal(false) }
+					}
+				]
+			});
+			const badge = within(screen.getByRole("list", { name: "Filters" }))
+				.getByText(/rating/i)
+				.closest("ui-badge");
+
+			expect(badge).toHaveClass("text-rating");
+			expect(badge?.className).not.toContain("!");
+		}
+	);
+
+	it("uses a ghost ⋮ trigger for its actions", async () => {
+		await renderCard();
+
+		expect(moreButton()).toHaveAttribute("data-variant", "ghost");
+	});
+
 	it("runs the chosen action once from the More actions menu, even on a double click", async () => {
 		const user = userEvent.setup();
 		const events = await renderCard();

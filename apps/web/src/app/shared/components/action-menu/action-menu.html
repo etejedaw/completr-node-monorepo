@@ -1,7 +1,9 @@
 <button
+	#trigger
 	uiButton
 	type="button"
 	[variant]="buttonVariant()"
+	[active]="active()"
 	[size]="size() ?? (placement() === 'hero' ? 'md' : 'sm')"
 	[class]="
 		(placement() === 'toolbar' ? 'h-10' : '') +
@@ -16,7 +18,7 @@
 	ngpMenuTriggerPlacement="bottom-end"
 	[ngpMenuTriggerOffset]="6"
 	[attr.aria-haspopup]="isMobile() ? 'dialog' : 'menu'"
-	[attr.aria-label]="iconOnly() ? label() : null"
+	[attr.aria-label]="accessibleName()"
 	[attr.aria-busy]="busy() || null"
 	[title]="iconOnly() ? label() : ''"
 	(click)="openSheet()"
@@ -29,7 +31,9 @@
 		[class.animate-spin]="busy()"
 		>{{ busy() ? 'autorenew' : icon() }}</span
 	>
-	@if (!iconOnly()) { {{ label() }}
+	@if (!iconOnly()) { {{ label() }} } @if (count() > 0) {
+	<ui-count-badge aria-hidden="true" [count]="count()" />
+	} @if (!iconOnly()) {
 	<span
 		aria-hidden="true"
 		class="material-icons text-base -mr-1"
@@ -112,7 +116,12 @@
 </ng-template>
 
 @if (sheetOpen()) {
-<ui-bottom-sheet [heading]="heading()" (closed)="sheetOpen.set(false)">
+<ui-bottom-sheet
+	[heading]="heading()"
+	[eyebrow]="eyebrow()"
+	[subheading]="subheading()"
+	(closed)="sheetOpen.set(false)"
+>
 	<ul class="list-none m-0 p-0 flex flex-col gap-1">
 		@for (item of items(); track item.id) {
 		<li

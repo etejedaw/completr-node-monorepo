@@ -49,6 +49,7 @@
 				<app-action-menu
 					[iconOnly]="true"
 					icon="more_vert"
+					variant="ghost"
 					[label]="'More actions for ' + item.name"
 					[heading]="item.name"
 					[items]="menuItems"
@@ -90,11 +91,7 @@
 			@if (chip.status) {
 			<app-backlog-status-badge [status]="chip.status" />
 			} @else {
-			<ui-badge
-				[tone]="chip.tone"
-				[icon]="chip.icon"
-				[class.!bg-rating/10]="chip.rating"
-				[class.!text-rating]="chip.rating"
+			<ui-badge [tone]="chip.tone" [icon]="chip.icon"
 				>{{ chip.label }}</ui-badge
 			>
 			}
@@ -143,11 +140,7 @@
 				@if (chip.status) {
 				<app-backlog-status-badge [status]="chip.status" />
 				} @else {
-				<ui-badge
-					[tone]="chip.tone"
-					[icon]="chip.icon"
-					[class.!bg-rating/10]="chip.rating"
-					[class.!text-rating]="chip.rating"
+				<ui-badge [tone]="chip.tone" [icon]="chip.icon"
 					>{{ chip.label }}</ui-badge
 				>
 				}
@@ -162,6 +155,7 @@
 			<app-action-menu
 				[iconOnly]="true"
 				icon="more_vert"
+				variant="ghost"
 				[label]="'More actions for ' + item.name"
 				[heading]="item.name"
 				[items]="menuItems"

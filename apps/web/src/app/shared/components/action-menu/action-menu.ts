@@ -1,19 +1,25 @@
 import { NgTemplateOutlet } from "@angular/common";
 import {
+	booleanAttribute,
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	ElementRef,
 	inject,
 	input,
 	output,
-	signal
+	signal,
+	viewChild
 } from "@angular/core";
 import { NgpMenu, NgpMenuItem, NgpMenuTrigger } from "ng-primitives/menu";
 
 import { ViewportService } from "../../../core/services/viewport";
-import { UiBottomSheet } from "../../ui";
+import { UiBottomSheet, UiCountBadge } from "../../ui";
 import { UiButton } from "../../ui/button/ui-button";
-import { type ActionMenuItem } from "./action-menu.model";
+import {
+	type ActionMenuItem,
+	type ActionMenuVariant
+} from "./action-menu.model";
 
 @Component({
 	selector: "app-action-menu",
@@ -23,7 +29,8 @@ import { type ActionMenuItem } from "./action-menu.model";
 		NgpMenuItem,
 		NgpMenuTrigger,
 		UiBottomSheet,
-		UiButton
+		UiButton,
+		UiCountBadge
 	],
 	templateUrl: "./action-menu.html",
 	host: { class: "contents" },
@@ -36,10 +43,18 @@ export class ActionMenu {
 	readonly icon = input("more_horiz");
 	readonly iconOnly = input(false);
 	readonly placement = input<"toolbar" | "hero">("toolbar");
-	readonly variant = input<"primary" | "secondary">("secondary");
+	readonly variant = input<ActionMenuVariant>("secondary");
 	readonly size = input<"md" | "lg" | null>(null);
 	readonly busy = input(false);
+	readonly count = input(0);
+	readonly active = input(false, { transform: booleanAttribute });
+	readonly eyebrow = input<string | null>(null);
+	readonly subheading = input<string | null>(null);
 	readonly selected = output<string>();
+
+	private readonly trigger = viewChild.required("trigger", {
+		read: ElementRef<HTMLButtonElement>
+	});
 
 	protected readonly isMobile = inject(ViewportService).isMobile;
 	protected readonly sheetOpen = signal(false);
@@ -48,6 +63,16 @@ export class ActionMenu {
 			? "glass"
 			: this.variant()
 	);
+
+	protected readonly accessibleName = computed(() => {
+		const count = this.count();
+		if (count > 0) return `${this.label()}, ${count} active`;
+		return this.iconOnly() ? this.label() : null;
+	});
+
+	focusTrigger() {
+		this.trigger().nativeElement.focus({ preventScroll: true });
+	}
 
 	protected openSheet() {
 		if (this.isMobile()) this.sheetOpen.set(true);

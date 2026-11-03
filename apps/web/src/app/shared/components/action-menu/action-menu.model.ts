@@ -1,3 +1,5 @@
+export type ActionMenuVariant = "primary" | "secondary" | "ghost";
+
 export interface ActionMenuItem {
 	id: string;
 	label: string;

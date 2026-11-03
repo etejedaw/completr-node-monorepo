@@ -156,6 +156,68 @@ describe("ActionMenu", () => {
 		).toHaveAttribute("aria-busy", "true");
 	});
 
+	it("uses the ghost variant for the ⋮ of rows and cards", async () => {
+		await renderMenu({ icon: "more_vert", variant: "ghost" });
+
+		expect(
+			screen.getByRole("button", { name: "More list actions" })
+		).toHaveAttribute("data-variant", "ghost");
+	});
+
+	it("counts the active options in the trigger name and badge", async () => {
+		const { rerender } = await render(ActionMenu, {
+			inputs: {
+				label: "Filters & stats",
+				heading: "Filters & stats",
+				items: ITEMS,
+				count: 0
+			}
+		});
+
+		expect(
+			screen.getByRole("button", { name: "Filters & stats" })
+		).not.toHaveAttribute("data-active");
+		expect(document.querySelector("ui-count-badge")).toBeNull();
+
+		await rerender({
+			inputs: {
+				label: "Filters & stats",
+				heading: "Filters & stats",
+				items: ITEMS,
+				count: 3,
+				active: true
+			},
+			partialUpdate: true
+		});
+		const trigger = screen.getByRole("button", {
+			name: "Filters & stats, 3 active"
+		});
+		expect(trigger).toHaveAttribute("data-active", "");
+		expect(trigger.querySelector("ui-count-badge")).toHaveTextContent("3");
+		expect(trigger.querySelector("ui-count-badge")).toHaveAttribute(
+			"aria-hidden",
+			"true"
+		);
+	});
+
+	it("counts the active options of an icon-only trigger too", async () => {
+		await renderMenu({ count: 2 });
+
+		expect(
+			screen.getByRole("button", { name: "More list actions, 2 active" })
+		).toBeInTheDocument();
+	});
+
+	it("moves the focus back to its trigger on request", async () => {
+		const { fixture } = await render(ActionMenu, {
+			inputs: { label: "Export", heading: "Export", items: ITEMS }
+		});
+
+		fixture.componentInstance.focusTrigger();
+
+		expect(screen.getByRole("button", { name: "Export" })).toHaveFocus();
+	});
+
 	describe("on mobile", () => {
 		beforeEach(() => {
 			mobile = true;
@@ -183,6 +245,38 @@ describe("ActionMenu", () => {
 			await waitFor(() =>
 				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
 			);
+		});
+
+		it("titles the sheet with the eyebrow and subheading", async () => {
+			const user = userEvent.setup();
+			await renderMenu({ eyebrow: "My Games", subheading: "Backlog" });
+
+			await user.click(
+				screen.getByRole("button", { name: "More list actions" })
+			);
+			const sheet = await screen.findByRole("dialog", {
+				name: "List actions"
+			});
+
+			expect(sheet).toHaveTextContent("My Games");
+			expect(sheet).toHaveTextContent("Backlog");
+		});
+
+		it("emits once when an item is double tapped", async () => {
+			const user = userEvent.setup();
+			const selected = await renderMenu();
+
+			await user.click(
+				screen.getByRole("button", { name: "More list actions" })
+			);
+			const sheet = await screen.findByRole("dialog", {
+				name: "List actions"
+			});
+			await user.dblClick(
+				within(sheet).getByRole("button", { name: "Edit list" })
+			);
+
+			expect(selected).toHaveBeenCalledTimes(1);
 		});
 	});
 });

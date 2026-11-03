@@ -95,7 +95,7 @@
 	<div
 		class="max-md:hidden rounded-card border border-line bg-surface/60 overflow-x-auto"
 	>
-		<table uiTable class="[&_tbody_tr:last-child]:border-b-0">
+		<table uiTable framed>
 			<thead>
 				<tr>
 					<th scope="col" class="!pl-4">Username</th>
@@ -219,6 +219,7 @@
 			</div>
 			<app-action-menu
 				icon="more_vert"
+				variant="ghost"
 				size="lg"
 				[iconOnly]="true"
 				[label]="'More actions for ' + user.username"
