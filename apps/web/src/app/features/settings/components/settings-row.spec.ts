@@ -14,6 +14,7 @@ import { SettingsRow } from "./settings-row";
 			[controlId]="controlId()"
 			[labelId]="labelId()"
 			[icon]="icon()"
+			[optional]="optional()"
 		>
 			<input id="profile-name" />
 		</app-settings-row>
@@ -24,6 +25,7 @@ class Host {
 	readonly controlId = input<string | null>(null);
 	readonly labelId = input<string | null>(null);
 	readonly icon = input<string | null>(null);
+	readonly optional = input(false);
 }
 
 describe("SettingsRow", () => {
@@ -51,6 +53,23 @@ describe("SettingsRow", () => {
 		await rerender({ inputs: { hint: "Leave it empty" } });
 
 		expect(screen.getByText("Leave it empty")).toBeInTheDocument();
+	});
+
+	it("marks the label as optional only when asked", async () => {
+		const { rerender } = await render(Host, {
+			inputs: { controlId: "profile-name" }
+		});
+		expect(screen.queryByText("Optional")).not.toBeInTheDocument();
+
+		await rerender({
+			inputs: { controlId: "profile-name", optional: true }
+		});
+
+		expect(screen.getByText("Optional")).toBeInTheDocument();
+		expect(screen.getByLabelText("Display name Optional")).toHaveAttribute(
+			"id",
+			"profile-name"
+		);
 	});
 
 	it("shows the icon only when provided", async () => {

@@ -110,11 +110,7 @@
 			</div>
 		</app-settings-row>
 		@for (group of groups; track group.title) {
-		<h3
-			class="m-0 pt-5 pb-1 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-		>
-			{{ group.title }}
-		</h3>
+		<h3 uiEyebrow class="m-0 pt-5 pb-1">{{ group.title }}</h3>
 		@for (section of group.sections; track section.key) { @let level =
 		draft()[section.key]; @let effective = effectiveLevel(section.key);
 		<app-settings-row

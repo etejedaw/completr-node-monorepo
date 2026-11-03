@@ -18,7 +18,7 @@ import { FollowRequestsService } from "../../../core/services/follow-requests";
 import { ToastService } from "../../../core/services/toast";
 import { avatarRing } from "../../../core/utils/premium";
 import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
-import { UiAvatar, UiButton, UiSwitch } from "../../../shared/ui";
+import { UiAvatar, UiButton, UiEyebrow, UiSwitch } from "../../../shared/ui";
 import { ProfileService } from "../../profile/profile";
 import { SettingsPanel } from "../components/settings-panel";
 import { SettingsRow } from "../components/settings-row";
@@ -73,6 +73,7 @@ function draftFromUser(user: User): PrivacyDraft {
 		SettingsSaveBar,
 		UiAvatar,
 		UiButton,
+		UiEyebrow,
 		UiSwitch
 	],
 	templateUrl: "./settings-privacy.html",
