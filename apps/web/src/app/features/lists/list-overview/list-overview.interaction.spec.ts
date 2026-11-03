@@ -12,6 +12,7 @@ import {
 	Component
 } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { Router, RouterOutlet } from "@angular/router";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
@@ -20,6 +21,7 @@ import { environment } from "../../../../environments/environment";
 import { type List, type ListItem } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { type GiftOffer } from "../../../shared/components/gift-offer-card/gift-offer-card.model";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
 import { ListDetail } from "../list-detail/list-detail";
 import { ListOverview } from "./list-overview";
@@ -248,6 +250,7 @@ describe("Lists interaction", () => {
 		await untilVisible(() =>
 			expect(screen.getByText("No lists yet")).toBeInTheDocument()
 		);
+		return fixture;
 	}
 
 	async function createListWithGames(
@@ -318,6 +321,16 @@ describe("Lists interaction", () => {
 		answerPending();
 		httpTesting.verify();
 		vi.unstubAllGlobals();
+	});
+
+	it("filters through the page search scoped to Lists", async () => {
+		const fixture = await renderLists();
+
+		expect(
+			fixture.debugElement
+				.query(By.directive(PageSearch))
+				.componentInstance.scopeLabel()
+		).toBe("Lists");
 	});
 
 	it("creates a list, adds games and opens it ranked in the order they were added", async () => {

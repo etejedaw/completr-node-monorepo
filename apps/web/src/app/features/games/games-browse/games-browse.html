@@ -34,9 +34,10 @@
 
 <app-library-toolbar>
 	<div class="flex w-full items-center gap-2">
-		<ui-search-bar
+		<app-page-search
 			size="sm"
 			class="flex-1 min-w-0"
+			scopeLabel="Browse"
 			placeholder="Search the catalog..."
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"

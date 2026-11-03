@@ -17,6 +17,7 @@ import { GiftOfferCard } from "../../../shared/components/gift-offer-card/gift-o
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { ListCard } from "../../../shared/components/list-card/list-card";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiAlert,
@@ -25,7 +26,6 @@ import {
 	UiEyebrow,
 	UiPagination,
 	UiPremiumBadge,
-	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
 import { injectLibraryPosters } from "../../backlog/library-posters";
@@ -39,6 +39,7 @@ import { ListsService } from "../lists";
 @Component({
 	selector: "app-list-overview",
 	imports: [
+		PageSearch,
 		UiAlert,
 		NgTemplateOutlet,
 		GiftOfferCard,
@@ -49,7 +50,6 @@ import { ListsService } from "../lists";
 		UiEmptyState,
 		UiEyebrow,
 		UiPagination,
-		UiSearchBar,
 		UiSkeleton,
 		PremiumOnly,
 		UiPremiumBadge
