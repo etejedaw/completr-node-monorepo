@@ -154,6 +154,18 @@
 	color: var(--color-brand-hover);
 }
 
+.ui-button[data-variant="link"]:has(> [data-link-label])[data-hover]:not(
+		[data-disabled]
+	) {
+	text-decoration: none;
+}
+
+.ui-button[data-variant="link"][data-hover]:not([data-disabled])
+	> [data-link-label] {
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
 @media (max-width: 639px), (pointer: coarse) {
 	.ui-button:is([data-variant="link"], [data-variant="link-danger"])::after {
 		content: "";
