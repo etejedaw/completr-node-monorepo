@@ -400,9 +400,9 @@ textarea.ui-input {
 }
 
 .ui-checkbox__box {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
+	display: inline-grid;
+	place-items: center;
+	flex-shrink: 0;
 	width: 1.125rem;
 	height: 1.125rem;
 	background: var(--bg-input);
@@ -417,7 +417,8 @@ textarea.ui-input {
 	border-color: var(--accent);
 }
 
-.ui-checkbox__box[data-checked] {
+.ui-checkbox__box[data-checked],
+.ui-checkbox__box[data-indeterminate] {
 	background: var(--accent);
 	border-color: var(--accent);
 }
@@ -433,6 +434,7 @@ textarea.ui-input {
 }
 
 .ui-checkbox__indicator {
+	grid-area: 1 / 1;
 	width: 0.875rem;
 	height: 0.875rem;
 	color: #fff;
@@ -440,7 +442,9 @@ textarea.ui-input {
 	transition: opacity var(--transition);
 }
 
-.ui-checkbox__box[data-checked] .ui-checkbox__indicator {
+.ui-checkbox__box[data-checked]:not([data-indeterminate])
+	.ui-checkbox__indicator:not(.ui-checkbox__indicator--mixed),
+.ui-checkbox__box[data-indeterminate] .ui-checkbox__indicator--mixed {
 	opacity: 1;
 }
 
