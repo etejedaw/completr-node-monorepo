@@ -1,5 +1,5 @@
 import { type BacklogEntry } from "../../core/models";
-import { isGamePlatinumed, isPlatinumRun } from "./platinum";
+import { isPlatinumRun } from "./platinum";
 
 function run(id: string, platinumBacklogId?: string | null): BacklogEntry {
 	return {
@@ -26,11 +26,5 @@ describe("platinum helpers", () => {
 		expect(isPlatinumRun(run("run-2", "run-1"))).toBe(false);
 		expect(isPlatinumRun(run("run-1", null))).toBe(false);
 		expect(isPlatinumRun(run("run-1"))).toBe(false);
-	});
-
-	it("marks every run of a platinumed game as platinumed", () => {
-		expect(isGamePlatinumed(run("run-2", "run-1"))).toBe(true);
-		expect(isGamePlatinumed(run("run-1", null))).toBe(true);
-		expect(isGamePlatinumed(run("run-1"))).toBe(false);
 	});
 });
