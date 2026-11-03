@@ -21,6 +21,20 @@
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"
 	/>
+	<button
+		type="button"
+		class="shrink-0 inline-flex items-center gap-1.5 h-10 tap:min-h-[44px] tap:min-w-[44px] px-3 rounded-card border text-sm font-medium cursor-pointer transition"
+		[class]="showFilters() || activeMissingCount() > 0 ? 'border-brand bg-brand-subtle text-brand' : 'border-line bg-transparent text-fg-secondary hover:border-brand hover:text-brand'"
+		aria-haspopup="dialog"
+		[attr.aria-label]="activeMissingCount() > 0 ? 'Filters, ' + activeMissingCount() + ' active' : 'Filters'"
+		(click)="openFilters()"
+	>
+		<span aria-hidden="true" class="material-icons text-lg">tune</span>
+		<span aria-hidden="true" class="max-sm:hidden">Filters</span>
+		@if (activeMissingCount() > 0) {
+		<ui-count-badge aria-hidden="true" [count]="activeMissingCount()" />
+		}
+	</button>
 	<app-segmented-control
 		class="max-sm:basis-full max-sm:[&>div]:flex max-sm:[&>div]:w-full max-sm:[&_button]:flex-1"
 		label="Game status"
@@ -30,35 +44,80 @@
 	/>
 </app-library-toolbar>
 
-<section
-	aria-label="Missing data filters"
-	class="mb-6 grid gap-4 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-8"
+@if (showFilters()) { @if (isMobile()) {
+<ui-bottom-sheet
+	eyebrow="Games"
+	heading="Filters"
+	[subheading]="filtersSubheading()"
+	(closed)="closeFilters()"
 >
-	<app-filter-section label="Missing data">
-		<app-chip-group
-			label="Games missing any data"
-			[options]="generalMissingOptions"
-			[value]="missingValue()"
-			(valueChange)="onMissingChange($event, generalMissingOptions)"
-		/>
-	</app-filter-section>
-	<app-filter-section label="No score from">
-		<app-chip-group
-			label="Games missing a score from"
-			[options]="scoreMissingOptions()"
-			[value]="missingValue()"
-			(valueChange)="onMissingChange($event, scoreMissingOptions())"
-		/>
-	</app-filter-section>
-	<app-filter-section label="No time from">
-		<app-chip-group
-			label="Games missing a time from"
-			[options]="timeMissingOptions"
-			[value]="missingValue()"
-			(valueChange)="onMissingChange($event, timeMissingOptions)"
-		/>
-	</app-filter-section>
-</section>
+	<div class="px-2 pt-2">
+		<ng-container *ngTemplateOutlet="filtersBody" />
+	</div>
+	<ng-container ngProjectAs="[sheetFooter]">
+		<ng-container *ngTemplateOutlet="filtersFooter" />
+	</ng-container>
+</ui-bottom-sheet>
+} @else {
+<ui-drawer
+	eyebrow="Games"
+	heading="Filters"
+	[subheading]="filtersSubheading()"
+	(closed)="closeFilters()"
+>
+	<ng-container *ngTemplateOutlet="filtersBody" />
+	<ng-container ngProjectAs="[drawerFooter]">
+		<ng-container *ngTemplateOutlet="filtersFooter" />
+	</ng-container>
+</ui-drawer>
+} }
+
+<ng-template #filtersBody>
+	<div class="flex flex-col gap-6">
+		<app-filter-section label="Missing data">
+			<app-chip-group
+				label="Games missing any data"
+				[options]="generalMissingOptions"
+				[value]="draftMissing()"
+				(valueChange)="onDraftMissingChange($event, generalMissingOptions)"
+			/>
+		</app-filter-section>
+		<app-filter-section label="No score from">
+			<app-chip-group
+				label="Games missing a score from"
+				[options]="scoreMissingOptions()"
+				[value]="draftMissing()"
+				(valueChange)="onDraftMissingChange($event, scoreMissingOptions())"
+			/>
+		</app-filter-section>
+		<app-filter-section label="No time from">
+			<app-chip-group
+				label="Games missing a time from"
+				[options]="timeMissingOptions"
+				[value]="draftMissing()"
+				(valueChange)="onDraftMissingChange($event, timeMissingOptions)"
+			/>
+		</app-filter-section>
+	</div>
+</ng-template>
+
+<ng-template #filtersFooter>
+	<button
+		type="button"
+		uiButton
+		variant="ghost"
+		[disabled]="draftMissing().length === 0"
+		(click)="clearDraftMissing()"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>filter_alt_off</span
+		>
+		Clear
+	</button>
+	<button type="button" uiButton variant="primary" (click)="applyFilters()">
+		{{ applyLabel() }}
+	</button>
+</ng-template>
 
 @if (isLoading()) {
 <ul
@@ -280,6 +339,8 @@
 <ui-dialog
 	size="sm"
 	eyebrow="Games"
+	icon="visibility_off"
+	tone="danger"
 	[heading]="'Deactivate ' + target.title + '?'"
 	[dismissible]="!isDeactivating()"
 	(closed)="cancelDeactivate()"
@@ -313,6 +374,7 @@
 <ui-dialog
 	size="xl"
 	eyebrow="Games"
+	icon="add_circle"
 	heading="New game"
 	subheading="Fetch it from RAWG or fill in the details by hand."
 	[flush]="true"
@@ -327,6 +389,7 @@
 <ui-dialog
 	size="xl"
 	eyebrow="Games"
+	icon="edit_note"
 	heading="Edit game"
 	[subheading]="editing.title"
 	[flush]="true"

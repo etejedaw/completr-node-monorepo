@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -7,13 +8,26 @@ import {
 	type OnInit,
 	signal
 } from "@angular/core";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import {
+	takeUntilDestroyed,
+	toObservable,
+	toSignal
+} from "@angular/core/rxjs-interop";
 import { Router, RouterLink } from "@angular/router";
-import { catchError, debounceTime, of, Subject, switchMap } from "rxjs";
+import {
+	catchError,
+	debounceTime,
+	map,
+	of,
+	startWith,
+	Subject,
+	switchMap
+} from "rxjs";
 
 import { type Game } from "../../../core/models";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
+import { ViewportService } from "../../../core/services/viewport";
 import { adminErrorMessage } from "../../../core/utils/admin-error-message";
 import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
 import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
@@ -28,8 +42,11 @@ import { type SegmentedOption } from "../../../shared/components/segmented-contr
 import {
 	UiAlert,
 	UiBadge,
+	UiBottomSheet,
 	UiButton,
+	UiCountBadge,
 	UiDialog,
+	UiDrawer,
 	UiEmptyState,
 	UiIconButton,
 	UiNoMatches,
@@ -49,6 +66,21 @@ import { type ExternalDataRefreshState } from "../admin-external-data-dialog/adm
 import { externalDataRefreshErrorMessage } from "../admin-external-data-dialog/external-data-refresh-error";
 import { ReportsService } from "../services/reports.service";
 
+function sourcesWithPrefix(
+	values: readonly string[],
+	prefix: string
+): Set<string> {
+	return new Set(
+		values
+			.filter(value => value.startsWith(prefix))
+			.map(value => value.slice(prefix.length))
+	);
+}
+
+function sameValues(a: readonly string[], b: readonly string[]): boolean {
+	return a.length === b.length && a.every(value => b.includes(value));
+}
+
 @Component({
 	selector: "app-admin-games",
 	imports: [
@@ -61,11 +93,15 @@ import { ReportsService } from "../services/reports.service";
 		GamePoster,
 		LibraryHero,
 		LibraryToolbar,
+		NgTemplateOutlet,
 		SegmentedControl,
 		UiAlert,
 		UiBadge,
+		UiBottomSheet,
 		UiButton,
+		UiCountBadge,
 		UiDialog,
+		UiDrawer,
 		UiEmptyState,
 		UiIconButton,
 		UiNoMatches,
@@ -84,6 +120,9 @@ export class AdminGames implements OnInit {
 	private readonly destroyRef = inject(DestroyRef);
 	private readonly gamesRequests = new Subject<GamesQuery>();
 	private readonly searchChanges = new Subject<void>();
+	protected readonly isMobile = inject(ViewportService).isMobile;
+	protected readonly showFilters = signal(false);
+	protected readonly draftMissing = signal<readonly string[]>([]);
 
 	protected readonly Math = Math;
 	protected readonly games = signal<Game[]>([]);
@@ -201,32 +240,8 @@ export class AdminGames implements OnInit {
 		this.loadReports();
 	}
 
-	toggleFilter(filter: "noScores" | "noTimes" | "noPlatforms") {
-		this[filter].update(v => !v);
-		this.offset.set(0);
-		this.loadGames();
-	}
-
 	setActiveFilter(value: "active" | "inactive" | "all") {
 		this.activeFilter.set(value);
-		this.offset.set(0);
-		this.loadGames();
-	}
-
-	toggleScoreSource(source: string) {
-		const next = new Set(this.noScoreSources());
-		if (next.has(source)) next.delete(source);
-		else next.add(source);
-		this.noScoreSources.set(next);
-		this.offset.set(0);
-		this.loadGames();
-	}
-
-	toggleTimeSource(source: string) {
-		const next = new Set(this.noTimeSources());
-		if (next.has(source)) next.delete(source);
-		else next.add(source);
-		this.noTimeSources.set(next);
 		this.offset.set(0);
 		this.loadGames();
 	}
@@ -270,28 +285,88 @@ export class AdminGames implements OnInit {
 		...[...this.noTimeSources()].map(src => `time:${src}`)
 	]);
 
-	protected onMissingChange(
+	protected readonly activeMissingCount = computed(
+		() => this.missingValue().length
+	);
+
+	protected readonly filtersSubheading = computed(() => {
+		const count = this.draftMissing().length;
+		if (count === 0) return "Find games with missing data";
+		return `${count} ${count === 1 ? "filter" : "filters"} selected`;
+	});
+
+	private readonly previewQuery = computed(
+		() =>
+			this.showFilters()
+				? this.buildQuery(this.draftMissing(), 0, 1)
+				: null,
+		{ equal: (a, b) => JSON.stringify(a) === JSON.stringify(b) }
+	);
+
+	protected readonly previewTotal = toSignal(
+		toObservable(this.previewQuery).pipe(
+			debounceTime(250),
+			switchMap(query =>
+				query
+					? this.gamesService.getGames(query).pipe(
+							map(res => res.data.total),
+							catchError(() => of(null)),
+							startWith(null)
+						)
+					: of(null)
+			)
+		),
+		{ initialValue: null }
+	);
+
+	protected readonly applyLabel = computed(() => {
+		const total = this.previewTotal();
+		if (total === null) return "Show results";
+		return `Show ${total} ${total === 1 ? "result" : "results"}`;
+	});
+
+	protected openFilters() {
+		this.draftMissing.set(this.missingValue());
+		this.showFilters.set(true);
+	}
+
+	protected closeFilters() {
+		this.showFilters.set(false);
+	}
+
+	protected onDraftMissingChange(
 		next: readonly string[],
 		group: readonly ChipOption[]
 	) {
 		const groupValues = new Set(group.map(option => option.value));
-		const current = new Set(
-			this.missingValue().filter(value => groupValues.has(value))
+		const outsideGroup = this.draftMissing().filter(
+			value => !groupValues.has(value)
 		);
-		const incoming = new Set(next);
-		const changed = [...groupValues].find(
-			value => incoming.has(value) !== current.has(value)
-		);
-		if (!changed) return;
-		if (
-			changed === "noScores" ||
-			changed === "noTimes" ||
-			changed === "noPlatforms"
-		)
-			this.toggleFilter(changed);
-		else if (changed.startsWith("score:"))
-			this.toggleScoreSource(changed.slice("score:".length));
-		else this.toggleTimeSource(changed.slice("time:".length));
+		const insideGroup = next.filter(value => groupValues.has(value));
+		this.draftMissing.set([...outsideGroup, ...insideGroup]);
+	}
+
+	protected clearDraftMissing() {
+		this.draftMissing.set([]);
+	}
+
+	protected applyFilters() {
+		if (!this.showFilters()) return;
+		this.showFilters.set(false);
+		const draft = this.draftMissing();
+		if (sameValues(draft, this.missingValue())) return;
+		this.setMissingFilters(draft);
+		this.offset.set(0);
+		this.loadGames();
+	}
+
+	private setMissingFilters(values: readonly string[]) {
+		const selected = new Set(values);
+		this.noScores.set(selected.has("noScores"));
+		this.noTimes.set(selected.has("noTimes"));
+		this.noPlatforms.set(selected.has("noPlatforms"));
+		this.noScoreSources.set(sourcesWithPrefix(values, "score:"));
+		this.noTimeSources.set(sourcesWithPrefix(values, "time:"));
 	}
 
 	clearFilters() {
@@ -547,27 +622,38 @@ export class AdminGames implements OnInit {
 	private loadGames() {
 		this.isLoading.set(true);
 		this.loadError.set(false);
+		this.gamesRequests.next(
+			this.buildQuery(this.missingValue(), this.offset(), this.limit)
+		);
+	}
+
+	private buildQuery(
+		missing: readonly string[],
+		offset: number,
+		limit: number
+	): GamesQuery {
 		const query: GamesQuery = {
-			limit: this.limit,
-			offset: this.offset(),
+			limit,
+			offset,
 			sort_by: "createdAt",
 			sort_order: "desc",
 			detailed: true
 		};
+		const selected = new Set(missing);
 		const search = this.searchQuery().trim();
 		if (search.length > 0) query["search"] = search;
-		if (this.noScores()) query["no_scores"] = true;
-		if (this.noTimes()) query["no_times"] = true;
-		if (this.noPlatforms()) query["no_platforms"] = true;
+		if (selected.has("noScores")) query["no_scores"] = true;
+		if (selected.has("noTimes")) query["no_times"] = true;
+		if (selected.has("noPlatforms")) query["no_platforms"] = true;
 		if (this.activeFilter() === "all") query["include_inactive"] = true;
 		if (this.activeFilter() === "inactive") query["only_inactive"] = true;
-		const scoreSources = Array.from(this.noScoreSources());
+		const scoreSources = [...sourcesWithPrefix(missing, "score:")];
 		if (scoreSources.length > 0)
 			query["no_score_source"] = scoreSources.join(",");
-		const timeSources = Array.from(this.noTimeSources());
+		const timeSources = [...sourcesWithPrefix(missing, "time:")];
 		if (timeSources.length > 0)
 			query["no_time_source"] = timeSources.join(",");
-		this.gamesRequests.next(query);
+		return query;
 	}
 
 	private applyGamesResponse(
