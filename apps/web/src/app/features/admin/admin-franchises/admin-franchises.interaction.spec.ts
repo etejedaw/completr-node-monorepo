@@ -8,6 +8,7 @@ import {
 	type TestRequest
 } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 import { Subject } from "rxjs";
@@ -15,6 +16,7 @@ import { Subject } from "rxjs";
 import { environment } from "../../../../environments/environment";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { AdminFranchises } from "./admin-franchises";
 
 type ResponseBody = Parameters<TestRequest["flush"]>[0];
@@ -227,6 +229,16 @@ describe("AdminFranchises interaction", () => {
 	});
 
 	describe("listing", () => {
+		it("scopes the page search to Admin sagas", async () => {
+			const { fixture } = await renderLoaded();
+
+			expect(
+				fixture.debugElement
+					.query(By.directive(PageSearch))
+					.componentInstance.scopeLabel()
+			).toBe("Admin sagas");
+		});
+
 		it("shows a busy skeleton and then the first page of franchises", async () => {
 			await renderFranchises();
 

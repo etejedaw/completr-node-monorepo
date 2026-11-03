@@ -7,6 +7,7 @@ import {
 	type TestRequest
 } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { Router } from "@angular/router";
 import {
 	fireEvent,
@@ -19,6 +20,7 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { ToastService } from "../../../core/services/toast";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { AdminUsers } from "./admin-users";
 
 const api = environment.apiUrl;
@@ -248,6 +250,16 @@ describe("Admin users interaction", () => {
 	}
 
 	describe("listing and pagination", () => {
+		it("scopes the page search to Admin users", async () => {
+			const { fixture } = await renderUsers();
+
+			expect(
+				fixture.debugElement
+					.query(By.directive(PageSearch))
+					.componentInstance.scopeLabel()
+			).toBe("Admin users");
+		});
+
 		it("lists users with role, status and mobile rows", async () => {
 			await renderUsers();
 			expect(screen.getAllByText("Ada Lovelace").length).toBeGreaterThan(
@@ -1723,7 +1735,7 @@ describe("Admin users interaction", () => {
 	describe("search", () => {
 		function searchBox() {
 			return screen.getByRole("textbox", {
-				name: "Search by username, name or email"
+				name: "Filter by name, username or email"
 			});
 		}
 
@@ -1911,7 +1923,7 @@ describe("Admin users interaction", () => {
 			await renderUsers([], [], 0);
 			expect(
 				screen.queryByRole("textbox", {
-					name: "Search by username, name or email"
+					name: "Filter by name, username or email"
 				})
 			).not.toBeInTheDocument();
 			expect(screen.getByText("No users found")).toBeInTheDocument();

@@ -8,6 +8,7 @@ import {
 	type TestRequest
 } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { Router } from "@angular/router";
 import {
 	fireEvent,
@@ -20,6 +21,7 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { ToastService } from "../../../core/services/toast";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { AdminGames } from "./admin-games";
 
 type ResponseBody = Parameters<TestRequest["flush"]>[0];
@@ -326,7 +328,7 @@ describe("AdminGames interaction", () => {
 	}
 
 	function searchBox() {
-		return screen.getByRole("textbox", { name: "Search games" });
+		return screen.getByRole("textbox", { name: "Filter by title" });
 	}
 
 	function filtersButton() {
@@ -450,6 +452,16 @@ describe("AdminGames interaction", () => {
 	});
 
 	describe("initial load", () => {
+		it("scopes the page search to Admin games", async () => {
+			const { fixture } = await renderLoaded();
+
+			expect(
+				fixture.debugElement
+					.query(By.directive(PageSearch))
+					.componentInstance.scopeLabel()
+			).toBe("Admin games");
+		});
+
 		it("shows a busy skeleton and then the first page with the total", async () => {
 			await renderGames();
 
