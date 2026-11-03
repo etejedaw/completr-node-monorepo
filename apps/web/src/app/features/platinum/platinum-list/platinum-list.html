@@ -43,10 +43,11 @@
 	(offsetChange)="onOffsetChange($event)"
 >
 	<ng-template appLibraryPageToolbar>
-		<ui-search-bar
+		<app-page-search
 			size="sm"
+			scopeLabel="Platinums"
 			class="flex-1 min-w-[12rem]"
-			placeholder="Search your platinums..."
+			placeholder="Filter by title..."
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"
 		/>

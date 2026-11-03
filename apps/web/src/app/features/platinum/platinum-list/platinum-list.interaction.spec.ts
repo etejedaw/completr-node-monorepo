@@ -11,12 +11,14 @@ import {
 	ChangeDetectionStrategy,
 	Component
 } from "@angular/core";
-import { TestBed } from "@angular/core/testing";
+import { type ComponentFixture, TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type PlatinumEntry } from "../../../core/models";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
 import { PlatinumList } from "./platinum-list";
 
@@ -45,6 +47,7 @@ function platinum(id: string, gameId: string, title: string): PlatinumEntry {
 
 describe("PlatinumList bulk interaction", () => {
 	let httpTesting: HttpTestingController;
+	let renderedFixture: ComponentFixture<unknown>;
 	let platinums: PlatinumEntry[];
 	let skipGameIds: Set<string>;
 	let failure: number | null;
@@ -136,6 +139,7 @@ describe("PlatinumList bulk interaction", () => {
 			routes: []
 		});
 		TestBed.inject(ApplicationRef).components.push(fixture.componentRef);
+		renderedFixture = fixture;
 		httpTesting = TestBed.inject(HttpTestingController);
 		await untilVisible(() =>
 			expect(screen.getAllByText("Bloodborne").length).toBeGreaterThan(0)
@@ -175,6 +179,14 @@ describe("PlatinumList bulk interaction", () => {
 		answerPending();
 		httpTesting.verify();
 		vi.unstubAllGlobals();
+	});
+
+	it("filters through the page search scoped to Platinums", async () => {
+		await renderPlatinums();
+		const pageSearch = renderedFixture.debugElement.query(
+			By.directive(PageSearch)
+		);
+		expect(pageSearch.componentInstance.scopeLabel()).toBe("Platinums");
 	});
 
 	it("shows no selection outside the Hardcore view", async () => {

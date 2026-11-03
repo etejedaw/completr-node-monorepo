@@ -28,13 +28,14 @@ import {
 	LibraryPageEmptyAction,
 	LibraryPageToolbar
 } from "../../../shared/components/library-page/library-page-slots";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import {
 	countByPlatform,
 	matchesPlatform,
 	PlatformFilter
 } from "../../../shared/components/platform-filter/platform-filter";
 import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
-import { UiButton, UiSearchBar } from "../../../shared/ui";
+import { UiButton } from "../../../shared/ui";
 import { countOf } from "../../../shared/utils/bulk-feedback";
 import { injectBulkRemoval } from "../../../shared/utils/bulk-removal";
 import { injectRowSelection } from "../../../shared/utils/row-selection";
@@ -67,8 +68,8 @@ const PLATINUM_NOUN = { one: "platinum", other: "platinums" };
 		PlatformFilter,
 		PlatinumCollection,
 		UiButton,
-		UiSearchBar,
-		ViewModeToggle
+		ViewModeToggle,
+		PageSearch
 	],
 	templateUrl: "./platinum-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
