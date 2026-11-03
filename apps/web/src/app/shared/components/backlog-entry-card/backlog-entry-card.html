@@ -87,7 +87,9 @@
 						(click)="$event.stopPropagation()"
 						>{{ item.game.title }}</a
 					>
-					@if (item.platinum) {
+					@if (!readonly() && !item.isPublic) {
+					<app-private-run-lock class="mt-1" />
+					} @if (item.platinum) {
 					<app-platinum-trophy
 						class="mt-0.5"
 						[scope]="isPlatinumRun() ? 'run' : 'game'"

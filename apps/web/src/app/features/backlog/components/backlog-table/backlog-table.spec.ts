@@ -734,4 +734,27 @@ describe("BacklogTable", () => {
 			expect(events.open).toHaveBeenCalledTimes(1);
 		});
 	});
+
+	describe("private runs", () => {
+		const lockSelector = "[aria-label='Private run: only you can see it']";
+
+		it("shows a lock next to the title of a private run only", () => {
+			const { element } = render([
+				entry({ id: "b1", isPublic: false }),
+				entry({ id: "b2", isPublic: true })
+			]);
+			const rows = element.querySelectorAll("tbody tr");
+
+			expect(rows[0].querySelector(lockSelector)).not.toBeNull();
+			expect(rows[1].querySelector(lockSelector)).toBeNull();
+		});
+
+		it("never shows the lock in the readonly table", () => {
+			const { element } = render([entry({ isPublic: false })], {
+				readonly: true
+			});
+
+			expect(element.querySelector(lockSelector)).toBeNull();
+		});
+	});
 });

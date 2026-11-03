@@ -13,6 +13,7 @@ import { BacklogStatusBadge } from "../../../../shared/components/backlog-status
 import { BacklogStatusPicker } from "../../../../shared/components/backlog-status-picker/backlog-status-picker";
 import { GameTitleCell } from "../../../../shared/components/game-title-cell/game-title-cell";
 import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/platinum-trophy";
+import { PrivateRunLock } from "../../../../shared/components/private-run-lock/private-run-lock";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { FloatingXScrollbar } from "../../../../shared/directives/floating-x-scrollbar";
 import { SelectionCell } from "../../../../shared/directives/selection-cell";
@@ -97,6 +98,7 @@ const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 		FloatingXScrollbar,
 		GameTitleCell,
 		PlatinumTrophy,
+		PrivateRunLock,
 		SelectionCell,
 		StarRating,
 		UiAvatar,

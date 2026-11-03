@@ -84,7 +84,12 @@
 						[code]="entry.game.code"
 						[moodTags]="entry.moodTags"
 					>
-						@if (entry.platinum) {
+						@if (!readonly() && !entry.isPublic) {
+						<app-private-run-lock
+							titleSuffix
+							iconSizeClass="text-sm"
+						/>
+						} @if (entry.platinum) {
 						<app-platinum-trophy
 							titleSuffix
 							iconSizeClass="text-sm"

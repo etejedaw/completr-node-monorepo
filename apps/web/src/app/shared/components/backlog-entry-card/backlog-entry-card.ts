@@ -22,6 +22,7 @@ import { FlipCard } from "../flip-card/flip-card";
 import { GamePoster } from "../game-poster/game-poster";
 import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
 import { PlatinumTrophy } from "../platinum-trophy/platinum-trophy";
+import { PrivateRunLock } from "../private-run-lock/private-run-lock";
 import { RatioSummary } from "../ratio-summary/ratio-summary";
 import { StarRating } from "../star-rating/star-rating";
 
@@ -42,6 +43,7 @@ const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 		GamePoster,
 		MoodTagsChips,
 		PlatinumTrophy,
+		PrivateRunLock,
 		RatioSummary,
 		StarRating,
 		UiAvatar,
