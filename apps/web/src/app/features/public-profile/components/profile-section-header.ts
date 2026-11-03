@@ -1,19 +1,18 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { type Params, RouterLink } from "@angular/router";
 
+import { UiEyebrow } from "../../../shared/ui";
+
 @Component({
 	selector: "app-profile-section-header",
-	imports: [RouterLink],
+	imports: [UiEyebrow, RouterLink],
 	template: `
 		<header
 			class="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 mb-4"
 		>
 			<div class="min-w-0">
 				@if (eyebrow()) {
-					<span
-						class="block text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-brand"
-						>{{ eyebrow() }}</span
-					>
+					<span uiEyebrow tone="brand">{{ eyebrow() }}</span>
 				}
 				<h2
 					class="m-0 mt-1 font-display text-xl sm:text-2xl font-bold tracking-tight"

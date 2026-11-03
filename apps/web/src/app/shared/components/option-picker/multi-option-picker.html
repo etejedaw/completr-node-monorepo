@@ -17,10 +17,7 @@
 		>{{ placeholderIcon() }}</span
 	>
 	<span class="flex-1 min-w-0 flex flex-col gap-0.5 leading-none">
-		<span
-			class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-			>{{ label() }}</span
-		>
+		<span uiEyebrow>{{ label() }}</span>
 		<span class="text-sm font-medium text-fg truncate"
 			>{{ summary() }}</span
 		>
@@ -33,7 +30,7 @@
 <ng-template #popover>
 	<div
 		ngpPopover
-		class="fixed z-[1010] w-[19rem] max-w-[calc(100vw-2rem)] p-2 bg-sidebar border border-line rounded-card shadow-[0_24px_48px_-16px_rgba(0,0,0,0.75)] outline-none data-[enter]:animate-[uiFadeUp_140ms_ease-out]"
+		class="fixed z-[1010] w-[19rem] max-w-[calc(100vw-2rem)] p-2 bg-sidebar border border-line rounded-card shadow-popover outline-none data-[enter]:animate-[uiFadeUp_140ms_ease-out]"
 	>
 		<ng-container *ngTemplateOutlet="pickerBody" />
 	</div>
@@ -57,10 +54,7 @@
 <ng-template #pickerBody>
 	<div class="flex flex-col gap-2 text-left">
 		<div class="flex items-center justify-between gap-2 px-1.5 pt-0.5">
-			<p
-				class="m-0 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				aria-live="polite"
-			>
+			<p uiEyebrow class="m-0" aria-live="polite">
 				{{ values().length === 0 ? heading() : values().length + ' ' +
 				noun() }}
 			</p>

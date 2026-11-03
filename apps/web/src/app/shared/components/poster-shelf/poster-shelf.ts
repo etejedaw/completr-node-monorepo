@@ -12,22 +12,21 @@ import {
 } from "@angular/core";
 import { type Params, RouterLink } from "@angular/router";
 
-import { UiIconButton } from "../../ui";
+import { UiEyebrow, UiIconButton } from "../../ui";
 
 const SCROLL_EDGE_TOLERANCE = 4;
 
 @Component({
 	selector: "app-poster-shelf",
-	imports: [RouterLink, UiIconButton],
+	imports: [UiEyebrow, RouterLink, UiIconButton],
 	template: `
 		<section [attr.aria-labelledby]="headingId">
 			<header class="flex items-end justify-between gap-3 mb-4">
 				<div class="min-w-0">
 					@if (eyebrow()) {
-						<span
-							class="block mb-1 text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-brand"
-							>{{ eyebrow() }}</span
-						>
+						<span uiEyebrow tone="brand" class="block mb-1">{{
+							eyebrow()
+						}}</span>
 					}
 					<h2
 						[id]="headingId"

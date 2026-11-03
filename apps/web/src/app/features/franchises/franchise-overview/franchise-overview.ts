@@ -15,6 +15,7 @@ import { LibraryToolbar } from "../../../shared/components/library-toolbar/libra
 import {
 	UiButton,
 	UiEmptyState,
+	UiEyebrow,
 	UiNoMatches,
 	UiPagination,
 	UiSearchBar,
@@ -32,6 +33,7 @@ const SKELETON_CARD_COUNT = 6;
 @Component({
 	selector: "app-franchise-overview",
 	imports: [
+		UiEyebrow,
 		RouterLink,
 		LibraryHero,
 		LibraryToolbar,

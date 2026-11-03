@@ -3,7 +3,9 @@
 >
 	<span
 		heroEyebrow
-		class="inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+		uiEyebrow
+		tone="brand"
+		class="inline-flex items-center gap-1.5"
 	>
 		<span aria-hidden="true" class="material-icons text-sm">policy</span>
 		Legal
@@ -106,8 +108,7 @@
 			inViewRootMargin="-30% 0px -65% 0px"
 			(inViewChange)="scrollSpy.onSectionInView(section.id, $event)"
 		>
-			<span
-				class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+			<span uiEyebrow tone="brand"
 				>{{ sectionNumber(index) }} · {{ section.label }}</span
 			>
 			<h2

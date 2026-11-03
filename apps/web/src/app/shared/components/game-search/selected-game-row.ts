@@ -9,13 +9,13 @@ import {
 	viewChild
 } from "@angular/core";
 
-import { UiButton } from "../../ui";
+import { UiButton, UiEyebrow } from "../../ui";
 import { GamePoster } from "../game-poster/game-poster";
 import { type SelectedGame } from "./selected-game-row.model";
 
 @Component({
 	selector: "app-selected-game-row",
-	imports: [GamePoster, UiButton],
+	imports: [UiEyebrow, GamePoster, UiButton],
 	template: `
 		@let current = game();
 		<app-game-poster
@@ -26,10 +26,7 @@ import { type SelectedGame } from "./selected-game-row.model";
 			[compact]="true"
 		/>
 		<div class="flex flex-col gap-0.5 min-w-0 flex-1">
-			<span
-				class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>{{ label() }}</span
-			>
+			<span uiEyebrow>{{ label() }}</span>
 			<span class="text-sm font-semibold text-fg truncate">{{
 				current.title
 			}}</span>

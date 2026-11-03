@@ -8,6 +8,7 @@ import {
 
 import { UiFocusTrap } from "../focus-trap/ui-focus-trap";
 import { UiIconButton } from "../icon-button/ui-icon-button";
+import { UiEyebrow } from "../label/ui-eyebrow";
 import { injectBodyPortal } from "../portal/body-portal";
 import {
 	UI_TONE_COLOR,
@@ -20,7 +21,7 @@ let nextDrawerId = 0;
 
 @Component({
 	selector: "ui-drawer",
-	imports: [UiFocusTrap, UiIconButton],
+	imports: [UiEyebrow, UiFocusTrap, UiIconButton],
 	template: `
 		<div class="fixed inset-0 z-[1000] flex justify-end">
 			<div
@@ -55,10 +56,7 @@ let nextDrawerId = 0;
 					}
 					<div class="flex-1 min-w-0">
 						@if (eyebrow()) {
-							<span
-								class="block text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-								>{{ eyebrow() }}</span
-							>
+							<span uiEyebrow tone="brand">{{ eyebrow() }}</span>
 						}
 						<h2
 							class="m-0 font-display text-xl md:text-2xl font-bold tracking-tight leading-tight text-fg text-balance break-words"

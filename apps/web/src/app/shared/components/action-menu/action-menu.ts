@@ -15,7 +15,7 @@ import { RouterLink } from "@angular/router";
 import { NgpMenu, NgpMenuItem, NgpMenuTrigger } from "ng-primitives/menu";
 
 import { ViewportService } from "../../../core/services/viewport";
-import { UiBottomSheet, UiCountBadge } from "../../ui";
+import { UiBottomSheet, UiCountBadge, UiEyebrow } from "../../ui";
 import { UiButton } from "../../ui/button/ui-button";
 import {
 	type ActionMenuItem,
@@ -32,6 +32,7 @@ const SHEET_ITEM_CLASS =
 @Component({
 	selector: "app-action-menu",
 	imports: [
+		UiEyebrow,
 		NgTemplateOutlet,
 		NgpMenu,
 		NgpMenuItem,

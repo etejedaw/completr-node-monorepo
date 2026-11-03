@@ -11,7 +11,7 @@ import {
 } from "@angular/core";
 
 import { type Game } from "../../../core/models";
-import { UiButton, UiSearchBar, UiSkeleton } from "../../ui";
+import { UiButton, UiEyebrow, UiSearchBar, UiSkeleton } from "../../ui";
 import { GamePoster } from "../game-poster/game-poster";
 
 export type GameSearchStatus =
@@ -19,7 +19,14 @@ export type GameSearchStatus =
 
 @Component({
 	selector: "app-game-search-step",
-	imports: [GamePoster, NgTemplateOutlet, UiButton, UiSearchBar, UiSkeleton],
+	imports: [
+		UiEyebrow,
+		GamePoster,
+		NgTemplateOutlet,
+		UiButton,
+		UiSearchBar,
+		UiSkeleton
+	],
 	templateUrl: "./game-search-step.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush

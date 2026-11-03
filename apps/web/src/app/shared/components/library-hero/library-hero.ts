@@ -6,6 +6,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
+import { UiEyebrow } from "../../ui";
 import { GamePoster } from "../game-poster/game-poster";
 import {
 	type LibraryHeroBackLink,
@@ -16,7 +17,7 @@ const MOSAIC_LENGTH = 14;
 
 @Component({
 	selector: "app-library-hero",
-	imports: [GamePoster, RouterLink],
+	imports: [UiEyebrow, GamePoster, RouterLink],
 	template: `
 		<header
 			class="bleed bleed-top relative isolate overflow-hidden mb-6 border-b border-line"
@@ -55,7 +56,9 @@ const MOSAIC_LENGTH = 14;
 					<div class="min-w-0">
 						@if (backLink(); as back) {
 							<a
-								class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand rounded-sm"
+								uiEyebrow
+								tone="brand"
+								class="tap-area inline-flex items-center gap-1.5 no-underline hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand rounded-sm"
 								[routerLink]="back.link"
 							>
 								<span
@@ -66,10 +69,7 @@ const MOSAIC_LENGTH = 14;
 								{{ back.label }}
 							</a>
 						} @else if (eyebrow()) {
-							<span
-								class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-								>{{ eyebrow() }}</span
-							>
+							<span uiEyebrow tone="brand">{{ eyebrow() }}</span>
 						} @else {
 							<ng-content select="[heroEyebrow]" />
 						}

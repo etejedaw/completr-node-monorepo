@@ -40,10 +40,7 @@
 	>
 	} @else if (variant() === "field") {
 	<span class="flex-1 min-w-0 flex flex-col gap-0.5 leading-none">
-		<span
-			class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-			>{{ label() }}</span
-		>
+		<span uiEyebrow>{{ label() }}</span>
 		<span class="text-sm font-medium text-fg truncate"
 			>{{ current?.label ?? placeholder() }}</span
 		>
@@ -65,13 +62,9 @@
 <ng-template #menu>
 	<div
 		ngpMenu
-		class="fixed z-[1010] min-w-[15rem] max-w-[20rem] max-h-[min(26rem,70vh)] overflow-y-auto p-1.5 bg-sidebar border border-line rounded-card shadow-[0_24px_48px_-16px_rgba(0,0,0,0.75)] outline-none data-[enter]:animate-[uiFadeUp_140ms_ease-out]"
+		class="fixed z-[1010] min-w-[15rem] max-w-[20rem] max-h-[min(26rem,70vh)] overflow-y-auto p-1.5 bg-sidebar border border-line rounded-card shadow-popover outline-none data-[enter]:animate-[uiFadeUp_140ms_ease-out]"
 	>
-		<p
-			class="m-0 px-2.5 pt-1.5 pb-2 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-		>
-			{{ heading() }}
-		</p>
+		<p uiEyebrow class="m-0 px-2.5 pt-1.5 pb-2">{{ heading() }}</p>
 		@if (options()[0]?.link) { @for (option of options(); track
 		option.value) {
 		<a

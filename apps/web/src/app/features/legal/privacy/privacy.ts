@@ -20,7 +20,12 @@ import { PageToc } from "../../../shared/components/page-toc/page-toc";
 import { type PageSection } from "../../../shared/components/page-toc/page-toc.model";
 import { injectSectionScrollSpy } from "../../../shared/components/page-toc/section-scroll-spy";
 import { InView } from "../../../shared/directives/in-view";
-import { UiButton, UiEmptyState, UiSkeleton } from "../../../shared/ui";
+import {
+	UiButton,
+	UiEmptyState,
+	UiEyebrow,
+	UiSkeleton
+} from "../../../shared/ui";
 import { LANDING_PRIVACY_URL } from "./privacy-policy";
 import { type PrivacyPolicy } from "./privacy-policy.model";
 
@@ -29,6 +34,7 @@ const SKELETON_SECTIONS = [1, 2, 3];
 @Component({
 	selector: "app-privacy",
 	imports: [
+		UiEyebrow,
 		DatePipe,
 		RouterLink,
 		LibraryHero,

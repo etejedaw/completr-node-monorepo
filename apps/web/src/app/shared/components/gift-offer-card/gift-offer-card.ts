@@ -22,7 +22,7 @@ import {
 } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
-import { UiButton } from "../../ui";
+import { UiButton, UiEyebrow } from "../../ui";
 import { type GiftOffer, type GiftOfferFeature } from "./gift-offer-card.model";
 import { GIFT_OFFER_COPY } from "./gift-offer-copy";
 import { giftOfferEndsAt, selectGiftOffer } from "./gift-offer-selection";
@@ -35,7 +35,7 @@ let nextGiftOfferCardId = 0;
 
 @Component({
 	selector: "app-gift-offer-card",
-	imports: [DatePipe, UiButton],
+	imports: [UiEyebrow, DatePipe, UiButton],
 	templateUrl: "./gift-offer-card.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

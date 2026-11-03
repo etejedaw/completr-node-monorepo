@@ -14,7 +14,7 @@ import { NgpListbox, NgpListboxOption } from "ng-primitives/listbox";
 import { NgpPopover, NgpPopoverTrigger } from "ng-primitives/popover";
 
 import { ViewportService } from "../../../core/services/viewport";
-import { UiBottomSheet, UiButton, UiInput } from "../../ui";
+import { UiBottomSheet, UiButton, UiEyebrow, UiInput } from "../../ui";
 import { type PickerOption } from "./option-picker.model";
 
 const MAX_NAMED_OPTIONS = 3;
@@ -22,6 +22,7 @@ const MAX_NAMED_OPTIONS = 3;
 @Component({
 	selector: "app-multi-option-picker",
 	imports: [
+		UiEyebrow,
 		NgTemplateOutlet,
 		NgpListbox,
 		NgpListboxOption,

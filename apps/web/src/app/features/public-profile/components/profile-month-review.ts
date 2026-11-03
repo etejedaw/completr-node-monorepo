@@ -9,7 +9,7 @@ import { RouterLink } from "@angular/router";
 
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
-import { UiIconButton } from "../../../shared/ui";
+import { UiEyebrow, UiIconButton } from "../../../shared/ui";
 import { type HighlightEntry } from "../services/public-reviews.model";
 import { type MonthHighlight } from "./profile-month-review.model";
 
@@ -19,7 +19,7 @@ function formatNumber(value: number, decimals: number): string {
 
 @Component({
 	selector: "app-profile-month-review",
-	imports: [RouterLink, GamePoster, CoverUrlPipe, UiIconButton],
+	imports: [UiEyebrow, RouterLink, GamePoster, CoverUrlPipe, UiIconButton],
 	templateUrl: "./profile-month-review.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush

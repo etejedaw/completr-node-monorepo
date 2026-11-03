@@ -12,7 +12,7 @@ import {
 import { NgpPopover, NgpPopoverTrigger } from "ng-primitives/popover";
 
 import { ViewportService } from "../../../core/services/viewport";
-import { UiBottomSheet } from "../../ui";
+import { UiBottomSheet, UiEyebrow } from "../../ui";
 import { ChipGroup } from "../chip-group/chip-group";
 import { type ChipOption } from "../chip-group/chip-group.model";
 
@@ -37,6 +37,7 @@ const MONTHS = [
 @Component({
 	selector: "app-month-year-picker",
 	imports: [
+		UiEyebrow,
 		DatePipe,
 		NgTemplateOutlet,
 		NgpPopover,

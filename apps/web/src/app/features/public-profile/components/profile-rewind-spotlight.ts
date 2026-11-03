@@ -15,7 +15,7 @@ import {
 } from "../../../core/models/rewind.model";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { InView } from "../../../shared/directives/in-view";
-import { UiButton } from "../../../shared/ui";
+import { UiButton, UiEyebrow } from "../../../shared/ui";
 import { RewindGenerateDialog } from "../../rewind/components/rewind-generate-dialog/rewind-generate-dialog";
 import { injectRewindGenerateFlow } from "../../rewind/components/rewind-generate-dialog/rewind-generate-flow";
 import { RewindPersonaRank } from "../../rewind/components/rewind-persona-rank/rewind-persona-rank";
@@ -33,6 +33,7 @@ const FAN_STAGGER_MS = 60;
 @Component({
 	selector: "app-profile-rewind-spotlight",
 	imports: [
+		UiEyebrow,
 		RouterLink,
 		GamePoster,
 		InView,
@@ -59,10 +60,7 @@ const FAN_STAGGER_MS = 60;
 				>
 					<div class="flex flex-col gap-5 min-w-0">
 						<div class="flex flex-col">
-							<span
-								class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-								>Rewind</span
-							>
+							<span uiEyebrow tone="brand">Rewind</span>
 							<h2
 								id="profile-rewind-heading"
 								class="m-0 font-display font-bold leading-[0.9] tracking-[-0.04em] tabular-nums text-[clamp(4.5rem,16vw,8rem)]"
@@ -176,10 +174,7 @@ const FAN_STAGGER_MS = 60;
 				>
 					<div class="flex flex-col gap-5 min-w-0">
 						<div class="flex flex-col">
-							<span
-								class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-								>Rewind</span
-							>
+							<span uiEyebrow tone="brand">Rewind</span>
 							<h2
 								id="profile-rewind-heading"
 								class="m-0 font-display font-bold leading-[0.9] tracking-[-0.04em] tabular-nums text-[clamp(4.5rem,16vw,8rem)]"
