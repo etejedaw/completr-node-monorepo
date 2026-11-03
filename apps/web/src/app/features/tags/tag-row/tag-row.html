@@ -108,18 +108,18 @@
 		</div>
 	</div>
 	<div class="relative z-10 shrink-0 flex items-center gap-0.5">
-		<button
-			uiIconButton
-			type="button"
-			class="sm:!hidden tap:min-h-[44px] tap:min-w-[44px]"
-			aria-haspopup="dialog"
-			[attr.aria-label]="'More actions for ' + item.tag"
-			(click)="moreRequested.emit()"
-		>
-			<span aria-hidden="true" class="material-icons text-xl"
-				>more_vert</span
-			>
-		</button>
+		<div class="sm:hidden">
+			<app-action-menu
+				[label]="'More actions for ' + item.tag"
+				[heading]="item.tag"
+				[iconOnly]="true"
+				icon="more_vert"
+				size="lg"
+				[items]="mobileActions()"
+				[busy]="saving()"
+				(selected)="runMobileAction($event)"
+			/>
+		</div>
 		<button
 			uiIconButton
 			type="button"

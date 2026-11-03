@@ -17,7 +17,7 @@ import { OptionPicker } from "../../../shared/components/option-picker/option-pi
 import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
-	UiBottomSheet,
+	UiBadge,
 	UiButton,
 	UiDialog,
 	UiEmptyState,
@@ -44,24 +44,6 @@ const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: TagSort })[] = [
 	{ value: "name", label: "Name (A–Z)", icon: "sort_by_alpha" }
 ];
 
-type SheetActionId = "games" | "edit" | "delete";
-
-const SHEET_ACTIONS: {
-	id: SheetActionId;
-	icon: string;
-	label: string;
-	danger: boolean;
-}[] = [
-	{
-		id: "games",
-		icon: "videogame_asset",
-		label: "Show in My Games",
-		danger: false
-	},
-	{ id: "edit", icon: "edit", label: "Edit", danger: false },
-	{ id: "delete", icon: "delete", label: "Delete", danger: true }
-];
-
 @Component({
 	selector: "app-tags-page",
 	imports: [
@@ -70,7 +52,7 @@ const SHEET_ACTIONS: {
 		OptionPicker,
 		TagCreateDialog,
 		TagRow,
-		UiBottomSheet,
+		UiBadge,
 		UiButton,
 		UiEmptyState,
 		UiNoMatches,
@@ -97,8 +79,6 @@ export default class TagsPage implements OnInit {
 	protected readonly searchQuery = signal("");
 	protected readonly sortBy = signal<TagSort>("usage");
 	protected readonly sortPickerOptions = SORT_PICKER_OPTIONS;
-	protected readonly sheetActions = SHEET_ACTIONS;
-	protected readonly actionSheetTag = signal<UserTag | null>(null);
 	protected readonly skeletonRange = [0, 1, 2, 3, 4];
 	protected readonly heroPosters = injectLibraryPosters();
 
@@ -126,14 +106,10 @@ export default class TagsPage implements OnInit {
 				);
 	});
 
-	runSheetAction(tag: UserTag, id: SheetActionId) {
-		this.actionSheetTag.set(null);
-		if (id === "games") {
-			this.router.navigate(["/backlog"], {
-				queryParams: { mood_tags: tag.tag }
-			});
-		} else if (id === "edit") this.startEdit(tag);
-		else this.requestDelete(tag);
+	showInMyGames(tag: UserTag) {
+		this.router.navigate(["/backlog"], {
+			queryParams: { mood_tags: tag.tag }
+		});
 	}
 
 	onTagCreated() {
