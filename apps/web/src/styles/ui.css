@@ -155,13 +155,14 @@
 
 .ui-input {
 	width: 100%;
-	padding: 0.5rem 0.75rem;
+	min-height: 2.75rem;
+	padding: 0.625rem 0.875rem;
 	background: var(--bg-input);
 	border: 1px solid var(--border);
 	border-radius: var(--radius);
 	color: var(--text-primary);
 	font-family: inherit;
-	font-size: 0.8125rem;
+	font-size: 0.875rem;
 	line-height: 1.5;
 	transition:
 		border-color var(--transition),
@@ -184,6 +185,7 @@
 }
 
 .ui-input[data-size="sm"] {
+	min-height: 0;
 	padding: 0.25rem 0.5rem;
 	font-size: 0.75rem;
 }
