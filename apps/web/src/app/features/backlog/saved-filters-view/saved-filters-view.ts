@@ -23,6 +23,7 @@ import {
 	UiDialog,
 	UiEmptyState,
 	UiFieldLabel,
+	UiFieldOptional,
 	UiInput,
 	UiNoMatches,
 	UiPagination,
@@ -76,6 +77,7 @@ const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: SortMode })[] = [
 	selector: "app-saved-filters-view",
 	imports: [
 		UiFieldLabel,
+		UiFieldOptional,
 		RouterLink,
 		LibraryHero,
 		LibraryToolbar,

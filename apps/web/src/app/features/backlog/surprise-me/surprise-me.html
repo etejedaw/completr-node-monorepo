@@ -1,16 +1,11 @@
 <ui-dialog
 	eyebrow="My Games"
+	icon="casino"
 	heading="Surprise me"
 	subheading="A random pick from your current filters"
 	size="sm"
 	(closed)="close()"
 >
-	<span
-		dialogLead
-		aria-hidden="true"
-		class="material-icons text-2xl text-brand mt-1"
-		>casino</span
-	>
 	<div class="flex flex-col gap-4">
 		@switch (state()) { @case ('empty') {
 		<ui-plain-empty-state
