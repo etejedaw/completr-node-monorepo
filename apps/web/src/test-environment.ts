@@ -9,6 +9,13 @@ if (!("getAnimations" in Element.prototype)) {
 	});
 }
 
+if (!("scrollIntoView" in Element.prototype)) {
+	Object.defineProperty(Element.prototype, "scrollIntoView", {
+		configurable: true,
+		value: () => undefined
+	});
+}
+
 afterEach(() => {
 	document
 		.querySelectorAll("[data-ngp-toast-container]")
