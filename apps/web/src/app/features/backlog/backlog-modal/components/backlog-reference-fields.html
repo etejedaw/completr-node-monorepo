@@ -45,7 +45,9 @@
 				>
 				<button
 					type="button"
-					class="tap-area bg-none border-0 p-0 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+					uiIconButton
+					size="xs"
+					tone="accent"
 					aria-label="What is the ratio?"
 					(click)="toggleTooltip('ratio')"
 				>
@@ -66,7 +68,10 @@
 					>Critic score
 					<button
 						type="button"
-						class="tap-area bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+						uiIconButton
+						size="xs"
+						tone="accent"
+						class="ml-0.5"
 						aria-label="Info"
 						(click)="toggleTooltip('score')"
 					>
@@ -100,7 +105,8 @@
 						No sources found — enter it manually.
 						<button
 							type="button"
-							class="tap-area bg-none border-0 p-0 text-brand cursor-pointer hover:underline"
+							uiButton
+							variant="link"
 							(click)="missingReported.emit('missing_score')"
 						>
 							Report missing
@@ -140,7 +146,10 @@
 					>Duration (h)
 					<button
 						type="button"
-						class="tap-area bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+						uiIconButton
+						size="xs"
+						tone="accent"
+						class="ml-0.5"
 						aria-label="Info"
 						(click)="toggleTooltip('duration')"
 					>
@@ -174,7 +183,8 @@
 						No sources found — enter it manually.
 						<button
 							type="button"
-							class="tap-area bg-none border-0 p-0 text-brand cursor-pointer hover:underline"
+							uiButton
+							variant="link"
 							(click)="missingReported.emit('missing_duration')"
 						>
 							Report missing

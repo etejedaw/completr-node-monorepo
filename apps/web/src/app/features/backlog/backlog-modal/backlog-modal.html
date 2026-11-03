@@ -300,7 +300,10 @@
 							My rating <ui-field-optional />
 							<button
 								type="button"
-								class="tap-area bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+								uiIconButton
+								size="xs"
+								tone="accent"
+								class="ml-0.5"
 								(click)="toggleTooltip('rating')"
 								aria-label="Info"
 							>
@@ -325,7 +328,10 @@
 							>Real duration (h) <ui-field-optional />
 							<button
 								type="button"
-								class="tap-area bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
+								uiIconButton
+								size="xs"
+								tone="accent"
+								class="ml-0.5"
 								(click)="toggleTooltip('realDuration')"
 								aria-label="Info"
 							>
@@ -579,7 +585,9 @@
 					@if (progressNotes().length > 1) {
 					<button
 						type="button"
-						class="tap-area mt-1.5 p-0 bg-transparent border-0 text-[0.6875rem] text-brand cursor-pointer hover:underline"
+						uiButton
+						variant="link"
+						class="mt-1.5"
 						(click)="toggleProgressHistory()"
 					>
 						{{ progressHistoryOpen() ? 'Hide history' : 'Show
@@ -744,7 +752,8 @@
 			@for (field of missingFields(); track field; let last = $last) {
 			<button
 				type="button"
-				class="tap:min-h-[44px] px-0.5 bg-transparent border-0 font-medium text-danger underline-offset-2 cursor-pointer hover:underline focus-visible:outline-2 focus-visible:outline-brand rounded-sm"
+				uiButton
+				variant="link-danger"
 				(click)="focusMissingField(field)"
 			>
 				{{ missingFieldLabels[field] }}
