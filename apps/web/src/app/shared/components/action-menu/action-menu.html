@@ -56,11 +56,26 @@
 		</p>
 		@for (item of items(); track item.id) { @if (item.separated) {
 		<div class="my-1.5 h-px bg-line" role="separator"></div>
-		}
+		} @if (linkOf(item); as link) {
+		<a
+			ngpMenuItem
+			[class]="menuItemClass"
+			[class.!text-premium]="item.premium && !item.locked"
+			[routerLink]="link.routerLink"
+			[queryParams]="link.queryParams"
+			[fragment]="link.fragment"
+			[attr.aria-label]="item.label"
+			[attr.aria-description]="item.hint ?? null"
+		>
+			<ng-container
+				*ngTemplateOutlet="menuRow; context: { $implicit: item, sheet: false }"
+			/>
+		</a>
+		} @else {
 		<button
 			ngpMenuItem
 			type="button"
-			class="w-full flex items-center gap-2.5 min-h-9 px-2.5 rounded bg-transparent border-0 text-left text-sm text-fg-secondary outline-none cursor-pointer hover:bg-surface-hover hover:text-fg focus-visible:bg-surface-hover focus-visible:text-fg data-[disabled]:opacity-40 data-[disabled]:cursor-default"
+			[class]="menuItemClass"
 			[class.!text-premium]="item.premium && !item.locked"
 			[ngpMenuItemDisabled]="!!item.disabled || !!item.busy"
 			[attr.aria-label]="item.label"
@@ -72,7 +87,7 @@
 				*ngTemplateOutlet="menuRow; context: { $implicit: item, sheet: false }"
 			/>
 		</button>
-		}
+		} }
 	</div>
 </ng-template>
 
@@ -120,7 +135,7 @@
 	[heading]="heading()"
 	[eyebrow]="eyebrow()"
 	[subheading]="subheading()"
-	(closed)="sheetOpen.set(false)"
+	(closed)="closeSheet()"
 >
 	<ul class="list-none m-0 p-0 flex flex-col gap-1">
 		@for (item of items(); track item.id) {
@@ -130,9 +145,25 @@
 			[class.border-t]="item.separated"
 			[class.border-line]="item.separated"
 		>
+			@if (linkOf(item); as link) {
+			<a
+				[class]="sheetItemClass"
+				[class.!text-premium]="item.premium && !item.locked"
+				[routerLink]="link.routerLink"
+				[queryParams]="link.queryParams"
+				[fragment]="link.fragment"
+				[attr.aria-label]="item.label"
+				[attr.aria-description]="item.hint ?? null"
+				(click)="closeSheet()"
+			>
+				<ng-container
+					*ngTemplateOutlet="menuRow; context: { $implicit: item, sheet: true }"
+				/>
+			</a>
+			} @else {
 			<button
 				type="button"
-				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border-0 text-base font-medium text-fg text-left cursor-pointer transition active:bg-surface disabled:opacity-40 disabled:cursor-default"
+				[class]="sheetItemClass"
 				[class.!text-premium]="item.premium && !item.locked"
 				[disabled]="item.disabled || item.busy"
 				[attr.aria-label]="item.label"
@@ -144,6 +175,7 @@
 					*ngTemplateOutlet="menuRow; context: { $implicit: item, sheet: true }"
 				/>
 			</button>
+			}
 		</li>
 		}
 	</ul>

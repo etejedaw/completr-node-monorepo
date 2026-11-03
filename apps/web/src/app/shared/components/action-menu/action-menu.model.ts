@@ -1,4 +1,12 @@
+import { type Params } from "@angular/router";
+
 export type ActionMenuVariant = "primary" | "secondary" | "ghost";
+
+export interface ActionMenuLink {
+	routerLink: string | readonly unknown[];
+	queryParams?: Params;
+	fragment?: string;
+}
 
 export interface ActionMenuItem {
 	id: string;
@@ -11,4 +19,5 @@ export interface ActionMenuItem {
 	disabled?: boolean;
 	busy?: boolean;
 	separated?: boolean;
+	link?: ActionMenuLink;
 }
