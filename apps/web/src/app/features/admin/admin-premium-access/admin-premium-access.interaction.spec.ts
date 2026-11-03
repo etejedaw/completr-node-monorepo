@@ -110,6 +110,80 @@ describe("AdminPremiumAccess interaction", () => {
 		expect(within(dialog).getByText("No expiration")).toBeInTheDocument();
 	});
 
+	it("grants the feature chosen in the picker", async () => {
+		const user = userEvent.setup();
+		await renderDialog();
+		const dialog = await screen.findByRole("dialog", {
+			name: "Premium access"
+		});
+		const picker = within(dialog).getByRole("button", {
+			name: /^Feature:/
+		});
+		expect(picker).toHaveAccessibleName("Feature: Unlimited lists");
+
+		await user.click(picker);
+		await user.dblClick(
+			await screen.findByRole("menuitemradio", { name: /JSON export/ })
+		);
+		expect(picker).toHaveAccessibleName("Feature: JSON export");
+
+		await user.click(
+			within(dialog).getByRole("button", { name: "Grant feature" })
+		);
+		const req = http.expectOne(`${api}/admin/users/u1/premium-grants`);
+		expect(req.request.body).toEqual({
+			feature: "export.json",
+			expiresAt: null
+		});
+		req.flush({ data: { grant: grant({ feature: "export.json" }) } });
+		expect(
+			await within(dialog).findByRole("heading", { name: "JSON export" })
+		).toBeInTheDocument();
+	});
+
+	it("closing the picker with Escape keeps the current feature", async () => {
+		const user = userEvent.setup();
+		await renderDialog();
+		const dialog = await screen.findByRole("dialog", {
+			name: "Premium access"
+		});
+		const picker = within(dialog).getByRole("button", {
+			name: /^Feature:/
+		});
+		await user.click(picker);
+		await screen.findByRole("menuitemradio", { name: /JSON export/ });
+		await user.keyboard("{Escape}");
+		await waitFor(() =>
+			expect(screen.queryByRole("menu")).not.toBeInTheDocument()
+		);
+		expect(picker).toHaveAccessibleName("Feature: Unlimited lists");
+		expect(
+			screen.getByRole("dialog", { name: "Premium access" })
+		).toBeInTheDocument();
+	});
+
+	it("shows active and expired grants with their status badge", async () => {
+		await renderDialog([
+			grant({ id: "a", expiresAt: null }),
+			grant({
+				id: "b",
+				feature: "export.json",
+				expiresAt: "2020-01-01T00:00:00.000Z"
+			})
+		]);
+		const dialog = await screen.findByRole("dialog", {
+			name: "Premium access"
+		});
+		const active = within(dialog)
+			.getByRole("heading", { name: "Unlimited lists" })
+			.closest("article") as HTMLElement;
+		const expired = within(dialog)
+			.getByRole("heading", { name: "JSON export" })
+			.closest("article") as HTMLElement;
+		expect(within(active).getByText("Active").closest("ui-badge")).not.toBeNull();
+		expect(within(expired).getByText("Expired").closest("ui-badge")).not.toBeNull();
+	});
+
 	it("requires a date for full premium and submits an ISO expiration", async () => {
 		const user = userEvent.setup();
 		const view = await renderDialog();

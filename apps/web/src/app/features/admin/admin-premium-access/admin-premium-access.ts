@@ -13,15 +13,18 @@ import {
 import { form, FormField, required } from "@angular/forms/signals";
 import { forkJoin } from "rxjs";
 
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import {
 	UiAlert,
+	UiBadge,
 	UiButton,
 	UiDialog,
 	UiFieldLabel,
 	UiFormField,
 	UiInput,
 	UiLabel,
-	UiSelect,
+	UiPlainEmptyState,
 	UiSkeleton
 } from "../../../shared/ui";
 import {
@@ -61,14 +64,16 @@ const FEATURE_LABELS: Partial<Record<PremiumGrantFeature, string>> = {
 	imports: [
 		DatePipe,
 		FormField,
+		OptionPicker,
 		UiAlert,
+		UiBadge,
 		UiButton,
 		UiDialog,
 		UiFieldLabel,
 		UiFormField,
 		UiInput,
 		UiLabel,
-		UiSelect,
+		UiPlainEmptyState,
 		UiSkeleton
 	],
 	templateUrl: "./admin-premium-access.html",
@@ -97,6 +102,15 @@ export class AdminPremiumAccess implements OnInit {
 	);
 	protected readonly individualGrants = computed(() =>
 		this.grants().filter(grant => grant.feature !== "*")
+	);
+	protected readonly featureOptions = computed<PickerOption[]>(() =>
+		this.features().map(definition => ({
+			value: definition.feature,
+			label: this.featureLabel(definition.feature),
+			icon: "workspace_premium",
+			iconClass: "text-premium",
+			hint: definition.feature
+		}))
 	);
 	protected readonly minimumExpiration = toLocalInput(new Date());
 	protected readonly fullModel = signal({
@@ -229,6 +243,10 @@ export class AdminPremiumAccess implements OnInit {
 						"Could not revoke the grant."
 					)
 			});
+	}
+
+	protected setFeature(feature: string) {
+		this.featureForm.feature().value.set(feature as PremiumGrantFeature);
 	}
 
 	protected cancelRevoke() {

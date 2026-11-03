@@ -100,14 +100,11 @@
 					class="mb-3 flex flex-wrap items-center justify-between gap-2"
 				>
 					<strong class="text-sm text-fg">Full premium</strong>
-					<span
-						class="rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold"
-						[class.bg-success/10]="isActive(grant)"
-						[class.text-success]="isActive(grant)"
-						[class.bg-fg-muted/10]="!isActive(grant)"
-						[class.text-fg-muted]="!isActive(grant)"
-						>{{ isActive(grant) ? "Active" : "Expired" }}</span
-					>
+					@if (isActive(grant)) {
+					<ui-badge tone="success">Active</ui-badge>
+					} @else {
+					<ui-badge>Expired</ui-badge>
+					}
 				</div>
 				<p class="m-0 mb-3 text-xs text-fg-secondary">
 					Current expiration: {{ grant.expiresAt | date: "medium" }}
@@ -155,7 +152,12 @@
 				</div>
 			</article>
 			} @empty {
-			<p class="m-0 text-xs text-fg-muted">No full-premium grants yet.</p>
+			<p class="m-0 flex items-center gap-1.5 text-xs text-fg-muted">
+				<span aria-hidden="true" class="material-icons text-sm"
+					>info</span
+				>
+				No full-premium grants yet.
+			</p>
 			}
 		</div>
 	</section>
@@ -178,22 +180,17 @@
 			(submit)="createFeature($event)"
 			novalidate
 		>
-			<div uiFormField>
-				<label uiLabel uiFieldLabel for="premium-feature"
-					>Feature</label
-				>
-				<select
-					uiSelect
-					id="premium-feature"
-					[formField]="featureForm.feature"
-				>
-					@for (feature of features(); track feature.feature) {
-					<option [value]="feature.feature">
-						{{ featureLabel(feature.feature) }}
-					</option>
-					}
-				</select>
-			</div>
+			<app-option-picker
+				class="self-end"
+				label="Feature"
+				heading="Feature"
+				placeholder="Choose a feature"
+				placeholderIcon="workspace_premium"
+				[options]="featureOptions()"
+				[value]="featureForm.feature().value()"
+				[invalid]="featureForm.feature().touched() && featureForm.feature().invalid()"
+				(valueChange)="setFeature($event)"
+			/>
 			<div uiFormField>
 				<label uiLabel uiFieldLabel for="feature-expiration"
 					>Expires at
@@ -235,14 +232,11 @@
 							}
 						</p>
 					</div>
-					<span
-						class="rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold"
-						[class.bg-success/10]="isActive(grant)"
-						[class.text-success]="isActive(grant)"
-						[class.bg-fg-muted/10]="!isActive(grant)"
-						[class.text-fg-muted]="!isActive(grant)"
-						>{{ isActive(grant) ? "Active" : "Expired" }}</span
-					>
+					@if (isActive(grant)) {
+					<ui-badge tone="success">Active</ui-badge>
+					} @else {
+					<ui-badge>Expired</ui-badge>
+					}
 				</div>
 				<p class="m-0 mb-3 text-xs text-fg-secondary">
 					{{ grant.expiresAt ? (grant.expiresAt | date: "medium") :
@@ -291,17 +285,13 @@
 				</div>
 			</article>
 			} @empty {
-			<div
-				class="rounded-card border border-dashed border-line px-4 py-6 text-center"
-			>
-				<p class="m-0 text-sm font-medium text-fg">
-					No individual grants
-				</p>
-				<p class="m-0 mt-1 text-xs text-fg-muted">
-					Choose a feature above to grant access without changing the
-					user's role.
-				</p>
-			</div>
+			<ui-plain-empty-state
+				class="rounded-card border border-dashed border-line [&>section]:!py-8"
+				icon="workspace_premium"
+				title="No individual grants"
+				message="Choose a feature above to grant access without changing the user's role."
+				[compact]="true"
+			/>
 			}
 		</div>
 	</section>
