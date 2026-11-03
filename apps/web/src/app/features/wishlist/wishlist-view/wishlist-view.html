@@ -51,10 +51,11 @@
 	(offsetChange)="onOffsetChange($event)"
 >
 	<ng-template appLibraryPageToolbar>
-		<ui-search-bar
+		<app-page-search
 			size="sm"
+			scopeLabel="Want to Get"
 			class="flex-1 max-w-2xl"
-			placeholder="Search your wishlist..."
+			placeholder="Filter by title..."
 			ariaLabel="Search Want to Get"
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"

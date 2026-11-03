@@ -26,13 +26,14 @@ import {
 	LibraryPageEmptyAction,
 	LibraryPageToolbar
 } from "../../../shared/components/library-page/library-page-slots";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import {
 	countByPlatform,
 	matchesPlatform,
 	PlatformFilter
 } from "../../../shared/components/platform-filter/platform-filter";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
-import { UiButton, UiPremiumBadge, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiPremiumBadge } from "../../../shared/ui";
 import { FavoritesService } from "../../favorites/favorites";
 import { WishlistService } from "../wishlist";
 import {
@@ -55,7 +56,7 @@ import {
 		PremiumOnly,
 		UiButton,
 		UiPremiumBadge,
-		UiSearchBar
+		PageSearch
 	],
 	templateUrl: "./wishlist-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
