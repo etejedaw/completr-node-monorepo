@@ -1,3 +1,5 @@
+import { type UiBadgeTone } from "../../shared/ui";
+
 export type ReleaseTint = "brand" | "purple" | "warning" | "success" | "danger";
 
 export interface ReleaseHighlight {
@@ -38,6 +40,16 @@ const TINT_TEXT_CLASSES: Record<ReleaseTint, string> = {
 	success: "text-success",
 	danger: "text-danger"
 };
+
+export function releaseBadgeTone(tint: ReleaseTint): UiBadgeTone {
+	return tint === "purple" ? "brand" : (tint ?? "brand");
+}
+
+export function releaseBadgeClass(tint: ReleaseTint): string {
+	return tint === "purple"
+		? "!bg-nav-saved-views/15 !text-nav-saved-views"
+		: "";
+}
 
 export function releaseTintTextClass(tint: ReleaseTint): string {
 	return TINT_TEXT_CLASSES[tint] ?? TINT_TEXT_CLASSES.brand;
