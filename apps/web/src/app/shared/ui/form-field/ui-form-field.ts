@@ -1,7 +1,6 @@
 import { Directive } from "@angular/core";
 import {
 	NgpDescription,
-	NgpError,
 	NgpFormField,
 	NgpLabel
 } from "ng-primitives/form-field";
@@ -23,11 +22,3 @@ export class UiLabel {}
 	hostDirectives: [{ directive: NgpDescription, inputs: ["id"] }]
 })
 export class UiDescription {}
-
-@Directive({
-	selector: "[uiError]",
-	hostDirectives: [
-		{ directive: NgpError, inputs: ["id", "ngpErrorValidator: validator"] }
-	]
-})
-export class UiError {}

@@ -7,6 +7,8 @@ export type { UiBottomSheetVariant } from "./bottom-sheet/ui-bottom-sheet";
 export { UiBottomSheet } from "./bottom-sheet/ui-bottom-sheet";
 export type { UiButtonSize, UiButtonVariant } from "./button/ui-button";
 export { UiButton } from "./button/ui-button";
+export type { UiFiltersButtonLabelVisibility } from "./button/ui-filters-button";
+export { UiFiltersButton } from "./button/ui-filters-button";
 export { UiCheckbox } from "./checkbox/ui-checkbox";
 export { UiCountBadge } from "./count-badge/ui-count-badge";
 export type { UiDialogSize, UiDialogTone } from "./dialog/ui-dialog";
@@ -18,7 +20,6 @@ export { UiPlainEmptyState } from "./empty-state/ui-plain-empty-state";
 export { UiFocusTrap } from "./focus-trap/ui-focus-trap";
 export {
 	UiDescription,
-	UiError,
 	UiFormField,
 	UiLabel
 } from "./form-field/ui-form-field";
@@ -35,7 +36,6 @@ export { UiFieldOptional } from "./label/ui-field-optional";
 export { UiPagination } from "./pagination/ui-pagination";
 export { UiPremiumBadge } from "./premium-badge/ui-premium-badge";
 export { UiProgress } from "./progress/ui-progress";
-export { UiRadioGroup, UiRadioIndicator, UiRadioItem } from "./radio/ui-radio";
 export { UiSearchBar } from "./search-bar/ui-search-bar";
 export { UiSeparator } from "./separator/ui-separator";
 export type { UiSkeletonVariant } from "./skeleton/ui-skeleton";
@@ -45,4 +45,3 @@ export { UiTable } from "./table/ui-table";
 export { UiTab, UiTabList, UiTabPanel, UiTabs } from "./tabs/ui-tabs";
 export { UiTextarea } from "./textarea/ui-textarea";
 export type { UiTone } from "./tone/ui-tone";
-export { UiTooltipContent } from "./tooltip/ui-tooltip";
