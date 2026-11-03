@@ -19,6 +19,7 @@ import {
 	UiButton,
 	UiDialog,
 	UiFieldLabel,
+	UiFieldOptional,
 	UiInput,
 	UiSkeleton,
 	UiTextarea
@@ -57,7 +58,8 @@ const NO_SELECTION = "";
 		UiFieldLabel,
 		UiInput,
 		UiSkeleton,
-		UiTextarea
+		UiTextarea,
+		UiFieldOptional
 	],
 	templateUrl: "./platinum-dialog.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

@@ -114,6 +114,28 @@ describe("PlatinumDialog", () => {
 		vi.unstubAllGlobals();
 	});
 
+	it("labels the run and platform pickers as optional fields and opens one menu at a time", async () => {
+		const user = userEvent.setup();
+		const dialog = await renderDialog();
+
+		const run = dialog.getByLabelText("Run Optional");
+		const platform = dialog.getByLabelText("Platform Optional");
+		expect(run.tagName).toBe("BUTTON");
+		expect(platform.tagName).toBe("BUTTON");
+		expect(screen.getByRole("dialog").textContent).not.toContain("*");
+
+		await user.dblClick(run);
+		await user.click(platform);
+
+		expect(screen.getAllByRole("menu")).toHaveLength(1);
+		expect(
+			screen.getByRole("menuitemradio", { name: /Not specified/ })
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole("menuitemradio", { name: /No specific run/ })
+		).not.toBeInTheDocument();
+	});
+
 	it("saves the chosen run, its platform, the date and the notes", async () => {
 		const user = userEvent.setup();
 		platinumService.save.mockReturnValue(of(SAVED));
@@ -123,8 +145,11 @@ describe("PlatinumDialog", () => {
 		await user.click(
 			screen.getByRole("menuitemradio", { name: /Run #2 · Completed/ })
 		);
-		await user.type(dialog.getByLabelText("Platinumed on"), "2026-03-12");
-		await user.type(dialog.getByLabelText("Notes"), "  Hard  ");
+		await user.type(
+			dialog.getByLabelText("Platinumed on Optional"),
+			"2026-03-12"
+		);
+		await user.type(dialog.getByLabelText("Notes Optional"), "  Hard  ");
 		await user.click(dialog.getByRole("button", { name: "Save" }));
 
 		expect(platinumService.save).toHaveBeenCalledWith("game-1", {
@@ -159,10 +184,10 @@ describe("PlatinumDialog", () => {
 		expect(
 			dialog.getByRole("heading", { name: "Edit platinum" })
 		).toBeInTheDocument();
-		expect(dialog.getByLabelText("Platinumed on")).toHaveValue(
+		expect(dialog.getByLabelText("Platinumed on Optional")).toHaveValue(
 			"2026-03-12"
 		);
-		expect(dialog.getByLabelText("Notes")).toHaveValue("Hard");
+		expect(dialog.getByLabelText("Notes Optional")).toHaveValue("Hard");
 
 		await user.click(dialog.getByRole("button", { name: "Remove" }));
 		await user.click(dialog.getByRole("button", { name: "Yes, delete" }));
@@ -209,7 +234,7 @@ describe("PlatinumDialog", () => {
 		expect(backlogService.getMyBacklog).toHaveBeenCalledWith({
 			game_id: "game-1"
 		});
-		expect(dialog.getByLabelText("Notes")).toHaveValue("Hard");
+		expect(dialog.getByLabelText("Notes Optional")).toHaveValue("Hard");
 	});
 
 	it("starts with the catalog search when no game is given", async () => {

@@ -1,16 +1,11 @@
 <ui-dialog
 	eyebrow="Platinum"
+	icon="emoji_events"
 	size="sm"
 	[heading]="heading()"
 	[subheading]="subheading()"
 	(closed)="close()"
 >
-	<span
-		dialogLead
-		aria-hidden="true"
-		class="material-icons text-2xl mt-1 text-fg-secondary"
-		>emoji_events</span
-	>
 	@switch (step()) { @case ('search') {
 	<app-game-search-step
 		[results]="search.results()"
@@ -44,24 +39,40 @@
 			(changeRequested)="changeGame()"
 		/>
 		} @if (runs().length > 0) {
-		<app-option-picker
-			label="Run"
-			heading="Run where you got it"
-			[options]="runOptions()"
-			[value]="backlogId()"
-			(valueChange)="selectRun($event)"
-		/>
-		}
-		<app-option-picker
-			label="Platform"
-			heading="Platform"
-			placeholderIcon="sports_esports"
-			[options]="platformOptions()"
-			[value]="platformId()"
-			(valueChange)="platformId.set($event)"
-		/>
 		<div>
-			<label for="platinumedAt" uiFieldLabel>Platinumed on</label>
+			<label uiFieldLabel for="platinum-run"
+				>Run <ui-field-optional
+			/></label>
+			<app-option-picker
+				variant="input"
+				triggerId="platinum-run"
+				label="Run"
+				heading="Run where you got it"
+				[options]="runOptions()"
+				[value]="backlogId()"
+				(valueChange)="selectRun($event)"
+			/>
+		</div>
+		}
+		<div>
+			<label uiFieldLabel for="platinum-platform"
+				>Platform <ui-field-optional
+			/></label>
+			<app-option-picker
+				variant="input"
+				triggerId="platinum-platform"
+				label="Platform"
+				heading="Platform"
+				placeholderIcon="sports_esports"
+				[options]="platformOptions()"
+				[value]="platformId()"
+				(valueChange)="platformId.set($event)"
+			/>
+		</div>
+		<div>
+			<label for="platinumedAt" uiFieldLabel
+				>Platinumed on <ui-field-optional
+			/></label>
 			<input
 				uiInput
 				id="platinumedAt"
@@ -71,7 +82,9 @@
 			/>
 		</div>
 		<div>
-			<label for="platinumNotes" uiFieldLabel>Notes</label>
+			<label for="platinumNotes" uiFieldLabel
+				>Notes <ui-field-optional
+			/></label>
 			<textarea
 				uiTextarea
 				id="platinumNotes"
