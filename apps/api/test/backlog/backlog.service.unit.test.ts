@@ -499,7 +499,7 @@ void describe("backlogService.removeBacklog", () => {
 		assert.deepEqual(steps, ["lock", "destroy", "compact"]);
 		assert.deepEqual(lock.mock.calls[0]?.arguments, ["owner", transaction]);
 		assert.deepEqual(destroy.mock.calls[0]?.arguments, [
-			{ where: { id: "b-1" }, transaction }
+			{ where: { id: ["b-1"], userId: "owner" }, transaction }
 		]);
 		assert.deepEqual(compact.mock.calls[0]?.arguments, [
 			"owner",

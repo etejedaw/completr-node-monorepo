@@ -10,12 +10,15 @@ import {
 
 import * as backlogProgressService from "../backlog-progress/backlog-progress.service";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import {
 	calculateRatio,
 	RATIO_SCORE_MULTIPLIER
 } from "../common/utils/calculate-ratio.util";
+import { splitByPresence } from "../common/utils/split-by-presence.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
+import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
 import * as gameShelfService from "../game-shelf/game-shelf.service";
 import { Game } from "../games/game.model";
@@ -36,12 +39,14 @@ import {
 } from "./backlog.interface";
 import { Backlog, type BacklogStatus } from "./backlog.model";
 import { type BacklogFields, type BacklogReview } from "./backlog.types";
+import { type BulkUpdateBacklogDto } from "./dtos/bulk-update-backlog.dto";
 import { type RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { type UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import * as backlogServiceError from "./errors/backlog.service-error";
 import { type BacklogExportQuery } from "./schemas/backlog-export-query.schema";
 import { type BacklogQuery } from "./schemas/backlog-query.schema";
 import { buildBacklogWhere } from "./utils/build-backlog-where.util";
+import { leavesQueue } from "./utils/leaves-queue.util";
 
 const BACKLOG_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
 const BACKLOG_PLATFORM_ATTRS = ["id", "name", "abbreviation"];
@@ -209,9 +214,13 @@ export async function findBacklogBasicById(
 	return Backlog.findOne({ where: { id }, transaction });
 }
 
-export async function findBacklogsByUserAndIds(userId: string, ids: string[]) {
+export async function findBacklogsByUserAndIds(
+	userId: string,
+	ids: string[],
+	transaction?: Transaction
+) {
 	if (ids.length === 0) return [];
-	return Backlog.findAll({ where: { id: ids, userId } });
+	return Backlog.findAll({ where: { id: ids, userId }, transaction });
 }
 
 export async function findGameIdsInBacklogByUser(
@@ -1076,17 +1085,55 @@ export async function updateBacklog(
 
 	await backlogEntry.update(updateBacklog);
 
-	let queueRemoved = false;
-	if (
-		updateBacklog.status === "playing" ||
-		updateBacklog.status === "completed" ||
-		updateBacklog.status === "abandoned" ||
-		updateBacklog.status === "endless"
-	) {
-		queueRemoved = await queueService.removeByBacklogId(id, userId);
-	}
+	const queueRemoved = leavesQueue(updateBacklog.status)
+		? await queueService.removeByBacklogId(id, userId)
+		: false;
 
 	return { backlog: backlogEntry, queueRemoved };
+}
+
+export async function bulkUpdateBacklog(
+	userId: string,
+	ids: string[],
+	changes: BulkUpdateBacklogDto["changes"]
+) {
+	return sequelize.transaction(async transaction => {
+		await queueService.lockUserQueue(userId, transaction);
+		const owned = await findBacklogsByUserAndIds(userId, ids, transaction);
+		const { present: succeeded, missing } = splitByPresence(
+			ids,
+			owned.map(backlog => backlog.id)
+		);
+
+		if (succeeded.length > 0)
+			await Backlog.update(changes, {
+				where: { id: succeeded, userId },
+				transaction
+			});
+
+		const queueRemoved =
+			succeeded.length > 0 && leavesQueue(changes.status)
+				? await queueService.removeByBacklogIds(
+						succeeded,
+						userId,
+						transaction
+					)
+				: [];
+
+		const statusChanged = changes.status
+			? owned.filter(backlog => backlog.status !== changes.status)
+			: [];
+
+		return {
+			succeeded,
+			skipped: toBulkSkipped(
+				missing,
+				backlogServiceError.notFoundError().code
+			),
+			queueRemoved,
+			statusChanged
+		};
+	});
 }
 
 export async function findLatestCompletedDurations(
@@ -1179,12 +1226,45 @@ export async function removeBacklog(id: string, userId: string) {
 	if (backlogEntry.userId !== userId)
 		throw backlogServiceError.forbiddenError();
 
-	await sequelize.transaction(async transaction => {
-		await queueService.lockUserQueue(userId, transaction);
-		await Backlog.destroy({ where: { id }, transaction });
-		await queueService.compactPositions(userId, transaction);
-	});
+	await sequelize.transaction(transaction =>
+		destroyOwnedBacklogs(userId, [id], transaction)
+	);
 	return true;
+}
+
+async function destroyOwnedBacklogs(
+	userId: string,
+	ids: string[],
+	transaction: Transaction
+) {
+	await queueService.lockUserQueue(userId, transaction);
+	await Backlog.destroy({ where: { id: ids, userId }, transaction });
+	await queueService.compactPositions(userId, transaction);
+}
+
+export async function bulkDeleteBacklog(
+	userId: string,
+	ids: string[]
+): Promise<BulkResult> {
+	return sequelize.transaction(async transaction => {
+		await queueService.lockUserQueue(userId, transaction);
+		const owned = await findBacklogsByUserAndIds(userId, ids, transaction);
+		const { present: succeeded, missing } = splitByPresence(
+			ids,
+			owned.map(backlog => backlog.id)
+		);
+
+		if (succeeded.length > 0)
+			await destroyOwnedBacklogs(userId, succeeded, transaction);
+
+		return {
+			succeeded,
+			skipped: toBulkSkipped(
+				missing,
+				backlogServiceError.notFoundError().code
+			)
+		};
+	});
 }
 
 const COOP_PEER_USER_INCLUDE = [

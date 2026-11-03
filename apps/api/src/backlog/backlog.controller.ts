@@ -27,8 +27,11 @@ import {
 	backlogSerializer
 } from "./backlog.serializer";
 import * as backlogService from "./backlog.service";
+import { type BulkDeleteBacklogDto } from "./dtos/bulk-delete-backlog.dto";
+import { type BulkUpdateBacklogDto } from "./dtos/bulk-update-backlog.dto";
 import { type RegisterBacklogDto } from "./dtos/register-backlog.dto";
 import { type UpdateBacklogDto } from "./dtos/update-backlog.dto";
+import { type BacklogBulkQuery } from "./schemas/backlog-bulk-query.schema";
 import { type BacklogExportQuery } from "./schemas/backlog-export-query.schema";
 import { type BacklogIdParams } from "./schemas/backlog-id-params.schema";
 import { type BacklogQuery } from "./schemas/backlog-query.schema";
@@ -236,4 +239,58 @@ export async function deleteBacklog(request: Request, response: Response) {
 
 	await backlogService.removeBacklog(params.backlogId, user.id);
 	return response.sendStatus(204);
+}
+
+async function respondBulkUpdate(
+	response: Response,
+	user: RequestUser,
+	body: BulkUpdateBacklogDto
+) {
+	const { statusChanged, ...result } = await backlogService.bulkUpdateBacklog(
+		user.id,
+		body.ids,
+		body.changes
+	);
+
+	const newStatus = body.changes.status;
+	if (newStatus) {
+		for (const backlog of statusChanged) {
+			activityService.record(
+				user.id,
+				`backlog_${newStatus}`,
+				backlog.gameId
+			);
+		}
+	}
+
+	const data = { action: "update", ...result };
+	return response.status(200).json({ data });
+}
+
+async function respondBulkDelete(
+	response: Response,
+	user: RequestUser,
+	body: BulkDeleteBacklogDto
+) {
+	const result = await backlogService.bulkDeleteBacklog(user.id, body.ids);
+
+	const data = { action: "delete", ...result };
+	return response.status(200).json({ data });
+}
+
+export async function postBacklogBulk(request: Request, response: Response) {
+	const query = request.locals.query as BacklogBulkQuery;
+	const user = request.locals.user as RequestUser;
+
+	if (query.action === "update")
+		return respondBulkUpdate(
+			response,
+			user,
+			request.locals.body as BulkUpdateBacklogDto
+		);
+	return respondBulkDelete(
+		response,
+		user,
+		request.locals.body as BulkDeleteBacklogDto
+	);
 }
