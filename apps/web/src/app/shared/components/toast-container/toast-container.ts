@@ -10,11 +10,11 @@ import { NgpToast } from "ng-primitives/toast";
 
 import { ToastService, UNDO_WINDOW_MS } from "../../../core/services/toast";
 import { type Toast } from "../../../core/services/toast.model";
-import { UiButton } from "../../ui";
+import { UiButton, UiIconButton } from "../../ui";
 
 @Component({
 	selector: "app-toast-container",
-	imports: [NgpToast, UiButton],
+	imports: [NgpToast, UiButton, UiIconButton],
 	templateUrl: "./toast-container.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

@@ -8,6 +8,7 @@ import {
 } from "@angular/core";
 
 import { UiFocusTrap } from "../focus-trap/ui-focus-trap";
+import { UiIconButton } from "../icon-button/ui-icon-button";
 import { injectBodyPortal } from "../portal/body-portal";
 import {
 	UI_TONE_COLOR,
@@ -24,7 +25,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 
 @Component({
 	selector: "ui-bottom-sheet",
-	imports: [NgTemplateOutlet, UiFocusTrap],
+	imports: [NgTemplateOutlet, UiFocusTrap, UiIconButton],
 	template: `
 		<button
 			type="button"
@@ -113,9 +114,12 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 			}
 			<ng-template #closeButton>
 				<button
+					uiIconButton
+					size="lg"
+					shape="circle"
 					type="button"
 					[class.-mt-1]="isPanel()"
-					class="shrink-0 -mr-2 size-[36px] max-md:size-[44px] tap:size-[44px] rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-fg hover:bg-surface focus-visible:outline-2 focus-visible:outline-brand"
+					class="shrink-0 -mr-2"
 					aria-label="Close"
 					(click)="closed.emit()"
 				>

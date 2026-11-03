@@ -194,3 +194,87 @@ describe("UiDialog header icon", () => {
 		).toBeInTheDocument();
 	});
 });
+
+@Component({
+	imports: [UiDialog],
+	template: `
+		<ui-dialog
+			heading="Saving changes"
+			[dismissible]="dismissible()"
+			(closed)="closedCount.set(closedCount() + 1)"
+		>
+			<p>Body</p>
+		</ui-dialog>
+	`,
+	changeDetection: ChangeDetectionStrategy.OnPush
+})
+class CloseButtonHost {
+	readonly dismissible = signal(true);
+	readonly closedCount = signal(0);
+}
+
+describe("UiDialog close button", () => {
+	beforeEach(() => {
+		vi.stubGlobal(
+			"matchMedia",
+			vi.fn(() => ({
+				matches: false,
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn()
+			}))
+		);
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	const closeButton = () =>
+		screen.getByRole("button", { name: "Close Saving changes" });
+
+	it("is the shared round icon button", async () => {
+		await render(CloseButtonHost);
+
+		expect(closeButton()).toHaveClass("ui-icon-button");
+		expect(closeButton()).toHaveAttribute("data-shape", "circle");
+		expect(closeButton()).toHaveAttribute("data-size", "lg");
+		expect(closeButton()).not.toHaveAttribute("aria-disabled");
+	});
+
+	it("emits closed for each press", async () => {
+		const { fixture } = await render(CloseButtonHost);
+
+		await userEvent.dblClick(closeButton());
+
+		expect(fixture.componentInstance.closedCount()).toBe(2);
+	});
+
+	it("stays focusable but does nothing while the dialog cannot be dismissed", async () => {
+		const { fixture } = await render(CloseButtonHost);
+		fixture.componentInstance.dismissible.set(false);
+		fixture.detectChanges();
+
+		expect(closeButton()).toHaveAttribute("aria-disabled", "true");
+		expect(closeButton()).not.toBeDisabled();
+		closeButton().focus();
+		expect(closeButton()).toHaveFocus();
+		await userEvent.click(closeButton());
+		await userEvent.keyboard("{Enter}");
+
+		expect(fixture.componentInstance.closedCount()).toBe(0);
+	});
+
+	it("closes again once the dialog becomes dismissible", async () => {
+		const { fixture } = await render(CloseButtonHost);
+		fixture.componentInstance.dismissible.set(false);
+		fixture.detectChanges();
+		await userEvent.click(closeButton());
+		fixture.componentInstance.dismissible.set(true);
+		fixture.detectChanges();
+
+		await userEvent.click(closeButton());
+
+		expect(fixture.componentInstance.closedCount()).toBe(1);
+		expect(closeButton()).not.toHaveAttribute("aria-disabled");
+	});
+});

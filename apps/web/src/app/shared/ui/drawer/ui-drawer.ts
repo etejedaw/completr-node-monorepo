@@ -7,6 +7,7 @@ import {
 } from "@angular/core";
 
 import { UiFocusTrap } from "../focus-trap/ui-focus-trap";
+import { UiIconButton } from "../icon-button/ui-icon-button";
 import { injectBodyPortal } from "../portal/body-portal";
 import {
 	UI_TONE_COLOR,
@@ -19,7 +20,7 @@ let nextDrawerId = 0;
 
 @Component({
 	selector: "ui-drawer",
-	imports: [UiFocusTrap],
+	imports: [UiFocusTrap, UiIconButton],
 	template: `
 		<div class="fixed inset-0 z-[1000] flex justify-end">
 			<div
@@ -75,8 +76,11 @@ let nextDrawerId = 0;
 						}
 					</div>
 					<button
+						uiIconButton
+						size="lg"
+						shape="circle"
 						type="button"
-						class="shrink-0 -mr-2 -mt-1 size-[36px] max-md:size-[44px] tap:size-[44px] rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-fg hover:bg-surface focus-visible:outline-2 focus-visible:outline-brand"
+						class="shrink-0 -mr-2 -mt-1"
 						[attr.aria-label]="'Close ' + heading()"
 						(click)="closed.emit()"
 					>

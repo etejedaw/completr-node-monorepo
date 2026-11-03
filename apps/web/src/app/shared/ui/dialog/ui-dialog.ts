@@ -10,6 +10,7 @@ import {
 
 import { ViewportService } from "../../../core/services/viewport";
 import { UiFocusTrap } from "../focus-trap/ui-focus-trap";
+import { UiIconButton } from "../icon-button/ui-icon-button";
 import { injectBodyPortal } from "../portal/body-portal";
 import {
 	UI_TONE_COLOR,
@@ -37,7 +38,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 
 @Component({
 	selector: "ui-dialog",
-	imports: [UiFocusTrap],
+	imports: [UiFocusTrap, UiIconButton],
 	template: `
 		<div
 			class="fixed inset-0 z-[1000] flex items-end justify-center md:items-center md:p-6"
@@ -115,8 +116,11 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 							}
 						</div>
 						<button
+							uiIconButton
+							size="lg"
+							shape="circle"
 							type="button"
-							class="shrink-0 -mr-2 -mt-1 size-[36px] max-md:size-[44px] tap:size-[44px] rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-fg hover:bg-surface focus-visible:outline-2 focus-visible:outline-brand aria-disabled:opacity-40 aria-disabled:cursor-not-allowed aria-disabled:hover:text-fg-muted aria-disabled:hover:bg-transparent"
+							class="shrink-0 -mr-2 -mt-1"
 							[attr.aria-label]="'Close ' + heading()"
 							[attr.aria-disabled]="dismissible() ? null : 'true'"
 							(click)="dismiss()"
