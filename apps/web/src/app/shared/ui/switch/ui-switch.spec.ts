@@ -53,6 +53,32 @@ describe("UiSwitch", () => {
 		expect(button.getAttribute("aria-checked")).toBe("false");
 	});
 
+	it("keeps the state in sync when Space, Enter and clicks are mixed quickly", async () => {
+		const user = userEvent.setup();
+		const { fixture, button } = renderedSwitch();
+
+		button.focus();
+		await user.keyboard(" {Enter} ");
+		await user.dblClick(button);
+		fixture.detectChanges();
+
+		expect(button.getAttribute("aria-checked")).toBe("true");
+		expect(fixture.componentInstance.checked()).toBe(true);
+	});
+
+	it("ignores Enter and clicks while disabled", async () => {
+		const user = userEvent.setup();
+		const { fixture, button } = renderedSwitch({ disabled: true });
+
+		button.focus();
+		await user.keyboard("{Enter}");
+		await user.click(button);
+		fixture.detectChanges();
+
+		expect(button.getAttribute("aria-checked")).toBe("false");
+		expect(fixture.componentInstance.checked()).toBe(false);
+	});
+
 	it("ignores Space while disabled", async () => {
 		const user = userEvent.setup();
 		const { fixture, button } = renderedSwitch({ disabled: true });
