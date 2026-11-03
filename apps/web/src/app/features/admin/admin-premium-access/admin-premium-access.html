@@ -324,11 +324,13 @@
 			</article>
 			} @empty {
 			<ui-plain-empty-state
-				class="rounded-card border border-dashed border-line [&>section]:!py-8"
+				class="rounded-card border border-dashed border-line"
 				icon="workspace_premium"
 				title="No individual grants"
 				message="Choose a feature above to grant access without changing the user's role."
 				[compact]="true"
+				[inset]="true"
+				[headingLevel]="3"
 			/>
 			}
 		</div>
