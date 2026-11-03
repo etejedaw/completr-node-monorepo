@@ -332,6 +332,7 @@ void describe("queueService.removeByBacklogId", () => {
 	void it("removes the user's entry and compacts in the same transaction", async () => {
 		const { transaction } = stubTransaction();
 		const query = stub(sequelize, "query", async () => []);
+		stub(Queue, "findAll", async () => [asModel({ backlogId: "b-1" })]);
 		const destroy = stub(Queue, "destroy", async () => 1);
 
 		assert.equal(
@@ -339,7 +340,7 @@ void describe("queueService.removeByBacklogId", () => {
 			true
 		);
 		assert.deepEqual(destroy.mock.calls[0]?.arguments, [
-			{ where: { backlogId: "b-1", userId: "user-1" }, transaction }
+			{ where: { backlogId: ["b-1"], userId: "user-1" }, transaction }
 		]);
 		assert.equal(query.mock.callCount(), 3);
 		assert.match(
@@ -351,12 +352,14 @@ void describe("queueService.removeByBacklogId", () => {
 	void it("skips the compaction when the backlog was not queued", async () => {
 		stubTransaction();
 		const query = stub(sequelize, "query", async () => []);
-		stub(Queue, "destroy", async () => 0);
+		stub(Queue, "findAll", async () => []);
+		const destroy = stub(Queue, "destroy", async () => 0);
 
 		assert.equal(
 			await queueService.removeByBacklogId("b-1", "user-1"),
 			false
 		);
 		assert.equal(query.mock.callCount(), 1);
+		assert.equal(destroy.mock.callCount(), 0);
 	});
 });
