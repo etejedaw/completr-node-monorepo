@@ -16,6 +16,13 @@ export class PendingRemovals<T> {
 		return visible.filter(candidate => this.keyOf(candidate) !== key);
 	}
 
+	hideAll(items: readonly T[], visible: readonly T[]): T[] {
+		return items.reduce<T[]>(
+			(remaining, item) => this.hide(item, remaining),
+			[...visible]
+		);
+	}
+
 	commit(item: T): void {
 		const key = this.keyOf(item);
 		const removal = this.removals.get(key);
@@ -32,6 +39,16 @@ export class PendingRemovals<T> {
 		if (!this.removals.has(key)) return [...visible];
 		const order = this.withPending(visible);
 		this.removals.delete(key);
+		return this.withoutPending(order);
+	}
+
+	commitAll(items: readonly T[]): void {
+		for (const item of items) this.commit(item);
+	}
+
+	undoAll(items: readonly T[], visible: readonly T[]): T[] {
+		const order = this.withPending(visible);
+		for (const item of items) this.removals.delete(this.keyOf(item));
 		return this.withoutPending(order);
 	}
 
