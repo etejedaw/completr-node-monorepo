@@ -1,0 +1,81 @@
+<p role="status" aria-atomic="true" class="sr-only">{{ selectionText() }}</p>
+@if (isOpen()) {
+<div
+	role="toolbar"
+	aria-label="Bulk actions"
+	class="pointer-events-auto flex max-w-full items-center gap-[4px] h-[56px] px-[6px] rounded-card border border-line bg-surface shadow-[0_18px_40px_-12px_var(--color-canvas)]"
+	[attr.aria-busy]="busy() || null"
+	animate.enter="motion-safe:animate-[uiFadeUp_180ms_cubic-bezier(0.16,1,0.3,1)_both]"
+	animate.leave="motion-safe:animate-[uiFadeUp_140ms_ease-in_reverse_both]"
+>
+	<button
+		uiIconButton
+		type="button"
+		shape="circle"
+		aria-label="Clear selection"
+		title="Clear selection (Esc)"
+		(click)="cleared.emit()"
+	>
+		<span aria-hidden="true" class="material-icons text-lg">close</span>
+	</button>
+	<p
+		aria-hidden="true"
+		class="m-0 pr-[8px] font-display text-sm text-fg-secondary whitespace-nowrap"
+	>
+		<span class="font-bold text-fg tabular-nums">{{ count() }}</span>
+		<span class="max-md:hidden"> {{ nounText() }} selected</span>
+	</p>
+	<div class="h-[24px] w-px shrink-0 bg-line" aria-hidden="true"></div>
+	@for (action of primaryActions(); track action.id) {
+	<button
+		uiButton
+		type="button"
+		variant="ghost"
+		size="sm"
+		class="shrink-0 max-lg:!px-0 max-lg:!min-w-[44px] max-lg:!min-h-[44px]"
+		[disabled]="isDisabled(action)"
+		[attr.aria-label]="labelOf(action)"
+		[title]="labelOf(action)"
+		(click)="trigger(action)"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>{{ action.icon }}</span
+		>
+		<span aria-hidden="true" class="max-lg:hidden"
+			>{{ labelOf(action) }}</span
+		>
+	</button>
+	} @if (moreItems().length > 0) {
+	<app-action-menu
+		label="More"
+		heading="More actions"
+		variant="ghost"
+		icon="more_horiz"
+		[iconOnly]="isMobile()"
+		[items]="moreItems()"
+		(selected)="triggerFromMenu($event)"
+	/>
+	} @if (dangerActions().length > 0) {
+	<div class="h-[24px] w-px shrink-0 bg-line" aria-hidden="true"></div>
+	@for (action of dangerActions(); track action.id) {
+	<button
+		uiButton
+		type="button"
+		variant="danger"
+		size="sm"
+		class="shrink-0 max-lg:!px-0 max-lg:!min-w-[44px] max-lg:!min-h-[44px]"
+		[disabled]="isDisabled(action)"
+		[attr.aria-label]="labelOf(action)"
+		[title]="labelOf(action)"
+		(click)="trigger(action)"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>{{ action.icon }}</span
+		>
+		<span aria-hidden="true" class="max-lg:hidden"
+			>{{ labelOf(action) }}</span
+		>
+	</button>
+	} }
+</div>
+}
