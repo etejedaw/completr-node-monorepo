@@ -21,6 +21,7 @@ import {
 	UiButton,
 	UiDialog,
 	UiFieldLabel,
+	UiFieldOptional,
 	UiFormField,
 	UiInput,
 	UiLabel,
@@ -70,6 +71,7 @@ const FEATURE_LABELS: Partial<Record<PremiumGrantFeature, string>> = {
 		UiButton,
 		UiDialog,
 		UiFieldLabel,
+		UiFieldOptional,
 		UiFormField,
 		UiInput,
 		UiLabel,
@@ -95,6 +97,10 @@ export class AdminPremiumAccess implements OnInit {
 	protected readonly successMessage = signal("");
 	protected readonly busy = signal("");
 	protected readonly pendingFullRevoke = signal("");
+	protected readonly extendError = signal<{
+		grantId: string;
+		message: string;
+	} | null>(null);
 	protected readonly grants = signal<PremiumGrant[]>([]);
 	protected readonly features = signal<PremiumFeatureDefinition[]>([]);
 	protected readonly fullGrants = computed(() =>
@@ -168,8 +174,7 @@ export class AdminPremiumAccess implements OnInit {
 		if (this.busy()) return;
 		if (this.fullForm().invalid()) {
 			this.fullForm().markAsTouched();
-			this.successMessage.set("");
-			this.mutationError.set("Full premium requires an expiration date.");
+			this.clearFeedback();
 			return;
 		}
 		this.create({
@@ -183,8 +188,7 @@ export class AdminPremiumAccess implements OnInit {
 		if (this.busy()) return;
 		if (this.featureForm().invalid()) {
 			this.featureForm().markAsTouched();
-			this.successMessage.set("");
-			this.mutationError.set("Choose a feature.");
+			this.clearFeedback();
 			return;
 		}
 		this.create({
@@ -196,8 +200,11 @@ export class AdminPremiumAccess implements OnInit {
 	protected extend(grant: PremiumGrant, value: string) {
 		if (this.busy()) return;
 		if (grant.feature === "*" && !value) {
-			this.successMessage.set("");
-			this.mutationError.set("Full premium requires an expiration date.");
+			this.clearFeedback();
+			this.extendError.set({
+				grantId: grant.id,
+				message: "Full premium requires an expiration date."
+			});
 			return;
 		}
 		const generation = this.startMutation(grant.id);
@@ -314,6 +321,7 @@ export class AdminPremiumAccess implements OnInit {
 	private clearFeedback() {
 		this.mutationError.set("");
 		this.successMessage.set("");
+		this.extendError.set(null);
 	}
 
 	private mutationFailed(

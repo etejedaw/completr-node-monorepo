@@ -1,20 +1,13 @@
 <ui-dialog
 	eyebrow="Users · Premium"
+	icon="workspace_premium"
+	tone="premium"
 	heading="Premium access"
 	size="lg"
 	[subheading]="user().username + ' · Grants do not change the account role.'"
 	[dismissible]="!busy()"
 	(closed)="closed.emit()"
 >
-	<span
-		dialogLead
-		class="flex size-11 items-center justify-center rounded-full bg-premium/10 text-premium"
-	>
-		<span aria-hidden="true" class="material-icons text-2xl"
-			>workspace_premium</span
-		>
-	</span>
-
 	@if (isLoading()) {
 	<div
 		class="flex flex-col gap-4"
@@ -76,10 +69,15 @@
 					type="datetime-local"
 					[min]="minimumExpiration"
 					[formField]="fullForm.expiresAt"
+					[attr.aria-invalid]="fullForm.expiresAt().touched() && fullForm.expiresAt().invalid() || null"
+					[attr.aria-describedby]="fullForm.expiresAt().touched() && fullForm.expiresAt().invalid() ? 'full-premium-expiration-error' : null"
 				/>
 				@if (fullForm.expiresAt().touched() &&
 				fullForm.expiresAt().invalid()) {
-				<p class="m-0 mt-1 text-xs text-danger">
+				<p
+					id="full-premium-expiration-error"
+					class="m-0 mt-1 text-xs text-danger"
+				>
 					{{ fullForm.expiresAt().errors()[0]?.message }}
 				</p>
 				}
@@ -88,6 +86,7 @@
 				uiButton
 				variant="primary"
 				type="submit"
+				class="min-h-11"
 				[disabled]="!!busy()"
 			>
 				{{ busy() === "create" ? "Granting..." : "Grant full premium" }}
@@ -123,15 +122,26 @@
 							[id]="'expiration-' + grant.id"
 							[min]="minimumExpiration"
 							[value]="toLocalInput(grant.expiresAt)"
+							[attr.aria-invalid]="extendError()?.grantId === grant.id || null"
+							[attr.aria-describedby]="extendError()?.grantId === grant.id ? 'expiration-error-' + grant.id : null"
 							#expiration
 						/>
+						@if (extendError(); as failed) { @if (failed.grantId ===
+						grant.id) {
+						<p
+							class="m-0 mt-1 text-xs text-danger"
+							[id]="'expiration-error-' + grant.id"
+						>
+							{{ failed.message }}
+						</p>
+						} }
 					</div>
 					<div class="flex gap-2">
 						<button
 							uiButton
-							size="sm"
 							variant="secondary"
 							type="button"
+							class="min-h-11"
 							[disabled]="!!busy()"
 							(click)="extend(grant, expiration.value)"
 						>
@@ -139,9 +149,9 @@
 						</button>
 						<button
 							uiButton
-							size="sm"
 							variant="danger"
 							type="button"
+							class="min-h-11"
 							[disabled]="!!busy()"
 							(click)="requestRevoke(grant)"
 						>
@@ -180,24 +190,37 @@
 			(submit)="createFeature($event)"
 			novalidate
 		>
-			<app-option-picker
-				class="self-end"
-				label="Feature"
-				heading="Feature"
-				placeholder="Choose a feature"
-				placeholderIcon="workspace_premium"
-				[options]="featureOptions()"
-				[value]="featureForm.feature().value()"
-				[invalid]="featureForm.feature().touched() && featureForm.feature().invalid()"
-				(valueChange)="setFeature($event)"
-			/>
+			<div uiFormField>
+				<label uiLabel uiFieldLabel for="feature-grant-feature"
+					>Feature</label
+				>
+				<app-option-picker
+					variant="input"
+					triggerId="feature-grant-feature"
+					label="Feature"
+					heading="Feature"
+					placeholder="Choose a feature"
+					placeholderIcon="workspace_premium"
+					[options]="featureOptions()"
+					[value]="featureForm.feature().value()"
+					[invalid]="featureForm.feature().touched() && featureForm.feature().invalid()"
+					[describedBy]="featureForm.feature().touched() && featureForm.feature().invalid() ? 'feature-grant-feature-error' : null"
+					(valueChange)="setFeature($event)"
+				/>
+				@if (featureForm.feature().touched() &&
+				featureForm.feature().invalid()) {
+				<p
+					id="feature-grant-feature-error"
+					class="m-0 mt-1 text-xs text-danger"
+				>
+					{{ featureForm.feature().errors()[0]?.message }}
+				</p>
+				}
+			</div>
 			<div uiFormField>
 				<label uiLabel uiFieldLabel for="feature-expiration"
-					>Expires at
-					<span class="font-normal text-fg-muted"
-						>(optional)</span
-					></label
-				>
+					>Expires at <ui-field-optional
+				/></label>
 				<input
 					id="feature-expiration"
 					uiInput
@@ -256,15 +279,26 @@
 							[id]="'expiration-' + grant.id"
 							[min]="minimumExpiration"
 							[value]="toLocalInput(grant.expiresAt)"
+							[attr.aria-invalid]="extendError()?.grantId === grant.id || null"
+							[attr.aria-describedby]="extendError()?.grantId === grant.id ? 'expiration-error-' + grant.id : null"
 							#expiration
 						/>
+						@if (extendError(); as failed) { @if (failed.grantId ===
+						grant.id) {
+						<p
+							class="m-0 mt-1 text-xs text-danger"
+							[id]="'expiration-error-' + grant.id"
+						>
+							{{ failed.message }}
+						</p>
+						} }
 					</div>
 					<div class="flex gap-2">
 						<button
 							uiButton
-							size="sm"
 							variant="secondary"
 							type="button"
+							class="min-h-11"
 							[disabled]="!!busy()"
 							(click)="extend(grant, expiration.value)"
 						>
@@ -272,9 +306,9 @@
 						</button>
 						<button
 							uiButton
-							size="sm"
 							variant="danger"
 							type="button"
+							class="min-h-11"
 							[disabled]="!!busy()"
 							(click)="requestRevoke(grant)"
 						>

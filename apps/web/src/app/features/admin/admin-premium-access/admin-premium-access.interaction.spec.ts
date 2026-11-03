@@ -180,8 +180,12 @@ describe("AdminPremiumAccess interaction", () => {
 		const expired = within(dialog)
 			.getByRole("heading", { name: "JSON export" })
 			.closest("article") as HTMLElement;
-		expect(within(active).getByText("Active").closest("ui-badge")).not.toBeNull();
-		expect(within(expired).getByText("Expired").closest("ui-badge")).not.toBeNull();
+		expect(
+			within(active).getByText("Active").closest("ui-badge")
+		).not.toBeNull();
+		expect(
+			within(expired).getByText("Expired").closest("ui-badge")
+		).not.toBeNull();
 	});
 
 	it("requires a date for full premium and submits an ISO expiration", async () => {
@@ -201,7 +205,20 @@ describe("AdminPremiumAccess interaction", () => {
 			await within(dialog).findAllByText(
 				"Full premium requires an expiration date."
 			)
-		).toHaveLength(2);
+		).toHaveLength(1);
+		expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+		expect(date).toHaveAccessibleDescription(
+			"Full premium requires an expiration date."
+		);
+		await user.dblClick(
+			within(dialog).getByRole("button", { name: "Grant full premium" })
+		);
+		expect(
+			within(dialog).getAllByText(
+				"Full premium requires an expiration date."
+			)
+		).toHaveLength(1);
+		http.expectNone(`${api}/admin/users/u1/premium-grants`);
 
 		await user.type(date, "2027-02-01T12:30");
 		await user.click(
@@ -225,6 +242,59 @@ describe("AdminPremiumAccess interaction", () => {
 		expect(
 			within(dialog).getByText("Full premium", { selector: "strong" })
 		).toBeInTheDocument();
+	});
+
+	it("explains an empty date under the full grant being extended and sends nothing", async () => {
+		const user = userEvent.setup();
+		await renderDialog([
+			grant({
+				id: "full",
+				feature: "*",
+				expiresAt: "2027-01-01T00:00:00.000Z"
+			}),
+			grant({
+				id: "other",
+				feature: "*",
+				expiresAt: "2027-03-01T00:00:00.000Z"
+			})
+		]);
+		const dialog = await screen.findByRole("dialog", {
+			name: "Premium access"
+		});
+		const date = within(dialog).getByLabelText("New expiration", {
+			selector: "#expiration-full"
+		});
+		await user.clear(date);
+		const [saveFull] = within(dialog).getAllByRole("button", {
+			name: "Save date"
+		});
+		await user.dblClick(saveFull!);
+
+		expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+		expect(
+			within(dialog).getAllByText(
+				"Full premium requires an expiration date."
+			)
+		).toHaveLength(1);
+		expect(date).toHaveAttribute("aria-invalid", "true");
+		expect(date).toHaveAccessibleDescription(
+			"Full premium requires an expiration date."
+		);
+		expect(
+			within(dialog).getByLabelText("New expiration", {
+				selector: "#expiration-other"
+			})
+		).not.toHaveAttribute("aria-invalid");
+		http.expectNone(req => req.method === "PATCH");
+
+		await user.type(date, "2027-05-01T10:00");
+		await user.click(saveFull!);
+		expect(
+			within(dialog).queryByText(
+				"Full premium requires an expiration date."
+			)
+		).not.toBeInTheDocument();
+		http.expectOne(req => req.method === "PATCH");
 	});
 
 	it("extends and revokes an existing grant", async () => {
