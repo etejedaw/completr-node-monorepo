@@ -211,6 +211,29 @@ describe("BulkActionBar", () => {
 		expect(scroller.style.scrollPaddingBottom).toBe("");
 	});
 
+	it("lifts the toasts above the bar while it is visible and releases them when it hides", async () => {
+		const { fixture, host } = await renderBar();
+		const root = document.documentElement;
+		expect(root.hasAttribute("data-bulk-bar-open")).toBe(true);
+		expect(root.style.getPropertyValue("--bulk-bar-clearance")).toBe(
+			"80px"
+		);
+
+		host.count.set(0);
+		fixture.detectChanges();
+		await fixture.whenStable();
+		expect(root.hasAttribute("data-bulk-bar-open")).toBe(false);
+		expect(root.style.getPropertyValue("--bulk-bar-clearance")).toBe("");
+	});
+
+	it("releases the toast space when the bar is destroyed while open", async () => {
+		const { fixture } = await renderBar();
+		fixture.destroy();
+		expect(
+			document.documentElement.hasAttribute("data-bulk-bar-open")
+		).toBe(false);
+	});
+
 	it("moves the extra actions into More on mobile, keeping icon-only buttons named", async () => {
 		mobile = true;
 		const user = userEvent.setup();

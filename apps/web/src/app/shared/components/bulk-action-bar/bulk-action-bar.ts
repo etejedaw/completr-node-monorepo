@@ -1,3 +1,4 @@
+import { DOCUMENT } from "@angular/common";
 import {
 	afterRenderEffect,
 	ChangeDetectionStrategy,
@@ -21,9 +22,11 @@ const BAR_HEIGHT_PX = 56;
 const DESKTOP_BOTTOM_OFFSET_PX = 16;
 const MOBILE_BOTTOM_OFFSET_PX = 8;
 const FOCUS_CLEARANCE_PX = 8;
-const DESKTOP_SCROLL_PADDING = `${BAR_HEIGHT_PX + DESKTOP_BOTTOM_OFFSET_PX + FOCUS_CLEARANCE_PX}px`;
-const MOBILE_SCROLL_PADDING = `calc(${BAR_HEIGHT_PX + MOBILE_BOTTOM_OFFSET_PX + FOCUS_CLEARANCE_PX}px + var(--tabbar-height) + env(safe-area-inset-bottom))`;
+const DESKTOP_BAR_CLEARANCE = `${BAR_HEIGHT_PX + DESKTOP_BOTTOM_OFFSET_PX + FOCUS_CLEARANCE_PX}px`;
+const MOBILE_BAR_CLEARANCE = `calc(${BAR_HEIGHT_PX + MOBILE_BOTTOM_OFFSET_PX + FOCUS_CLEARANCE_PX}px + var(--tabbar-height) + env(safe-area-inset-bottom))`;
 const OVERLAY_SELECTOR = "[role='dialog'], [role='menu'], [role='listbox']";
+const OPEN_ATTRIBUTE = "data-bulk-bar-open";
+const CLEARANCE_PROPERTY = "--bulk-bar-clearance";
 
 @Component({
 	selector: "app-bulk-action-bar",
@@ -37,6 +40,7 @@ const OVERLAY_SELECTOR = "[role='dialog'], [role='menu'], [role='listbox']";
 })
 export class BulkActionBar {
 	private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+	private readonly document = inject(DOCUMENT);
 	protected readonly isMobile = inject(ViewportService).isMobile;
 
 	readonly count = input.required<number>();
@@ -90,17 +94,19 @@ export class BulkActionBar {
 
 	constructor() {
 		afterRenderEffect(() => {
-			const scroller = this.scroller();
-			if (!scroller) return;
-			scroller.style.scrollPaddingBottom = this.isOpen()
+			const clearance = this.isOpen()
 				? this.isMobile()
-					? MOBILE_SCROLL_PADDING
-					: DESKTOP_SCROLL_PADDING
+					? MOBILE_BAR_CLEARANCE
+					: DESKTOP_BAR_CLEARANCE
 				: "";
+			const scroller = this.scroller();
+			if (scroller) scroller.style.scrollPaddingBottom = clearance;
+			this.reserveSpaceForToasts(clearance);
 		});
 		inject(DestroyRef).onDestroy(() => {
 			const scroller = this.scroller();
 			if (scroller) scroller.style.scrollPaddingBottom = "";
+			this.reserveSpaceForToasts("");
 		});
 	}
 
@@ -131,6 +137,17 @@ export class BulkActionBar {
 
 	private nounFor(count: number): string {
 		return count === 1 ? this.noun().one : this.noun().other;
+	}
+
+	private reserveSpaceForToasts(clearance: string) {
+		const root = this.document.documentElement;
+		if (clearance) {
+			root.setAttribute(OPEN_ATTRIBUTE, "");
+			root.style.setProperty(CLEARANCE_PROPERTY, clearance);
+			return;
+		}
+		root.removeAttribute(OPEN_ATTRIBUTE);
+		root.style.removeProperty(CLEARANCE_PROPERTY);
 	}
 
 	private scroller(): HTMLElement | null {
