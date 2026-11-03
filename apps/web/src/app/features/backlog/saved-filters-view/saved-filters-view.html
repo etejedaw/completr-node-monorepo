@@ -276,9 +276,9 @@
 					class="size-8 max-md:size-[44px] tap:size-[44px] rounded-full transition"
 					[class]="editColor() === c.key ? 'ring-2 ring-fg/80 ring-offset-2 ring-offset-sidebar' : ''"
 					[style.background]="c.hex"
-					[attr.aria-label]="c.key"
+					[attr.aria-label]="c.label"
 					[attr.aria-pressed]="editColor() === c.key"
-					[title]="c.key"
+					[title]="c.label"
 					(click)="editColor.set(c.key)"
 				></button>
 				}

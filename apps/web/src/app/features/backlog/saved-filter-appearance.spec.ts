@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+	SAVED_FILTER_COLORS,
 	SAVED_FILTER_ICON_LABELS,
 	SAVED_FILTER_ICONS,
 	savedFilterIconLabel
@@ -28,5 +29,12 @@ describe("saved filter appearance", () => {
 
 	it("falls back to the technical name for unknown icons", () => {
 		expect(savedFilterIconLabel("unknown_icon")).toBe("unknown_icon");
+	});
+
+	it("has a readable label for every color", () => {
+		for (const color of SAVED_FILTER_COLORS) {
+			expect(color.label).toBeTruthy();
+			expect(color.label).not.toBe(color.key);
+		}
 	});
 });

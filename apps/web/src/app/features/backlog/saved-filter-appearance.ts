@@ -46,14 +46,18 @@ export function savedFilterIconLabel(icon: string) {
 	return SAVED_FILTER_ICON_LABELS[icon] ?? icon;
 }
 
-export const SAVED_FILTER_COLORS: { key: string; hex: string }[] = [
-	{ key: "brand", hex: "var(--color-brand)" },
-	{ key: "sky", hex: "#38bdf8" },
-	{ key: "emerald", hex: "#34d399" },
-	{ key: "rose", hex: "#fb7185" },
-	{ key: "purple", hex: "#a78bfa" },
-	{ key: "teal", hex: "#2dd4bf" },
-	{ key: "slate", hex: "#94a3b8" }
+export const SAVED_FILTER_COLORS: {
+	key: string;
+	hex: string;
+	label: string;
+}[] = [
+	{ key: "brand", hex: "var(--color-brand)", label: "Theme color" },
+	{ key: "sky", hex: "#38bdf8", label: "Sky blue" },
+	{ key: "emerald", hex: "#34d399", label: "Green" },
+	{ key: "rose", hex: "#fb7185", label: "Pink" },
+	{ key: "purple", hex: "#a78bfa", label: "Purple" },
+	{ key: "teal", hex: "#2dd4bf", label: "Teal" },
+	{ key: "slate", hex: "#94a3b8", label: "Gray" }
 ];
 
 export function savedFilterColorHex(color: string | null | undefined) {
