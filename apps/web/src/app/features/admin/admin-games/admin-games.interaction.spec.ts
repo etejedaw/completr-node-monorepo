@@ -2141,7 +2141,7 @@ describe("AdminGames interaction", () => {
 			pendingReports = [{ id: "r1", gameId: "a002" }];
 			await renderLoaded(true);
 			const navigate = vi
-				.spyOn(TestBed.inject(Router), "navigate")
+				.spyOn(TestBed.inject(Router), "navigateByUrl")
 				.mockResolvedValue(true);
 
 			expect(
@@ -2151,13 +2151,24 @@ describe("AdminGames interaction", () => {
 				within(rowOf("Alpha 001")).queryByText("Reported")
 			).not.toBeInTheDocument();
 			const sheet = await openRowMenu(user, "Alpha 002");
-			await user.click(
-				within(sheet).getByRole("button", { name: "View report" })
-			);
-
-			expect(navigate).toHaveBeenCalledWith(["/admin/reports"], {
-				queryParams: { gameId: "a002" }
+			const report = within(sheet).getByRole("link", {
+				name: "View report"
 			});
+			expect(report).toHaveAttribute(
+				"href",
+				"/admin/reports?gameId=a002"
+			);
+			await user.click(report);
+
+			expect(navigate).toHaveBeenCalledTimes(1);
+			expect(String(navigate.mock.calls[0][0])).toBe(
+				"/admin/reports?gameId=a002"
+			);
+			await waitFor(() =>
+				expect(
+					screen.queryByRole("dialog", { name: "Alpha 002" })
+				).not.toBeInTheDocument()
+			);
 		});
 
 		it("reactivates a deactivated game once even when the menu item is tapped three times", async () => {

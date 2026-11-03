@@ -183,7 +183,11 @@ export class AdminGames implements OnInit {
 					id: "report",
 					label: "View report",
 					icon: "flag",
-					iconClass: "text-danger"
+					iconClass: "text-danger",
+					link: {
+						routerLink: ["/admin/reports"],
+						queryParams: { gameId: game.id }
+					}
 				});
 			items.push({
 				id: "edit",
@@ -396,7 +400,6 @@ export class AdminGames implements OnInit {
 	}
 
 	protected runRowAction(game: Game, action: string) {
-		if (action === "report") this.goToGameReport(game.id);
 		if (action === "edit") this.openEditor(game);
 		if (action === "external") this.openExternalData(game);
 		if (action === "deactivate") this.askDeactivate(game);
