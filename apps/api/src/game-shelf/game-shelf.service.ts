@@ -1,12 +1,16 @@
 import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { buildPlatformFilterWhere } from "../common/utils/platform-filter-where.util";
+import { splitByPresence } from "../common/utils/split-by-presence.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
+import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
+import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { Platform } from "../platforms/platform.model";
 import { resolvePremiumAccess } from "../premium-access/premium-access.service";
@@ -171,13 +175,45 @@ export async function updateGameShelf(
 	return gameShelf;
 }
 
-export async function removeGameShelf(id: string, userId: string) {
-	const gameShelf = await findGameShelfById(id);
-	if (!gameShelf) return false;
-	if (gameShelf.userId !== userId) return false;
+async function destroyOwnedGameShelfEntries(
+	userId: string,
+	ids: string[],
+	transaction?: Transaction
+) {
+	const owned = await GameShelf.findAll({
+		where: { id: ids, userId },
+		attributes: ["id"],
+		transaction
+	});
+	const ownedIds = owned.map(entry => entry.id);
+	if (ownedIds.length > 0)
+		await GameShelf.destroy({
+			where: { id: ownedIds, userId },
+			transaction
+		});
+	return ownedIds;
+}
 
-	await GameShelf.destroy({ where: { id, userId } });
-	return true;
+export async function removeGameShelf(id: string, userId: string) {
+	const removedIds = await destroyOwnedGameShelfEntries(userId, [id]);
+	return removedIds.length > 0;
+}
+
+export async function bulkDeleteGameShelf(
+	userId: string,
+	ids: string[]
+): Promise<BulkResult> {
+	const removedIds = await sequelize.transaction(transaction =>
+		destroyOwnedGameShelfEntries(userId, ids, transaction)
+	);
+	const { present: succeeded, missing } = splitByPresence(ids, removedIds);
+	return {
+		succeeded,
+		skipped: toBulkSkipped(
+			missing,
+			gameShelfServiceError.notFoundError().code
+		)
+	};
 }
 
 export async function findGameShelfForExport(
