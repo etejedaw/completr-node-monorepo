@@ -81,22 +81,25 @@
 			</div>
 			<div class="flex-1 min-w-0 flex flex-col gap-1.5">
 				<div class="flex items-start gap-2">
-					<a
-						class="tap-area flex-1 min-w-0 font-display text-base sm:text-lg font-semibold leading-tight text-fg no-underline hover:text-brand line-clamp-2"
-						[routerLink]="['/games', item.game.code]"
-						(click)="$event.stopPropagation()"
-						>{{ item.game.title }}</a
-					>
-					@if (!readonly() && !item.isPublic) {
-					<app-private-run-lock class="mt-1" />
-					} @if (item.platinum) {
-					<app-platinum-trophy
-						class="mt-0.5"
-						[scope]="isPlatinumRun() ? 'run' : 'game'"
-						[dimmed]="!isPlatinumRun()"
-						[platinumedAt]="isPlatinumRun() ? item.platinum.platinumedAt : null"
-					/>
-					} @if (!readonly()) {
+					<div class="flex-1 min-w-0 flex items-start gap-1.5">
+						<a
+							class="tap-area min-w-0 font-display text-base sm:text-lg font-semibold leading-tight text-fg no-underline hover:text-brand line-clamp-2"
+							[routerLink]="['/games', item.game.code]"
+							(click)="$event.stopPropagation()"
+							>{{ item.game.title }}</a
+						>
+						@if (!readonly() && !item.isPublic) {
+						<app-private-run-lock class="mt-0.5 sm:mt-1" />
+						} @if (item.platinum) {
+						<app-platinum-trophy
+							class="mt-0.5"
+							[scope]="isPlatinumRun() ? 'run' : 'game'"
+							[dimmed]="!isPlatinumRun()"
+							[platinumedAt]="isPlatinumRun() ? item.platinum.platinumedAt : null"
+						/>
+						}
+					</div>
+					@if (!readonly()) {
 					<div
 						class="max-sm:hidden flex items-center -mt-1 -mr-1 shrink-0"
 						[class.!mr-9]="hasAnnotations()"
