@@ -14,3 +14,9 @@ export interface FavoritesPagination extends Record<string, Appendable> {
 	offset?: number;
 	search?: string;
 }
+
+export type FavoritesBulkAction = "add" | "remove";
+
+export interface FavoritesBulkRequest {
+	gameIds: string[];
+}

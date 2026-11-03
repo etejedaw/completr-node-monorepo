@@ -18,3 +18,9 @@ export interface QueuePagination extends Record<string, Appendable> {
 	offset?: number;
 	search?: string;
 }
+
+export type QueueBulkAction = "add" | "remove";
+
+export interface QueueBulkRequest {
+	backlogIds: string[];
+}

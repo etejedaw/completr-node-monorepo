@@ -21,3 +21,9 @@ export interface SavePlatinumDto {
 	platinumedAt?: string | null;
 	notes?: string | null;
 }
+
+export type PlatinumBulkAction = "delete";
+
+export interface PlatinumBulkRequest {
+	gameIds: string[];
+}

@@ -245,4 +245,77 @@ describe("FavoritesService", () => {
 			req.flush({ data: { favorites: [entry("g2")] } });
 		});
 	});
+
+	describe("bulk", () => {
+		function bulkRequest() {
+			return httpTesting.expectOne(r => r.url === `${url}/bulk`);
+		}
+
+		it("adds many games optimistically and keeps only the ones that succeeded", () => {
+			loadFavorites("g1");
+			let received: unknown;
+			service
+				.bulk("add", { gameIds: ["g2", "g3"] })
+				.subscribe(r => (received = r));
+			expect(service.isFavorite("g2")).toBe(true);
+			expect(service.isFavorite("g3")).toBe(true);
+
+			const req = bulkRequest();
+			expect(req.request.method).toBe("POST");
+			expect(req.request.params.get("action")).toBe("add");
+			expect(req.request.body).toEqual({ gameIds: ["g2", "g3"] });
+			const result = {
+				action: "add",
+				succeeded: ["g2"],
+				skipped: [{ id: "g3", code: "FAVORITE_GAMES_NOT_FOUND" }]
+			};
+			req.flush({ data: result });
+
+			expect(received).toEqual(result);
+			expect([...service.favoriteIds()].sort()).toEqual(["g1", "g2"]);
+		});
+
+		it("removes many games and drops them from the loaded favorites", () => {
+			loadFavorites("g1", "g2", "g3");
+			service.bulk("remove", { gameIds: ["g1", "g3"] }).subscribe();
+			expect(service.isFavorite("g1")).toBe(false);
+
+			const req = bulkRequest();
+			expect(req.request.params.get("action")).toBe("remove");
+			req.flush({
+				data: { action: "remove", succeeded: ["g1", "g3"], skipped: [] }
+			});
+
+			expect([...service.favoriteIds()]).toEqual(["g2"]);
+			expect(service.favorites().map(f => f.game.id)).toEqual(["g2"]);
+		});
+
+		it("restores the previous ids when the bulk request fails", () => {
+			loadFavorites("g1");
+			let failed = false;
+			service
+				.bulk("add", { gameIds: ["g2"] })
+				.subscribe({ error: () => (failed = true) });
+
+			bulkRequest().flush(
+				{ type: "FAVORITE_LIMIT_REACHED" },
+				{ status: 402, statusText: "Payment Required" }
+			);
+
+			expect(failed).toBe(true);
+			expect([...service.favoriteIds()]).toEqual(["g1"]);
+		});
+
+		it("refuses to go over the favorites cap without calling the API", () => {
+			loadFavorites(...Array.from({ length: 99 }, (_, i) => `g${i}`));
+			let failed = false;
+			service
+				.bulk("add", { gameIds: ["x1", "x2"] })
+				.subscribe({ error: () => (failed = true) });
+
+			expect(failed).toBe(true);
+			expect(toast.error).toHaveBeenCalled();
+			expect(service.isFavorite("x1")).toBe(false);
+		});
+	});
 });

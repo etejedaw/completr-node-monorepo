@@ -3,8 +3,11 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../environments/environment";
+import { type BulkResponse } from "../../core/models";
 import { buildHttpParams } from "../../core/utils/http-params";
 import {
+	type BacklogBulkRequests,
+	type BacklogBulkResults,
 	type BacklogFilters,
 	type BacklogListResponse,
 	type BacklogSingleResponse,
@@ -37,5 +40,18 @@ export class BacklogService {
 
 	delete(id: string) {
 		return this.http.delete(`${this.baseUrl}/${id}`);
+	}
+
+	bulk<TAction extends keyof BacklogBulkRequests>(
+		action: TAction,
+		body: BacklogBulkRequests[TAction]
+	) {
+		return this.http
+			.post<BulkResponse<BacklogBulkResults[TAction]>>(
+				`${this.baseUrl}/bulk`,
+				body,
+				{ params: { action } }
+			)
+			.pipe(map(res => res.data));
 	}
 }

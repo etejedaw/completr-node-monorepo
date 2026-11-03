@@ -28,3 +28,9 @@ export interface UpdateGameShelfDto {
 	acquiredAt?: string | null;
 	notes?: string | null;
 }
+
+export type GameShelfBulkAction = "delete";
+
+export interface GameShelfBulkRequest {
+	ids: string[];
+}

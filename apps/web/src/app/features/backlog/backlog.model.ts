@@ -1,4 +1,8 @@
-import { type BacklogEntry } from "../../core/models";
+import {
+	type BacklogEntry,
+	type BacklogStatus,
+	type BulkResult
+} from "../../core/models";
 import { type Appendable } from "../../core/utils/http-params";
 
 export interface BacklogListResponse {
@@ -86,4 +90,26 @@ export interface UpdateBacklogDto {
 	isPublic?: boolean;
 	notes?: string | null;
 	compilationGameId?: string | null;
+}
+
+export interface BacklogBulkChanges {
+	status?: BacklogStatus;
+	startedAt?: string | null;
+	finishedAt?: string | null;
+	userRating?: number | null;
+	isPublic?: boolean;
+}
+
+export interface BacklogBulkUpdateResult extends BulkResult<"update"> {
+	queueRemoved: string[];
+}
+
+export interface BacklogBulkRequests {
+	update: { ids: string[]; changes: BacklogBulkChanges };
+	delete: { ids: string[] };
+}
+
+export interface BacklogBulkResults {
+	update: BacklogBulkUpdateResult;
+	delete: BulkResult<"delete">;
 }
