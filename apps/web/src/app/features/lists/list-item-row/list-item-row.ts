@@ -9,9 +9,11 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { type BacklogStatus, type ListItem } from "../../../core/models";
+import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
+import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { RatioSummary } from "../../../shared/components/ratio-summary/ratio-summary";
-import { UiIconButton } from "../../../shared/ui";
+import { UiEyebrow, UiIconButton } from "../../../shared/ui";
 import {
 	backlogStatusIcon,
 	backlogStatusIconColor,
@@ -23,10 +25,12 @@ export type ListItemRowMode = "own" | "theirs" | "compare";
 @Component({
 	selector: "app-list-item-row",
 	imports: [
+		ActionMenu,
 		CdkDragHandle,
 		RouterLink,
 		GamePoster,
 		RatioSummary,
+		UiEyebrow,
 		UiIconButton
 	],
 	templateUrl: "./list-item-row.html",
@@ -47,8 +51,29 @@ export class ListItemRow {
 	readonly moveUp = output<void>();
 	readonly moveDown = output<void>();
 	readonly remove = output<void>();
-	readonly moreRequested = output<void>();
 
+	protected readonly mobileActions = computed<readonly ActionMenuItem[]>(
+		() => [
+			{
+				id: "up",
+				label: "Move up",
+				icon: "arrow_upward",
+				disabled: this.isFirst()
+			},
+			{
+				id: "down",
+				label: "Move down",
+				icon: "arrow_downward",
+				disabled: this.isLast()
+			},
+			{
+				id: "remove",
+				label: "Remove from list",
+				icon: "playlist_remove",
+				iconClass: "text-danger"
+			}
+		]
+	);
 	protected readonly runRatio = computed(() => {
 		const entry = this.item();
 		return entry.backlogStatus === "completed" ? entry.personalRatio : null;
@@ -73,6 +98,12 @@ export class ListItemRow {
 			{ label: "Played", value: played, valueClass: "text-success" }
 		];
 	});
+
+	protected runMobileAction(id: string) {
+		if (id === "up") this.moveUp.emit();
+		else if (id === "down") this.moveDown.emit();
+		else this.remove.emit();
+	}
 
 	protected statusIcon(status: string): string {
 		return backlogStatusIcon(status as BacklogStatus);

@@ -37,7 +37,6 @@ import { GiftOfferCard } from "../../../shared/components/gift-offer-card/gift-o
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { ProgressMeter } from "../../../shared/components/progress-meter/progress-meter";
 import {
-	UiBottomSheet,
 	UiButton,
 	UiEmptyState,
 	UiSearchBar,
@@ -62,8 +61,6 @@ import {
 } from "../list-modal/list-modal.model";
 import { ListsService } from "../lists";
 
-type ItemActionId = "up" | "down" | "remove";
-
 const LIST_ACTIONS: ActionMenuItem[] = [
 	{ id: "edit", icon: "edit", label: "Edit list" },
 	{ id: "refresh", icon: "refresh", label: "Refresh scores" },
@@ -82,7 +79,6 @@ const LIST_ACTIONS: ActionMenuItem[] = [
 		LibraryHero,
 		ListItemRow,
 		ProgressMeter,
-		UiBottomSheet,
 		UiButton,
 		UiEmptyState,
 		UiSearchBar,
@@ -136,10 +132,6 @@ export class ListDetail implements OnInit {
 	protected readonly listMenuBusy = computed(
 		() => this.refreshing() || this.exporter.isBusy()
 	);
-	protected readonly itemSheet = signal<{
-		item: ListItem;
-		index: number;
-	} | null>(null);
 	protected readonly skeletonRange = [0, 1, 2, 3, 4];
 	protected readonly searchSkeletonRows = [0, 1, 2];
 	protected readonly heroPosters = computed(() =>
@@ -327,15 +319,6 @@ export class ListDetail implements OnInit {
 		if (id === "refresh") this.refreshScores();
 		else if (id === "duplicate") this.openDuplicate();
 		else this.openEdit();
-	}
-
-	runItemAction(id: ItemActionId) {
-		const sheet = this.itemSheet();
-		this.itemSheet.set(null);
-		if (!sheet) return;
-		if (id === "up") this.moveUp(sheet.index);
-		else if (id === "down") this.moveDown(sheet.index);
-		else this.removeItem(sheet.item);
 	}
 
 	moveUp(index: number) {

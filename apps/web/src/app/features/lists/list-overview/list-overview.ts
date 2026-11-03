@@ -21,6 +21,7 @@ import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
 	UiEmptyState,
+	UiEyebrow,
 	UiPagination,
 	UiPremiumBadge,
 	UiSearchBar,
@@ -44,6 +45,7 @@ import { ListsService } from "../lists";
 		ListCard,
 		UiButton,
 		UiEmptyState,
+		UiEyebrow,
 		UiPagination,
 		UiSearchBar,
 		UiSkeleton,

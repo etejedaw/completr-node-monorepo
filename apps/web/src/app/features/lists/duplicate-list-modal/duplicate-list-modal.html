@@ -26,22 +26,16 @@
 			/>
 		</div>
 
-		<label
-			class="flex items-center gap-3 min-h-[44px] cursor-pointer text-[0.8125rem] text-fg-secondary px-3 py-2 bg-input-bg border border-line rounded-card"
+		<ui-checkbox
+			class="min-h-[44px] w-full gap-3 px-3 py-2 rounded-card border border-line bg-input-bg text-[0.8125rem] text-fg-secondary"
+			[label]="form.isPublic().value() ? 'Public list' : 'Private list'"
+			[checked]="form.isPublic().value()"
+			(checkedChange)="form.isPublic().value.set($event)"
 		>
-			<input
-				type="checkbox"
-				class="w-4 h-4 cursor-pointer accent-[var(--color-brand)]"
-				[formField]="form.isPublic"
-			/>
-			<span aria-hidden="true" class="material-icons text-base"
+			<span aria-hidden="true" class="material-icons ml-auto text-base"
 				>{{ form.isPublic().value() ? "public" : "lock" }}</span
 			>
-			<span class="flex-1"
-				>{{ form.isPublic().value() ? "Public list" : "Private list"
-				}}</span
-			>
-		</label>
+		</ui-checkbox>
 	</form>
 
 	<ng-container dialogFooter>

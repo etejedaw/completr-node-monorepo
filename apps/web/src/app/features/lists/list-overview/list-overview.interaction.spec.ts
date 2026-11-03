@@ -290,7 +290,10 @@ describe("Lists interaction", () => {
 		}
 	}
 
+	let viewportMatches = false;
+
 	beforeEach(() => {
+		viewportMatches = false;
 		localStorage.clear();
 		lists = [];
 		itemReplacements.length = 0;
@@ -304,7 +307,7 @@ describe("Lists interaction", () => {
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
-				matches: false,
+				matches: viewportMatches,
 				addEventListener: vi.fn(),
 				removeEventListener: vi.fn()
 			}))
@@ -375,6 +378,66 @@ describe("Lists interaction", () => {
 		expect(
 			screen.getByRole("button", { name: "Move Hollow Knight up" })
 		).toBeDisabled();
+	});
+
+	it("moves and removes a game from its actions sheet on a narrow screen", async () => {
+		viewportMatches = true;
+		const user = userEvent.setup();
+		await renderLists();
+		await createListWithGames(user);
+
+		await user.click(
+			screen.getByRole("button", { name: "More actions for Celeste" })
+		);
+		const sheet = await screen.findByRole("dialog", { name: "Celeste" });
+		await user.click(
+			within(sheet).getByRole("button", { name: "Move up" })
+		);
+
+		await untilVisible(() =>
+			expect(rankingTitles()).toEqual([
+				"Celeste",
+				"Hades",
+				"Hollow Knight"
+			])
+		);
+		expect(itemReplacements.at(-1)).toEqual(["g2", "g1", "g3"]);
+		expect(
+			screen.queryByRole("dialog", { name: "Celeste" })
+		).not.toBeInTheDocument();
+
+		await user.click(
+			screen.getByRole("button", { name: "More actions for Celeste" })
+		);
+		const firstRowSheet = await screen.findByRole("dialog", {
+			name: "Celeste"
+		});
+		expect(
+			within(firstRowSheet).getByRole("button", { name: "Move up" })
+		).toBeDisabled();
+		await user.keyboard("{Escape}");
+		await waitFor(() =>
+			expect(
+				screen.queryByRole("dialog", { name: "Celeste" })
+			).not.toBeInTheDocument()
+		);
+		expect(rankingTitles()).toEqual(["Celeste", "Hades", "Hollow Knight"]);
+
+		await user.click(
+			screen.getByRole("button", { name: "More actions for Hades" })
+		);
+		const lastRowSheet = await screen.findByRole("dialog", {
+			name: "Hades"
+		});
+		await user.click(
+			within(lastRowSheet).getByRole("button", {
+				name: "Remove from list"
+			})
+		);
+		expect(rankingTitles()).toEqual(["Celeste", "Hollow Knight"]);
+		expect(
+			await screen.findByText("Removed Hades from the list")
+		).toBeInTheDocument();
 	});
 
 	it("removes a game with undo, then commits the removal", async () => {

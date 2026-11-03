@@ -11,6 +11,7 @@ import { type List } from "../../../core/models";
 import {
 	UiAlert,
 	UiButton,
+	UiCheckbox,
 	UiDialog,
 	UiFieldLabel,
 	UiFormField,
@@ -29,6 +30,7 @@ export type DuplicateListModalResult = List | null;
 		UiFieldLabel,
 		FormField,
 		UiButton,
+		UiCheckbox,
 		UiDialog,
 		UiInput,
 		UiFormField,

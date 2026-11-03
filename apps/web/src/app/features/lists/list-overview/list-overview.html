@@ -51,10 +51,7 @@
 
 @if (searchQuery().length >= 2) {
 <section class="mb-10" aria-labelledby="list-search-heading">
-	<h2
-		id="list-search-heading"
-		class="m-0 mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-	>
+	<h2 id="list-search-heading" uiEyebrow class="m-0 mb-3">
 		Public lists matching “{{ searchQuery() }}”
 	</h2>
 	@if (isSearching()) {
@@ -89,12 +86,7 @@
 }
 
 <section aria-labelledby="my-lists-heading">
-	<h2
-		id="my-lists-heading"
-		class="m-0 mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-	>
-		Your lists
-	</h2>
+	<h2 id="my-lists-heading" uiEyebrow class="m-0 mb-3">Your lists</h2>
 	@if (isLoading()) {
 	<ng-container [ngTemplateOutlet]="cardsSkeleton" />
 	} @else if (lists().length === 0) {
@@ -125,12 +117,7 @@
 
 @if (followingLists().length > 0) {
 <section class="mt-10" aria-labelledby="following-heading">
-	<h2
-		id="following-heading"
-		class="m-0 mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-	>
-		Following
-	</h2>
+	<h2 id="following-heading" uiEyebrow class="m-0 mb-3">Following</h2>
 	<ul class="list-none m-0 p-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
 		@for (list of followingLists(); track list.id) {
 		<li><app-list-card [list]="list" /></li>
