@@ -9,12 +9,19 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 
 import { AuthService } from "../../../core/services/auth";
 import { BETA_SIGNUP_URL } from "../../../shared/constants/beta-signup";
-import { UiAlert, UiButton, UiIconButton, UiInput } from "../../../shared/ui";
+import {
+	UiAlert,
+	UiButton,
+	UiFieldLabel,
+	UiIconButton,
+	UiInput
+} from "../../../shared/ui";
 import { AuthPage } from "../auth-page/auth-page";
 
 @Component({
 	selector: "app-login",
 	imports: [
+		UiFieldLabel,
 		FormField,
 		UiAlert,
 		UiButton,

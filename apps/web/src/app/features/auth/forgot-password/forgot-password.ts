@@ -8,12 +8,20 @@ import { email, form, FormField, required } from "@angular/forms/signals";
 import { RouterLink } from "@angular/router";
 
 import { AuthService } from "../../../core/services/auth";
-import { UiAlert, UiButton, UiInput } from "../../../shared/ui";
+import { UiAlert, UiButton, UiFieldLabel, UiInput } from "../../../shared/ui";
 import { AuthPage } from "../auth-page/auth-page";
 
 @Component({
 	selector: "app-forgot-password",
-	imports: [AuthPage, FormField, RouterLink, UiAlert, UiButton, UiInput],
+	imports: [
+		UiFieldLabel,
+		AuthPage,
+		FormField,
+		RouterLink,
+		UiAlert,
+		UiButton,
+		UiInput
+	],
 	templateUrl: "./forgot-password.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

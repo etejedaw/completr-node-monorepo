@@ -9,11 +9,7 @@
 
 	<form (submit)="onSubmit($event)" class="flex flex-col gap-5">
 		<div>
-			<label
-				for="email"
-				class="block mb-1.5 text-sm font-medium text-fg-secondary"
-				>Email</label
-			>
+			<label for="email" uiFieldLabel>Email</label>
 			<div class="relative">
 				<span
 					aria-hidden="true"
@@ -34,9 +30,7 @@
 
 		<div>
 			<div class="flex items-center justify-between gap-3 mb-1.5">
-				<label
-					for="password"
-					class="text-sm font-medium text-fg-secondary"
+				<label for="password" uiFieldLabel class="!mb-0"
 					>Password</label
 				>
 				<a

@@ -33,13 +33,20 @@ import {
 	PASSWORD_MAX_LENGTH
 } from "../../../core/utils/password-policy";
 import { PasswordRules } from "../../../shared/components/password-rules/password-rules";
-import { UiButton, UiInput } from "../../../shared/ui";
+import { UiButton, UiFieldLabel, UiInput } from "../../../shared/ui";
 
 const UNSAFE_TEXT = /[<>]/;
 
 @Component({
 	selector: "app-register",
-	imports: [FormField, PasswordRules, RouterLink, UiButton, UiInput],
+	imports: [
+		UiFieldLabel,
+		FormField,
+		PasswordRules,
+		RouterLink,
+		UiButton,
+		UiInput
+	],
 	templateUrl: "./register.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

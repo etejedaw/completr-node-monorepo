@@ -36,6 +36,7 @@ import { PasswordRules } from "../../../shared/components/password-rules/passwor
 import {
 	UiAlert,
 	UiButton,
+	UiFieldLabel,
 	UiIconButton,
 	UiInput,
 	UiSkeleton
@@ -49,6 +50,7 @@ const UNSAFE_TEXT = /[<>]/;
 @Component({
 	selector: "app-accept-invite",
 	imports: [
+		UiFieldLabel,
 		AuthPage,
 		FormField,
 		PasswordRules,
