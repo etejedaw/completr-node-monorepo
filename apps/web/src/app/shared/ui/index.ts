@@ -1,6 +1,8 @@
 export type { UiAlertTone } from "./alert/ui-alert";
 export { UiAlert } from "./alert/ui-alert";
 export { UiAvatar } from "./avatar/ui-avatar";
+export type { UiBadgeTone } from "./badge/ui-badge";
+export { UiBadge } from "./badge/ui-badge";
 export { UiBottomSheet } from "./bottom-sheet/ui-bottom-sheet";
 export type { UiButtonSize, UiButtonVariant } from "./button/ui-button";
 export { UiButton } from "./button/ui-button";
@@ -37,6 +39,7 @@ export { UiSeparator } from "./separator/ui-separator";
 export type { UiSkeletonVariant } from "./skeleton/ui-skeleton";
 export { UiSkeleton } from "./skeleton/ui-skeleton";
 export { UiSwitch } from "./switch/ui-switch";
+export { UiTable } from "./table/ui-table";
 export { UiTab, UiTabList, UiTabPanel, UiTabs } from "./tabs/ui-tabs";
 export { UiTextarea } from "./textarea/ui-textarea";
 export { UiTooltipContent } from "./tooltip/ui-tooltip";
