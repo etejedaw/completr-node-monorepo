@@ -23,6 +23,8 @@ import {
 	UiAlert,
 	UiButton,
 	UiDialog,
+	UiFieldLabel,
+	UiFieldOptional,
 	UiInput,
 	UiTextarea
 } from "../../../shared/ui";
@@ -62,7 +64,9 @@ const EDITION_SUGGESTIONS = [
 		UiButton,
 		UiDialog,
 		UiInput,
-		UiTextarea
+		UiTextarea,
+		UiFieldLabel,
+		UiFieldOptional
 	],
 	templateUrl: "./game-shelf-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

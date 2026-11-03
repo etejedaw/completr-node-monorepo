@@ -93,7 +93,10 @@ describe("GameShelfModal", () => {
 		await renderModal({ entry, preselectedGame: null });
 
 		await userEvent.click(screen.getByRole("button", { name: /^edit$/i }));
-		await userEvent.type(screen.getByLabelText("Acquired"), "2026-03-01");
+		await userEvent.type(
+			screen.getByLabelText("Acquired Optional"),
+			"2026-03-01"
+		);
 		const body = await submitAndCaptureBody("PATCH", `${shelfUrl}/s1`);
 
 		expect(body).toEqual(
@@ -104,7 +107,10 @@ describe("GameShelfModal", () => {
 	it("sends an acquired date as a plain day when adding", async () => {
 		await renderModal({ entry: null, preselectedGame: game });
 
-		await userEvent.type(screen.getByLabelText("Acquired"), "2026-03-01");
+		await userEvent.type(
+			screen.getByLabelText("Acquired Optional"),
+			"2026-03-01"
+		);
 		const body = await submitAndCaptureBody("POST", shelfUrl);
 
 		expect(body).toEqual(
