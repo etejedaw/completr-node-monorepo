@@ -15,6 +15,7 @@ import { LibraryHero } from "../../../shared/components/library-hero/library-her
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiBadge,
@@ -23,7 +24,6 @@ import {
 	UiEmptyState,
 	UiNoMatches,
 	UiPremiumBadge,
-	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
 import { injectLibraryPosters } from "../../backlog/library-posters";
@@ -56,11 +56,11 @@ const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: TagSort })[] = [
 		UiButton,
 		UiEmptyState,
 		UiNoMatches,
-		UiSearchBar,
 		UiSkeleton,
 		UiDialog,
 		PremiumOnly,
-		UiPremiumBadge
+		UiPremiumBadge,
+		PageSearch
 	],
 	templateUrl: "./tags-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
