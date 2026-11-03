@@ -62,6 +62,7 @@
 <app-game-admin-bar
 	class="mt-6"
 	[isAdmin]="isAdmin()"
+	[gameTitle]="g.title"
 	[state]="adminActions()"
 	(stateChanged)="updateAdminActions($event)"
 	(deactivateConfirmed)="deactivateGame()"

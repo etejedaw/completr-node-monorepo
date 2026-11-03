@@ -5,3 +5,5 @@ export interface AdminActionsState {
 	deactivating: boolean;
 	deleting: boolean;
 }
+
+export type GameAdminAction = "deactivate" | "delete";
