@@ -10,6 +10,7 @@ export interface ExternalDataJobReport {
 	candidates: number;
 	processed: number;
 	skippedComplete: number;
+	skippedRecentlyAttempted: number;
 	metacritic: ExternalDataSourceTally;
 	hltb: ExternalDataSourceTally;
 	hltbIdLookupPausedReason: string | null;

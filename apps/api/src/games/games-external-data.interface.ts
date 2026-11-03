@@ -1,3 +1,4 @@
+import { type ExternalDataAttemptStatus } from "../external-data-attempts/external-data-attempt.model";
 import { type ExternalDataSource } from "./games.constants";
 import {
 	type ExternalDataRequestPriority,
@@ -103,7 +104,19 @@ export interface ExternalDataCandidate {
 	sources: ExternalDataSource[];
 }
 
+export interface ExternalDataPendingCandidate extends ExternalDataCandidate {
+	oldestAttemptedAt: number;
+}
+
 export interface ExternalDataCandidates {
 	candidates: ExternalDataCandidate[];
 	completeCount: number;
+	recentlyAttemptedCount: number;
+}
+
+export interface ExternalDataAttemptRecord {
+	gameId: string;
+	source: ExternalDataSource;
+	status: ExternalDataAttemptStatus;
+	attemptedAt: Date;
 }

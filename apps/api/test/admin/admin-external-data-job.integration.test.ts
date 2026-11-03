@@ -4,6 +4,7 @@ import { setTimeout as delay } from "node:timers/promises";
 
 import { AuditLog } from "../../src/audit/audit.model";
 import { ServiceError } from "../../src/common/errors/service-error";
+import { ExternalDataAttempt } from "../../src/external-data-attempts/external-data-attempt.model";
 import { GameExternal } from "../../src/game-external/game-external.model";
 import { GameScore } from "../../src/game-scores/game-score.model";
 import { GameTime } from "../../src/game-times/game-time.model";
@@ -48,6 +49,7 @@ useTestDatabase(async () => {
 
 beforeEach(async () => {
 	await Job.destroy({ where: {} });
+	await ExternalDataAttempt.destroy({ where: {} });
 	await GameExternal.destroy({ where: {} });
 	await GameScore.destroy({ where: {} });
 	await GameTime.destroy({ where: {} });
@@ -90,6 +92,7 @@ function report(fields: {
 	mcUpdated?: number;
 	hltbUpdated?: number;
 	skipped?: number;
+	recentlyAttempted?: number;
 	mc?: [number, number, number, number];
 	hltb?: [number, number, number, number];
 	hltbIdLookupPaused?: { reason: string; skippedWithoutId: number };
@@ -101,7 +104,7 @@ function report(fields: {
 		0, 0, 0, 0
 	];
 	return [
-		`Candidates: ${fields.candidates}, Processed: ${fields.processed}, Metacritic scores updated: ${fields.mcUpdated ?? 0}, HLTB durations updated: ${fields.hltbUpdated ?? 0}, Skipped complete: ${fields.skipped ?? 0}`,
+		`Candidates: ${fields.candidates}, Processed: ${fields.processed}, Metacritic scores updated: ${fields.mcUpdated ?? 0}, HLTB durations updated: ${fields.hltbUpdated ?? 0}, Skipped complete: ${fields.skipped ?? 0}, Skipped recently attempted: ${fields.recentlyAttempted ?? 0}`,
 		`Metacritic not found: ${mcNotFound}, ambiguous: ${mcAmbiguous}, no data: ${mcNoData}, failed: ${mcFailed}`,
 		`HLTB not found: ${hNotFound}, ambiguous: ${hAmbiguous}, no data: ${hNoData}, failed: ${hFailed}`,
 		...(fields.hltbIdLookupPaused
@@ -123,6 +126,25 @@ function rateLimitedWithDetail(code: string, retryAfterMs: number) {
 			retryAfterMs
 		}
 	});
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function daysAgo(days: number) {
+	return new Date(Date.now() - days * DAY_MS);
+}
+
+function recordAttempt(
+	gameId: string,
+	source: "metacritic" | "hltb",
+	status: "not_found" | "ambiguous" | "no_data" | "failed",
+	attemptedAt: Date
+) {
+	return ExternalDataAttempt.create({ gameId, source, status, attemptedAt });
+}
+
+async function attemptOf(gameId: string, source: "metacritic" | "hltb") {
+	return ExternalDataAttempt.findOne({ where: { gameId, source } });
 }
 
 function scorePage(slug: string, title: string, metaScore: number) {
@@ -842,5 +864,206 @@ void describe("POST /admin/jobs/populate-external-data — HLTB id through Wikid
 				hltb: [0, 0, 0, 1]
 			})
 		);
+	});
+});
+
+void describe("POST /admin/jobs/populate-external-data — recently attempted games", () => {
+	void it("remembers the games without data and skips them on the next run", async () => {
+		const missing = await createCatalogGame("Alpha");
+		const found = await createCatalogGame("Bravo");
+		await linkExternal(found.id, "hltb", "b");
+		const metacritic = metacriticPages([scorePage("bravo", "Bravo", 82)]);
+		const hltb = hltbPages([hltbDetail({ id: "b", mainStoryHours: 7 })]);
+		registerFakes({ metacritic, hltb });
+
+		const first = await runJob();
+		const second = await runJob();
+
+		assert.equal(first.status, "completed");
+		assert.equal(
+			first.result,
+			report({
+				candidates: 2,
+				processed: 2,
+				mcUpdated: 1,
+				hltbUpdated: 1,
+				mc: [1, 0, 0, 0],
+				hltb: [1, 0, 0, 0]
+			})
+		);
+		assert.equal(second.status, "completed");
+		assert.equal(
+			second.result,
+			report({
+				candidates: 0,
+				processed: 0,
+				skipped: 1,
+				recentlyAttempted: 1
+			})
+		);
+		assert.deepEqual(metacritic.calls, ["alpha", "bravo"]);
+		assert.equal(
+			(await attemptOf(missing.id, "metacritic"))?.status,
+			"not_found"
+		);
+		assert.equal(
+			(await attemptOf(missing.id, "hltb"))?.status,
+			"not_found"
+		);
+		assert.equal(await attemptOf(found.id, "metacritic"), null);
+	});
+
+	void it("retries a game once its wait is over, after the games never tried and oldest first", async () => {
+		const longAgo = await createCatalogGame("Alpha");
+		await createGameTime(longAgo.id, "hltb", 10);
+		await recordAttempt(longAgo.id, "metacritic", "not_found", daysAgo(31));
+		const recentNoData = await createCatalogGame("Bravo");
+		await createGameTime(recentNoData.id, "hltb", 10);
+		await recordAttempt(
+			recentNoData.id,
+			"metacritic",
+			"no_data",
+			daysAgo(8)
+		);
+		const waiting = await createCatalogGame("Charlie");
+		await createGameTime(waiting.id, "hltb", 10);
+		await recordAttempt(waiting.id, "metacritic", "not_found", daysAgo(10));
+		const waitingFailure = await createCatalogGame("Delta");
+		await createGameTime(waitingFailure.id, "hltb", 10);
+		await recordAttempt(
+			waitingFailure.id,
+			"metacritic",
+			"failed",
+			daysAgo(2)
+		);
+		const neverTried = await createCatalogGame("Echo");
+		await createGameTime(neverTried.id, "hltb", 10);
+		const metacritic = metacriticPages([scorePage("bravo", "Bravo", 75)]);
+		registerFakes({ metacritic, hltb: hltbPages([]) });
+
+		const job = await runJob();
+
+		assert.equal(job.status, "completed");
+		assert.equal(
+			job.result,
+			report({
+				candidates: 3,
+				processed: 3,
+				mcUpdated: 1,
+				recentlyAttempted: 2,
+				mc: [2, 0, 0, 0]
+			})
+		);
+		assert.deepEqual(metacritic.calls, ["echo", "alpha", "bravo"]);
+		const retried = await attemptOf(longAgo.id, "metacritic");
+		assert.ok(retried);
+		assert.ok(retried.attemptedAt.getTime() > daysAgo(1).getTime());
+		assert.equal(await attemptOf(recentNoData.id, "metacritic"), null);
+	});
+
+	void it("asks only for the source that is not waiting", async () => {
+		const game = await createCatalogGame("Alpha");
+		await linkExternal(game.id, "hltb", "a");
+		await recordAttempt(game.id, "metacritic", "ambiguous", daysAgo(2));
+		const metacritic = metacriticPages([scorePage("alpha", "Alpha", 80)]);
+		const hltb = hltbPages([hltbDetail({ id: "a", mainStoryHours: 4 })]);
+		registerFakes({ metacritic, hltb });
+
+		const job = await runJob();
+
+		assert.equal(
+			job.result,
+			report({ candidates: 1, processed: 1, hltbUpdated: 1 })
+		);
+		assert.deepEqual(metacritic.calls, []);
+		assert.deepEqual(hltb.calls, ["a"]);
+		assert.equal(
+			(await attemptOf(game.id, "metacritic"))?.status,
+			"ambiguous"
+		);
+	});
+
+	for (const suffix of ["RATE_LIMITED", "BLOCKED", "PARSE_ERROR"]) {
+		void it(`does not hold back a game that hit METACRITIC_${suffix} and starts the next run with it`, async () => {
+			const blocked = await createCatalogGame("Bravo");
+			await createGameTime(blocked.id, "hltb", 10);
+			const before = await createCatalogGame("Alpha");
+			await createGameTime(before.id, "hltb", 10);
+			await recordAttempt(
+				before.id,
+				"metacritic",
+				"not_found",
+				daysAgo(40)
+			);
+			let failing = true;
+			const metacritic = fakeMetacritic(slug => {
+				if (slug === "bravo" && failing)
+					return providerError(`METACRITIC_${suffix}`);
+				if (slug === "bravo") return scorePage("bravo", "Bravo", 70);
+				return undefined;
+			});
+			registerFakes({ metacritic, hltb: hltbPages([]) });
+
+			const first = await runJob();
+			failing = false;
+			const second = await runJob();
+
+			assert.equal(first.status, "failed");
+			assert.equal(await attemptOf(blocked.id, "metacritic"), null);
+			assert.equal(second.status, "completed");
+			assert.deepEqual(metacritic.calls, ["bravo", "bravo", "alpha"]);
+			assert.equal(
+				(await GameScore.findOne({ where: { gameId: blocked.id } }))
+					?.score,
+				70
+			);
+		});
+	}
+
+	void it("remembers a timeout as a failure of that game", async () => {
+		const game = await createCatalogGame("Alpha");
+		await createGameTime(game.id, "hltb", 10);
+		registerFakes({
+			metacritic: fakeMetacritic(() =>
+				providerError("METACRITIC_TIMEOUT")
+			),
+			hltb: hltbPages([])
+		});
+
+		const job = await runJob();
+
+		assert.equal(job.status, "completed");
+		assert.equal(
+			(await attemptOf(game.id, "metacritic"))?.status,
+			"failed"
+		);
+	});
+
+	void it("does not hold back the HLTB lookup of games hit by a Wikidata failure or its pause", async () => {
+		const first = await createCatalogGame("Alpha");
+		const second = await createCatalogGame("Bravo");
+		const metacritic = metacriticPages([
+			scorePage("alpha", "Alpha", 80),
+			scorePage("bravo", "Bravo", 70)
+		]);
+		const wikidata = fakeWikidata(() =>
+			providerError("WIKIDATA_RATE_LIMITED")
+		);
+		registerFakes({ metacritic, hltb: hltbPages([]), wikidata });
+
+		const job = await runJob();
+
+		assert.equal(job.status, "completed");
+		assert.equal(await attemptOf(first.id, "hltb"), null);
+		assert.equal(await attemptOf(second.id, "hltb"), null);
+	});
+
+	void it("drops the attempts of a deleted game", async () => {
+		const game = await createCatalogGame("Alpha");
+		await recordAttempt(game.id, "metacritic", "not_found", daysAgo(1));
+
+		await game.destroy();
+
+		assert.equal(await ExternalDataAttempt.count(), 0);
 	});
 });
