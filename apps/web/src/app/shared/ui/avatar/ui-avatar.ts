@@ -26,7 +26,6 @@ export type UiAvatarRing = "premium" | "admin" | null;
 					[src]="src()"
 					[alt]="alt() || name() || ''"
 					class="w-full h-full object-cover"
-					loading="lazy"
 				/>
 			}
 			<span
