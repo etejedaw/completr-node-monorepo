@@ -1,12 +1,19 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	input,
 	output
 } from "@angular/core";
 
 import { UiFocusTrap } from "../focus-trap/ui-focus-trap";
 import { injectBodyPortal } from "../portal/body-portal";
+import {
+	UI_TONE_COLOR,
+	UI_TONE_HALO_CLASS,
+	UI_TONE_ICON_CLASS,
+	type UiTone
+} from "../tone/ui-tone";
 
 let nextDrawerId = 0;
 
@@ -30,8 +37,21 @@ let nextDrawerId = 0;
 				(escape)="onEscape($event)"
 			>
 				<header
-					class="shrink-0 flex items-start gap-3 px-5 pt-5 pb-4 border-b border-line"
+					class="shrink-0 flex items-start gap-3.5 px-5 pt-5 pb-4 md:px-6 md:pt-6 md:pb-5 border-b border-line"
+					[class]="haloClass"
+					[style.--dialog-tone]="toneColor()"
 				>
+					@if (icon()) {
+						<span
+							aria-hidden="true"
+							class="shrink-0 inline-flex size-12 items-center justify-center rounded-xl ring-1 ring-inset shadow-[0_8px_24px_-10px_currentColor]"
+							[class]="iconToneClass()"
+						>
+							<span class="material-icons text-[22px]">{{
+								icon()
+							}}</span>
+						</span>
+					}
 					<div class="flex-1 min-w-0">
 						@if (eyebrow()) {
 							<span
@@ -40,14 +60,14 @@ let nextDrawerId = 0;
 							>
 						}
 						<h2
-							class="m-0 font-display text-xl font-bold tracking-tight leading-tight text-fg text-balance"
+							class="m-0 font-display text-xl md:text-2xl font-bold tracking-tight leading-tight text-fg text-balance break-words"
 							[id]="titleId"
 						>
 							{{ heading() }}
 						</h2>
 						@if (subheading()) {
 							<p
-								class="m-0 mt-1 text-[0.8125rem] text-fg-muted text-pretty"
+								class="m-0 mt-1.5 text-sm text-fg-muted text-pretty"
 								[id]="subtitleId"
 							>
 								{{ subheading() }}
@@ -68,12 +88,12 @@ let nextDrawerId = 0;
 					</button>
 				</header>
 				<div
-					class="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-5"
+					class="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-5 md:px-6"
 				>
 					<ng-content />
 				</div>
 				<div
-					class="empty:hidden shrink-0 flex flex-wrap items-center justify-between gap-2 px-5 py-3 border-t border-line"
+					class="empty:hidden shrink-0 flex flex-wrap items-center justify-between gap-2 px-5 py-3 md:px-6 md:py-4 border-t border-line bg-surface/40"
 				>
 					<ng-content select="[drawerFooter]" />
 				</div>
@@ -86,10 +106,17 @@ export class UiDrawer {
 	readonly heading = input.required<string>();
 	readonly subheading = input<string | null>(null);
 	readonly eyebrow = input<string | null>(null);
+	readonly icon = input<string | null>(null);
+	readonly tone = input<UiTone>("brand");
 	readonly closed = output<void>();
 
 	protected readonly titleId = `ui-drawer-title-${nextDrawerId}`;
 	protected readonly subtitleId = `ui-drawer-subtitle-${nextDrawerId++}`;
+	protected readonly haloClass = UI_TONE_HALO_CLASS;
+	protected readonly iconToneClass = computed(
+		() => UI_TONE_ICON_CLASS[this.tone()]
+	);
+	protected readonly toneColor = computed(() => UI_TONE_COLOR[this.tone()]);
 
 	constructor() {
 		injectBodyPortal({ restoreFocus: true });
