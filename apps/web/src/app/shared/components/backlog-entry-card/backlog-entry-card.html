@@ -29,7 +29,7 @@
 				/>
 			</div>
 			<div
-				class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"
+				class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-line-hover to-transparent"
 			></div>
 		</div>
 		<div
@@ -47,7 +47,8 @@
 						[src]="item.game.backgroundUrl"
 						[title]="item.game.title"
 						[width]="200"
-						class="w-[4.75rem] sm:w-24 aspect-[2/3] rounded-md shadow-lg shadow-black/50 ring-1 ring-white/10 transition duration-300 group-hover/row:scale-[1.03]"
+						framed
+						class="w-[4.75rem] sm:w-24 aspect-[2/3] rounded-md shadow-lg shadow-black/50 transition duration-300 group-hover/row:scale-[1.03]"
 					/>
 				</a>
 				@if (item.status === 'not_started' && !readonly()) {
@@ -99,8 +100,9 @@
 						[class.!mr-9]="hasAnnotations()"
 					>
 						<button
+							uiIconButton
 							type="button"
-							class="w-9 h-9 tap:min-w-[44px] tap:min-h-[44px] rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-nav-favorites hover:bg-surface-hover"
+							shape="circle"
 							[class.!text-nav-favorites]="favorite()"
 							(click)="favoriteToggled.emit($event)"
 							[title]="favorite() ? 'Remove from favorites' : 'Add to favorites'"
@@ -108,22 +110,23 @@
 						>
 							<span
 								aria-hidden="true"
-								class="material-icons text-lg leading-none"
+								class="material-icons text-lg"
 								>{{ favorite() ? 'favorite' : 'favorite_border'
 								}}</span
 							>
 						</button>
 						<button
+							uiIconButton
 							type="button"
-							class="w-9 h-9 tap:min-w-[44px] tap:min-h-[44px] rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-danger hover:bg-surface-hover"
-							[class.!text-danger]="inQueue()"
+							shape="circle"
+							[class.!text-nav-queue]="inQueue()"
 							(click)="queueToggled.emit($event)"
 							[title]="inQueue() ? 'Remove from Queue' : 'Add to Queue'"
 							[attr.aria-label]="inQueue() ? 'Remove from Queue' : 'Add to Queue'"
 						>
 							<span
 								aria-hidden="true"
-								class="material-icons text-lg leading-none"
+								class="material-icons text-lg"
 								>{{ inQueue() ? 'playlist_add_check' :
 								'playlist_play' }}</span
 							>
@@ -135,81 +138,16 @@
 					class="flex items-center gap-x-2 gap-y-1 text-xs flex-wrap"
 				>
 					@if (canChangeStatus()) {
-					<div
-						class="relative inline-block"
-						[appMenuKeyboard]="statusMenuOpen()"
-						(menuClosed)="statusMenuClosed.emit()"
-					>
-						<button
-							type="button"
-							class="tap-area inline-flex items-center gap-1 pl-2 pr-1 py-0.5 tap:pl-3 tap:pr-2 tap:py-2 tap:text-xs rounded-full text-[0.6875rem] font-semibold tracking-wide border border-line hover:border-brand/50 cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
-							[class]="statusClass(item.status)"
-							[disabled]="statusUpdating()"
-							(click)="statusMenuToggled.emit($event)"
-							aria-haspopup="menu"
-							[attr.aria-expanded]="statusMenuOpen()"
-							[attr.aria-controls]="'status-menu-' + item.id"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-[0.875rem]"
-								>{{ statusIcon(item.status) }}</span
-							>
-							{{ statusLabel(item.status) }}
-							<span
-								aria-hidden="true"
-								class="material-icons text-[0.875rem]"
-								>arrow_drop_down</span
-							>
-						</button>
-						@if (statusMenuOpen()) {
-						<div
-							role="menu"
-							tabindex="-1"
-							[id]="'status-menu-' + item.id"
-							aria-label="Change status"
-							class="absolute left-0 top-full mt-1 z-20 bg-sidebar border border-line rounded-card shadow-xl shadow-black/50 py-1 min-w-[170px]"
-							(click)="$event.stopPropagation()"
-							(keydown.enter)="$event.stopPropagation()"
-							(keydown.space)="$event.stopPropagation()"
-						>
-							@for (s of statusOptions(); track s.value) {
-							<button
-								type="button"
-								role="menuitem"
-								class="flex items-center gap-2 w-full text-left px-3 py-2 text-xs bg-transparent border-0 text-fg hover:bg-input-bg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-input-bg focus-visible:outline-none"
-								[disabled]="s.value === item.status"
-								(click)="statusSelected.emit({ status: s.value, event: $event })"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-sm"
-									[class]="statusIconColor($any(s.value))"
-									>{{ statusIcon($any(s.value)) }}</span
-								>
-								{{ s.label }}
-							</button>
-							}
-						</div>
-						}
-					</div>
+					<app-backlog-status-picker
+						[status]="item.status"
+						[subject]="item.game.title"
+						[disabled]="statusUpdating()"
+						(statusChange)="statusChanged.emit($event)"
+					/>
 					} @else {
-					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tracking-wide"
-						[class]="statusClass(item.status)"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.875rem]"
-							>{{ statusIcon(item.status) }}</span
-						>
-						{{ statusLabel(item.status) }}
-					</span>
+					<app-backlog-status-badge [status]="item.status" />
 					}
-					<span
-						class="px-1.5 py-0.5 rounded bg-surface-hover text-fg-secondary text-[0.6875rem] font-semibold tracking-wide"
-						>{{ item.platform.abbreviation }}</span
-					>
+					<ui-badge>{{ item.platform.abbreviation }}</ui-badge>
 					@if (item.coopMembers && item.coopMembers.length > 0) {
 					<span
 						class="inline-flex items-center gap-1.5 text-[0.6875rem] text-fg-muted"
@@ -232,17 +170,14 @@
 					</span>
 					} @if (item.compilationGame) {
 					<a
-						class="tap-area inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-medium text-brand bg-brand/10 border border-brand/30 no-underline hover:bg-brand/20"
+						class="tap-area inline-flex max-w-full rounded-full no-underline transition hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
 						[routerLink]="['/games', item.compilationGame.code]"
 						(click)="$event.stopPropagation()"
 						[title]="'Part of ' + item.compilationGame.title"
 					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.75rem]"
-							>library_books</span
+						<ui-badge tone="brand" icon="library_books"
+							>in {{ item.compilationGame.title }}</ui-badge
 						>
-						in {{ item.compilationGame.title }}
 					</a>
 					}
 				</div>
@@ -257,22 +192,13 @@
 						>{{ item.latestProgress?.note }}</span
 					>
 				</div>
-				} @if (item.moodTags && item.moodTags.length > 0) {
-				<div class="flex flex-wrap gap-1">
-					@for (tag of item.moodTags; track tag) {
-					<span
-						class="inline-block px-1.5 py-0.5 rounded-full bg-brand-subtle text-brand text-[0.625rem] font-medium leading-none"
-						>{{ tag }}</span
-					>
-					}
-				</div>
 				}
+				<app-mood-tags-chips [tags]="item.moodTags" />
 				<div
 					class="my-auto py-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-3"
 				>
 					<div class="flex flex-col gap-1.5 leading-none">
-						<span
-							class="text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
+						<span uiEyebrow
 							>{{ readonly() ? "Rating" : "Your rating" }}</span
 						>
 						@if (coarsePointer() && canQuickRate()) {
@@ -370,7 +296,8 @@
 				[title]="item.game.title"
 				[width]="200"
 				[compact]="true"
-				class="w-7 aspect-[2/3] rounded-sm shrink-0 ring-1 ring-white/10"
+				framed
+				class="w-7 aspect-[2/3] rounded-sm shrink-0"
 			/>
 			<span
 				class="flex-1 min-w-0 font-display font-semibold text-fg truncate"
@@ -382,9 +309,7 @@
 		>
 			@if (item.notes) {
 			<div class="flex flex-col gap-1.5">
-				<h3
-					class="m-0 flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
+				<h3 uiEyebrow class="m-0 !flex items-center gap-1.5">
 					<span aria-hidden="true" class="material-icons !text-sm"
 						>sticky_note_2</span
 					>
@@ -398,9 +323,7 @@
 			</div>
 			} @if (item.hasReview && item.reviewContent) {
 			<div class="flex flex-col gap-1.5">
-				<h3
-					class="m-0 flex items-center gap-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
+				<h3 uiEyebrow class="m-0 !flex items-center gap-1.5">
 					<span aria-hidden="true" class="material-icons !text-sm"
 						>rate_review</span
 					>
@@ -418,14 +341,14 @@
 </app-flip-card>
 @if (hasAnnotations()) {
 <button
+	uiIconButton
 	type="button"
-	class="max-sm:hidden absolute top-3 right-3 z-10 w-9 h-9 tap:min-w-[44px] tap:min-h-[44px] rounded-full border cursor-pointer inline-flex items-center justify-center transition"
-	[class.bg-transparent]="!flipped()"
-	[class.border-transparent]="!flipped()"
-	[class.text-brand]="true"
-	[class.hover:bg-brand-subtle]="!flipped()"
-	[class.bg-brand-subtle]="flipped()"
-	[class.border-brand/40]="flipped()"
+	shape="circle"
+	tone="accent"
+	class="max-sm:!hidden absolute top-3 right-3 z-10 !text-brand"
+	[class.!bg-brand-subtle]="flipped()"
+	[class.ring-1]="flipped()"
+	[class.ring-brand/40]="flipped()"
 	[attr.aria-pressed]="flipped()"
 	[title]="flipped() ? 'Back to the card' : 'Flip to read your note and review'"
 	[attr.aria-label]="flipped() ? 'Back to the card' : 'Flip to read your note and review'"
@@ -433,7 +356,7 @@
 >
 	<span
 		aria-hidden="true"
-		class="material-icons text-lg leading-none transition-transform duration-500"
+		class="material-icons text-lg transition-transform duration-500"
 		[class.rotate-180]="flipped()"
 		>rotate_right</span
 	>
@@ -458,7 +381,7 @@
 	<button
 		type="button"
 		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-fg-muted cursor-pointer active:bg-surface-hover"
-		[class.!text-danger]="inQueue()"
+		[class.!text-nav-queue]="inQueue()"
 		[attr.aria-pressed]="inQueue()"
 		(click)="queueToggled.emit($event)"
 	>

@@ -2,7 +2,7 @@
 	appFloatingXScrollbar
 	class="overflow-x-auto floating-x-host rounded-card border border-line bg-surface/40 shadow-[0_24px_48px_-32px_rgba(0,0,0,0.9)]"
 >
-	<table class="w-full border-collapse text-sm">
+	<table uiTable class="[&_tbody_tr:last-child]:border-b-0">
 		<thead>
 			<tr>
 				@for (column of columns; track column.label) { @if
@@ -32,16 +32,10 @@
 					{{ column.label }}
 				</th>
 				} } @if (!readonly()) {
-				<th
-					scope="col"
-					class="sticky top-0 bg-sidebar/95 backdrop-blur z-[1] border-b border-line"
-				>
+				<th scope="col">
 					<span class="sr-only">Favorite</span>
 				</th>
-				<th
-					scope="col"
-					class="sticky top-0 bg-sidebar/95 backdrop-blur z-[1] border-b border-line"
-				>
+				<th scope="col">
 					<span class="sr-only">Up Next</span>
 				</th>
 				}
@@ -50,11 +44,10 @@
 		<tbody>
 			@for (entry of entries(); track entry.id) {
 			<tr
-				class="group/tr border-b border-line/70 last:border-b-0 transition even:bg-white/[0.015] hover:!bg-brand/[0.06]"
 				[class.cursor-pointer]="!readonly()"
 				(click)="openEntry(entry, $event)"
 			>
-				<td class="px-3 py-3 align-middle min-w-[180px]">
+				<td class="min-w-[180px]">
 					<app-game-title-cell
 						[coverUrl]="entry.game.backgroundUrl"
 						[title]="entry.game.title"
@@ -70,17 +63,13 @@
 							[platinumedAt]="isPlatinumRun(entry) ? entry.platinum.platinumedAt : null"
 						/>
 						} @if (entry.compilationGame) {
-						<span
-							class="ml-1.5 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[0.625rem] font-medium text-brand bg-brand/10 border border-brand/30"
+						<ui-badge
+							tone="brand"
+							icon="library_books"
+							class="mt-1"
 							[title]="'Part of ' + entry.compilationGame.title"
+							>{{ entry.compilationGame.title }}</ui-badge
 						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-[0.625rem]"
-								>library_books</span
-							>
-							{{ entry.compilationGame.title }}
-						</span>
 						} @if (showsProgress(entry)) {
 						<div
 							class="flex items-start gap-1 mt-1 text-[0.6875rem] text-fg-muted"
@@ -118,21 +107,21 @@
 					</app-game-title-cell>
 				</td>
 				<td
-					class="px-3 py-3 align-middle text-fg-secondary whitespace-nowrap"
+					class="text-fg-secondary whitespace-nowrap"
 				>
 					{{ entry.platform.abbreviation }}
 				</td>
 				<td
-					class="px-3 py-3 align-middle text-right whitespace-nowrap text-fg-secondary tabular-nums"
+					class="text-right whitespace-nowrap text-fg-secondary tabular-nums"
 				>
 					{{ entry.score ?? "-" }}
 				</td>
 				<td
-					class="px-3 py-3 align-middle text-right whitespace-nowrap text-fg-secondary tabular-nums"
+					class="text-right whitespace-nowrap text-fg-secondary tabular-nums"
 				>
 					{{ entry.duration ? entry.duration + "h" : "-" }}
 				</td>
-				<td class="px-3 py-3 align-middle text-right whitespace-nowrap">
+				<td class="text-right whitespace-nowrap">
 					@if (entry.ratio !== null && entry.ratio !== undefined) {
 					<span
 						class="inline-flex items-center justify-center min-w-[3.25rem] px-2 py-1 rounded-md bg-brand-subtle border border-brand/25 font-display text-base font-bold text-brand tabular-nums leading-none"
@@ -143,16 +132,16 @@
 					}
 				</td>
 				<td
-					class="px-3 py-3 align-middle text-right whitespace-nowrap text-fg-secondary tabular-nums"
+					class="text-right whitespace-nowrap text-fg-secondary tabular-nums"
 				>
 					{{ entry.realDuration ? entry.realDuration + "h" : "-" }}
 				</td>
 				<td
-					class="px-3 py-3 align-middle text-right whitespace-nowrap text-fg-secondary tabular-nums"
+					class="text-right whitespace-nowrap text-fg-secondary tabular-nums"
 				>
 					{{ entry.personalRatio ?? "-" }}
 				</td>
-				<td class="px-3 py-3 align-middle">
+				<td>
 					<div class="flex items-center gap-1.5">
 						<span>
 							<app-star-rating
@@ -166,113 +155,51 @@
 					</div>
 				</td>
 				<td
-					class="px-3 py-3 align-middle whitespace-nowrap text-fg-secondary text-sm"
+					class="whitespace-nowrap text-fg-secondary text-sm"
 				>
 					{{ entry.finishedAt ? (entry.finishedAt | date:'yyyy-MM-dd')
 					: "-" }}
 				</td>
-				<td class="px-3 py-3 align-middle whitespace-nowrap">
+				<td class="whitespace-nowrap">
 					@if (!readonly() && canChangeStatus(entry.status)) {
-					<div
-						class="relative inline-block"
-						[appMenuKeyboard]="statusMenuOpenId() === entry.id"
-						(menuClosed)="statusMenuOpenId.set(null)"
-					>
-						<button
-							type="button"
-							class="inline-flex items-center gap-1 px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide border border-line hover:border-brand/50 cursor-pointer hover:opacity-80 transition disabled:opacity-50 disabled:cursor-not-allowed"
-							[class]="statusClass(entry.status)"
-							[disabled]="updatingStatusIds().has(entry.id)"
-							(click)="statusMenuToggle.emit({ entry, event: $event })"
-							aria-haspopup="menu"
-							[attr.aria-expanded]="statusMenuOpenId() === entry.id"
-							[attr.aria-controls]="'status-menu-card-' + entry.id"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-[0.875rem]"
-								>{{ statusIcon(entry.status) }}</span
-							>
-							{{ statusLabel(entry.status) }}
-							<span
-								aria-hidden="true"
-								class="material-icons text-[0.875rem]"
-								>arrow_drop_down</span
-							>
-						</button>
-						@if (statusMenuOpenId() === entry.id) {
-						<div
-							role="menu"
-							tabindex="-1"
-							[id]="'status-menu-card-' + entry.id"
-							aria-label="Change status"
-							class="absolute left-0 top-full mt-1 z-20 bg-sidebar border border-line rounded shadow-lg py-1 min-w-[160px]"
-							(click)="$event.stopPropagation()"
-							(keydown.enter)="$event.stopPropagation()"
-							(keydown.space)="$event.stopPropagation()"
-						>
-							@for (s of statusOptions; track s.value) {
-							<button
-								type="button"
-								role="menuitem"
-								class="flex items-center gap-1.5 w-full text-left px-3 py-1.5 text-xs hover:bg-input-bg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus-visible:bg-input-bg focus-visible:outline-none"
-								[disabled]="s.value === entry.status"
-								(click)="statusSelect.emit({ entry, status: s.value, event: $event })"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-sm"
-									[class]="statusIconColor(s.value)"
-									>{{ statusIcon(s.value) }}</span
-								>
-								{{ s.label }}
-							</button>
-							}
-						</div>
-						}
-					</div>
+					<app-backlog-status-picker
+						[status]="entry.status"
+						[subject]="entry.game.title"
+						[disabled]="updatingStatusIds().has(entry.id)"
+						(statusChange)="statusChange.emit({ entry, status: $event })"
+					/>
 					} @else {
-					<span
-						class="inline-flex items-center gap-1 px-2 py-[0.2rem] rounded-full text-[0.6875rem] font-semibold tracking-wide"
-						[class]="statusClass(entry.status)"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.875rem]"
-							>{{ statusIcon(entry.status) }}</span
-						>
-						{{ statusLabel(entry.status) }}
-					</span>
+					<app-backlog-status-badge [status]="entry.status" />
 					}
 				</td>
 				@if (!readonly()) {
-				<td class="px-2 py-3 align-middle w-9 text-center">
+				<td class="!px-1 w-11 text-center">
 					<button
-						class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-nav-favorites"
+						uiIconButton
+						type="button"
+						shape="circle"
 						[class.!text-nav-favorites]="isFavorite(entry.game.id)"
 						(click)="favoriteToggle.emit({ gameId: entry.game.id, event: $event })"
 						[title]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
 						[attr.aria-label]="isFavorite(entry.game.id) ? 'Remove from favorites' : 'Add to favorites'"
 					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base leading-none"
+						<span aria-hidden="true" class="material-icons text-lg"
 							>{{ isFavorite(entry.game.id) ? 'favorite' :
 							'favorite_border' }}</span
 						>
 					</button>
 				</td>
-				<td class="px-2 py-3 align-middle w-9 text-center">
+				<td class="!px-1 w-11 text-center">
 					<button
-						class="bg-transparent border-0 text-fg-muted cursor-pointer p-1 inline-flex items-center justify-center transition hover:text-danger"
-						[class.!text-danger]="isInQueue(entry)"
+						uiIconButton
+						type="button"
+						shape="circle"
+						[class.!text-nav-queue]="isInQueue(entry)"
 						(click)="queueToggle.emit(entry); $event.stopPropagation()"
 						[title]="isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue'"
 						[attr.aria-label]="isInQueue(entry) ? 'Remove from Queue' : 'Add to Queue'"
 					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base leading-none"
+						<span aria-hidden="true" class="material-icons text-lg"
 							>{{ isInQueue(entry) ? 'playlist_add_check' :
 							'playlist_play' }}</span
 						>

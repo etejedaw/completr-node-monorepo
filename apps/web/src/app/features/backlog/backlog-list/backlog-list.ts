@@ -36,7 +36,6 @@ import { DialogService } from "../../../core/services/dialog";
 import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
 import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
-import { type BacklogStatusOption } from "../../../shared/components/backlog-entry-card/backlog-entry-card.model";
 import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
 import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
@@ -52,13 +51,13 @@ import {
 	UiButton,
 	UiCountBadge,
 	UiEmptyState,
+	UiFiltersButton,
 	UiNoMatches,
 	UiPagination,
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
 import {
-	BACKLOG_STATUS_FILTERS,
 	BACKLOG_STATUS_PICKER_OPTIONS,
 	backlogStatusIcon,
 	backlogStatusIconColor,
@@ -85,7 +84,6 @@ import {
 import { BacklogTable } from "../components/backlog-table/backlog-table";
 import { BacklogToolsSheet } from "../components/backlog-tools-sheet/backlog-tools-sheet";
 import { EntryRatingSheet } from "../components/entry-rating-sheet/entry-rating-sheet";
-import { EntryStatusSheet } from "../components/entry-status-sheet/entry-status-sheet";
 import { ReorderViewsDialog } from "../components/reorder-views-dialog/reorder-views-dialog";
 import { SavedViewStats } from "../components/saved-view-stats/saved-view-stats";
 import { SavedViewStatsPanel } from "../components/saved-view-stats-panel/saved-view-stats-panel";
@@ -153,6 +151,7 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 		SwipeActions,
 		UiButton,
 		UiCountBadge,
+		UiFiltersButton,
 		UiEmptyState,
 		UiNoMatches,
 		UiPagination,
@@ -161,16 +160,12 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 		BacklogFiltersPanel,
 		BacklogToolsSheet,
 		EntryRatingSheet,
-		EntryStatusSheet,
 		ReorderViewsDialog,
 		SavedViewStats,
 		SavedViewStatsPanel,
 		StatusChangeDialog
 	],
 	templateUrl: "./backlog-list.html",
-	host: {
-		"(document:click)": "onDocumentClick()"
-	},
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BacklogList implements OnInit {
@@ -197,7 +192,6 @@ export class BacklogList implements OnInit {
 	protected readonly limit = 100;
 	protected readonly activeStatuses = signal<Set<string>>(new Set());
 	protected readonly pointer = inject(PointerService);
-	protected readonly statusSheetEntry = signal<BacklogEntry | null>(null);
 	protected readonly ratingSheetEntry = signal<BacklogEntry | null>(null);
 	protected readonly toolsSheetOpen = signal(false);
 
@@ -285,7 +279,6 @@ export class BacklogList implements OnInit {
 	protected readonly sortOrder = signal<SortOrder>("desc");
 	protected readonly queueBacklogIds = signal<Set<string>>(new Set());
 	protected readonly surpriseMeFilters = signal<BacklogFilters | null>(null);
-	protected readonly statusMenuOpenId = signal<string | null>(null);
 	protected readonly pendingStatusUpdate = signal<PendingStatusUpdate | null>(
 		null
 	);
@@ -573,10 +566,6 @@ export class BacklogList implements OnInit {
 		this.platinumedOnly.set(value);
 		this.activeFilterId.set(null);
 	}
-
-	protected readonly statusFilters: BacklogStatusOption[] = [
-		...BACKLOG_STATUS_FILTERS
-	];
 
 	private readonly previewFilters = computed(
 		() => (this.showFilters() ? this.buildBaseFilters() : null),
@@ -1068,28 +1057,13 @@ export class BacklogList implements OnInit {
 			.subscribe();
 	}
 
-	onDocumentClick() {
-		this.statusMenuOpenId.set(null);
-	}
-
-	toggleStatusMenu(entry: BacklogEntry, event: Event) {
-		event.stopPropagation();
-		if (this.pointer.isCoarse()) {
-			this.statusSheetEntry.set(entry);
-			return;
-		}
-		const current = this.statusMenuOpenId();
-		this.statusMenuOpenId.set(current === entry.id ? null : entry.id);
-	}
-
 	isStatusUpdating(entry: BacklogEntry): boolean {
 		return this.updatingStatusIds().has(entry.id);
 	}
 
-	selectNewStatus(entry: BacklogEntry, status: string, event: Event) {
-		event.stopPropagation();
-		this.statusMenuOpenId.set(null);
-		const newStatus = status as BacklogStatus;
+	selectNewStatus(entry: BacklogEntry, status: BacklogStatus, event?: Event) {
+		event?.stopPropagation();
+		const newStatus = status;
 		if (newStatus === entry.status) return;
 		const today = this.todayDateString();
 		this.pendingStatusUpdate.set({
@@ -1291,15 +1265,6 @@ export class BacklogList implements OnInit {
 		});
 	}
 
-	protected selectStatusFromSheet(
-		entry: BacklogEntry,
-		status: string,
-		event: Event
-	) {
-		this.statusSheetEntry.set(null);
-		this.selectNewStatus(entry, status, event);
-	}
-
 	protected openRatingSheet(entry: BacklogEntry, event: Event) {
 		event.stopPropagation();
 		this.ratingSheetEntry.set(entry);
@@ -1353,7 +1318,6 @@ export class BacklogList implements OnInit {
 
 	protected toggleFlip(entry: BacklogEntry, event: Event) {
 		event.stopPropagation();
-		this.statusMenuOpenId.set(null);
 		const next = new Set(this.flippedEntryIds());
 		if (next.has(entry.id)) next.delete(entry.id);
 		else next.add(entry.id);

@@ -431,14 +431,16 @@ describe("BacklogList interaction", () => {
 		await renderBacklog();
 
 		const hades = within(card("Hades"));
-		await user.click(hades.getByRole("button", { name: /Playing/ }));
-		const menu = screen.getByRole("menu", { name: "Change status" });
+		await user.click(
+			hades.getByRole("button", { name: "Status of Hades: Playing" })
+		);
+		const menu = await screen.findByRole("menu", { name: "Change status" });
 		expect(
-			within(menu).getByRole("menuitem", { name: /Playing/ })
-		).toBeDisabled();
+			within(menu).getByRole("menuitemradio", { name: /Playing/ })
+		).toHaveAttribute("aria-checked", "true");
 
 		await user.click(
-			within(menu).getByRole("menuitem", { name: /Completed/ })
+			within(menu).getByRole("menuitemradio", { name: /Completed/ })
 		);
 
 		const dialog = await screen.findByRole("dialog", {
@@ -484,12 +486,14 @@ describe("BacklogList interaction", () => {
 		await renderBacklog();
 
 		await user.click(
-			within(card("Hades")).getByRole("button", { name: /Playing/ })
+			within(card("Hades")).getByRole("button", {
+				name: "Status of Hades: Playing"
+			})
 		);
 		await user.click(
 			within(
-				screen.getByRole("menu", { name: "Change status" })
-			).getByRole("menuitem", { name: /Completed/ })
+				await screen.findByRole("menu", { name: "Change status" })
+			).getByRole("menuitemradio", { name: /Completed/ })
 		);
 		const dialog = await screen.findByRole("dialog", {
 			name: "Completed?"
@@ -550,12 +554,14 @@ describe("BacklogList interaction", () => {
 		).not.toBeInTheDocument();
 
 		await user.click(
-			within(card("Hades")).getByRole("button", { name: /Playing/ })
+			within(card("Hades")).getByRole("button", {
+				name: "Status of Hades: Playing"
+			})
 		);
 		await user.click(
 			within(
-				screen.getByRole("menu", { name: "Change status" })
-			).getByRole("menuitem", { name: /Completed/ })
+				await screen.findByRole("menu", { name: "Change status" })
+			).getByRole("menuitemradio", { name: /Completed/ })
 		);
 		const dialog = await screen.findByRole("dialog", {
 			name: "Completed?"
@@ -576,6 +582,64 @@ describe("BacklogList interaction", () => {
 		expect(
 			within(card("Hades")).getByRole("img", { name: "Platinumed" })
 		).toBeInTheDocument();
+	});
+
+	it("changes the status from the Hardcore table with a double click and opens a single dialog", async () => {
+		const user = userEvent.setup();
+		await renderBacklog();
+
+		await user.click(
+			screen.queryByRole("radio", { name: /Hardcore/ }) ??
+				screen.getByRole("button", { name: /Hardcore/ })
+		);
+		await user.click(
+			await screen.findByRole("button", {
+				name: "Status of Hades: Playing"
+			})
+		);
+		await user.dblClick(
+			within(
+				await screen.findByRole("menu", { name: "Change status" })
+			).getByRole("menuitemradio", { name: /Completed/ })
+		);
+
+		const dialog = await screen.findByRole("dialog", {
+			name: "Completed?"
+		});
+		expect(screen.getAllByRole("dialog")).toEqual([dialog]);
+		await user.click(
+			within(dialog).getByRole("button", { name: "Cancel" })
+		);
+		await untilVisible(() =>
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+		);
+		expect(backlogPatches).toEqual([]);
+	});
+
+	it("leaves the status alone when the menu is opened and dismissed twice", async () => {
+		const user = userEvent.setup();
+		await renderBacklog();
+		const trigger = () =>
+			within(card("Celeste")).getByRole("button", {
+				name: "Status of Celeste: Not Started"
+			});
+
+		await user.click(trigger());
+		await screen.findByRole("menu", { name: "Change status" });
+		await user.keyboard("{Escape}");
+		await untilVisible(() =>
+			expect(screen.queryByRole("menu")).not.toBeInTheDocument()
+		);
+		await user.click(trigger());
+		await user.click(
+			within(
+				await screen.findByRole("menu", { name: "Change status" })
+			).getByRole("menuitemradio", { name: /Not Started/ })
+		);
+
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+		expect(backlogPatches).toEqual([]);
+		expect(trigger()).toBeInTheDocument();
 	});
 
 	it("asks for notes when abandoning but not when starting to play", async () => {
@@ -600,9 +664,13 @@ describe("BacklogList interaction", () => {
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
 		await user.click(
-			within(card("Celeste")).getByRole("button", { name: /Not Started/ })
+			within(card("Celeste")).getByRole("button", {
+				name: "Status of Celeste: Not Started"
+			})
 		);
-		await user.click(screen.getByRole("menuitem", { name: /Abandoned/ }));
+		await user.click(
+			await screen.findByRole("menuitemradio", { name: /Abandoned/ })
+		);
 
 		const abandoned = await screen.findByRole("dialog", {
 			name: "Abandoned?"
@@ -699,7 +767,7 @@ describe("BacklogList interaction", () => {
 		function filtersButton() {
 			return screen
 				.getAllByRole("button", { name: /^Filters/ })
-				.find(button => !button.classList.contains("sm:hidden"))!;
+				.find(button => !button.classList.contains("sm:!hidden"))!;
 		}
 
 		function platformTrigger() {

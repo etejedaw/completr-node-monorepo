@@ -5,7 +5,8 @@ export interface BacklogTableEntryEvent {
 	event: Event;
 }
 
-export interface BacklogTableStatusSelection extends BacklogTableEntryEvent {
+export interface BacklogTableStatusChange {
+	entry: BacklogEntry;
 	status: BacklogStatus;
 }
 

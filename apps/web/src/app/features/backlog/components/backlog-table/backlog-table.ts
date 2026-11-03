@@ -4,24 +4,22 @@ import {
 	Component,
 	inject,
 	input,
-	model,
 	output
 } from "@angular/core";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../../core/models";
+import { BacklogStatusBadge } from "../../../../shared/components/backlog-status-badge/backlog-status-badge";
+import { BacklogStatusPicker } from "../../../../shared/components/backlog-status-picker/backlog-status-picker";
 import { GameTitleCell } from "../../../../shared/components/game-title-cell/game-title-cell";
 import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/platinum-trophy";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { FloatingXScrollbar } from "../../../../shared/directives/floating-x-scrollbar";
-import { MenuKeyboard } from "../../../../shared/directives/menu-keyboard";
-import { UiAvatar } from "../../../../shared/ui";
 import {
-	BACKLOG_STATUS_FILTERS,
-	backlogStatusClass,
-	backlogStatusIcon,
-	backlogStatusIconColor,
-	backlogStatusLabel
-} from "../../../../shared/utils/backlog-status";
+	UiAvatar,
+	UiBadge,
+	UiIconButton,
+	UiTable
+} from "../../../../shared/ui";
 import { isPlatinumRun } from "../../../../shared/utils/platinum";
 import { FavoritesService } from "../../../favorites/favorites";
 import {
@@ -29,16 +27,15 @@ import {
 	type BacklogTableEntryEvent,
 	type BacklogTableFavoriteToggle,
 	type BacklogTableRating,
-	type BacklogTableStatusSelection
+	type BacklogTableStatusChange
 } from "./backlog-table.model";
 
-const HEADER_BASE_CLASS =
-	"sticky top-0 bg-sidebar/95 backdrop-blur z-[1] px-3 py-3 text-[0.6875rem] uppercase tracking-[0.12em] border-b border-line select-none whitespace-nowrap";
+const HEADER_BASE_CLASS = "select-none";
 const SORTABLE_HEADER_CLASS = `focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand cursor-pointer ${HEADER_BASE_CLASS}`;
-const MUTED_HEADER_CLASS =
-	"text-fg-muted font-semibold hover:text-fg-secondary";
-const HIGHLIGHTED_HEADER_CLASS = "text-brand font-bold hover:text-brand-deep";
-const ALIGN_CLASSES = { left: "text-left", right: "text-right" } as const;
+const MUTED_HEADER_CLASS = "hover:text-fg-secondary";
+const HIGHLIGHTED_HEADER_CLASS =
+	"!text-brand !font-bold hover:!text-brand-deep";
+const ALIGN_CLASSES = { left: "", right: "!text-right" } as const;
 
 function sortableColumn(
 	label: string,
@@ -92,13 +89,17 @@ const STATUS_CHANGEABLE_FROM: ReadonlySet<BacklogStatus> = new Set([
 @Component({
 	selector: "app-backlog-table",
 	imports: [
+		BacklogStatusBadge,
+		BacklogStatusPicker,
 		DatePipe,
 		FloatingXScrollbar,
 		GameTitleCell,
-		MenuKeyboard,
 		PlatinumTrophy,
 		StarRating,
-		UiAvatar
+		UiAvatar,
+		UiBadge,
+		UiIconButton,
+		UiTable
 	],
 	templateUrl: "./backlog-table.html",
 	host: { class: "block" },
@@ -112,23 +113,16 @@ export class BacklogTable {
 	readonly sortOrder = input.required<"asc" | "desc">();
 	readonly queuedBacklogIds = input<ReadonlySet<string>>(new Set());
 	readonly updatingStatusIds = input<ReadonlySet<string>>(new Set());
-	readonly statusMenuOpenId = model<string | null>(null);
 	readonly readonly = input(false);
 
 	readonly sortChange = output<string>();
 	readonly entryOpen = output<BacklogTableEntryEvent>();
-	readonly statusMenuToggle = output<BacklogTableEntryEvent>();
-	readonly statusSelect = output<BacklogTableStatusSelection>();
+	readonly statusChange = output<BacklogTableStatusChange>();
 	readonly quickRate = output<BacklogTableRating>();
 	readonly favoriteToggle = output<BacklogTableFavoriteToggle>();
 	readonly queueToggle = output<BacklogEntry>();
 
 	protected readonly columns = BACKLOG_TABLE_COLUMNS;
-	protected readonly statusOptions = BACKLOG_STATUS_FILTERS;
-	protected readonly statusClass = backlogStatusClass;
-	protected readonly statusLabel = backlogStatusLabel;
-	protected readonly statusIcon = backlogStatusIcon;
-	protected readonly statusIconColor = backlogStatusIconColor;
 	protected readonly isPlatinumRun = isPlatinumRun;
 
 	protected ariaSortFor(column: string): "ascending" | "descending" | "none" {

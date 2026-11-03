@@ -1,10 +1,9 @@
 <div class="max-w-full">
-	<app-library-hero heading="My Games" [posters]="heroPosters()">
-		<span
-			heroEyebrow
-			class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-			>Library</span
-		>
+	<app-library-hero
+		heading="My Games"
+		eyebrow="Library"
+		[posters]="heroPosters()"
+	>
 		<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
 			<span class="font-semibold text-fg tabular-nums"
 				>{{ total() }}</span
@@ -15,8 +14,7 @@
 		<div heroActions class="flex items-center gap-2">
 			<button
 				uiButton
-				variant="secondary"
-				class="!bg-surface/70 backdrop-blur"
+				variant="glass"
 				(click)="openSurpriseMe()"
 				title="Pick a random game from your current filters"
 			>
@@ -82,50 +80,31 @@
 			<div class="flex items-center gap-2">
 				<button
 					#mobileToolsButton
-					type="button"
-					class="sm:hidden h-12 px-4 tap:min-h-[44px] bg-transparent border rounded-card text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-2 transition"
-					[class.border-line]="!hasActiveFilters() && !hasAnyStatEnabled()"
-					[class.text-fg-secondary]="!hasActiveFilters() && !hasAnyStatEnabled()"
-					[class.border-brand]="hasActiveFilters() || hasAnyStatEnabled()"
-					[class.text-brand]="hasActiveFilters() || hasAnyStatEnabled()"
-					aria-haspopup="dialog"
+					uiFiltersButton
+					class="sm:!hidden"
+					labelVisibility="always"
+					[label]="activeFilterId() ? 'Filters & stats' : 'Filters'"
+					[count]="activeFiltersCount() + enabledStatsCount()"
+					[active]="hasActiveFilters() || hasAnyStatEnabled()"
 					(click)="openMobileTools()"
 				>
-					<span aria-hidden="true" class="material-icons text-lg"
-						>tune</span
-					>
-					{{ activeFilterId() ? 'Filters & stats' : 'Filters' }} @if
-					(activeFiltersCount() + enabledStatsCount() > 0) {
-					<ui-count-badge
-						[count]="activeFiltersCount() + enabledStatsCount()"
-					/>
-					}
+					{{ activeFilterId() ? 'Filters & stats' : 'Filters' }}
 				</button>
 				<button
-					type="button"
-					class="max-sm:hidden bg-transparent border h-10 text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 px-3 rounded-card transition"
-					[class.border-line]="!showFilters() && !hasActiveFilters()"
-					[class.text-fg-secondary]="!showFilters() && !hasActiveFilters()"
-					[class.hover:border-brand]="!showFilters()"
-					[class.hover:text-brand]="!showFilters()"
-					[class.border-brand]="showFilters() || hasActiveFilters()"
-					[class.text-brand]="showFilters() || hasActiveFilters()"
-					[class.bg-brand-subtle]="showFilters()"
-					aria-haspopup="dialog"
+					uiFiltersButton
+					class="max-sm:!hidden"
+					[count]="activeFiltersCount()"
+					[active]="showFilters() || hasActiveFilters()"
 					(click)="openFilters()"
 				>
-					<span aria-hidden="true" class="material-icons text-base"
-						>tune</span
-					>
-					<span class="max-sm:sr-only">Filters</span>
-					@if (activeFiltersCount() > 0) {
-					<ui-count-badge [count]="activeFiltersCount()" />
-					}
+					Filters
 				</button>
 				@if (clearAction(); as action) {
 				<button
+					uiButton
 					type="button"
-					class="h-10 max-sm:h-12 px-3 max-sm:px-4 tap:min-h-[44px] border border-danger/50 bg-danger/10 text-danger hover:bg-danger/20 rounded-card text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 transition"
+					variant="danger"
+					class="h-10 shrink-0"
 					[title]="action.description"
 					[attr.aria-label]="action.description"
 					(click)="clearFilters()"
@@ -137,23 +116,19 @@
 				</button>
 				} @if (activeFilterId()) {
 				<button
+					uiButton
 					type="button"
-					class="max-sm:hidden bg-transparent border h-10 text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 px-3 rounded-card transition"
-					[class.border-line]="!showStatsPanel() && !hasAnyStatEnabled()"
-					[class.text-fg-secondary]="!showStatsPanel() && !hasAnyStatEnabled()"
-					[class.hover:border-brand]="!showStatsPanel()"
-					[class.hover:text-brand]="!showStatsPanel()"
-					[class.border-brand]="showStatsPanel() || hasAnyStatEnabled()"
-					[class.text-brand]="showStatsPanel() || hasAnyStatEnabled()"
-					[class.bg-brand-subtle]="showStatsPanel()"
+					variant="secondary"
+					class="max-sm:!hidden h-10 shrink-0"
+					[active]="showStatsPanel() || hasAnyStatEnabled()"
 					aria-haspopup="dialog"
 					title="Configure the stats of this view"
 					(click)="toggleStatsPanel()"
 				>
-					<span aria-hidden="true" class="material-icons text-base"
+					<span aria-hidden="true" class="material-icons text-lg"
 						>insights</span
 					>
-					<span class="max-sm:sr-only">Stats</span>
+					Stats
 					@if (enabledStatsCount() > 0) {
 					<ui-count-badge [count]="enabledStatsCount()" />
 					}
@@ -285,10 +260,7 @@
 	} } @else { @if (viewMode() === 'diary') {
 	<div class="grid gap-3 xl:grid-cols-2">
 		@for (entry of entries(); track entry.id) {
-		<div
-			class="relative h-full"
-			[class.z-20]="statusMenuOpenId() === entry.id"
-		>
+		<div class="relative h-full">
 			<div
 				aria-hidden="true"
 				class="absolute inset-0 rounded-card flex items-center px-6 transition-colors duration-150"
@@ -340,17 +312,13 @@
 					[favorite]="isFavorite(entry.game.id)"
 					[inQueue]="isInQueue(entry)"
 					[flipped]="isFlipped(entry.id)"
-					[statusMenuOpen]="statusMenuOpenId() === entry.id"
 					[statusUpdating]="isStatusUpdating(entry)"
 					[coarsePointer]="pointer.isCoarse()"
-					[statusOptions]="statusFilters"
 					(opened)="openEdit(entry, $event)"
 					(favoriteToggled)="toggleFavorite(entry.game.id, $event)"
 					(queueToggled)="toggleQueue(entry); $event.stopPropagation()"
 					(flipToggled)="toggleFlip(entry, $event)"
-					(statusMenuToggled)="toggleStatusMenu(entry, $event)"
-					(statusMenuClosed)="statusMenuOpenId.set(null)"
-					(statusSelected)="selectNewStatus(entry, $event.status, $event.event)"
+					(statusChanged)="selectNewStatus(entry, $event)"
 					(startPlayingRequested)="selectNewStatus(entry, 'playing', $event)"
 					(completeRequested)="selectNewStatus(entry, 'completed', $event)"
 					(quickRated)="onQuickRate(entry, $event)"
@@ -373,11 +341,9 @@
 		[sortOrder]="sortOrder()"
 		[queuedBacklogIds]="queueBacklogIds()"
 		[updatingStatusIds]="updatingStatusIds()"
-		[(statusMenuOpenId)]="statusMenuOpenId"
 		(sortChange)="sort($event)"
 		(entryOpen)="openEdit($event.entry, $event.event)"
-		(statusMenuToggle)="toggleStatusMenu($event.entry, $event.event)"
-		(statusSelect)="selectNewStatus($event.entry, $event.status, $event.event)"
+		(statusChange)="selectNewStatus($event.entry, $event.status)"
 		(quickRate)="onQuickRate($event.entry, $event.rating)"
 		(favoriteToggle)="toggleFavorite($event.gameId, $event.event)"
 		(queueToggle)="toggleQueue($event)"
@@ -414,14 +380,6 @@
 	[queuedBacklogIds]="queueBacklogIds()"
 	(closed)="surpriseMeFilters.set(null)"
 	(queued)="loadQueueIds()"
-/>
-} @if (statusSheetEntry(); as sheetEntry) {
-<app-entry-status-sheet
-	[entry]="sheetEntry"
-	[statusOptions]="statusFilters"
-	[updating]="isStatusUpdating(sheetEntry)"
-	(statusSelected)="selectStatusFromSheet(sheetEntry, $event.status, $event.event)"
-	(closed)="statusSheetEntry.set(null)"
 />
 } @if (ratingSheetEntry(); as ratingEntry) {
 <app-entry-rating-sheet
