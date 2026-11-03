@@ -14,12 +14,13 @@ import { type QueueEntry } from "../../core/models/queue.model";
 import { type RewindYears } from "../../core/models/rewind.model";
 import { AuthService } from "../../core/services/auth";
 import { ToastService } from "../../core/services/toast";
-import { avatarRing } from "../../core/utils/premium";
+import { avatarRing, isPremiumRole } from "../../core/utils/premium";
 import { GameCoverCard } from "../../shared/components/game-cover-card/game-cover-card";
 import { GiftOfferCard } from "../../shared/components/gift-offer-card/gift-offer-card";
 import { PosterShelf } from "../../shared/components/poster-shelf/poster-shelf";
 import { BETA_SIGNUP_URL } from "../../shared/constants/beta-signup";
 import { UiAvatar, UiButton, UiDialog, UiSkeleton } from "../../shared/ui";
+import { AdminPremiumAccess } from "../admin/admin-premium-access/admin-premium-access";
 import { FeedService } from "../feed/feed";
 import { type TrackedFranchise } from "../franchises/franchises.model";
 import { RewindService } from "../rewind/rewind";
@@ -67,6 +68,7 @@ const PROFILE_PLATINUMS_LIMIT = 8;
 @Component({
 	selector: "app-public-profile",
 	imports: [
+		AdminPremiumAccess,
 		NgTemplateOutlet,
 		RouterLink,
 		GameCoverCard,
@@ -120,6 +122,16 @@ export class PublicProfileComponent implements OnInit {
 	protected readonly isSelf = computed(
 		() => this.authService.user()?.id === this.profile()?.user.id
 	);
+	protected readonly canManagePremium = computed(() => {
+		const user = this.profile()?.user;
+		return (
+			!!user &&
+			this.authService.user()?.role === "admin" &&
+			!this.isSelf() &&
+			!isPremiumRole(user.role)
+		);
+	});
+	protected readonly showPremiumAccess = signal(false);
 	protected readonly togglingFollow = signal(false);
 	protected readonly showUnfollowConfirm = signal(false);
 	protected readonly emptyStats = {
@@ -466,6 +478,31 @@ export class PublicProfileComponent implements OnInit {
 				this.togglingFollow.set(false);
 			},
 			error: () => this.togglingFollow.set(false)
+		});
+	}
+
+	openPremiumAccess() {
+		if (this.canManagePremium()) this.showPremiumAccess.set(true);
+	}
+
+	closePremiumAccess() {
+		this.showPremiumAccess.set(false);
+		const username = this.profile()?.user.username;
+		if (!username) return;
+		this.profileService.getProfile(username).subscribe({
+			next: data =>
+				this.profile.update(current =>
+					current?.user.id === data.user.id
+						? {
+								...current,
+								user: {
+									...current.user,
+									hasPremium: data.user.hasPremium
+								}
+							}
+						: current
+				),
+			error: () => undefined
 		});
 	}
 

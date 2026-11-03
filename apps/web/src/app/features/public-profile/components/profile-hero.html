@@ -152,6 +152,23 @@
 						>
 						Follow
 					</a>
+					} @if (canManagePremium()) {
+					<button
+						uiButton
+						variant="secondary"
+						size="lg"
+						type="button"
+						class="!bg-surface/70 backdrop-blur h-10 tap:min-h-[44px] font-semibold"
+						title="Admin: manage premium grants"
+						(click)="premiumAccessRequested.emit()"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base text-premium"
+							>workspace_premium</span
+						>
+						Premium access
+					</button>
 					}
 					<button
 						uiButton

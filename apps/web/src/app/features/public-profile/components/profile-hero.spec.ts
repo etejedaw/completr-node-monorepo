@@ -193,4 +193,27 @@ describe("ProfileHero", () => {
 
 		expect(shared).toHaveBeenCalledTimes(1);
 	});
+
+	it("hides the premium access action unless the viewer can manage it", async () => {
+		await renderHero({});
+
+		expect(
+			screen.queryByRole("button", { name: /Premium access/ })
+		).not.toBeInTheDocument();
+	});
+
+	it("emits premiumAccessRequested on every click of the admin action", async () => {
+		const user = userEvent.setup();
+		const premiumAccessRequested = vi.fn();
+		await render(ProfileHero, {
+			providers: [provideRouter([])],
+			inputs: { profile: profile(), canManagePremium: true },
+			on: { premiumAccessRequested }
+		});
+
+		const button = screen.getByRole("button", { name: /Premium access/ });
+		await user.dblClick(button);
+
+		expect(premiumAccessRequested).toHaveBeenCalledTimes(2);
+	});
 });

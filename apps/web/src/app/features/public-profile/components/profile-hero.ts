@@ -31,9 +31,11 @@ export class ProfileHero {
 	readonly isSelf = input(false);
 	readonly isLoggedIn = input(false);
 	readonly togglingFollow = input(false);
+	readonly canManagePremium = input(false);
 
 	readonly followToggled = output<void>();
 	readonly shared = output<void>();
+	readonly premiumAccessRequested = output<void>();
 
 	protected readonly user = computed(() => this.profile().user);
 	protected readonly displayName = computed(

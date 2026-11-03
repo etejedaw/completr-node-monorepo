@@ -75,7 +75,7 @@ const FEATURE_LABELS: Partial<Record<PremiumGrantFeature, string>> = {
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminPremiumAccess implements OnInit {
-	readonly user = input.required<AdminUser>();
+	readonly user = input.required<Pick<AdminUser, "id" | "username">>();
 	readonly closed = output<void>();
 
 	private readonly premiumAccessService = inject(PremiumAccessAdminService);
