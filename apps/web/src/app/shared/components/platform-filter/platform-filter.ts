@@ -6,6 +6,7 @@ import {
 	model
 } from "@angular/core";
 
+import { FilterChip } from "../chip-group/filter-chip";
 import { OptionPicker } from "../option-picker/option-picker";
 import { type PickerOption } from "../option-picker/option-picker.model";
 import { type PlatformCount, type PlatformRef } from "./platform-filter.model";
@@ -42,7 +43,7 @@ export function matchesPlatform(
 
 @Component({
 	selector: "app-platform-filter",
-	imports: [OptionPicker],
+	imports: [FilterChip, OptionPicker],
 	template: `
 		<app-option-picker
 			class="md:hidden"
@@ -57,11 +58,9 @@ export function matchesPlatform(
 		>
 			@for (option of options(); track option.id) {
 				<button
-					type="button"
-					class="inline-flex items-center gap-1.5 h-9 tap:min-h-[44px] px-3.5 rounded-full border border-line bg-surface/60 backdrop-blur text-sm font-medium text-fg-secondary cursor-pointer transition hover:border-line-hover hover:text-fg"
-					[class.!text-brand]="selected() === option.id"
-					[class.!border-brand]="selected() === option.id"
-					[class.!bg-brand-subtle]="selected() === option.id"
+					appFilterChip
+					chipSize="md"
+					[selected]="selected() === option.id"
 					[attr.aria-pressed]="selected() === option.id"
 					(click)="selected.set(option.id)"
 				>

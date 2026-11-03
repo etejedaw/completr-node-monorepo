@@ -86,4 +86,15 @@ describe("BacklogStatusPills", () => {
 		expect(wrap.className).toContain("flex-wrap");
 		expect(scroll.className).toContain("overflow-x-auto");
 	});
+
+	it("grows the pills to 44px on touch when wrapping and keeps them compact in the scroller", () => {
+		const wrapPill = render([]).element.querySelector("nav button")!;
+		const scrollPill = render([], "scroll").element.querySelector(
+			"nav button"
+		)!;
+
+		expect(wrapPill.className).toContain("tap:min-h-[44px]");
+		expect(scrollPill.className).toContain("tap-area");
+		expect(scrollPill.className).toContain("shrink-0");
+	});
 });
