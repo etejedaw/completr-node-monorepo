@@ -15,6 +15,7 @@ import { PointerService } from "../../../core/services/pointer";
 import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
 import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
 import { type ViewModeOption } from "../../../shared/components/view-mode-toggle/view-mode-toggle.model";
@@ -112,6 +113,7 @@ function defaultSortForStatus(status: string): {
 		BacklogEntryCard,
 		BacklogStatusPills,
 		LibraryHero,
+		LibraryToolbar,
 		ProfileAccessState,
 		UiButton,
 		UiPagination,

@@ -14,8 +14,10 @@
 		</div>
 		<div class="flex items-center gap-1">
 			<button
+				uiIconButton
+				size="lg"
+				shape="circle"
 				type="button"
-				class="inline-flex items-center justify-center w-9 h-9 tap:min-w-[44px] tap:min-h-[44px] rounded-full bg-surface border border-line text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-40 disabled:cursor-not-allowed"
 				[disabled]="loading()"
 				aria-label="Previous month"
 				(click)="previousMonth.emit()"
@@ -25,8 +27,10 @@
 				>
 			</button>
 			<button
+				uiIconButton
+				size="lg"
+				shape="circle"
 				type="button"
-				class="inline-flex items-center justify-center w-9 h-9 tap:min-w-[44px] tap:min-h-[44px] rounded-full bg-surface border border-line text-fg-secondary cursor-pointer transition hover:border-brand hover:text-brand disabled:opacity-40 disabled:cursor-not-allowed"
 				[disabled]="!canGoNext() || loading()"
 				aria-label="Next month"
 				(click)="nextMonth.emit()"
@@ -86,7 +90,8 @@
 				[title]="entry.game.title"
 				[width]="200"
 				[compact]="true"
-				class="w-14 aspect-[2/3] shrink-0 rounded-md ring-1 ring-white/15 shadow-lg shadow-black/60"
+				framed
+				class="w-14 aspect-[2/3] shrink-0 rounded-md shadow-lg shadow-black/60"
 			/>
 			<span class="flex-1 min-w-0 flex flex-col gap-1">
 				<span

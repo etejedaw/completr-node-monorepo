@@ -12,11 +12,7 @@
 				[routerLink]="['/user', username(), 'backlog']"
 				[queryParams]="{ status: 'completed' }"
 			>
-				<span
-					class="order-2 block text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Completed
-				</span>
+				<span uiEyebrow class="order-2"> Completed </span>
 				<span
 					class="order-1 block font-display text-3xl font-bold text-fg tabular-nums leading-none"
 				>
@@ -29,11 +25,7 @@
 				class="flex flex-col justify-center gap-1 h-full p-4 no-underline transition hover:bg-surface-hover"
 				[routerLink]="['/user', username(), 'backlog']"
 			>
-				<span
-					class="order-2 block text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					In library
-				</span>
+				<span uiEyebrow class="order-2"> In library </span>
 				<span
 					class="order-1 block font-display text-3xl font-bold text-fg tabular-nums leading-none"
 				>
@@ -48,11 +40,7 @@
 				class="flex flex-col justify-center gap-1 w-full h-full p-4 text-left bg-transparent border-0 cursor-pointer transition hover:bg-surface-hover"
 				(click)="listsOpened.emit()"
 			>
-				<span
-					class="order-2 block text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Lists
-				</span>
+				<span uiEyebrow class="order-2"> Lists </span>
 				<span
 					class="order-1 block font-display text-3xl font-bold text-fg tabular-nums leading-none"
 				>
@@ -65,11 +53,7 @@
 				class="flex flex-col justify-center gap-1 h-full p-4 no-underline transition hover:bg-surface-hover"
 				[routerLink]="['/user', username(), 'reviews']"
 			>
-				<span
-					class="order-2 block text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Reviews
-				</span>
+				<span uiEyebrow class="order-2"> Reviews </span>
 				<span
 					class="order-1 block font-display text-3xl font-bold text-fg tabular-nums leading-none"
 				>
@@ -83,11 +67,7 @@
 	<div
 		class="flex flex-col justify-center gap-3 p-4 rounded-card border border-line bg-surface"
 	>
-		<h2
-			class="m-0 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-		>
-			Library breakdown
-		</h2>
+		<h2 uiEyebrow class="m-0">Library breakdown</h2>
 		<div
 			class="flex h-2.5 rounded-full overflow-hidden bg-input-bg gap-0.5"
 			role="img"

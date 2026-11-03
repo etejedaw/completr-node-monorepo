@@ -39,7 +39,8 @@ const DATE_FORMAT = new Intl.DateTimeFormat("en", {
 								[title]="game.name"
 								[width]="200"
 								[compact]="true"
-								class="w-9 aspect-[2/3] rounded ring-1 ring-white/10"
+								framed
+								class="w-9 aspect-[2/3] rounded"
 							/>
 						</a>
 					} @else {

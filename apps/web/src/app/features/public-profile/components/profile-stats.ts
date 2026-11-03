@@ -7,6 +7,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
+import { UiEyebrow } from "../../../shared/ui";
 import { type BacklogStats } from "../public-profile.model";
 import { type LibrarySegment } from "./profile-stats.model";
 
@@ -39,7 +40,7 @@ const SEGMENT_STYLES: Omit<LibrarySegment, "count" | "percent">[] = [
 
 @Component({
 	selector: "app-profile-stats",
-	imports: [RouterLink],
+	imports: [RouterLink, UiEyebrow],
 	templateUrl: "./profile-stats.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
