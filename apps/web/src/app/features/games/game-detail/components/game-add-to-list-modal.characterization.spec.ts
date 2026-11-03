@@ -339,6 +339,39 @@ describe("GameAddToListModal characterization", () => {
 			expect(containing("g1")).toEqual(["l1", "l2"]);
 		});
 
+		it("survives double clicks, row clicks and the keyboard before saving", async () => {
+			await renderGame();
+			const dialog = await openListsDialog();
+			const roguelikes = within(dialog).getByRole("checkbox", {
+				name: "Roguelikes"
+			});
+			const couch = within(dialog).getByRole("checkbox", {
+				name: "Couch co-op"
+			});
+			const played = within(dialog).getByRole("checkbox", {
+				name: "Played in 2024"
+			});
+
+			await userEvent.dblClick(roguelikes);
+			expect(roguelikes).toHaveAttribute("aria-checked", "false");
+
+			await userEvent.click(within(dialog).getByText("Couch co-op"));
+			expect(couch).toHaveAttribute("aria-checked", "true");
+
+			played.focus();
+			await userEvent.keyboard(" ");
+			expect(played).toHaveAttribute("aria-checked", "false");
+
+			await userEvent.click(
+				within(dialog).getByRole("button", { name: "Save" })
+			);
+
+			await untilVisible(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+			expect(containing("g1")).toEqual(["l2"]);
+		});
+
 		it("closes without changing any list when nothing was toggled", async () => {
 			await renderGame();
 			const dialog = await openListsDialog();

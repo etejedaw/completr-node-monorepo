@@ -10,9 +10,11 @@ import { injectDialogRef } from "ng-primitives/dialog";
 import {
 	UiAlert,
 	UiButton,
+	UiCheckbox,
 	UiDialog,
 	UiFieldLabel,
-	UiInput
+	UiInput,
+	UiPlainEmptyState
 } from "../../../../shared/ui";
 import { ListsService } from "../../../lists/lists";
 import { GamesService } from "../../games";
@@ -23,7 +25,15 @@ import {
 
 @Component({
 	selector: "app-game-add-to-list-modal",
-	imports: [UiAlert, UiButton, UiDialog, UiFieldLabel, UiInput],
+	imports: [
+		UiAlert,
+		UiButton,
+		UiCheckbox,
+		UiDialog,
+		UiFieldLabel,
+		UiInput,
+		UiPlainEmptyState
+	],
 	templateUrl: "./game-add-to-list-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -60,9 +70,9 @@ export class GameAddToListModal implements OnInit {
 		return this.state().selection.get(listId) ?? false;
 	}
 
-	protected toggleSelection(listId: string) {
+	protected setSelected(listId: string, checked: boolean) {
 		const next = new Map(this.state().selection);
-		next.set(listId, !next.get(listId));
+		next.set(listId, checked);
 		this.update({ selection: next });
 	}
 

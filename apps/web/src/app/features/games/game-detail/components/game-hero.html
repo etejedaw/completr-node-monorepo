@@ -37,21 +37,16 @@
 				[title]="game().title"
 				[width]="420"
 				titleSize="1rem"
-				class="row-start-1 md:row-span-2 self-end w-28 sm:w-40 md:w-48 lg:w-56 shrink-0 aspect-[2/3] rounded-xl ring-1 ring-white/15 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.9)]"
+				framed
+				class="row-start-1 md:row-span-2 self-end w-28 sm:w-40 md:w-48 lg:w-56 shrink-0 aspect-[2/3] rounded-xl shadow-[0_30px_60px_-20px_rgba(0,0,0,0.9)]"
 			/>
 
 			<div class="col-start-2 row-start-1 self-end min-w-0 pb-1">
 				<div class="flex flex-wrap items-center gap-1.5 mb-2 sm:mb-3">
 					@if (game().isDlc) {
-					<span
-						class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-[0.16em] bg-brand/25 text-brand-hover backdrop-blur-sm"
-						>DLC</span
-					>
+					<ui-badge tone="brand">DLC</ui-badge>
 					} @if (game().isCompilation) {
-					<span
-						class="py-0.5 px-2 rounded-full text-[0.625rem] font-semibold uppercase tracking-[0.16em] bg-brand/25 text-brand-hover backdrop-blur-sm"
-						>Compilation</span
-					>
+					<ui-badge tone="brand">Compilation</ui-badge>
 					} @for (genre of game().genres.slice(0, 3); track genre.id)
 					{
 					<a
@@ -110,9 +105,10 @@
 						</a>
 						@if (isLoggedIn()) {
 						<button
-							type="button"
-							class="tap-area inline-flex items-center gap-0.5 h-6 px-2 rounded-full border text-[0.6875rem] font-medium cursor-pointer transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50 disabled:cursor-not-allowed"
-							[class]="franchiseTracked() ? 'border-brand bg-brand-subtle text-brand' : 'border-white/30 bg-transparent text-white/80 hover:text-white hover:border-white/60'"
+							uiButton
+							variant="glass"
+							size="sm"
+							[active]="franchiseTracked()"
 							[disabled]="togglingFranchise()"
 							[attr.aria-pressed]="franchiseTracked()"
 							(click)="franchiseTrackToggled.emit()"

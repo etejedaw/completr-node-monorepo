@@ -6,11 +6,12 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
+import { UiBadge } from "../../../../shared/ui";
 import { type FeaturedList } from "./game-featured-lists.model";
 
 @Component({
 	selector: "app-game-featured-lists",
-	imports: [RouterLink],
+	imports: [RouterLink, UiBadge],
 	template: `
 		<ul class="list-none m-0 p-0 grid grid-cols-1 sm:grid-cols-2 gap-3">
 			@for (list of sortedLists(); track list.id) {
@@ -45,9 +46,8 @@ import { type FeaturedList } from "./game-featured-lists.model";
 									>{{ list.name }}</span
 								>
 								@if (list.isOfficial) {
-									<span
-										class="shrink-0 px-1.5 py-px rounded-full bg-brand/15 text-brand text-[0.5625rem] font-bold uppercase tracking-[0.16em]"
-										>Official</span
+									<ui-badge tone="brand" class="shrink-0"
+										>Official</ui-badge
 									>
 								}
 							</span>

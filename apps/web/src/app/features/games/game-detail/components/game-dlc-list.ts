@@ -3,10 +3,11 @@ import { RouterLink } from "@angular/router";
 
 import { type GameSummary } from "../../../../core/models";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
+import { UiBadge } from "../../../../shared/ui";
 
 @Component({
 	selector: "app-game-dlc-list",
-	imports: [RouterLink, GamePoster],
+	imports: [RouterLink, GamePoster, UiBadge],
 	template: `
 		<ul class="list-none m-0 p-0 grid grid-cols-1 sm:grid-cols-2 gap-3">
 			@for (dlc of dlcs(); track dlc.id) {
@@ -25,10 +26,7 @@ import { GamePoster } from "../../../../shared/components/game-poster/game-poste
 						<span
 							class="flex-1 min-w-0 flex flex-col justify-center gap-1.5 px-4 py-3"
 						>
-							<span
-								class="w-fit px-1.5 py-px rounded-full bg-brand/15 text-brand-hover text-[0.5625rem] font-bold uppercase tracking-[0.16em]"
-								>DLC</span
-							>
+							<ui-badge tone="brand" class="w-fit">DLC</ui-badge>
 							<span
 								class="text-sm font-semibold text-fg leading-snug line-clamp-2 transition group-hover:text-brand"
 								>{{ dlc.title }}</span

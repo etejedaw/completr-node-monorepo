@@ -9,21 +9,18 @@ import {
 
 import { type BacklogEntry, type GamePlatinum } from "../../../../core/models";
 import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/platinum-trophy";
-import { UiButton } from "../../../../shared/ui";
+import { UiButton, UiEyebrow } from "../../../../shared/ui";
 
 @Component({
 	selector: "app-game-platinum-card",
-	imports: [DatePipe, PlatinumTrophy, UiButton],
+	imports: [DatePipe, PlatinumTrophy, UiButton, UiEyebrow],
 	template: `
 		<section
 			class="bg-surface/60 border border-line rounded-card p-4"
 			aria-labelledby="game-platinum-heading"
 		>
 			<header class="flex items-center justify-between gap-2 mb-2">
-				<h2
-					id="game-platinum-heading"
-					class="m-0 text-[0.625rem] font-bold uppercase tracking-[0.18em] text-fg-muted"
-				>
+				<h2 id="game-platinum-heading" uiEyebrow class="m-0">
 					Platinum
 				</h2>
 				@if (platinum()) {

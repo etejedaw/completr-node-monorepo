@@ -11,6 +11,7 @@ import { RouterLink } from "@angular/router";
 import { type Game } from "../../../../core/models";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
 import { CoverUrlPipe } from "../../../../shared/pipes/cover-url";
+import { UiBadge, UiButton } from "../../../../shared/ui";
 import { type CanonicalScore } from "../../../../shared/utils/canonical-score.model";
 import { type GameFact } from "./game-hero.model";
 
@@ -40,7 +41,14 @@ const SCORE_TYPE_CLASSES: Record<
 
 @Component({
 	selector: "app-game-hero",
-	imports: [NgTemplateOutlet, RouterLink, GamePoster, CoverUrlPipe],
+	imports: [
+		NgTemplateOutlet,
+		RouterLink,
+		GamePoster,
+		CoverUrlPipe,
+		UiBadge,
+		UiButton
+	],
 	templateUrl: "./game-hero.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush

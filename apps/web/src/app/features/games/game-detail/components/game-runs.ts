@@ -8,17 +8,23 @@ import {
 } from "@angular/core";
 
 import { type BacklogEntry } from "../../../../core/models";
+import { BacklogStatusBadge } from "../../../../shared/components/backlog-status-badge/backlog-status-badge";
 import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/platinum-trophy";
+import { UiButton, UiEyebrow } from "../../../../shared/ui";
 import {
-	backlogStatusClass,
-	backlogStatusIcon,
 	backlogStatusIconColor,
 	backlogStatusLabel
 } from "../../../../shared/utils/backlog-status";
 
 @Component({
 	selector: "app-game-runs",
-	imports: [DatePipe, PlatinumTrophy],
+	imports: [
+		DatePipe,
+		PlatinumTrophy,
+		BacklogStatusBadge,
+		UiButton,
+		UiEyebrow
+	],
 	template: `
 		<section
 			class="bg-surface/60 border border-line rounded-card overflow-hidden"
@@ -27,15 +33,12 @@ import {
 			<header
 				class="flex items-center justify-between gap-2 px-4 pt-4 pb-3"
 			>
-				<h2
-					id="game-runs-heading"
-					class="m-0 text-[0.625rem] font-bold uppercase tracking-[0.18em] text-fg-muted"
-				>
-					Your runs
-				</h2>
+				<h2 id="game-runs-heading" uiEyebrow class="m-0">Your runs</h2>
 				<button
-					type="button"
-					class="inline-flex items-center gap-1 h-8 tap:min-h-[44px] px-2.5 -mr-1 rounded-md bg-transparent border-0 text-xs font-medium text-brand cursor-pointer transition hover:bg-brand-subtle"
+					uiButton
+					variant="ghost"
+					size="sm"
+					class="-mr-1"
 					(click)="runAdded.emit()"
 				>
 					<span aria-hidden="true" class="material-icons text-base"
@@ -49,11 +52,7 @@ import {
 				class="m-0 mx-4 mb-3 grid grid-cols-3 rounded-md bg-input-bg/60 border border-line divide-x divide-line"
 			>
 				<div class="flex flex-col items-center py-2">
-					<dt
-						class="text-[0.5625rem] font-semibold uppercase tracking-[0.14em] text-fg-muted"
-					>
-						Runs
-					</dt>
+					<dt uiEyebrow>Runs</dt>
 					<dd
 						class="m-0 font-display text-lg font-bold text-fg tabular-nums"
 					>
@@ -61,11 +60,7 @@ import {
 					</dd>
 				</div>
 				<div class="flex flex-col items-center py-2">
-					<dt
-						class="text-[0.5625rem] font-semibold uppercase tracking-[0.14em] text-fg-muted"
-					>
-						Completed
-					</dt>
+					<dt uiEyebrow>Completed</dt>
 					<dd
 						class="m-0 font-display text-lg font-bold text-success tabular-nums"
 					>
@@ -73,11 +68,7 @@ import {
 					</dd>
 				</div>
 				<div class="flex flex-col items-center py-2">
-					<dt
-						class="text-[0.5625rem] font-semibold uppercase tracking-[0.14em] text-fg-muted"
-					>
-						Played
-					</dt>
+					<dt uiEyebrow>Played</dt>
 					<dd
 						class="m-0 font-display text-lg font-bold text-fg tabular-nums"
 					>
@@ -112,17 +103,9 @@ import {
 							></span>
 							<span class="flex-1 min-w-0 flex flex-col gap-1.5">
 								<span class="flex items-center gap-2">
-									<span
-										class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold"
-										[class]="statusClass(run.status)"
-									>
-										<span
-											aria-hidden="true"
-											class="material-icons text-sm"
-											>{{ statusIcon(run.status) }}</span
-										>
-										{{ statusLabel(run.status) }}
-									</span>
+									<app-backlog-status-badge
+										[status]="run.status"
+									/>
 									<span
 										class="text-xs font-medium text-fg-secondary"
 										>{{ run.platform.abbreviation }}</span
@@ -139,8 +122,7 @@ import {
 											"
 										/>
 									}
-									<span
-										class="ml-auto text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-fg-muted"
+									<span uiEyebrow class="ml-auto"
 										>#{{ runs().length - i }}</span
 									>
 								</span>
@@ -233,8 +215,6 @@ export class GameRuns {
 	readonly runOpened = output<BacklogEntry>();
 	readonly runAdded = output<void>();
 
-	protected readonly statusClass = backlogStatusClass;
-	protected readonly statusIcon = backlogStatusIcon;
 	protected readonly statusIconColor = backlogStatusIconColor;
 	protected readonly statusLabel = backlogStatusLabel;
 
