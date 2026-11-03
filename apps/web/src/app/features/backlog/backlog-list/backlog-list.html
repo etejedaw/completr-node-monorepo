@@ -53,10 +53,11 @@
 		class="bleed bleed-inner sticky top-[var(--topbar-height)] z-30 py-3 mb-4 bg-canvas/85 backdrop-blur-md border-b border-line/60 max-md:static"
 	>
 		<div class="flex flex-wrap items-center gap-2">
-			<ui-search-bar
+			<app-page-search
 				size="sm"
+				scopeLabel="My Games"
 				class="flex-1 min-w-[12rem]"
-				placeholder="Search your library..."
+				placeholder="Filter by title..."
 				ariaLabel="Search your library"
 				[value]="searchQuery()"
 				(valueChange)="onSearch($event)"

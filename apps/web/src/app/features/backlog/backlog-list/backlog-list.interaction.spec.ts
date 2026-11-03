@@ -11,12 +11,14 @@ import {
 	ChangeDetectionStrategy,
 	Component
 } from "@angular/core";
-import { TestBed } from "@angular/core/testing";
+import { type ComponentFixture, TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type BacklogEntry, type Platform } from "../../../core/models";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
 import { pickCalendarDate } from "../../../shared/ui/date-picker/ui-date-picker.testing";
 import { todayLocalDate } from "../../../shared/utils/local-date";
@@ -103,6 +105,7 @@ function initialLibrary(): BacklogEntry[] {
 
 describe("BacklogList interaction", () => {
 	let httpTesting: HttpTestingController;
+	let renderedFixture: ComponentFixture<unknown>;
 	let library: BacklogEntry[];
 	let savedViews: SavedFilter[];
 	const savedViewWrites: { method: string; url: string; body: unknown }[] =
@@ -328,6 +331,7 @@ describe("BacklogList interaction", () => {
 			routes: [{ path: "**", component: BacklogList }],
 			initialRoute
 		});
+		renderedFixture = result.fixture;
 		httpTesting = TestBed.inject(HttpTestingController);
 		await untilVisible(() =>
 			expect(visibleTitles()).toEqual([
@@ -378,6 +382,14 @@ describe("BacklogList interaction", () => {
 		answerPending();
 		httpTesting.verify();
 		vi.unstubAllGlobals();
+	});
+
+	it("filters through the page search scoped to My Games", async () => {
+		await renderBacklog();
+		const pageSearch = renderedFixture.debugElement.query(
+			By.directive(PageSearch)
+		);
+		expect(pageSearch.componentInstance.scopeLabel()).toBe("My Games");
 	});
 
 	it("exports exactly the filtered and sorted library", async () => {

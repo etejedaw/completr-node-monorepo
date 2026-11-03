@@ -47,6 +47,7 @@ import {
 	type PickerAction,
 	type PickerOption
 } from "../../../shared/components/option-picker/option-picker.model";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
 import { type ViewModeOption } from "../../../shared/components/view-mode-toggle/view-mode-toggle.model";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
@@ -57,7 +58,6 @@ import {
 	UiFiltersButton,
 	UiNoMatches,
 	UiPagination,
-	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
 import {
@@ -163,7 +163,6 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 		UiEmptyState,
 		UiNoMatches,
 		UiPagination,
-		UiSearchBar,
 		UiSkeleton,
 		BacklogFiltersPanel,
 		ActionMenu,
@@ -174,7 +173,8 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 		StatusChangeDialog,
 		BulkActionBar,
 		BulkRatingDialog,
-		BulkStatusDialog
+		BulkStatusDialog,
+		PageSearch
 	],
 	templateUrl: "./backlog-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
