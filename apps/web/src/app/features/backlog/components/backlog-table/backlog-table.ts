@@ -24,6 +24,7 @@ import { isPlatinumRun } from "../../../../shared/utils/platinum";
 import { FavoritesService } from "../../../favorites/favorites";
 import {
 	type BacklogTableColumn,
+	type BacklogTableColumnAlign,
 	type BacklogTableEntryEvent,
 	type BacklogTableFavoriteToggle,
 	type BacklogTableRating,
@@ -33,45 +34,43 @@ import {
 const HEADER_BASE_CLASS = "select-none";
 const SORTABLE_HEADER_CLASS = `focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand cursor-pointer ${HEADER_BASE_CLASS}`;
 const MUTED_HEADER_CLASS = "hover:text-fg-secondary";
-const HIGHLIGHTED_HEADER_CLASS =
-	"!text-brand !font-bold hover:!text-brand-deep";
-const ALIGN_CLASSES = { left: "", right: "!text-right" } as const;
 
 function sortableColumn(
 	label: string,
 	sortKey: string,
-	align: keyof typeof ALIGN_CLASSES,
+	align: BacklogTableColumnAlign,
 	extra: { highlighted?: boolean; hint?: string; minWidth?: string } = {}
 ): BacklogTableColumn {
-	const tone = extra.highlighted
-		? HIGHLIGHTED_HEADER_CLASS
-		: MUTED_HEADER_CLASS;
+	const tone = extra.highlighted ? "" : MUTED_HEADER_CLASS;
 	return {
 		label,
 		sortKey,
+		align,
+		highlighted: extra.highlighted,
 		hint: extra.hint,
 		headerClass:
-			`${SORTABLE_HEADER_CLASS} ${ALIGN_CLASSES[align]} ${tone} ${extra.minWidth ?? ""}`.trim()
+			`${SORTABLE_HEADER_CLASS} ${tone} ${extra.minWidth ?? ""}`.trim()
 	};
 }
 
 const BACKLOG_TABLE_COLUMNS: readonly BacklogTableColumn[] = [
-	sortableColumn("Title", "title", "left", { minWidth: "min-w-[180px]" }),
+	sortableColumn("Title", "title", "start", { minWidth: "min-w-[180px]" }),
 	{
 		label: "Platform",
 		sortKey: null,
-		headerClass: `${HEADER_BASE_CLASS} ${ALIGN_CLASSES.left} ${MUTED_HEADER_CLASS}`
+		align: "start",
+		headerClass: `${HEADER_BASE_CLASS} ${MUTED_HEADER_CLASS}`
 	},
-	sortableColumn("Score", "score", "right"),
-	sortableColumn("Duration", "duration", "right"),
-	sortableColumn("Ratio", "ratio", "right", { highlighted: true }),
-	sortableColumn("Real", "realDuration", "right"),
-	sortableColumn("Your run", "personalRatio", "right", {
+	sortableColumn("Score", "score", "end"),
+	sortableColumn("Duration", "duration", "end"),
+	sortableColumn("Ratio", "ratio", "end", { highlighted: true }),
+	sortableColumn("Real", "realDuration", "end"),
+	sortableColumn("Your run", "personalRatio", "end", {
 		hint: "Score per hour you actually played"
 	}),
-	sortableColumn("Rating", "userRating", "left"),
-	sortableColumn("Finished", "finishedAt", "left"),
-	sortableColumn("Status", "status", "left")
+	sortableColumn("Rating", "userRating", "start"),
+	sortableColumn("Finished", "finishedAt", "start"),
+	sortableColumn("Status", "status", "start")
 ];
 
 const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
