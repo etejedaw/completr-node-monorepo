@@ -1,10 +1,12 @@
 import { DatePipe } from "@angular/common";
 import {
+	afterNextRender,
 	ChangeDetectionStrategy,
 	Component,
 	computed,
 	DestroyRef,
 	inject,
+	Injector,
 	type OnInit,
 	signal,
 	viewChild
@@ -52,6 +54,7 @@ import {
 	UiButton,
 	UiDialog,
 	UiFieldLabel,
+	UiFieldOptional,
 	UiFormField,
 	UiIconButton,
 	UiInput,
@@ -64,10 +67,7 @@ import {
 	UiSwitch,
 	UiTable
 } from "../../../shared/ui";
-import {
-	fieldErrorsFromResponse,
-	validationSummary
-} from "../../../shared/utils/validation-errors";
+import { fieldErrorsFromResponse } from "../../../shared/utils/validation-errors";
 import { AdminInvitations } from "../admin-invitations/admin-invitations";
 import { AdminPremiumAccess } from "../admin-premium-access/admin-premium-access";
 import { type AdminUser } from "../services/user-admin.model";
@@ -118,12 +118,22 @@ function passwordCompositionError(
 		: null;
 }
 
-function summarize(errors: readonly ValidationError.WithFieldTree[]): string {
-	return errors
-		.map(error => error.message)
-		.filter((message): message is string => !!message)
+function serverErrorOutsideFields(
+	err: { error?: { detail?: string; title?: string } | null },
+	fields: readonly string[],
+	fallback: string
+): string {
+	const issues = Object.entries(fieldErrorsFromResponse(err));
+	if (issues.length === 0)
+		return err.error?.detail || err.error?.title || fallback;
+	return issues
+		.filter(([field]) => !fields.includes(field))
+		.map(([, message]) => message)
 		.join(" · ");
 }
+
+const CREATE_FIELDS = ["username", "name", "email", "password"] as const;
+const EDIT_FIELDS = ["name", "password"] as const;
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -198,6 +208,7 @@ function editedSince(snapshot: FormSnapshot | null, current: FormSnapshot) {
 		UiButton,
 		UiDialog,
 		UiFieldLabel,
+		UiFieldOptional,
 		UiFormField,
 		UiIconButton,
 		UiInput,
@@ -216,6 +227,7 @@ function editedSince(snapshot: FormSnapshot | null, current: FormSnapshot) {
 export class AdminUsers implements OnInit {
 	private readonly userAdminService = inject(UserAdminService);
 	private readonly router = inject(Router);
+	private readonly injector = inject(Injector);
 	protected readonly invitationsPanel = viewChild.required(AdminInvitations);
 	private readonly searchChanges = new Subject<string>();
 	private listSubscription: Subscription | null = null;
@@ -242,9 +254,7 @@ export class AdminUsers implements OnInit {
 	);
 	protected readonly rowActions = computed(
 		() =>
-			new Map(
-				this.users().map(user => [user.id, this.actionsFor(user)])
-			)
+			new Map(this.users().map(user => [user.id, this.actionsFor(user)]))
 	);
 
 	protected readonly showCreateModal = signal(false);
@@ -379,7 +389,9 @@ export class AdminUsers implements OnInit {
 				takeUntilDestroyed()
 			)
 			.subscribe(search => this.applySearch(search));
-		inject(DestroyRef).onDestroy(() => this.listSubscription?.unsubscribe());
+		inject(DestroyRef).onDestroy(() =>
+			this.listSubscription?.unsubscribe()
+		);
 	}
 
 	ngOnInit() {
@@ -416,17 +428,17 @@ export class AdminUsers implements OnInit {
 		this.listSubscription = this.userAdminService
 			.listUsers(this.limit, this.offset(), search)
 			.subscribe({
-			next: res => {
-				this.users.set(res.users);
-				this.total.set(res.total);
-				if (!search) this.accountsTotal.set(res.total);
-				this.isLoading.set(false);
-			},
-			error: () => {
-				this.loadFailed.set(true);
-				this.isLoading.set(false);
-			}
-		});
+				next: res => {
+					this.users.set(res.users);
+					this.total.set(res.total);
+					if (!search) this.accountsTotal.set(res.total);
+					this.isLoading.set(false);
+				},
+				error: () => {
+					this.loadFailed.set(true);
+					this.isLoading.set(false);
+				}
+			});
 	}
 
 	openCreate() {
@@ -462,7 +474,10 @@ export class AdminUsers implements OnInit {
 		// and submitting an invalid form surfaces the reasons instead.
 		if (this.createForm().invalid()) {
 			this.createForm().markAsTouched();
-			this.createError.set(summarize(this.createForm().errorSummary()));
+			const firstInvalid = CREATE_FIELDS.find(field =>
+				this.createForm[field]().invalid()
+			);
+			if (firstInvalid) this.focusField(`create-${firstInvalid}`);
 			return;
 		}
 
@@ -474,7 +489,8 @@ export class AdminUsers implements OnInit {
 			next: () => {
 				this.isCreating.set(false);
 				this.closeCreate();
-				if (this.search()) this.accountsTotal.update(count => count + 1);
+				if (this.search())
+					this.accountsTotal.update(count => count + 1);
 				this.offset.set(0);
 				this.loadUsers();
 			},
@@ -482,10 +498,11 @@ export class AdminUsers implements OnInit {
 				this.createServerSnapshot.set({ ...this.createModel() });
 				this.createFieldErrors.set(fieldErrorsFromResponse(err));
 				this.createError.set(
-					validationSummary(err) ||
-						err.error?.detail ||
-						err.error?.title ||
+					serverErrorOutsideFields(
+						err,
+						CREATE_FIELDS,
 						"Failed to create user"
+					)
 				);
 				this.isCreating.set(false);
 			}
@@ -591,7 +608,10 @@ export class AdminUsers implements OnInit {
 		// form explains itself instead of doing nothing.
 		if (this.editForm().invalid()) {
 			this.editForm().markAsTouched();
-			this.editError.set(summarize(this.editForm().errorSummary()));
+			const firstInvalid = EDIT_FIELDS.find(field =>
+				this.editForm[field]().invalid()
+			);
+			if (firstInvalid) this.focusField(`edit-${firstInvalid}`);
 			return;
 		}
 
@@ -626,13 +646,20 @@ export class AdminUsers implements OnInit {
 				this.editServerSnapshot.set({ ...this.editModel() });
 				this.editFieldErrors.set(fieldErrorsFromResponse(err));
 				this.editError.set(
-					validationSummary(err) ||
-						err.error?.detail ||
-						err.error?.title ||
+					serverErrorOutsideFields(
+						err,
+						EDIT_FIELDS,
 						"Failed to update user"
+					)
 				);
 				this.isEditing.set(false);
 			}
+		});
+	}
+
+	private focusField(id: string) {
+		afterNextRender(() => document.getElementById(id)?.focus(), {
+			injector: this.injector
 		});
 	}
 

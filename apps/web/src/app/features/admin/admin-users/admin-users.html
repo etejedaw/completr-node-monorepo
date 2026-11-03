@@ -388,18 +388,12 @@
 } @if (showEditModal() && editingUser(); as user) {
 <ui-dialog
 	eyebrow="Users"
+	icon="manage_accounts"
 	heading="Edit user"
 	[subheading]="user.username + ' · ' + user.email"
 	[dismissible]="!isEditing()"
 	(closed)="closeEdit()"
 >
-	<ui-avatar
-		dialogLead
-		class="size-10"
-		[name]="user.username"
-		[ring]="avatarRing(user.role)"
-	/>
-
 	@if (visibleEditError()) {
 	<ui-alert class="mb-4 whitespace-pre-line"
 		>{{ visibleEditError() }}</ui-alert
@@ -425,19 +419,23 @@
 		</div>
 
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-x-3 gap-y-4 mb-4">
-			<app-option-picker
-				class="self-end"
-				label="Role"
-				heading="Role"
-				placeholderIcon="badge"
-				[options]="roleOptions"
-				[value]="editForm.role().value()"
-				(valueChange)="setEditRole($event)"
-			/>
+			<div uiFormField>
+				<label uiLabel for="edit-role" uiFieldLabel>Role</label>
+				<app-option-picker
+					variant="input"
+					triggerId="edit-role"
+					label="Role"
+					heading="Role"
+					placeholderIcon="badge"
+					[options]="roleOptions"
+					[value]="editForm.role().value()"
+					(valueChange)="setEditRole($event)"
+				/>
+			</div>
 			<div uiFormField>
 				<label uiLabel for="edit-password" uiFieldLabel
-					>New Password</label
-				>
+					>New password <ui-field-optional
+				/></label>
 				<div class="relative">
 					<input
 						id="edit-password"
