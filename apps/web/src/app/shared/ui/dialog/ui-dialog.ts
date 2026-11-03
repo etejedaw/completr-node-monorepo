@@ -11,26 +11,14 @@ import {
 import { ViewportService } from "../../../core/services/viewport";
 import { UiFocusTrap } from "../focus-trap/ui-focus-trap";
 import { injectBodyPortal } from "../portal/body-portal";
+import {
+	UI_TONE_COLOR,
+	UI_TONE_ICON_CLASS,
+	type UiTone
+} from "../tone/ui-tone";
 
 export type UiDialogSize = "sm" | "md" | "lg" | "xl";
-export type UiDialogTone =
-	"brand" | "danger" | "warning" | "success" | "premium";
-
-const TONE_COLOR: Record<UiDialogTone, string> = {
-	brand: "var(--color-brand)",
-	danger: "var(--color-danger)",
-	warning: "var(--color-warning)",
-	success: "var(--color-success)",
-	premium: "var(--color-premium)"
-};
-
-const ICON_TONE: Record<UiDialogTone, string> = {
-	brand: "bg-brand/12 text-brand ring-brand/25",
-	danger: "bg-danger/12 text-danger ring-danger/25",
-	warning: "bg-warning/12 text-warning ring-warning/25",
-	success: "bg-success/12 text-success ring-success/25",
-	premium: "bg-premium/12 text-premium ring-premium/25"
-};
+export type UiDialogTone = UiTone;
 
 const DIALOG_WIDTH: Record<UiDialogSize, string> = {
 	sm: "md:w-[440px]",
@@ -177,8 +165,10 @@ export class UiDialog {
 	protected readonly titleId = `ui-dialog-title-${nextDialogId}`;
 	protected readonly subtitleId = `ui-dialog-subtitle-${nextDialogId++}`;
 	protected readonly dragging = signal(false);
-	protected readonly iconToneClass = computed(() => ICON_TONE[this.tone()]);
-	protected readonly toneColor = computed(() => TONE_COLOR[this.tone()]);
+	protected readonly iconToneClass = computed(
+		() => UI_TONE_ICON_CLASS[this.tone()]
+	);
+	protected readonly toneColor = computed(() => UI_TONE_COLOR[this.tone()]);
 	protected readonly widthClass = computed(() => DIALOG_WIDTH[this.size()]);
 	protected readonly dragTransform = computed(() =>
 		this.dragOffset() ? `translateY(${this.dragOffset()}px)` : null
