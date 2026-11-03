@@ -141,3 +141,104 @@ describe("StatusChangeDialog platinum", () => {
 		).toBeInTheDocument();
 	});
 });
+
+describe("StatusChangeDialog header and labels", () => {
+	async function renderDialog(pending: PendingStatusUpdate) {
+		await render(StatusChangeDialog, {
+			inputs: { pendingUpdate: pending }
+		});
+		return screen.findByRole("dialog");
+	}
+
+	function headerIcon(dialog: HTMLElement) {
+		return dialog.querySelector<HTMLElement>(
+			'[aria-hidden="true"].rounded-xl'
+		);
+	}
+
+	function labelText(dialog: HTMLElement, text: RegExp) {
+		const label = Array.from(
+			dialog.querySelectorAll("label, span[id]")
+		).find(candidate => text.test(candidate.textContent ?? ""));
+		return label?.textContent?.replace(/\s+/g, " ").trim();
+	}
+
+	beforeEach(() => {
+		vi.stubGlobal(
+			"matchMedia",
+			vi.fn(() => ({
+				matches: false,
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn()
+			}))
+		);
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	const cases: [BacklogStatus, string, string][] = [
+		["completed", "check_circle", "text-success"],
+		["abandoned", "cancel", "text-danger"],
+		["playing", "play_circle", "text-brand"],
+		["endless", "all_inclusive", "text-brand"],
+		["not_started", "schedule", "text-brand"]
+	];
+	for (const [status, icon, toneClass] of cases) {
+		it(`anchors the ${status} status icon in the header with its tone`, async () => {
+			const dialog = await renderDialog(pendingUpdate(status));
+
+			const iconBox = headerIcon(dialog);
+			expect(iconBox?.textContent?.trim()).toBe(icon);
+			expect(iconBox?.classList).toContain(toneClass);
+			expect(dialog.querySelector("[dialogLead]")).toBeNull();
+		});
+	}
+
+	it("keeps the dialog named by the status, not by the icon", async () => {
+		await renderDialog(pendingUpdate("completed"));
+
+		expect(
+			screen.getByRole("dialog", { name: "Completed?" })
+		).toBeInTheDocument();
+	});
+
+	it("marks the optional fields and never shows a required asterisk", async () => {
+		const dialog = await renderDialog(pendingUpdate("completed"));
+
+		expect(labelText(dialog, /^\s*Real duration/)).toBe(
+			"Real duration (hours) Optional"
+		);
+		expect(labelText(dialog, /^\s*Notes/)).toBe("Notes Optional");
+		expect(labelText(dialog, /^\s*Your rating/)).toBe(
+			"Your rating Optional"
+		);
+		expect(labelText(dialog, /^\s*Finished on/)).toBe("Finished on");
+		expect(dialog.textContent).not.toContain("*");
+	});
+
+	it("accepts garbage typed into the optional fields without breaking", async () => {
+		const user = userEvent.setup();
+		const edited = vi.fn();
+		await render(StatusChangeDialog, {
+			inputs: { pendingUpdate: pendingUpdate("completed") },
+			on: { edited }
+		});
+		const dialog = within(await screen.findByRole("dialog"));
+
+		await user.type(
+			dialog.getByLabelText("Real duration (hours) Optional"),
+			"abc-1e"
+		);
+		await user.type(
+			dialog.getByLabelText("Notes Optional"),
+			"<script>{{ x }}</script>"
+		);
+
+		expect(edited).toHaveBeenCalled();
+		expect(
+			dialog.getByRole("button", { name: "Confirm" })
+		).toBeInTheDocument();
+	});
+});

@@ -446,12 +446,12 @@ describe("BacklogList interaction", () => {
 		});
 		expect(within(dialog).getByLabelText(/Finished/)).toBeInTheDocument();
 		expect(
-			within(dialog).getByLabelText("Real duration (hours)")
+			within(dialog).getByLabelText("Real duration (hours) Optional")
 		).toBeInTheDocument();
-		const notes = within(dialog).getByLabelText("Notes");
+		const notes = within(dialog).getByLabelText("Notes Optional");
 		await user.type(notes, "Escaped at last");
 		await user.type(
-			within(dialog).getByLabelText("Real duration (hours)"),
+			within(dialog).getByLabelText("Real duration (hours) Optional"),
 			"32"
 		);
 		await user.click(
@@ -592,7 +592,7 @@ describe("BacklogList interaction", () => {
 			within(playing).getByLabelText("Started on")
 		).toBeInTheDocument();
 		expect(
-			within(playing).queryByLabelText("Notes")
+			within(playing).queryByLabelText("Notes Optional")
 		).not.toBeInTheDocument();
 		await user.click(
 			within(playing).getByRole("button", { name: "Cancel" })
@@ -610,10 +610,9 @@ describe("BacklogList interaction", () => {
 		expect(
 			within(abandoned).getByLabelText(/Abandoned on/)
 		).toBeInTheDocument();
-		expect(within(abandoned).getByLabelText("Notes")).toHaveAttribute(
-			"placeholder",
-			"Why did you drop it?"
-		);
+		expect(
+			within(abandoned).getByLabelText("Notes Optional")
+		).toHaveAttribute("placeholder", "Why did you drop it?");
 		expect(backlogPatches).toEqual([]);
 	});
 
@@ -628,7 +627,7 @@ describe("BacklogList interaction", () => {
 		await user.click(within(summary).getByRole("button", { name: "Edit" }));
 
 		const editor = await screen.findByRole("dialog", { name: "Edit run" });
-		const notes = within(editor).getByLabelText("Notes");
+		const notes = within(editor).getByLabelText("Notes Optional");
 		await user.clear(notes);
 		await user.type(notes, "Bring the dream nail");
 		await user.click(within(editor).getByRole("button", { name: "Save" }));

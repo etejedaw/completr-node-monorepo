@@ -2,17 +2,12 @@
 <ui-dialog
 	eyebrow="Change status"
 	size="sm"
+	[icon]="statusIcon(pending.status)"
+	[tone]="statusTone(pending.status)"
 	[heading]="statusLabel(pending.status) + '?'"
 	[subheading]="pending.entry.game.title"
 	(closed)="cancelled.emit()"
 >
-	<span
-		dialogLead
-		aria-hidden="true"
-		class="material-icons text-2xl mt-1"
-		[class]="statusIconColor(pending.status)"
-		>{{ statusIcon(pending.status) }}</span
-	>
 	<div class="flex flex-col gap-4">
 		<p class="m-0 text-sm text-fg-secondary leading-relaxed">
 			<strong>{{ pending.entry.game.title }}</strong> will be marked as
@@ -57,8 +52,8 @@
 		@if (pending.status === 'completed') {
 		<div>
 			<label for="pendingRealDuration" uiFieldLabel
-				>Real duration (hours)</label
-			>
+				>Real duration (hours) <ui-field-optional
+			/></label>
 			<input
 				uiInput
 				id="pendingRealDuration"
@@ -110,7 +105,9 @@
 		</div>
 		} } }
 		<div>
-			<label for="pendingNotes" uiFieldLabel>Notes</label>
+			<label for="pendingNotes" uiFieldLabel
+				>Notes <ui-field-optional
+			/></label>
 			<textarea
 				uiTextarea
 				id="pendingNotes"
@@ -123,7 +120,9 @@
 		} @if (pending.status === 'completed' || pending.status === 'abandoned'
 		|| pending.status === 'endless') {
 		<div>
-			<span id="pending-your-rating" uiFieldLabel>Your rating</span>
+			<span id="pending-your-rating" uiFieldLabel
+				>Your rating <ui-field-optional
+			/></span>
 			<app-star-rating
 				ariaLabelledby="pending-your-rating"
 				[value]="pending.rating"
