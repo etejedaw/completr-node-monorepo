@@ -9,9 +9,7 @@
 	@let name = form.name(); @let description = form.description();
 	<div class="grid gap-4 md:gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
 		<div uiFormField class="min-w-0">
-			<label uiLabel uiFieldLabel [for]="fieldId + '-name'"
-				>Name <span class="text-danger font-bold">*</span></label
-			>
+			<label uiLabel uiFieldLabel [for]="fieldId + '-name'">Name</label>
 			<input
 				uiInput
 				type="text"
@@ -34,8 +32,8 @@
 		</div>
 		<div uiFormField class="min-w-0">
 			<label uiLabel uiFieldLabel [for]="fieldId + '-description'"
-				>Description</label
-			>
+				>Description <ui-field-optional
+			/></label>
 			<input
 				uiInput
 				type="text"

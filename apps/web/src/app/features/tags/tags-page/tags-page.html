@@ -140,17 +140,13 @@
 } @if (pendingDelete(); as tag) {
 <ui-dialog
 	eyebrow="Tags"
+	icon="delete"
+	tone="danger"
 	heading="Delete tag?"
 	size="sm"
 	[dismissible]="saving() !== tag.tag"
 	(closed)="cancelDelete()"
 >
-	<span
-		dialogLead
-		aria-hidden="true"
-		class="material-icons text-2xl text-danger mt-1"
-		>warning</span
-	>
 	<p class="text-sm text-fg-secondary m-0">
 		The tag
 		<span

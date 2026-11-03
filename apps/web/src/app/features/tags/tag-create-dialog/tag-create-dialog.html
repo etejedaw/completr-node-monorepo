@@ -1,6 +1,7 @@
 @let name = form.name(); @let description = form.description();
 <ui-dialog
 	eyebrow="Tags"
+	icon="label"
 	heading="New tag"
 	subheading="It starts with 0 games. Assign it from the edit window of any game in My Games."
 	size="sm"
@@ -13,9 +14,7 @@
 
 	<form id="tag-create-form" novalidate (submit)="submit($event)">
 		<div uiFormField class="mb-4">
-			<label uiLabel for="tag-create-name" uiFieldLabel
-				>Name <span class="text-danger font-bold">*</span></label
-			>
+			<label uiLabel for="tag-create-name" uiFieldLabel>Name</label>
 			<input
 				uiInput
 				id="tag-create-name"
@@ -40,8 +39,8 @@
 
 		<div uiFormField>
 			<label uiLabel for="tag-create-description" uiFieldLabel
-				>Description</label
-			>
+				>Description <ui-field-optional
+			/></label>
 			<input
 				uiInput
 				id="tag-create-description"
@@ -63,7 +62,7 @@
 			</p>
 			} @else {
 			<p uiDescription class="m-0 mt-1.5 text-xs text-fg-muted">
-				Optional. Shown next to the tag in your list.
+				Shown next to the tag in your list.
 			</p>
 			}
 		</div>

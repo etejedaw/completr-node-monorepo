@@ -15,6 +15,7 @@ import {
 	UiDescription,
 	UiDialog,
 	UiFieldLabel,
+	UiFieldOptional,
 	UiFormField,
 	UiInput,
 	UiLabel
@@ -30,6 +31,7 @@ const TAG_DESCRIPTION_MAX_LENGTH = 255;
 	imports: [
 		UiAlert,
 		UiFieldLabel,
+		UiFieldOptional,
 		FormField,
 		UiButton,
 		UiDescription,
