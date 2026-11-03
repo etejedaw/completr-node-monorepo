@@ -61,7 +61,11 @@
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"
 		/>
-		<app-view-mode-toggle [options]="viewModes" [(value)]="viewMode" />
+		<app-view-mode-toggle
+			[options]="viewModes"
+			[value]="viewMode()"
+			(valueChange)="setViewMode($event)"
+		/>
 		@if (!isLoading()) {
 		<app-export-actions
 			resource="game-shelf"
@@ -114,6 +118,17 @@
 			<table uiTable framed>
 				<thead>
 					<tr>
+						<th
+							scope="col"
+							appSelectionCell
+							(selectionToggled)="selection.togglePage()"
+						>
+							<ui-checkbox
+								ariaLabel="Select all games on this page"
+								[checked]="selection.isAllSelected()"
+								[indeterminate]="selection.isPartiallySelected()"
+							/>
+						</th>
 						@for (column of tableColumns; track column) {
 						<th
 							scope="col"
@@ -129,7 +144,20 @@
 				</thead>
 				<tbody>
 					@for (entry of entries(); track entry.id) {
-					<tr class="cursor-pointer" (click)="openEdit(entry)">
+					<tr
+						class="cursor-pointer"
+						[attr.aria-selected]="selection.isSelected(entry.id)"
+						(click)="openEdit(entry)"
+					>
+						<td
+							appSelectionCell
+							(selectionToggled)="toggleSelection(entry, $event)"
+						>
+							<ui-checkbox
+								[ariaLabel]="'Select ' + entry.game.title"
+								[checked]="selection.isSelected(entry.id)"
+							/>
+						</td>
 						<td>
 							<app-game-title-cell
 								[coverUrl]="entry.game.backgroundUrl"
@@ -178,3 +206,13 @@
 		}
 	</ng-template>
 </app-library-page>
+@if (viewMode() === 'table') {
+<app-bulk-action-bar
+	[count]="selection.count()"
+	[actions]="bulkActions()"
+	[noun]="bulkNoun"
+	[busy]="bulkRunner.busy()"
+	(actionTriggered)="runBulkAction($event)"
+	(cleared)="selection.clear()"
+/>
+}
