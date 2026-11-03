@@ -403,9 +403,10 @@
 />
 } @case ('rating') {
 <app-bulk-rating-dialog
-	[eligibleCount]="bulk.rateEligibleCount()"
-	[skippedCount]="bulk.rateSkippedCount()"
-	[ratedCount]="bulk.alreadyRatedCount()"
+	[startedCount]="bulk.rateStartedCount()"
+	[notStartedCount]="bulk.rateNotStartedCount()"
+	[ratedStartedCount]="bulk.ratedStartedCount()"
+	[ratedNotStartedCount]="bulk.ratedNotStartedCount()"
 	(confirmed)="bulk.confirmRating($event)"
 	(cancelled)="bulk.closeDialog()"
 />

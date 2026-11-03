@@ -1362,7 +1362,7 @@ describe("BacklogList interaction", () => {
 
 			await user.click(rowCheckbox("Hades"));
 			await user.click(rowCheckbox("Celeste"));
-			await user.click(bar().getByRole("button", { name: "Rate (1)" }));
+			await user.click(bar().getByRole("button", { name: "Rate (2)" }));
 			const dialog = await screen.findByRole("dialog", {
 				name: "Rate 1 run?"
 			});
@@ -1395,8 +1395,73 @@ describe("BacklogList interaction", () => {
 			]);
 			expect(selectionStatus()).toHaveTextContent("2 runs selected");
 			expect(
-				bar().getByRole("button", { name: "Rate (1)" })
+				bar().getByRole("button", { name: "Rate (2)" })
 			).toBeEnabled();
+		});
+
+		it("rates the not started runs too when the switch is turned on, even after flipping it back and forth", async () => {
+			const user = userEvent.setup();
+			await renderHardcore();
+
+			await user.click(rowCheckbox("Hades"));
+			await user.click(rowCheckbox("Celeste"));
+			await user.click(bar().getByRole("button", { name: "Rate (2)" }));
+			const dialog = await screen.findByRole("dialog", {
+				name: "Rate 1 run?"
+			});
+			const include = within(dialog).getByRole("switch", {
+				name: "Include not started runs"
+			});
+			expect(include).not.toBeChecked();
+
+			await user.click(include);
+			await user.click(include);
+			await user.click(include);
+
+			expect(include).toBeChecked();
+			expect(
+				within(dialog).queryByText("1 not started run will be skipped")
+			).not.toBeInTheDocument();
+			expect(dialog).toHaveAccessibleName("Rate 2 runs?");
+			within(dialog).getByRole("slider", { name: "Your rating" }).focus();
+			await user.keyboard("{ArrowRight}{ArrowRight}");
+			await user.click(
+				within(dialog).getByRole("button", { name: "Rate 2 runs" })
+			);
+			await untilVisible(() => expect(bulkCalls).toHaveLength(1));
+
+			expect(bulkCalls).toEqual([
+				{
+					url: `${backlogUrl}/bulk`,
+					action: "update",
+					body: { ids: ["b1", "b3"], changes: { userRating: 1 } }
+				}
+			]);
+		});
+
+		it("turns the switch on by default when every selected run is not started", async () => {
+			const user = userEvent.setup();
+			await renderHardcore();
+
+			await user.click(rowCheckbox("Hollow Knight"));
+			await user.click(rowCheckbox("Celeste"));
+			await user.click(bar().getByRole("button", { name: "Rate (2)" }));
+			const dialog = await screen.findByRole("dialog", {
+				name: "Rate 2 runs?"
+			});
+			const include = within(dialog).getByRole("switch", {
+				name: "Include not started runs"
+			});
+			expect(include).toBeChecked();
+
+			await user.click(include);
+
+			expect(dialog).toHaveAccessibleName("Rate 0 runs?");
+			within(dialog).getByRole("slider", { name: "Your rating" }).focus();
+			await user.keyboard("{ArrowRight}");
+			expect(
+				within(dialog).getByRole("button", { name: "Rate 0 runs" })
+			).toBeDisabled();
 		});
 
 		it("deletes at once with Undo, and sends the batch only when the toast is dismissed", async () => {

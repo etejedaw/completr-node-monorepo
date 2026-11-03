@@ -20,6 +20,7 @@ import {
 	type BacklogBulkActionsOptions,
 	type BacklogBulkDialog
 } from "./backlog-bulk-actions.model";
+import { type BulkRatingChange } from "./components/bulk-rating-dialog/bulk-rating-dialog.model";
 import { type BulkStatusChange } from "./components/bulk-status-dialog/bulk-status-dialog.model";
 
 export const BACKLOG_BULK_NOUN = { one: "run", other: "runs" };
@@ -72,6 +73,9 @@ export function injectBacklogBulkActions(options: BacklogBulkActionsOptions) {
 	const selected = selection.selectedRows;
 	const statusEligible = computed(() => selected().filter(canChangeStatus));
 	const rateEligible = computed(() => selected().filter(canRate));
+	const rateNotStarted = computed(() =>
+		selected().filter(entry => !canRate(entry))
+	);
 	const queueAddEligible = computed(() =>
 		selected().filter(entry => canAddToQueue(entry, options.queuedIds()))
 	);
@@ -97,12 +101,8 @@ export function injectBacklogBulkActions(options: BacklogBulkActionsOptions) {
 	const statusSkipped = computed(
 		() => selected().length - statusEligible().length
 	);
-	const rateSkipped = computed(
-		() => selected().length - rateEligible().length
-	);
-	const alreadyRated = computed(
-		() => rateEligible().filter(entry => entry.userRating != null).length
-	);
+	const countRated = (entries: readonly BacklogEntry[]) =>
+		entries.filter(entry => entry.userRating != null).length;
 	const queuedAmongStatusEligible = computed(
 		() =>
 			statusEligible().filter(entry => options.queuedIds().has(entry.id))
@@ -126,7 +126,7 @@ export function injectBacklogBulkActions(options: BacklogBulkActionsOptions) {
 				id: "rate",
 				label: "Rate",
 				icon: "star",
-				eligibleCount: rateEligible().length,
+				eligibleCount: selected().length,
 				tone: "default"
 			},
 			allFavorites
@@ -284,7 +284,7 @@ export function injectBacklogBulkActions(options: BacklogBulkActionsOptions) {
 				if (statusEligible().length > 0) dialog.set("status");
 				return;
 			case "rate":
-				if (rateEligible().length > 0) dialog.set("rating");
+				if (selected().length > 0) dialog.set("rating");
 				return;
 			case "favorite":
 				return updateFavorites("add");
@@ -317,8 +317,8 @@ export function injectBacklogBulkActions(options: BacklogBulkActionsOptions) {
 		updateRuns(entries, bulkStatusChanges(change), "updated");
 	}
 
-	function confirmRating(rating: number) {
-		const entries = rateEligible();
+	function confirmRating({ rating, includeNotStarted }: BulkRatingChange) {
+		const entries = includeNotStarted ? selected() : rateEligible();
 		dialog.set(null);
 		updateRuns(entries, { userRating: rating }, "rated");
 	}
@@ -331,9 +331,10 @@ export function injectBacklogBulkActions(options: BacklogBulkActionsOptions) {
 		statusEligibleCount: computed(() => statusEligible().length),
 		statusSkippedCount: statusSkipped,
 		queuedAmongStatusEligible,
-		rateEligibleCount: computed(() => rateEligible().length),
-		rateSkippedCount: rateSkipped,
-		alreadyRatedCount: alreadyRated,
+		rateStartedCount: computed(() => rateEligible().length),
+		rateNotStartedCount: computed(() => rateNotStarted().length),
+		ratedStartedCount: computed(() => countRated(rateEligible())),
+		ratedNotStartedCount: computed(() => countRated(rateNotStarted())),
 		trigger,
 		confirmStatus,
 		confirmRating,
