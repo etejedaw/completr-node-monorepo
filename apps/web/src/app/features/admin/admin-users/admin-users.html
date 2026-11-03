@@ -43,7 +43,8 @@
 	@if (!hasNoAccounts()) {
 	<app-library-toolbar>
 		<ui-search-bar
-			class="flex-1 max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+			size="sm"
+			class="flex-1 max-w-2xl"
 			placeholder="Search by username, name or email..."
 			[value]="query()"
 			(valueChange)="onSearch($event)"

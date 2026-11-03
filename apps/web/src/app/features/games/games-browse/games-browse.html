@@ -55,7 +55,8 @@
 >
 	<div class="flex items-center gap-2">
 		<ui-search-bar
-			class="flex-1 min-w-0 [&_input]:!py-2 [&_input]:!text-sm"
+			size="sm"
+			class="flex-1 min-w-0"
 			placeholder="Search the catalog..."
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"

@@ -1,7 +1,8 @@
 @if (isLoading() || !queueIsEmpty()) {
 <app-library-toolbar>
 	<ui-search-bar
-		class="flex-1 min-w-[12rem] [&_input]:!py-2 [&_input]:!text-sm"
+		size="sm"
+		class="flex-1 min-w-[12rem]"
 		[placeholder]="searchPlaceholder()"
 		[value]="searchQuery()"
 		(valueChange)="searchChange.emit($event)"

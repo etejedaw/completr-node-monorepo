@@ -86,7 +86,8 @@
 >
 	<ng-template appLibraryPageToolbar>
 		<ui-search-bar
-			class="flex-1 max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+			size="sm"
+			class="flex-1 max-w-2xl"
 			[placeholder]="searchPlaceholder() ?? 'Search ' + username() + '\'s ' + heading().toLowerCase() + '...'"
 			[value]="query()"
 			(valueChange)="query.set($event)"
