@@ -15,7 +15,8 @@
 		[class.border-line]="variant() === 'overlay'"
 	>
 		<label
-			class="flex-1 flex items-center gap-2 h-10 pl-3 pr-1.5 rounded-full bg-surface/70 border border-line transition focus-within:border-brand focus-within:bg-input-bg focus-within:shadow-ring-brand"
+			class="flex-1 min-w-0 flex items-center gap-2 pl-3 rounded-full bg-surface/70 border border-line transition focus-within:border-brand focus-within:bg-input-bg focus-within:shadow-ring-brand"
+			[class]="isCompact() ? 'min-h-[44px] pr-0' : 'h-10 pr-1.5'"
 		>
 			<span
 				aria-hidden="true"
@@ -52,9 +53,9 @@
 			} @else if (text()) {
 			<button
 				uiIconButton
-				size="sm"
 				shape="circle"
 				type="button"
+				[size]="isCompact() ? 'lg' : 'sm'"
 				aria-label="Clear search"
 				(click)="clear(); input.focus()"
 			>

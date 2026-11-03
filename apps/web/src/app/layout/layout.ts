@@ -39,7 +39,6 @@ import {
 	UiSeparator
 } from "../shared/ui";
 import { GlobalSearch } from "./global-search/global-search";
-import { MobileScopeSearch } from "./mobile-scope-search/mobile-scope-search";
 import { MobileSearchOverlay } from "./mobile-search-overlay/mobile-search-overlay";
 import { NAV_ACTIVE_CLASSES, visibleNavSections } from "./nav-sections";
 import { type NavItem } from "./nav-sections.model";
@@ -103,7 +102,6 @@ function matchesRoute(url: string, route: string): boolean {
 		UiIconButton,
 		AppLogo,
 		GlobalSearch,
-		MobileScopeSearch,
 		MobileSearchOverlay,
 		ToastContainer,
 		OnboardingTour,

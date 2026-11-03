@@ -15,13 +15,14 @@ import { GlobalSearchService } from "../../core/services/global-search";
 import { PageSearchScope } from "../../core/services/page-search-scope";
 import { PageSearch } from "../../shared/components/page-search/page-search";
 import { MobileSearchOverlay } from "../mobile-search-overlay/mobile-search-overlay";
-import { MobileScopeSearch } from "./mobile-scope-search";
+import { GlobalSearch } from "./global-search";
 
 @Component({
-	imports: [MobileScopeSearch, MobileSearchOverlay, PageSearch],
+	imports: [GlobalSearch, MobileSearchOverlay, PageSearch],
 	template: `
 		@if (pageSearchScope.hasScope()) {
-			<app-mobile-scope-search
+			<app-global-search
+				variant="compact"
 				(searchedEverywhere)="openSearch($event)"
 			/>
 		} @else {
@@ -58,7 +59,7 @@ class Host {
 	}
 }
 
-describe("MobileScopeSearch", () => {
+describe("GlobalSearch compact variant", () => {
 	let search: ReturnType<typeof vi.fn>;
 
 	async function renderHost() {

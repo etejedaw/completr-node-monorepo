@@ -152,8 +152,9 @@
 		>
 			<div class="h-full flex items-center gap-3 px-[var(--page-pad-x)]">
 				@if (pageSearchScope.hasScope()) {
-				<app-mobile-scope-search
+				<app-global-search
 					class="md:hidden flex-1 min-w-0"
+					variant="compact"
 					(searchedEverywhere)="openMobileSearch($event)"
 				/>
 				} @else {

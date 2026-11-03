@@ -27,7 +27,7 @@ import { GamePoster } from "../../shared/components/game-poster/game-poster";
 import { UiAvatar, UiButton, UiEyebrow, UiIconButton } from "../../shared/ui";
 import { SearchScopeChip } from "../search-scope-chip/search-scope-chip";
 
-export type GlobalSearchVariant = "inline" | "overlay";
+export type GlobalSearchVariant = "inline" | "compact" | "overlay";
 
 const MIN_GLOBAL_QUERY_LENGTH = 2;
 const GLOBAL_PLACEHOLDER = "Search games, players, lists...";
@@ -60,6 +60,7 @@ export class GlobalSearch {
 	readonly variant = input<GlobalSearchVariant>("inline");
 	readonly initialQuery = input("");
 	readonly closed = output<void>();
+	readonly searchedEverywhere = output<string>();
 
 	private readonly input = viewChild<ElementRef<HTMLInputElement>>("input");
 	private readonly queries = new Subject<string>();
@@ -93,8 +94,10 @@ export class GlobalSearch {
 		if (scope) return `Filtering ${scope.label()}`;
 		return this.pageScope() ? "Searching all of Completr" : "";
 	});
+	protected readonly isCompact = computed(() => this.variant() === "compact");
 	protected readonly isOpen = computed(() => {
 		if (this.variant() === "overlay") return true;
+		if (this.isCompact()) return false;
 		if (!this.focused()) return false;
 		if (this.scope()) return this.text().trim().length > 0;
 		return this.globalQuery().length >= MIN_GLOBAL_QUERY_LENGTH;
@@ -187,6 +190,10 @@ export class GlobalSearch {
 	}
 
 	onEnter() {
+		if (this.isCompact()) {
+			this.input()?.nativeElement.blur();
+			return;
+		}
 		if (this.scope()) return;
 		this.searchInGames();
 	}
@@ -204,8 +211,12 @@ export class GlobalSearch {
 		const scope = this.scope();
 		if (!scope) return;
 		const query = scope.value();
-		this.dismissedScope.set(scope);
 		scope.setValue("");
+		if (this.isCompact()) {
+			this.searchedEverywhere.emit(query);
+			return;
+		}
+		this.dismissedScope.set(scope);
 		this.setGlobalQuery(query);
 		this.focusInput();
 	}
