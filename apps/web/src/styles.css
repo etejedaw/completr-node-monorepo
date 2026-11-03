@@ -73,6 +73,11 @@
 	--color-nav-more: var(--color-fg-secondary);
 
 	--radius-card: 0.625rem;
+
+	--shadow-popover: 0 24px 48px -16px rgba(0, 0, 0, 0.75);
+	--shadow-table: 0 24px 48px -32px rgba(0, 0, 0, 0.9);
+	--shadow-sheet: 0 -24px 60px -20px rgba(0, 0, 0, 0.8);
+	--shadow-dock: 0 -12px 32px -12px rgba(0, 0, 0, 0.8);
 }
 
 @utility bg-admin-metal {

@@ -15,7 +15,7 @@ import { UiButton } from "../../../shared/ui";
 			<div
 				role="region"
 				aria-label="Unsaved changes"
-				class="sticky z-30 mt-6 bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom)+0.5rem)] md:bottom-6 flex items-center gap-2 p-2 pl-4 rounded-card bg-sidebar/95 backdrop-blur-xl border border-line shadow-[0_-12px_32px_-12px_rgba(0,0,0,0.8)] motion-safe:animate-[uiFadeUp_200ms_ease-out]"
+				class="sticky z-30 mt-6 bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom)+0.5rem)] md:bottom-6 flex items-center gap-2 p-2 pl-4 rounded-card bg-sidebar/95 backdrop-blur-xl border border-line shadow-dock motion-safe:animate-[uiFadeUp_200ms_ease-out]"
 			>
 				<span
 					aria-hidden="true"
