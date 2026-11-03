@@ -18,10 +18,10 @@ import { OptionPicker } from "../../../shared/components/option-picker/option-pi
 import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
-	UiBottomSheet,
 	UiButton,
 	UiDialog,
 	UiEmptyState,
+	UiEyebrow,
 	UiFieldLabel,
 	UiFieldOptional,
 	UiInput,
@@ -56,14 +56,6 @@ function isFeatured(view: SavedFilter): boolean {
 	return view.isDefault || view.showInBacklog;
 }
 
-type SheetActionId = "share" | "duplicate" | "edit";
-
-const SHEET_ACTIONS: { id: SheetActionId; icon: string; label: string }[] = [
-	{ id: "share", icon: "share", label: "Copy public link" },
-	{ id: "duplicate", icon: "content_copy", label: "Duplicate" },
-	{ id: "edit", icon: "edit", label: "Edit" }
-];
-
 const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: SortMode })[] = [
 	{ value: "name_asc", label: "Name (A–Z)", icon: "sort_by_alpha" },
 	{ value: "name_desc", label: "Name (Z–A)", icon: "sort_by_alpha" },
@@ -85,12 +77,12 @@ const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: SortMode })[] = [
 		SavedViewCard,
 		UiButton,
 		UiEmptyState,
+		UiEyebrow,
 		UiNoMatches,
 		UiPagination,
 		UiPremiumBadge,
 		UiSearchBar,
 		UiSkeleton,
-		UiBottomSheet,
 		UiTextarea,
 		PremiumOnly,
 		UiDialog,
@@ -114,8 +106,6 @@ export class SavedFiltersView implements OnInit {
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
 	protected readonly sortPickerOptions = SORT_PICKER_OPTIONS;
-	protected readonly sheetActions = SHEET_ACTIONS;
-	protected readonly actionSheetView = signal<SavedFilter | null>(null);
 
 	protected readonly heroPosters = injectLibraryPosters();
 	protected readonly skeletonRange = Array.from({ length: 6 }, (_, i) => i);
@@ -220,13 +210,6 @@ export class SavedFiltersView implements OnInit {
 				},
 				error: () => this.isLoading.set(false)
 			});
-	}
-
-	runSheetAction(view: SavedFilter, id: SheetActionId) {
-		this.actionSheetView.set(null);
-		if (id === "share") this.shareFilter(view);
-		else if (id === "duplicate") this.openDuplicate(view);
-		else this.openEdit(view);
 	}
 
 	shareFilter(filter: SavedFilter) {
