@@ -124,3 +124,73 @@ describe("UiDialog backdrop", () => {
 		expect(dialog()).toBeInTheDocument();
 	});
 });
+
+@Component({
+	imports: [UiDialog],
+	template: `
+		<ui-dialog
+			heading="Delete list"
+			[icon]="icon()"
+			tone="danger"
+			eyebrow="Lists"
+		>
+			<span dialogLead class="lead-slot">Lead</span>
+			<p>Body</p>
+		</ui-dialog>
+	`,
+	changeDetection: ChangeDetectionStrategy.OnPush
+})
+class IconDialogHost {
+	readonly icon = signal<string | null>("delete");
+}
+
+describe("UiDialog header icon", () => {
+	beforeEach(() => {
+		vi.stubGlobal(
+			"matchMedia",
+			vi.fn(() => ({
+				matches: false,
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn()
+			}))
+		);
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	const header = () =>
+		screen
+			.getByRole("dialog", { name: "Delete list" })
+			.querySelector("header") as HTMLElement;
+
+	it("renders the icon hidden from assistive technologies with the tone colors", async () => {
+		await render(IconDialogHost);
+		const icon = header().querySelector('[aria-hidden="true"].rounded-xl')!;
+
+		expect(icon.textContent?.trim()).toBe("delete");
+		expect(icon.classList).toContain("text-danger");
+		expect(header().style.getPropertyValue("--dialog-tone")).toBe(
+			"var(--color-danger)"
+		);
+	});
+
+	it("replaces the lead slot while the icon is set and restores it without one", async () => {
+		const { fixture } = await render(IconDialogHost);
+		expect(header().querySelector(".lead-slot")).toBeNull();
+
+		fixture.componentInstance.icon.set(null);
+		fixture.detectChanges();
+
+		expect(header().querySelector(".rounded-xl")).toBeNull();
+	});
+
+	it("keeps the dialog named by its heading, not by the icon or eyebrow", async () => {
+		await render(IconDialogHost);
+
+		expect(
+			screen.getByRole("dialog", { name: "Delete list" })
+		).toBeInTheDocument();
+	});
+});

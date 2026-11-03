@@ -13,6 +13,24 @@ import { UiFocusTrap } from "../focus-trap/ui-focus-trap";
 import { injectBodyPortal } from "../portal/body-portal";
 
 export type UiDialogSize = "sm" | "md" | "lg" | "xl";
+export type UiDialogTone =
+	"brand" | "danger" | "warning" | "success" | "premium";
+
+const TONE_COLOR: Record<UiDialogTone, string> = {
+	brand: "var(--color-brand)",
+	danger: "var(--color-danger)",
+	warning: "var(--color-warning)",
+	success: "var(--color-success)",
+	premium: "var(--color-premium)"
+};
+
+const ICON_TONE: Record<UiDialogTone, string> = {
+	brand: "bg-brand/12 text-brand ring-brand/25",
+	danger: "bg-danger/12 text-danger ring-danger/25",
+	warning: "bg-warning/12 text-warning ring-warning/25",
+	success: "bg-success/12 text-success ring-success/25",
+	premium: "bg-premium/12 text-premium ring-premium/25"
+};
 
 const DIALOG_WIDTH: Record<UiDialogSize, string> = {
 	sm: "md:w-[440px]",
@@ -67,9 +85,23 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 						class="md:hidden mx-auto mt-2.5 h-1.5 w-10 rounded-full bg-fg-muted/40"
 					></div>
 					<header
-						class="flex items-start gap-3 px-5 pt-3 pb-3 md:px-6 md:pt-5 md:pb-4"
+						class="flex items-start gap-3.5 px-5 pt-3 pb-4 md:px-6 md:pt-6 md:pb-5 border-b border-line bg-[radial-gradient(120%_140%_at_0%_0%,color-mix(in_srgb,var(--dialog-tone)_12%,transparent),transparent_60%)]"
+						[class.mb-4]="!flush()"
+						[style.--dialog-tone]="toneColor()"
 					>
-						<ng-content select="[dialogLead]" />
+						@if (icon()) {
+							<span
+								aria-hidden="true"
+								class="shrink-0 inline-flex size-12 items-center justify-center rounded-xl ring-1 ring-inset shadow-[0_8px_24px_-10px_currentColor]"
+								[class]="iconToneClass()"
+							>
+								<span class="material-icons text-[22px]">{{
+									icon()
+								}}</span>
+							</span>
+						} @else {
+							<ng-content select="[dialogLead]" />
+						}
 						<div class="flex-1 min-w-0">
 							@if (eyebrow()) {
 								<span
@@ -78,14 +110,14 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 								>
 							}
 							<h2
-								class="m-0 font-display text-lg md:text-xl font-bold tracking-tight leading-tight text-fg text-balance break-words"
+								class="m-0 font-display text-xl md:text-2xl font-bold tracking-tight leading-tight text-fg text-balance break-words"
 								[id]="titleId"
 							>
 								{{ heading() }}
 							</h2>
 							@if (subheading()) {
 								<p
-									class="m-0 mt-1 text-[0.8125rem] text-fg-muted text-pretty"
+									class="m-0 mt-1.5 text-sm text-fg-muted text-pretty"
 									[id]="subtitleId"
 								>
 									{{ subheading() }}
@@ -117,7 +149,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 					<ng-content />
 				</div>
 				<div
-					class="empty:hidden shrink-0 flex flex-wrap items-center justify-end gap-2 px-5 py-3 md:px-6 md:py-4 border-t border-line max-md:[&>*]:flex-1 max-md:[&>.ui-button]:min-h-[44px]"
+					class="empty:hidden shrink-0 flex flex-wrap items-center justify-end gap-2 px-5 py-3 md:px-6 md:py-4 border-t border-line bg-surface/40 max-md:flex-col-reverse max-md:items-stretch max-md:[&>.ui-button]:min-h-[44px] max-md:[&>.ui-button]:w-full"
 				>
 					<ng-content select="[dialogFooter]" />
 				</div>
@@ -130,6 +162,8 @@ export class UiDialog {
 	readonly heading = input.required<string>();
 	readonly subheading = input<string | null>(null);
 	readonly eyebrow = input<string | null>(null);
+	readonly icon = input<string | null>(null);
+	readonly tone = input<UiDialogTone>("brand");
 	readonly size = input<UiDialogSize>("md");
 	readonly dismissible = input(true);
 	readonly flush = input(false);
@@ -143,6 +177,8 @@ export class UiDialog {
 	protected readonly titleId = `ui-dialog-title-${nextDialogId}`;
 	protected readonly subtitleId = `ui-dialog-subtitle-${nextDialogId++}`;
 	protected readonly dragging = signal(false);
+	protected readonly iconToneClass = computed(() => ICON_TONE[this.tone()]);
+	protected readonly toneColor = computed(() => TONE_COLOR[this.tone()]);
 	protected readonly widthClass = computed(() => DIALOG_WIDTH[this.size()]);
 	protected readonly dragTransform = computed(() =>
 		this.dragOffset() ? `translateY(${this.dragOffset()}px)` : null
