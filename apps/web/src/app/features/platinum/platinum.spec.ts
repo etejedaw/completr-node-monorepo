@@ -76,4 +76,24 @@ describe("PlatinumService", () => {
 		req.flush({ data: { platinums: [], total: 3 } });
 		expect(total).toBe(3);
 	});
+
+	it("removes many platinums by game id with action=delete", () => {
+		const bulkUrl = `${environment.apiUrl}/users/me/platinums/bulk`;
+		let received: unknown;
+		service
+			.bulk("delete", { gameIds: ["game-1", "game-2"] })
+			.subscribe(r => (received = r));
+
+		const req = httpTesting.expectOne(r => r.url === bulkUrl);
+		expect(req.request.method).toBe("POST");
+		expect(req.request.params.get("action")).toBe("delete");
+		expect(req.request.body).toEqual({ gameIds: ["game-1", "game-2"] });
+		const result = {
+			action: "delete",
+			succeeded: ["game-1"],
+			skipped: [{ id: "game-2", code: "PLATINUM_NOT_FOUND" }]
+		};
+		req.flush({ data: result });
+		expect(received).toEqual(result);
+	});
 });

@@ -2,12 +2,16 @@ import {
 	afterNextRender,
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	DestroyRef,
+	effect,
 	type ElementRef,
 	inject,
 	input,
+	linkedSignal,
 	output,
 	signal,
+	untracked,
 	viewChild
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
@@ -16,15 +20,29 @@ import { debounceTime, of, Subject, switchMap } from "rxjs";
 
 import { GlobalSearchService } from "../../core/services/global-search";
 import { type SearchResults } from "../../core/services/global-search.model";
+import { PageSearchScope } from "../../core/services/page-search-scope";
+import { type PageSearchScopeEntry } from "../../core/services/page-search-scope.model";
 import { avatarRing } from "../../core/utils/premium";
 import { GamePoster } from "../../shared/components/game-poster/game-poster";
 import { UiAvatar, UiButton, UiEyebrow, UiIconButton } from "../../shared/ui";
+import { SearchScopeChip } from "../search-scope-chip/search-scope-chip";
 
-export type GlobalSearchVariant = "inline" | "overlay";
+export type GlobalSearchVariant = "inline" | "compact" | "overlay";
+
+const MIN_GLOBAL_QUERY_LENGTH = 2;
+const GLOBAL_PLACEHOLDER = "Search games, players, lists...";
+const GLOBAL_ACCESSIBLE_NAME = "Search users, games or lists";
 
 @Component({
 	selector: "app-global-search",
-	imports: [GamePoster, UiAvatar, UiButton, UiEyebrow, UiIconButton],
+	imports: [
+		GamePoster,
+		SearchScopeChip,
+		UiAvatar,
+		UiButton,
+		UiEyebrow,
+		UiIconButton
+	],
 	templateUrl: "./global-search.html",
 	host: {
 		class: "block",
@@ -35,25 +53,70 @@ export type GlobalSearchVariant = "inline" | "overlay";
 export class GlobalSearch {
 	private readonly searchService = inject(GlobalSearchService);
 	private readonly router = inject(Router);
+	private readonly pageSearchScope = inject(PageSearchScope, {
+		optional: true
+	});
 
-	variant = input<GlobalSearchVariant>("inline");
-	closed = output<void>();
+	readonly variant = input<GlobalSearchVariant>("inline");
+	readonly initialQuery = input("");
+	readonly closed = output<void>();
+	readonly searchedEverywhere = output<string>();
 
 	private readonly input = viewChild<ElementRef<HTMLInputElement>>("input");
 	private readonly queries = new Subject<string>();
+	private readonly dismissedScope = signal<PageSearchScopeEntry | null>(null);
 
 	protected readonly avatarRing = avatarRing;
-	protected readonly query = signal("");
+	protected readonly globalQuery = linkedSignal(() => this.initialQuery());
 	protected readonly results = signal<SearchResults | null>(null);
 	protected readonly searching = signal(false);
 	protected readonly focused = signal(false);
+
+	protected readonly pageScope = computed(
+		() => this.pageSearchScope?.active() ?? null
+	);
+	protected readonly scope = computed(() => {
+		const entry = this.pageScope();
+		if (!entry || this.variant() === "overlay") return null;
+		return entry === this.dismissedScope() ? null : entry;
+	});
+	protected readonly text = computed(
+		() => this.scope()?.value() ?? this.globalQuery()
+	);
+	protected readonly placeholder = computed(
+		() => this.scope()?.placeholder() ?? GLOBAL_PLACEHOLDER
+	);
+	protected readonly accessibleName = computed(
+		() => this.scope()?.ariaLabel() ?? GLOBAL_ACCESSIBLE_NAME
+	);
+	protected readonly modeAnnouncement = computed(() => {
+		const scope = this.scope();
+		if (scope) return `Filtering ${scope.label()}`;
+		return this.pageScope() ? "Searching all of Completr" : "";
+	});
+	protected readonly isCompact = computed(() => this.variant() === "compact");
+	protected readonly isOpen = computed(() => {
+		if (this.variant() === "overlay") return true;
+		if (this.isCompact()) return false;
+		if (!this.focused()) return false;
+		if (this.scope()) return this.text().trim().length > 0;
+		return this.globalQuery().length >= MIN_GLOBAL_QUERY_LENGTH;
+	});
+	protected readonly hasResults = computed(() => {
+		const results = this.results();
+		return (
+			!!results &&
+			results.users.length + results.games.length + results.lists.length >
+				0
+		);
+	});
 
 	constructor() {
 		this.queries
 			.pipe(
 				debounceTime(250),
 				switchMap(query => {
-					if (query.length < 2) {
+					if (query.length < MIN_GLOBAL_QUERY_LENGTH) {
 						this.searching.set(false);
 						return of(null);
 					}
@@ -67,33 +130,32 @@ export class GlobalSearch {
 				this.searching.set(false);
 			});
 
-		afterNextRender(() => {
-			if (this.variant() === "overlay")
-				this.input()?.nativeElement.focus();
+		effect(() => {
+			if (this.scope()) untracked(() => this.resetGlobalQuery());
 		});
-	}
 
-	protected get isOpen(): boolean {
-		return (
-			this.variant() === "overlay" ||
-			(this.focused() && this.query().length >= 2)
-		);
-	}
-
-	protected get hasResults(): boolean {
-		const results = this.results();
-		return (
-			!!results &&
-			results.users.length + results.games.length + results.lists.length >
-				0
-		);
+		afterNextRender(() => {
+			if (this.variant() !== "overlay") return;
+			if (this.globalQuery()) this.queries.next(this.globalQuery());
+			this.input()?.nativeElement.focus();
+		});
 	}
 
 	onInput(event: Event) {
 		const value = (event.target as HTMLInputElement).value;
-		this.query.set(value);
-		if (value.length < 2) this.results.set(null);
-		this.queries.next(value);
+		const scope = this.scope();
+		if (scope) {
+			scope.setValue(value);
+			return;
+		}
+		this.setGlobalQuery(value);
+	}
+
+	onBackspace(event: Event) {
+		const field = event.target as HTMLInputElement;
+		if (!this.scope() || field.value !== "") return;
+		event.preventDefault();
+		this.searchEverywhere();
 	}
 
 	onFocusOut(event: FocusEvent) {
@@ -114,19 +176,63 @@ export class GlobalSearch {
 		this.input()?.nativeElement.focus();
 	}
 
-	onEscape() {
+	onEscape(event: Event) {
+		if (this.text()) {
+			event.stopPropagation();
+			this.clear();
+			return;
+		}
 		if (this.variant() === "overlay") {
 			this.closed.emit();
 			return;
 		}
-		this.clear();
 		this.input()?.nativeElement.blur();
 	}
 
+	onEnter() {
+		if (this.isCompact()) {
+			this.input()?.nativeElement.blur();
+			return;
+		}
+		if (this.scope()) return;
+		this.searchInGames();
+	}
+
 	clear() {
-		this.query.set("");
-		this.results.set(null);
-		this.queries.next("");
+		const scope = this.scope();
+		if (scope) {
+			scope.setValue("");
+			return;
+		}
+		this.resetGlobalQuery();
+	}
+
+	searchEverywhere() {
+		const scope = this.scope();
+		if (!scope) return;
+		const query = scope.value();
+		scope.setValue("");
+		if (this.isCompact()) {
+			this.searchedEverywhere.emit(query);
+			return;
+		}
+		this.dismissedScope.set(scope);
+		this.setGlobalQuery(query);
+		this.focusInput();
+	}
+
+	filterPage() {
+		const scope = this.pageScope();
+		if (!scope) return;
+		const query = this.globalQuery().trim();
+		this.resetGlobalQuery();
+		this.dismissedScope.set(null);
+		scope.setValue(query);
+		if (this.variant() === "overlay") {
+			this.closed.emit();
+			return;
+		}
+		this.focusInput();
 	}
 
 	goTo(url: string) {
@@ -135,14 +241,30 @@ export class GlobalSearch {
 	}
 
 	searchInGames() {
-		const query = this.query().trim();
+		const query = this.globalQuery().trim();
 		if (!query) return;
 		this.finish();
 		this.router.navigate(["/games"], { queryParams: { q: query } });
 	}
 
+	private setGlobalQuery(value: string) {
+		this.globalQuery.set(value);
+		if (value.length < MIN_GLOBAL_QUERY_LENGTH) this.results.set(null);
+		this.queries.next(value);
+	}
+
+	private resetGlobalQuery() {
+		this.globalQuery.set("");
+		this.results.set(null);
+		this.queries.next("");
+	}
+
+	private focusInput() {
+		this.input()?.nativeElement.focus();
+	}
+
 	private finish() {
-		this.clear();
+		this.resetGlobalQuery();
 		this.focused.set(false);
 		this.input()?.nativeElement.blur();
 		this.closed.emit();

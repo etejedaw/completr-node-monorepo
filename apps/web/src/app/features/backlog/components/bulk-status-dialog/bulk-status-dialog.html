@@ -1,0 +1,47 @@
+<ui-dialog
+	eyebrow="Change status"
+	size="sm"
+	[icon]="icon()"
+	[tone]="tone()"
+	[heading]="statusLabel() + '?'"
+	[subheading]="runsText() + ' selected'"
+	(closed)="cancelled.emit()"
+>
+	<div class="flex flex-col gap-4">
+		<div class="flex flex-col gap-2">
+			<span uiFieldLabel aria-hidden="true">New status</span>
+			<app-backlog-status-picker
+				heading="New status"
+				[subject]="runsText()"
+				[status]="status()"
+				(statusChange)="status.set($event)"
+			/>
+		</div>
+		<p class="m-0 text-sm text-fg-secondary leading-relaxed">
+			<strong class="text-fg">{{ runsText() }}</strong> will be marked as
+			{{ statusLabel() }}. @if (leavesQueue()) { Runs in Up Next will be
+			removed from it. }
+		</p>
+		@if (skippedCount() > 0) {
+		<ui-alert tone="info">{{ skippedText() }}</ui-alert>
+		} @if (dateLabel(); as label) {
+		<div>
+			<label for="bulkStatusDate" uiFieldLabel>{{ label }}</label>
+			<ui-date-picker
+				triggerId="bulkStatusDate"
+				[label]="label"
+				[value]="date()"
+				(valueChange)="date.set($event)"
+			/>
+		</div>
+		}
+	</div>
+	<ng-container dialogFooter>
+		<button uiButton variant="ghost" (click)="cancelled.emit()">
+			Cancel
+		</button>
+		<button uiButton variant="primary" (click)="confirm()">
+			Change {{ runsText() }}
+		</button>
+	</ng-container>
+</ui-dialog>

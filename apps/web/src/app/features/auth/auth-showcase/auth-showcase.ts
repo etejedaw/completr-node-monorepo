@@ -3,6 +3,7 @@ import { RouterLink } from "@angular/router";
 
 import { AppLogo } from "../../../shared/components/app-logo/app-logo";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { UiEyebrow } from "../../../shared/ui";
 import { injectShowcaseGames } from "../showcase-games";
 import { type ShowcaseGame } from "../showcase-games.model";
 import {
@@ -86,7 +87,7 @@ function distributeInColumns(posters: ShowcasePoster[]): ShowcasePoster[][] {
 
 @Component({
 	selector: "app-auth-showcase",
-	imports: [AppLogo, GamePoster, RouterLink],
+	imports: [UiEyebrow, AppLogo, GamePoster, RouterLink],
 	template: `
 		<div
 			aria-hidden="true"
@@ -153,10 +154,7 @@ function distributeInColumns(posters: ShowcasePoster[]): ShowcasePoster[][] {
 						[compact]="true"
 					/>
 					<div class="flex flex-col gap-1">
-						<span
-							class="text-[0.625rem] font-semibold uppercase tracking-[0.2em] text-brand"
-							>Featured pick</span
-						>
+						<span uiEyebrow tone="brand">Featured pick</span>
 						<span
 							class="max-w-56 truncate font-display font-semibold text-fg"
 							>{{ featured.title }}</span

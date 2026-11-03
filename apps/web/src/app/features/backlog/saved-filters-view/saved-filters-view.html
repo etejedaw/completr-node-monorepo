@@ -36,10 +36,11 @@
 
 @if (isLoading() || filters().length > 0 || searchQuery().trim()) {
 <app-library-toolbar>
-	<ui-search-bar
+	<app-page-search
 		size="sm"
+		scopeLabel="Saved views"
 		class="flex-1 min-w-[12rem] max-w-2xl"
-		placeholder="Search saved views..."
+		placeholder="Filter by name..."
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"
 	/>
@@ -238,7 +239,8 @@
 					type="button"
 					class="size-9 max-md:size-[44px] tap:size-[44px] rounded-card border inline-flex items-center justify-center transition hover:border-brand"
 					[class]="editIcon() === ic ? 'border-brand bg-brand-subtle' : 'border-line'"
-					[attr.aria-label]="ic"
+					[attr.aria-label]="iconLabel(ic)"
+					[title]="iconLabel(ic)"
 					[attr.aria-pressed]="editIcon() === ic"
 					(click)="editIcon.set(ic)"
 				>
@@ -275,9 +277,9 @@
 					class="size-8 max-md:size-[44px] tap:size-[44px] rounded-full transition"
 					[class]="editColor() === c.key ? 'ring-2 ring-fg/80 ring-offset-2 ring-offset-sidebar' : ''"
 					[style.background]="c.hex"
-					[attr.aria-label]="c.key"
+					[attr.aria-label]="c.label"
 					[attr.aria-pressed]="editColor() === c.key"
-					[title]="c.key"
+					[title]="c.label"
 					(click)="editColor.set(c.key)"
 				></button>
 				}

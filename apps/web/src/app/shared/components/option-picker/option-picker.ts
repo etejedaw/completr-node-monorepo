@@ -20,12 +20,13 @@ import {
 } from "ng-primitives/menu";
 
 import { ViewportService } from "../../../core/services/viewport";
-import { UiBottomSheet } from "../../ui";
+import { UiBottomSheet, UiEyebrow } from "../../ui";
 import { type PickerAction, type PickerOption } from "./option-picker.model";
 
 @Component({
 	selector: "app-option-picker",
 	imports: [
+		UiEyebrow,
 		NgTemplateOutlet,
 		RouterLink,
 		NgpMenu,

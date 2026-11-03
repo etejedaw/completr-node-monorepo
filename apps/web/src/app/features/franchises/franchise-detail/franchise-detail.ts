@@ -17,6 +17,7 @@ import { LibraryHero } from "../../../shared/components/library-hero/library-her
 import {
 	UiButton,
 	UiEmptyState,
+	UiEyebrow,
 	UiPagination,
 	UiSkeleton
 } from "../../../shared/ui";
@@ -31,6 +32,7 @@ const PAGE_SIZE = 24;
 @Component({
 	selector: "app-franchise-detail",
 	imports: [
+		UiEyebrow,
 		RouterLink,
 		CoverGrid,
 		GameCoverCard,

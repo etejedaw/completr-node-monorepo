@@ -5,12 +5,18 @@ import {
 	output
 } from "@angular/core";
 
+import { UiIconButton } from "../../ui";
+
 @Component({
 	selector: "app-activity-delete-button",
+	imports: [UiIconButton],
 	template: `
 		<button
 			type="button"
-			class="-mr-2 w-8 h-8 tap:min-w-[44px] tap:min-h-[44px] inline-flex items-center justify-center rounded-full bg-transparent border-0 text-fg-muted cursor-pointer transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100 pointer-coarse:opacity-100 hover:text-danger"
+			uiIconButton
+			shape="circle"
+			tone="danger"
+			class="-mr-2 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100 pointer-coarse:opacity-100"
 			aria-label="Remove this activity"
 			[attr.title]="tooltip()"
 			(click)="pressed.emit()"

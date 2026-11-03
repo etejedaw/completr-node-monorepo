@@ -42,8 +42,9 @@ import {
 	LibraryPageEmptyAction,
 	LibraryPageToolbar
 } from "../../../shared/components/library-page/library-page-slots";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
-import { UiButton, UiPremiumBadge, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiPremiumBadge } from "../../../shared/ui";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { FavoriteReorderCard } from "../components/favorite-reorder-card/favorite-reorder-card";
 import { type FavoriteReorderAction } from "../components/favorite-reorder-card/favorite-reorder-card.model";
@@ -67,7 +68,7 @@ import { FavoritesService } from "../favorites";
 		PremiumOnly,
 		UiButton,
 		UiPremiumBadge,
-		UiSearchBar
+		PageSearch
 	],
 	templateUrl: "./favorites-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

@@ -10,6 +10,7 @@ import { RouterLink } from "@angular/router";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
 import { UiAvatar, UiBadge, UiEyebrow, UiIconButton } from "../../ui";
+import { canChangeStatus, canQuickRate } from "../../utils/backlog-eligibility";
 import {
 	backlogStatusIcon,
 	backlogStatusLabel
@@ -21,6 +22,7 @@ import { FlipCard } from "../flip-card/flip-card";
 import { GamePoster } from "../game-poster/game-poster";
 import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
 import { PlatinumTrophy } from "../platinum-trophy/platinum-trophy";
+import { PrivateRunLock } from "../private-run-lock/private-run-lock";
 import { RatioSummary } from "../ratio-summary/ratio-summary";
 import { StarRating } from "../star-rating/star-rating";
 
@@ -28,12 +30,6 @@ const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 	"playing",
 	"endless",
 	"not_started"
-]);
-
-const CHANGEABLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
-	"not_started",
-	"playing",
-	"endless"
 ]);
 
 @Component({
@@ -47,6 +43,7 @@ const CHANGEABLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 		GamePoster,
 		MoodTagsChips,
 		PlatinumTrophy,
+		PrivateRunLock,
 		RatioSummary,
 		StarRating,
 		UiAvatar,
@@ -101,16 +98,11 @@ export class BacklogEntryCard {
 		);
 	});
 	protected readonly canChangeStatus = computed(
-		() => !this.readonly() && CHANGEABLE_STATUSES.has(this.entry().status)
+		() => !this.readonly() && canChangeStatus(this.entry())
 	);
-	protected readonly canQuickRate = computed(() => {
-		const entry = this.entry();
-		return (
-			!this.readonly() &&
-			entry.status !== "not_started" &&
-			entry.userRating == null
-		);
-	});
+	protected readonly canQuickRate = computed(
+		() => !this.readonly() && canQuickRate(this.entry())
+	);
 	protected readonly isPlatinumRun = computed(() =>
 		isPlatinumRun(this.entry())
 	);

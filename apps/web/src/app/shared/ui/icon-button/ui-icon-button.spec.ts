@@ -4,6 +4,7 @@ import { TestBed } from "@angular/core/testing";
 import {
 	UiIconButton,
 	type UiIconButtonShape,
+	type UiIconButtonSize,
 	type UiIconButtonVariant
 } from "./ui-icon-button";
 
@@ -14,6 +15,7 @@ import {
 			uiIconButton
 			[shape]="shape()"
 			[variant]="variant()"
+			[size]="size()"
 			aria-label="Close"
 		>
 			x
@@ -24,6 +26,7 @@ import {
 class Host {
 	readonly shape = signal<UiIconButtonShape>("rounded");
 	readonly variant = signal<UiIconButtonVariant>("plain");
+	readonly size = signal<UiIconButtonSize>("md");
 }
 
 describe("UiIconButton", () => {
@@ -63,6 +66,14 @@ describe("UiIconButton", () => {
 		fixture.detectChanges();
 
 		expect(button.getAttribute("data-shape")).toBe("circle");
+	});
+
+	it("renders the compact xs size used for inline info and remove buttons", () => {
+		const { fixture, button } = render();
+		fixture.componentInstance.size.set("xs");
+		fixture.detectChanges();
+
+		expect(button.getAttribute("data-size")).toBe("xs");
 	});
 
 	it("styles links as icon buttons too", () => {

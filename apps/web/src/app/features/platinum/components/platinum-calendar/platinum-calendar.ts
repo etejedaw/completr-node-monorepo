@@ -10,6 +10,8 @@ import {
 } from "@angular/core";
 
 import { type PlatinumEntry } from "../../../../core/models";
+import { CalendarDayOverflow } from "../../../../shared/components/month-calendar/calendar-day-overflow";
+import { CalendarEventChip } from "../../../../shared/components/month-calendar/calendar-event-chip";
 import {
 	CalendarDayTemplate,
 	isSameMonth,
@@ -37,7 +39,12 @@ function isDated(platinum: PlatinumEntry): platinum is DatedPlatinum {
 
 @Component({
 	selector: "app-platinum-calendar",
-	imports: [MonthCalendar, CalendarDayTemplate],
+	imports: [
+		CalendarDayOverflow,
+		CalendarDayTemplate,
+		CalendarEventChip,
+		MonthCalendar
+	],
 	templateUrl: "./platinum-calendar.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

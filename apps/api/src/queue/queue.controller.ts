@@ -11,6 +11,7 @@ import { canView } from "../users/helpers/visibility.helper";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
 import * as usersService from "../users/users.service";
 import { type AddQueueDto } from "./dtos/add-queue.dto";
+import { type BulkQueueDto } from "./dtos/bulk-queue.dto";
 import { type MoveQueueEntryDto } from "./dtos/move-queue-entry.dto";
 import { type ReplaceQueueDto } from "./dtos/replace-queue.dto";
 import * as queueDomainError from "./errors/queue.domain-error";
@@ -22,6 +23,7 @@ import { publicQueueSerializer, queueSerializer } from "./queue.serializer";
 import * as queueService from "./queue.service";
 import { type AddQueueQuery } from "./schemas/add-queue-query.schema";
 import { type QueueBacklogIdParams } from "./schemas/queue-backlog-id-params.schema";
+import { type QueueBulkQuery } from "./schemas/queue-bulk-query.schema";
 import { type QueueExportQuery } from "./schemas/queue-export-query.schema";
 
 export async function postQueue(request: Request, response: Response) {
@@ -178,4 +180,30 @@ export async function getMeQueueExport(request: Request, response: Response) {
 		columns: QUEUE_EXPORT_COLUMNS,
 		rows: entries.map(entry => queueToExportRow(entry.get({ plain: true })))
 	});
+}
+
+export async function postQueueBulk(request: Request, response: Response) {
+	const query = request.locals.query as QueueBulkQuery;
+	const body = request.locals.body as BulkQueueDto;
+	const user = request.locals.user as RequestUser;
+
+	if (query.action === "remove") {
+		const result = await queueService.bulkRemoveFromQueue(
+			user.id,
+			body.backlogIds
+		);
+		const data = { action: query.action, ...result };
+		return response.status(200).json({ data });
+	}
+
+	const { added, ...result } = await queueService.bulkAddToQueue(
+		user,
+		body.backlogIds
+	);
+	for (const backlog of added) {
+		activityService.record(user.id, "queue_added", backlog.gameId);
+	}
+
+	const data = { action: query.action, ...result };
+	return response.status(200).json({ data });
 }

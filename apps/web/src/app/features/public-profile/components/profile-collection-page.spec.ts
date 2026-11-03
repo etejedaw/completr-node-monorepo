@@ -1,9 +1,11 @@
 import "@testing-library/jest-dom/vitest";
 
+import { By } from "@angular/platform-browser";
 import { provideRouter } from "@angular/router";
 import { render, screen, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ProfileCollectionPage } from "./profile-collection-page";
 
 describe("ProfileCollectionPage", () => {
@@ -160,11 +162,21 @@ describe("ProfileCollectionPage", () => {
 		expect(retry).toHaveBeenCalledTimes(1);
 	});
 
-	it("searches with a placeholder naming the owner", async () => {
+	it("scopes the page search to the owner and heading", async () => {
+		const { fixture } = await renderPage();
+
+		expect(
+			fixture.debugElement
+				.query(By.directive(PageSearch))
+				.componentInstance.scopeLabel()
+		).toBe("ada's Favorites");
+	});
+
+	it("filters with a title placeholder", async () => {
 		await renderPage();
 
 		expect(
-			screen.getByPlaceholderText("Search ada's favorites...")
+			screen.getByPlaceholderText("Filter by title...")
 		).toBeInTheDocument();
 	});
 
@@ -172,7 +184,7 @@ describe("ProfileCollectionPage", () => {
 		const user = userEvent.setup();
 		await renderPage();
 
-		const search = screen.getByPlaceholderText("Search ada's favorites...");
+		const search = screen.getByPlaceholderText("Filter by title...");
 		await user.type(search, "hades");
 
 		expect(search).toHaveValue("hades");

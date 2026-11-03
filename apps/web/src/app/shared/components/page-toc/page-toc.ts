@@ -7,21 +7,18 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
+import { UiEyebrow } from "../../ui";
 import { OptionPicker } from "../option-picker/option-picker";
 import { type PickerOption } from "../option-picker/option-picker.model";
 import { type PageSection } from "./page-toc.model";
 
 @Component({
 	selector: "app-page-toc",
-	imports: [RouterLink, OptionPicker],
+	imports: [UiEyebrow, RouterLink, OptionPicker],
 	template: `
 		@if (variant() === "rail") {
 			<nav [attr.aria-label]="label()">
-				<p
-					class="m-0 mb-3 px-3 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-fg-muted"
-				>
-					On this page
-				</p>
+				<p uiEyebrow class="m-0 mb-3 px-3">On this page</p>
 				<ol
 					class="m-0 p-0 list-none flex flex-col border-l border-line"
 				>

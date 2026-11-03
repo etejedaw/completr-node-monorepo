@@ -79,10 +79,11 @@
 	(offsetChange)="offsetChange.emit($event)"
 >
 	<ng-template appLibraryPageToolbar>
-		<ui-search-bar
+		<app-page-search
 			size="sm"
 			class="flex-1 max-w-2xl"
-			[placeholder]="searchPlaceholder() ?? 'Search ' + username() + '\'s ' + heading().toLowerCase() + '...'"
+			[scopeLabel]="username() + '\'s ' + heading()"
+			[placeholder]="searchPlaceholder() ?? 'Filter by title...'"
 			[value]="query()"
 			(valueChange)="query.set($event)"
 		/>

@@ -3,8 +3,11 @@ import { type Transaction } from "sequelize";
 import * as backlogService from "../backlog/backlog.service";
 import * as backlogServiceError from "../backlog/errors/backlog.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { splitByPresence } from "../common/utils/split-by-presence.util";
+import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
 import * as gamesService from "../games/games.service";
 import * as platformsService from "../platforms/platforms.service";
@@ -20,7 +23,8 @@ const FREE_QUEUE_LIMIT = 10;
 async function checkLimit(
 	userId: string,
 	role: string,
-	transaction?: Transaction
+	transaction?: Transaction,
+	incomingCount = 1
 ) {
 	const premiumAccess = await resolvePremiumAccess(
 		{ id: userId, role },
@@ -28,7 +32,8 @@ async function checkLimit(
 	);
 	if (premiumAccess.allowed) return;
 	const count = await Queue.count({ where: { userId }, transaction });
-	if (count >= FREE_QUEUE_LIMIT) throw queueServiceError.limitReachedError();
+	if (count + incomingCount > FREE_QUEUE_LIMIT)
+		throw queueServiceError.limitReachedError();
 }
 
 export async function lockUserQueue(userId: string, transaction: Transaction) {
@@ -309,17 +314,107 @@ export async function compactPositions(
 	);
 }
 
+export async function removeByBacklogIds(
+	backlogIds: string[],
+	userId: string,
+	transaction: Transaction
+) {
+	await lockUserQueue(userId, transaction);
+	const queued = await Queue.findAll({
+		where: { backlogId: backlogIds, userId },
+		attributes: ["backlogId"],
+		transaction
+	});
+	if (queued.length === 0) return [];
+	const removedBacklogIds = queued.map(entry => entry.backlogId);
+	await Queue.destroy({
+		where: { backlogId: removedBacklogIds, userId },
+		transaction
+	});
+	await compactPositions(userId, transaction);
+	return backlogIds.filter(id => removedBacklogIds.includes(id));
+}
+
 export async function removeByBacklogId(backlogId: string, userId: string) {
+	const removed = await sequelize.transaction(transaction =>
+		removeByBacklogIds([backlogId], userId, transaction)
+	);
+	return removed.length > 0;
+}
+
+export async function bulkAddToQueue(user: RequestUser, backlogIds: string[]) {
 	return sequelize.transaction(async transaction => {
-		await lockUserQueue(userId, transaction);
-		const removedCount = await Queue.destroy({
-			where: { backlogId, userId },
+		await lockUserQueue(user.id, transaction);
+		const owned = await backlogService.findBacklogsByUserAndIds(
+			user.id,
+			backlogIds,
+			transaction
+		);
+		const ownedById = new Map(owned.map(backlog => [backlog.id, backlog]));
+		const { missing } = splitByPresence(backlogIds, ownedById.keys());
+		const notStarted = backlogIds.filter(id => {
+			const status = ownedById.get(id)?.status;
+			return status !== undefined && status !== "not_started";
+		});
+		const eligible = backlogIds.filter(
+			id => ownedById.get(id)?.status === "not_started"
+		);
+
+		const alreadyQueued = await Queue.findAll({
+			where: { userId: user.id, backlogId: eligible },
+			attributes: ["backlogId"],
 			transaction
 		});
-		if (removedCount === 0) return false;
-		await compactPositions(userId, transaction);
-		return true;
+		const { missing: toAdd } = splitByPresence(
+			eligible,
+			alreadyQueued.map(entry => entry.backlogId)
+		);
+
+		if (toAdd.length > 0) {
+			await checkLimit(user.id, user.role, transaction, toAdd.length);
+			const firstPosition = await findNextPosition(user.id, transaction);
+			await Queue.bulkCreate(
+				toAdd.map((backlogId, index) => ({
+					userId: user.id,
+					backlogId,
+					position: firstPosition + index
+				})),
+				{ transaction }
+			);
+		}
+
+		return {
+			succeeded: eligible,
+			skipped: [
+				...toBulkSkipped(
+					missing,
+					queueServiceError.backlogNotFoundError().code
+				),
+				...toBulkSkipped(
+					notStarted,
+					queueServiceError.backlogNotStartedError().code
+				)
+			],
+			added: toAdd.map(id => ownedById.get(id)!)
+		};
 	});
+}
+
+export async function bulkRemoveFromQueue(
+	userId: string,
+	backlogIds: string[]
+): Promise<BulkResult> {
+	const removed = await sequelize.transaction(transaction =>
+		removeByBacklogIds(backlogIds, userId, transaction)
+	);
+	const { missing } = splitByPresence(backlogIds, removed);
+	return {
+		succeeded: removed,
+		skipped: toBulkSkipped(
+			missing,
+			queueServiceError.backlogNotFoundError().code
+		)
+	};
 }
 
 export async function findQueueForExport(

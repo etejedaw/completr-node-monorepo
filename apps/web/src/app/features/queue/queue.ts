@@ -3,10 +3,13 @@ import { inject, Injectable } from "@angular/core";
 import { map, switchMap } from "rxjs";
 
 import { environment } from "../../../environments/environment";
+import { type BulkResponse, type BulkResult } from "../../core/models";
 import { buildHttpParams } from "../../core/utils/http-params";
 import { moveIntoFullOrder } from "../../shared/utils/full-order";
 import {
 	type QueueBacklogIdsResponse,
+	type QueueBulkAction,
+	type QueueBulkRequest,
 	type QueueListResponse,
 	type QueuePagination,
 	type QueueSingleResponse
@@ -93,5 +96,18 @@ export class QueueService {
 
 	removeByBacklogId(backlogId: string) {
 		return this.updateOrder(ids => ids.filter(id => id !== backlogId));
+	}
+
+	bulk<TAction extends QueueBulkAction>(
+		action: TAction,
+		body: QueueBulkRequest
+	) {
+		return this.http
+			.post<BulkResponse<BulkResult<TAction>>>(
+				`${this.baseUrl}/bulk`,
+				body,
+				{ params: { action } }
+			)
+			.pipe(map(res => res.data));
 	}
 }

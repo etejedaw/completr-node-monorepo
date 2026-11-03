@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { NgpButton } from "ng-primitives/button";
 
-export type UiIconButtonSize = "sm" | "md" | "lg";
+export type UiIconButtonSize = "xs" | "sm" | "md" | "lg";
 export type UiIconButtonTone = "neutral" | "accent" | "danger";
 export type UiIconButtonShape = "rounded" | "circle";
 export type UiIconButtonVariant = "plain" | "glass";

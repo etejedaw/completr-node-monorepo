@@ -11,6 +11,7 @@ import {
 import { ViewportService } from "../../../core/services/viewport";
 import { UiFocusTrap } from "../focus-trap/ui-focus-trap";
 import { UiIconButton } from "../icon-button/ui-icon-button";
+import { UiEyebrow } from "../label/ui-eyebrow";
 import { injectBodyPortal } from "../portal/body-portal";
 import {
 	UI_TONE_COLOR,
@@ -38,7 +39,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 
 @Component({
 	selector: "ui-dialog",
-	imports: [UiFocusTrap, UiIconButton],
+	imports: [UiEyebrow, UiFocusTrap, UiIconButton],
 	template: `
 		<div
 			class="fixed inset-0 z-[1000] flex items-end justify-center md:items-center md:p-6"
@@ -56,7 +57,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 				aria-modal="true"
 				[attr.aria-labelledby]="titleId"
 				[attr.aria-describedby]="subheading() ? subtitleId : null"
-				class="relative flex flex-col w-full max-h-[92dvh] outline-none bg-sidebar border-t border-line rounded-t-2xl shadow-[0_-24px_60px_-20px_rgba(0,0,0,0.8)] pb-[env(safe-area-inset-bottom)] motion-safe:max-md:animate-[uiSheetUp_280ms_cubic-bezier(0.16,1,0.3,1)] md:max-h-[min(88dvh,60rem)] md:pb-0 md:border md:rounded-2xl md:shadow-[0_24px_70px_-16px_rgba(0,0,0,0.75)] motion-safe:md:animate-[uiDialogIn_220ms_cubic-bezier(0.16,1,0.3,1)]"
+				class="relative flex flex-col w-full max-h-[92dvh] outline-none bg-sidebar border-t border-line rounded-t-2xl shadow-sheet pb-[env(safe-area-inset-bottom)] motion-safe:max-md:animate-[uiSheetUp_280ms_cubic-bezier(0.16,1,0.3,1)] md:max-h-[min(88dvh,60rem)] md:pb-0 md:border md:rounded-2xl md:shadow-[0_24px_70px_-16px_rgba(0,0,0,0.75)] motion-safe:md:animate-[uiDialogIn_220ms_cubic-bezier(0.16,1,0.3,1)]"
 				[class]="widthClass()"
 				[class.transition-transform]="!dragging()"
 				[class.duration-200]="!dragging()"
@@ -83,7 +84,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 						@if (icon()) {
 							<span
 								aria-hidden="true"
-								class="shrink-0 inline-flex size-12 items-center justify-center rounded-xl ring-1 ring-inset shadow-[0_8px_24px_-10px_currentColor]"
+								class="shrink-0 inline-flex size-12 items-center justify-center rounded-xl ring-1 ring-inset shadow-tone-icon"
 								[class]="iconToneClass()"
 							>
 								<span class="material-icons text-[22px]">{{
@@ -95,10 +96,9 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 						}
 						<div class="flex-1 min-w-0">
 							@if (eyebrow()) {
-								<span
-									class="block text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-									>{{ eyebrow() }}</span
-								>
+								<span uiEyebrow tone="brand">{{
+									eyebrow()
+								}}</span>
 							}
 							<h2
 								class="m-0 font-display text-xl md:text-2xl font-bold tracking-tight leading-tight text-fg text-balance break-words"

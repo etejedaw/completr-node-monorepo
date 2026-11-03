@@ -171,4 +171,26 @@ describe("QueueService", () => {
 		expect(failed).toBe(true);
 		httpTesting.expectNone(`${url}/b3/position`);
 	});
+
+	it.each(["add", "remove"] as const)(
+		"sends a bulk %s with the backlog ids",
+		action => {
+			let received: unknown;
+			service
+				.bulk(action, { backlogIds: ["b1", "b2"] })
+				.subscribe(r => (received = r));
+
+			const req = httpTesting.expectOne(r => r.url === `${url}/bulk`);
+			expect(req.request.method).toBe("POST");
+			expect(req.request.params.get("action")).toBe(action);
+			expect(req.request.body).toEqual({ backlogIds: ["b1", "b2"] });
+			const result = {
+				action,
+				succeeded: ["b1"],
+				skipped: [{ id: "b2", code: "QUEUE_BACKLOG_NOT_STARTED" }]
+			};
+			req.flush({ data: result });
+			expect(received).toEqual(result);
+		}
+	);
 });

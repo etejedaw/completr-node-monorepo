@@ -59,10 +59,11 @@
 
 @if (!hasNoLists() && !hasLoadFailed()) {
 <app-library-toolbar>
-	<ui-search-bar
+	<app-page-search
 		size="sm"
 		class="flex-1 max-w-2xl"
-		[placeholder]="tab() === 'following' ? 'Search followed lists...' : 'Search ' + username + '\'s lists...'"
+		[scopeLabel]="tab() === 'following' ? 'Followed lists' : username + '\'s lists'"
+		placeholder="Filter by list name..."
 		[value]="query()"
 		(valueChange)="onSearch($event)"
 	/>

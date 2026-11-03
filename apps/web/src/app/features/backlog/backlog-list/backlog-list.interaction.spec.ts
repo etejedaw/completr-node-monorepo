@@ -6,15 +6,38 @@ import {
 	provideHttpClientTesting,
 	type TestRequest
 } from "@angular/common/http/testing";
-import { TestBed } from "@angular/core/testing";
+import {
+	ApplicationRef,
+	ChangeDetectionStrategy,
+	Component
+} from "@angular/core";
+import { type ComponentFixture, TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type BacklogEntry, type Platform } from "../../../core/models";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
+import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
 import { pickCalendarDate } from "../../../shared/ui/date-picker/ui-date-picker.testing";
+import { todayLocalDate } from "../../../shared/utils/local-date";
 import { type SavedFilter } from "../saved-filters.model";
 import { BacklogList } from "./backlog-list";
+
+@Component({
+	selector: "app-backlog-host",
+	imports: [BacklogList, ToastContainer],
+	template: `<app-backlog-list /><app-toast-container />`,
+	changeDetection: ChangeDetectionStrategy.OnPush
+})
+class BacklogHost {}
+
+interface BulkCall {
+	url: string;
+	action: string | null;
+	body: Record<string, unknown>;
+}
 
 const api = environment.apiUrl;
 const backlogUrl = `${api}/users/me/backlog`;
@@ -82,6 +105,7 @@ function initialLibrary(): BacklogEntry[] {
 
 describe("BacklogList interaction", () => {
 	let httpTesting: HttpTestingController;
+	let renderedFixture: ComponentFixture<unknown>;
 	let library: BacklogEntry[];
 	let savedViews: SavedFilter[];
 	const savedViewWrites: { method: string; url: string; body: unknown }[] =
@@ -90,6 +114,13 @@ describe("BacklogList interaction", () => {
 	const backlogPatches: { id: string; body: unknown }[] = [];
 	const deletedIds: string[] = [];
 	const platinumPuts: { gameId: string; body: unknown }[] = [];
+	const bulkCalls: BulkCall[] = [];
+	let bulkSkipIds: Set<string>;
+	let bulkFailure: number | null;
+	let queuedIds: string[];
+	let favoriteGameIds: string[];
+	let reportedTotal: number | null;
+	let secondPage: BacklogEntry[];
 
 	function listBacklog(req: TestRequest) {
 		const params = req.request.params;
@@ -97,13 +128,70 @@ describe("BacklogList interaction", () => {
 		const statuses = params.get("status")?.split(",");
 		const search = params.get("search")?.toLowerCase();
 		const platinumedOnly = params.get("platinumed_only") === "true";
+		if (Number(params.get("offset") ?? 0) > 0) {
+			return req.flush({
+				data: {
+					backlog: secondPage,
+					total: reportedTotal ?? secondPage.length
+				}
+			});
+		}
 		const backlog = library.filter(
 			item =>
 				(!statuses || statuses.includes(item.status)) &&
 				(!search || item.game.title.toLowerCase().includes(search)) &&
 				(!platinumedOnly || !!item.platinum)
 		);
-		req.flush({ data: { backlog, total: backlog.length } });
+		req.flush({
+			data: { backlog, total: reportedTotal ?? backlog.length }
+		});
+	}
+
+	function answerBulk(req: TestRequest) {
+		const { url, params } = req.request;
+		const body = req.request.body as Record<string, unknown>;
+		const action = params.get("action");
+		bulkCalls.push({ url, action, body });
+		if (bulkFailure !== null)
+			return req.flush(
+				{ type: "INTERNAL" },
+				{ status: bulkFailure, statusText: "Server Error" }
+			);
+		const ids = (body["ids"] ??
+			body["backlogIds"] ??
+			body["gameIds"]) as string[];
+		const succeeded = ids.filter(id => !bulkSkipIds.has(id));
+		const skipped = ids
+			.filter(id => bulkSkipIds.has(id))
+			.map(id => ({ id, code: "BACKLOG_NOT_FOUND" }));
+		const done = new Set(succeeded);
+		if (url === `${backlogUrl}/bulk` && action === "delete")
+			library = library.filter(item => !done.has(item.id));
+		if (url === `${backlogUrl}/bulk` && action === "update") {
+			const changes = body["changes"] as Partial<BacklogEntry>;
+			library = library.map(item =>
+				done.has(item.id) ? { ...item, ...changes } : item
+			);
+		}
+		if (url === `${api}/users/me/queue/bulk`)
+			queuedIds =
+				action === "add"
+					? [...new Set([...queuedIds, ...succeeded])]
+					: queuedIds.filter(id => !done.has(id));
+		const queueRemoved =
+			url === `${backlogUrl}/bulk` && action === "update"
+				? succeeded.filter(id => queuedIds.includes(id))
+				: undefined;
+		if (queueRemoved)
+			queuedIds = queuedIds.filter(id => !queueRemoved.includes(id));
+		req.flush({
+			data: {
+				action,
+				succeeded,
+				skipped,
+				...(queueRemoved ? { queueRemoved } : {})
+			}
+		});
 	}
 
 	function patchBacklog(req: TestRequest, id: string) {
@@ -142,6 +230,7 @@ describe("BacklogList interaction", () => {
 		);
 		if (method === "PUT" && platinumMatch)
 			return putPlatinum(req, platinumMatch[1]);
+		if (method === "POST" && url.endsWith("/bulk")) return answerBulk(req);
 		const entryMatch = url.match(/\/users\/me\/backlog\/([^/]+)$/);
 		if (method === "GET" && url === backlogUrl) return listBacklog(req);
 		if (method === "GET" && url === `${backlogUrl}/export`) {
@@ -164,11 +253,11 @@ describe("BacklogList interaction", () => {
 		if (url.endsWith("/mood-tags"))
 			return req.flush({ data: { tags: [] } });
 		if (url === `${api}/users/me/queue/backlog-ids`)
-			return req.flush({ data: { backlogIds: [] } });
+			return req.flush({ data: { backlogIds: queuedIds } });
 		if (url === `${api}/users/me/queue`)
 			return req.flush({ data: { queue: [], total: 0 } });
 		if (url === `${api}/users/me/favorites/game-ids`)
-			return req.flush({ data: { gameIds: [] } });
+			return req.flush({ data: { gameIds: favoriteGameIds } });
 		if (url === `${api}/users/me/saved-filters` && method === "GET")
 			return req.flush({ data: { savedFilters: savedViews } });
 		if (
@@ -242,6 +331,7 @@ describe("BacklogList interaction", () => {
 			routes: [{ path: "**", component: BacklogList }],
 			initialRoute
 		});
+		renderedFixture = result.fixture;
 		httpTesting = TestBed.inject(HttpTestingController);
 		await untilVisible(() =>
 			expect(visibleTitles()).toEqual([
@@ -263,6 +353,13 @@ describe("BacklogList interaction", () => {
 		deletedIds.length = 0;
 		platinumPuts.length = 0;
 		exportRequests.length = 0;
+		bulkCalls.length = 0;
+		bulkSkipIds = new Set();
+		bulkFailure = null;
+		queuedIds = [];
+		favoriteGameIds = [];
+		reportedTotal = null;
+		secondPage = [];
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -285,6 +382,14 @@ describe("BacklogList interaction", () => {
 		answerPending();
 		httpTesting.verify();
 		vi.unstubAllGlobals();
+	});
+
+	it("filters through the page search scoped to My Games", async () => {
+		await renderBacklog();
+		const pageSearch = renderedFixture.debugElement.query(
+			By.directive(PageSearch)
+		);
+		expect(pageSearch.componentInstance.scopeLabel()).toBe("My Games");
 	});
 
 	it("exports exactly the filtered and sorted library", async () => {
@@ -1071,6 +1176,402 @@ describe("BacklogList interaction", () => {
 					}
 				])
 			);
+		});
+	});
+	describe("bulk actions in Hardcore", () => {
+		async function renderHardcore() {
+			localStorage.setItem("completr.backlog.viewMode", "hardcore");
+			const { fixture } = await render(BacklogHost, {
+				providers: [provideHttpClient(), provideHttpClientTesting()],
+				routes: []
+			});
+			TestBed.inject(ApplicationRef).components.push(
+				fixture.componentRef
+			);
+			httpTesting = TestBed.inject(HttpTestingController);
+			await untilVisible(() =>
+				expect(rowCheckbox("Celeste")).toBeInTheDocument()
+			);
+		}
+
+		function rowCheckbox(title: string) {
+			return screen.getByRole("checkbox", { name: `Select ${title}` });
+		}
+
+		function pageCheckbox() {
+			return screen.getByRole("checkbox", {
+				name: "Select all runs on this page"
+			});
+		}
+
+		function bar() {
+			return within(
+				screen.getByRole("toolbar", { name: "Bulk actions" })
+			);
+		}
+
+		function selectionStatus() {
+			return screen
+				.getAllByRole("status")
+				.find(node => node.getAttribute("aria-atomic") === "true")!;
+		}
+
+		function toast(message: string) {
+			return within(
+				screen.getByText(message).closest("[ngpToast]") as HTMLElement
+			);
+		}
+
+		it("selects rows, ranges and the page, and clears on Escape and on page change", async () => {
+			const user = userEvent.setup();
+			reportedTotal = 150;
+			secondPage = [
+				entry({
+					id: "b9",
+					game: {
+						id: "g9",
+						code: "inside",
+						title: "Inside",
+						isDlc: false
+					}
+				})
+			];
+			await renderHardcore();
+
+			await user.click(rowCheckbox("Hades"));
+			expect(selectionStatus()).toHaveTextContent("1 run selected");
+			expect(rowCheckbox("Hades").closest("tr")).toHaveAttribute(
+				"aria-selected",
+				"true"
+			);
+			expect(screen.queryAllByRole("dialog")).toEqual([]);
+
+			await user.keyboard("{Shift>}");
+			await user.click(rowCheckbox("Celeste"));
+			await user.keyboard("{/Shift}");
+			expect(selectionStatus()).toHaveTextContent("3 runs selected");
+			expect(pageCheckbox()).toHaveAttribute("aria-checked", "true");
+
+			await user.click(rowCheckbox("Hollow Knight"));
+			expect(pageCheckbox()).toHaveAttribute("aria-checked", "mixed");
+			await user.click(pageCheckbox());
+			expect(selectionStatus()).toHaveTextContent("3 runs selected");
+
+			await user.keyboard("{Escape}");
+			expect(selectionStatus()).toHaveTextContent("");
+			expect(screen.queryByRole("toolbar")).not.toBeInTheDocument();
+
+			await user.click(rowCheckbox("Hades"));
+			await user.click(rowCheckbox("Celeste"));
+			await user.click(screen.getByRole("button", { name: "Next page" }));
+			await untilVisible(() =>
+				expect(rowCheckbox("Inside")).toBeInTheDocument()
+			);
+			expect(selectionStatus()).toHaveTextContent("");
+			expect(rowCheckbox("Inside")).toHaveAttribute(
+				"aria-checked",
+				"false"
+			);
+			expect(bulkCalls).toEqual([]);
+		});
+
+		it("sends a single favorites batch when the action is double clicked", async () => {
+			const user = userEvent.setup();
+			favoriteGameIds = ["g2"];
+			await renderHardcore();
+
+			await user.click(pageCheckbox());
+			await user.dblClick(
+				bar().getByRole("button", { name: "Favorite (2)" })
+			);
+			await untilVisible(() =>
+				expect(
+					screen.getByText("2 games added to favorites")
+				).toBeInTheDocument()
+			);
+
+			expect(bulkCalls).toEqual([
+				{
+					url: `${api}/users/me/favorites/bulk`,
+					action: "add",
+					body: { gameIds: ["g1", "g3"] }
+				}
+			]);
+			expect(selectionStatus()).toHaveTextContent("");
+		});
+
+		it("changes the status of the eligible runs and keeps the skipped ones selected", async () => {
+			const user = userEvent.setup();
+			library = [
+				...initialLibrary(),
+				entry({
+					id: "b4",
+					status: "completed",
+					game: {
+						id: "g4",
+						code: "inside",
+						title: "Inside",
+						isDlc: false
+					}
+				})
+			];
+			queuedIds = ["b2"];
+			bulkSkipIds = new Set(["b3"]);
+			await renderHardcore();
+
+			await user.click(pageCheckbox());
+			await user.click(
+				bar().getByRole("button", { name: "Change status (3)" })
+			);
+			const dialog = await screen.findByRole("dialog", {
+				name: "Completed?"
+			});
+			expect(
+				within(dialog).getByText("1 finished run will be skipped")
+			).toBeInTheDocument();
+			expect(
+				within(dialog).getByText(/Runs in Up Next will be removed/)
+			).toBeInTheDocument();
+			await user.dblClick(
+				within(dialog).getByRole("button", { name: "Change 3 runs" })
+			);
+			await untilVisible(() =>
+				expect(
+					screen.getByText("2 updated, 1 couldn't be changed")
+				).toBeInTheDocument()
+			);
+
+			expect(bulkCalls).toEqual([
+				{
+					url: `${backlogUrl}/bulk`,
+					action: "update",
+					body: {
+						ids: ["b1", "b2", "b3"],
+						changes: {
+							status: "completed",
+							finishedAt: todayLocalDate()
+						}
+					}
+				}
+			]);
+			expect(selectionStatus()).toHaveTextContent("1 run selected");
+			expect(rowCheckbox("Celeste")).toHaveAttribute(
+				"aria-checked",
+				"true"
+			);
+			expect(
+				within(
+					rowCheckbox("Hades").closest("tr") as HTMLElement
+				).queryByRole("button", { name: /Status of Hades/ })
+			).not.toBeInTheDocument();
+			expect(queuedIds).toEqual([]);
+		});
+
+		it("rates only the started runs and leaves everything as it was when the request fails", async () => {
+			const user = userEvent.setup();
+			bulkFailure = 500;
+			await renderHardcore();
+
+			await user.click(rowCheckbox("Hades"));
+			await user.click(rowCheckbox("Celeste"));
+			await user.click(bar().getByRole("button", { name: "Rate (2)" }));
+			const dialog = await screen.findByRole("dialog", {
+				name: "Rate 1 run?"
+			});
+			expect(
+				within(dialog).getByText("1 not started run will be skipped")
+			).toBeInTheDocument();
+			const confirm = within(dialog).getByRole("button", {
+				name: "Rate 1 run"
+			});
+			expect(confirm).toBeDisabled();
+			within(dialog).getByRole("slider", { name: "Your rating" }).focus();
+			await user.keyboard(
+				"{ArrowRight}{ArrowRight}{ArrowRight}{ArrowRight}"
+			);
+			await user.click(confirm);
+			await untilVisible(() =>
+				expect(
+					screen.getByText(
+						"Couldn't update the selected runs. Try again."
+					)
+				).toBeInTheDocument()
+			);
+
+			expect(bulkCalls).toEqual([
+				{
+					url: `${backlogUrl}/bulk`,
+					action: "update",
+					body: { ids: ["b1"], changes: { userRating: 2 } }
+				}
+			]);
+			expect(selectionStatus()).toHaveTextContent("2 runs selected");
+			expect(
+				bar().getByRole("button", { name: "Rate (2)" })
+			).toBeEnabled();
+		});
+
+		it("rates the not started runs too when the switch is turned on, even after flipping it back and forth", async () => {
+			const user = userEvent.setup();
+			await renderHardcore();
+
+			await user.click(rowCheckbox("Hades"));
+			await user.click(rowCheckbox("Celeste"));
+			await user.click(bar().getByRole("button", { name: "Rate (2)" }));
+			const dialog = await screen.findByRole("dialog", {
+				name: "Rate 1 run?"
+			});
+			const include = within(dialog).getByRole("switch", {
+				name: "Include not started runs"
+			});
+			expect(include).not.toBeChecked();
+
+			await user.click(include);
+			await user.click(include);
+			await user.click(include);
+
+			expect(include).toBeChecked();
+			expect(
+				within(dialog).queryByText("1 not started run will be skipped")
+			).not.toBeInTheDocument();
+			expect(dialog).toHaveAccessibleName("Rate 2 runs?");
+			within(dialog).getByRole("slider", { name: "Your rating" }).focus();
+			await user.keyboard("{ArrowRight}{ArrowRight}");
+			await user.click(
+				within(dialog).getByRole("button", { name: "Rate 2 runs" })
+			);
+			await untilVisible(() => expect(bulkCalls).toHaveLength(1));
+
+			expect(bulkCalls).toEqual([
+				{
+					url: `${backlogUrl}/bulk`,
+					action: "update",
+					body: { ids: ["b1", "b3"], changes: { userRating: 1 } }
+				}
+			]);
+		});
+
+		it("turns the switch on by default when every selected run is not started", async () => {
+			const user = userEvent.setup();
+			await renderHardcore();
+
+			await user.click(rowCheckbox("Hollow Knight"));
+			await user.click(rowCheckbox("Celeste"));
+			await user.click(bar().getByRole("button", { name: "Rate (2)" }));
+			const dialog = await screen.findByRole("dialog", {
+				name: "Rate 2 runs?"
+			});
+			const include = within(dialog).getByRole("switch", {
+				name: "Include not started runs"
+			});
+			expect(include).toBeChecked();
+
+			await user.click(include);
+
+			expect(dialog).toHaveAccessibleName("Rate 0 runs?");
+			within(dialog).getByRole("slider", { name: "Your rating" }).focus();
+			await user.keyboard("{ArrowRight}");
+			expect(
+				within(dialog).getByRole("button", { name: "Rate 0 runs" })
+			).toBeDisabled();
+		});
+
+		it("deletes at once with Undo, and sends the batch only when the toast is dismissed", async () => {
+			const user = userEvent.setup();
+			await renderHardcore();
+
+			await user.click(rowCheckbox("Hades"));
+			await user.click(rowCheckbox("Celeste"));
+			await user.click(
+				bar().getByRole("button", { name: "Delete runs (2)" })
+			);
+			expect(
+				screen.queryByRole("checkbox", { name: "Select Hades" })
+			).toBeNull();
+			expect(
+				screen.queryByRole("checkbox", { name: "Select Celeste" })
+			).toBeNull();
+			await user.click(
+				toast("2 runs deleted").getByRole("button", { name: /Undo/ })
+			);
+			await untilVisible(() =>
+				expect(rowCheckbox("Celeste")).toBeInTheDocument()
+			);
+			expect(rowCheckbox("Hades")).toBeInTheDocument();
+			expect(bulkCalls).toEqual([]);
+
+			await user.click(rowCheckbox("Hades"));
+			await user.click(
+				bar().getByRole("button", { name: "Delete runs (1)" })
+			);
+			await user.click(
+				toast("1 run deleted").getByRole("button", { name: "Dismiss" })
+			);
+			await untilVisible(() => expect(bulkCalls).toHaveLength(1));
+			expect(bulkCalls[0]).toEqual({
+				url: `${backlogUrl}/bulk`,
+				action: "delete",
+				body: { ids: ["b1"] }
+			});
+			expect(
+				screen.queryByRole("checkbox", { name: "Select Hades" })
+			).toBeNull();
+			expect(library.map(item => item.id)).toEqual(["b2", "b3"]);
+		});
+
+		it("brings back the rows that the server refused to delete, still selected", async () => {
+			const user = userEvent.setup();
+			bulkSkipIds = new Set(["b3"]);
+			await renderHardcore();
+
+			await user.click(rowCheckbox("Hades"));
+			await user.click(rowCheckbox("Celeste"));
+			await user.click(
+				bar().getByRole("button", { name: "Delete runs (2)" })
+			);
+			await user.click(
+				toast("2 runs deleted").getByRole("button", { name: "Dismiss" })
+			);
+			await untilVisible(() =>
+				expect(rowCheckbox("Celeste")).toBeInTheDocument()
+			);
+			expect(
+				screen.getByText("1 removed, 1 couldn't be changed")
+			).toBeInTheDocument();
+			expect(rowCheckbox("Celeste")).toHaveAttribute(
+				"aria-checked",
+				"true"
+			);
+			expect(
+				screen.queryByRole("checkbox", { name: "Select Hades" })
+			).toBeNull();
+		});
+
+		it("restores and reselects every row when the delete batch fails", async () => {
+			const user = userEvent.setup();
+			bulkFailure = 500;
+			await renderHardcore();
+
+			await user.click(rowCheckbox("Hollow Knight"));
+			await user.click(
+				bar().getByRole("button", { name: "Delete runs (1)" })
+			);
+			await user.click(
+				toast("1 run deleted").getByRole("button", { name: "Dismiss" })
+			);
+			await untilVisible(() =>
+				expect(rowCheckbox("Hollow Knight")).toBeInTheDocument()
+			);
+			expect(
+				screen.getByText(
+					"Couldn't delete the selected runs. Try again."
+				)
+			).toBeInTheDocument();
+			expect(rowCheckbox("Hollow Knight")).toHaveAttribute(
+				"aria-checked",
+				"true"
+			);
+			expect(bulkCalls).toHaveLength(1);
 		});
 	});
 });

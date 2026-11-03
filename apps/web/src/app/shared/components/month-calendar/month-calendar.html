@@ -73,7 +73,8 @@
 					@for (weekday of weekdays; track weekday.short) {
 					<th
 						scope="col"
-						class="text-center text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted pb-1.5"
+						uiEyebrow
+						class="table-cell text-center pb-1.5"
 						[attr.abbr]="weekday.full"
 					>
 						{{ weekday.short }}
@@ -158,8 +159,7 @@
 			class="flex items-center justify-between gap-3 px-4 py-3 border-b border-line"
 		>
 			<div class="min-w-0" aria-live="polite">
-				<span
-					class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+				<span uiEyebrow tone="brand"
 					>{{ selected() ? "Selected day" : "This month" }}</span
 				>
 				<h3

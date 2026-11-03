@@ -12,12 +12,13 @@ import { debounceTime, distinctUntilChanged, map } from "rxjs";
 
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import {
 	UiButton,
 	UiEmptyState,
+	UiEyebrow,
 	UiNoMatches,
 	UiPagination,
-	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
 import { FranchiseCard } from "../components/franchise-card/franchise-card";
@@ -32,6 +33,7 @@ const SKELETON_CARD_COUNT = 6;
 @Component({
 	selector: "app-franchise-overview",
 	imports: [
+		UiEyebrow,
 		RouterLink,
 		LibraryHero,
 		LibraryToolbar,
@@ -40,8 +42,8 @@ const SKELETON_CARD_COUNT = 6;
 		UiEmptyState,
 		UiNoMatches,
 		UiPagination,
-		UiSearchBar,
-		UiSkeleton
+		UiSkeleton,
+		PageSearch
 	],
 	templateUrl: "./franchise-overview.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

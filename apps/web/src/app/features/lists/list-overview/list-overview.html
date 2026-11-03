@@ -34,10 +34,11 @@
 </app-library-hero>
 
 <app-library-toolbar>
-	<ui-search-bar
+	<app-page-search
 		size="sm"
 		class="flex-1 min-w-[12rem] max-w-2xl"
-		placeholder="Search public lists..."
+		scopeLabel="Lists"
+		placeholder="Filter by list name..."
 		ariaLabel="Search public lists"
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"

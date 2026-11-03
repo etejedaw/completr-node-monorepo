@@ -37,6 +37,7 @@ import { FilterSection } from "../../../shared/components/filter-section/filter-
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
 import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
 import {
@@ -52,7 +53,6 @@ import {
 	UiIconButton,
 	UiNoMatches,
 	UiPagination,
-	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
 import { AdminGameEditor } from "../../games/admin-game-editor/admin-game-editor";
@@ -85,6 +85,7 @@ function sameValues(a: readonly string[], b: readonly string[]): boolean {
 @Component({
 	selector: "app-admin-games",
 	imports: [
+		PageSearch,
 		RouterLink,
 		AdminExternalDataDialog,
 		AdminGameEditor,
@@ -108,7 +109,6 @@ function sameValues(a: readonly string[], b: readonly string[]): boolean {
 		UiIconButton,
 		UiNoMatches,
 		UiPagination,
-		UiSearchBar,
 		UiSkeleton
 	],
 	templateUrl: "./admin-games.html",

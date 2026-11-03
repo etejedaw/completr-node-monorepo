@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, output } from "@angular/core";
+import {
+	ChangeDetectionStrategy,
+	Component,
+	input,
+	output
+} from "@angular/core";
 
 import { UiFocusTrap } from "../../shared/ui/focus-trap/ui-focus-trap";
 import { injectBodyPortal } from "../../shared/ui/portal/body-portal";
@@ -12,6 +17,7 @@ import { GlobalSearch } from "../global-search/global-search";
 			<app-global-search
 				class="h-full"
 				variant="overlay"
+				[initialQuery]="initialQuery()"
 				(closed)="close()"
 			/>
 		</div>
@@ -25,6 +31,7 @@ import { GlobalSearch } from "../global-search/global-search";
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MobileSearchOverlay {
+	readonly initialQuery = input("");
 	readonly closed = output<void>();
 
 	private isClosing = false;

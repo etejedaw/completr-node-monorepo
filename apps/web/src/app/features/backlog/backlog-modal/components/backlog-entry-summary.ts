@@ -15,6 +15,7 @@ import { BacklogStatusBadge } from "../../../../shared/components/backlog-status
 import { ExpandableText } from "../../../../shared/components/expandable-text/expandable-text";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
 import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/platinum-trophy";
+import { PrivateRunLock } from "../../../../shared/components/private-run-lock/private-run-lock";
 import { RatioSummary } from "../../../../shared/components/ratio-summary/ratio-summary";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { CoverUrlPipe } from "../../../../shared/pipes/cover-url";
@@ -37,6 +38,7 @@ const MISSING_VALUE = "—";
 		ExpandableText,
 		GamePoster,
 		PlatinumTrophy,
+		PrivateRunLock,
 		RatioSummary,
 		RouterLink,
 		StarRating,
@@ -97,6 +99,10 @@ export class BacklogEntrySummary {
 				value: this.formatDay(e.finishedAt)
 			});
 		facts.push({ label: "Platform", value: e.platform.abbreviation });
+		facts.push({
+			label: "Visibility",
+			value: e.isPublic ? "Public" : "Private · only you"
+		});
 		const platinum = this.platinum();
 		if (platinum)
 			facts.push({

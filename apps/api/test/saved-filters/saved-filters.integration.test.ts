@@ -80,6 +80,21 @@ void describe("POST /users/me/saved-filters", () => {
 		);
 	});
 
+	void it("accepts platform icons on create", async () => {
+		const owner = await createUserWithSession();
+
+		for (const icon of ["smartphone", "computer", "tv"]) {
+			const response = await postFilter(owner.authorization, {
+				name: `Platform ${icon}`,
+				filters: {},
+				icon
+			});
+
+			assert.equal(response.status, 201);
+			assert.equal(response.body.data.savedFilter.icon, icon);
+		}
+	});
+
 	void it("keeps a single default filter and shows it in the backlog", async () => {
 		const owner = await createUserWithSession();
 		const first = await postFilter(owner.authorization, {
@@ -221,6 +236,19 @@ void describe("PATCH /users/me/saved-filters/:filterId", () => {
 		assert.equal(response.body.data.savedFilter.name, "Hidden view");
 		assert.equal(response.body.data.savedFilter.showInBacklog, false);
 		assert.equal(response.body.data.savedFilter.isDefault, false);
+	});
+
+	void it("accepts a platform icon on update", async () => {
+		const owner = await createUserWithSession();
+		const filter = await createSavedFilter(owner.user.id);
+
+		const response = await api()
+			.patch(`${FILTERS_PATH}/${filter.id}`)
+			.set("Authorization", owner.authorization)
+			.send({ icon: "smartphone" });
+
+		assert.equal(response.status, 200);
+		assert.equal(response.body.data.savedFilter.icon, "smartphone");
 	});
 
 	void it("rejects invalid filters with 422 COMMON_SCHEMA_INVALID", async () => {

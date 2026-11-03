@@ -10,6 +10,8 @@ import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
 import * as usersService from "../users/users.service";
+import { type BulkDeletePlatinumsDto } from "./dtos/bulk-delete-platinums.dto";
+import { type UpsertGamePlatinumDto } from "./dtos/upsert-game-platinum.dto";
 import {
 	PLATINUMS_EXPORT_COLUMNS,
 	platinumToExportRow
@@ -20,7 +22,7 @@ import {
 } from "./game-platinum.serializer";
 import * as gamePlatinumService from "./game-platinum.service";
 import { type GamePlatinumParams } from "./schemas/game-platinum-params.schema";
-import { type UpsertGamePlatinumDto } from "./upsert-game-platinum.dto";
+import { type PlatinumsBulkQuery } from "./schemas/platinums-bulk-query.schema";
 
 export async function putPlatinum(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
@@ -117,4 +119,18 @@ export async function getMyPlatinumsExport(
 			platinumToExportRow(entry.get({ plain: true }))
 		)
 	});
+}
+
+export async function postPlatinumsBulk(request: Request, response: Response) {
+	const query = request.locals.query as PlatinumsBulkQuery;
+	const body = request.locals.body as BulkDeletePlatinumsDto;
+	const user = request.locals.user as RequestUser;
+
+	const result = await gamePlatinumService.bulkDeletePlatinums(
+		user.id,
+		body.gameIds
+	);
+
+	const data = { action: query.action, ...result };
+	return response.status(200).json({ data });
 }

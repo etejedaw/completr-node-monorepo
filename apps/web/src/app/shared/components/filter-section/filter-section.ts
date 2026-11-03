@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 
+import { UiEyebrow } from "../../ui";
+
 @Component({
+	imports: [UiEyebrow],
 	selector: "app-filter-section",
 	template: `
 		<fieldset class="relative m-0 p-0 border-0 min-w-0">
-			<legend
-				class="float-left w-full mb-2.5 p-0 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-			>
+			<legend uiEyebrow class="float-left w-full mb-2.5 p-0">
 				{{ label() }}
 			</legend>
 			<div class="absolute right-0 top-0 empty:hidden leading-none">

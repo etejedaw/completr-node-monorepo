@@ -1,0 +1,92 @@
+info:
+    name: Bulk Update Backlog
+    type: http
+    seq: 7
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/users/me/backlog/bulk?action=update"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    params:
+        - name: action
+          type: query
+          value: update
+    body:
+        type: json
+        data: |-
+            {
+              "ids": [
+                "0b6f1c9e-3d0a-4a59-9a43-5c1e2f7d8a10",
+                "5e2d7f40-8c1b-4f6e-b2a9-1d3c4e5f6a7b",
+                "9c8b7a65-4321-4fed-8cba-0f1e2d3c4b5a"
+              ],
+              "changes": {
+                "status": "playing",
+                "startedAt": "2026-11-03"
+              }
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Bulk Update Backlog
+
+    Applies the same partial changes to several runs of the user at once. Each run follows exactly the same rules as `PATCH /users/me/backlog/:backlogId`.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Query Params
+
+    | Param  | Type   | Required | Description |
+    |--------|--------|----------|-------------|
+    | action | string | Yes      | `update`   |
+
+    ### Request Body
+
+    | Field              | Type    | Required | Description |
+    |--------------------|---------|----------|-------------|
+    | ids                | uuid[]  | Yes      | 1 to 100 run ids |
+    | changes            | object  | Yes      | At least one of the fields below |
+    | changes.status     | string  | No       | `not_started`, `playing`, `completed`, `abandoned` or `endless` |
+    | changes.startedAt  | date    | No       | `YYYY-MM-DD` or `null` |
+    | changes.finishedAt | date    | No       | `YYYY-MM-DD` or `null` |
+    | changes.userRating | number  | No       | 0.5 to 5 in steps of 0.5, or `null` |
+    | changes.isPublic   | boolean | No       | Run visibility |
+
+    Duplicated ids are removed by the server (not an error). The whole batch runs in a single transaction. An id that does not exist or is not the user's never fails the batch: it goes to `skipped` with the code shown below.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "action": "update",
+        "succeeded": [
+          "0b6f1c9e-3d0a-4a59-9a43-5c1e2f7d8a10",
+          "5e2d7f40-8c1b-4f6e-b2a9-1d3c4e5f6a7b"
+        ],
+        "skipped": [
+          {
+            "id": "9c8b7a65-4321-4fed-8cba-0f1e2d3c4b5a",
+            "code": "BACKLOG_NOT_FOUND"
+          }
+        ],
+        "queueRemoved": [
+          "0b6f1c9e-3d0a-4a59-9a43-5c1e2f7d8a10"
+        ]
+      }
+    }
+    ```
+
+    Moving runs to `playing`, `completed`, `abandoned` or `endless` takes them out of the queue and renumbers the remaining positions; `queueRemoved` lists the runs that left the queue. A `backlog_<status>` activity is recorded only for the runs whose status actually changed.
+
+    ### Errors
+
+    - 200 skipped `BACKLOG_NOT_FOUND` — the run does not exist or belongs to another user
+    - 422 `COMMON_SCHEMA_INVALID` — unknown or missing `action`, a body that does not match the action, an empty list, more than 100 ids, a value that is not a UUID or an extra field
+    - 401 `AUTH_INVALID_TOKEN` — missing, expired or invalid token

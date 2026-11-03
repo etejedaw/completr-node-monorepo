@@ -9,6 +9,7 @@ import { type PlatinumEntry } from "../../../../core/models";
 import { CoverGrid } from "../../../../shared/components/cover-grid/cover-grid";
 import { PlatinumCoverCard } from "../../../../shared/components/platinum-cover-card/platinum-cover-card";
 import { type ViewModeOption } from "../../../../shared/components/view-mode-toggle/view-mode-toggle.model";
+import { type RowSelection } from "../../../../shared/utils/row-selection.model";
 import { PlatinumCalendar } from "../platinum-calendar/platinum-calendar";
 import { PlatinumTable } from "../platinum-table/platinum-table";
 
@@ -45,6 +46,7 @@ export function readStoredPlatinumViewMode(
 					[platinums]="platinums()"
 					[selectable]="selectable()"
 					[showNotes]="showNotes()"
+					[selection]="selection()"
 					(selected)="selected.emit($event)"
 				/>
 			}
@@ -72,5 +74,6 @@ export class PlatinumCollection {
 	readonly selectable = input(false);
 	readonly showNotes = input(false);
 	readonly emptyMonthHint = input("No platinums this month.");
+	readonly selection = input<RowSelection<PlatinumEntry> | null>(null);
 	readonly selected = output<PlatinumEntry>();
 }

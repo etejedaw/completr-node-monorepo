@@ -45,6 +45,18 @@ describe("UiButton", () => {
 		expect(link.getAttribute("data-variant")).toBe("glass");
 	});
 
+	it.each<UiButtonVariant>(["link", "link-danger"])(
+		"renders the %s variant as a text button",
+		variant => {
+			const { fixture, button } = render();
+			fixture.componentInstance.variant.set(variant);
+			fixture.detectChanges();
+
+			expect(button.getAttribute("data-variant")).toBe(variant);
+			expect(button.classList).toContain("ui-button");
+		}
+	);
+
 	it("toggles the active state on and off", () => {
 		const { fixture, button } = render();
 

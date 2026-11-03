@@ -52,7 +52,7 @@ import { type FranchiseSummary } from "../../franchises.model";
 				</p>
 				<h3
 					[id]="headingId()"
-					class="m-0 mt-1 font-display text-lg font-bold text-white leading-tight line-clamp-1 [text-shadow:0_2px_8px_rgb(0_0_0/0.7)]"
+					class="m-0 mt-1 font-display text-lg font-bold text-white leading-tight line-clamp-1 drop-shadow-cover"
 				>
 					<a
 						class="text-inherit no-underline outline-none after:absolute after:inset-0 after:content-['']"

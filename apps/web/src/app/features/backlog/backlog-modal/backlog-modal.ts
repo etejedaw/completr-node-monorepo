@@ -259,6 +259,7 @@ export class BacklogModal implements OnInit {
 	protected readonly addToQueue = signal(false);
 	protected readonly isInQueue = signal(false);
 	protected readonly addToShelf = signal(false);
+	protected readonly isPublic = signal(true);
 	protected readonly compilationParent = signal<Game | null>(null);
 	protected readonly availableCompilationParents = signal<
 		{ id: string; title: string; code: string }[]
@@ -694,6 +695,7 @@ export class BacklogModal implements OnInit {
 				userRating: e.userRating ?? null,
 				notes: e.notes ?? ""
 			});
+			this.isPublic.set(e.isPublic);
 
 			this.queueService.getMyQueue().subscribe(queue => {
 				const inQueue = queue.some(w => w.backlog.id === e.id);
@@ -906,6 +908,7 @@ export class BacklogModal implements OnInit {
 				realDuration: val.realDuration ?? null,
 				userRating: val.userRating ?? null,
 				notes: val.notes || null,
+				isPublic: this.isPublic(),
 				compilationGameId: this.compilationParent()?.id ?? null
 			};
 			this.backlogService.update(this.entry!.id, dto).subscribe({
@@ -953,6 +956,7 @@ export class BacklogModal implements OnInit {
 				realDuration: val.realDuration ?? undefined,
 				userRating: val.userRating ?? undefined,
 				notes: val.notes || undefined,
+				isPublic: this.isPublic(),
 				compilationGameId: this.compilationParent()?.id ?? undefined,
 				addToQueue: this.addToQueue() || undefined,
 				addToShelf: this.addToShelf() || undefined,

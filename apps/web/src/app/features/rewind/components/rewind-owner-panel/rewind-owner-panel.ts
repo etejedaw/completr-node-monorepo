@@ -10,7 +10,7 @@ import {
 } from "@angular/core";
 
 import { type Rewind } from "../../../../core/models/rewind.model";
-import { UiAlert, UiButton } from "../../../../shared/ui";
+import { UiAlert, UiButton, UiEyebrow } from "../../../../shared/ui";
 import { RewindService } from "../../rewind";
 import {
 	type RewindAiRecapError,
@@ -30,7 +30,7 @@ const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 
 @Component({
 	selector: "app-rewind-owner-panel",
-	imports: [RewindGenerateDialog, UiAlert, UiButton],
+	imports: [UiEyebrow, RewindGenerateDialog, UiAlert, UiButton],
 	template: `
 		@if (rewind().ownerControls; as controls) {
 			<section
@@ -44,7 +44,9 @@ const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 					<div class="flex flex-col gap-1 min-w-0">
 						<h2
 							id="rewind-owner-panel-heading"
-							class="m-0 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+							uiEyebrow
+							tone="brand"
+							class="m-0"
 						>
 							{{ copy().eyebrow }}
 						</h2>

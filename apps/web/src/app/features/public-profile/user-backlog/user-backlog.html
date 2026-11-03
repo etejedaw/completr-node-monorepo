@@ -41,10 +41,11 @@
 </app-library-hero>
 
 <app-library-toolbar>
-	<ui-search-bar
+	<app-page-search
 		size="sm"
 		class="flex-1 min-w-[12rem]"
-		[placeholder]="'Search ' + username() + '\'s games...'"
+		[scopeLabel]="username() + '\'s games'"
+		placeholder="Filter by title..."
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"
 	/>

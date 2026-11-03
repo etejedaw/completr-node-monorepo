@@ -134,4 +134,42 @@ describe("BacklogService", () => {
 
 		expect(onError.mock.calls[0][0].status).toBe(404);
 	});
+
+	it("updates many runs in one bulk request and unwraps the result", () => {
+		const result = {
+			action: "update",
+			succeeded: ["b1"],
+			skipped: [{ id: "b2", code: "BACKLOG_NOT_FOUND" }],
+			queueRemoved: ["b1"]
+		};
+		let received: unknown;
+
+		service
+			.bulk("update", {
+				ids: ["b1", "b2"],
+				changes: { status: "playing", startedAt: "2026-11-03" }
+			})
+			.subscribe(r => (received = r));
+
+		const req = httpTesting.expectOne(r => r.url === `${url}/bulk`);
+		expect(req.request.method).toBe("POST");
+		expect(req.request.params.get("action")).toBe("update");
+		expect(req.request.body).toEqual({
+			ids: ["b1", "b2"],
+			changes: { status: "playing", startedAt: "2026-11-03" }
+		});
+		req.flush({ data: result });
+		expect(received).toEqual(result);
+	});
+
+	it("deletes many runs with action=delete", () => {
+		service.bulk("delete", { ids: ["b1"] }).subscribe();
+
+		const req = httpTesting.expectOne(r => r.url === `${url}/bulk`);
+		expect(req.request.params.get("action")).toBe("delete");
+		expect(req.request.body).toEqual({ ids: ["b1"] });
+		req.flush({
+			data: { action: "delete", succeeded: ["b1"], skipped: [] }
+		});
+	});
 });

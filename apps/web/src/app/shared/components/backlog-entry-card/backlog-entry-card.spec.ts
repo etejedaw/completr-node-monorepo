@@ -361,3 +361,37 @@ describe("BacklogEntryCard status picker", () => {
 		expect(trigger()).toBeDisabled();
 	});
 });
+
+describe("BacklogEntryCard private run lock", () => {
+	beforeEach(() => {
+		TestBed.configureTestingModule({
+			imports: [BacklogEntryCard],
+			providers: [provideRouter([]), ...DEVICE_PROVIDERS]
+		});
+	});
+
+	function lockFor(isPublic: boolean, readonly = false) {
+		const fixture = TestBed.createComponent(BacklogEntryCard);
+		fixture.componentRef.setInput("entry", {
+			...entryWithStatus("playing"),
+			isPublic
+		});
+		fixture.componentRef.setInput("readonly", readonly);
+		fixture.detectChanges();
+		return (fixture.nativeElement as HTMLElement).querySelector(
+			"[aria-label='Private run: only you can see it']"
+		);
+	}
+
+	it("shows a lock next to the title of a private run", () => {
+		expect(lockFor(false)).not.toBeNull();
+	});
+
+	it("shows no lock on a public run", () => {
+		expect(lockFor(true)).toBeNull();
+	});
+
+	it("shows no lock on a readonly card", () => {
+		expect(lockFor(false, true)).toBeNull();
+	});
+});

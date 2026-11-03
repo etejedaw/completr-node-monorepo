@@ -151,6 +151,13 @@
 			[class]="scrolled() ? 'bg-canvas/80 backdrop-blur-xl border-line' : 'border-transparent'"
 		>
 			<div class="h-full flex items-center gap-3 px-[var(--page-pad-x)]">
+				@if (pageSearchScope.hasScope()) {
+				<app-global-search
+					class="md:hidden flex-1 min-w-0"
+					variant="compact"
+					(searchedEverywhere)="openMobileSearch($event)"
+				/>
+				} @else {
 				<a
 					routerLink="/feed"
 					class="md:hidden flex items-center gap-2 min-h-[44px] no-underline shrink-0"
@@ -158,13 +165,15 @@
 				>
 					<app-logo />
 				</a>
+				}
 
 				<app-global-search
-					class="hidden md:block flex-1 max-w-xl"
+					class="hidden md:block flex-1 max-w-2xl"
 					variant="inline"
 				/>
 
 				<div class="ml-auto flex items-center gap-1">
+					@if (!pageSearchScope.hasScope()) {
 					<button
 						uiIconButton
 						size="lg"
@@ -174,13 +183,13 @@
 						aria-label="Search"
 						aria-haspopup="dialog"
 						[attr.aria-expanded]="mobileSearchOpen()"
-						(click)="mobileSearchOpen.set(true)"
+						(click)="openMobileSearch()"
 					>
 						<span aria-hidden="true" class="material-icons"
 							>search</span
 						>
 					</button>
-					@if (onFeed()) {
+					} @if (onFeed()) {
 					<a
 						uiIconButton
 						size="lg"
@@ -373,7 +382,10 @@
 	</div>
 </ui-bottom-sheet>
 } @if (mobileSearchOpen()) {
-<app-mobile-search-overlay (closed)="mobileSearchOpen.set(false)" />
+<app-mobile-search-overlay
+	[initialQuery]="mobileSearchQuery()"
+	(closed)="mobileSearchOpen.set(false)"
+/>
 }
 
 <ng-template #sidebarSection let-section let-hideHeading="hideHeading">

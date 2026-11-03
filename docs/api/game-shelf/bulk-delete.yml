@@ -1,0 +1,77 @@
+info:
+    name: Bulk Delete Game Shelf
+    type: http
+    seq: 7
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/users/me/game-shelf/bulk?action=delete"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    params:
+        - name: action
+          type: query
+          value: delete
+    body:
+        type: json
+        data: |-
+            {
+              "ids": [
+                "0b6f1c9e-3d0a-4a59-9a43-5c1e2f7d8a10",
+                "5e2d7f40-8c1b-4f6e-b2a9-1d3c4e5f6a7b"
+              ]
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Bulk Delete Game Shelf
+
+    Deletes several entries of the user's shelf at once (physical delete).
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 50 requests per minute.
+
+    ### Query Params
+
+    | Param  | Type   | Required | Description |
+    |--------|--------|----------|-------------|
+    | action | string | Yes      | `delete`   |
+
+    ### Request Body
+
+    | Field | Type   | Required | Description |
+    |-------|--------|----------|-------------|
+    | ids   | uuid[] | Yes      | 1 to 100 shelf entry ids |
+
+    Duplicated ids are removed by the server (not an error). The whole batch runs in a single transaction. An id that does not exist or is not the user's never fails the batch: it goes to `skipped` with the code shown below.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "action": "delete",
+        "succeeded": [
+          "0b6f1c9e-3d0a-4a59-9a43-5c1e2f7d8a10"
+        ],
+        "skipped": [
+          {
+            "id": "5e2d7f40-8c1b-4f6e-b2a9-1d3c4e5f6a7b",
+            "code": "GAME_SHELF_NOT_FOUND"
+          }
+        ]
+      }
+    }
+    ```
+
+    Same effect as `DELETE /users/me/game-shelf/:gameShelfId` for each entry.
+
+    ### Errors
+
+    - 200 skipped `GAME_SHELF_NOT_FOUND` — the entry does not exist or belongs to another user
+    - 422 `COMMON_SCHEMA_INVALID` — unknown or missing `action`, a body that does not match the action, an empty list, more than 100 ids, a value that is not a UUID or an extra field
+    - 401 `AUTH_INVALID_TOKEN` — missing, expired or invalid token

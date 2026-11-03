@@ -12,6 +12,8 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { forkJoin } from "rxjs";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
+import { CalendarDayOverflow } from "../../../shared/components/month-calendar/calendar-day-overflow";
+import { CalendarEventChip } from "../../../shared/components/month-calendar/calendar-event-chip";
 import {
 	CalendarDayTemplate,
 	MonthCalendar,
@@ -20,6 +22,7 @@ import {
 	startOfMonth
 } from "../../../shared/components/month-calendar/month-calendar";
 import { type CalendarAgendaItem } from "../../../shared/components/month-calendar/month-calendar.model";
+import { UiButton } from "../../../shared/ui";
 import {
 	backlogStatusCalendarBarClass,
 	backlogStatusFillClass,
@@ -39,7 +42,13 @@ const MONTH_LIMIT = 100;
 
 @Component({
 	selector: "app-backlog-calendar",
-	imports: [MonthCalendar, CalendarDayTemplate],
+	imports: [
+		CalendarDayOverflow,
+		CalendarDayTemplate,
+		CalendarEventChip,
+		MonthCalendar,
+		UiButton
+	],
 	templateUrl: "./backlog-calendar.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

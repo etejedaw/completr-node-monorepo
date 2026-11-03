@@ -16,6 +16,7 @@ import { LibraryHero } from "../../../shared/components/library-hero/library-her
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiAlert,
@@ -29,7 +30,6 @@ import {
 	UiNoMatches,
 	UiPagination,
 	UiPremiumBadge,
-	UiSearchBar,
 	UiSkeleton,
 	UiSwitch,
 	UiTextarea
@@ -39,6 +39,7 @@ import {
 	SAVED_FILTER_COLORS,
 	SAVED_FILTER_ICONS,
 	savedFilterColorHex,
+	savedFilterIconLabel,
 	supportedSavedFilterColor
 } from "../saved-filter-appearance";
 import { SavedFiltersService } from "../saved-filters";
@@ -83,14 +84,14 @@ const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: SortMode })[] = [
 		UiNoMatches,
 		UiPagination,
 		UiPremiumBadge,
-		UiSearchBar,
 		UiSkeleton,
 		UiTextarea,
 		PremiumOnly,
 		UiDialog,
 		UiInput,
 		UiSwitch,
-		DialogDeleteAction
+		DialogDeleteAction,
+		PageSearch
 	],
 	templateUrl: "./saved-filters-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -175,6 +176,7 @@ export class SavedFiltersView implements OnInit {
 	protected readonly editColor = signal<string | null>(null);
 	protected readonly iconOptions = SAVED_FILTER_ICONS;
 	protected readonly colorOptions = SAVED_FILTER_COLORS;
+	protected readonly iconLabel = savedFilterIconLabel;
 	protected readonly colorHex = savedFilterColorHex;
 	protected readonly saving = signal(false);
 	protected readonly deleting = signal(false);

@@ -22,6 +22,7 @@ import { filter } from "rxjs";
 
 import { AuthService } from "../core/services/auth";
 import { OnboardingService } from "../core/services/onboarding";
+import { PageSearchScope } from "../core/services/page-search-scope";
 import { avatarRing } from "../core/utils/premium";
 import { elevatedRoleBadge } from "../core/utils/role-badge";
 import { AppLogo } from "../shared/components/app-logo/app-logo";
@@ -107,6 +108,7 @@ function matchesRoute(url: string, route: string): boolean {
 		AttributionFooter
 	],
 	templateUrl: "./layout.html",
+	providers: [PageSearchScope],
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Layout implements OnInit {
@@ -114,6 +116,7 @@ export class Layout implements OnInit {
 	private readonly router = inject(Router);
 	private readonly destroyRef = inject(DestroyRef);
 	protected readonly onboarding = inject(OnboardingService);
+	protected readonly pageSearchScope = inject(PageSearchScope);
 
 	protected readonly user = this.auth.user;
 	protected readonly isPremium = this.auth.isPremium;
@@ -125,6 +128,7 @@ export class Layout implements OnInit {
 	protected readonly scrolled = signal(false);
 	protected readonly moreOpen = signal(false);
 	protected readonly mobileSearchOpen = signal(false);
+	protected readonly mobileSearchQuery = signal("");
 	private readonly currentUrl = signal(this.router.url.split(/[?#]/)[0]);
 	protected readonly pendingUrl = signal<string | null>(null);
 	protected readonly navigating = signal(false);
@@ -227,6 +231,11 @@ export class Layout implements OnInit {
 	goToHelp() {
 		this.onboarding.dismiss(true);
 		this.router.navigate(["/help"]);
+	}
+
+	openMobileSearch(query = "") {
+		this.mobileSearchQuery.set(query);
+		this.mobileSearchOpen.set(true);
 	}
 
 	toggleCollapsed() {

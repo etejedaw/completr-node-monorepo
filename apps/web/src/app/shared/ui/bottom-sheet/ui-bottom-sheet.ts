@@ -9,6 +9,7 @@ import {
 
 import { UiFocusTrap } from "../focus-trap/ui-focus-trap";
 import { UiIconButton } from "../icon-button/ui-icon-button";
+import { UiEyebrow } from "../label/ui-eyebrow";
 import { injectBodyPortal } from "../portal/body-portal";
 import {
 	UI_TONE_COLOR,
@@ -25,7 +26,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 
 @Component({
 	selector: "ui-bottom-sheet",
-	imports: [NgTemplateOutlet, UiFocusTrap, UiIconButton],
+	imports: [UiEyebrow, NgTemplateOutlet, UiFocusTrap, UiIconButton],
 	template: `
 		<button
 			type="button"
@@ -39,7 +40,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 			aria-modal="true"
 			[attr.aria-label]="heading()"
 			[attr.aria-describedby]="subheading() ? subtitleId : null"
-			class="fixed inset-x-0 bottom-0 z-[1001] max-h-[85dvh] flex flex-col rounded-t-2xl bg-sidebar border-t border-line shadow-[0_-24px_60px_-20px_rgba(0,0,0,0.8)] pb-[env(safe-area-inset-bottom)] motion-safe:animate-[uiSheetUp_280ms_cubic-bezier(0.16,1,0.3,1)] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[28rem] sm:bottom-6 sm:rounded-2xl sm:border"
+			class="fixed inset-x-0 bottom-0 z-[1001] max-h-[85dvh] flex flex-col rounded-t-2xl bg-sidebar border-t border-line shadow-sheet pb-[env(safe-area-inset-bottom)] motion-safe:animate-[uiSheetUp_280ms_cubic-bezier(0.16,1,0.3,1)] sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[28rem] sm:bottom-6 sm:rounded-2xl sm:border"
 			(escape)="onEscape($event)"
 		>
 			<div
@@ -55,7 +56,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 					@if (icon()) {
 						<span
 							aria-hidden="true"
-							class="shrink-0 inline-flex size-12 items-center justify-center rounded-xl ring-1 ring-inset shadow-[0_8px_24px_-10px_currentColor]"
+							class="shrink-0 inline-flex size-12 items-center justify-center rounded-xl ring-1 ring-inset shadow-tone-icon"
 							[class]="iconToneClass()"
 						>
 							<span class="material-icons text-[22px]">{{
@@ -65,10 +66,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 					}
 					<div class="flex-1 min-w-0">
 						@if (eyebrow()) {
-							<span
-								class="block text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-								>{{ eyebrow() }}</span
-							>
+							<span uiEyebrow tone="brand">{{ eyebrow() }}</span>
 						}
 						<h2
 							class="m-0 font-display text-xl font-bold tracking-tight leading-tight text-fg text-balance break-words"
@@ -90,10 +88,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 				<header class="flex items-center gap-3 px-5 pt-3 pb-2">
 					<div class="flex-1 min-w-0">
 						@if (eyebrow()) {
-							<span
-								class="block text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-								>{{ eyebrow() }}</span
-							>
+							<span uiEyebrow tone="brand">{{ eyebrow() }}</span>
 						}
 						<h2
 							class="m-0 font-display text-lg font-semibold text-fg truncate"

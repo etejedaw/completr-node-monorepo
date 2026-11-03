@@ -5,6 +5,7 @@ import {
 	input
 } from "@angular/core";
 
+import { UiEyebrow } from "../../ui";
 import { type ComparisonStyle } from "./ratio-summary.model";
 
 type RatioComparison = "better" | "worse" | "even";
@@ -28,6 +29,7 @@ const COMPARISON_STYLES: Record<RatioComparison, ComparisonStyle> = {
 };
 
 @Component({
+	imports: [UiEyebrow],
 	selector: "app-ratio-summary",
 	template: `
 		@if (comparison(); as style) {
@@ -35,10 +37,7 @@ const COMPARISON_STYLES: Record<RatioComparison, ComparisonStyle> = {
 				class="flex flex-col gap-1 leading-none"
 				[title]="personalTooltip()"
 			>
-				<span
-					class="text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-					>{{ personalLabel() }}</span
-				>
+				<span uiEyebrow>{{ personalLabel() }}</span>
 				<span
 					class="inline-flex items-center gap-0.5 text-lg font-bold tabular-nums"
 					[class]="style.textClass"
@@ -57,10 +56,7 @@ const COMPARISON_STYLES: Record<RatioComparison, ComparisonStyle> = {
 			class="flex flex-col items-end gap-1 leading-none"
 			title="Score per estimated hour of play"
 		>
-			<span
-				class="text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-				>Ratio</span
-			>
+			<span uiEyebrow>Ratio</span>
 			<span
 				class="font-display text-2xl sm:text-3xl font-bold text-brand tabular-nums"
 				>{{ ratio() ?? "—" }}</span

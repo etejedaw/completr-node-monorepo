@@ -66,6 +66,40 @@ describe("PendingRemovals", () => {
 		expect(removals.withoutPending(["c", "b", "a"])).toEqual(["c", "a"]);
 	});
 
+	it("hides several items at once and restores them in place", () => {
+		const visible = removals.hideAll(["b", "d"], ["a", "b", "c", "d", "e"]);
+
+		expect(visible).toEqual(["a", "c", "e"]);
+		expect(removals.undoAll(["b", "d"], visible)).toEqual([
+			"a",
+			"b",
+			"c",
+			"d",
+			"e"
+		]);
+		expect(removals.withPending(["a"])).toEqual(["a"]);
+	});
+
+	it("restores only the undone part of a batch", () => {
+		const visible = removals.hideAll(["a", "b", "c"], ["a", "b", "c", "d"]);
+
+		expect(removals.undoAll(["b"], visible)).toEqual(["b", "d"]);
+		expect(removals.withPending(["b", "d"])).toEqual(["a", "b", "c", "d"]);
+	});
+
+	it("commits a whole batch, keeping the rest anchored", () => {
+		let visible = removals.hideAll(["b", "c"], ["a", "b", "c", "d"]);
+		visible = removals.hide("d", visible);
+		removals.commitAll(["b", "c"]);
+
+		expect(removals.withPending(visible)).toEqual(["a", "d"]);
+		expect(removals.withoutPending(["a", "b", "c", "d"])).toEqual([
+			"a",
+			"b",
+			"c"
+		]);
+	});
+
 	it("ignores items that are not pending", () => {
 		removals.commit("x");
 

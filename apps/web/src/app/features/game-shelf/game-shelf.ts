@@ -3,9 +3,12 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../environments/environment";
+import { type BulkResponse, type BulkResult } from "../../core/models";
 import { buildHttpParams } from "../../core/utils/http-params";
 import {
 	type CreateGameShelfDto,
+	type GameShelfBulkAction,
+	type GameShelfBulkRequest,
 	type GameShelfListResponse,
 	type GameShelfPagination,
 	type GameShelfSingleResponse,
@@ -36,5 +39,18 @@ export class GameShelfService {
 
 	delete(id: string) {
 		return this.http.delete(`${this.baseUrl}/${id}`);
+	}
+
+	bulk<TAction extends GameShelfBulkAction>(
+		action: TAction,
+		body: GameShelfBulkRequest
+	) {
+		return this.http
+			.post<BulkResponse<BulkResult<TAction>>>(
+				`${this.baseUrl}/bulk`,
+				body,
+				{ params: { action } }
+			)
+			.pipe(map(res => res.data));
 	}
 }

@@ -73,6 +73,18 @@
 	--color-nav-more: var(--color-fg-secondary);
 
 	--radius-card: 0.625rem;
+
+	--shadow-popover: 0 24px 48px -16px rgba(0, 0, 0, 0.75);
+	--shadow-table: 0 24px 48px -32px rgba(0, 0, 0, 0.9);
+	--shadow-sheet: 0 -24px 60px -20px rgba(0, 0, 0, 0.8);
+	--shadow-dock: 0 -12px 32px -12px rgba(0, 0, 0, 0.8);
+	--shadow-card: 0 18px 40px -20px rgba(0, 0, 0, 0.9);
+	--shadow-toast: 0 8px 24px -8px rgba(0, 0, 0, 0.5);
+	--shadow-ring-brand: 0 0 0 3px var(--color-brand-subtle);
+	--shadow-tone-icon: 0 8px 24px -10px currentColor;
+
+	--drop-shadow-hero: 0 2px 16px rgba(0, 0, 0, 0.6);
+	--drop-shadow-cover: 0 2px 8px rgba(0, 0, 0, 0.7);
 }
 
 @utility bg-admin-metal {
@@ -88,7 +100,7 @@
 }
 
 :root {
-	--topbar-height: 3.5rem;
+	--topbar-height: 4rem;
 	--tabbar-height: 4rem;
 	--page-max-width: 80rem;
 	--page-pad-x: 1rem;

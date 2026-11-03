@@ -10,10 +10,12 @@ import {
 } from "@angular/core";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
-import { type GameShelfEntry } from "../../../core/models";
+import { type BulkResult, type GameShelfEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { type ExportParams } from "../../../core/services/export";
+import { BulkActionBar } from "../../../shared/components/bulk-action-bar/bulk-action-bar";
+import { type BulkAction } from "../../../shared/components/bulk-action-bar/bulk-action-bar.model";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
@@ -28,6 +30,7 @@ import {
 	LibraryPageEmptyAction,
 	LibraryPageToolbar
 } from "../../../shared/components/library-page/library-page-slots";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import {
 	countByPlatform,
 	matchesPlatform,
@@ -36,14 +39,21 @@ import {
 import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
 import { type ViewModeOption } from "../../../shared/components/view-mode-toggle/view-mode-toggle.model";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
+import { SelectionCell } from "../../../shared/directives/selection-cell";
+import { type SelectionToggle } from "../../../shared/directives/selection-cell.model";
 import {
 	UiBadge,
 	UiButton,
+	UiCheckbox,
 	UiIconButton,
 	UiPremiumBadge,
-	UiSearchBar,
 	UiTable
 } from "../../../shared/ui";
+import { uniqueGameIds } from "../../../shared/utils/backlog-eligibility";
+import { countOf } from "../../../shared/utils/bulk-feedback";
+import { injectBulkRemoval } from "../../../shared/utils/bulk-removal";
+import { injectBulkRunner } from "../../../shared/utils/bulk-runner";
+import { injectRowSelection } from "../../../shared/utils/row-selection";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { FavoritesService } from "../../favorites/favorites";
 import { WishlistService } from "../../wishlist/wishlist";
@@ -58,6 +68,7 @@ import { type GameShelfModalData } from "../game-shelf-modal/game-shelf-modal.mo
 type ShelfViewMode = "grid" | "table" | "calendar";
 
 const VIEW_MODE_STORAGE_KEY = "completr.shelf.viewMode";
+const SHELF_NOUN = { one: "game", other: "games" };
 
 const VIEW_MODES: readonly ViewModeOption<ShelfViewMode>[] = [
 	{ value: "grid", label: "Grid", icon: "grid_view" },
@@ -73,13 +84,15 @@ function readStoredViewMode(): ShelfViewMode {
 @Component({
 	selector: "app-game-shelf-list",
 	imports: [
+		BulkActionBar,
 		ExportActions,
+		SelectionCell,
+		UiCheckbox,
 		ViewModeToggle,
 		DatePipe,
 		UiBadge,
 		UiButton,
 		UiIconButton,
-		UiSearchBar,
 		UiTable,
 		GameCoverCard,
 		GameTitleCell,
@@ -92,7 +105,8 @@ function readStoredViewMode(): ShelfViewMode {
 		LibraryPageToolbar,
 		PlatformFilter,
 		PremiumOnly,
-		UiPremiumBadge
+		UiPremiumBadge,
+		PageSearch
 	],
 	templateUrl: "./game-shelf-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -135,6 +149,64 @@ export class GameShelfList implements OnInit {
 			matchesPlatform(entry.platform, this.selectedPlatform())
 		)
 	);
+	protected readonly selection = injectRowSelection(
+		this.entries,
+		entry => entry.id
+	);
+	protected readonly bulkRunner = injectBulkRunner(this.selection);
+	private readonly bulkRemoval = injectBulkRemoval<GameShelfEntry>({
+		rows: this.allEntries,
+		total: this.total,
+		selection: this.selection,
+		keyOf: entry => entry.id,
+		requestIdOf: entry => entry.id,
+		request: ids => this.shelfService.bulk("delete", { ids }),
+		pendingMessage: count =>
+			`${countOf(count, SHELF_NOUN)} removed from your shelf`,
+		failureMessage: "Couldn't remove the selected games. Try again."
+	});
+	protected readonly bulkNoun = SHELF_NOUN;
+	private readonly selectedGameIds = computed(() =>
+		uniqueGameIds(this.selection.selectedRows())
+	);
+	private readonly favoriteEligible = computed(() => {
+		const favorites = this.favoritesService.favoriteIds();
+		return this.selectedGameIds().filter(id => !favorites.has(id));
+	});
+	private readonly unfavoriteEligible = computed(() => {
+		const favorites = this.favoritesService.favoriteIds();
+		return this.selectedGameIds().filter(id => favorites.has(id));
+	});
+	protected readonly bulkActions = computed<BulkAction[]>(() => {
+		const allFavorites =
+			this.selectedGameIds().length > 0 &&
+			this.favoriteEligible().length === 0;
+		const unfavorite: BulkAction = {
+			id: "unfavorite",
+			label: "Unfavorite",
+			icon: "heart_broken",
+			eligibleCount: this.unfavoriteEligible().length,
+			tone: "default"
+		};
+		const remove: BulkAction = {
+			id: "remove",
+			label: "Remove from shelf",
+			icon: "delete",
+			eligibleCount: this.selection.count(),
+			tone: "danger"
+		};
+		if (allFavorites) return [unfavorite, remove];
+		const favorite: BulkAction = {
+			id: "favorite",
+			label: "Favorite",
+			icon: "favorite",
+			eligibleCount: this.favoriteEligible().length,
+			tone: "default"
+		};
+		return this.unfavoriteEligible().length > 0
+			? [favorite, { ...unfavorite, overflow: true }, remove]
+			: [favorite, remove];
+	});
 	protected readonly pageState = computed<LibraryPageState>(() => {
 		if (this.isLoading()) return "loading";
 		if (this.entries().length > 0) return "ready";
@@ -153,6 +225,47 @@ export class GameShelfList implements OnInit {
 		effect(() =>
 			localStorage.setItem(VIEW_MODE_STORAGE_KEY, this.viewMode())
 		);
+	}
+
+	protected setViewMode(mode: ShelfViewMode) {
+		this.selection.clear();
+		this.viewMode.set(mode);
+	}
+
+	protected toggleSelection(entry: GameShelfEntry, toggle: SelectionToggle) {
+		if (toggle.range) this.selection.toggleRange(entry.id);
+		else this.selection.toggle(entry.id);
+	}
+
+	protected runBulkAction(id: string) {
+		if (this.bulkRunner.busy()) return;
+		if (id === "remove") {
+			this.bulkRemoval.remove(this.selection.selectedRows());
+			return;
+		}
+		const action = id === "favorite" ? "add" : "remove";
+		const gameIds =
+			action === "add"
+				? this.favoriteEligible()
+				: this.unfavoriteEligible();
+		if (gameIds.length === 0) return;
+		this.bulkRunner.run<BulkResult>({
+			request: this.favoritesService.bulk(action, { gameIds }),
+			applied: () => undefined,
+			successMessage: count =>
+				`${countOf(count, SHELF_NOUN)} ${action === "add" ? "added to" : "removed from"} favorites`,
+			partialVerb: action === "add" ? "added" : "removed",
+			failureMessage: "Couldn't update your favorites. Try again.",
+			rowIdsOf: ids => this.rowIdsForGames(ids)
+		});
+	}
+
+	private rowIdsForGames(gameIds: readonly string[]): string[] {
+		const games = new Set(gameIds);
+		return this.selection
+			.selectedRows()
+			.filter(entry => games.has(entry.game.id))
+			.map(entry => entry.id);
 	}
 
 	private readonly searchSubject = new Subject<string>();
@@ -235,7 +348,9 @@ export class GameShelfList implements OnInit {
 			})
 			.subscribe({
 				next: res => {
-					this.allEntries.set(res.data.gameShelf);
+					this.allEntries.set(
+						this.bulkRemoval.withoutPending(res.data.gameShelf)
+					);
 					this.total.set(res.data.total);
 					this.isLoading.set(false);
 				},

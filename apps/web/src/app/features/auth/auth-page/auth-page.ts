@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
+import { UiEyebrow } from "../../../shared/ui";
 import { AuthShowcase } from "../auth-showcase/auth-showcase";
 
 @Component({
 	selector: "app-auth-page",
-	imports: [AuthShowcase, RouterLink],
+	imports: [UiEyebrow, AuthShowcase, RouterLink],
 	template: `
 		<div
 			class="min-h-screen bg-canvas lg:grid lg:grid-cols-[minmax(0,1.25fr)_minmax(26rem,1fr)]"
@@ -23,10 +24,7 @@ import { AuthShowcase } from "../auth-showcase/auth-showcase";
 				></div>
 
 				<div class="relative w-full max-w-sm mx-auto lg:mx-0">
-					<span
-						class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-						>{{ eyebrow() }}</span
-					>
+					<span uiEyebrow tone="brand">{{ eyebrow() }}</span>
 					<h1
 						class="m-0 mt-2 font-display text-3xl sm:text-4xl font-bold tracking-tight leading-tight"
 					>

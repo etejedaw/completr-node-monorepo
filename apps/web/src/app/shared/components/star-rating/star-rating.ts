@@ -8,6 +8,7 @@ import {
 } from "@angular/core";
 
 import { getRatingLabel } from "../../constants/rating-labels";
+import { UiEyebrow } from "../../ui";
 
 type StarState = "empty" | "half" | "full";
 export type StarRatingSize = "sm" | "md" | "lg";
@@ -31,6 +32,7 @@ const STAR_GAP: Record<StarRatingSize, string> = {
 };
 
 @Component({
+	imports: [UiEyebrow],
 	selector: "app-star-rating",
 	templateUrl: "./star-rating.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

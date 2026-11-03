@@ -11,12 +11,18 @@ import {
 } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type FavoriteEntry } from "../../core/models";
+import {
+	type BulkResponse,
+	type BulkResult,
+	type FavoriteEntry
+} from "../../core/models";
 import { AuthService } from "../../core/services/auth";
 import { ToastService } from "../../core/services/toast";
 import { buildHttpParams } from "../../core/utils/http-params";
 import {
 	type FavoriteGameIdsResponse,
+	type FavoritesBulkAction,
+	type FavoritesBulkRequest,
 	type FavoritesPagination,
 	type FavoritesResponse
 } from "./favorites.model";
@@ -130,6 +136,66 @@ export class FavoritesService {
 				error: () => this._favoriteIds.set(previousIds)
 			})
 		);
+	}
+
+	bulk<TAction extends FavoritesBulkAction>(
+		action: TAction,
+		body: FavoritesBulkRequest
+	) {
+		const previousIds = this._favoriteIds();
+		const optimisticIds = this.withBulkChange(
+			previousIds,
+			action,
+			body.gameIds
+		);
+		if (action === "add" && optimisticIds.size > MAX_FAVORITES) {
+			this.toast.error(
+				`You can only have up to ${MAX_FAVORITES} favorites.`
+			);
+			return throwError(() => new Error("Favorites limit reached"));
+		}
+		this._favoriteIds.set(optimisticIds);
+
+		return this.http
+			.post<BulkResponse<BulkResult<TAction>>>(
+				`${this.baseUrl}/bulk`,
+				body,
+				{ params: { action } }
+			)
+			.pipe(
+				map(res => res.data),
+				tap({
+					next: result => {
+						this._favoriteIds.set(
+							this.withBulkChange(
+								previousIds,
+								action,
+								result.succeeded
+							)
+						);
+						if (action === "remove") {
+							const removed = new Set(result.succeeded);
+							this._favorites.update(favorites =>
+								favorites.filter(f => !removed.has(f.game.id))
+							);
+						}
+					},
+					error: () => this._favoriteIds.set(previousIds)
+				})
+			);
+	}
+
+	private withBulkChange(
+		ids: ReadonlySet<string>,
+		action: FavoritesBulkAction,
+		gameIds: readonly string[]
+	): Set<string> {
+		const next = new Set(ids);
+		for (const gameId of gameIds) {
+			if (action === "add") next.add(gameId);
+			else next.delete(gameId);
+		}
+		return next;
 	}
 
 	removeFavorite(gameId: string) {

@@ -58,10 +58,11 @@
 
 @if (!hasNoConnections() && !hasLoadFailed()) {
 <app-library-toolbar>
-	<ui-search-bar
+	<app-page-search
 		size="sm"
 		class="flex-1 max-w-2xl"
-		placeholder="Search by name or username..."
+		[scopeLabel]="username + '\'s ' + kind"
+		placeholder="Filter by name or username..."
 		[value]="query()"
 		(valueChange)="onSearch($event)"
 	/>

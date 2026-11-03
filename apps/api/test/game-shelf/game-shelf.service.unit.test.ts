@@ -182,7 +182,7 @@ void describe("gameShelfService.removeGameShelf", () => {
 	});
 
 	void it("returns false when the entry does not exist", async () => {
-		stub(GameShelf, "findOne", async () => null);
+		stub(GameShelf, "findAll", async () => []);
 		const destroy = stub(GameShelf, "destroy", async () => 0);
 
 		assert.equal(
@@ -193,18 +193,22 @@ void describe("gameShelfService.removeGameShelf", () => {
 	});
 
 	void it("returns false and keeps the entry when it belongs to someone else", async () => {
-		stubShelfEntry("owner");
+		const findAll = stub(GameShelf, "findAll", async () => []);
 		const destroy = stub(GameShelf, "destroy", async () => 0);
 
 		assert.equal(
 			await gameShelfService.removeGameShelf("gs-1", "intruder"),
 			false
 		);
+		assert.deepEqual(
+			(findAll.mock.calls[0]?.arguments[0] as { where: unknown }).where,
+			{ id: ["gs-1"], userId: "intruder" }
+		);
 		assert.equal(destroy.mock.callCount(), 0);
 	});
 
 	void it("deletes the entry scoped by id and owner", async () => {
-		stubShelfEntry("owner");
+		stub(GameShelf, "findAll", async () => [asModel({ id: "gs-1" })]);
 		const destroy = stub(GameShelf, "destroy", async () => 1);
 
 		assert.equal(
@@ -212,7 +216,7 @@ void describe("gameShelfService.removeGameShelf", () => {
 			true
 		);
 		assert.deepEqual(destroy.mock.calls[0]?.arguments, [
-			{ where: { id: "gs-1", userId: "owner" } }
+			{ where: { id: ["gs-1"], userId: "owner" }, transaction: undefined }
 		]);
 	});
 });

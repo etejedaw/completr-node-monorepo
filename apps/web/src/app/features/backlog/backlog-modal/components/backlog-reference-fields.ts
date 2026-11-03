@@ -23,6 +23,7 @@ import {
 	UiEyebrow,
 	UiFieldError,
 	UiFieldLabel,
+	UiIconButton,
 	UiInput
 } from "../../../../shared/ui";
 import { scrollIntoViewAndFocus } from "../focus-field";
@@ -59,6 +60,7 @@ function hasVisibleError(field: FieldTree<number | null>): boolean {
 		UiEyebrow,
 		UiFieldError,
 		UiFieldLabel,
+		UiIconButton,
 		UiInput
 	],
 	templateUrl: "./backlog-reference-fields.html",

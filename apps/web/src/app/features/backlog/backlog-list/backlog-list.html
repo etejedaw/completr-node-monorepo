@@ -53,10 +53,11 @@
 		class="bleed bleed-inner sticky top-[var(--topbar-height)] z-30 py-3 mb-4 bg-canvas/85 backdrop-blur-md border-b border-line/60 max-md:static"
 	>
 		<div class="flex flex-wrap items-center gap-2">
-			<ui-search-bar
+			<app-page-search
 				size="sm"
+				scopeLabel="My Games"
 				class="flex-1 min-w-[12rem]"
-				placeholder="Search your library..."
+				placeholder="Filter by title..."
 				ariaLabel="Search your library"
 				[value]="searchQuery()"
 				(valueChange)="onSearch($event)"
@@ -357,6 +358,7 @@
 		[sortOrder]="sortOrder()"
 		[queuedBacklogIds]="queueBacklogIds()"
 		[updatingStatusIds]="updatingStatusIds()"
+		[selection]="bulk.selection"
 		(sortChange)="sort($event)"
 		(entryOpen)="openEdit($event.entry, $event.event)"
 		(statusChange)="selectNewStatus($event.entry, $event.status)"
@@ -371,6 +373,15 @@
 		[total]="total()"
 		(offsetChange)="onOffsetChange($event)"
 	/>
+	} @if (viewMode() === 'hardcore') {
+	<app-bulk-action-bar
+		[count]="bulk.selection.count()"
+		[actions]="bulk.actions()"
+		[noun]="bulkNoun"
+		[busy]="bulk.busy()"
+		(actionTriggered)="bulk.trigger($event)"
+		(cleared)="bulk.selection.clear()"
+	/>
 	}
 </div>
 
@@ -383,7 +394,24 @@
 	(cancelled)="cancelStatusChange()"
 	(reviewRequested)="saveAndOpenReview()"
 />
-} @if (showReorderModal()) {
+} @switch (bulk.dialog()) { @case ('status') {
+<app-bulk-status-dialog
+	[eligibleCount]="bulk.statusEligibleCount()"
+	[skippedCount]="bulk.statusSkippedCount()"
+	[queuedCount]="bulk.queuedAmongStatusEligible()"
+	(confirmed)="bulk.confirmStatus($event)"
+	(cancelled)="bulk.closeDialog()"
+/>
+} @case ('rating') {
+<app-bulk-rating-dialog
+	[startedCount]="bulk.rateStartedCount()"
+	[notStartedCount]="bulk.rateNotStartedCount()"
+	[ratedStartedCount]="bulk.ratedStartedCount()"
+	[ratedNotStartedCount]="bulk.ratedNotStartedCount()"
+	(confirmed)="bulk.confirmRating($event)"
+	(cancelled)="bulk.closeDialog()"
+/>
+} } @if (showReorderModal()) {
 <app-reorder-views-dialog
 	[views]="backlogFilters()"
 	[saving]="savingReorder()"

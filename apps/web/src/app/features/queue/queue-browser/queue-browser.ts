@@ -17,13 +17,13 @@ import { type ExportParams } from "../../../core/services/export";
 import { PointerService } from "../../../core/services/pointer";
 import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import {
 	UiAlert,
 	UiButton,
 	UiPagination,
-	UiPlainEmptyState,
-	UiSearchBar
+	UiPlainEmptyState
 } from "../../../shared/ui";
 import { QueueListSection } from "../queue-list-section/queue-list-section";
 import { QueueNextCard } from "../queue-next-card/queue-next-card";
@@ -55,7 +55,7 @@ import { type QueueEntryMove } from "./queue-browser.model";
 		UiButton,
 		UiPagination,
 		UiPlainEmptyState,
-		UiSearchBar
+		PageSearch
 	],
 	templateUrl: "./queue-browser.html",
 	host: { class: "contents" },
@@ -66,6 +66,7 @@ export class QueueBrowser {
 	readonly queueIsEmpty = input.required<boolean>();
 	readonly isLoading = input.required<boolean>();
 	readonly searchQuery = input.required<string>();
+	readonly scopeLabel = input("Up Next");
 	readonly searchPlaceholder = input.required<string>();
 	readonly noMatchesScope = input.required<string>();
 	readonly offset = input.required<number>();

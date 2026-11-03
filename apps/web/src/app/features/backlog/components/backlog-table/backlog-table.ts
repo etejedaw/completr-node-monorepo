@@ -2,6 +2,7 @@ import { DatePipe } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
+	computed,
 	inject,
 	input,
 	output
@@ -12,15 +13,24 @@ import { BacklogStatusBadge } from "../../../../shared/components/backlog-status
 import { BacklogStatusPicker } from "../../../../shared/components/backlog-status-picker/backlog-status-picker";
 import { GameTitleCell } from "../../../../shared/components/game-title-cell/game-title-cell";
 import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/platinum-trophy";
+import { PrivateRunLock } from "../../../../shared/components/private-run-lock/private-run-lock";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { FloatingXScrollbar } from "../../../../shared/directives/floating-x-scrollbar";
+import { SelectionCell } from "../../../../shared/directives/selection-cell";
+import { type SelectionToggle } from "../../../../shared/directives/selection-cell.model";
 import {
 	UiAvatar,
 	UiBadge,
+	UiCheckbox,
 	UiIconButton,
 	UiTable
 } from "../../../../shared/ui";
+import {
+	canChangeStatus,
+	canQuickRate
+} from "../../../../shared/utils/backlog-eligibility";
 import { isPlatinumRun } from "../../../../shared/utils/platinum";
+import { type RowSelection } from "../../../../shared/utils/row-selection.model";
 import { FavoritesService } from "../../../favorites/favorites";
 import {
 	type BacklogTableColumn,
@@ -79,12 +89,6 @@ const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 	"not_started"
 ]);
 
-const STATUS_CHANGEABLE_FROM: ReadonlySet<BacklogStatus> = new Set([
-	"not_started",
-	"playing",
-	"endless"
-]);
-
 @Component({
 	selector: "app-backlog-table",
 	imports: [
@@ -94,9 +98,12 @@ const STATUS_CHANGEABLE_FROM: ReadonlySet<BacklogStatus> = new Set([
 		FloatingXScrollbar,
 		GameTitleCell,
 		PlatinumTrophy,
+		PrivateRunLock,
+		SelectionCell,
 		StarRating,
 		UiAvatar,
 		UiBadge,
+		UiCheckbox,
 		UiIconButton,
 		UiTable
 	],
@@ -113,6 +120,7 @@ export class BacklogTable {
 	readonly queuedBacklogIds = input<ReadonlySet<string>>(new Set());
 	readonly updatingStatusIds = input<ReadonlySet<string>>(new Set());
 	readonly readonly = input(false);
+	readonly selection = input<RowSelection<BacklogEntry> | null>(null);
 
 	readonly sortChange = output<string>();
 	readonly entryOpen = output<BacklogTableEntryEvent>();
@@ -122,6 +130,9 @@ export class BacklogTable {
 	readonly queueToggle = output<BacklogEntry>();
 
 	protected readonly columns = BACKLOG_TABLE_COLUMNS;
+	protected readonly activeSelection = computed(() =>
+		this.readonly() ? null : this.selection()
+	);
 	protected readonly isPlatinumRun = isPlatinumRun;
 
 	protected ariaSortFor(column: string): "ascending" | "descending" | "none" {
@@ -129,12 +140,18 @@ export class BacklogTable {
 		return this.sortOrder() === "asc" ? "ascending" : "descending";
 	}
 
-	protected canChangeStatus(status: BacklogStatus): boolean {
-		return STATUS_CHANGEABLE_FROM.has(status);
+	protected readonly canChangeStatus = canChangeStatus;
+	protected readonly canQuickRate = canQuickRate;
+
+	protected ariaSelected(entry: BacklogEntry): boolean | null {
+		return this.activeSelection()?.isSelected(entry.id) ?? null;
 	}
 
-	protected canQuickRate(entry: BacklogEntry): boolean {
-		return entry.status !== "not_started" && entry.userRating == null;
+	protected toggleSelection(entry: BacklogEntry, toggle: SelectionToggle) {
+		const selection = this.activeSelection();
+		if (!selection) return;
+		if (toggle.range) selection.toggleRange(entry.id);
+		else selection.toggle(entry.id);
 	}
 
 	protected showsProgress(entry: BacklogEntry): boolean {

@@ -3,8 +3,11 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../environments/environment";
+import { type BulkResponse, type BulkResult } from "../../core/models";
 import { buildHttpParams } from "../../core/utils/http-params";
 import {
+	type PlatinumBulkAction,
+	type PlatinumBulkRequest,
 	type PlatinumListResponse,
 	type PlatinumPagination,
 	type PlatinumResponse,
@@ -32,5 +35,18 @@ export class PlatinumService {
 
 	remove(gameId: string) {
 		return this.http.delete<void>(`${this.baseUrl}/${gameId}/platinum`);
+	}
+
+	bulk<TAction extends PlatinumBulkAction>(
+		action: TAction,
+		body: PlatinumBulkRequest
+	) {
+		return this.http
+			.post<BulkResponse<BulkResult<TAction>>>(
+				`${environment.apiUrl}/users/me/platinums/bulk`,
+				body,
+				{ params: { action } }
+			)
+			.pipe(map(res => res.data));
 	}
 }

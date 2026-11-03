@@ -1,4 +1,5 @@
 export * from "./backlog.model";
+export * from "./bulk.model";
 export * from "./favorite.model";
 export * from "./game.model";
 export * from "./game-shelf.model";

@@ -27,7 +27,7 @@ import {
 	provideDateAdapter
 } from "ng-primitives/date-time";
 
-import { UiButton, UiIconButton } from "../../ui";
+import { UiButton, UiEyebrow, UiIconButton } from "../../ui";
 import { GamePoster } from "../game-poster/game-poster";
 import {
 	type CalendarAgendaItem,
@@ -78,6 +78,7 @@ export function shortDate(date: Date): string {
 @Component({
 	selector: "app-month-calendar",
 	imports: [
+		UiEyebrow,
 		DatePipe,
 		NgTemplateOutlet,
 		NgpDatePicker,

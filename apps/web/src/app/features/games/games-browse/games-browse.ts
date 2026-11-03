@@ -38,6 +38,7 @@ import { LibraryToolbar } from "../../../shared/components/library-toolbar/libra
 import { ListCard } from "../../../shared/components/list-card/list-card";
 import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shelf";
 import {
 	UiBottomSheet,
@@ -45,7 +46,6 @@ import {
 	UiEmptyState,
 	UiFiltersButton,
 	UiPagination,
-	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
 import { ListsService } from "../../lists/lists";
@@ -72,6 +72,7 @@ const SORT_ICONS: Record<string, string> = {
 @Component({
 	selector: "app-games-browse",
 	imports: [
+		PageSearch,
 		OptionPicker,
 		NgTemplateOutlet,
 		AdminGameEditor,
@@ -80,7 +81,6 @@ const SORT_ICONS: Record<string, string> = {
 		UiEmptyState,
 		UiFiltersButton,
 		UiPagination,
-		UiSearchBar,
 		UiSkeleton,
 		BrowseFilters,
 		LibraryHero,

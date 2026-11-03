@@ -3,19 +3,22 @@ import { literal, Op, type Order, type Transaction } from "sequelize";
 import { Backlog } from "../backlog/backlog.model";
 import * as backlogService from "../backlog/backlog.service";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { buildPlatformFilterWhere } from "../common/utils/platform-filter-where.util";
+import { splitByPresence } from "../common/utils/split-by-presence.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
+import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import * as gamesService from "../games/games.service";
 import { Platform } from "../platforms/platform.model";
 import * as platformsService from "../platforms/platforms.service";
+import { type UpsertGamePlatinumDto } from "./dtos/upsert-game-platinum.dto";
 import * as gamePlatinumServiceError from "./errors/game-platinum.service-error";
 import { type UpsertedGamePlatinum } from "./game-platinum.interface";
 import { GamePlatinum } from "./game-platinum.model";
-import { type UpsertGamePlatinumDto } from "./upsert-game-platinum.dto";
 
 async function resolveRunPlatformId(
 	userId: string,
@@ -99,9 +102,49 @@ export async function upsertPlatinum(
 	);
 }
 
+async function destroyPlatinumsByGameIds(
+	userId: string,
+	gameIds: string[],
+	transaction?: Transaction
+) {
+	const platinums = await GamePlatinum.findAll({
+		where: { userId, gameId: gameIds },
+		attributes: ["gameId"],
+		transaction
+	});
+	const platinumGameIds = platinums.map(platinum => platinum.gameId);
+	if (platinumGameIds.length > 0)
+		await GamePlatinum.destroy({
+			where: { userId, gameId: platinumGameIds },
+			transaction
+		});
+	return platinumGameIds;
+}
+
 export async function removePlatinum(userId: string, gameId: string) {
-	const deleted = await GamePlatinum.destroy({ where: { userId, gameId } });
-	if (deleted === 0) throw gamePlatinumServiceError.notFoundError();
+	const removedGameIds = await destroyPlatinumsByGameIds(userId, [gameId]);
+	if (removedGameIds.length === 0)
+		throw gamePlatinumServiceError.notFoundError();
+}
+
+export async function bulkDeletePlatinums(
+	userId: string,
+	gameIds: string[]
+): Promise<BulkResult> {
+	const removedGameIds = await sequelize.transaction(transaction =>
+		destroyPlatinumsByGameIds(userId, gameIds, transaction)
+	);
+	const { present: succeeded, missing } = splitByPresence(
+		gameIds,
+		removedGameIds
+	);
+	return {
+		succeeded,
+		skipped: toBulkSkipped(
+			missing,
+			gamePlatinumServiceError.notFoundError().code
+		)
+	};
 }
 
 const PLATINUM_RUN_INCLUDE = {

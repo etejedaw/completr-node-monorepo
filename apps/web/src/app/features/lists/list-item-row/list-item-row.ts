@@ -13,7 +13,7 @@ import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
 import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { RatioSummary } from "../../../shared/components/ratio-summary/ratio-summary";
-import { UiEyebrow, UiIconButton } from "../../../shared/ui";
+import { UiButton, UiEyebrow, UiIconButton } from "../../../shared/ui";
 import {
 	backlogStatusIcon,
 	backlogStatusIconColor,
@@ -30,6 +30,7 @@ export type ListItemRowMode = "own" | "theirs" | "compare";
 		RouterLink,
 		GamePoster,
 		RatioSummary,
+		UiButton,
 		UiEyebrow,
 		UiIconButton
 	],

@@ -17,6 +17,7 @@ import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
 import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import {
 	UiAlert,
 	UiButton,
@@ -25,7 +26,6 @@ import {
 	UiIconButton,
 	UiNoMatches,
 	UiPagination,
-	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
 import { FranchisesService } from "../../franchises/franchises";
@@ -43,6 +43,7 @@ const PAGE_SIZE = 50;
 @Component({
 	selector: "app-admin-franchises",
 	imports: [
+		PageSearch,
 		RouterLink,
 		ActionMenu,
 		LibraryHero,
@@ -54,7 +55,6 @@ const PAGE_SIZE = 50;
 		UiIconButton,
 		UiNoMatches,
 		UiPagination,
-		UiSearchBar,
 		UiSkeleton
 	],
 	templateUrl: "./admin-franchises.html",

@@ -11,7 +11,8 @@ import {
 	ChangeDetectionStrategy,
 	Component
 } from "@angular/core";
-import { TestBed } from "@angular/core/testing";
+import { type ComponentFixture, TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { RouterOutlet } from "@angular/router";
 import {
 	fireEvent,
@@ -23,6 +24,7 @@ import {
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
 import { type FranchiseSummary } from "../franchises.model";
 import { FranchiseOverview } from "./franchise-overview";
@@ -71,6 +73,7 @@ const NAMED_SAGAS = [
 
 describe("Sagas interaction", () => {
 	let httpTesting: HttpTestingController;
+	let renderedFixture: ComponentFixture<unknown>;
 	let catalog: FranchiseSummary[];
 	let trackedCodes: Set<string>;
 	let listQueries: { search: string | null; offset: number }[];
@@ -199,6 +202,7 @@ describe("Sagas interaction", () => {
 			initialRoute: "/franchises"
 		});
 		TestBed.inject(ApplicationRef).components.push(fixture.componentRef);
+		renderedFixture = fixture;
 		httpTesting = TestBed.inject(HttpTestingController);
 	}
 
@@ -223,6 +227,14 @@ describe("Sagas interaction", () => {
 	afterEach(() => {
 		answerPending();
 		httpTesting.verify();
+	});
+
+	it("filters through the page search scoped to Sagas", async () => {
+		await renderSagas();
+		const pageSearch = renderedFixture.debugElement.query(
+			By.directive(PageSearch)
+		);
+		expect(pageSearch.componentInstance.scopeLabel()).toBe("Sagas");
 	});
 
 	it("lists every saga with its game count, a link to its page and no progress", async () => {

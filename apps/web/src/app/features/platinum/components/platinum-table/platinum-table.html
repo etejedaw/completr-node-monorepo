@@ -1,10 +1,22 @@
 <div
-	class="overflow-x-auto rounded-card border border-line bg-surface/40 shadow-[0_24px_48px_-32px_rgba(0,0,0,0.9)]"
+	class="overflow-x-auto rounded-card border border-line bg-surface/40 shadow-table"
 >
 	<table uiTable framed>
 		<thead>
 			<tr>
-				@for (column of columns(); track column) {
+				@if (activeSelection(); as rowSelection) {
+				<th
+					scope="col"
+					appSelectionCell
+					(selectionToggled)="rowSelection.togglePage()"
+				>
+					<ui-checkbox
+						ariaLabel="Select all platinums on this page"
+						[checked]="rowSelection.isAllSelected()"
+						[indeterminate]="rowSelection.isPartiallySelected()"
+					/>
+				</th>
+				} @for (column of columns(); track column) {
 				<th scope="col" [class.min-w-[220px]]="column === 'Title'">
 					{{ column }}
 				</th>
@@ -19,8 +31,20 @@
 			@for (platinum of platinums(); track platinum.id) {
 			<tr
 				[class.cursor-pointer]="selectable()"
+				[attr.aria-selected]="ariaSelected(platinum)"
 				(click)="selectRow(platinum)"
 			>
+				@if (activeSelection(); as rowSelection) {
+				<td
+					appSelectionCell
+					(selectionToggled)="toggleSelection(platinum, $event)"
+				>
+					<ui-checkbox
+						[ariaLabel]="'Select ' + platinum.game.title"
+						[checked]="rowSelection.isSelected(platinum.id)"
+					/>
+				</td>
+				}
 				<td>
 					<app-game-title-cell
 						[coverUrl]="platinum.game.backgroundUrl"

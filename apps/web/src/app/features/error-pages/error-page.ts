@@ -7,11 +7,11 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { UiButton } from "../../shared/ui";
+import { UiButton, UiEyebrow } from "../../shared/ui";
 
 @Component({
 	selector: "app-error-page",
-	imports: [RouterLink, UiButton],
+	imports: [UiEyebrow, RouterLink, UiButton],
 	template: `
 		<section
 			class="relative isolate flex flex-col items-center justify-center min-h-[70vh] text-center px-4 py-16"
@@ -22,7 +22,9 @@ import { UiButton } from "../../shared/ui";
 				class="absolute left-1/2 top-1/2 -z-10 h-72 w-72 sm:h-96 sm:w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/15 blur-3xl"
 			></div>
 			<span
-				class="inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+				uiEyebrow
+				tone="brand"
+				class="inline-flex items-center gap-1.5"
 			>
 				<span aria-hidden="true" class="material-icons text-sm">{{
 					icon()

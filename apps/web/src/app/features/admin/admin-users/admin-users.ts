@@ -42,6 +42,7 @@ import { LibraryHero } from "../../../shared/components/library-hero/library-her
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import {
 	UiAlert,
 	UiAvatar,
@@ -60,7 +61,6 @@ import {
 	UiNoMatches,
 	UiPagination,
 	UiPlainEmptyState,
-	UiSearchBar,
 	UiSkeleton,
 	UiSwitch,
 	UiTable
@@ -190,6 +190,7 @@ function editedSince(snapshot: FormSnapshot | null, current: FormSnapshot) {
 @Component({
 	selector: "app-admin-users",
 	imports: [
+		PageSearch,
 		ActionMenu,
 		AdminInvitations,
 		AdminPremiumAccess,
@@ -214,7 +215,6 @@ function editedSince(snapshot: FormSnapshot | null, current: FormSnapshot) {
 		UiNoMatches,
 		UiPagination,
 		UiPlainEmptyState,
-		UiSearchBar,
 		UiSkeleton,
 		UiSwitch,
 		UiTable,

@@ -78,4 +78,23 @@ describe("GameShelfService", () => {
 		expect(req.request.method).toBe("DELETE");
 		req.flush(null);
 	});
+
+	it("removes many shelf entries with action=delete", () => {
+		let received: unknown;
+		service
+			.bulk("delete", { ids: ["s1", "s2"] })
+			.subscribe(r => (received = r));
+
+		const req = httpTesting.expectOne(r => r.url === `${url}/bulk`);
+		expect(req.request.method).toBe("POST");
+		expect(req.request.params.get("action")).toBe("delete");
+		expect(req.request.body).toEqual({ ids: ["s1", "s2"] });
+		const result = {
+			action: "delete",
+			succeeded: ["s1", "s2"],
+			skipped: []
+		};
+		req.flush({ data: result });
+		expect(received).toEqual(result);
+	});
 });

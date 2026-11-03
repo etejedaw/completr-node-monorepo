@@ -22,6 +22,7 @@ import { ProfileBackdrop } from "../../../shared/components/profile-backdrop/pro
 import {
 	UiButton,
 	UiDialog,
+	UiEyebrow,
 	UiPlainEmptyState,
 	UiSkeleton
 } from "../../../shared/ui";
@@ -89,6 +90,7 @@ function backdropOf(rewind: Rewind): string | null {
 @Component({
 	selector: "app-rewind-detail",
 	imports: [
+		UiEyebrow,
 		RouterLink,
 		OptionPicker,
 		ProfileAccessState,

@@ -37,10 +37,11 @@
 
 	@if (!hasNoAccounts()) {
 	<app-library-toolbar>
-		<ui-search-bar
+		<app-page-search
 			size="sm"
 			class="flex-1 max-w-2xl"
-			placeholder="Search by username, name or email..."
+			scopeLabel="Admin users"
+			placeholder="Filter by name, username or email..."
 			[value]="query()"
 			(valueChange)="onSearch($event)"
 		/>

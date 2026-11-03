@@ -11,6 +11,7 @@ import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
 import * as usersService from "../users/users.service";
+import { type BulkDeleteGameShelfDto } from "./dtos/bulk-delete-game-shelf.dto";
 import { type RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import { type UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import {
@@ -18,6 +19,7 @@ import {
 	gameShelfToExportRow
 } from "./game-shelf.export-row.mapper";
 import * as gameShelfService from "./game-shelf.service";
+import { type GameShelfBulkQuery } from "./schemas/game-shelf-bulk-query.schema";
 import { type GameShelfIdParam } from "./schemas/game-shelf-id-params.schema";
 import {
 	gameShelfMeSerializer,
@@ -156,4 +158,18 @@ export async function getMeGameShelfExport(
 			gameShelfToExportRow(entry.get({ plain: true }))
 		)
 	});
+}
+
+export async function postGameShelfBulk(request: Request, response: Response) {
+	const query = request.locals.query as GameShelfBulkQuery;
+	const body = request.locals.body as BulkDeleteGameShelfDto;
+	const user = request.locals.user as RequestUser;
+
+	const result = await gameShelfService.bulkDeleteGameShelf(
+		user.id,
+		body.ids
+	);
+
+	const data = { action: query.action, ...result };
+	return response.status(200).json({ data });
 }
