@@ -23,7 +23,7 @@ import {
 	validate,
 	type ValidationError
 } from "@angular/forms/signals";
-import { Router, RouterLink } from "@angular/router";
+import { RouterLink } from "@angular/router";
 import {
 	debounceTime,
 	distinctUntilChanged,
@@ -160,7 +160,7 @@ const ROLE_OPTIONS: readonly PickerOption[] = [
 	}
 ];
 
-type UserRowAction = "edit" | "premium" | "profile";
+type UserRowAction = "edit" | "premium";
 
 const USER_ROLE_BADGE: RoleBadge = {
 	label: "User",
@@ -227,7 +227,6 @@ function editedSince(snapshot: FormSnapshot | null, current: FormSnapshot) {
 })
 export class AdminUsers implements OnInit {
 	private readonly userAdminService = inject(UserAdminService);
-	private readonly router = inject(Router);
 	private readonly injector = inject(Injector);
 	protected readonly invitationsPanel = viewChild.required(AdminInvitations);
 	private readonly searchChanges = new Subject<string>();
@@ -547,9 +546,6 @@ export class AdminUsers implements OnInit {
 			case "premium":
 				this.openPremiumAccess(user);
 				return;
-			case "profile":
-				void this.router.navigate(["/user", user.username]);
-				return;
 		}
 	}
 
@@ -564,7 +560,12 @@ export class AdminUsers implements OnInit {
 				disabled: this.hasPremiumRole(user),
 				hint: this.premiumAccessHint(user) ?? undefined
 			},
-			{ id: "profile", label: "View profile", icon: "account_circle" }
+			{
+				id: "profile",
+				label: "View profile",
+				icon: "account_circle",
+				link: { routerLink: ["/user", user.username] }
+			}
 		];
 	}
 

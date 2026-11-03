@@ -845,9 +845,7 @@ describe("Admin users interaction", () => {
 			const dialog = await createWithMixedIssues(user);
 
 			const alert = within(dialog).getByRole("alert");
-			expect(alert).toHaveTextContent(
-				/Too many accounts today\.\s*$/
-			);
+			expect(alert).toHaveTextContent(/Too many accounts today\.\s*$/);
 			expect(alert).not.toHaveTextContent("Email already registered.");
 			expect(
 				within(dialog).getAllByText("Email already registered.")
@@ -1959,17 +1957,24 @@ describe("Admin users interaction", () => {
 			http.expectNone(`${USERS_URL}/u1/premium-grants`);
 		});
 
-		it("goes to the public profile from View profile", async () => {
+		it("links View profile to the public profile so it can open in a new tab", async () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const navigate = vi
-				.spyOn(TestBed.inject(Router), "navigate")
+				.spyOn(TestBed.inject(Router), "navigateByUrl")
 				.mockResolvedValue(true);
 			const menu = await openRowMenu(user, "bob");
-			await user.click(
-				within(menu).getByRole("menuitem", { name: "View profile" })
+			const profile = within(menu).getByRole("menuitem", {
+				name: "View profile"
+			});
+			expect(profile).toHaveAttribute("href", "/user/bob");
+			await user.click(profile);
+			expect(navigate).toHaveBeenCalledTimes(1);
+			expect(String(navigate.mock.calls[0][0])).toBe("/user/bob");
+			await waitFor(() =>
+				expect(screen.queryByRole("menu")).not.toBeInTheDocument()
 			);
-			expect(navigate).toHaveBeenCalledWith(["/user", "bob"]);
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 		});
 
 		it("closing the menu with Escape triggers no action", async () => {
