@@ -155,7 +155,7 @@
 
 .ui-input {
 	width: 100%;
-	min-height: 2.75rem;
+	min-height: 44px;
 	padding: 0.625rem 0.875rem;
 	background: var(--bg-input);
 	border: 1px solid var(--border);
