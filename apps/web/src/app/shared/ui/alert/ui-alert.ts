@@ -5,20 +5,23 @@ import {
 	input
 } from "@angular/core";
 
-export type UiAlertTone = "danger" | "warning" | "info" | "success";
+export type UiAlertTone = "danger" | "warning" | "info" | "success" | "premium";
+export type UiAlertRole = "alert" | "status";
 
 const TONE_CLASSES: Record<UiAlertTone, string> = {
 	danger: "bg-danger/10 border-danger/25 text-danger",
 	warning: "bg-warning/10 border-warning/25 text-warning",
 	info: "bg-info/10 border-info/25 text-info",
-	success: "bg-success/10 border-success/25 text-success"
+	success: "bg-success/10 border-success/25 text-success",
+	premium: "bg-premium/10 border-premium/25 text-premium"
 };
 
 const TONE_ICONS: Record<UiAlertTone, string> = {
 	danger: "error_outline",
 	warning: "warning_amber",
 	info: "info",
-	success: "check_circle"
+	success: "check_circle",
+	premium: "workspace_premium"
 };
 
 @Component({
@@ -34,21 +37,24 @@ const TONE_ICONS: Record<UiAlertTone, string> = {
 	host: {
 		class: "flex items-start gap-2 rounded-card border px-3 py-2 text-[0.8125rem]",
 		"[class]": "toneClass()",
-		"[attr.role]": "role()"
+		"[attr.role]": "resolvedRole()"
 	},
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UiAlert {
 	readonly tone = input<UiAlertTone>("danger");
 	readonly icon = input<string>("");
+	readonly role = input<UiAlertRole | null>(null);
 
 	protected readonly resolvedIcon = computed(
 		() => this.icon() || TONE_ICONS[this.tone()]
 	);
 	protected readonly toneClass = computed(() => TONE_CLASSES[this.tone()]);
-	protected readonly role = computed(() =>
-		this.tone() === "danger" || this.tone() === "warning"
-			? "alert"
-			: "status"
+	protected readonly resolvedRole = computed(
+		() =>
+			this.role() ??
+			(this.tone() === "danger" || this.tone() === "warning"
+				? "alert"
+				: "status")
 	);
 }

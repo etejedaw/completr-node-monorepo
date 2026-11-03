@@ -200,9 +200,11 @@ describe("SettingsPrivacy", () => {
 			})
 		);
 
-		expect(screen.getByRole("alert")).toHaveTextContent(
-			"Your profile is set to Only you"
-		);
+		const note = screen
+			.getByText(/Your profile is set to/)
+			.closest("ui-alert");
+		expect(note).toHaveAttribute("role", "status");
+		expect(note).toHaveTextContent("Your profile is set to Only you");
 		expect(
 			screen.getAllByText("Effectively Only you").length
 		).toBeGreaterThan(0);

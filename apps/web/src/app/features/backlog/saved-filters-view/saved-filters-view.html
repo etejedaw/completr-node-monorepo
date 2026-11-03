@@ -65,14 +65,10 @@
 	/>
 </app-library-toolbar>
 } @if (frozen()) {
-<div
-	role="status"
-	class="flex items-start gap-2 px-3.5 py-2.5 mb-6 bg-premium/10 border border-premium/25 text-premium rounded-card text-sm max-w-2xl"
->
-	<span aria-hidden="true" class="material-icons text-base mt-0.5">lock</span>
+<ui-alert tone="premium" icon="lock" class="mb-6 max-w-2xl">
 	Saved views are frozen. Delete views to go below the free limit (5) to
 	create or edit again.
-</div>
+</ui-alert>
 } @if (isLoading()) {
 <div
 	class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
@@ -107,7 +103,9 @@
 </ui-empty-state>
 } } @else { @if (featuredViews().length > 0) {
 <section class="mb-10" aria-labelledby="featured-views-heading">
-	<h2 uiEyebrow id="featured-views-heading" class="m-0 mb-3">Pinned & default</h2>
+	<h2 uiEyebrow id="featured-views-heading" class="m-0 mb-3">
+		Pinned & default
+	</h2>
 	<ul class="list-none m-0 p-0 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
 		@for (filter of featuredViews(); track filter.id) {
 		<li>

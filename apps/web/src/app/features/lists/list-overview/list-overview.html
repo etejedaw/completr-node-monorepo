@@ -1,9 +1,4 @@
-<app-library-hero heading="Lists" [posters]="heroPosters()">
-	<span
-		heroEyebrow
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Library</span
-	>
+<app-library-hero eyebrow="Library" heading="Lists" [posters]="heroPosters()">
 	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
 		<span
 			class="font-semibold text-fg tabular-nums"
@@ -69,14 +64,10 @@
 	}
 </section>
 } @if (frozen()) {
-<div
-	role="status"
-	class="flex items-start gap-2 px-3.5 py-2.5 mb-6 bg-premium/10 border border-premium/25 text-premium rounded-card text-sm max-w-2xl"
->
-	<span aria-hidden="true" class="material-icons text-base mt-0.5">lock</span>
+<ui-alert tone="premium" icon="lock" class="mb-6 max-w-2xl">
 	Lists are frozen. Delete lists to go below the free limit (5) to create new
 	ones.
-</div>
+</ui-alert>
 } @if (!isPremium()) {
 <app-gift-offer-card
 	feature="lists.unlimited"

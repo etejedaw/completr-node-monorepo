@@ -18,6 +18,7 @@ import { OptionPicker } from "../../../shared/components/option-picker/option-pi
 import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
+	UiAlert,
 	UiButton,
 	UiDialog,
 	UiEmptyState,
@@ -68,6 +69,7 @@ const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: SortMode })[] = [
 @Component({
 	selector: "app-saved-filters-view",
 	imports: [
+		UiAlert,
 		UiFieldLabel,
 		UiFieldOptional,
 		RouterLink,

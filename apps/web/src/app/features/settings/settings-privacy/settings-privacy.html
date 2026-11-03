@@ -77,7 +77,7 @@
 		</button>
 		} @if (mode() === 'custom') { @if (draft().profileVisibility !==
 		'public') {
-		<ui-alert tone="warning" class="mt-4">
+		<ui-alert tone="warning" role="status" class="mt-4">
 			Your profile is set to
 			<strong class="text-fg"
 				>{{ visibilityLabel(draft().profileVisibility) }}</strong

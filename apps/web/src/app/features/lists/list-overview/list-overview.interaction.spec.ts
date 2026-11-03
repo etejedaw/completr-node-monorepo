@@ -697,7 +697,9 @@ describe("Lists interaction", () => {
 					})
 				).toBeInTheDocument()
 			);
-			expect(screen.getByText(/Lists are frozen/)).toBeInTheDocument();
+			expect(
+				screen.getByText(/Lists are frozen/).closest("ui-alert")
+			).toHaveAttribute("role", "status");
 			const loadsBeforeClaim = myListsLoads;
 
 			await user.dblClick(
