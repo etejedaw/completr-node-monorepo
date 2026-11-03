@@ -22,7 +22,7 @@ import {
 			<div
 				class="relative rounded-lg overflow-hidden bg-surface shadow-lg shadow-black/40 transition-shadow duration-200"
 				[class]="
-					isFirst() ? 'ring-2 ring-brand' : 'ring-1 ring-white/10'
+					isFirst() ? 'ring-2 ring-brand' : 'ring-1 ring-line-hover'
 				"
 			>
 				<app-game-poster
