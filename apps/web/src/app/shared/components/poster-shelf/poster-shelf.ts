@@ -12,13 +12,13 @@ import {
 } from "@angular/core";
 import { type Params, RouterLink } from "@angular/router";
 
-import { UiEyebrow, UiIconButton } from "../../ui";
+import { UiButton, UiEyebrow, UiIconButton } from "../../ui";
 
 const SCROLL_EDGE_TOLERANCE = 4;
 
 @Component({
 	selector: "app-poster-shelf",
-	imports: [UiEyebrow, RouterLink, UiIconButton],
+	imports: [UiEyebrow, RouterLink, UiButton, UiIconButton],
 	template: `
 		<section [attr.aria-labelledby]="headingId">
 			<header class="flex items-end justify-between gap-3 mb-4">
@@ -41,7 +41,10 @@ const SCROLL_EDGE_TOLERANCE = 4;
 					@if (seeAllLabel()) {
 						@if (seeAllLink(); as link) {
 							<a
-								class="inline-flex items-center gap-0.5 h-9 tap:min-h-[44px] px-2.5 mr-1 rounded-md text-sm font-medium text-fg-secondary no-underline transition hover:text-brand"
+								uiButton
+								variant="ghost"
+								size="lg"
+								class="mr-1"
 								[routerLink]="link"
 								[queryParams]="seeAllQueryParams()"
 							>
@@ -55,7 +58,10 @@ const SCROLL_EDGE_TOLERANCE = 4;
 						} @else {
 							<button
 								type="button"
-								class="inline-flex items-center gap-0.5 h-9 tap:min-h-[44px] px-2.5 mr-1 rounded-md bg-transparent border-0 text-sm font-medium text-fg-secondary cursor-pointer transition hover:text-brand"
+								uiButton
+								variant="ghost"
+								size="lg"
+								class="mr-1"
 								(click)="seeAll.emit()"
 							>
 								{{ seeAllLabel() }}

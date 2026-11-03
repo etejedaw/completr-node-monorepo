@@ -9,7 +9,9 @@
 			{{ tag }}
 			<button
 				type="button"
-				class="tap-area bg-transparent border-0 text-brand/70 hover:text-brand cursor-pointer leading-none p-0 m-0 flex items-center"
+				uiIconButton
+				size="xs"
+				tone="accent"
 				(click)="removeAt(i)"
 				[attr.aria-label]="'Remove ' + tag"
 			>

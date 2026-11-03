@@ -7,6 +7,8 @@ import {
 	signal
 } from "@angular/core";
 
+import { UiIconButton } from "../../ui";
+
 function normalizeTag(input: string): string {
 	return input
 		.normalize("NFD")
@@ -18,6 +20,7 @@ function normalizeTag(input: string): string {
 
 @Component({
 	selector: "app-mood-tags-input",
+	imports: [UiIconButton],
 	templateUrl: "./mood-tags-input.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
