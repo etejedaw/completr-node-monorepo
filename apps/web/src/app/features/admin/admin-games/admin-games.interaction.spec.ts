@@ -1885,6 +1885,119 @@ describe("AdminGames interaction", () => {
 	});
 
 	describe("mobile viewport", () => {
+		async function openRowMenu(
+			user: ReturnType<typeof userEvent.setup>,
+			title: string
+		) {
+			await user.click(
+				within(rowOf(title)).getByRole("button", {
+					name: `Actions for ${title}`
+				})
+			);
+			return screen.findByRole("dialog", { name: title });
+		}
+
+		it("groups the row actions of an active game in one menu", async () => {
+			const user = userEvent.setup();
+			await renderLoaded(true);
+
+			const sheet = await openRowMenu(user, "Alpha 001");
+
+			expect(
+				within(sheet)
+					.getAllByRole("button")
+					.map(button => button.getAttribute("aria-label"))
+					.filter(label => label && label !== "Close")
+			).toEqual([
+				"Edit game",
+				"Refresh external data",
+				"Deactivate game"
+			]);
+		});
+
+		it("offers the report and marks the game as reported", async () => {
+			const user = userEvent.setup();
+			pendingReports = [{ id: "r1", gameId: "a002" }];
+			await renderLoaded(true);
+			const navigate = vi
+				.spyOn(TestBed.inject(Router), "navigate")
+				.mockResolvedValue(true);
+
+			expect(
+				within(rowOf("Alpha 002")).getByText("Reported")
+			).toBeInTheDocument();
+			expect(
+				within(rowOf("Alpha 001")).queryByText("Reported")
+			).not.toBeInTheDocument();
+			const sheet = await openRowMenu(user, "Alpha 002");
+			await user.click(
+				within(sheet).getByRole("button", { name: "View report" })
+			);
+
+			expect(navigate).toHaveBeenCalledWith(["/admin/reports"], {
+				queryParams: { gameId: "a002" }
+			});
+		});
+
+		it("reactivates a deactivated game once even when the menu item is tapped three times", async () => {
+			const user = userEvent.setup();
+			await renderLoaded(true);
+			await user.click(statusOption("Deactivated"));
+			await untilVisible(() =>
+				expect(screen.getByText("Dead Game One")).toBeInTheDocument()
+			);
+
+			const sheet = await openRowMenu(user, "Dead Game One");
+			expect(
+				within(sheet).queryByRole("button", {
+					name: "Refresh external data"
+				})
+			).not.toBeInTheDocument();
+			await user.tripleClick(
+				within(sheet).getByRole("button", { name: "Reactivate game" })
+			);
+
+			await untilVisible(() =>
+				expect(toast.success).toHaveBeenCalledTimes(1)
+			);
+			expect(reactivations).toEqual(["dead1"]);
+		});
+
+		it("asks for confirmation before deactivating from the menu", async () => {
+			const user = userEvent.setup();
+			await renderLoaded(true);
+
+			const sheet = await openRowMenu(user, "Alpha 003");
+			await user.dblClick(
+				within(sheet).getByRole("button", { name: "Deactivate game" })
+			);
+
+			expect(
+				await screen.findByRole("dialog", {
+					name: "Deactivate Alpha 003?"
+				})
+			).toBeInTheDocument();
+			expect(screen.getAllByRole("dialog")).toHaveLength(1);
+			expect(deactivations).toEqual([]);
+		});
+
+		it("loads the game once when Edit game is tapped repeatedly", async () => {
+			const user = userEvent.setup();
+			await renderLoaded(true);
+
+			const sheet = await openRowMenu(user, "Alpha 004");
+			await user.tripleClick(
+				within(sheet).getByRole("button", { name: "Edit game" })
+			);
+
+			await untilVisible(() =>
+				expect(
+					screen.getByRole("dialog", { name: "Edit game" })
+				).toBeInTheDocument()
+			);
+			expect(detailRequests).toEqual(["alpha-004"]);
+		});
+
 		it("filters, pages and reactivates the same way", async () => {
 			const user = userEvent.setup();
 			await renderLoaded(true);

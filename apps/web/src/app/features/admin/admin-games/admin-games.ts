@@ -15,8 +15,11 @@ import { type Game } from "../../../core/models";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { adminErrorMessage } from "../../../core/utils/admin-error-message";
+import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
+import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { ChipGroup } from "../../../shared/components/chip-group/chip-group";
 import { type ChipOption } from "../../../shared/components/chip-group/chip-group.model";
+import { FilterSection } from "../../../shared/components/filter-section/filter-section";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
@@ -24,6 +27,7 @@ import { SegmentedControl } from "../../../shared/components/segmented-control/s
 import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
 import {
 	UiAlert,
+	UiBadge,
 	UiButton,
 	UiDialog,
 	UiEmptyState,
@@ -51,12 +55,15 @@ import { ReportsService } from "../services/reports.service";
 		RouterLink,
 		AdminExternalDataDialog,
 		AdminGameEditor,
+		ActionMenu,
 		ChipGroup,
+		FilterSection,
 		GamePoster,
 		LibraryHero,
 		LibraryToolbar,
 		SegmentedControl,
 		UiAlert,
+		UiBadge,
 		UiButton,
 		UiDialog,
 		UiEmptyState,
@@ -123,6 +130,55 @@ export class AdminGames implements OnInit {
 		{ code: "hltb", name: "HowLongToBeat" },
 		{ code: "rawg", name: "RAWG" }
 	];
+
+	protected readonly rowMenus = computed(() => {
+		const reported = this.reportedGameIds();
+		const menus = new Map<string, ActionMenuItem[]>();
+		for (const game of this.games()) {
+			const isActive = game.isActive !== false;
+			const items: ActionMenuItem[] = [];
+			if (reported.has(game.id))
+				items.push({
+					id: "report",
+					label: "View report",
+					icon: "flag",
+					iconClass: "text-danger"
+				});
+			items.push({
+				id: "edit",
+				label: "Edit game",
+				icon: "edit",
+				busy: this.loadingEditorId() === game.id
+			});
+			if (isActive)
+				items.push({
+					id: "external",
+					label: "Refresh external data",
+					icon: "cloud_sync",
+					busy: this.refreshingExternalIds().has(game.id)
+				});
+			items.push(
+				isActive
+					? {
+							id: "deactivate",
+							label: "Deactivate game",
+							icon: "visibility_off",
+							iconClass: "text-danger",
+							separated: true
+						}
+					: {
+							id: "reactivate",
+							label: "Reactivate game",
+							icon: "restore_from_trash",
+							iconClass: "text-brand",
+							separated: true,
+							busy: this.reactivatingIds().has(game.id)
+						}
+			);
+			menus.set(game.id, items);
+		}
+		return menus;
+	});
 
 	ngOnInit() {
 		this.gamesRequests
@@ -252,6 +308,22 @@ export class AdminGames implements OnInit {
 
 	reload() {
 		this.loadGames();
+	}
+
+	protected isRowBusy(gameId: string): boolean {
+		return (
+			this.loadingEditorId() === gameId ||
+			this.refreshingExternalIds().has(gameId) ||
+			this.reactivatingIds().has(gameId)
+		);
+	}
+
+	protected runRowAction(game: Game, action: string) {
+		if (action === "report") this.goToGameReport(game.id);
+		if (action === "edit") this.openEditor(game);
+		if (action === "external") this.openExternalData(game);
+		if (action === "deactivate") this.askDeactivate(game);
+		if (action === "reactivate") this.reactivate(game);
 	}
 
 	isReactivating(gameId: string): boolean {
