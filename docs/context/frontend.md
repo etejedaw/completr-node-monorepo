@@ -222,7 +222,7 @@ Los `<pantalla>.interaction.spec.ts` simulan lo que hace un usuario en una panta
 | `.bleed-scroll-snap`                      | Alinea el scroll horizontal de carruseles con el margen de la página                                              |
 
 - `.tap-area` dentro de un contenedor con `overflow-x-auto` necesita padding vertical táctil en el contenedor (`pointer-coarse:py-[8px]`) para que el área no se recorte. Tampoco se usa en enlaces de líneas contiguas, porque las áreas invisibles se solapan: en ese caso se da `tap:min-h-[44px]` a cada enlace (ver `AttributionFooter`).
-- El design system (`styles/ui.css`) ya da 44px bajo 768px o con puntero táctil a `.ui-button`, `.ui-icon-button`, `.ui-tab`, `.ui-input`, `.ui-select` y al área del interruptor (`.ui-switch__track::after`). Los elementos propios usan `tap:` o `.tap-area`.
+- El design system (`styles/ui.css`) ya da 44px bajo 768px o con puntero táctil a `.ui-button`, `.ui-icon-button`, `.ui-tab`, `.ui-input` y al área del interruptor (`.ui-switch__track::after`). Los elementos propios usan `tap:` o `.tap-area`.
 
 ### Componentes compartidos
 
