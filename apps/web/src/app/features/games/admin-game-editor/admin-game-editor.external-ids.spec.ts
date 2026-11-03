@@ -140,9 +140,9 @@ describe("AdminGameEditor external IDs", () => {
 	}
 
 	const hltbInput = () =>
-		screen.getByRole("textbox", { name: "HowLongToBeat ID" });
+		screen.getByRole("textbox", { name: /^HowLongToBeat ID/ });
 	const metacriticInput = () =>
-		screen.getByRole("textbox", { name: "Metacritic slug" });
+		screen.getByRole("textbox", { name: /^Metacritic slug/ });
 	const titleInput = () => screen.getByLabelText("Title");
 	const saveButton = () =>
 		screen.getByRole("button", { name: /Save Changes|Saving/ });

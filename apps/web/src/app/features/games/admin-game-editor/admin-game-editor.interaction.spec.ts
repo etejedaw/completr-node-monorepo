@@ -424,10 +424,10 @@ describe("AdminGameEditor interaction", () => {
 			);
 
 			expect(titleInput()).toHaveValue("Hades (RAWG)");
-			expect(screen.getByLabelText("Description")).toHaveValue(
+			expect(screen.getByLabelText(/^Description/)).toHaveValue(
 				"From RAWG"
 			);
-			expect(screen.getByLabelText("Release date")).toHaveValue(
+			expect(screen.getByLabelText(/^Release date/)).toHaveValue(
 				"2020-09-17"
 			);
 			expect(button("PC")).toHaveAttribute("aria-pressed", "true");
@@ -603,7 +603,7 @@ describe("AdminGameEditor interaction", () => {
 
 			await pasteInto(titleInput(), "Pokémon 💥 ÑANDÚ");
 			await pasteInto(
-				screen.getByLabelText("Description"),
+				screen.getByLabelText(/^Description/),
 				"línea ✨\nsegunda"
 			);
 			await userEvent.click(button("Create Game"));
@@ -619,7 +619,7 @@ describe("AdminGameEditor interaction", () => {
 			await userEvent.type(titleInput(), "Hades II");
 
 			await pasteInto(
-				screen.getByLabelText("Variant label"),
+				screen.getByLabelText(/^Variant label/),
 				"v".repeat(150)
 			);
 			await userEvent.click(button("Create Game"));
@@ -689,7 +689,7 @@ describe("AdminGameEditor interaction", () => {
 
 			delete failures["POST /games"];
 			await userEvent.type(
-				screen.getByLabelText("Variant label"),
+				screen.getByLabelText(/^Variant label/),
 				"  I & II "
 			);
 			await userEvent.click(button("Create Game"));
@@ -709,7 +709,7 @@ describe("AdminGameEditor interaction", () => {
 			};
 			await userEvent.type(titleInput(), "Dragon Quest I & II");
 			await userEvent.type(
-				screen.getByLabelText("Variant label"),
+				screen.getByLabelText(/^Variant label/),
 				"I & II"
 			);
 			await userEvent.click(button("Create Game"));
@@ -1222,7 +1222,7 @@ describe("AdminGameEditor interaction", () => {
 				screen.getByRole("heading", { name: "Edit game" })
 			).toBeInTheDocument();
 			expect(titleInput()).toHaveValue("Hades");
-			expect(screen.getByLabelText("Description")).toHaveValue(
+			expect(screen.getByLabelText(/^Description/)).toHaveValue(
 				"Escape the underworld"
 			);
 			expect(screen.getByLabelText("metacritic score")).toHaveValue(90);

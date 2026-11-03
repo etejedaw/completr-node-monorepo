@@ -24,6 +24,7 @@ const RESULT_STEP: Record<string, number> = { ArrowDown: 1, ArrowUp: -1 };
 	imports: [GamePoster, UiBadge, UiButton, UiSearchBar, UiSkeleton],
 	template: `
 		<ui-search-bar
+			class="[&>div]:min-h-11 [&_input]:!py-2 [&_input]:!text-sm"
 			[placeholder]="placeholder()"
 			[ariaLabel]="label()"
 			[(value)]="query"
