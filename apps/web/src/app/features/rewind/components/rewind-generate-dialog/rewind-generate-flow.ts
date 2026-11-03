@@ -25,8 +25,6 @@ const ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindGenerateError[] = [
 	"limit"
 ];
 
-export type RewindGenerateFlow = ReturnType<typeof injectRewindGenerateFlow>;
-
 export function injectRewindGenerateFlow(options: RewindGenerateFlowOptions) {
 	const rewindService = inject(RewindService);
 	const toast = inject(ToastService);

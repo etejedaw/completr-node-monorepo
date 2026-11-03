@@ -102,8 +102,6 @@ export const REWIND_PERSONAS_BY_LANGUAGE: Record<
 	es: personasIn("es")
 };
 
-export const REWIND_PERSONAS = REWIND_PERSONAS_BY_LANGUAGE.en;
-
 const FALLBACK_PERSONA: RewindPersonaCode = "steady-player";
 
 function isPersonaCode(code: unknown): code is RewindPersonaCode {

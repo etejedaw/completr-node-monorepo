@@ -2,16 +2,12 @@ import {
 	REWIND_LANGUAGES,
 	REWIND_PERSONA_CODES
 } from "../../core/models/rewind.model";
-import {
-	REWIND_PERSONAS,
-	REWIND_PERSONAS_BY_LANGUAGE,
-	rewindPersona
-} from "./rewind-persona";
+import { REWIND_PERSONAS_BY_LANGUAGE, rewindPersona } from "./rewind-persona";
 
 describe("rewindPersona", () => {
 	it("has a title, a phrase and an icon for every persona of the contract", () => {
 		for (const code of REWIND_PERSONA_CODES) {
-			const persona = REWIND_PERSONAS[code];
+			const persona = REWIND_PERSONAS_BY_LANGUAGE.en[code];
 			expect(persona.title.length).toBeGreaterThan(0);
 			expect(persona.phrase.length).toBeGreaterThan(0);
 			expect(persona.icon).toMatch(/^[a-z_]+$/);
@@ -30,7 +26,9 @@ describe("rewindPersona", () => {
 	it.each([undefined, null, "", "speedrunner", "__proto__", "toString"])(
 		"falls back to Steady Player for an unknown code (%s)",
 		code => {
-			expect(rewindPersona(code)).toBe(REWIND_PERSONAS["steady-player"]);
+			expect(rewindPersona(code)).toBe(
+				REWIND_PERSONAS_BY_LANGUAGE.en["steady-player"]
+			);
 		}
 	);
 
@@ -40,7 +38,9 @@ describe("rewindPersona", () => {
 				const persona = REWIND_PERSONAS_BY_LANGUAGE[language][code];
 				expect(persona.title.length).toBeGreaterThan(0);
 				expect(persona.phrase.length).toBeGreaterThan(0);
-				expect(persona.icon).toBe(REWIND_PERSONAS[code].icon);
+				expect(persona.icon).toBe(
+					REWIND_PERSONAS_BY_LANGUAGE.en[code].icon
+				);
 			}
 		}
 	});
