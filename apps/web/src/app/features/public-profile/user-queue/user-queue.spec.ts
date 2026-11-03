@@ -165,5 +165,11 @@ describe("UserQueue", () => {
 		expect(
 			screen.getByText("@ada hasn't lined up any games to play next.")
 		).toBeInTheDocument();
+		expect(
+			screen.getByRole("link", { name: /Back to profile/ })
+		).toHaveAttribute("href", "/user/ada");
+		expect(
+			screen.getByRole("heading", { name: "Nothing queued yet" })
+		).toBeInTheDocument();
 	});
 });

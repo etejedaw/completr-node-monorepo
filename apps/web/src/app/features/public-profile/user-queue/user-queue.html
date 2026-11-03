@@ -59,18 +59,23 @@
 	(offsetChange)="collection.goToOffset($event)"
 >
 	<ng-template #emptyQueue>
-		<ui-plain-empty-state
+		<ui-empty-state
 			icon="playlist_play"
 			title="Nothing queued yet"
-			[message]="'@' + collection.username() + ' hasn\'t lined up any games to play next.'"
+			[hint]="'@' + collection.username() + ' hasn\'t lined up any games to play next.'"
 		>
 			<a
 				uiButton
 				variant="secondary"
+				class="tap:min-h-[44px]"
 				[routerLink]="['/user', collection.username()]"
-				>Back to profile</a
 			>
-		</ui-plain-empty-state>
+				<span aria-hidden="true" class="material-icons text-base"
+					>arrow_back</span
+				>
+				Back to profile
+			</a>
+		</ui-empty-state>
 	</ng-template>
 </app-queue-browser>
 } }
