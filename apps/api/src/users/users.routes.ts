@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { type ZodType } from "zod";
 
 import { authMiddleware } from "../auth/auth.middleware";
 import { authOptionalMiddleware } from "../auth/auth-optional.middleware";
@@ -15,6 +16,7 @@ import {
 import { exportFormatAccessMiddleware } from "../common/middlewares/export-format-access.middleware";
 import { exportFormatNegotiationMiddleware } from "../common/middlewares/export-format-negotiation.middleware";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
+import { validateBulkBodyMiddleware } from "../common/middlewares/validate-bulk-body.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import { ExportPlatformSearchQuerySchema } from "../common/schemas/export-platform-search-query.schema";
 import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
@@ -22,6 +24,11 @@ import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema
 import * as favoritesController from "../favorites/favorites.controller";
 import favoritesRouter from "../favorites/favorites.routes";
 import * as gamePlatinumController from "../game-platinum/game-platinum.controller";
+import { BulkDeletePlatinumsSchema } from "../game-platinum/schemas/bulk-delete-platinums.schema";
+import {
+	type PlatinumsBulkQuery,
+	PlatinumsBulkQuerySchema
+} from "../game-platinum/schemas/platinums-bulk-query.schema";
 import * as gameShelfController from "../game-shelf/game-shelf.controller";
 import gameShelfRouter from "../game-shelf/game-shelf.routes";
 import * as queueController from "../queue/queue.controller";
@@ -195,6 +202,19 @@ router.get(
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
 	favoritesController.getUserFavorites
+);
+
+router.post(
+	"/users/me/platinums/bulk",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("user", "premium", "moderator"),
+		validateSchemaMiddleware(PlatinumsBulkQuerySchema, "query"),
+		validateBulkBodyMiddleware({
+			delete: BulkDeletePlatinumsSchema
+		} satisfies Record<PlatinumsBulkQuery["action"], ZodType>)
+	],
+	gamePlatinumController.postPlatinumsBulk
 );
 
 router.get(
