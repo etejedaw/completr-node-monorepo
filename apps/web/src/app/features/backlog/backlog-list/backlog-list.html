@@ -357,6 +357,7 @@
 		[sortOrder]="sortOrder()"
 		[queuedBacklogIds]="queueBacklogIds()"
 		[updatingStatusIds]="updatingStatusIds()"
+		[selection]="bulk.selection"
 		(sortChange)="sort($event)"
 		(entryOpen)="openEdit($event.entry, $event.event)"
 		(statusChange)="selectNewStatus($event.entry, $event.status)"
@@ -371,6 +372,15 @@
 		[total]="total()"
 		(offsetChange)="onOffsetChange($event)"
 	/>
+	} @if (viewMode() === 'hardcore') {
+	<app-bulk-action-bar
+		[count]="bulk.selection.count()"
+		[actions]="bulk.actions()"
+		[noun]="bulkNoun"
+		[busy]="bulk.busy()"
+		(actionTriggered)="bulk.trigger($event)"
+		(cleared)="bulk.selection.clear()"
+	/>
 	}
 </div>
 
@@ -383,7 +393,23 @@
 	(cancelled)="cancelStatusChange()"
 	(reviewRequested)="saveAndOpenReview()"
 />
-} @if (showReorderModal()) {
+} @switch (bulk.dialog()) { @case ('status') {
+<app-bulk-status-dialog
+	[eligibleCount]="bulk.statusEligibleCount()"
+	[skippedCount]="bulk.statusSkippedCount()"
+	[queuedCount]="bulk.queuedAmongStatusEligible()"
+	(confirmed)="bulk.confirmStatus($event)"
+	(cancelled)="bulk.closeDialog()"
+/>
+} @case ('rating') {
+<app-bulk-rating-dialog
+	[eligibleCount]="bulk.rateEligibleCount()"
+	[skippedCount]="bulk.rateSkippedCount()"
+	[ratedCount]="bulk.alreadyRatedCount()"
+	(confirmed)="bulk.confirmRating($event)"
+	(cancelled)="bulk.closeDialog()"
+/>
+} } @if (showReorderModal()) {
 <app-reorder-views-dialog
 	[views]="backlogFilters()"
 	[saving]="savingReorder()"

@@ -5,7 +5,19 @@
 	<table uiTable framed>
 		<thead>
 			<tr>
-				@for (column of columns; track column.label) { @if
+				@if (activeSelection(); as rowSelection) {
+				<th
+					scope="col"
+					appSelectionCell
+					(selectionToggled)="rowSelection.togglePage()"
+				>
+					<ui-checkbox
+						ariaLabel="Select all runs on this page"
+						[checked]="rowSelection.isAllSelected()"
+						[indeterminate]="rowSelection.isPartiallySelected()"
+					/>
+				</th>
+				} @for (column of columns; track column.label) { @if
 				(column.sortKey; as sortKey) {
 				<th
 					scope="col"
@@ -51,8 +63,20 @@
 			@for (entry of entries(); track entry.id) {
 			<tr
 				[class.cursor-pointer]="!readonly()"
+				[attr.aria-selected]="ariaSelected(entry)"
 				(click)="openEntry(entry, $event)"
 			>
+				@if (activeSelection(); as rowSelection) {
+				<td
+					appSelectionCell
+					(selectionToggled)="toggleSelection(entry, $event)"
+				>
+					<ui-checkbox
+						[ariaLabel]="'Select ' + entry.game.title"
+						[checked]="rowSelection.isSelected(entry.id)"
+					/>
+				</td>
+				}
 				<td class="min-w-[180px]">
 					<app-game-title-cell
 						[coverUrl]="entry.game.backgroundUrl"
@@ -163,7 +187,7 @@
 					: "-" }}
 				</td>
 				<td class="whitespace-nowrap">
-					@if (!readonly() && canChangeStatus(entry.status)) {
+					@if (!readonly() && canChangeStatus(entry)) {
 					<app-backlog-status-picker
 						[status]="entry.status"
 						[subject]="entry.game.title"

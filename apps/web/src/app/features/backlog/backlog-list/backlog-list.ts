@@ -39,6 +39,7 @@ import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
 import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
 import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
+import { BulkActionBar } from "../../../shared/components/bulk-action-bar/bulk-action-bar";
 import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
@@ -73,6 +74,10 @@ import { PlatinumService } from "../../platinum/platinum";
 import { QueueService } from "../../queue/queue";
 import { BacklogService } from "../backlog";
 import { type BacklogFilters } from "../backlog.model";
+import {
+	BACKLOG_BULK_NOUN,
+	injectBacklogBulkActions
+} from "../backlog-bulk-actions";
 import { BacklogCalendar } from "../backlog-calendar/backlog-calendar";
 import {
 	BacklogModal,
@@ -84,6 +89,8 @@ import {
 	type SortOrder
 } from "../components/backlog-filters-panel/backlog-filters-panel";
 import { BacklogTable } from "../components/backlog-table/backlog-table";
+import { BulkRatingDialog } from "../components/bulk-rating-dialog/bulk-rating-dialog";
+import { BulkStatusDialog } from "../components/bulk-status-dialog/bulk-status-dialog";
 import { EntryRatingSheet } from "../components/entry-rating-sheet/entry-rating-sheet";
 import { ReorderViewsDialog } from "../components/reorder-views-dialog/reorder-views-dialog";
 import { SavedViewStats } from "../components/saved-view-stats/saved-view-stats";
@@ -164,7 +171,10 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 		ReorderViewsDialog,
 		SavedViewStats,
 		SavedViewStatsPanel,
-		StatusChangeDialog
+		StatusChangeDialog,
+		BulkActionBar,
+		BulkRatingDialog,
+		BulkStatusDialog
 	],
 	templateUrl: "./backlog-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -283,6 +293,13 @@ export class BacklogList implements OnInit {
 		null
 	);
 	protected readonly updatingStatusIds = signal<Set<string>>(new Set());
+	protected readonly bulk = injectBacklogBulkActions({
+		entries: this.entries,
+		total: this.total,
+		queuedIds: this.queueBacklogIds,
+		reloadQueue: () => this.loadQueueIds()
+	});
+	protected readonly bulkNoun = BACKLOG_BULK_NOUN;
 	private readonly queryParamMap = toSignal(this.route.queryParamMap);
 	private readonly savedFiltersLoaded = signal(false);
 	private eagerlyAppliedParams: ParamMap | null = null;
@@ -330,6 +347,7 @@ export class BacklogList implements OnInit {
 	protected readonly viewModes = BACKLOG_VIEW_MODES;
 
 	setViewMode(mode: BacklogViewMode) {
+		this.bulk.selection.clear();
 		this.viewMode.set(mode);
 		localStorage.setItem("completr.backlog.viewMode", mode);
 	}
@@ -1457,7 +1475,7 @@ export class BacklogList implements OnInit {
 		this.backlogService.getMyBacklog(filters).subscribe({
 			next: res => {
 				if (seq !== this.loadSeq) return;
-				this.entries.set(res.data.backlog);
+				this.entries.set(this.bulk.withoutPending(res.data.backlog));
 				this.total.set(res.data.total);
 				this.isLoading.set(false);
 				this.isInitialLoad.set(false);

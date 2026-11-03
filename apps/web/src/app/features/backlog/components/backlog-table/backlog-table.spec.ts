@@ -9,6 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { type BacklogEntry, type BacklogStatus } from "../../../../core/models";
 import { PointerService } from "../../../../core/services/pointer";
 import { ViewportService } from "../../../../core/services/viewport";
+import { injectRowSelection } from "../../../../shared/utils/row-selection";
 import { FavoritesService } from "../../../favorites/favorites";
 import { BacklogTable } from "./backlog-table";
 
@@ -617,6 +618,120 @@ describe("BacklogTable", () => {
 			const { element } = render([entry()]);
 
 			expect(rowButton(element, /Queue/).title).toBe("Add to Queue");
+		});
+	});
+	describe("selection", () => {
+		const rows = [
+			entry({ id: "b1" }),
+			entry({
+				id: "b2",
+				game: {
+					id: "g2",
+					code: "celeste",
+					title: "Celeste",
+					isDlc: false
+				}
+			}),
+			entry({
+				id: "b3",
+				game: {
+					id: "g3",
+					code: "inside",
+					title: "Inside",
+					isDlc: false
+				}
+			})
+		];
+
+		function renderSelectable(readonly = false) {
+			const source = signal(rows);
+			const selection = injectRowSelection(source, row => row.id);
+			const result = render(rows, { selection, readonly });
+			return { ...result, selection };
+		}
+
+		function checkbox(name: string) {
+			return screen.getByRole("checkbox", { name });
+		}
+
+		it("adds a leading checkbox column only when a selection is given", () => {
+			const { element } = renderSelectable();
+			expect(headers(element)).toHaveLength(13);
+			expect(
+				checkbox("Select all runs on this page")
+			).toBeInTheDocument();
+			expect(checkbox("Select Celeste")).toBeInTheDocument();
+		});
+
+		it("hides the selection in readonly mode", () => {
+			renderSelectable(true);
+			expect(screen.queryAllByRole("checkbox")).toEqual([]);
+		});
+
+		it("selects with the checkbox without opening the row and marks it selected", async () => {
+			const user = userEvent.setup();
+			const { fixture, element, events, selection } = renderSelectable();
+			await user.click(checkbox("Select Celeste"));
+			fixture.detectChanges();
+
+			expect(events.open).not.toHaveBeenCalled();
+			expect([...selection.selectedIds()]).toEqual(["b2"]);
+			expect(checkbox("Select Celeste")).toHaveAttribute(
+				"aria-checked",
+				"true"
+			);
+			const [, celesteRow] = Array.from(
+				element.querySelectorAll("tbody tr")
+			);
+			expect(celesteRow).toHaveAttribute("aria-selected", "true");
+			expect(checkbox("Select all runs on this page")).toHaveAttribute(
+				"aria-checked",
+				"mixed"
+			);
+		});
+
+		it("toggles from anywhere in the checkbox cell and with Space", async () => {
+			const user = userEvent.setup();
+			const { fixture, events, selection } = renderSelectable();
+			(checkbox("Select Hades").closest("td") as HTMLElement).click();
+			fixture.detectChanges();
+			expect(selection.isSelected("b1")).toBe(true);
+
+			checkbox("Select Inside").focus();
+			await user.keyboard(" ");
+			fixture.detectChanges();
+			expect(selection.isSelected("b3")).toBe(true);
+			expect(events.open).not.toHaveBeenCalled();
+		});
+
+		it("selects a range with Shift and the whole page from the header", async () => {
+			const user = userEvent.setup();
+			const { fixture, selection } = renderSelectable();
+			await user.click(checkbox("Select Hades"));
+			await user.keyboard("{Shift>}");
+			await user.click(checkbox("Select Inside"));
+			await user.keyboard("{/Shift}");
+			fixture.detectChanges();
+			expect(selection.count()).toBe(3);
+			expect(checkbox("Select all runs on this page")).toHaveAttribute(
+				"aria-checked",
+				"true"
+			);
+
+			await user.click(checkbox("Select all runs on this page"));
+			fixture.detectChanges();
+			expect(selection.count()).toBe(0);
+			await user.click(checkbox("Select all runs on this page"));
+			fixture.detectChanges();
+			expect(selection.count()).toBe(3);
+		});
+
+		it("still opens the row when clicking outside the checkbox", () => {
+			const { element, events } = renderSelectable();
+			(
+				element.querySelector("tbody tr td:nth-child(3)") as HTMLElement
+			).click();
+			expect(events.open).toHaveBeenCalledTimes(1);
 		});
 	});
 });
