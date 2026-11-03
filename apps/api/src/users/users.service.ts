@@ -123,8 +123,12 @@ export async function findUserByIdUnfiltered(id: string) {
 	return User.findOne({ where: { id } });
 }
 
-export async function findAllUsers(limit = 50, offset = 0) {
+export async function findAllUsers(limit = 50, offset = 0, query?: string) {
+	const searchWhere = query
+		? buildTextSearchWhere(query, ["User.username", "User.name", "User.email"])
+		: null;
 	return User.findAndCountAll({
+		...(searchWhere ? { where: searchWhere } : {}),
 		order: [
 			["createdAt", "DESC"],
 			["id", "DESC"]

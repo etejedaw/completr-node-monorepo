@@ -5,9 +5,9 @@ import * as authService from "../auth/auth.service";
 import { type RegisterDto } from "../auth/dtos";
 import * as passwordService from "../auth/services/password.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { type AdminUpdateUserDto } from "./dtos";
 import * as userDomain from "./errors/users.domain-error";
+import { type AdminUsersQuery } from "./schemas/admin-users-query.schema";
 import { type UserIdParam } from "./schemas/user-id-params.schema";
 import { userAdminSerializer } from "./users.serializer";
 import * as usersService from "./users.service";
@@ -32,11 +32,12 @@ export async function postAdminCreateUser(
 }
 
 export async function getAdminUsers(request: Request, response: Response) {
-	const query = (request.locals.query ?? {}) as PaginationQuery;
+	const query = (request.locals.query ?? {}) as AdminUsersQuery;
 
 	const { rows, count } = await usersService.findAllUsers(
 		query.limit ?? 50,
-		query.offset ?? 0
+		query.offset ?? 0,
+		query.q
 	);
 
 	const data = {
