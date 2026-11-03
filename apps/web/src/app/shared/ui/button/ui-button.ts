@@ -7,7 +7,14 @@ import {
 import { NgpButton } from "ng-primitives/button";
 
 export type UiButtonVariant =
-	"primary" | "secondary" | "ghost" | "danger" | "premium" | "glass";
+	| "primary"
+	| "secondary"
+	| "ghost"
+	| "danger"
+	| "premium"
+	| "glass"
+	| "link"
+	| "link-danger";
 export type UiButtonSize = "sm" | "md" | "lg";
 
 @Component({
