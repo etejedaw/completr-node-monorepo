@@ -18,9 +18,7 @@ import {
 	UiFieldLabel,
 	UiFormField,
 	UiInput,
-	UiLabel,
-	UiPlainEmptyState,
-	UiSkeleton
+	UiLabel
 } from "../../../shared/ui";
 import { type AdminInvitation } from "../services/invitation-admin.model";
 import { InvitationAdminService } from "../services/invitation-admin.service";
@@ -37,9 +35,7 @@ import { InvitationAdminService } from "../services/invitation-admin.service";
 		UiFieldLabel,
 		UiFormField,
 		UiInput,
-		UiLabel,
-		UiPlainEmptyState,
-		UiSkeleton
+		UiLabel
 	],
 	templateUrl: "./admin-invitations.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -49,15 +45,7 @@ export class AdminInvitations implements OnInit {
 	private readonly toast = inject(ToastService);
 
 	protected readonly invitations = signal<AdminInvitation[]>([]);
-	protected readonly isLoading = signal(true);
 	protected readonly loadFailed = signal(false);
-	protected readonly skeletonRows = [1, 2];
-	protected readonly isEmpty = computed(
-		() =>
-			!this.isLoading() &&
-			!this.loadFailed() &&
-			this.invitations().length === 0
-	);
 	protected readonly showInviteModal = signal(false);
 	protected readonly isInviting = signal(false);
 	protected readonly inviteError = signal("");
@@ -82,21 +70,16 @@ export class AdminInvitations implements OnInit {
 	}
 
 	protected loadInvitations() {
-		this.isLoading.set(true);
 		this.invitationAdminService.list().subscribe({
 			next: invitations => {
 				this.invitations.set(invitations);
 				this.loadFailed.set(false);
-				this.isLoading.set(false);
 			},
-			error: () => {
-				this.loadFailed.set(true);
-				this.isLoading.set(false);
-			}
+			error: () => this.loadFailed.set(true)
 		});
 	}
 
-	protected openInvite() {
+	openInvite() {
 		this.inviteModel.set({ email: "" });
 		this.inviteForm().reset();
 		this.inviteError.set("");

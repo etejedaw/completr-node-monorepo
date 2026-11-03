@@ -1853,7 +1853,7 @@ describe("Admin users interaction", () => {
 	});
 
 	describe("invitations panel", () => {
-		it("lists pending and expired invitations and shows the empty copy", async () => {
+		it("lists pending and expired invitations", async () => {
 			await renderUsers(USERS, INVITATIONS);
 			const section = screen.getByRole("region", {
 				name: /Pending invitations/
@@ -1867,7 +1867,13 @@ describe("Admin users interaction", () => {
 			expect(within(section).getByText(/· Expires /)).toBeInTheDocument();
 		});
 
-		it("shows skeleton rows while invitations load and no stale count or invite button", async () => {
+		function invitationsSection() {
+			return screen.queryByRole("region", {
+				name: /Pending invitations/
+			});
+		}
+
+		it("renders nothing for invitations while the first load is pending", async () => {
 			await render(AdminUsers, {
 				providers: [
 					provideHttpClient(),
@@ -1876,44 +1882,88 @@ describe("Admin users interaction", () => {
 				]
 			});
 			http = TestBed.inject(HttpTestingController);
-			const section = screen.getByRole("region", {
-				name: /Pending invitations/
-			});
+			expect(invitationsSection()).not.toBeInTheDocument();
 			expect(
-				within(section).getByLabelText("Loading invitations")
-			).toHaveAttribute("aria-busy", "true");
-			expect(within(section).queryByText("0")).not.toBeInTheDocument();
+				screen.getByRole("button", { name: /Invite by email/ })
+			).toBeEnabled();
 
 			flushInvitations(invitationListRequests()[0]!, INVITATIONS);
 			flushUsers(listRequests()[0]!);
 			await waitFor(() =>
-				expect(
-					within(section).queryByLabelText("Loading invitations")
-				).not.toBeInTheDocument()
+				expect(invitationsSection()).toBeInTheDocument()
 			);
-			expect(within(section).getByText("2")).toBeInTheDocument();
+			expect(within(invitationsSection()!).getByText("2")).toBeInTheDocument();
 		});
 
-		it("offers a single invite action from the empty state", async () => {
+		it("hides the section when there are no pending invitations", async () => {
+			await renderUsers();
+			expect(invitationsSection()).not.toBeInTheDocument();
+			expect(
+				screen.queryByText(/No pending invitations/)
+			).not.toBeInTheDocument();
+		});
+
+		it("invites from the hero next to Create User, and a double click opens one dialog", async () => {
 			const user = userEvent.setup();
 			await renderUsers();
-			const section = screen.getByRole("region", {
-				name: /Pending invitations/
-			});
-			const buttons = within(section).getAllByRole("button", {
-				name: /Invite by email/
-			});
-			expect(buttons).toHaveLength(1);
-			await user.dblClick(buttons[0]!);
+			const invite = screen.getByRole("button", { name: /Invite by email/ });
+			expect(invite.parentElement).toBe(
+				screen.getByRole("button", { name: /Create User/ }).parentElement
+			);
+			await user.dblClick(invite);
 			expect(
 				await screen.findAllByRole("dialog", { name: "Invite by email" })
 			).toHaveLength(1);
 		});
 
-		it("shows the empty copy without invitations", async () => {
+		it("makes the section appear after inviting with an empty list", async () => {
+			const user = userEvent.setup();
 			await renderUsers();
+			const dialog = await openInvite(user);
+			await user.type(
+				within(dialog).getByLabelText(/^Email/),
+				"pending@example.com"
+			);
+			await user.click(
+				within(dialog).getByRole("button", { name: "Send invitation" })
+			);
+			pending("POST", INVITATIONS_URL)[0]!.flush({
+				data: { invitation: INVITATIONS[0] }
+			});
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+			expect(invitationsSection()).not.toBeInTheDocument();
+			flushInvitations(invitationListRequests()[0]!, [INVITATIONS[0]]);
+
+			await waitFor(() =>
+				expect(invitationsSection()).toBeInTheDocument()
+			);
 			expect(
-				screen.getByText(/No pending invitations/)
+				within(invitationsSection()!).getByText("pending@example.com")
+			).toBeInTheDocument();
+		});
+
+		it("hides the section after revoking the last invitation", async () => {
+			const user = userEvent.setup();
+			await renderUsers(USERS, [INVITATIONS[0]]);
+			const section = invitationsSection()!;
+			await user.click(within(section).getByRole("button", { name: /Revoke/ }));
+			await user.dblClick(
+				within(section).getByRole("button", { name: "Revoke" })
+			);
+			const deletes = pending("DELETE", `${INVITATIONS_URL}/i1`);
+			expect(deletes).toHaveLength(1);
+			deletes[0]!.flush(null);
+			for (const reload of invitationListRequests()) {
+				flushInvitations(reload, []);
+			}
+
+			await waitFor(() =>
+				expect(invitationsSection()).not.toBeInTheDocument()
+			);
+			expect(
+				screen.getByRole("button", { name: /Invite by email/ })
 			).toBeInTheDocument();
 		});
 

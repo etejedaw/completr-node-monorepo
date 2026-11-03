@@ -11,6 +11,17 @@
 		>
 		Create User
 	</button>
+	<button
+		heroActions
+		uiButton
+		variant="secondary"
+		(click)="invitationsPanel().openInvite()"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>forward_to_inbox</span
+		>
+		Invite by email
+	</button>
 </app-library-hero>
 
 <app-admin-invitations />

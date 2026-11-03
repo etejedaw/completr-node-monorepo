@@ -6,7 +6,8 @@ import {
 	DestroyRef,
 	inject,
 	type OnInit,
-	signal
+	signal,
+	viewChild
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import {
@@ -215,6 +216,7 @@ function editedSince(snapshot: FormSnapshot | null, current: FormSnapshot) {
 export class AdminUsers implements OnInit {
 	private readonly userAdminService = inject(UserAdminService);
 	private readonly router = inject(Router);
+	protected readonly invitationsPanel = viewChild.required(AdminInvitations);
 	private readonly searchChanges = new Subject<string>();
 	private listSubscription: Subscription | null = null;
 
