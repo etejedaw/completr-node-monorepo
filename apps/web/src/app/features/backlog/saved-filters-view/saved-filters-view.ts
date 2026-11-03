@@ -39,6 +39,7 @@ import {
 	SAVED_FILTER_COLORS,
 	SAVED_FILTER_ICONS,
 	savedFilterColorHex,
+	savedFilterIconLabel,
 	supportedSavedFilterColor
 } from "../saved-filter-appearance";
 import { SavedFiltersService } from "../saved-filters";
@@ -175,6 +176,7 @@ export class SavedFiltersView implements OnInit {
 	protected readonly editColor = signal<string | null>(null);
 	protected readonly iconOptions = SAVED_FILTER_ICONS;
 	protected readonly colorOptions = SAVED_FILTER_COLORS;
+	protected readonly iconLabel = savedFilterIconLabel;
 	protected readonly colorHex = savedFilterColorHex;
 	protected readonly saving = signal(false);
 	protected readonly deleting = signal(false);

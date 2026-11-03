@@ -3,6 +3,9 @@ export const SAVED_FILTER_ICONS = [
 	"star",
 	"favorite",
 	"sports_esports",
+	"smartphone",
+	"computer",
+	"tv",
 	"emoji_events",
 	"flag",
 	"check_circle",
@@ -16,6 +19,32 @@ export const SAVED_FILTER_ICONS = [
 	"rocket_launch",
 	"visibility"
 ];
+
+export const SAVED_FILTER_ICON_LABELS: Record<string, string> = {
+	bookmark: "Bookmark",
+	star: "Star",
+	favorite: "Heart",
+	sports_esports: "Gamepad",
+	smartphone: "Phone",
+	computer: "PC",
+	tv: "TV",
+	emoji_events: "Trophy",
+	flag: "Flag",
+	check_circle: "Check",
+	schedule: "Clock",
+	bolt: "Bolt",
+	local_fire_department: "Fire",
+	filter_alt: "Filter",
+	list: "List",
+	calendar_month: "Calendar",
+	military_tech: "Medal",
+	rocket_launch: "Rocket",
+	visibility: "Eye"
+};
+
+export function savedFilterIconLabel(icon: string) {
+	return SAVED_FILTER_ICON_LABELS[icon] ?? icon;
+}
 
 export const SAVED_FILTER_COLORS: { key: string; hex: string }[] = [
 	{ key: "brand", hex: "var(--color-brand)" },

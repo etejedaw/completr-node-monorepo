@@ -238,7 +238,8 @@
 					type="button"
 					class="size-9 max-md:size-[44px] tap:size-[44px] rounded-card border inline-flex items-center justify-center transition hover:border-brand"
 					[class]="editIcon() === ic ? 'border-brand bg-brand-subtle' : 'border-line'"
-					[attr.aria-label]="ic"
+					[attr.aria-label]="iconLabel(ic)"
+					[title]="iconLabel(ic)"
 					[attr.aria-pressed]="editIcon() === ic"
 					(click)="editIcon.set(ic)"
 				>
