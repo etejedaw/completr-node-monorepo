@@ -45,7 +45,7 @@ const INPUT_SIZE_CLASSES: Record<UiSearchBarSize, string> = {
 				[attr.aria-label]="accessibleName()"
 				[value]="value()"
 				(input)="onInput($event)"
-				(keydown.escape)="value.set('')"
+				(keydown.escape)="onEscape($event)"
 			/>
 			@if (value()) {
 				<button
@@ -78,6 +78,12 @@ export class UiSearchBar {
 	protected readonly inputSizeClass = computed(
 		() => INPUT_SIZE_CLASSES[this.size()]
 	);
+
+	protected onEscape(event: Event) {
+		if (!this.value()) return;
+		event.stopPropagation();
+		this.value.set("");
+	}
 
 	protected onInput(event: Event) {
 		this.value.set((event.target as HTMLInputElement).value);

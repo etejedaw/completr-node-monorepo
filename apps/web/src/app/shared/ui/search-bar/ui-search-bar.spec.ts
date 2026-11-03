@@ -145,6 +145,31 @@ describe("UiSearchBar", () => {
 		expect(input.value).toBe("");
 	});
 
+	it("keeps Escape from reaching the surrounding dialog only while it clears text", () => {
+		const fixture = render();
+		const input = fixture.nativeElement.querySelector(
+			"input"
+		) as HTMLInputElement;
+		const reachedParent = vi.fn();
+		(fixture.nativeElement as HTMLElement).addEventListener(
+			"keydown",
+			reachedParent
+		);
+
+		typeInto(fixture, input, "zelda");
+		input.dispatchEvent(
+			new KeyboardEvent("keydown", { key: "Escape", bubbles: true })
+		);
+		fixture.detectChanges();
+		expect(fixture.componentInstance.value()).toBe("");
+		expect(reachedParent).not.toHaveBeenCalled();
+
+		input.dispatchEvent(
+			new KeyboardEvent("keydown", { key: "Escape", bubbles: true })
+		);
+		expect(reachedParent).toHaveBeenCalledTimes(1);
+	});
+
 	it("keeps up with erratic typing, double clears and junk input", () => {
 		const fixture = render();
 		const input = fixture.nativeElement.querySelector(
