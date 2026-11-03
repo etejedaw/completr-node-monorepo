@@ -4,6 +4,7 @@ import { NgpButton } from "ng-primitives/button";
 export type UiIconButtonSize = "sm" | "md" | "lg";
 export type UiIconButtonTone = "neutral" | "accent" | "danger";
 export type UiIconButtonShape = "rounded" | "circle";
+export type UiIconButtonVariant = "plain" | "glass";
 
 @Component({
 	selector: "button[uiIconButton], a[uiIconButton]",
@@ -14,11 +15,13 @@ export type UiIconButtonShape = "rounded" | "circle";
 		class: "ui-icon-button",
 		"[attr.data-size]": "size()",
 		"[attr.data-tone]": "tone()",
-		"[attr.data-shape]": "shape()"
+		"[attr.data-shape]": "shape()",
+		"[attr.data-variant]": "variant()"
 	}
 })
 export class UiIconButton {
 	size = input<UiIconButtonSize>("md");
 	tone = input<UiIconButtonTone>("neutral");
 	shape = input<UiIconButtonShape>("rounded");
+	variant = input<UiIconButtonVariant>("plain");
 }

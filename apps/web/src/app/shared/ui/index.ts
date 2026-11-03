@@ -1,4 +1,4 @@
-export type { UiAlertTone } from "./alert/ui-alert";
+export type { UiAlertRole, UiAlertTone } from "./alert/ui-alert";
 export { UiAlert } from "./alert/ui-alert";
 export { UiAvatar } from "./avatar/ui-avatar";
 export type { UiBadgeTone } from "./badge/ui-badge";
@@ -17,6 +17,7 @@ export { UiDrawer } from "./drawer/ui-drawer";
 export { UiEmptyState } from "./empty-state/ui-empty-state";
 export { UiNoMatches } from "./empty-state/ui-no-matches";
 export { UiPlainEmptyState } from "./empty-state/ui-plain-empty-state";
+export type { UiPlainEmptyStateHeadingLevel } from "./empty-state/ui-plain-empty-state.model";
 export { UiFocusTrap } from "./focus-trap/ui-focus-trap";
 export {
 	UiDescription,
@@ -25,7 +26,8 @@ export {
 } from "./form-field/ui-form-field";
 export type {
 	UiIconButtonSize,
-	UiIconButtonTone
+	UiIconButtonTone,
+	UiIconButtonVariant
 } from "./icon-button/ui-icon-button";
 export { UiIconButton } from "./icon-button/ui-icon-button";
 export type { UiInputSize } from "./input/ui-input";

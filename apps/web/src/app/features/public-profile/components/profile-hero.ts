@@ -10,7 +10,7 @@ import { RouterLink } from "@angular/router";
 import { avatarRing } from "../../../core/utils/premium";
 import { elevatedRoleBadge } from "../../../core/utils/role-badge";
 import { ProfileBackdrop } from "../../../shared/components/profile-backdrop/profile-backdrop";
-import { UiAvatar, UiBadge, UiButton } from "../../../shared/ui";
+import { UiAvatar, UiBadge, UiButton, UiIconButton } from "../../../shared/ui";
 import { type PublicProfile } from "../public-profile.model";
 
 const MEMBER_SINCE_FORMAT = new Intl.DateTimeFormat("en", {
@@ -20,7 +20,14 @@ const MEMBER_SINCE_FORMAT = new Intl.DateTimeFormat("en", {
 
 @Component({
 	selector: "app-profile-hero",
-	imports: [RouterLink, ProfileBackdrop, UiAvatar, UiBadge, UiButton],
+	imports: [
+		RouterLink,
+		ProfileBackdrop,
+		UiAvatar,
+		UiBadge,
+		UiButton,
+		UiIconButton
+	],
 	templateUrl: "./profile-hero.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush

@@ -171,6 +171,23 @@
 	color: var(--text-primary);
 }
 
+.ui-icon-button[data-variant="glass"] {
+	background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+	color: var(--color-fg-secondary);
+	border: 1px solid var(--color-line);
+	-webkit-backdrop-filter: blur(8px);
+	backdrop-filter: blur(8px);
+}
+
+.ui-icon-button[data-variant="glass"][data-hover]:not(
+		[data-disabled],
+		[aria-disabled="true"]
+	) {
+	background: var(--color-surface-hover);
+	color: var(--color-fg);
+	border-color: var(--color-line-hover);
+}
+
 .ui-icon-button[data-tone="accent"][data-hover]:not(
 		[data-disabled],
 		[aria-disabled="true"]

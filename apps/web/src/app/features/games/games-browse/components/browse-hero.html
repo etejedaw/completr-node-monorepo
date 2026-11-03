@@ -35,16 +35,12 @@
 			[attr.aria-live]="rotating() ? 'off' : 'polite'"
 		>
 			<div class="flex flex-wrap items-center gap-1.5 mb-3">
-				<span
-					class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-semibold uppercase tracking-[0.16em] bg-brand-solid text-white"
+				<ui-badge
+					tone="brand-solid"
+					icon="auto_awesome"
+					class="uppercase tracking-[0.16em]"
+					>Just added</ui-badge
 				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-[0.75rem]"
-						>auto_awesome</span
-					>
-					Just added
-				</span>
 				@for (genre of game.genres.slice(0, 3); track genre.id) {
 				<a
 					class="tap-area px-2 py-0.5 rounded-full text-[0.625rem] font-semibold uppercase tracking-[0.16em] bg-white/10 text-white/85 backdrop-blur-sm no-underline transition hover:bg-white/25 hover:text-white"
@@ -118,7 +114,7 @@
 					size="lg"
 					type="button"
 					shape="circle"
-					class="!border !border-line !bg-surface/70 !text-fg-secondary backdrop-blur-md hover:!border-line-hover hover:!text-fg"
+					variant="glass"
 					[attr.aria-label]="paused() ? 'Resume rotation' : 'Pause rotation'"
 					[attr.aria-pressed]="paused()"
 					(click)="togglePaused()"
@@ -132,7 +128,7 @@
 					size="lg"
 					type="button"
 					shape="circle"
-					class="!border !border-line !bg-surface/70 !text-fg-secondary backdrop-blur-md hover:!border-line-hover hover:!text-fg"
+					variant="glass"
 					aria-label="Previous featured game"
 					(click)="step(-1)"
 				>
@@ -145,7 +141,7 @@
 					size="lg"
 					type="button"
 					shape="circle"
-					class="!border !border-line !bg-surface/70 !text-fg-secondary backdrop-blur-md hover:!border-line-hover hover:!text-fg"
+					variant="glass"
 					aria-label="Next featured game"
 					(click)="step(1)"
 				>

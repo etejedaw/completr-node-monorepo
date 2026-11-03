@@ -1,17 +1,29 @@
 import { Component, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 
-import { UiIconButton, type UiIconButtonShape } from "./ui-icon-button";
+import {
+	UiIconButton,
+	type UiIconButtonShape,
+	type UiIconButtonVariant
+} from "./ui-icon-button";
 
 @Component({
 	imports: [UiIconButton],
 	template: `
-		<button uiIconButton [shape]="shape()" aria-label="Close">x</button>
+		<button
+			uiIconButton
+			[shape]="shape()"
+			[variant]="variant()"
+			aria-label="Close"
+		>
+			x
+		</button>
 		<a uiIconButton size="lg" href="/settings" aria-label="Settings">s</a>
 	`
 })
 class Host {
 	readonly shape = signal<UiIconButtonShape>("rounded");
+	readonly variant = signal<UiIconButtonVariant>("plain");
 }
 
 describe("UiIconButton", () => {
@@ -33,6 +45,16 @@ describe("UiIconButton", () => {
 		expect(button.getAttribute("data-shape")).toBe("rounded");
 		expect(button.getAttribute("data-tone")).toBe("neutral");
 		expect(button.getAttribute("data-size")).toBe("md");
+		expect(button.getAttribute("data-variant")).toBe("plain");
+	});
+
+	it("switches to the glass variant for buttons over artwork", () => {
+		const { fixture, button } = render();
+		fixture.componentInstance.variant.set("glass");
+		fixture.detectChanges();
+
+		expect(button.getAttribute("data-variant")).toBe("glass");
+		expect(button.getAttribute("aria-label")).toBe("Close");
 	});
 
 	it("switches to the circle shape", () => {
