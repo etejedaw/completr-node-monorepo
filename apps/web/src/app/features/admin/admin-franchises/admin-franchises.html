@@ -1,10 +1,10 @@
 <app-library-hero heading="Franchises" eyebrow="Admin">
 	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
 		<span class="font-semibold text-fg tabular-nums"
-			>{{ franchises().length }}</span
+			>{{ catalogTotal() ?? 0 }}</span
 		>
-		{{ franchises().length === 1 ? "franchise" : "franchises" }} grouping
-		games into sagas
+		{{ catalogTotal() === 1 ? "franchise" : "franchises" }} grouping games
+		into sagas
 	</p>
 	<button heroActions uiButton variant="primary" (click)="openCreate()">
 		<span aria-hidden="true" class="material-icons text-base">add</span>
@@ -12,15 +12,20 @@
 	</button>
 </app-library-hero>
 
-@if (hasFranchises()) {
+@if (hasCatalog()) {
 <app-library-toolbar>
 	<ui-search-bar
 		size="sm"
 		class="flex-1 min-w-[12rem] max-w-2xl"
 		placeholder="Search franchises..."
 		ariaLabel="Search franchises"
-		[(value)]="searchQuery"
+		[value]="query()"
+		(valueChange)="onSearch($event)"
 	/>
+	<p role="status" class="sr-only">
+		@if (search() && !isLoading() && !loadError()) { {{ total() }} {{
+		total() === 1 ? "match" : "matches" }} for “{{ search() }}” }
+	</p>
 </app-library-toolbar>
 } @if (isLoading()) {
 <ul
@@ -48,7 +53,7 @@
 		</button>
 	</span>
 </ui-alert>
-} @else if (franchises().length === 0) {
+} @else if (isCatalogEmpty()) {
 <ui-empty-state
 	icon="collections_bookmark"
 	title="No franchises yet"
@@ -59,16 +64,16 @@
 		New franchise
 	</button>
 </ui-empty-state>
-} @else if (visibleFranchises().length === 0) {
+} @else if (franchises().length === 0) {
 <ui-no-matches
-	[hint]="'No franchises match “' + searchQuery().trim() + '”.'"
+	[hint]="'No franchises match “' + search() + '”.'"
 	(cleared)="clearSearch()"
 />
 } @else {
 <ul
 	class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"
 >
-	@for (f of visibleFranchises(); track f.id) {
+	@for (f of franchises(); track f.id) {
 	<li
 		class="flex items-center gap-3 px-4 py-3 transition hover:bg-surface-hover"
 	>
@@ -121,6 +126,13 @@
 	</li>
 	}
 </ul>
+} @if (!loadError() && franchises().length > 0) {
+<ui-pagination
+	[offset]="offset()"
+	[limit]="limit"
+	[total]="total()"
+	(offsetChange)="goToOffset($event)"
+/>
 } @if (franchiseToDelete(); as target) {
 <ui-dialog
 	size="sm"

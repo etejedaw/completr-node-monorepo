@@ -2,11 +2,14 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { RouterLink } from "@angular/router";
+import { debounceTime, Subject, type Subscription } from "rxjs";
 
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
@@ -21,6 +24,7 @@ import {
 	UiEmptyState,
 	UiIconButton,
 	UiNoMatches,
+	UiPagination,
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
@@ -31,6 +35,10 @@ import {
 	type AdminFranchiseModalResult
 } from "../admin-franchise-modal/admin-franchise-modal";
 import { type AdminFranchiseModalData } from "../admin-franchise-modal/admin-franchise-modal.model";
+
+const SEARCH_DEBOUNCE_MS = 300;
+const SEARCH_MAX_LENGTH = 100;
+const PAGE_SIZE = 50;
 
 @Component({
 	selector: "app-admin-franchises",
@@ -45,6 +53,7 @@ import { type AdminFranchiseModalData } from "../admin-franchise-modal/admin-fra
 		UiEmptyState,
 		UiIconButton,
 		UiNoMatches,
+		UiPagination,
 		UiSearchBar,
 		UiSkeleton
 	],
@@ -57,12 +66,17 @@ export class AdminFranchises implements OnInit {
 	private readonly toast = inject(ToastService);
 
 	protected readonly franchises = signal<Franchise[]>([]);
+	protected readonly total = signal(0);
+	protected readonly catalogTotal = signal<number | null>(null);
 	protected readonly isLoading = signal(true);
 	protected readonly loadError = signal(false);
 	protected readonly skeletonRange = [0, 1, 2, 3];
 	protected readonly franchiseToDelete = signal<Franchise | null>(null);
 	protected readonly isDeleting = signal(false);
-	protected readonly searchQuery = signal("");
+	protected readonly query = signal("");
+	protected readonly search = signal("");
+	protected readonly offset = signal(0);
+	protected readonly limit = PAGE_SIZE;
 	protected readonly rowMenuItems: ActionMenuItem[] = [
 		{ id: "edit", label: "Edit franchise", icon: "edit" },
 		{
@@ -73,17 +87,25 @@ export class AdminFranchises implements OnInit {
 		}
 	];
 
-	protected readonly hasFranchises = computed(
-		() => !this.loadError() && this.franchises().length > 0
+	private readonly searchChanges = new Subject<string>();
+	private listSubscription: Subscription | null = null;
+
+	protected readonly hasCatalog = computed(
+		() => (this.catalogTotal() ?? 0) > 0
 	);
 
-	protected readonly visibleFranchises = computed(() => {
-		const needle = this.searchQuery().trim().toLowerCase();
-		if (!needle) return this.franchises();
-		return this.franchises().filter(franchise =>
-			franchise.name.toLowerCase().includes(needle)
+	protected readonly isCatalogEmpty = computed(
+		() => !this.search() && this.catalogTotal() === 0
+	);
+
+	constructor() {
+		this.searchChanges
+			.pipe(debounceTime(SEARCH_DEBOUNCE_MS), takeUntilDestroyed())
+			.subscribe(search => this.applySearch(search));
+		inject(DestroyRef).onDestroy(() =>
+			this.listSubscription?.unsubscribe()
 		);
-	});
+	}
 
 	ngOnInit() {
 		this.load();
@@ -93,23 +115,65 @@ export class AdminFranchises implements OnInit {
 		this.load();
 	}
 
-	private load() {
-		this.isLoading.set(true);
-		this.loadError.set(false);
-		this.franchisesService.getFranchises({ limit: 100 }).subscribe({
-			next: data => {
-				this.franchises.set(data.franchises);
-				this.isLoading.set(false);
-			},
-			error: () => {
-				this.loadError.set(true);
-				this.isLoading.set(false);
-			}
-		});
+	protected onSearch(value: string) {
+		this.query.set(value);
+		const search = normalizeSearch(value);
+		this.searchChanges.next(search);
+		if (!search) this.applySearch(search);
 	}
 
 	protected clearSearch() {
-		this.searchQuery.set("");
+		this.onSearch("");
+	}
+
+	protected goToOffset(offset: number) {
+		this.offset.set(offset);
+		this.load();
+	}
+
+	private applySearch(search: string) {
+		if (search === this.search()) return;
+		this.search.set(search);
+		this.offset.set(0);
+		this.load();
+	}
+
+	private load() {
+		this.listSubscription?.unsubscribe();
+		this.isLoading.set(true);
+		this.loadError.set(false);
+		const search = this.search();
+		const offset = this.offset();
+		this.listSubscription = this.franchisesService
+			.getFranchises({
+				search: search || undefined,
+				limit: this.limit,
+				offset
+			})
+			.subscribe({
+				next: page => {
+					const fallbackOffset = lastPageOffset(
+						page.total,
+						this.limit
+					);
+					if (
+						page.franchises.length === 0 &&
+						fallbackOffset < offset
+					) {
+						this.offset.set(fallbackOffset);
+						this.load();
+						return;
+					}
+					this.franchises.set(page.franchises);
+					this.total.set(page.total);
+					if (!search) this.catalogTotal.set(page.total);
+					this.isLoading.set(false);
+				},
+				error: () => {
+					this.loadError.set(true);
+					this.isLoading.set(false);
+				}
+			});
 	}
 
 	protected runRowAction(franchise: Franchise, action: string) {
@@ -131,8 +195,16 @@ export class AdminFranchises implements OnInit {
 			AdminFranchiseModalResult
 		>(AdminFranchiseModal, { data: { franchise }, closeOnEscape: false });
 		ref.afterClosed.subscribe(result => {
-			if (result === "saved") this.load();
+			if (result !== "saved") return;
+			if (!franchise) this.adjustCatalogTotal(1);
+			this.load();
 		});
+	}
+
+	private adjustCatalogTotal(change: number) {
+		this.catalogTotal.update(total =>
+			total === null ? total : Math.max(0, total + change)
+		);
 	}
 
 	protected askRemove(franchise: Franchise) {
@@ -152,6 +224,7 @@ export class AdminFranchises implements OnInit {
 				this.isDeleting.set(false);
 				this.franchiseToDelete.set(null);
 				this.toast.success("Franchise deleted");
+				this.adjustCatalogTotal(-1);
 				this.load();
 			},
 			error: (err: { status?: number }) => {
@@ -162,4 +235,12 @@ export class AdminFranchises implements OnInit {
 			}
 		});
 	}
+}
+
+function normalizeSearch(value: string): string {
+	return value.trim().slice(0, SEARCH_MAX_LENGTH).trim();
+}
+
+function lastPageOffset(total: number, limit: number): number {
+	return Math.max(0, Math.ceil(total / limit) - 1) * limit;
 }
