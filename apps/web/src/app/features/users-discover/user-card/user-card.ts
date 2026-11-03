@@ -10,13 +10,13 @@ import { RouterLink } from "@angular/router";
 import { type UserResult } from "../../../core/services/users.model";
 import { avatarRing } from "../../../core/utils/premium";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
-import { UiAvatar, UiButton } from "../../../shared/ui";
+import { UiAvatar, UiBadge, UiButton, UiEyebrow } from "../../../shared/ui";
 
 export type FollowState = "none" | "following" | "requested";
 
 @Component({
 	selector: "app-user-card",
-	imports: [RouterLink, CoverUrlPipe, UiAvatar, UiButton],
+	imports: [RouterLink, CoverUrlPipe, UiAvatar, UiBadge, UiButton, UiEyebrow],
 	templateUrl: "./user-card.html",
 	host: { class: "block h-full" },
 	changeDetection: ChangeDetectionStrategy.OnPush

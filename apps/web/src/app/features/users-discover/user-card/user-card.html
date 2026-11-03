@@ -46,10 +46,7 @@
 				{{ followLabel() }}
 			</button>
 			} @else if (person.isSelf) {
-			<span
-				class="text-xs font-semibold uppercase tracking-[0.14em] text-brand"
-				>You</span
-			>
+			<ui-badge tone="brand">You</ui-badge>
 			}
 		</div>
 
@@ -82,21 +79,13 @@
 			class="m-0 mt-auto grid grid-cols-3 gap-2 pt-3 border-t border-line/60"
 		>
 			<div>
-				<dt
-					class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Games
-				</dt>
+				<dt uiEyebrow>Games</dt>
 				<dd class="m-0 mt-1 text-sm font-semibold text-fg tabular-nums">
 					{{ hasStats() ? person.gamesTotal : '—' }}
 				</dd>
 			</div>
 			<div>
-				<dt
-					class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Completed
-				</dt>
+				<dt uiEyebrow>Completed</dt>
 				<dd
 					class="m-0 mt-1 text-sm font-semibold text-success tabular-nums"
 				>
@@ -104,11 +93,7 @@
 				</dd>
 			</div>
 			<div>
-				<dt
-					class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Followers
-				</dt>
+				<dt uiEyebrow>Followers</dt>
 				<dd class="m-0 mt-1 text-sm font-semibold text-fg tabular-nums">
 					{{ person.followerCount ?? '—' }}
 				</dd>

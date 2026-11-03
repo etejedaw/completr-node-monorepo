@@ -15,7 +15,12 @@ import { type UserResult } from "../../core/services/users.model";
 import { LibraryHero } from "../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../shared/components/library-toolbar/library-toolbar";
 import { UnfollowConfirmDialog } from "../../shared/components/unfollow-confirm-dialog/unfollow-confirm-dialog";
-import { UiEmptyState, UiSearchBar, UiSkeleton } from "../../shared/ui";
+import {
+	UiEmptyState,
+	UiEyebrow,
+	UiSearchBar,
+	UiSkeleton
+} from "../../shared/ui";
 import { injectFollowActions } from "./follow-actions";
 import { type FollowState, UserCard } from "./user-card/user-card";
 
@@ -32,6 +37,7 @@ const EMAIL_PATTERN = /.+@.+\..+/;
 		UserCard,
 		UnfollowConfirmDialog,
 		UiEmptyState,
+		UiEyebrow,
 		UiSearchBar,
 		UiSkeleton
 	],

@@ -22,10 +22,7 @@
 
 @if (searchQuery().trim().length >= 2) {
 <section class="mb-10" aria-labelledby="player-search-heading">
-	<h2
-		id="player-search-heading"
-		class="m-0 mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-	>
+	<h2 id="player-search-heading" uiEyebrow class="m-0 mb-3">
 		Players matching “{{ searchQuery().trim() }}”
 	</h2>
 	@if (isSearching()) {
@@ -57,12 +54,7 @@
 }
 
 <section aria-labelledby="discover-heading">
-	<h2
-		id="discover-heading"
-		class="m-0 mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-	>
-		Discover
-	</h2>
+	<h2 id="discover-heading" uiEyebrow class="m-0 mb-3">Discover</h2>
 	@if (isLoadingDiscover()) {
 	<ng-container *ngTemplateOutlet="cardsSkeleton" />
 	} @else if (discoverUsers().length === 0) {
