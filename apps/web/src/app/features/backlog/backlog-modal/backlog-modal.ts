@@ -21,6 +21,7 @@ import { type Game } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
+import { BacklogStatusBadge } from "../../../shared/components/backlog-status-badge/backlog-status-badge";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
@@ -52,10 +53,8 @@ import {
 } from "../../../shared/ui";
 import {
 	BACKLOG_STATUS_FILTERS,
-	backlogStatusClass,
 	backlogStatusIcon,
-	backlogStatusIconColor,
-	backlogStatusLabel
+	backlogStatusIconColor
 } from "../../../shared/utils/backlog-status";
 import { BacklogProgressService } from "../../backlog-progress/backlog-progress";
 import { type ProgressNote } from "../../backlog-progress/backlog-progress.model";
@@ -130,6 +129,7 @@ const MISSING_FIELD_LABELS: Record<MissingField, string> = {
 	selector: "app-backlog-modal",
 	imports: [
 		UiAlert,
+		BacklogStatusBadge,
 		BacklogReferenceFields,
 		DatePipe,
 		FormField,
@@ -307,10 +307,6 @@ export class BacklogModal implements OnInit {
 	switchToEdit() {
 		this.viewMode.set("edit");
 	}
-
-	protected readonly backlogStatusClass = backlogStatusClass;
-	protected readonly backlogStatusLabel = backlogStatusLabel;
-	protected readonly backlogStatusIcon = backlogStatusIcon;
 
 	protected readonly model = signal({
 		gameId: "",

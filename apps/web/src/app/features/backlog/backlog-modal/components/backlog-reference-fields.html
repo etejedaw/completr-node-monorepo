@@ -10,12 +10,7 @@
 			>analytics</span
 		>
 		<div class="flex-1 min-w-0 flex flex-col gap-0.5">
-			<h3
-				id="reference-heading"
-				class="m-0 text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-			>
-				Reference
-			</h3>
+			<h3 id="reference-heading" uiEyebrow class="m-0">Reference</h3>
 			<p class="m-0 text-sm font-medium text-fg tabular-nums truncate">
 				{{ summary() }}
 			</p>
@@ -41,10 +36,7 @@
 		<div class="flex items-center justify-between gap-3 mb-1">
 			<h3 id="reference-heading" uiEyebrow class="m-0">Reference</h3>
 			<div class="flex items-center gap-1.5">
-				<span
-					class="text-[0.625rem] uppercase tracking-[0.16em] text-fg-muted"
-					>Ratio</span
-				>
+				<span uiEyebrow class="!inline">Ratio</span>
 				<span
 					class="font-display text-base font-bold tabular-nums"
 					[class.text-brand]="ratio() !== null"

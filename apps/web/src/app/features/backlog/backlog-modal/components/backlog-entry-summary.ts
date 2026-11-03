@@ -11,18 +11,14 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { type BacklogEntry, type GamePlatinum } from "../../../../core/models";
+import { BacklogStatusBadge } from "../../../../shared/components/backlog-status-badge/backlog-status-badge";
 import { ExpandableText } from "../../../../shared/components/expandable-text/expandable-text";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
 import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/platinum-trophy";
 import { RatioSummary } from "../../../../shared/components/ratio-summary/ratio-summary";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { CoverUrlPipe } from "../../../../shared/pipes/cover-url";
-import { UiAvatar } from "../../../../shared/ui";
-import {
-	backlogStatusIcon,
-	backlogStatusIconColor,
-	backlogStatusLabel
-} from "../../../../shared/utils/backlog-status";
+import { UiAvatar, UiBadge, UiEyebrow } from "../../../../shared/ui";
 import { type ProgressNote } from "../../../backlog-progress/backlog-progress.model";
 import { type CoopMember } from "../../../coop-runs/coop-runs.model";
 import { MAX_CRITIC_SCORE } from "../reference-values";
@@ -35,6 +31,7 @@ const MISSING_VALUE = "—";
 @Component({
 	selector: "app-backlog-entry-summary",
 	imports: [
+		BacklogStatusBadge,
 		CoverUrlPipe,
 		DatePipe,
 		ExpandableText,
@@ -43,7 +40,9 @@ const MISSING_VALUE = "—";
 		RatioSummary,
 		RouterLink,
 		StarRating,
-		UiAvatar
+		UiAvatar,
+		UiBadge,
+		UiEyebrow
 	],
 	templateUrl: "./backlog-entry-summary.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -57,10 +56,6 @@ export class BacklogEntrySummary {
 	readonly navigated = output<void>();
 
 	private readonly locale = inject(LOCALE_ID);
-
-	protected readonly statusLabel = backlogStatusLabel;
-	protected readonly statusIcon = backlogStatusIcon;
-	protected readonly statusIconColor = backlogStatusIconColor;
 
 	protected readonly isPlatinumRun = computed(
 		() => this.platinum()?.backlogId === this.entry().id

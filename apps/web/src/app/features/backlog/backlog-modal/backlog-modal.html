@@ -48,9 +48,7 @@
 					>library_books</span
 				>
 				<div class="flex-1 min-w-0 flex flex-col gap-0.5">
-					<span
-						id="compilation-heading"
-						class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-brand"
+					<span uiEyebrow id="compilation-heading" class="!text-brand"
 						>Compilation</span
 					>
 					<span class="text-sm font-medium text-fg truncate"
@@ -807,17 +805,7 @@
 				[disabled]="!!c.coopRunId"
 			>
 				<div class="flex items-center justify-between mb-1">
-					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold"
-						[class]="backlogStatusClass(c.status)"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.875rem]"
-							>{{ backlogStatusIcon(c.status) }}</span
-						>
-						{{ backlogStatusLabel(c.status) }}
-					</span>
+					<app-backlog-status-badge [status]="c.status" />
 					@if (c.coopRunId) {
 					<span class="text-[0.625rem] text-warning"
 						>Already in another co-op</span
