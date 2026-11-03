@@ -16,23 +16,6 @@ export interface PublicFavorite {
 	game: GameSummary;
 }
 
-export interface PublicQueue {
-	id: string;
-	position: number;
-	backlog: {
-		id: string;
-		status: string;
-		game: GameSummary;
-		platform?: { id: string; abbreviation: string };
-	};
-}
-
-export interface PublicGameShelf {
-	id: string;
-	game: GameSummary & { description?: string };
-	platform: { id: string; abbreviation: string };
-}
-
 export type ComparisonDimension =
 	| "completed"
 	| "playing"
