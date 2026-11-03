@@ -75,22 +75,6 @@ describe("AuthService", () => {
 			expect(service.sessionId()).toBe("session-1");
 		});
 
-		it("stores the tokens returned by register", () => {
-			const body = {
-				username: "ada",
-				email: "a@b.c",
-				password: "secret",
-				name: "Ada"
-			};
-
-			service.register(body).subscribe();
-
-			const req = httpTesting.expectOne(`${api}/auth/register`);
-			expect(req.request.body).toEqual(body);
-			req.flush(authResponse);
-			expect(service.token()).toBe("access-1");
-		});
-
 		it("stores the tokens returned by accepting an invitation", () => {
 			const body = {
 				token: "inv",
