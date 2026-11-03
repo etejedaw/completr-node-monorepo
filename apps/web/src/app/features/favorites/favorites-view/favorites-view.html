@@ -30,11 +30,7 @@
 			Done
 		</button>
 		} @else {
-		<a
-			uiButton
-			variant="glass"
-			routerLink="/games"
-		>
+		<a uiButton variant="glass" routerLink="/games">
 			<span aria-hidden="true" class="material-icons text-base"
 				>explore</span
 			>
@@ -87,10 +83,11 @@
 			>
 		</p>
 		} @else {
-		<ui-search-bar
+		<app-page-search
 			size="sm"
+			scopeLabel="Favorites"
 			class="flex-1 min-w-[12rem] max-w-2xl"
-			placeholder="Search your favorites..."
+			placeholder="Filter by title..."
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"
 		/>
