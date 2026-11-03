@@ -89,6 +89,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 
 - Pasar a `playing`, `completed`, `abandoned` o `endless` **elimina la entrada del queue** si existía.
 - La respuesta de update incluye `queueRemoved: true` cuando aplica.
+- `POST /users/me/backlog/bulk` admite `action=update` (`{ ids, changes }`, con `changes` limitado a `status`, `startedAt`, `finishedAt`, `userRating` e `isPublic`, validados igual que en `UpdateBacklogSchema` y con al menos un campo) y `action=delete` (`{ ids }`). Mismas reglas que el `PATCH` y el `DELETE` individuales; el `update` agrega `queueRemoved: string[]` con las runs que salieron de la queue y registra `backlog_<status>` solo por las runs cuyo status realmente cambió. Ver [Acciones masivas](#acciones-masivas).
 
 ---
 
@@ -101,6 +102,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - `position` sin huecos ni duplicados: toda salida de la queue (cambio de status fuera de `not_started`, borrado del backlog) renumera las restantes 1..n en la misma transacción, y el alta usa `MAX(position) + 1`. Las operaciones sobre la queue de un usuario se serializan con un advisory lock transaccional (`pg_advisory_xact_lock`).
 - `PATCH /users/me/queue/:backlogId/position` con `{ position }` mueve una sola entrada a esa posición (base 1) de la queue completa y desplaza las demás, en una transacción bajo el advisory lock; no depende de lo que el cliente tenga cargado, así que no pierde entradas ocultas por búsqueda o paginación. Una posición mayor que el tamaño de la queue se ajusta a la última; `position` no entero, menor que 1 o basura responde 422 `COMMON_SCHEMA_INVALID`; un backlog que no está en la queue del usuario (incluido el de otro usuario) responde 404 `QUEUE_BACKLOG_NOT_FOUND`. Devuelve la queue completa, como `PUT`.
 - `PUT /users/me/queue` reemplaza la queue entera (borra y recrea): solo es válido cuando el cliente envía el orden completo. Los movimientos individuales usan el `PATCH`.
+- `POST /users/me/queue/bulk` con `{ backlogIds }` admite `action=add` y `action=remove`, bajo el advisory lock. `add` agrega al final en el orden recibido; una run ya en la queue va a `succeeded` sin duplicarse, una run ajena o inexistente a `skipped` con `QUEUE_BACKLOG_NOT_FOUND` y una que no está en `not_started` con `QUEUE_BACKLOG_NOT_STARTED`; registra `queue_added` solo por las runs agregadas. `remove` renumera las restantes 1..n; una run que no estaba en la queue va a `skipped` con `QUEUE_BACKLOG_NOT_FOUND`. Ver [Acciones masivas](#acciones-masivas).
 - `GET /users/:username/queue` omite `backlog.notes` y `backlog.moodTags`, y excluye las entradas cuyo backlog es privado (`isPublic = false`); el filtro va en la consulta, así que `total` y la paginación cuentan solo lo visible. `position` se numera sobre lo visible (`offset + índice + 1`) para no revelar huecos; en la DB no cambia. La queue propia (`GET /users/me/queue`) devuelve todo y con su `position` real.
 
 ---
@@ -118,6 +120,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 
 - Apunta a `Game`. No requiere backlog.
 - Unique `(user_id, game_id)`.
+- `POST /users/me/favorites/bulk` con `{ gameIds }` admite `action=add` y `action=remove`, serializadas por usuario con un advisory lock transaccional (`favorites:<userId>`). `add` agrega al final de las posiciones en el orden recibido; un juego ya favorito va a `succeeded` sin duplicarse y uno inexistente a `skipped` con `FAVORITE_GAMES_NOT_FOUND`; registra `favorite_added` solo por los juegos agregados. `remove` renumera las posiciones restantes 1..n; un juego que no era favorito va a `skipped` con `FAVORITE_GAMES_NOT_FOUND`. Ver [Acciones masivas](#acciones-masivas).
 
 ---
 
@@ -130,6 +133,7 @@ Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endl
 - `backlogId` de una run inexistente o de otro usuario responde 404 `GAME_PLATINUM_BACKLOG_NOT_FOUND`; de una run propia de otro juego, 422 `GAME_PLATINUM_BACKLOG_GAME_MISMATCH`. Un juego inexistente o inactivo responde 404 `GAME_PLATINUM_GAME_NOT_FOUND`, y una plataforma inexistente, 422 `GAME_PLATINUM_PLATFORM_NOT_FOUND`.
 - `DELETE /users/me/games/:gameId/platinum` responde 204, o 404 `GAME_PLATINUM_NOT_FOUND` si no hay platino. La activity ya registrada no se borra.
 - La activity `game_platinumed` se registra solo al crear el platino, no al actualizarlo.
+- `POST /users/me/platinums/bulk?action=delete` con `{ gameIds }` borra los platinos del usuario para esos juegos, igual que el `DELETE` individual; un juego sin platino propio va a `skipped` con `GAME_PLATINUM_NOT_FOUND`. Se registra antes de `/users/:username/platinums`. Ver [Acciones masivas](#acciones-masivas).
 - `GET /users/:username/platinums` lista los platinos de un usuario, paginado con `limit` (1 a 100), `offset` y `search` opcional sobre el título del juego con las [reglas de búsqueda de texto](#reglas-de-búsqueda-de-texto). Orden: `platinumedAt` descendente con los platinos sin fecha al final, luego `createdAt` descendente e `id` de desempate. Cada entrada lleva el juego (`id`, `code`, `title`, `backgroundUrl`, `isDlc`) y la plataforma (`id`, `name`, `abbreviation`, o `null`); `total` cuenta lo que cumple el filtro. Exige `canView` de `profile` y de `platinum` (403 `USER_PRIVATE` si no) y responde 404 `USER_NOT_FOUND` para un usuario inexistente. Para otros viewers omite `notes` y pone `backlogId` en `null` si la run es privada; el dueño lo recibe completo.
 - `GET /users/me/platinums` lista los platinos del usuario autenticado con la misma paginación, búsqueda, orden y forma que `GET /users/:username/platinums`, sin chequeos de visibilidad y siempre con `notes` y `backlogId`. Se registra antes de `/users/:username/platinums` para que `me` no se tome como username.
 - Cada run de `GET /users/me/backlog` y `GET /users/:username/backlog` lleva `platinum` (el mismo objeto para todas las runs del juego, o `null`), cargado con una sola consulta por request; la ficha (`GET /games/:code`) lleva `userPlatinum` del usuario autenticado. Las demás respuestas que reutilizan el serializer del backlog (perfil, highlights, completions, alta y edición de runs) no cargan el platino y omiten la clave.
@@ -414,6 +418,19 @@ Endpoints: `GET /users/me/backlog/export`, `/users/me/queue/export`, `/users/me/
 - Respuesta: `Content-Disposition: attachment; filename="completr-<recurso>-YYYY-MM-DD.<csv|json>"` con la fecha en UTC (`completr-list-<slug>-…` para listas, `completr-list-…` si el nombre no da slug). CORS expone `Content-Disposition` (`exposedHeaders` en `cors.config.ts`).
 - CSV (`serializeCsv()`): `text/csv; charset=utf-8`, BOM UTF-8, fila de cabecera, coma, `\r\n` al final de cada línea, escape RFC 4180. Un texto que empieza con `=`, `+`, `-`, `@`, tab o CR se prefija con `'`. `null` es un campo vacío. Un resultado vacío devuelve solo la cabecera.
 - JSON: `application/json; charset=utf-8`, un array desnudo (sin `data`) con las mismas claves que las columnas del CSV y tipos nativos; un resultado vacío devuelve `[]`.
+
+---
+
+## Acciones masivas
+
+Endpoints: `POST /users/me/backlog/bulk`, `/users/me/queue/bulk`, `/users/me/favorites/bulk`, `/users/me/game-shelf/bulk` y `/users/me/platinums/bulk`. La operación va en el query param `action`; las acciones de cada recurso viven en su `*.constants.ts` (`BACKLOG_BULK_ACTIONS`, `QUEUE_BULK_ACTIONS`, `FAVORITES_BULK_ACTIONS`, `GAME_SHELF_BULK_ACTIONS`, `PLATINUMS_BULK_ACTIONS`).
+
+- El query se valida con `buildBulkActionQuerySchema(actions)` y el body con `validateBulkBodyMiddleware({ [action]: schema })`, que elige el schema de la acción y delega en `validateSchemaMiddleware`. Una `action` desconocida o ausente, un body que no corresponde a la acción, un campo extra, una lista vacía o con más de `BULK_MAX_IDS` (100, en `common/constants/bulk.constants.ts`) elementos o un valor que no es UUID responden 422 `COMMON_SCHEMA_INVALID`.
+- `BulkIdsSchema` deduplica los ids conservando el orden de la primera aparición; el tope de 100 se cuenta antes de deduplicar.
+- Cada lote corre en una sola transacción. Respuesta 200 con `{ data: { action, succeeded, skipped } }`: `succeeded` es la lista de ids procesados en el orden recibido y `skipped` una lista de `{ id, code }`. Los ids son del mismo tipo que el body (`backlogId` en queue, `gameId` en favoritos y platinos).
+- Un id que no existe o no es del usuario nunca hace fallar el lote: va a `skipped` con el código de no encontrado del módulo (`BACKLOG_NOT_FOUND`, `QUEUE_BACKLOG_NOT_FOUND`, `FAVORITE_GAMES_NOT_FOUND`, `GAME_SHELF_NOT_FOUND`, `GAME_PLATINUM_NOT_FOUND`). Una fila que no cumple una regla de negocio del endpoint individual va a `skipped` con el código que daría ese endpoint.
+- Topes free en `queue add` y `favorites add`: si las filas que de verdad se agregarían superan el tope, el lote responde 402 (`QUEUE_LIMIT_REACHED` o `FAVORITE_LIMIT_REACHED`) y no aplica nada. Las filas que ya estaban no cuentan.
+- Las activities se registran después del commit y solo por las filas que cambiaron de verdad.
 
 ---
 
