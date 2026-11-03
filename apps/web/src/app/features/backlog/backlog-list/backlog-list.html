@@ -103,7 +103,7 @@
 				</button>
 				<button
 					type="button"
-					class="max-sm:hidden bg-transparent border h-9 text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 px-3 rounded-card transition"
+					class="max-sm:hidden bg-transparent border h-10 text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 px-3 rounded-card transition"
 					[class.border-line]="!showFilters() && !hasActiveFilters()"
 					[class.text-fg-secondary]="!showFilters() && !hasActiveFilters()"
 					[class.hover:border-brand]="!showFilters()"
@@ -125,7 +125,7 @@
 				@if (clearAction(); as action) {
 				<button
 					type="button"
-					class="h-9 max-sm:h-12 px-3 max-sm:px-4 tap:min-h-[44px] border border-danger/50 bg-danger/10 text-danger hover:bg-danger/20 rounded-card text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 transition"
+					class="h-10 max-sm:h-12 px-3 max-sm:px-4 tap:min-h-[44px] border border-danger/50 bg-danger/10 text-danger hover:bg-danger/20 rounded-card text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 transition"
 					[title]="action.description"
 					[attr.aria-label]="action.description"
 					(click)="clearFilters()"
@@ -138,7 +138,7 @@
 				} @if (activeFilterId()) {
 				<button
 					type="button"
-					class="max-sm:hidden bg-transparent border h-9 text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 px-3 rounded-card transition"
+					class="max-sm:hidden bg-transparent border h-10 text-sm font-medium font-sans whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 px-3 rounded-card transition"
 					[class.border-line]="!showStatsPanel() && !hasAnyStatEnabled()"
 					[class.text-fg-secondary]="!showStatsPanel() && !hasAnyStatEnabled()"
 					[class.hover:border-brand]="!showStatsPanel()"
