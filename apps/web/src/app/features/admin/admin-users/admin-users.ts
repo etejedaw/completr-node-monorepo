@@ -109,6 +109,7 @@ function summarize(errors: readonly ValidationError.WithFieldTree[]): string {
 const USER_ROLE_BADGE: RoleBadge = {
 	label: "User",
 	className: "bg-fg-muted/10 text-fg-muted",
+	tone: "neutral",
 	icon: null
 };
 
