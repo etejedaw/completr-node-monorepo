@@ -28,7 +28,7 @@ const INPUT_SIZE_CLASSES: Record<UiSearchBarSize, string> = {
 	template: `
 		<div
 			ngpSearch
-			class="flex items-stretch bg-input-bg border border-line rounded-card px-4 transition focus-within:border-brand focus-within:shadow-[0_0_0_3px_var(--color-brand-subtle)]"
+			class="flex items-stretch bg-input-bg border border-line rounded-card px-4 transition focus-within:border-brand focus-within:shadow-ring-brand"
 			[class]="boxSizeClass()"
 		>
 			<span

@@ -8,7 +8,7 @@
 		[attr.aria-describedby]="readonly() ? null : cardDescriptionId()"
 		[class.max-sm:rounded-b-none]="hasMobileBar()"
 		[class.cursor-pointer]="!readonly()"
-		class="group/row relative isolate h-full flex flex-col rounded-card bg-surface border border-line transition duration-200 hover:border-brand/40 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-20px_rgba(0,0,0,0.9)] focus-visible:outline-2 focus-visible:outline-brand"
+		class="group/row relative isolate h-full flex flex-col rounded-card bg-surface border border-line transition duration-200 hover:border-brand/40 hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-2 focus-visible:outline-brand"
 		(click)="opened.emit($event)"
 		(keydown.enter)="opened.emit($event)"
 		(keydown.space)="opened.emit($event); $event.preventDefault()"
@@ -285,7 +285,7 @@
 	<section
 		flipCardBack
 		[class.max-sm:rounded-b-none]="hasMobileBar()"
-		class="h-full flex flex-col rounded-card bg-sidebar border border-brand/30 shadow-[0_18px_40px_-20px_rgba(0,0,0,0.9)] overflow-hidden"
+		class="h-full flex flex-col rounded-card bg-sidebar border border-brand/30 shadow-card overflow-hidden"
 		[attr.aria-label]="(readonly() ? 'Note and review for ' : 'Your note and review for ') + item.game.title"
 	>
 		<header

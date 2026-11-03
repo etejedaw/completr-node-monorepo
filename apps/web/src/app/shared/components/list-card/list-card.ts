@@ -92,7 +92,7 @@ const COLLAGE_SIZE = 4;
 
 			<div class="absolute inset-x-0 bottom-0 p-4">
 				<h3
-					class="m-0 font-display text-lg font-bold text-white leading-tight line-clamp-1 drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
+					class="m-0 font-display text-lg font-bold text-white leading-tight line-clamp-1 drop-shadow-cover"
 				>
 					{{ list().name }}
 				</h3>

@@ -56,7 +56,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 					@if (icon()) {
 						<span
 							aria-hidden="true"
-							class="shrink-0 inline-flex size-12 items-center justify-center rounded-xl ring-1 ring-inset shadow-[0_8px_24px_-10px_currentColor]"
+							class="shrink-0 inline-flex size-12 items-center justify-center rounded-xl ring-1 ring-inset shadow-tone-icon"
 							[class]="iconToneClass()"
 						>
 							<span class="material-icons text-[22px]">{{
