@@ -412,6 +412,6 @@ textarea.ui-input {
 	.ui-switch__track::after {
 		content: "";
 		position: absolute;
-		inset: -12px -4px;
+		inset: -15px -8px;
 	}
 }
