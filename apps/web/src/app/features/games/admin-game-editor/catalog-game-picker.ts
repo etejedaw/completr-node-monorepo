@@ -12,7 +12,13 @@ import {
 
 import { type Game } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
-import { UiBadge, UiButton, UiSearchBar, UiSkeleton } from "../../../shared/ui";
+import {
+	UiBadge,
+	UiButton,
+	UiPlainEmptyState,
+	UiSearchBar,
+	UiSkeleton
+} from "../../../shared/ui";
 import { injectGameSearch } from "../game-search";
 
 const CATALOG_PICKER_RESULT_LIMIT = 8;
@@ -21,7 +27,14 @@ const RESULT_STEP: Record<string, number> = { ArrowDown: 1, ArrowUp: -1 };
 
 @Component({
 	selector: "app-catalog-game-picker",
-	imports: [GamePoster, UiBadge, UiButton, UiSearchBar, UiSkeleton],
+	imports: [
+		GamePoster,
+		UiBadge,
+		UiButton,
+		UiPlainEmptyState,
+		UiSearchBar,
+		UiSkeleton
+	],
 	template: `
 		<ui-search-bar
 			[placeholder]="placeholder()"
@@ -31,33 +44,23 @@ const RESULT_STEP: Record<string, number> = { ArrowDown: 1, ArrowUp: -1 };
 
 		@if (search.status() === "done") {
 			@if (results().length === 0) {
-				<div
-					class="flex flex-col items-center text-center gap-1.5 px-4 py-6"
-					role="status"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-2xl text-fg-muted"
-						>search_off</span
+				<div role="status">
+					<ui-plain-empty-state
+						icon="search_off"
+						title="No games found"
+						[message]="emptyHint()"
+						[compact]="true"
 					>
-					<p class="m-0 text-sm font-semibold text-fg">
-						No games found
-					</p>
-					<p
-						class="m-0 text-[0.8125rem] text-fg-muted max-w-[20rem] text-pretty"
-					>
-						{{ emptyHint() }}
-					</p>
-					<button
-						uiButton
-						variant="ghost"
-						size="sm"
-						type="button"
-						class="mt-1 max-md:min-h-[44px]"
-						(click)="clearQuery()"
-					>
-						New search
-					</button>
+						<button
+							uiButton
+							variant="ghost"
+							size="sm"
+							type="button"
+							(click)="clearQuery()"
+						>
+							New search
+						</button>
+					</ui-plain-empty-state>
 				</div>
 			} @else {
 				<p class="sr-only" role="status">
@@ -70,7 +73,8 @@ const RESULT_STEP: Record<string, number> = { ArrowDown: 1, ArrowUp: -1 };
 					@for (game of results(); track game.id) {
 						<li class="flex items-center gap-3 px-3 py-2">
 							<app-game-poster
-								class="w-9 aspect-[2/3] shrink-0 rounded ring-1 ring-white/10"
+								framed
+								class="w-9 aspect-[2/3] shrink-0 rounded"
 								[src]="game.backgroundUrl"
 								[title]="game.title"
 								[width]="200"
