@@ -1,9 +1,12 @@
 import { Op, type Transaction } from "sequelize";
 
+import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type ExportSearchQuery } from "../common/schemas/export-search-query.schema";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { splitByPresence } from "../common/utils/split-by-presence.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
+import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import * as gamesService from "../games/games.service";
@@ -50,6 +53,125 @@ export async function replaceFavorites(user: RequestUser, gameIds: string[]) {
 			["position", "ASC"],
 			["id", "ASC"]
 		]
+	});
+}
+
+async function lockUserFavorites(userId: string, transaction: Transaction) {
+	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
+		replacements: { lockKey: `favorites:${userId}` },
+		transaction
+	});
+}
+
+async function checkBulkLimit(
+	user: RequestUser,
+	incomingCount: number,
+	transaction: Transaction
+) {
+	const premiumAccess = await resolvePremiumAccess(
+		user,
+		"favorites.unlimited"
+	);
+	if (premiumAccess.allowed) return;
+	const count = await Favorite.count({
+		where: { userId: user.id },
+		transaction
+	});
+	if (count + incomingCount > FREE_FAVORITE_LIMIT)
+		throw favoritesServiceError.limitReachedError();
+}
+
+async function compactPositions(userId: string, transaction: Transaction) {
+	await sequelize.query(
+		`UPDATE "Favorites" AS f
+		SET "position" = ranked."position", "updatedAt" = NOW()
+		FROM (
+			SELECT "id", ROW_NUMBER() OVER (ORDER BY "position", "createdAt", "id") AS "position"
+			FROM "Favorites"
+			WHERE "userId" = :userId
+		) AS ranked
+		WHERE f."id" = ranked."id" AND f."position" <> ranked."position"`,
+		{ replacements: { userId }, transaction }
+	);
+}
+
+export async function bulkAddFavorites(user: RequestUser, gameIds: string[]) {
+	const games = await gamesService.findGamesByIds(gameIds);
+	const { present: existingGameIds, missing } = splitByPresence(
+		gameIds,
+		games.map(game => game.id)
+	);
+
+	return sequelize.transaction(async transaction => {
+		await lockUserFavorites(user.id, transaction);
+		const alreadyFavorite = await Favorite.findAll({
+			where: { userId: user.id, gameId: existingGameIds },
+			attributes: ["gameId"],
+			transaction
+		});
+		const { missing: added } = splitByPresence(
+			existingGameIds,
+			alreadyFavorite.map(entry => entry.gameId)
+		);
+
+		if (added.length > 0) {
+			await checkBulkLimit(user, added.length, transaction);
+			const lastPosition = await Favorite.max<number | null, Favorite>(
+				"position",
+				{ where: { userId: user.id }, transaction }
+			);
+			await Favorite.bulkCreate(
+				added.map((gameId, index) => ({
+					userId: user.id,
+					gameId,
+					position: (lastPosition ?? 0) + index + 1
+				})),
+				{ transaction }
+			);
+		}
+
+		return {
+			succeeded: existingGameIds,
+			skipped: toBulkSkipped(
+				missing,
+				favoritesServiceError.gamesNotFoundError(missing).code
+			),
+			added
+		};
+	});
+}
+
+export async function bulkRemoveFavorites(
+	userId: string,
+	gameIds: string[]
+): Promise<BulkResult> {
+	return sequelize.transaction(async transaction => {
+		await lockUserFavorites(userId, transaction);
+		const favorites = await Favorite.findAll({
+			where: { userId, gameId: gameIds },
+			attributes: ["gameId"],
+			transaction
+		});
+		const { present: succeeded, missing } = splitByPresence(
+			gameIds,
+			favorites.map(entry => entry.gameId)
+		);
+
+		if (succeeded.length > 0) {
+			await Favorite.destroy({
+				where: { userId, gameId: succeeded },
+				transaction
+			});
+			await compactPositions(userId, transaction);
+		}
+
+		return {
+			succeeded,
+			skipped: toBulkSkipped(
+				missing,
+				favoritesServiceError.gamesNotFoundError(missing).code
+			)
+		};
 	});
 }
 

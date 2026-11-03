@@ -11,6 +11,7 @@ import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
 import * as usersService from "../users/users.service";
+import { type BulkFavoritesDto } from "./dtos/bulk-favorites.dto";
 import { type ReplaceFavoritesDto } from "./dtos/replace-favorites.dto";
 import {
 	FAVORITES_EXPORT_COLUMNS,
@@ -18,6 +19,7 @@ import {
 } from "./favorites.export-row.mapper";
 import { favoriteSerializer } from "./favorites.serializer";
 import * as favoritesService from "./favorites.service";
+import { type FavoritesBulkQuery } from "./schemas/favorites-bulk-query.schema";
 
 export async function putFavorites(request: Request, response: Response) {
 	const body = request.locals.body as ReplaceFavoritesDto;
@@ -146,4 +148,30 @@ export async function getMeFavoritesExport(
 			favoriteToExportRow(entry.get({ plain: true }))
 		)
 	});
+}
+
+export async function postFavoritesBulk(request: Request, response: Response) {
+	const query = request.locals.query as FavoritesBulkQuery;
+	const body = request.locals.body as BulkFavoritesDto;
+	const user = request.locals.user as RequestUser;
+
+	if (query.action === "remove") {
+		const result = await favoritesService.bulkRemoveFavorites(
+			user.id,
+			body.gameIds
+		);
+		const data = { action: query.action, ...result };
+		return response.status(200).json({ data });
+	}
+
+	const { added, ...result } = await favoritesService.bulkAddFavorites(
+		user,
+		body.gameIds
+	);
+	for (const gameId of added) {
+		activityService.record(user.id, "favorite_added", gameId);
+	}
+
+	const data = { action: query.action, ...result };
+	return response.status(200).json({ data });
 }
