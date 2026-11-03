@@ -21,6 +21,7 @@ import {
 import { AuthService } from "../../../core/services/auth";
 import { type UserResult } from "../../../core/services/users.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { UnfollowConfirmDialog } from "../../../shared/components/unfollow-confirm-dialog/unfollow-confirm-dialog";
 import {
@@ -84,6 +85,7 @@ export class UserConnections {
 	protected readonly tabs = CONNECTION_TABS;
 	protected readonly username =
 		this.route.snapshot.paramMap.get("username") ?? "";
+	protected readonly backLink = profileBackLink(this.username);
 	protected readonly kind: ConnectionKind =
 		this.route.snapshot.data["kind"] ?? "followers";
 	protected readonly query = signal("");

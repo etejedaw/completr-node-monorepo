@@ -1,8 +1,14 @@
-import { ChangeDetectionStrategy, Component, inject } from "@angular/core";
+import {
+	ChangeDetectionStrategy,
+	Component,
+	computed,
+	inject
+} from "@angular/core";
 import { RouterLink } from "@angular/router";
 
 import { type QueueEntry } from "../../../core/models";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
 import { UiButton, UiEmptyState } from "../../../shared/ui";
 import { QueueBrowser } from "../../queue/queue-browser/queue-browser";
 import { ProfileAccessState } from "../components/profile-access-state";
@@ -32,5 +38,8 @@ export class UserQueue {
 			this.libraryService.getUserQueue(username, pagination),
 		entry => entry.backlog.game,
 		{ limit: QUEUE_PAGE_SIZE }
+	);
+	protected readonly backLink = computed(() =>
+		profileBackLink(this.collection.username())
 	);
 }

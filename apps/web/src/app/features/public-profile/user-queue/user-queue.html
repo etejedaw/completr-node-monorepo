@@ -5,17 +5,11 @@
 	privateTitle="This queue is private"
 />
 } @else {
-<app-library-hero heading="Up Next" [posters]="collection.posters()">
-	<a
-		heroEyebrow
-		class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover"
-		[routerLink]="['/user', collection.username()]"
-	>
-		<span aria-hidden="true" class="material-icons text-sm"
-			>arrow_back</span
-		>
-		{{ '@' + collection.username() }}'s profile
-	</a>
+<app-library-hero
+	[backLink]="backLink()"
+	heading="Up Next"
+	[posters]="collection.posters()"
+>
 	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
 		<span class="font-semibold text-fg tabular-nums"
 			>{{ collection.total() }}</span

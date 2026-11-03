@@ -35,6 +35,8 @@ import { injectExportDownload } from "../../../shared/components/export-actions/
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GiftOfferCard } from "../../../shared/components/gift-offer-card/gift-offer-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { type LibraryHeroBackLink } from "../../../shared/components/library-hero/library-hero.model";
+import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
 import { ProgressMeter } from "../../../shared/components/progress-meter/progress-meter";
 import {
 	UiButton,
@@ -159,6 +161,12 @@ export class ListDetail implements OnInit {
 	private static readonly COMPARE_PARAM = "compare";
 
 	protected readonly fromUsername = signal<string | null>(null);
+	protected readonly backLink = computed<LibraryHeroBackLink>(() => {
+		const username = this.fromUsername();
+		return username
+			? profileBackLink(username)
+			: { label: "Lists", link: "/lists" };
+	});
 	protected readonly compareMode = signal(false);
 	protected readonly viewerProgress = signal<
 		Map<

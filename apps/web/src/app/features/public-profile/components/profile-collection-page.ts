@@ -10,6 +10,7 @@ import { RouterLink } from "@angular/router";
 
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { type LibraryHeroPoster } from "../../../shared/components/library-hero/library-hero.model";
+import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
 import {
 	LibraryPage,
 	type LibraryPageSkeleton,
@@ -49,6 +50,9 @@ import {
 })
 export class ProfileCollectionPage {
 	readonly username = input.required<string>();
+	protected readonly backLink = computed(() =>
+		profileBackLink(this.username())
+	);
 	readonly heading = input.required<string>();
 	readonly icon = input.required<string>();
 	readonly iconColor = input("text-brand");

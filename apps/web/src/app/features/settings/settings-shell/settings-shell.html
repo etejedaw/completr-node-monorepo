@@ -1,9 +1,8 @@
-<app-library-hero heading="Settings" [posters]="heroPosters()">
-	<span
-		heroEyebrow
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Account</span
-	>
+<app-library-hero
+	eyebrow="Account"
+	heading="Settings"
+	[posters]="heroPosters()"
+>
 	@if (user(); as account) {
 	<a
 		heroActions

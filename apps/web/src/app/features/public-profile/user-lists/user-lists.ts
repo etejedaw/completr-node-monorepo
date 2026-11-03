@@ -17,6 +17,7 @@ import { catchError, debounceTime, forkJoin, map, of, Subject } from "rxjs";
 import { AuthService } from "../../../core/services/auth";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { type LibraryHeroPoster } from "../../../shared/components/library-hero/library-hero.model";
+import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { ListCard } from "../../../shared/components/list-card/list-card";
 import {
@@ -83,6 +84,7 @@ export class UserLists {
 	protected readonly tabs = LIST_TABS;
 	protected readonly username =
 		this.route.snapshot.paramMap.get("username") ?? "";
+	protected readonly backLink = profileBackLink(this.username);
 	protected readonly limit = PAGE_SIZE;
 	protected readonly skeletonRange = [0, 1, 2, 3, 4, 5];
 

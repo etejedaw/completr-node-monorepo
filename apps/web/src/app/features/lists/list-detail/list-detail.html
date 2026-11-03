@@ -26,30 +26,11 @@
 	<a uiButton variant="secondary" routerLink="/lists">Back to lists</a>
 </ui-empty-state>
 } @else { @let current = list()!;
-<app-library-hero [heading]="current.name" [posters]="heroPosters()">
-	@if (fromUsername(); as username) {
-	<a
-		heroEyebrow
-		class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover"
-		[routerLink]="['/user', username]"
-	>
-		<span aria-hidden="true" class="material-icons text-sm"
-			>arrow_back</span
-		>
-		{{ '@' + username }}'s profile
-	</a>
-	} @else {
-	<a
-		heroEyebrow
-		class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover"
-		routerLink="/lists"
-	>
-		<span aria-hidden="true" class="material-icons text-sm"
-			>arrow_back</span
-		>
-		Lists
-	</a>
-	}
+<app-library-hero
+	[backLink]="backLink()"
+	[heading]="current.name"
+	[posters]="heroPosters()"
+>
 	<div heroSubtitle class="mt-2 flex flex-col gap-2 max-w-2xl">
 		@if (current.description) {
 		<p class="m-0 text-sm text-fg-secondary">{{ current.description }}</p>

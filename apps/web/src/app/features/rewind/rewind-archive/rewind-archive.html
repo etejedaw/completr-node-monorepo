@@ -8,17 +8,11 @@
 	privateTitle="These Rewinds are private"
 />
 } @else {
-<app-library-hero heading="Rewind" [posters]="posters()">
-	<a
-		heroEyebrow
-		class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover"
-		[routerLink]="['/user', username()]"
-	>
-		<span aria-hidden="true" class="material-icons text-sm"
-			>arrow_back</span
-		>
-		{{ '@' + username() }}'s profile
-	</a>
+<app-library-hero
+	[backLink]="backLink()"
+	heading="Rewind"
+	[posters]="posters()"
+>
 	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
 		{{ subtitle() }}
 	</p>
