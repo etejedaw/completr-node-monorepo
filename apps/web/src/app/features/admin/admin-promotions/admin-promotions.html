@@ -1,9 +1,4 @@
-<app-library-hero heading="Promotions">
-	<span
-		heroEyebrow
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Admin</span
-	>
+<app-library-hero heading="Promotions" eyebrow="Admin">
 	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
 		<span class="font-semibold text-fg tabular-nums"
 			>{{ promotions().length }}</span
@@ -69,86 +64,44 @@
 />
 } @else {
 <div class="max-md:hidden overflow-x-auto">
-	<table class="w-full border-collapse text-[0.8125rem]">
+	<table uiTable>
 		<thead>
 			<tr>
-				<th
-					scope="col"
-					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
-				>
-					Code
-				</th>
-				<th
-					scope="col"
-					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
-				>
-					Feature
-				</th>
-				<th
-					scope="col"
-					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
-				>
-					Status
-				</th>
-				<th
-					scope="col"
-					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
-				>
-					Starts
-				</th>
-				<th
-					scope="col"
-					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
-				>
-					Ends
-				</th>
-				<th
-					scope="col"
-					class="text-right px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
-				>
-					Claims
-				</th>
-				<th scope="col" class="border-b border-line">
-					<span class="sr-only">Actions</span>
-				</th>
+				<th scope="col">Code</th>
+				<th scope="col">Feature</th>
+				<th scope="col">Status</th>
+				<th scope="col">Starts</th>
+				<th scope="col">Ends</th>
+				<th scope="col" class="text-right">Claims</th>
+				<th scope="col"><span class="sr-only">Actions</span></th>
 			</tr>
 		</thead>
 		<tbody>
 			@for (row of rows(); track row.promotion.id) {
-			<tr class="border-b border-line transition hover:bg-surface-hover">
-				<td class="px-3 py-2.5 text-fg align-middle font-medium">
+			<tr>
+				<td class="font-medium text-fg">
 					<code class="break-all">{{ row.promotion.code }}</code>
 				</td>
-				<td class="px-3 py-2.5 text-fg-secondary align-middle">
+				<td class="text-fg-secondary">
 					{{ featureLabel(row.promotion.feature) }}
 				</td>
-				<td class="px-3 py-2.5 align-middle">
-					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold"
-						[class]="statusStyle(row.status).classes"
+				<td>
+					<ui-badge
+						[tone]="statusStyle(row.status).tone"
+						[icon]="statusStyle(row.status).icon"
+						>{{ statusStyle(row.status).label }}</ui-badge
 					>
-						<span aria-hidden="true" class="material-icons text-sm"
-							>{{ statusStyle(row.status).icon }}</span
-						>
-						{{ statusStyle(row.status).label }}
-					</span>
 				</td>
-				<td
-					class="px-3 py-2.5 text-fg-secondary align-middle tabular-nums whitespace-nowrap"
-				>
+				<td class="text-fg-secondary tabular-nums whitespace-nowrap">
 					{{ row.promotion.startsAt | date : "yyyy-MM-dd HH:mm" }}
 				</td>
-				<td
-					class="px-3 py-2.5 text-fg-secondary align-middle tabular-nums whitespace-nowrap"
-				>
+				<td class="text-fg-secondary tabular-nums whitespace-nowrap">
 					{{ row.promotion.endsAt | date : "yyyy-MM-dd HH:mm" }}
 				</td>
-				<td
-					class="px-3 py-2.5 text-fg align-middle tabular-nums text-right"
-				>
+				<td class="text-fg tabular-nums text-right">
 					{{ row.promotion.claimCount }}
 				</td>
-				<td class="px-3 py-2.5 align-middle text-right">
+				<td class="text-right">
 					@if (row.status !== 'ended') {
 					<div class="inline-flex gap-2">
 						<button
@@ -190,77 +143,47 @@
 			<code class="font-medium text-sm text-fg break-all"
 				>{{ row.promotion.code }}</code
 			>
-			<span
-				class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold shrink-0"
-				[class]="statusStyle(row.status).classes"
-			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>{{ statusStyle(row.status).icon }}</span
+			<div class="flex shrink-0 items-center gap-1">
+				<ui-badge
+					[tone]="statusStyle(row.status).tone"
+					[icon]="statusStyle(row.status).icon"
+					>{{ statusStyle(row.status).label }}</ui-badge
 				>
-				{{ statusStyle(row.status).label }}
-			</span>
+				@if (row.status !== 'ended') {
+				<app-action-menu
+					icon="more_vert"
+					[iconOnly]="true"
+					[label]="'Actions for ' + row.promotion.code"
+					[heading]="row.promotion.code"
+					[items]="row.menuItems"
+					(selected)="runRowAction(row.promotion, $event)"
+				/>
+				}
+			</div>
 		</div>
 		<p class="m-0 text-xs text-fg-secondary">
 			{{ featureLabel(row.promotion.feature) }}
 		</p>
 		<dl class="m-0 grid grid-cols-3 gap-3 text-xs">
 			<div>
-				<dt
-					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Starts
-				</dt>
+				<dt uiFieldLabel class="!mb-0">Starts</dt>
 				<dd class="m-0 mt-0.5 text-fg-secondary tabular-nums">
 					{{ row.promotion.startsAt | date : "yyyy-MM-dd HH:mm" }}
 				</dd>
 			</div>
 			<div>
-				<dt
-					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Ends
-				</dt>
+				<dt uiFieldLabel class="!mb-0">Ends</dt>
 				<dd class="m-0 mt-0.5 text-fg-secondary tabular-nums">
 					{{ row.promotion.endsAt | date : "yyyy-MM-dd HH:mm" }}
 				</dd>
 			</div>
 			<div>
-				<dt
-					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Claims
-				</dt>
+				<dt uiFieldLabel class="!mb-0">Claims</dt>
 				<dd class="m-0 mt-0.5 text-fg tabular-nums">
 					{{ row.promotion.claimCount }}
 				</dd>
 			</div>
 		</dl>
-		@if (row.status !== 'ended') {
-		<div class="flex gap-2">
-			<button
-				uiButton
-				variant="secondary"
-				size="sm"
-				class="flex-1"
-				[disabled]="isBusy()"
-				[attr.aria-label]="'Edit ' + row.promotion.code"
-				(click)="openEdit(row.promotion)"
-			>
-				Edit
-			</button>
-			<button
-				uiButton
-				variant="danger"
-				size="sm"
-				class="flex-1"
-				[disabled]="isBusy()"
-				[attr.aria-label]="'End ' + row.promotion.code + ' early'"
-				(click)="openRevoke(row.promotion)"
-			>
-				End early
-			</button>
-		</div>
-		}
 	</li>
 	}
 </ul>
@@ -286,23 +209,23 @@
 		(submit)="submitCreate($event)"
 		novalidate
 	>
-		<div uiFormField>
-			<label uiLabel uiFieldLabel for="promotion-feature"
-				>Feature <span class="text-danger font-bold">*</span></label
+		<div>
+			<app-option-picker
+				label="Feature"
+				heading="Choose a feature"
+				placeholder="Required — pick one"
+				placeholderIcon="redeem"
+				[options]="featurePickerOptions"
+				[value]="createForm.feature().value()"
+				[invalid]="showFeatureError()"
+				[describedBy]="showFeatureError() ? 'promotion-feature-error' : null"
+				(valueChange)="setFeature($event)"
+			/>
+			@if (showFeatureError()) {
+			<p
+				id="promotion-feature-error"
+				class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger"
 			>
-			<select
-				uiSelect
-				id="promotion-feature"
-				[formField]="createForm.feature"
-			>
-				<option value="" disabled>Choose a feature</option>
-				@for (option of featureOptions; track option.feature) {
-				<option [value]="option.feature">{{ option.label }}</option>
-				}
-			</select>
-			@if (createForm.feature().touched() &&
-			createForm.feature().invalid()) {
-			<p class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger">
 				<span aria-hidden="true" class="material-icons text-sm"
 					>error_outline</span
 				>

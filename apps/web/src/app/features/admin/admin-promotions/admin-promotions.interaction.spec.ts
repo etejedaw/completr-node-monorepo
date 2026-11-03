@@ -239,11 +239,21 @@ describe("AdminPromotions interaction", () => {
 		await screen.findByRole("dialog", { name: "New promotion" });
 	}
 
-	async function fillValidCreate(code = "launch-gift") {
-		await userEvent.selectOptions(
-			within(dialog()).getByLabelText(/Feature/),
-			"rewind.premium"
+	function featurePicker() {
+		return within(dialog()).getByRole("button", { name: /^Feature:/ });
+	}
+
+	async function chooseFeature(label: string) {
+		await userEvent.click(featurePicker());
+		const menu = await screen.findByRole("menu");
+		await userEvent.click(
+			within(menu).getByRole("menuitemradio", { name: label })
 		);
+		await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+	}
+
+	async function fillValidCreate(code = "launch-gift") {
+		await chooseFeature("Premium Rewind");
 		setField(/^Code/, code);
 		setField(/^Starts at/, localInput(daysFromNow(1)));
 		setField(/^Ends at/, localInput(daysFromNow(15)));
@@ -357,10 +367,58 @@ describe("AdminPromotions interaction", () => {
 			expect(cards).toHaveLength(3);
 			expect(
 				within(cards[0]).getByRole("button", {
-					name: "Edit active-one"
+					name: "Actions for active-one"
 				})
 			).toBeInTheDocument();
 			expect(within(cards[2]).queryByRole("button")).toBeNull();
+		});
+
+		it("opens Edit dates and End early from the card menu", async () => {
+			await renderLoaded();
+			const card = () =>
+				within(screen.getByRole("list")).getAllByRole("listitem")[0];
+
+			await userEvent.click(
+				within(card()).getByRole("button", {
+					name: "Actions for active-one"
+				})
+			);
+			await userEvent.click(
+				await screen.findByRole("menuitem", { name: "Edit dates" })
+			);
+			await screen.findByRole("dialog", { name: "Edit dates" });
+			await userEvent.click(
+				within(dialog()).getByRole("button", { name: "Cancel" })
+			);
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).toBeNull()
+			);
+
+			await userEvent.click(
+				within(card()).getByRole("button", {
+					name: "Actions for active-one"
+				})
+			);
+			await userEvent.click(
+				await screen.findByRole("menuitem", { name: "End early" })
+			);
+			await screen.findByRole("dialog", { name: "End promotion early?" });
+		});
+
+		it("opens a single dialog when the card menu item is double clicked", async () => {
+			await renderLoaded();
+
+			await userEvent.click(
+				screen.getAllByRole("button", {
+					name: "Actions for active-one"
+				})[0]
+			);
+			await userEvent.dblClick(
+				await screen.findByRole("menuitem", { name: "Edit dates" })
+			);
+
+			await screen.findByRole("dialog", { name: "Edit dates" });
+			expect(screen.getAllByRole("dialog")).toHaveLength(1);
 		});
 
 		it("shows the empty state and the singular label", async () => {
@@ -441,6 +499,89 @@ describe("AdminPromotions interaction", () => {
 			).toBeInTheDocument();
 			expect(requests).toEqual([]);
 			expect(dialog()).toBeInTheDocument();
+		});
+
+		it("links the feature picker to its error and clears it once a feature is chosen", async () => {
+			await renderLoaded();
+			await openCreate();
+
+			await userEvent.click(submitButton("Create promotion"));
+
+			const error = within(dialog()).getByText("Choose a feature.");
+			expect(featurePicker()).toHaveAttribute("aria-invalid", "true");
+			expect(featurePicker().getAttribute("aria-describedby")).toBe(
+				error.closest("p")?.id
+			);
+
+			await chooseFeature("JSON export");
+
+			expect(featurePicker()).toHaveAccessibleName(
+				"Feature: JSON export"
+			);
+			expect(featurePicker()).not.toHaveAttribute("aria-invalid");
+			expect(
+				within(dialog()).queryByText("Choose a feature.")
+			).toBeNull();
+		});
+
+		it("keeps the last feature when the admin changes their mind and sends only that one", async () => {
+			await renderLoaded();
+			await openCreate();
+			await chooseFeature("Full premium");
+			await chooseFeature("Unlimited queue");
+			await chooseFeature("Premium themes");
+			setField(/^Code/, "mind-change");
+			setField(/^Starts at/, localInput(daysFromNow(1)));
+			setField(/^Ends at/, localInput(daysFromNow(15)));
+
+			await userEvent.click(submitButton("Create promotion"));
+			await untilVisible(() =>
+				expect(screen.queryByRole("dialog")).toBeNull()
+			);
+
+			expect(backend[0].feature).toBe("themes.premium");
+			expect(
+				requests.filter(request => request.startsWith("POST"))
+			).toHaveLength(1);
+		});
+
+		it("survives double clicks on the feature picker and on its options", async () => {
+			await renderLoaded();
+			await openCreate();
+			requests.length = 0;
+
+			await userEvent.dblClick(featurePicker());
+			await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+
+			await userEvent.click(featurePicker());
+			const menu = await screen.findByRole("menu");
+			await userEvent.dblClick(
+				within(menu).getByRole("menuitemradio", {
+					name: "Unlimited lists"
+				})
+			);
+			await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
+
+			expect(screen.getAllByRole("dialog")).toHaveLength(1);
+			expect(featurePicker()).toHaveAccessibleName(
+				"Feature: Unlimited lists"
+			);
+			expect(requests).toEqual([]);
+		});
+
+		it("does not open the picker menu twice or leave it behind when the dialog is closed with Escape", async () => {
+			await renderLoaded();
+			await openCreate();
+
+			await userEvent.click(featurePicker());
+			await screen.findByRole("menu");
+			await userEvent.keyboard("{Escape}");
+			await userEvent.keyboard("{Escape}");
+
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).toBeNull()
+			);
+			expect(screen.queryByRole("menu")).toBeNull();
 		});
 
 		it.each([
@@ -656,7 +797,9 @@ describe("AdminPromotions interaction", () => {
 			await openEdit("active-one");
 
 			expect(within(dialog()).queryByLabelText(/^Code/)).toBeNull();
-			expect(within(dialog()).queryByLabelText(/^Feature/)).toBeNull();
+			expect(
+				within(dialog()).queryByRole("button", { name: /^Feature:/ })
+			).toBeNull();
 			expect(
 				within(dialog()).getByText(/active-one · Premium Rewind/)
 			).toBeInTheDocument();
