@@ -34,7 +34,6 @@ export { UiPremiumBadge } from "./premium-badge/ui-premium-badge";
 export { UiProgress } from "./progress/ui-progress";
 export { UiRadioGroup, UiRadioIndicator, UiRadioItem } from "./radio/ui-radio";
 export { UiSearchBar } from "./search-bar/ui-search-bar";
-export { UiSelect } from "./select/ui-select";
 export { UiSeparator } from "./separator/ui-separator";
 export type { UiSkeletonVariant } from "./skeleton/ui-skeleton";
 export { UiSkeleton } from "./skeleton/ui-skeleton";
