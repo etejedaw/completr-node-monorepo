@@ -8,7 +8,7 @@ export type { UiButtonSize, UiButtonVariant } from "./button/ui-button";
 export { UiButton } from "./button/ui-button";
 export { UiCheckbox } from "./checkbox/ui-checkbox";
 export { UiCountBadge } from "./count-badge/ui-count-badge";
-export type { UiDialogSize } from "./dialog/ui-dialog";
+export type { UiDialogSize, UiDialogTone } from "./dialog/ui-dialog";
 export { UiDialog } from "./dialog/ui-dialog";
 export { UiDrawer } from "./drawer/ui-drawer";
 export { UiEmptyState } from "./empty-state/ui-empty-state";

@@ -12,13 +12,13 @@ import { StarRating } from "../../../../shared/components/star-rating/star-ratin
 import {
 	UiButton,
 	UiDialog,
+	type UiDialogTone,
 	UiFieldLabel,
 	UiFieldOptional,
 	UiInput,
 	UiSwitch,
 	UiTextarea
 } from "../../../../shared/ui";
-import { type UiDialogTone } from "../../../../shared/ui/dialog/ui-dialog";
 import {
 	backlogStatusIcon,
 	backlogStatusLabel
