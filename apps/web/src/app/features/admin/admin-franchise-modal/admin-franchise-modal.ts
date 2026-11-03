@@ -20,6 +20,7 @@ import { type Game } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import {
 	UiAlert,
+	UiBadge,
 	UiButton,
 	UiDescription,
 	UiDialog,
@@ -47,6 +48,7 @@ export type AdminFranchiseModalResult = "saved";
 		FormField,
 		GamePoster,
 		UiAlert,
+		UiBadge,
 		UiButton,
 		UiDescription,
 		UiDialog,

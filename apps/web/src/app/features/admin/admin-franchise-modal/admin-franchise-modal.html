@@ -127,8 +127,8 @@
 									>{{ game.title }}</span
 								>
 								@if (game.franchiseName) {
-								<span class="text-[0.6875rem] text-warning"
-									>in {{ game.franchiseName }}</span
+								<ui-badge class="self-start" tone="warning"
+									>in {{ game.franchiseName }}</ui-badge
 								>
 								} @else if (game.releaseAt) {
 								<span
@@ -189,15 +189,12 @@
 				</ui-alert>
 				} @else {
 				<div class="flex items-center justify-between gap-2 mb-2">
-					<span
-						class="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-fg-muted tabular-nums"
+					<span uiFieldLabel class="!mb-0 tabular-nums"
 						>{{ games().length }} game{{ games().length === 1 ? "" :
 						"s" }} in this franchise</span
 					>
 					@if (hasMoreGames()) {
-					<span class="text-[0.6875rem] text-warning"
-						>showing first 100</span
-					>
+					<ui-badge tone="warning">showing first 100</ui-badge>
 					}
 				</div>
 				@if (hasMoreGames()) {
