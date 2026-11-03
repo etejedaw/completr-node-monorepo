@@ -11,26 +11,24 @@
 			the game. It can take up to 30 seconds.
 		</p>
 
-		<fieldset class="m-0 p-0 border-0 min-w-0 flex flex-col gap-2">
-			<legend
-				class="p-0 mb-2 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-			>
-				Sources
-			</legend>
-			@for (option of sourceOptions; track option.source) {
-			<ui-checkbox
-				class="min-h-[44px] w-full px-3 py-2 rounded-card border border-line bg-surface/60 transition hover:border-line-hover"
-				[label]="option.label"
-				[checked]="isSelected(option.source)"
-				[disabled]="isPending()"
-				(checkedChange)="setSelected(option.source, $event)"
-			>
-				<span class="ml-auto pl-3 text-xs text-fg-muted tabular-nums"
-					>{{ storedValue(option.source) }}</span
+		<app-filter-section label="Sources">
+			<div class="flex flex-col gap-2">
+				@for (option of sourceOptions; track option.source) {
+				<ui-checkbox
+					class="min-h-[44px] w-full px-3 py-2 rounded-card border border-line bg-surface/60 transition hover:border-line-hover"
+					[label]="option.label"
+					[checked]="isSelected(option.source)"
+					[disabled]="isPending()"
+					(checkedChange)="setSelected(option.source, $event)"
 				>
-			</ui-checkbox>
-			}
-		</fieldset>
+					<span
+						class="ml-auto pl-3 text-xs text-fg-muted tabular-nums"
+						>{{ storedValue(option.source) }}</span
+					>
+				</ui-checkbox>
+				}
+			</div>
+		</app-filter-section>
 
 		<div role="status" aria-live="polite" class="empty:hidden">
 			@if (isPending()) {
@@ -55,11 +53,7 @@
 			</div>
 			} @else if (resultViews().length > 0) {
 			<section aria-label="Results" class="flex flex-col gap-2">
-				<h3
-					class="m-0 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Results
-				</h3>
+				<h3 uiFieldLabel class="m-0 !mb-0">Results</h3>
 				<ul class="list-none m-0 p-0 flex flex-col gap-2">
 					@for (result of resultViews(); track result.source) {
 					<li
@@ -71,17 +65,9 @@
 							<span class="text-sm font-medium text-fg"
 								>{{ result.sourceName }}</span
 							>
-							<span
-								class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold"
-								[class]="toneClasses(result.tone)"
+							<ui-badge [tone]="result.tone" [icon]="result.icon"
+								>{{ result.statusLabel }}</ui-badge
 							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-sm"
-									>{{ result.icon }}</span
-								>
-								{{ result.statusLabel }}
-							</span>
 						</div>
 						@for (detail of result.details; track detail) {
 						<p class="m-0 text-xs text-fg-secondary text-pretty">

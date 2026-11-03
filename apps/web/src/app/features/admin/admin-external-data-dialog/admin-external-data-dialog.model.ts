@@ -1,3 +1,4 @@
+import { type UiBadgeTone } from "../../../shared/ui";
 import {
 	type ExternalDataRefreshResult,
 	type ExternalDataSource
@@ -15,13 +16,11 @@ export interface ExternalDataSourceOption {
 	label: string;
 }
 
-export type ExternalDataResultTone = "success" | "warning" | "danger" | "muted";
-
 export interface ExternalDataResultView {
 	source: ExternalDataSource;
 	sourceName: string;
 	statusLabel: string;
 	icon: string;
-	tone: ExternalDataResultTone;
+	tone: UiBadgeTone;
 	details: string[];
 }
