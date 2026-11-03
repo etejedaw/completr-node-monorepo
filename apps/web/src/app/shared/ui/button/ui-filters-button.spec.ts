@@ -55,6 +55,15 @@ describe("UiFiltersButton", () => {
 		expect(button.querySelector("ui-count-badge")).toBeNull();
 	});
 
+	it("keeps a 44px wide target on narrow and touch screens when only the icon shows", () => {
+		const { button } = render();
+
+		expect(button).toHaveClass("tap:min-w-[44px]");
+		expect(button.querySelector("span.max-sm\\:hidden")).toHaveTextContent(
+			"Filters"
+		);
+	});
+
 	it("counts the active filters in its name and badge", () => {
 		const { button } = render(host => host.count.set(3));
 

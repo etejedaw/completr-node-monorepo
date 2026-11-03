@@ -28,7 +28,7 @@ export type UiFiltersButtonLabelVisibility = "always" | "wide";
 	hostDirectives: [{ directive: NgpButton, inputs: ["disabled"] }],
 	host: {
 		type: "button",
-		class: "ui-button h-10 shrink-0",
+		class: "ui-button h-10 shrink-0 tap:min-w-[44px]",
 		"data-variant": "secondary",
 		"data-size": "md",
 		"[attr.data-active]": "active() ? '' : null",
