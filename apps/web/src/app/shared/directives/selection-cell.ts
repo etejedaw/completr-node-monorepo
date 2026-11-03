@@ -5,7 +5,7 @@ import { type SelectionToggle } from "./selection-cell.model";
 @Directive({
 	selector: "td[appSelectionCell], th[appSelectionCell]",
 	host: {
-		class: "w-11 min-w-[44px] !px-0 text-center cursor-pointer select-none",
+		class: "w-11 min-w-[44px] !px-0 !text-center cursor-pointer select-none",
 		"(mousedown)": "preventTextSelection($event)",
 		"(click)": "toggleFromPointer($event)",
 		"(keydown)": "toggleFromKeyboard($event)"
