@@ -344,6 +344,8 @@
 @if (showUnfollowConfirm()) {
 <ui-dialog
 	size="sm"
+	icon="person_remove"
+	tone="danger"
 	[heading]="'Unfollow @' + (profile()?.user?.username || username()) + '?'"
 	[dismissible]="!togglingFollow()"
 	(closed)="showUnfollowConfirm.set(false)"
