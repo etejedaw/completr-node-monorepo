@@ -190,6 +190,7 @@
 } @if (dialog(); as current) {
 <ui-dialog
 	eyebrow="Promotions"
+	[icon]="current.kind === 'create' ? 'redeem' : 'event'"
 	[heading]="current.kind === 'create' ? 'New promotion' : 'Edit dates'"
 	[subheading]="
 		current.kind === 'create'
@@ -210,10 +211,13 @@
 		novalidate
 	>
 		<div>
+			<label uiFieldLabel for="promotion-feature">Feature</label>
 			<app-option-picker
+				variant="input"
+				triggerId="promotion-feature"
 				label="Feature"
 				heading="Choose a feature"
-				placeholder="Required — pick one"
+				placeholder="Pick a feature"
 				placeholderIcon="redeem"
 				[options]="featurePickerOptions"
 				[value]="createForm.feature().value()"
@@ -234,9 +238,7 @@
 			}
 		</div>
 		<div uiFormField>
-			<label uiLabel uiFieldLabel for="promotion-code"
-				>Code <span class="text-danger font-bold">*</span></label
-			>
+			<label uiLabel uiFieldLabel for="promotion-code">Code</label>
 			<input
 				id="promotion-code"
 				uiInput
@@ -258,7 +260,7 @@
 		</div>
 		<div uiFormField>
 			<label uiLabel uiFieldLabel for="promotion-starts-at"
-				>Starts at <span class="text-danger font-bold">*</span></label
+				>Starts at</label
 			>
 			<input
 				id="promotion-starts-at"
@@ -277,9 +279,7 @@
 			}
 		</div>
 		<div uiFormField>
-			<label uiLabel uiFieldLabel for="promotion-ends-at"
-				>Ends at <span class="text-danger font-bold">*</span></label
-			>
+			<label uiLabel uiFieldLabel for="promotion-ends-at">Ends at</label>
 			<input
 				id="promotion-ends-at"
 				uiInput

@@ -246,6 +246,7 @@
 @if (showCreateModal()) {
 <ui-dialog
 	eyebrow="Users"
+	icon="person_add"
 	heading="Create user"
 	subheading="Creates an active account right away with the password you set."
 	[dismissible]="!isCreating()"
@@ -261,8 +262,7 @@
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-x-3 gap-y-4 mb-4">
 			<div uiFormField>
 				<label uiLabel for="create-username" uiFieldLabel
-					>Username
-					<span class="text-danger font-bold">*</span></label
+					>Username</label
 				>
 				<input
 					id="create-username"
@@ -283,9 +283,7 @@
 				}
 			</div>
 			<div uiFormField>
-				<label uiLabel for="create-name" uiFieldLabel
-					>Name <span class="text-danger font-bold">*</span></label
-				>
+				<label uiLabel for="create-name" uiFieldLabel>Name</label>
 				<input
 					id="create-name"
 					uiInput
@@ -304,9 +302,7 @@
 				}
 			</div>
 			<div uiFormField>
-				<label uiLabel for="create-email" uiFieldLabel
-					>Email <span class="text-danger font-bold">*</span></label
-				>
+				<label uiLabel for="create-email" uiFieldLabel>Email</label>
 				<input
 					id="create-email"
 					uiInput
@@ -327,8 +323,7 @@
 			</div>
 			<div uiFormField>
 				<label uiLabel for="create-password" uiFieldLabel
-					>Password
-					<span class="text-danger font-bold">*</span></label
+					>Password</label
 				>
 				<div class="relative">
 					<input
