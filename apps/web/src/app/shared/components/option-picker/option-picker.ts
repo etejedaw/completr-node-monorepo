@@ -45,7 +45,8 @@ export class OptionPicker {
 	readonly options = input.required<readonly PickerOption[]>();
 	readonly value = model<string>("");
 	readonly actions = input<readonly PickerAction[]>([]);
-	readonly variant = input<"field" | "compact">("field");
+	readonly variant = input<"field" | "compact" | "input">("field");
+	readonly triggerId = input<string | null>(null);
 	readonly size = input<"sm" | "md">("sm");
 	readonly placeholder = input("None");
 	readonly placeholderIcon = input("tune");
