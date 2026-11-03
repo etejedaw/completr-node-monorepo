@@ -75,7 +75,6 @@ export class QueueView implements OnInit {
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly toast = inject(ToastService);
 	private readonly dialogs = inject(DialogService);
-	private addModalOpen = false;
 	private readonly pendingRemovals = new PendingRemovals<QueueEntry>(
 		entry => entry.backlog.id
 	);
@@ -166,15 +165,9 @@ export class QueueView implements OnInit {
 	}
 
 	openAddModal() {
-		if (this.addModalOpen) return;
-		this.addModalOpen = true;
-		this.dialogs
-			.open<QueueAddModalData>(QueueAddModal, {
-				data: { onAdded: () => this.loadQueue() }
-			})
-			.afterClosed.subscribe(() => {
-				this.addModalOpen = false;
-			});
+		this.dialogs.open<QueueAddModalData>(QueueAddModal, {
+			data: { onAdded: () => this.loadQueue() }
+		});
 	}
 
 	requestStatusChange(entry: QueueEntry, status: QueueStatusChange) {
