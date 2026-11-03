@@ -857,10 +857,17 @@ describe("AdminGameEditor interaction", () => {
 			await renderCreate();
 
 			dlcSwitch().focus();
-			await userEvent.keyboard("{Enter}");
+			await userEvent.keyboard(" ");
 
 			expect(dlcSwitch()).toHaveAttribute("aria-checked", "true");
 			expect(parentSearch()).toBeInTheDocument();
+
+			await userEvent.keyboard("{Enter}");
+
+			expect(dlcSwitch()).toHaveAttribute("aria-checked", "false");
+			expect(
+				screen.queryByRole("textbox", { name: "Search parent game" })
+			).toBeNull();
 		});
 
 		it("links a parent picked from the catalog, sends its id and drops it from the request when DLC is switched off", async () => {
