@@ -21,6 +21,7 @@ import { PasswordRules } from "../../../shared/components/password-rules/passwor
 import {
 	UiBadge,
 	UiButton,
+	UiDialog,
 	UiIconButton,
 	UiInput,
 	UiPagination,
@@ -42,6 +43,7 @@ const EMPTY_PASSWORDS = { newPassword: "", confirmPassword: "" };
 		SettingsRow,
 		UiBadge,
 		UiButton,
+		UiDialog,
 		UiIconButton,
 		UiInput,
 		UiPagination,
@@ -98,6 +100,10 @@ export class SettingsSecurity implements OnInit {
 	protected readonly otherSessionsCount = computed(() =>
 		Math.max(this.total() - 1, 0)
 	);
+	protected readonly signOutOthersHeading = computed(() => {
+		const count = this.otherSessionsCount();
+		return `Sign out ${count} other ${count === 1 ? "device" : "devices"}?`;
+	});
 
 	ngOnInit() {
 		this.loadSessions();
@@ -155,7 +161,13 @@ export class SettingsSecurity implements OnInit {
 		});
 	}
 
+	protected cancelSignOutOthers() {
+		if (this.signingOutOthers()) return;
+		this.confirmingSignOutOthers.set(false);
+	}
+
 	protected signOutOtherSessions() {
+		if (this.signingOutOthers()) return;
 		const current = this.currentSessionId();
 		if (!current) {
 			this.toast.warning("Sign in again to manage your devices.");

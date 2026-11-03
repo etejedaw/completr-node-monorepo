@@ -95,7 +95,7 @@
 		headingId="security-devices-heading"
 		description="Browsers and phones where you're signed in. Sign out any you don't recognize."
 	>
-		@if (otherSessionsCount() > 0 && !confirmingSignOutOthers()) {
+		@if (otherSessionsCount() > 0) {
 		<button
 			panelActions
 			uiButton
@@ -109,40 +109,37 @@
 			Sign out other devices
 		</button>
 		} @if (confirmingSignOutOthers()) {
-		<div
-			role="alertdialog"
-			aria-labelledby="sign-out-others-title"
-			class="flex flex-wrap items-center gap-3 my-4 p-3 rounded-card border border-danger/30 bg-danger/10"
+		<ui-dialog
+			eyebrow="Security"
+			icon="logout"
+			tone="danger"
+			size="sm"
+			[heading]="signOutOthersHeading()"
+			[dismissible]="!signingOutOthers()"
+			(closed)="cancelSignOutOthers()"
 		>
-			<p
-				id="sign-out-others-title"
-				class="m-0 flex-1 min-w-[12rem] text-sm text-fg"
-			>
-				Sign out {{ otherSessionsCount() }} other {{
-				otherSessionsCount() === 1 ? 'device' : 'devices' }}? You'll
-				stay signed in here.
+			<p class="m-0 text-sm text-fg-secondary">
+				They'll need to sign in again. You'll stay signed in here.
 			</p>
-			<div class="flex gap-2">
+			<ng-container dialogFooter>
 				<button
 					uiButton
 					variant="ghost"
-					size="sm"
 					[disabled]="signingOutOthers()"
-					(click)="confirmingSignOutOthers.set(false)"
+					(click)="cancelSignOutOthers()"
 				>
 					Cancel
 				</button>
 				<button
 					uiButton
 					variant="danger"
-					size="sm"
 					[disabled]="signingOutOthers()"
 					(click)="signOutOtherSessions()"
 				>
 					{{ signingOutOthers() ? 'Signing out…' : 'Sign them out' }}
 				</button>
-			</div>
-		</div>
+			</ng-container>
+		</ui-dialog>
 		} @if (sessionsLoading() && sessions().length === 0) {
 		<div
 			class="flex flex-col gap-2 py-4"

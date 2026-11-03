@@ -6,7 +6,7 @@ import {
 	provideHttpClientTesting
 } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { render, screen, within } from "@testing-library/angular";
+import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 import { of, Subject, throwError } from "rxjs";
 
@@ -414,6 +414,21 @@ describe("SettingsSecurity", () => {
 	});
 
 	describe("sign out other devices", () => {
+		beforeEach(() => {
+			vi.stubGlobal(
+				"matchMedia",
+				vi.fn(() => ({
+					matches: false,
+					addEventListener: vi.fn(),
+					removeEventListener: vi.fn()
+				}))
+			);
+		});
+
+		afterEach(() => {
+			vi.unstubAllGlobals();
+		});
+
 		it("is hidden when this is the only session", async () => {
 			getSessions.mockReturnValue(
 				of({ sessions: [currentSession], total: 1 })
@@ -433,11 +448,11 @@ describe("SettingsSecurity", () => {
 				screen.getByRole("button", { name: /Sign out other devices/ })
 			);
 
-			const dialog = screen.getByRole("alertdialog");
-			expect(dialog).toHaveTextContent("Sign out 2 other devices?");
-			expect(
-				screen.queryByRole("button", { name: /Sign out other devices/ })
-			).not.toBeInTheDocument();
+			const dialog = screen.getByRole("dialog", {
+				name: "Sign out 2 other devices?"
+			});
+			expect(dialog).toHaveAttribute("aria-modal", "true");
+			expect(dialog).toHaveTextContent("You'll stay signed in here.");
 		});
 
 		it("uses the singular when only one other device is signed in", async () => {
@@ -451,9 +466,9 @@ describe("SettingsSecurity", () => {
 				screen.getByRole("button", { name: /Sign out other devices/ })
 			);
 
-			expect(screen.getByRole("alertdialog")).toHaveTextContent(
-				"Sign out 1 other device?"
-			);
+			expect(
+				screen.getByRole("dialog", { name: "Sign out 1 other device?" })
+			).toBeInTheDocument();
 		});
 
 		it("cancels without calling the API", async () => {
@@ -465,7 +480,7 @@ describe("SettingsSecurity", () => {
 			);
 			await typist.click(screen.getByRole("button", { name: "Cancel" }));
 
-			expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 			expect(revokeOtherSessions).not.toHaveBeenCalled();
 			expect(
 				screen.getByRole("button", { name: /Sign out other devices/ })
@@ -492,7 +507,7 @@ describe("SettingsSecurity", () => {
 			expect(toast.success).toHaveBeenCalledWith(
 				"Signed out 2 other devices."
 			);
-			expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 			expect(getSessions).toHaveBeenCalledWith({ limit: 10, offset: 0 });
 			expect(
 				screen.queryByText("Chrome · Windows")
@@ -570,10 +585,80 @@ describe("SettingsSecurity", () => {
 			expect(toast.warning).toHaveBeenCalledWith(
 				"Could not sign out your other devices."
 			);
-			expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+			expect(screen.getByRole("dialog")).toBeInTheDocument();
 			expect(
 				screen.getByRole("button", { name: "Sign them out" })
 			).toBeEnabled();
+		});
+
+		it("closes with Escape without calling the API", async () => {
+			const typist = userEvent.setup();
+			await renderSecurity();
+
+			await typist.click(
+				screen.getByRole("button", { name: /Sign out other devices/ })
+			);
+			await typist.keyboard("{Escape}");
+
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+			expect(revokeOtherSessions).not.toHaveBeenCalled();
+		});
+
+		it("revokes once when the confirm button is double clicked", async () => {
+			const typist = userEvent.setup();
+			await renderSecurity();
+			revokeOtherSessions.mockReturnValue(new Subject());
+
+			await typist.click(
+				screen.getByRole("button", { name: /Sign out other devices/ })
+			);
+			await typist.dblClick(
+				screen.getByRole("button", { name: "Sign them out" })
+			);
+
+			expect(revokeOtherSessions).toHaveBeenCalledTimes(1);
+		});
+
+		it("cannot be dismissed with Escape while signing out", async () => {
+			const typist = userEvent.setup();
+			await renderSecurity();
+			revokeOtherSessions.mockReturnValue(new Subject());
+
+			await typist.click(
+				screen.getByRole("button", { name: /Sign out other devices/ })
+			);
+			await typist.click(
+				screen.getByRole("button", { name: "Sign them out" })
+			);
+			await typist.keyboard("{Escape}");
+
+			expect(screen.getByRole("dialog")).toBeInTheDocument();
+		});
+
+		it("opens the confirmation again after cancelling it", async () => {
+			const typist = userEvent.setup();
+			await renderSecurity();
+			const openConfirmation = () =>
+				typist.click(
+					screen.getByRole("button", {
+						name: /Sign out other devices/
+					})
+				);
+
+			await openConfirmation();
+			await typist.click(screen.getByRole("button", { name: "Cancel" }));
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+			await openConfirmation();
+
+			expect(
+				screen.getByRole("dialog", {
+					name: "Sign out 2 other devices?"
+				})
+			).toBeInTheDocument();
 		});
 
 		it("asks to sign in again when the current session is unknown", async () => {
