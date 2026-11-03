@@ -11,6 +11,8 @@ export type { UiFiltersButtonLabelVisibility } from "./button/ui-filters-button"
 export { UiFiltersButton } from "./button/ui-filters-button";
 export { UiCheckbox } from "./checkbox/ui-checkbox";
 export { UiCountBadge } from "./count-badge/ui-count-badge";
+export type { UiDatePickerMode } from "./date-picker/ui-date-picker";
+export { UiDatePicker } from "./date-picker/ui-date-picker";
 export type { UiDialogSize, UiDialogTone } from "./dialog/ui-dialog";
 export { UiDialog } from "./dialog/ui-dialog";
 export { UiDrawer } from "./drawer/ui-drawer";
@@ -19,6 +21,7 @@ export { UiNoMatches } from "./empty-state/ui-no-matches";
 export { UiPlainEmptyState } from "./empty-state/ui-plain-empty-state";
 export type { UiPlainEmptyStateHeadingLevel } from "./empty-state/ui-plain-empty-state.model";
 export { UiFocusTrap } from "./focus-trap/ui-focus-trap";
+export { UiFieldError } from "./form-field/ui-field-error";
 export {
 	UiDescription,
 	UiFormField,
