@@ -42,6 +42,19 @@ describe("UiBadge", () => {
 		expect(badge.classList).toContain(textClass);
 	});
 
+	it.each([
+		["rating", "text-rating"],
+		["platinum", "text-platinum"],
+		["accent", "text-nav-saved-views"],
+		["brand-solid", "text-white"]
+	])("paints the %s tone without overrides", (tone, textClass) => {
+		const badge = renderedBadge({ tone });
+
+		expect(badge.classList).toContain(textClass);
+		expect(badge.className).not.toContain("!");
+		expect(badge.classList).toContain("rounded-full");
+	});
+
 	it("hides the icon from assistive technologies", () => {
 		const icon = renderedBadge({ icon: "check_circle" }).querySelector(
 			".material-icons"

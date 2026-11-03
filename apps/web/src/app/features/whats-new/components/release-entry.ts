@@ -3,7 +3,6 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 
 import { UiBadge } from "../../../shared/ui";
 import {
-	releaseBadgeClass,
 	releaseBadgeTone,
 	releaseTintClass,
 	releaseTintTextClass,
@@ -27,11 +26,9 @@ import {
 				></div>
 				<div class="flex flex-wrap items-center gap-2">
 					<ui-badge tone="brand">Latest</ui-badge>
-					<ui-badge
-						[tone]="badgeTone(entry.tint)"
-						[class]="badgeClass(entry.tint)"
-						>{{ entry.tag }}</ui-badge
-					>
+					<ui-badge [tone]="badgeTone(entry.tint)">{{
+						entry.tag
+					}}</ui-badge>
 					<time
 						class="text-xs text-fg-muted"
 						[attr.datetime]="entry.date"
@@ -120,8 +117,6 @@ import {
 export class ReleaseEntryCard {
 	readonly release = input.required<ReleaseView>();
 	readonly variant = input<"featured" | "timeline">("timeline");
-
-	protected readonly badgeClass = releaseBadgeClass;
 	protected readonly badgeTone = releaseBadgeTone;
 	protected readonly tintClass = releaseTintClass;
 	protected readonly tintTextClass = releaseTintTextClass;

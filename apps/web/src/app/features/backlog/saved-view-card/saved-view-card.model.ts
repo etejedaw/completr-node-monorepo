@@ -6,5 +6,4 @@ export interface ViewChip {
 	icon: string;
 	tone: UiBadgeTone;
 	status?: BacklogStatus;
-	rating?: boolean;
 }

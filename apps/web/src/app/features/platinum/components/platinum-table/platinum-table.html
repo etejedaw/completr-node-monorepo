@@ -1,7 +1,7 @@
 <div
 	class="overflow-x-auto rounded-card border border-line bg-surface/40 shadow-[0_24px_48px_-32px_rgba(0,0,0,0.9)]"
 >
-	<table uiTable class="[&_tbody_tr:last-child]:border-b-0">
+	<table uiTable framed>
 		<thead>
 			<tr>
 				@for (column of columns(); track column) {
@@ -30,14 +30,16 @@
 				</td>
 				<td class="whitespace-nowrap">
 					@if (platinum.platform; as platform) {
-					<ui-badge [title]="platform.name"
+					<ui-badge tone="platinum" [title]="platform.name"
 						>{{ platform.abbreviation }}</ui-badge
 					>
 					} @else {
 					<span class="text-fg-muted text-xs">—</span>
 					}
 				</td>
-				<td class="text-fg-secondary text-xs whitespace-nowrap tabular-nums">
+				<td
+					class="text-fg-secondary text-xs whitespace-nowrap tabular-nums"
+				>
 					@if (platinum.platinumedAt; as platinumedAt) {
 					<time [attr.datetime]="platinumedAt"
 						>{{ platinumedAt | date: 'MMM d, y' }}</time

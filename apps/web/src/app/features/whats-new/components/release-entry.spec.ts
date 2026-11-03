@@ -32,12 +32,13 @@ describe("ReleaseEntryCard", () => {
 		expect(badges).toEqual(["Latest", "v1.2.0"]);
 	});
 
-	it("keeps the purple tint on the tag badge", () => {
+	it("paints the purple tint with the accent badge tone", () => {
 		const tag = render("featured", "purple").querySelectorAll(
 			"ui-badge"
 		)[1];
 
-		expect(tag.className).toContain("!text-nav-saved-views");
+		expect(tag.className).toContain("text-nav-saved-views");
+		expect(tag.className).not.toContain("!");
 	});
 
 	it("uses the matching badge tone for the other tints", () => {
