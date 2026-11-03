@@ -31,6 +31,7 @@ import {
 	UiIconButton,
 	UiInput,
 	UiLabel,
+	UiPlainEmptyState,
 	UiSkeleton,
 	UiTextarea
 } from "../../../shared/ui";
@@ -62,6 +63,7 @@ export type AdminFranchiseModalResult = "saved";
 		UiTextarea,
 		UiFormField,
 		UiLabel,
+		UiPlainEmptyState,
 		UiSkeleton
 	],
 	templateUrl: "./admin-franchise-modal.html",

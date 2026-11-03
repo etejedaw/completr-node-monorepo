@@ -28,12 +28,7 @@
 
 <section aria-labelledby="users-heading">
 	<div class="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-		<h2
-			id="users-heading"
-			class="m-0 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-		>
-			All users
-		</h2>
+		<h2 id="users-heading" uiEyebrow class="m-0">All users</h2>
 		<p role="status" class="m-0 text-xs text-fg-muted tabular-nums">
 			@if (search() && !isLoading() && !loadFailed()) { {{ total() }} {{
 			total() === 1 ? "match" : "matches" }} for “{{ search() }}” }

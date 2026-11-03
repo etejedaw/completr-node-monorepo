@@ -794,7 +794,7 @@ describe("AdminFranchiseModal interaction", () => {
 
 			expect(searches).toEqual([]);
 			expect(
-				within(dialog()).queryByText("No games found.")
+				within(dialog()).queryByText("No games found")
 			).not.toBeInTheDocument();
 		});
 
@@ -833,7 +833,7 @@ describe("AdminFranchiseModal interaction", () => {
 			await untilVisible(() =>
 				expect(searches).toEqual(["z".repeat(150)])
 			);
-			await appears("No games found.");
+			await appears("No games found");
 		});
 
 		it("hides the results when the text is shortened below two characters and shows fresh ones when retyped", async () => {
@@ -866,10 +866,10 @@ describe("AdminFranchiseModal interaction", () => {
 			await openCreate(user);
 
 			await user.type(searchInput(), "qwerty");
-			await appears("No games found.");
+			await appears("No games found");
 			await user.clear(searchInput());
 			expect(
-				within(dialog()).queryByText("No games found.")
+				within(dialog()).queryByText("No games found")
 			).not.toBeInTheDocument();
 			await user.type(searchInput(), "hades");
 
@@ -898,7 +898,7 @@ describe("AdminFranchiseModal interaction", () => {
 			).toBeInTheDocument();
 			expect(within(dialog()).getAllByText("Hades")).toHaveLength(1);
 			expect(
-				within(dialog()).getByText("No games found.")
+				within(dialog()).getByText("No games found")
 			).toBeInTheDocument();
 		});
 
@@ -919,7 +919,7 @@ describe("AdminFranchiseModal interaction", () => {
 			await typeSearch(user, "hade");
 			await untilVisible(() =>
 				expect(
-					within(dialog()).getByText("No games found.")
+					within(dialog()).getByText("No games found")
 				).toBeInTheDocument()
 			);
 			await user.click(
@@ -967,9 +967,7 @@ describe("AdminFranchiseModal interaction", () => {
 				await user.click(button);
 
 			expect(
-				within(dialog()).getByText(
-					"A saga needs at least one game. Search above to add some."
-				)
+				within(dialog()).getByText("A saga needs at least one game")
 			).toBeInTheDocument();
 			expect(submitButton()).toBeDisabled();
 			expect(writes).toEqual([]);
@@ -1147,9 +1145,7 @@ describe("AdminFranchiseModal interaction", () => {
 
 			expect(submitButton()).toBeDisabled();
 			expect(
-				within(dialog()).getByText(
-					"A saga needs at least one game. Search above to add some."
-				)
+				within(dialog()).getByText("A saga needs at least one game")
 			).toBeInTheDocument();
 			await user.click(submitButton());
 			await user.click(nameInput());

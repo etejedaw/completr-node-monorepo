@@ -23,18 +23,12 @@
 		(valueChange)="onSearch($event)"
 	/>
 	<button
-		type="button"
-		class="shrink-0 inline-flex items-center gap-1.5 h-10 tap:min-h-[44px] tap:min-w-[44px] px-3 rounded-card border text-sm font-medium cursor-pointer transition"
-		[class]="showFilters() || activeMissingCount() > 0 ? 'border-brand bg-brand-subtle text-brand' : 'border-line bg-transparent text-fg-secondary hover:border-brand hover:text-brand'"
-		aria-haspopup="dialog"
-		[attr.aria-label]="activeMissingCount() > 0 ? 'Filters, ' + activeMissingCount() + ' active' : 'Filters'"
+		uiFiltersButton
+		[count]="activeMissingCount()"
+		[active]="showFilters() || activeMissingCount() > 0"
 		(click)="openFilters()"
 	>
-		<span aria-hidden="true" class="material-icons text-lg">tune</span>
-		<span aria-hidden="true" class="max-sm:hidden">Filters</span>
-		@if (activeMissingCount() > 0) {
-		<ui-count-badge aria-hidden="true" [count]="activeMissingCount()" />
-		}
+		Filters
 	</button>
 	<app-segmented-control
 		class="max-sm:basis-full max-sm:[&>div]:flex max-sm:[&>div]:w-full max-sm:[&_button]:flex-1"
@@ -163,14 +157,14 @@
 } } @else {
 <div
 	aria-hidden="true"
-	class="hidden md:grid md:grid-cols-[2.5rem_minmax(10rem,2fr)_minmax(5rem,1fr)_minmax(7rem,1.3fr)_minmax(5rem,1fr)_9rem] gap-x-4 px-3 pb-2 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-fg-muted"
+	class="hidden md:grid md:grid-cols-[2.5rem_minmax(10rem,2fr)_minmax(5rem,1fr)_minmax(7rem,1.3fr)_minmax(5rem,1fr)_9rem] gap-x-4 px-3 pb-2"
 >
 	<span></span>
-	<span>Title</span>
-	<span>Platforms</span>
-	<span>Scores</span>
-	<span>Times</span>
-	<span class="text-right">Actions</span>
+	<span uiEyebrow>Title</span>
+	<span uiEyebrow>Platforms</span>
+	<span uiEyebrow>Scores</span>
+	<span uiEyebrow>Times</span>
+	<span uiEyebrow class="text-right">Actions</span>
 </div>
 <ul
 	class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"

@@ -29,12 +29,7 @@
 	} @else { @if (mutationError()) {
 	<ui-alert class="mb-4">{{ mutationError() }}</ui-alert>
 	} @if (successMessage()) {
-	<p
-		role="status"
-		class="m-0 mb-4 rounded-card border border-success/30 bg-success/10 px-3 py-2 text-sm text-success"
-	>
-		{{ successMessage() }}
-	</p>
+	<ui-alert tone="success" class="mb-4">{{ successMessage() }}</ui-alert>
 	}
 
 	<section

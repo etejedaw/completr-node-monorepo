@@ -104,13 +104,17 @@
 					}
 				</ul>
 				} @else if (searchError()) {
-				<p class="m-0 px-3 py-6 text-center text-sm text-danger">
-					Could not search games. Try again.
-				</p>
+				<ui-alert class="m-3"
+					>Could not search games. Try again.</ui-alert
+				>
 				} @else if (results().length === 0) {
-				<p class="m-0 px-3 py-6 text-center text-sm text-fg-muted">
-					No games found.
-				</p>
+				<ui-plain-empty-state
+					[compact]="true"
+					class="[&>section]:!py-6"
+					icon="search_off"
+					title="No games found"
+					message="Try a different title."
+				/>
 				} @else {
 				<ul class="list-none m-0 p-0 divide-y divide-line">
 					@for (game of results(); track game.id) {
@@ -206,22 +210,14 @@
 					games can't be changed from this dialog.
 				</p>
 				} @if (games().length === 0) {
-				<div
-					class="flex flex-col items-center gap-1 px-4 py-6 text-center rounded-card border border-dashed border-line"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-2xl text-fg-muted"
-						>sports_esports</span
-					>
-					<p
-						id="franchise-games-required"
-						class="m-0 text-sm text-fg-muted"
-					>
-						A saga needs at least one game. Search above to add
-						some.
-					</p>
-				</div>
+				<ui-plain-empty-state
+					id="franchise-games-required"
+					[compact]="true"
+					class="rounded-card border border-dashed border-line [&>section]:!py-6"
+					icon="sports_esports"
+					title="A saga needs at least one game"
+					message="Search above to add some."
+				/>
 				} @else {
 				<ul
 					class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line"
