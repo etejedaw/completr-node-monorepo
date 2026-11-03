@@ -5,9 +5,11 @@ import {
 	type TestRequest
 } from "@angular/common/http/testing";
 import { type ComponentFixture, TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { ActivatedRoute, provideRouter } from "@angular/router";
 
 import { environment } from "../../../../environments/environment";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { type ConnectionKind, UserConnections } from "./user-connections";
 
 const api = environment.apiUrl;
@@ -96,7 +98,7 @@ describe("UserConnections", () => {
 		text: string
 	) {
 		const input = element(fixture).querySelector<HTMLInputElement>(
-			"ui-search-bar input"
+			"app-page-search input"
 		)!;
 		input.value = text;
 		input.dispatchEvent(new Event("input"));
@@ -105,6 +107,32 @@ describe("UserConnections", () => {
 
 	afterEach(() => {
 		httpTesting.verify();
+	});
+
+	it("scopes the page search to the followers of the owner", async () => {
+		const fixture = setup("followers");
+		expectConnections("followers").flush(playersPage(3, 3));
+		flushProfile(3, 3);
+		await settle(fixture);
+
+		expect(
+			fixture.debugElement
+				.query(By.directive(PageSearch))
+				.componentInstance.scopeLabel()
+		).toBe("ada's followers");
+	});
+
+	it("scopes the page search to the following of the owner", async () => {
+		const fixture = setup("following");
+		expectConnections("following").flush(playersPage(3, 3));
+		flushProfile(3, 3);
+		await settle(fixture);
+
+		expect(
+			fixture.debugElement
+				.query(By.directive(PageSearch))
+				.componentInstance.scopeLabel()
+		).toBe("ada's following");
 	});
 
 	it("requests only the followers on the followers screen", async () => {
@@ -213,7 +241,9 @@ describe("UserConnections", () => {
 		expect(element(fixture).textContent).toContain(
 			"Nobody here matches “zzz”."
 		);
-		expect(element(fixture).querySelector("ui-search-bar")).not.toBeNull();
+		expect(
+			element(fixture).querySelector("app-page-search")
+		).not.toBeNull();
 		expect(element(fixture).textContent).not.toContain("No followers yet");
 
 		element(fixture)
@@ -238,7 +268,7 @@ describe("UserConnections", () => {
 		expect(element(fixture).textContent).toContain(
 			"Not following anyone yet"
 		);
-		expect(element(fixture).querySelector("ui-search-bar")).toBeNull();
+		expect(element(fixture).querySelector("app-page-search")).toBeNull();
 		expect(
 			element(fixture).querySelector("ui-pagination button")
 		).toBeNull();

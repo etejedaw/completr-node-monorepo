@@ -21,9 +21,10 @@ import {
 	LibraryPageEmptyAction,
 	LibraryPageToolbar
 } from "../../../shared/components/library-page/library-page-slots";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PlatformFilter } from "../../../shared/components/platform-filter/platform-filter";
 import { type PlatformCount } from "../../../shared/components/platform-filter/platform-filter.model";
-import { UiButton, UiEmptyState, UiSearchBar } from "../../../shared/ui";
+import { UiButton, UiEmptyState } from "../../../shared/ui";
 import {
 	type ProfileAccessError,
 	ProfileAccessState
@@ -32,6 +33,7 @@ import {
 @Component({
 	selector: "app-profile-collection-page",
 	imports: [
+		PageSearch,
 		RouterLink,
 		LibraryHero,
 		LibraryPage,
@@ -41,8 +43,7 @@ import {
 		PlatformFilter,
 		ProfileAccessState,
 		UiButton,
-		UiEmptyState,
-		UiSearchBar
+		UiEmptyState
 	],
 	templateUrl: "./profile-collection-page.html",
 	host: { class: "block" },

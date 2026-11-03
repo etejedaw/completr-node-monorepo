@@ -20,12 +20,12 @@ import { type LibraryHeroPoster } from "../../../shared/components/library-hero/
 import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { ListCard } from "../../../shared/components/list-card/list-card";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import {
 	UiButton,
 	UiEmptyState,
 	UiNoMatches,
 	UiPagination,
-	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
 import {
@@ -61,6 +61,7 @@ const LIST_TABS: {
 @Component({
 	selector: "app-user-lists",
 	imports: [
+		PageSearch,
 		RouterLink,
 		LibraryHero,
 		LibraryToolbar,
@@ -70,7 +71,6 @@ const LIST_TABS: {
 		UiEmptyState,
 		UiNoMatches,
 		UiPagination,
-		UiSearchBar,
 		UiSkeleton
 	],
 	templateUrl: "./user-lists.html",

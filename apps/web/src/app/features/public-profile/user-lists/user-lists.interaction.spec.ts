@@ -8,6 +8,7 @@ import {
 } from "@angular/common/http/testing";
 import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { By } from "@angular/platform-browser";
 import { Router, RouterOutlet } from "@angular/router";
 import {
 	fireEvent,
@@ -19,6 +20,7 @@ import {
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { type PublicList } from "../services/public-lists.model";
 import { UserLists } from "./user-lists";
 
@@ -176,7 +178,7 @@ describe("User lists interaction", () => {
 	}
 
 	function searchInput() {
-		return screen.getByRole("textbox", { name: /^Search/ });
+		return screen.getByRole("textbox", { name: /^Filter/ });
 	}
 
 	function searchTo(value: string) {
@@ -184,7 +186,7 @@ describe("User lists interaction", () => {
 	}
 
 	async function renderPage(initialRoute = `/user/${username}/lists`) {
-		await render(UserListsHost, {
+		const view = await render(UserListsHost, {
 			providers: [provideHttpClient(), provideHttpClientTesting()],
 			routes: [
 				{ path: "user/:username/lists", component: UserLists },
@@ -196,13 +198,15 @@ describe("User lists interaction", () => {
 			initialRoute
 		});
 		httpTesting = TestBed.inject(HttpTestingController);
+		return view;
 	}
 
 	async function renderLoaded(initialRoute?: string) {
-		await renderPage(initialRoute);
+		const view = await renderPage(initialRoute);
 		await untilVisible(() =>
 			expect(shownLists().length).toBeGreaterThan(0)
 		);
+		return view;
 	}
 
 	beforeEach(() => {
@@ -218,6 +222,28 @@ describe("User lists interaction", () => {
 	afterEach(() => {
 		answerPending();
 		httpTesting.verify();
+	});
+
+	it("scopes the page search to ada's lists", async () => {
+		const { fixture } = await renderLoaded();
+
+		expect(
+			fixture.debugElement
+				.query(By.directive(PageSearch))
+				.componentInstance.scopeLabel()
+		).toBe("ada's lists");
+	});
+
+	it("scopes the page search to Followed lists", async () => {
+		const { fixture } = await renderLoaded(
+			`/user/${username}/lists?tab=following`
+		);
+
+		expect(
+			fixture.debugElement
+				.query(By.directive(PageSearch))
+				.componentInstance.scopeLabel()
+		).toBe("Followed lists");
 	});
 
 	it("shows the first page of created lists with counts on both tabs", async () => {
@@ -426,7 +452,7 @@ describe("User lists interaction", () => {
 			expect(screen.getByText("No lists yet")).toBeInTheDocument()
 		);
 		expect(
-			screen.queryByRole("textbox", { name: /^Search/ })
+			screen.queryByRole("textbox", { name: /^Filter/ })
 		).not.toBeInTheDocument();
 		expect(
 			screen.getByRole("link", { name: "Back to profile" })

@@ -23,13 +23,13 @@ import { type UserResult } from "../../../core/services/users.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
+import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { UnfollowConfirmDialog } from "../../../shared/components/unfollow-confirm-dialog/unfollow-confirm-dialog";
 import {
 	UiButton,
 	UiEmptyState,
 	UiNoMatches,
 	UiPagination,
-	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
 import { injectFollowActions } from "../../users-discover/follow-actions";
@@ -56,6 +56,7 @@ const CONNECTION_TABS: { kind: ConnectionKind; label: string }[] = [
 @Component({
 	selector: "app-user-connections",
 	imports: [
+		PageSearch,
 		RouterLink,
 		RouterLinkActive,
 		LibraryHero,
@@ -67,7 +68,6 @@ const CONNECTION_TABS: { kind: ConnectionKind; label: string }[] = [
 		UiEmptyState,
 		UiNoMatches,
 		UiPagination,
-		UiSearchBar,
 		UiSkeleton
 	],
 	templateUrl: "./user-connections.html",
