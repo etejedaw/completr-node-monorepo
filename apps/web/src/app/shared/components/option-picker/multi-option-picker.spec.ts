@@ -58,9 +58,14 @@ describe("MultiOptionPicker", () => {
 		result.fixture.componentInstance.options.set(options);
 		result.fixture.componentInstance.values.set(initial);
 		result.fixture.detectChanges();
+		const user = userEvent.setup();
 		return {
-			user: userEvent.setup(),
-			host: result.fixture.componentInstance
+			user,
+			host: result.fixture.componentInstance,
+			openPopover: async () => {
+				await user.click(trigger());
+				await result.fixture.whenStable();
+			}
 		};
 	}
 
@@ -111,9 +116,9 @@ describe("MultiOptionPicker", () => {
 
 	describe("popover", () => {
 		it("lists every option as unchecked checkboxes of a multiselectable listbox", async () => {
-			const { user } = await renderPicker();
+			const { openPopover } = await renderPicker();
 
-			await user.click(trigger());
+			await openPopover();
 
 			const list = screen.getByRole("listbox", {
 				name: "Filter by platform"
@@ -127,8 +132,8 @@ describe("MultiOptionPicker", () => {
 		});
 
 		it("selects several options without closing and reports them in option order", async () => {
-			const { user, host } = await renderPicker();
-			await user.click(trigger());
+			const { user, host, openPopover } = await renderPicker();
+			await openPopover();
 
 			await user.click(option("PlayStation 3"));
 			await user.click(option("PlayStation 2"));
@@ -143,8 +148,11 @@ describe("MultiOptionPicker", () => {
 		});
 
 		it("unselects an option that is already selected", async () => {
-			const { user, host } = await renderPicker(["ps2", "ps3"]);
-			await user.click(trigger());
+			const { user, host, openPopover } = await renderPicker([
+				"ps2",
+				"ps3"
+			]);
+			await openPopover();
 
 			await user.click(option("PlayStation 2"));
 
@@ -152,8 +160,11 @@ describe("MultiOptionPicker", () => {
 		});
 
 		it("clears the selection with Clear and disables it when empty", async () => {
-			const { user, host } = await renderPicker(["ps2", "ps3"]);
-			await user.click(trigger());
+			const { user, host, openPopover } = await renderPicker([
+				"ps2",
+				"ps3"
+			]);
+			await openPopover();
 
 			await user.click(screen.getByRole("button", { name: "Clear" }));
 
@@ -165,8 +176,8 @@ describe("MultiOptionPicker", () => {
 		});
 
 		it("selects with the keyboard from the listbox", async () => {
-			const { user, host } = await renderPicker();
-			await user.click(trigger());
+			const { user, host, openPopover } = await renderPicker();
+			await openPopover();
 			screen.getByRole("listbox").focus();
 
 			await user.keyboard("{ArrowDown}{ArrowDown}{Enter}");
@@ -175,8 +186,8 @@ describe("MultiOptionPicker", () => {
 		});
 
 		it("closes with Escape and keeps the selection", async () => {
-			const { user, host } = await renderPicker(["pc"]);
-			await user.click(trigger());
+			const { user, host, openPopover } = await renderPicker(["pc"]);
+			await openPopover();
 
 			await user.keyboard("{Escape}");
 
@@ -187,9 +198,9 @@ describe("MultiOptionPicker", () => {
 
 	describe("search", () => {
 		it("hides the search box for short lists", async () => {
-			const { user } = await renderPicker();
+			const { openPopover } = await renderPicker();
 
-			await user.click(trigger());
+			await openPopover();
 
 			expect(
 				screen.queryByRole("searchbox", { name: "Search platforms" })
@@ -197,8 +208,11 @@ describe("MultiOptionPicker", () => {
 		});
 
 		it("filters long lists by name or short name and keeps the hidden selection", async () => {
-			const { user, host } = await renderPicker(["pc"], manyPlatforms);
-			await user.click(trigger());
+			const { user, host, openPopover } = await renderPicker(
+				["pc"],
+				manyPlatforms
+			);
+			await openPopover();
 
 			await user.type(
 				screen.getByRole("searchbox", { name: "Search platforms" }),
@@ -227,8 +241,8 @@ describe("MultiOptionPicker", () => {
 		});
 
 		it("says when nothing matches", async () => {
-			const { user } = await renderPicker([], manyPlatforms);
-			await user.click(trigger());
+			const { user, openPopover } = await renderPicker([], manyPlatforms);
+			await openPopover();
 
 			await user.type(
 				screen.getByRole("searchbox", { name: "Search platforms" }),
@@ -239,8 +253,8 @@ describe("MultiOptionPicker", () => {
 		});
 
 		it("moves from the search box into the list with the down arrow", async () => {
-			const { user } = await renderPicker([], manyPlatforms);
-			await user.click(trigger());
+			const { user, openPopover } = await renderPicker([], manyPlatforms);
+			await openPopover();
 			const search = screen.getByRole("searchbox", {
 				name: "Search platforms"
 			});
@@ -254,9 +268,13 @@ describe("MultiOptionPicker", () => {
 
 	describe("mobile sheet", () => {
 		it("opens a bottom sheet with the same options and closes it with Done", async () => {
-			const { user, host } = await renderPicker([], platforms, true);
+			const { user, host, openPopover } = await renderPicker(
+				[],
+				platforms,
+				true
+			);
 
-			await user.click(trigger());
+			await openPopover();
 			const sheet = screen.getByRole("dialog", {
 				name: "Filter by platform"
 			});
