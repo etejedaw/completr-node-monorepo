@@ -10,6 +10,7 @@ import { RouterLink } from "@angular/router";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
 import { UiAvatar, UiBadge, UiEyebrow, UiIconButton } from "../../ui";
+import { canChangeStatus, canQuickRate } from "../../utils/backlog-eligibility";
 import {
 	backlogStatusIcon,
 	backlogStatusLabel
@@ -28,12 +29,6 @@ const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 	"playing",
 	"endless",
 	"not_started"
-]);
-
-const CHANGEABLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
-	"not_started",
-	"playing",
-	"endless"
 ]);
 
 @Component({
@@ -101,16 +96,11 @@ export class BacklogEntryCard {
 		);
 	});
 	protected readonly canChangeStatus = computed(
-		() => !this.readonly() && CHANGEABLE_STATUSES.has(this.entry().status)
+		() => !this.readonly() && canChangeStatus(this.entry())
 	);
-	protected readonly canQuickRate = computed(() => {
-		const entry = this.entry();
-		return (
-			!this.readonly() &&
-			entry.status !== "not_started" &&
-			entry.userRating == null
-		);
-	});
+	protected readonly canQuickRate = computed(
+		() => !this.readonly() && canQuickRate(this.entry())
+	);
 	protected readonly isPlatinumRun = computed(() =>
 		isPlatinumRun(this.entry())
 	);
