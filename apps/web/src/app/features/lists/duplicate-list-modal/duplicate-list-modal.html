@@ -1,6 +1,7 @@
 <ui-dialog
 	heading="Duplicate list"
 	eyebrow="Lists"
+	icon="content_copy"
 	subheading="Copies every game, its frozen score and the order into a new list you own. The original stays untouched."
 	size="sm"
 	[dismissible]="!isLoading()"
@@ -16,9 +17,7 @@
 		(submit)="onSubmit($event)"
 	>
 		<div uiFormField>
-			<label uiLabel for="duplicate-list-name" uiFieldLabel
-				>Name <span class="text-danger font-bold">*</span></label
-			>
+			<label uiLabel for="duplicate-list-name" uiFieldLabel>Name</label>
 			<input
 				uiInput
 				id="duplicate-list-name"
