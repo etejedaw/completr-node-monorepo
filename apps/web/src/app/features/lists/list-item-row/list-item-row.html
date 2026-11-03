@@ -73,20 +73,26 @@
 			status) {
 			<button
 				type="button"
-				class="tap-area inline-flex items-center gap-1 p-0 bg-transparent border-0 font-medium cursor-pointer hover:underline"
-				[class]="statusColor(status)"
+				uiButton
+				variant="link"
 				title="Edit in My Games"
 				(click)="libraryRequested.emit()"
 			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>{{ statusIcon(status) }}</span
+				<span
+					class="inline-flex items-center gap-1"
+					[class]="statusColor(status)"
 				>
-				{{ statusLabel(status) }}
+					<span aria-hidden="true" class="material-icons text-sm"
+						>{{ statusIcon(status) }}</span
+					>
+					{{ statusLabel(status) }}
+				</span>
 			</button>
 			} @else {
 			<button
 				type="button"
-				class="tap-area inline-flex items-center gap-1 p-0 bg-transparent border-0 font-medium text-brand cursor-pointer hover:underline"
+				uiButton
+				variant="link"
 				(click)="libraryRequested.emit()"
 			>
 				<span aria-hidden="true" class="material-icons text-sm"
@@ -110,7 +116,8 @@
 			} @if (canAddToLibrary()) {
 			<button
 				type="button"
-				class="tap-area inline-flex items-center gap-1 p-0 bg-transparent border-0 font-medium text-brand cursor-pointer hover:underline"
+				uiButton
+				variant="link"
 				(click)="libraryRequested.emit()"
 			>
 				<span aria-hidden="true" class="material-icons text-sm"
@@ -124,20 +131,26 @@
 				@if (viewerStatus(); as status) {
 				<button
 					type="button"
-					class="tap-area inline-flex items-center gap-1 p-0 bg-transparent border-0 font-medium cursor-pointer hover:underline"
-					[class]="statusColor(status)"
+					uiButton
+					variant="link"
 					title="Edit in My Games"
 					(click)="libraryRequested.emit()"
 				>
-					<span aria-hidden="true" class="material-icons text-sm"
-						>{{ statusIcon(status) }}</span
+					<span
+						class="inline-flex items-center gap-1"
+						[class]="statusColor(status)"
 					>
-					{{ statusLabel(status) }}
+						<span aria-hidden="true" class="material-icons text-sm"
+							>{{ statusIcon(status) }}</span
+						>
+						{{ statusLabel(status) }}
+					</span>
 				</button>
 				} @else {
 				<button
 					type="button"
-					class="tap-area inline-flex items-center gap-1 p-0 bg-transparent border-0 font-medium text-brand cursor-pointer hover:underline"
+					uiButton
+					variant="link"
 					(click)="libraryRequested.emit()"
 				>
 					<span aria-hidden="true" class="material-icons text-sm"

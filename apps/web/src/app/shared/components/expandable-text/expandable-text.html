@@ -10,7 +10,9 @@
 @if (overflows()) {
 <button
 	type="button"
-	class="tap-area inline-flex items-center gap-0.5 mt-2 bg-transparent border-0 p-0 text-sm text-brand cursor-pointer hover:underline"
+	uiButton
+	variant="link"
+	class="mt-2"
 	[attr.aria-expanded]="expanded()"
 	[attr.aria-controls]="contentId"
 	(click)="toggle()"

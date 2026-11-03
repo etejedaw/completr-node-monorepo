@@ -12,11 +12,15 @@ import {
 	viewChild
 } from "@angular/core";
 
+import { UiButton } from "../../ui";
+
 let nextContentId = 0;
 
 @Component({
 	selector: "app-expandable-text",
+	imports: [UiButton],
 	templateUrl: "./expandable-text.html",
+	host: { class: "text-sm" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExpandableText {
