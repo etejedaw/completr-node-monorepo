@@ -27,8 +27,9 @@ import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
 	UiDialog,
+	UiEmptyState,
+	UiFieldLabel,
 	UiInput,
-	UiPlainEmptyState,
 	UiPremiumBadge
 } from "../../../shared/ui";
 import { arrangeIntoFullOrder } from "../../../shared/utils/full-order";
@@ -57,12 +58,13 @@ function isAlreadyReported(error: unknown) {
 	imports: [
 		LibraryHero,
 		QueueBrowser,
-		UiPlainEmptyState,
+		UiEmptyState,
 		UiButton,
 		UiDialog,
 		UiInput,
 		UiPremiumBadge,
-		PremiumOnly
+		PremiumOnly,
+		UiFieldLabel
 	],
 	templateUrl: "./queue-view.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -73,6 +75,7 @@ export class QueueView implements OnInit {
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly toast = inject(ToastService);
 	private readonly dialogs = inject(DialogService);
+	private addModalOpen = false;
 	private readonly pendingRemovals = new PendingRemovals<QueueEntry>(
 		entry => entry.backlog.id
 	);
@@ -163,9 +166,15 @@ export class QueueView implements OnInit {
 	}
 
 	openAddModal() {
-		this.dialogs.open<QueueAddModalData>(QueueAddModal, {
-			data: { onAdded: () => this.loadQueue() }
-		});
+		if (this.addModalOpen) return;
+		this.addModalOpen = true;
+		this.dialogs
+			.open<QueueAddModalData>(QueueAddModal, {
+				data: { onAdded: () => this.loadQueue() }
+			})
+			.afterClosed.subscribe(() => {
+				this.addModalOpen = false;
+			});
 	}
 
 	requestStatusChange(entry: QueueEntry, status: QueueStatusChange) {

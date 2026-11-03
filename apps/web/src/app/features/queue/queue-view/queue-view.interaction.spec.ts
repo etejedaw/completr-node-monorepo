@@ -603,6 +603,38 @@ describe("QueueView interaction", () => {
 		]);
 	});
 
+	it("shows the illustrated empty state with a single Add from library action", async () => {
+		const user = userEvent.setup();
+		queuedIds = [];
+		await renderQueue([]);
+		await untilVisible(() =>
+			expect(
+				screen.getByRole("heading", { name: "Nothing queued yet" })
+			).toBeInTheDocument()
+		);
+
+		const addButtons = screen.getAllByRole("button", {
+			name: /Add from library/
+		});
+		expect(addButtons).toHaveLength(1);
+		expect(addButtons[0]).toHaveAttribute("data-variant", "primary");
+
+		await user.dblClick(addButtons[0]);
+
+		await untilVisible(() =>
+			expect(
+				screen.getAllByRole("dialog", { name: "Add to Up Next" })
+			).toHaveLength(1)
+		);
+		await user.keyboard("{Escape}");
+		await waitFor(() =>
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+		);
+		expect(
+			screen.getByRole("heading", { name: "Nothing queued yet" })
+		).toBeInTheDocument();
+	});
+
 	it("adds an unstarted game from the library", async () => {
 		const user = userEvent.setup();
 		await renderQueue();

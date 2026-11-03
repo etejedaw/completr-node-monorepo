@@ -57,10 +57,10 @@
 	(entryMove)="moveEntry($event)"
 >
 	<ng-template #emptyQueue>
-		<ui-plain-empty-state
+		<ui-empty-state
 			icon="playlist_play"
 			title="Nothing queued yet"
-			message="Line up the games you actually want to play next, in order. Pick titles you haven't started from your library."
+			hint="Line up the games you actually want to play next, in order. Pick titles you haven't started from your library."
 		>
 			<button uiButton variant="primary" (click)="openAddModal()">
 				<span aria-hidden="true" class="material-icons text-base"
@@ -68,13 +68,14 @@
 				>
 				Add from library
 			</button>
-		</ui-plain-empty-state>
+		</ui-empty-state>
 	</ng-template>
 </app-queue-browser>
 
 @if (pendingPlayEntry(); as pending) {
 <ui-dialog
 	eyebrow="Up Next"
+	icon="play_circle"
 	size="sm"
 	[heading]="'Start playing ' + pending.backlog.game.title + '?'"
 	(closed)="cancelPlayConfirmation()"
@@ -84,18 +85,14 @@
 		<span class="text-fg font-medium">Playing</span> and leave Up Next,
 		which only holds games you haven't started.
 	</p>
-	<label class="flex flex-col gap-1.5">
-		<span
-			class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-			>Started on</span
-		>
-		<input
-			uiInput
-			type="date"
-			[value]="pendingPlayStartedAt()"
-			(input)="onPendingPlayStartedAtChange($any($event.target).value)"
-		/>
-	</label>
+	<label uiFieldLabel for="queue-play-started-at">Started on</label>
+	<input
+		uiInput
+		id="queue-play-started-at"
+		type="date"
+		[value]="pendingPlayStartedAt()"
+		(input)="onPendingPlayStartedAtChange($any($event.target).value)"
+	/>
 	<ng-container dialogFooter>
 		<button uiButton variant="ghost" (click)="cancelPlayConfirmation()">
 			Cancel
