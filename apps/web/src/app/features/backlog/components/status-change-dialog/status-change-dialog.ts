@@ -6,14 +6,12 @@ import {
 	output
 } from "@angular/core";
 
-import { type BacklogStatus } from "../../../../core/models";
 import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/platinum-trophy";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import {
 	UiButton,
 	UiDatePicker,
 	UiDialog,
-	type UiDialogTone,
 	UiFieldLabel,
 	UiFieldOptional,
 	UiInput,
@@ -25,11 +23,7 @@ import {
 	backlogStatusLabel
 } from "../../../../shared/utils/backlog-status";
 import { type PendingStatusUpdate } from "./status-change-dialog.model";
-
-const STATUS_DIALOG_TONES: Partial<Record<BacklogStatus, UiDialogTone>> = {
-	completed: "success",
-	abandoned: "danger"
-};
+import { statusDialogTone } from "./status-dialog-tone";
 
 @Component({
 	selector: "app-status-change-dialog",
@@ -53,8 +47,7 @@ const STATUS_DIALOG_TONES: Partial<Record<BacklogStatus, UiDialogTone>> = {
 export class StatusChangeDialog {
 	protected readonly statusLabel = backlogStatusLabel;
 	protected readonly statusIcon = backlogStatusIcon;
-	protected readonly statusTone = (status: BacklogStatus): UiDialogTone =>
-		STATUS_DIALOG_TONES[status] ?? "brand";
+	protected readonly statusTone = statusDialogTone;
 
 	readonly pendingUpdate = input.required<PendingStatusUpdate>();
 	readonly inQueue = input(false);
