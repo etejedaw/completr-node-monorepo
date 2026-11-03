@@ -34,6 +34,7 @@ function tourItem(route: string, hint: string): SectionItem {
 		@let step = steps[index()];
 		<ui-dialog
 			size="sm"
+			[icon]="step.icon"
 			[eyebrow]="
 				'Welcome · Step ' + (index() + 1) + ' of ' + steps.length
 			"
@@ -152,6 +153,7 @@ export class OnboardingTour {
 	protected readonly index = signal(0);
 	protected readonly steps: Step[] = [
 		{
+			icon: "collections_bookmark",
 			heading: "Your library",
 			tagline: "Where your games live",
 			items: [
@@ -165,6 +167,7 @@ export class OnboardingTour {
 			]
 		},
 		{
+			icon: "explore",
 			heading: "Discover",
 			tagline: "Find your next game",
 			items: [

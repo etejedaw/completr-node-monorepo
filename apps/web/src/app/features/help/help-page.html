@@ -1,9 +1,8 @@
-<app-library-hero heading="How Completr works" [posters]="posters()">
-	<span
-		heroEyebrow
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Guide</span
-	>
+<app-library-hero
+	eyebrow="Guide"
+	heading="How Completr works"
+	[posters]="posters()"
+>
 	<p
 		heroSubtitle
 		class="m-0 mt-2 max-w-xl text-sm sm:text-base text-fg-secondary leading-relaxed"
@@ -15,8 +14,7 @@
 		heroActions
 		uiButton
 		type="button"
-		variant="secondary"
-		class="!bg-surface/70 backdrop-blur"
+		variant="glass"
 		(click)="openTour()"
 	>
 		<span aria-hidden="true" class="material-icons text-base">tour</span>
@@ -100,17 +98,7 @@
 						<div
 							class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-fg-muted"
 						>
-							<span
-								class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold"
-								[class]="statusClass('completed')"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-[0.75rem]"
-									>{{ statusIcon("completed") }}</span
-								>
-								{{ statusLabel("completed") }}
-							</span>
+							<app-backlog-status-badge status="completed" />
 							<span>PC</span>
 							<span aria-hidden="true">·</span>
 							<span>1.2 h played</span>
@@ -321,9 +309,7 @@
 				@for (score of scoreExamples; track score.type; let i = $index)
 				{
 				<li class="flex flex-col gap-3">
-					<span
-						class="text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-					>
+					<span uiEyebrow>
 						{{ i + 1 }} · @switch (score.type) { @case ("completr")
 						{ Preferred } @case ("aggregate") { Until the community
 						weighs in } @default { Fallback } }
@@ -368,17 +354,7 @@
 					[class.sm:col-span-2]="last"
 				>
 					<dt>
-						<span
-							class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold"
-							[class]="statusClass(entry.status)"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-[0.875rem]"
-								>{{ statusIcon(entry.status) }}</span
-							>
-							{{ statusLabel(entry.status) }}
-						</span>
+						<app-backlog-status-badge [status]="entry.status" />
 					</dt>
 					<dd class="m-0 text-sm text-fg-secondary leading-relaxed">
 						{{ entry.text }}

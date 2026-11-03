@@ -18,7 +18,13 @@ import { type GameScore, type GameTime } from "../../../../core/models";
 import { ScoreSourcesService } from "../../../../core/services/score-sources";
 import { ChipGroup } from "../../../../shared/components/chip-group/chip-group";
 import { type ChipOption } from "../../../../shared/components/chip-group/chip-group.model";
-import { UiButton, UiInput } from "../../../../shared/ui";
+import {
+	UiButton,
+	UiEyebrow,
+	UiFieldError,
+	UiFieldLabel,
+	UiInput
+} from "../../../../shared/ui";
 import { scrollIntoViewAndFocus } from "../focus-field";
 import {
 	correctedTypedValue,
@@ -34,10 +40,10 @@ export type MissingReferenceCategory = "missing_score" | "missing_duration";
 type ReferenceTooltip = "ratio" | ReferenceField;
 
 const REFERENCE_TOOLTIP_TEXTS: Record<ReferenceTooltip, string> = {
-	ratio: "Ratio = Critic Score (1–5) ÷ Duration in hours × 20. Scores from other scales are normalized to 1–5 first; × 20 makes the result a 0–100 number that is easier to compare. Higher means short and well-rated — useful to prioritize what to play next.",
+	ratio: "Ratio = Critic score (1–5) ÷ Duration in hours × 20. Scores from other scales are normalized to 1–5 first; × 20 makes the result a 0–100 number that is easier to compare. Higher means short and well-rated — useful to prioritize what to play next.",
 	score: "Average score from critics (Metacritic, OpenCritic, RAWG). Stored on a 0–5 scale — clicking a source button auto-normalizes the value for you.",
 	duration:
-		"Estimated playtime from HowLongToBeat or RAWG. Not your real playtime — that goes in Real Duration, under Tracking."
+		"Estimated playtime from HowLongToBeat or RAWG. Not your real playtime — that goes in Real duration, under Tracking."
 };
 
 function hasVisibleError(field: FieldTree<number | null>): boolean {
@@ -46,7 +52,15 @@ function hasVisibleError(field: FieldTree<number | null>): boolean {
 
 @Component({
 	selector: "app-backlog-reference-fields",
-	imports: [ChipGroup, FormField, UiButton, UiInput],
+	imports: [
+		ChipGroup,
+		FormField,
+		UiButton,
+		UiEyebrow,
+		UiFieldError,
+		UiFieldLabel,
+		UiInput
+	],
 	templateUrl: "./backlog-reference-fields.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush

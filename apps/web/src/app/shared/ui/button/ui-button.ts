@@ -1,8 +1,13 @@
-import { ChangeDetectionStrategy, Component, input } from "@angular/core";
+import {
+	booleanAttribute,
+	ChangeDetectionStrategy,
+	Component,
+	input
+} from "@angular/core";
 import { NgpButton } from "ng-primitives/button";
 
 export type UiButtonVariant =
-	"primary" | "secondary" | "ghost" | "danger" | "premium";
+	"primary" | "secondary" | "ghost" | "danger" | "premium" | "glass";
 export type UiButtonSize = "sm" | "md" | "lg";
 
 @Component({
@@ -14,11 +19,13 @@ export type UiButtonSize = "sm" | "md" | "lg";
 		class: "ui-button",
 		"[attr.data-variant]": "variant()",
 		"[attr.data-size]": "size()",
-		"[attr.data-block]": "block() ? '' : null"
+		"[attr.data-block]": "block() ? '' : null",
+		"[attr.data-active]": "active() ? '' : null"
 	}
 })
 export class UiButton {
 	variant = input<UiButtonVariant>("primary");
 	size = input<UiButtonSize>("md");
 	block = input(false);
+	active = input(false, { transform: booleanAttribute });
 }

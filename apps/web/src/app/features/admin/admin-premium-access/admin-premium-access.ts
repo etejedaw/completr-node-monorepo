@@ -13,15 +13,20 @@ import {
 import { form, FormField, required } from "@angular/forms/signals";
 import { forkJoin } from "rxjs";
 
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import {
 	UiAlert,
+	UiBadge,
 	UiButton,
+	UiDatePicker,
 	UiDialog,
+	UiFieldError,
 	UiFieldLabel,
+	UiFieldOptional,
 	UiFormField,
-	UiInput,
 	UiLabel,
-	UiSelect,
+	UiPlainEmptyState,
 	UiSkeleton
 } from "../../../shared/ui";
 import {
@@ -56,26 +61,34 @@ const FEATURE_LABELS: Partial<Record<PremiumGrantFeature, string>> = {
 	"rewind.premium": "Premium Rewind"
 };
 
+const GRANT_NOT_ACTIVE_ERROR = "PREMIUM_GRANT_NOT_ACTIVE";
+const GRANT_NOT_ACTIVE_MESSAGE =
+	"That grant already expired or was revoked, so it can't be changed. The list is up to date now; grant access again from the form above.";
+
 @Component({
 	selector: "app-admin-premium-access",
 	imports: [
 		DatePipe,
 		FormField,
+		OptionPicker,
 		UiAlert,
+		UiBadge,
 		UiButton,
+		UiDatePicker,
 		UiDialog,
+		UiFieldError,
 		UiFieldLabel,
+		UiFieldOptional,
 		UiFormField,
-		UiInput,
 		UiLabel,
-		UiSelect,
+		UiPlainEmptyState,
 		UiSkeleton
 	],
 	templateUrl: "./admin-premium-access.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminPremiumAccess implements OnInit {
-	readonly user = input.required<AdminUser>();
+	readonly user = input.required<Pick<AdminUser, "id" | "username">>();
 	readonly closed = output<void>();
 
 	private readonly premiumAccessService = inject(PremiumAccessAdminService);
@@ -90,6 +103,10 @@ export class AdminPremiumAccess implements OnInit {
 	protected readonly successMessage = signal("");
 	protected readonly busy = signal("");
 	protected readonly pendingFullRevoke = signal("");
+	protected readonly extendError = signal<{
+		grantId: string;
+		message: string;
+	} | null>(null);
 	protected readonly grants = signal<PremiumGrant[]>([]);
 	protected readonly features = signal<PremiumFeatureDefinition[]>([]);
 	protected readonly fullGrants = computed(() =>
@@ -97,6 +114,15 @@ export class AdminPremiumAccess implements OnInit {
 	);
 	protected readonly individualGrants = computed(() =>
 		this.grants().filter(grant => grant.feature !== "*")
+	);
+	protected readonly featureOptions = computed<PickerOption[]>(() =>
+		this.features().map(definition => ({
+			value: definition.feature,
+			label: this.featureLabel(definition.feature),
+			icon: "workspace_premium",
+			iconClass: "text-premium",
+			hint: definition.feature
+		}))
 	);
 	protected readonly minimumExpiration = toLocalInput(new Date());
 	protected readonly fullModel = signal({
@@ -154,8 +180,7 @@ export class AdminPremiumAccess implements OnInit {
 		if (this.busy()) return;
 		if (this.fullForm().invalid()) {
 			this.fullForm().markAsTouched();
-			this.successMessage.set("");
-			this.mutationError.set("Full premium requires an expiration date.");
+			this.clearFeedback();
 			return;
 		}
 		this.create({
@@ -169,8 +194,7 @@ export class AdminPremiumAccess implements OnInit {
 		if (this.busy()) return;
 		if (this.featureForm().invalid()) {
 			this.featureForm().markAsTouched();
-			this.successMessage.set("");
-			this.mutationError.set("Choose a feature.");
+			this.clearFeedback();
 			return;
 		}
 		this.create({
@@ -181,9 +205,16 @@ export class AdminPremiumAccess implements OnInit {
 
 	protected extend(grant: PremiumGrant, value: string) {
 		if (this.busy()) return;
+		if (!this.isActive(grant)) {
+			this.showGrantNoLongerActive();
+			return;
+		}
 		if (grant.feature === "*" && !value) {
-			this.successMessage.set("");
-			this.mutationError.set("Full premium requires an expiration date.");
+			this.clearFeedback();
+			this.extendError.set({
+				grantId: grant.id,
+				message: "Full premium requires an expiration date."
+			});
 			return;
 		}
 		const generation = this.startMutation(grant.id);
@@ -207,6 +238,10 @@ export class AdminPremiumAccess implements OnInit {
 
 	protected requestRevoke(grant: PremiumGrant) {
 		if (this.busy()) return;
+		if (!this.isActive(grant)) {
+			this.showGrantNoLongerActive();
+			return;
+		}
 		if (grant.feature === "*" && this.pendingFullRevoke() !== grant.id) {
 			this.clearFeedback();
 			this.pendingFullRevoke.set(grant.id);
@@ -229,6 +264,10 @@ export class AdminPremiumAccess implements OnInit {
 						"Could not revoke the grant."
 					)
 			});
+	}
+
+	protected setFeature(feature: string) {
+		this.featureForm.feature().value.set(feature as PremiumGrantFeature);
 	}
 
 	protected cancelRevoke() {
@@ -296,15 +335,27 @@ export class AdminPremiumAccess implements OnInit {
 	private clearFeedback() {
 		this.mutationError.set("");
 		this.successMessage.set("");
+		this.extendError.set(null);
 	}
 
 	private mutationFailed(
 		generation: number,
-		error: { error?: { title?: string } },
+		error: { error?: { title?: string; type?: string } },
 		fallback: string
 	) {
 		if (!this.isCurrentMutation(generation)) return;
-		this.mutationError.set(error.error?.title ?? fallback);
 		this.busy.set("");
+		if (error.error?.type === GRANT_NOT_ACTIVE_ERROR) {
+			this.showGrantNoLongerActive();
+			return;
+		}
+		this.mutationError.set(error.error?.title ?? fallback);
+	}
+
+	private showGrantNoLongerActive() {
+		this.clearFeedback();
+		this.pendingFullRevoke.set("");
+		this.mutationError.set(GRANT_NOT_ACTIVE_MESSAGE);
+		this.load();
 	}
 }

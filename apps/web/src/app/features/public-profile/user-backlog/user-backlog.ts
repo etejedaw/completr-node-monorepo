@@ -6,7 +6,7 @@ import {
 	type OnInit,
 	signal
 } from "@angular/core";
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ActivatedRoute } from "@angular/router";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
 import { type BacklogEntry } from "../../../core/models";
@@ -15,6 +15,8 @@ import { PointerService } from "../../../core/services/pointer";
 import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
 import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
+import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
 import { type ViewModeOption } from "../../../shared/components/view-mode-toggle/view-mode-toggle.model";
@@ -108,10 +110,10 @@ function defaultSortForStatus(status: string): {
 		BacklogTable,
 		ViewModeToggle,
 		OptionPicker,
-		RouterLink,
 		BacklogEntryCard,
 		BacklogStatusPills,
 		LibraryHero,
+		LibraryToolbar,
 		ProfileAccessState,
 		UiButton,
 		UiPagination,
@@ -128,6 +130,9 @@ export class UserBacklog implements OnInit {
 	private readonly authService = inject(AuthService);
 
 	protected readonly username = signal("");
+	protected readonly backLink = computed(() =>
+		profileBackLink(this.username(), "library")
+	);
 	protected readonly entries = signal<BacklogEntry[]>([]);
 	protected readonly total = signal(0);
 	protected readonly searchQuery = signal("");

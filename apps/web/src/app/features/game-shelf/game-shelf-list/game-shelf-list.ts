@@ -36,7 +36,14 @@ import {
 import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
 import { type ViewModeOption } from "../../../shared/components/view-mode-toggle/view-mode-toggle.model";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
-import { UiButton, UiPremiumBadge, UiSearchBar } from "../../../shared/ui";
+import {
+	UiBadge,
+	UiButton,
+	UiIconButton,
+	UiPremiumBadge,
+	UiSearchBar,
+	UiTable
+} from "../../../shared/ui";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { FavoritesService } from "../../favorites/favorites";
 import { WishlistService } from "../../wishlist/wishlist";
@@ -69,8 +76,11 @@ function readStoredViewMode(): ShelfViewMode {
 		ExportActions,
 		ViewModeToggle,
 		DatePipe,
+		UiBadge,
 		UiButton,
+		UiIconButton,
 		UiSearchBar,
+		UiTable,
 		GameCoverCard,
 		GameTitleCell,
 		GameShelfCalendar,

@@ -13,7 +13,7 @@ import {
 } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { RouterOutlet } from "@angular/router";
-import { render, screen, waitFor } from "@testing-library/angular";
+import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
@@ -59,6 +59,7 @@ const NOT_FOUND_MESSAGE =
 describe("GameDetail admin action errors", () => {
 	let httpTesting: HttpTestingController;
 	let deleteResponse: { status: number; type: string; title: string };
+	let deleteRequests: number;
 
 	function answer(req: TestRequest) {
 		const { method, url } = req.request;
@@ -66,11 +67,13 @@ describe("GameDetail admin action errors", () => {
 			return req.flush({ data: { user: admin } });
 		if (method === "GET" && url === `${api}/games/hades`)
 			return req.flush({ data: { game: hades } });
-		if (method === "DELETE" && url.startsWith(`${api}/games/g1`))
+		if (method === "DELETE" && url.startsWith(`${api}/games/g1`)) {
+			deleteRequests++;
 			return req.flush(
 				{ type: deleteResponse.type, title: deleteResponse.title },
 				{ status: deleteResponse.status, statusText: "err" }
 			);
+		}
 		if (url === `${api}/games/g1/reviews`)
 			return req.flush({ data: { reviews: [] } });
 		if (url === `${api}/games/g1/lists`)
@@ -123,14 +126,36 @@ describe("GameDetail admin action errors", () => {
 		TestBed.inject(AuthService).loadUser().subscribe();
 		await untilVisible(() =>
 			expect(
-				screen.getByRole("button", { name: "Deactivate" })
+				screen.getByRole("button", { name: "More admin actions" })
 			).toBeInTheDocument()
+		);
+	}
+
+	async function confirmFromMenu(
+		user: ReturnType<typeof userEvent.setup>,
+		action: "Deactivate" | "Delete"
+	) {
+		await user.click(
+			screen.getByRole("button", { name: "More admin actions" })
+		);
+		await user.click(await screen.findByRole("menuitem", { name: action }));
+		const dialog = await screen.findByRole("dialog", {
+			name:
+				action === "Deactivate"
+					? "Deactivate Hades?"
+					: "Permanently delete Hades?"
+		});
+		await user.click(
+			within(dialog).getByRole("button", {
+				name: action === "Deactivate" ? "Deactivate" : "Delete forever"
+			})
 		);
 	}
 
 	beforeEach(() => {
 		localStorage.clear();
 		deleteResponse = { status: 500, type: "", title: "" };
+		deleteRequests = 0;
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -166,8 +191,7 @@ describe("GameDetail admin action errors", () => {
 
 		const toastsBefore = screen.queryAllByText(IN_USE_MESSAGE).length;
 
-		await user.click(screen.getByRole("button", { name: "Delete" }));
-		await user.click(screen.getByRole("button", { name: "Yes, delete" }));
+		await confirmFromMenu(user, "Delete");
 
 		await untilVisible(() =>
 			expect(screen.getAllByText(IN_USE_MESSAGE)).toHaveLength(
@@ -175,11 +199,9 @@ describe("GameDetail admin action errors", () => {
 			)
 		);
 		expect(
-			screen.getByRole("button", { name: "Deactivate" })
-		).toBeInTheDocument();
-		expect(
-			screen.queryByRole("button", { name: "Yes, delete" })
-		).not.toBeInTheDocument();
+			screen.getByRole("button", { name: "More admin actions" })
+		).not.toHaveAttribute("aria-busy");
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 	});
 
 	it("explains a missing game when deactivating one that no longer exists", async () => {
@@ -193,16 +215,16 @@ describe("GameDetail admin action errors", () => {
 
 		const toastsBefore = screen.queryAllByText(NOT_FOUND_MESSAGE).length;
 
-		await user.click(screen.getByRole("button", { name: "Deactivate" }));
-		await user.click(screen.getByRole("button", { name: "Yes" }));
+		await confirmFromMenu(user, "Deactivate");
 
 		await untilVisible(() =>
 			expect(screen.getAllByText(NOT_FOUND_MESSAGE)).toHaveLength(
 				toastsBefore + 1
 			)
 		);
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 		expect(
-			screen.getByRole("button", { name: "Deactivate" })
+			screen.getByRole("button", { name: "More admin actions" })
 		).toBeInTheDocument();
 	});
 
@@ -217,8 +239,7 @@ describe("GameDetail admin action errors", () => {
 
 		const toastsBefore = screen.queryAllByText(NOT_FOUND_MESSAGE).length;
 
-		await user.click(screen.getByRole("button", { name: "Delete" }));
-		await user.click(screen.getByRole("button", { name: "Yes, delete" }));
+		await confirmFromMenu(user, "Delete");
 
 		await untilVisible(() =>
 			expect(screen.getAllByText(NOT_FOUND_MESSAGE)).toHaveLength(
@@ -234,13 +255,40 @@ describe("GameDetail admin action errors", () => {
 			"Could not delete game."
 		).length;
 
-		await user.click(screen.getByRole("button", { name: "Delete" }));
-		await user.click(screen.getByRole("button", { name: "Yes, delete" }));
+		await confirmFromMenu(user, "Delete");
 
 		await untilVisible(() =>
 			expect(screen.getAllByText("Could not delete game.")).toHaveLength(
 				toastsBefore + 1
 			)
 		);
+	});
+
+	it("sends one delete when the confirm button is double clicked", async () => {
+		const user = userEvent.setup();
+		await renderAsAdmin();
+		const toastsBefore = screen.queryAllByText(
+			"Could not delete game."
+		).length;
+
+		await user.click(
+			screen.getByRole("button", { name: "More admin actions" })
+		);
+		await user.click(
+			await screen.findByRole("menuitem", { name: "Delete" })
+		);
+		const dialog = await screen.findByRole("dialog", {
+			name: "Permanently delete Hades?"
+		});
+		await user.dblClick(
+			within(dialog).getByRole("button", { name: "Delete forever" })
+		);
+
+		await untilVisible(() =>
+			expect(screen.getAllByText("Could not delete game.")).toHaveLength(
+				toastsBefore + 1
+			)
+		);
+		expect(deleteRequests).toBe(1);
 	});
 });

@@ -3,11 +3,11 @@ import {
 	BACKLOG_STATUS_ORDER,
 	BACKLOG_STATUS_PICKER_OPTIONS,
 	backlogStatusCalendarBarClass,
-	backlogStatusClass,
 	backlogStatusFillClass,
 	backlogStatusIcon,
 	backlogStatusIconColor,
-	backlogStatusLabel
+	backlogStatusLabel,
+	backlogStatusTone
 } from "./backlog-status";
 
 describe("backlog status helpers", () => {
@@ -21,12 +21,22 @@ describe("backlog status helpers", () => {
 		expect(backlogStatusLabel(status)).toBe(label);
 	});
 
+	it.each([
+		["not_started", "muted"],
+		["playing", "playing"],
+		["completed", "success"],
+		["abandoned", "danger"],
+		["endless", "brand"],
+		["mystery", "neutral"]
+	])("gives %s the %s badge tone", (status, tone) => {
+		expect(backlogStatusTone(status)).toBe(tone);
+	});
+
 	it("returns the raw value as label for an unknown status", () => {
 		expect(backlogStatusLabel("mystery")).toBe("mystery");
 	});
 
 	it("falls back to neutral values for an unknown status", () => {
-		expect(backlogStatusClass("mystery")).toBe("");
 		expect(backlogStatusIcon("mystery")).toBe("schedule");
 		expect(backlogStatusIconColor("mystery")).toBe("");
 		expect(backlogStatusFillClass("mystery")).toBe("bg-fg-muted");
@@ -37,7 +47,6 @@ describe("backlog status helpers", () => {
 		const statuses = [...BACKLOG_STATUS_ORDER];
 
 		for (const fn of [
-			backlogStatusClass,
 			backlogStatusIcon,
 			backlogStatusIconColor,
 			backlogStatusFillClass,

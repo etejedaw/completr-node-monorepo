@@ -52,6 +52,20 @@ describe("HelpPage", () => {
 
 	afterEach(() => vi.unstubAllGlobals());
 
+	it("explains every backlog status with the shared status badge", async () => {
+		const { container } = await renderHelp();
+
+		const labels = Array.from(
+			container.querySelectorAll(
+				"#statuses app-backlog-status-badge ui-badge"
+			)
+		).map(badge => badge.textContent?.replace(/\s+/g, " ").trim());
+
+		expect(labels).toHaveLength(5);
+		expect(labels.join(" ")).toContain("Completed");
+		expect(labels.join(" ")).toContain("Playing");
+	});
+
 	it("lists Rewind in the table of contents between Saved Views and Privacy", async () => {
 		await renderHelp();
 

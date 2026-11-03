@@ -1,21 +1,17 @@
 <ui-dialog
 	eyebrow="My Games"
+	icon="casino"
 	heading="Surprise me"
 	subheading="A random pick from your current filters"
 	size="sm"
 	(closed)="close()"
 >
-	<span
-		dialogLead
-		aria-hidden="true"
-		class="material-icons text-2xl text-brand mt-1"
-		>casino</span
-	>
 	<div class="flex flex-col gap-4">
 		@switch (state()) { @case ('empty') {
 		<ui-plain-empty-state
 			role="status"
 			[compact]="true"
+			[headingLevel]="3"
 			icon="search_off"
 			title="Nothing to pick"
 			[message]="
@@ -28,6 +24,7 @@
 		<ui-plain-empty-state
 			role="alert"
 			[compact]="true"
+			[headingLevel]="3"
 			icon="cloud_off"
 			title="Couldn't pick a game"
 			message="Check your connection and try again."
@@ -69,7 +66,8 @@
 			</div>
 			<div class="relative -mt-14 flex items-end gap-3 px-3">
 				<app-game-poster
-					class="w-20 shrink-0 aspect-[2/3] rounded-card ring-1 ring-line shadow-[0_12px_30px_-10px_rgba(0,0,0,0.8)]"
+					framed
+					class="w-20 shrink-0 aspect-[2/3] rounded-card shadow-[0_12px_30px_-10px_rgba(0,0,0,0.8)]"
 					[src]="entry.game.backgroundUrl"
 					[title]="entry.game.title"
 					[width]="200"
@@ -115,13 +113,8 @@
 				aria-label="Tags"
 			>
 				@for (tag of entry.moodTags; track tag) {
-				<li
-					class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand-subtle text-brand text-[0.6875rem] font-medium"
-				>
-					<span aria-hidden="true" class="material-icons text-xs"
-						>label</span
-					>
-					{{ tag }}
+				<li class="flex max-w-full">
+					<ui-badge tone="brand" icon="label">{{ tag }}</ui-badge>
 				</li>
 				}
 			</ul>

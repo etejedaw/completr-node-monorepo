@@ -64,4 +64,23 @@ describe("GamePoster", () => {
 		expect(background("Hades")).toBe(background("Hades"));
 		expect(background("Hades")).not.toBe(background("Celeste"));
 	});
+
+	it("has no frame unless asked", () => {
+		const host = render({ title: "Hades", src: null });
+
+		expect(host.classList).not.toContain("ring-1");
+	});
+
+	it("draws the cover frame with the line token", () => {
+		const host = render({ title: "Hades", src: null, framed: true });
+
+		expect(host.classList).toContain("ring-1");
+		expect(host.classList).toContain("ring-line-hover");
+	});
+
+	it("accepts framed as a bare attribute value", () => {
+		const host = render({ title: "Hades", framed: "" });
+
+		expect(host.classList).toContain("ring-line-hover");
+	});
 });

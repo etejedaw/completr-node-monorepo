@@ -22,7 +22,10 @@ import { type PickerOption } from "../../../shared/components/option-picker/opti
 import {
 	UiAlert,
 	UiButton,
+	UiDatePicker,
 	UiDialog,
+	UiFieldLabel,
+	UiFieldOptional,
 	UiInput,
 	UiTextarea
 } from "../../../shared/ui";
@@ -60,9 +63,12 @@ const EDITION_SUGGESTIONS = [
 		OptionPicker,
 		SelectedGameRow,
 		UiButton,
+		UiDatePicker,
 		UiDialog,
 		UiInput,
-		UiTextarea
+		UiTextarea,
+		UiFieldLabel,
+		UiFieldOptional
 	],
 	templateUrl: "./game-shelf-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

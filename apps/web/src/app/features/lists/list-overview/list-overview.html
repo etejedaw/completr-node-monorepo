@@ -1,9 +1,4 @@
-<app-library-hero heading="Lists" [posters]="heroPosters()">
-	<span
-		heroEyebrow
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Library</span
-	>
+<app-library-hero eyebrow="Library" heading="Lists" [posters]="heroPosters()">
 	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
 		<span
 			class="font-semibold text-fg tabular-nums"
@@ -40,7 +35,8 @@
 
 <app-library-toolbar>
 	<ui-search-bar
-		class="flex-1 min-w-[12rem] max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+		size="sm"
+		class="flex-1 min-w-[12rem] max-w-2xl"
 		placeholder="Search public lists..."
 		ariaLabel="Search public lists"
 		[value]="searchQuery()"
@@ -50,10 +46,7 @@
 
 @if (searchQuery().length >= 2) {
 <section class="mb-10" aria-labelledby="list-search-heading">
-	<h2
-		id="list-search-heading"
-		class="m-0 mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-	>
+	<h2 id="list-search-heading" uiEyebrow class="m-0 mb-3">
 		Public lists matching “{{ searchQuery() }}”
 	</h2>
 	@if (isSearching()) {
@@ -71,14 +64,10 @@
 	}
 </section>
 } @if (frozen()) {
-<div
-	role="status"
-	class="flex items-start gap-2 px-3.5 py-2.5 mb-6 bg-premium/10 border border-premium/25 text-premium rounded-card text-sm max-w-2xl"
->
-	<span aria-hidden="true" class="material-icons text-base mt-0.5">lock</span>
+<ui-alert tone="premium" icon="lock" class="mb-6 max-w-2xl">
 	Lists are frozen. Delete lists to go below the free limit (5) to create new
 	ones.
-</div>
+</ui-alert>
 } @if (!isPremium()) {
 <app-gift-offer-card
 	feature="lists.unlimited"
@@ -88,12 +77,7 @@
 }
 
 <section aria-labelledby="my-lists-heading">
-	<h2
-		id="my-lists-heading"
-		class="m-0 mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-	>
-		Your lists
-	</h2>
+	<h2 id="my-lists-heading" uiEyebrow class="m-0 mb-3">Your lists</h2>
 	@if (isLoading()) {
 	<ng-container [ngTemplateOutlet]="cardsSkeleton" />
 	} @else if (lists().length === 0) {
@@ -124,12 +108,7 @@
 
 @if (followingLists().length > 0) {
 <section class="mt-10" aria-labelledby="following-heading">
-	<h2
-		id="following-heading"
-		class="m-0 mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-	>
-		Following
-	</h2>
+	<h2 id="following-heading" uiEyebrow class="m-0 mb-3">Following</h2>
 	<ul class="list-none m-0 p-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
 		@for (list of followingLists(); track list.id) {
 		<li><app-list-card [list]="list" /></li>

@@ -12,6 +12,7 @@ import { NgpDialogRef } from "ng-primitives/dialog";
 
 import { environment } from "../../../../environments/environment";
 import { type Game, type GameShelfEntry } from "../../../core/models";
+import { pickCalendarDate } from "../../../shared/ui/date-picker/ui-date-picker.testing";
 import { GameShelfModal } from "./game-shelf-modal";
 import { type GameShelfModalData } from "./game-shelf-modal.model";
 
@@ -93,7 +94,11 @@ describe("GameShelfModal", () => {
 		await renderModal({ entry, preselectedGame: null });
 
 		await userEvent.click(screen.getByRole("button", { name: /^edit$/i }));
-		await userEvent.type(screen.getByLabelText("Acquired"), "2026-03-01");
+		await pickCalendarDate(
+			userEvent,
+			screen.getByLabelText("Acquired Optional"),
+			"2026-03-01"
+		);
 		const body = await submitAndCaptureBody("PATCH", `${shelfUrl}/s1`);
 
 		expect(body).toEqual(
@@ -104,7 +109,11 @@ describe("GameShelfModal", () => {
 	it("sends an acquired date as a plain day when adding", async () => {
 		await renderModal({ entry: null, preselectedGame: game });
 
-		await userEvent.type(screen.getByLabelText("Acquired"), "2026-03-01");
+		await pickCalendarDate(
+			userEvent,
+			screen.getByLabelText("Acquired Optional"),
+			"2026-03-01"
+		);
 		const body = await submitAndCaptureBody("POST", shelfUrl);
 
 		expect(body).toEqual(

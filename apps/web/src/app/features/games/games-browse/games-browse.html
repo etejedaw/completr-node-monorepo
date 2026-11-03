@@ -1,39 +1,23 @@
 @if (viewMode() === 'discover') { @if (isInitialLoad()) {
-<div
+<ui-skeleton
 	aria-hidden="true"
-	class="bleed bleed-top min-h-[26rem] sm:min-h-[30rem] lg:min-h-[34rem] bg-surface/40 animate-[skeletonPulse_1.4s_ease-in-out_infinite]"
-></div>
+	class="bleed bleed-top min-h-[26rem] sm:min-h-[30rem] lg:min-h-[34rem]"
+/>
 } @else if (featuredGames().length > 0) {
 <app-browse-hero [games]="featuredGames()" />
 } @if (isAdmin()) {
 <div class="flex justify-end mt-4 mb-2">
-	<button
-		uiButton
-		variant="secondary"
-		[attr.aria-expanded]="showCreateEditor()"
-		(click)="showCreateEditor.set(!showCreateEditor())"
-		[title]="showCreateEditor() ? 'Close editor' : 'Add a game to the catalog'"
-	>
-		<span aria-hidden="true" class="material-icons text-lg"
-			>{{ showCreateEditor() ? 'close' : 'add' }}</span
-		>
-		{{ showCreateEditor() ? 'Close' : 'Add game' }}
-	</button>
+	<ng-container *ngTemplateOutlet="addGameButton" />
 </div>
 } } @else {
-<header class="mb-2 flex flex-wrap items-end justify-between gap-3">
-	<div>
-		<span
-			class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-			>Catalog</span
-		>
-		<h1
-			class="m-0 mt-1 font-display text-3xl sm:text-4xl font-bold tracking-tight"
-		>
-			Browse
-		</h1>
-	</div>
+<app-library-hero heading="Browse" eyebrow="Catalog" [posters]="heroPosters()">
 	@if (isAdmin()) {
+	<ng-container heroActions *ngTemplateOutlet="addGameButton" />
+	}
+</app-library-hero>
+}
+
+<ng-template #addGameButton>
 	<button
 		uiButton
 		variant="secondary"
@@ -46,16 +30,13 @@
 		>
 		{{ showCreateEditor() ? 'Close' : 'Add game' }}
 	</button>
-	}
-</header>
-}
+</ng-template>
 
-<div
-	class="bleed bleed-inner sticky top-[var(--topbar-height)] z-30 py-3 bg-canvas/85 backdrop-blur-xl border-b border-line/60"
->
-	<div class="flex items-center gap-2">
+<app-library-toolbar>
+	<div class="flex w-full items-center gap-2">
 		<ui-search-bar
-			class="flex-1 min-w-0 [&_input]:!py-2 [&_input]:!text-sm"
+			size="sm"
+			class="flex-1 min-w-0"
 			placeholder="Search the catalog..."
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"
@@ -73,19 +54,15 @@
 			(valueChange)="pickGenre($event)"
 		/>
 		<button
-			type="button"
-			class="shrink-0 inline-flex items-center gap-1.5 h-10 tap:min-h-[44px] tap:min-w-[44px] px-3 rounded-card border text-sm font-medium cursor-pointer transition"
-			[class]="showFilters() || activeFiltersCount() > 0 ? 'border-brand bg-brand-subtle text-brand' : 'border-line bg-transparent text-fg-secondary hover:border-brand hover:text-brand'"
+			uiFiltersButton
+			[count]="activeFiltersCount()"
+			[active]="showFilters() || activeFiltersCount() > 0"
+			[popup]="isMobile() ? 'dialog' : null"
 			[attr.aria-expanded]="isMobile() ? null : showFilters()"
 			[attr.aria-controls]="isMobile() ? null : 'browse-filters'"
-			[attr.aria-haspopup]="isMobile() ? 'dialog' : null"
 			(click)="toggleFilters()"
 		>
-			<span aria-hidden="true" class="material-icons text-lg">tune</span>
-			<span class="max-sm:sr-only">Filters</span>
-			@if (activeFiltersCount() > 0) {
-			<ui-count-badge [count]="activeFiltersCount()" />
-			}
+			Filters
 		</button>
 		<app-option-picker
 			class="max-md:hidden shrink-0"
@@ -99,7 +76,7 @@
 		/>
 	</div>
 
-	<div class="md:hidden mt-3 grid grid-cols-2 gap-2">
+	<div class="md:hidden mt-1 grid w-full grid-cols-2 gap-2">
 		<app-option-picker
 			label="Genre"
 			heading="Filter by genre"
@@ -117,13 +94,13 @@
 			(valueChange)="setSortBy($event)"
 		/>
 	</div>
-</div>
+</app-library-toolbar>
 
 @if (showFilters() && !isMobile()) {
 <section
 	id="browse-filters"
 	aria-label="Filters"
-	class="mt-4 bg-surface/60 border border-line rounded-card p-5 motion-safe:animate-[uiFadeUp_200ms_ease-out]"
+	class="mb-6 bg-surface/60 border border-line rounded-card p-5 motion-safe:animate-[uiFadeUp_200ms_ease-out]"
 >
 	<ng-container *ngTemplateOutlet="filtersForm" />
 </section>
@@ -182,10 +159,10 @@
 </ng-template>
 
 @if (showCreateEditor()) {
-<app-admin-game-editor class="block mt-4" (created)="onGameCreated($event)" />
+<app-admin-game-editor class="block mb-6" (created)="onGameCreated($event)" />
 }
 
-<div class="mt-8">
+<div class="mt-2">
 	@switch (viewMode()) { @case ('search') {
 	<section aria-labelledby="search-results-heading">
 		<header class="flex flex-wrap items-end justify-between gap-3 mb-5">
@@ -261,9 +238,16 @@
 					games }
 				</h2>
 				<p class="m-0 mt-1 text-sm text-fg-muted" role="status">
-					@if (isLoadingFiltered()) { Loading... } @else { {{
-					filteredTotal() }} {{ filteredTotal() === 1 ? 'game' :
-					'games' }} · sorted by {{ sortLabel().toLowerCase() }} }
+					@if (isLoadingFiltered()) {
+					<ui-skeleton
+						variant="text"
+						aria-hidden="true"
+						class="inline-block w-40 align-middle"
+					/>
+					<span class="sr-only">Loading results</span>
+					} @else { {{ filteredTotal() }} {{ filteredTotal() === 1 ?
+					'game' : 'games' }} · sorted by {{ sortLabel().toLowerCase()
+					}} }
 				</p>
 			</div>
 			<button uiButton variant="ghost" size="sm" (click)="clearFilters()">
@@ -388,22 +372,11 @@
 </ng-template>
 
 <ng-template #emptyResults let-title let-hint="hint">
-	<div
-		class="flex flex-col items-center text-center py-16 px-4 bg-surface/50 border border-dashed border-line rounded-card"
-	>
-		<span
-			aria-hidden="true"
-			class="material-icons text-4xl text-fg-muted mb-3"
-			>search_off</span
-		>
-		<p class="m-0 mb-1 font-display text-lg font-semibold text-fg">
-			{{ title }}
-		</p>
-		<p class="m-0 mb-5 max-w-md text-sm text-fg-muted">{{ hint }}</p>
+	<ui-empty-state icon="search_off" [title]="title" [hint]="hint">
 		@if (viewMode() === 'filtered') {
-		<button uiButton variant="secondary" size="sm" (click)="clearFilters()">
+		<button uiButton variant="secondary" (click)="clearFilters()">
 			Reset filters
 		</button>
 		}
-	</div>
+	</ui-empty-state>
 </ng-template>

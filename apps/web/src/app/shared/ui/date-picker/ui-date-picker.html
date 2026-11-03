@@ -1,0 +1,241 @@
+<div class="relative">
+	<button
+		#trigger
+		type="button"
+		class="ui-input w-full flex items-center gap-2.5 text-left cursor-pointer data-[open]:border-brand aria-invalid:!border-danger disabled:cursor-not-allowed disabled:opacity-50"
+		[class.pr-12]="canClear()"
+		[ngpPopoverTrigger]="popover"
+		[ngpPopoverTriggerDisabled]="isMobile() || disabled()"
+		ngpPopoverTriggerPlacement="bottom-start"
+		[ngpPopoverTriggerOffset]="6"
+		(ngpPopoverTriggerOpenChange)="onPopoverOpenChange($event)"
+		aria-haspopup="dialog"
+		[attr.aria-expanded]="isOpen()"
+		[attr.aria-label]="triggerLabel()"
+		[attr.aria-invalid]="showInvalid() || null"
+		[attr.aria-describedby]="describedBy()"
+		[attr.id]="triggerId()"
+		[attr.data-open]="isOpen() ? '' : null"
+		[disabled]="disabled()"
+		(click)="openSheet()"
+	>
+		<span
+			aria-hidden="true"
+			class="material-icons shrink-0 text-lg text-fg-muted"
+			>{{ isDateTime() ? "schedule" : "calendar_today" }}</span
+		>
+		<span
+			class="flex-1 min-w-0 truncate tabular-nums"
+			[class.text-fg]="displayText()"
+			[class.text-fg-muted]="!displayText()"
+			>{{ displayText() ?? placeholderText() }}</span
+		>
+		@if (!canClear()) {
+		<span aria-hidden="true" class="material-icons shrink-0 text-fg-muted"
+			>expand_more</span
+		>
+		}
+	</button>
+	@if (canClear()) {
+	<button
+		uiIconButton
+		type="button"
+		class="!absolute right-1 top-1/2 -translate-y-1/2"
+		[attr.aria-label]="'Clear ' + label()"
+		(click)="clear()"
+	>
+		<span aria-hidden="true" class="material-icons text-lg">close</span>
+	</button>
+	}
+</div>
+
+<ng-template #popover>
+	<div
+		ngpPopover
+		role="dialog"
+		[attr.aria-label]="sheetHeading()"
+		class="fixed z-[1010] w-[23rem] max-w-[calc(100vw-2rem)] p-3 bg-sidebar border border-line rounded-card shadow-[0_24px_48px_-16px_rgba(0,0,0,0.75)] outline-none data-[enter]:animate-[uiFadeUp_140ms_ease-out]"
+	>
+		<ng-container *ngTemplateOutlet="calendar" />
+	</div>
+</ng-template>
+
+@if (sheetOpen()) {
+<ui-bottom-sheet [heading]="sheetHeading()" (closed)="closeSheet()">
+	<div class="px-2 pb-1">
+		<ng-container *ngTemplateOutlet="calendar" />
+	</div>
+</ui-bottom-sheet>
+}
+
+<ng-template #calendar>
+	<div
+		ngpDatePicker
+		uiDatePickerInitialFocus
+		class="flex flex-col gap-3"
+		[ngpDatePickerDate]="selected() ?? undefined"
+		[ngpDatePickerMin]="minDay()"
+		[ngpDatePickerMax]="maxDay()"
+		[ngpDatePickerFocusedDate]="focusedDay()"
+		(ngpDatePickerFocusedDateChange)="onFocusedDayChange($event)"
+		(ngpDatePickerDateChange)="onDayPicked($event)"
+	>
+		<div class="flex items-center gap-2">
+			<button
+				uiIconButton
+				size="lg"
+				type="button"
+				ngpDatePickerPreviousMonth
+				aria-label="Previous month"
+			>
+				<span aria-hidden="true" class="material-icons"
+					>chevron_left</span
+				>
+			</button>
+			<h2
+				ngpDatePickerLabel
+				[id]="gridLabelId"
+				class="m-0 flex-1 text-center font-display text-base font-semibold text-fg"
+			>
+				{{ monthLabel() }}
+			</h2>
+			<button
+				uiIconButton
+				size="lg"
+				type="button"
+				ngpDatePickerNextMonth
+				aria-label="Next month"
+			>
+				<span aria-hidden="true" class="material-icons"
+					>chevron_right</span
+				>
+			</button>
+		</div>
+
+		<table ngpDatePickerGrid class="w-full border-collapse table-fixed">
+			<thead>
+				<tr>
+					@for (weekday of weekdays; track $index) {
+					<th
+						scope="col"
+						[attr.abbr]="weekday.full"
+						class="h-8 p-0 text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-fg-muted"
+					>
+						{{ weekday.short }}
+					</th>
+					}
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngpDatePickerRowRender>
+					<td
+						*ngpDatePickerCellRender="let date"
+						ngpDatePickerCell
+						class="p-0.5 text-center"
+					>
+						<button
+							ngpDatePickerDateButton
+							data-day
+							type="button"
+							[attr.aria-label]="dayLabel(date)"
+							class="mx-auto flex size-[40px] tap:size-[44px] max-sm:size-[44px] items-center justify-center rounded-card border border-transparent bg-transparent text-sm tabular-nums text-fg-secondary cursor-pointer outline-none transition hover:bg-surface-hover hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand data-[outside-month]:text-fg-muted data-[today]:border-line-hover data-[today]:font-semibold data-[today]:text-fg data-[selected]:!border-brand data-[selected]:!bg-brand-solid data-[selected]:font-semibold data-[selected]:!text-white disabled:cursor-not-allowed disabled:opacity-35 disabled:line-through disabled:hover:bg-transparent disabled:hover:text-fg-secondary"
+						>
+							{{ date.getDate() }}
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+		@if (isDateTime()) {
+		<div
+			role="group"
+			aria-label="Time"
+			class="flex items-center justify-center gap-[8px] pt-3 border-t border-line"
+		>
+			<ng-container
+				*ngTemplateOutlet="timeUnit; context: { $implicit: 'hours' }"
+			/>
+			<span
+				aria-hidden="true"
+				class="font-display text-xl font-semibold text-fg-muted"
+				>:</span
+			>
+			<ng-container
+				*ngTemplateOutlet="timeUnit; context: { $implicit: 'minutes' }"
+			/>
+		</div>
+		}
+
+		<div class="flex items-center gap-[8px] pt-3 border-t border-line">
+			<button
+				uiButton
+				variant="ghost"
+				size="sm"
+				type="button"
+				[disabled]="todayDisabled()"
+				(click)="pickToday()"
+			>
+				Today
+			</button>
+			@if (canClear()) {
+			<button
+				uiButton
+				variant="ghost"
+				size="sm"
+				type="button"
+				(click)="clearFromPanel()"
+			>
+				Clear
+			</button>
+			} @if (isDateTime()) {
+			<button
+				uiButton
+				variant="primary"
+				size="sm"
+				type="button"
+				class="ml-auto"
+				(click)="close()"
+			>
+				Done
+			</button>
+			}
+		</div>
+	</div>
+</ng-template>
+
+<ng-template #timeUnit let-unit>
+	@let isHours = unit === "hours";
+	<div class="inline-flex items-center gap-1">
+		<button
+			uiIconButton
+			size="lg"
+			type="button"
+			[attr.aria-label]="isHours ? 'Earlier hour' : 'Earlier minutes'"
+			(click)="isHours ? stepTime('hours', -1) : stepMinutesByButton(-1)"
+		>
+			<span aria-hidden="true" class="material-icons">remove</span>
+		</button>
+		<span
+			role="spinbutton"
+			tabindex="0"
+			[attr.aria-label]="isHours ? 'Hour' : 'Minutes'"
+			[attr.aria-valuenow]="isHours ? draftHours() : draftMinutes()"
+			aria-valuemin="0"
+			[attr.aria-valuemax]="isHours ? 23 : 59"
+			[attr.aria-valuetext]="isHours ? hoursText() : minutesText()"
+			class="min-w-[3ch] min-h-[44px] inline-flex items-center justify-center rounded-card px-1 font-display text-2xl font-semibold tabular-nums text-fg outline-none focus-visible:outline-2 focus-visible:outline-brand"
+			(keydown)="onTimeKeydown($event, unit)"
+			>{{ isHours ? hoursText() : minutesText() }}</span
+		>
+		<button
+			uiIconButton
+			size="lg"
+			type="button"
+			[attr.aria-label]="isHours ? 'Later hour' : 'Later minutes'"
+			(click)="isHours ? stepTime('hours', 1) : stepMinutesByButton(1)"
+		>
+			<span aria-hidden="true" class="material-icons">add</span>
+		</button>
+	</div>
+</ng-template>

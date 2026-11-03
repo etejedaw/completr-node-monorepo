@@ -10,9 +10,9 @@ import { RouterLink } from "@angular/router";
 
 import { AuthService } from "../../../../core/services/auth";
 import { avatarRing } from "../../../../core/utils/premium";
+import { BacklogStatusBadge } from "../../../../shared/components/backlog-status-badge/backlog-status-badge";
 import { UiAvatar } from "../../../../shared/ui";
 import {
-	backlogStatusClass,
 	backlogStatusFillClass,
 	backlogStatusLabel
 } from "../../../../shared/utils/backlog-status";
@@ -24,7 +24,7 @@ import {
 
 @Component({
 	selector: "app-game-social-activity",
-	imports: [RouterLink, UiAvatar],
+	imports: [RouterLink, UiAvatar, BacklogStatusBadge],
 	templateUrl: "./game-social-activity.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -37,7 +37,6 @@ export class GameSocialActivity {
 	protected readonly friends = signal<FriendActivity[]>([]);
 	protected readonly players = signal<OtherPlayer[]>([]);
 
-	protected readonly statusClass = backlogStatusClass;
 	protected readonly statusLabel = backlogStatusLabel;
 	protected readonly statusFillClass = backlogStatusFillClass;
 	protected readonly avatarRing = avatarRing;

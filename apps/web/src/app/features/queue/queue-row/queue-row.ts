@@ -4,19 +4,19 @@ import {
 	Component,
 	computed,
 	input,
-	output,
-	signal
+	output
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
 import { type QueueEntry } from "../../../core/models";
+import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
+import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
-import { UiBottomSheet } from "../../../shared/ui";
-import { type RowAction, type RowActionId } from "./queue-row.model";
+import { UiIconButton } from "../../../shared/ui";
 
 @Component({
 	selector: "app-queue-row",
-	imports: [CdkDragHandle, RouterLink, GamePoster, UiBottomSheet],
+	imports: [ActionMenu, CdkDragHandle, RouterLink, GamePoster, UiIconButton],
 	templateUrl: "./queue-row.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -39,19 +39,16 @@ export class QueueRow {
 	readonly moveUp = output<void>();
 	readonly moveDown = output<void>();
 
-	protected readonly sheetOpen = signal(false);
-
 	protected readonly isTop = computed(() => this.entry().position <= 1);
 
-	protected readonly sheetActions = computed<RowAction[]>(() => {
+	protected readonly menuActions = computed<ActionMenuItem[]>(() => {
 		const favorite = this.isFavorite();
-		const actions: RowAction[] = [
+		const actions: ActionMenuItem[] = [
 			{
 				id: "favorite",
 				icon: favorite ? "favorite" : "favorite_border",
 				label: favorite ? "Remove from favorites" : "Add to favorites",
-				iconClass: "text-nav-favorites",
-				disabled: false
+				iconClass: "text-nav-favorites"
 			}
 		];
 		if (this.reorderable())
@@ -60,21 +57,18 @@ export class QueueRow {
 					id: "top",
 					icon: "vertical_align_top",
 					label: "Move to top",
-					iconClass: "text-fg-muted",
 					disabled: this.isTop() || this.movingToTop()
 				},
 				{
 					id: "up",
 					icon: "arrow_upward",
 					label: "Move up",
-					iconClass: "text-fg-muted",
 					disabled: this.isFirst()
 				},
 				{
 					id: "down",
 					icon: "arrow_downward",
 					label: "Move down",
-					iconClass: "text-fg-muted",
 					disabled: this.isLast()
 				}
 			);
@@ -82,18 +76,16 @@ export class QueueRow {
 			id: "remove",
 			icon: "playlist_remove",
 			label: "Remove from Up Next",
-			iconClass: "text-danger",
-			disabled: false
+			iconClass: "text-danger"
 		});
 		return actions;
 	});
 
-	protected runSheetAction(id: RowActionId) {
-		this.sheetOpen.set(false);
+	protected runMenuAction(id: string) {
 		if (id === "favorite") this.favoriteToggle.emit();
 		else if (id === "top") this.moveToTop.emit();
 		else if (id === "up") this.moveUp.emit();
 		else if (id === "down") this.moveDown.emit();
-		else this.remove.emit();
+		else if (id === "remove") this.remove.emit();
 	}
 }

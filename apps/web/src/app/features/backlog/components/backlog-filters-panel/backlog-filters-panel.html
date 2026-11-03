@@ -50,55 +50,67 @@
 
 		<app-filter-section label="Started">
 			<div class="grid grid-cols-2 gap-3">
-				<label class="flex flex-col gap-1 min-w-0">
-					<span class="text-[0.6875rem] text-fg-muted"
-						><span class="sr-only">Started, </span>From</span
+				<div class="flex flex-col gap-1 min-w-0">
+					<span
+						aria-hidden="true"
+						class="text-[0.6875rem] text-fg-muted"
+						>From</span
 					>
-					<input
-						uiInput
-						type="date"
-						[value]="startedFrom()"
-						(input)="startedFrom.set($any($event.target).value)"
+					<ui-date-picker
+						label="Started from"
+						placeholder="Any"
+						clearable
+						[maxDate]="startedTo()"
+						[(value)]="startedFrom"
 					/>
-				</label>
-				<label class="flex flex-col gap-1 min-w-0">
-					<span class="text-[0.6875rem] text-fg-muted"
-						><span class="sr-only">Started, </span>To</span
+				</div>
+				<div class="flex flex-col gap-1 min-w-0">
+					<span
+						aria-hidden="true"
+						class="text-[0.6875rem] text-fg-muted"
+						>To</span
 					>
-					<input
-						uiInput
-						type="date"
-						[value]="startedTo()"
-						(input)="startedTo.set($any($event.target).value)"
+					<ui-date-picker
+						label="Started to"
+						placeholder="Any"
+						clearable
+						[minDate]="startedFrom()"
+						[(value)]="startedTo"
 					/>
-				</label>
+				</div>
 			</div>
 		</app-filter-section>
 
 		<app-filter-section label="Finished">
 			<div class="grid grid-cols-2 gap-3">
-				<label class="flex flex-col gap-1 min-w-0">
-					<span class="text-[0.6875rem] text-fg-muted"
-						><span class="sr-only">Finished, </span>From</span
+				<div class="flex flex-col gap-1 min-w-0">
+					<span
+						aria-hidden="true"
+						class="text-[0.6875rem] text-fg-muted"
+						>From</span
 					>
-					<input
-						uiInput
-						type="date"
-						[value]="finishedFrom()"
-						(input)="finishedFrom.set($any($event.target).value)"
+					<ui-date-picker
+						label="Finished from"
+						placeholder="Any"
+						clearable
+						[maxDate]="finishedTo()"
+						[(value)]="finishedFrom"
 					/>
-				</label>
-				<label class="flex flex-col gap-1 min-w-0">
-					<span class="text-[0.6875rem] text-fg-muted"
-						><span class="sr-only">Finished, </span>To</span
+				</div>
+				<div class="flex flex-col gap-1 min-w-0">
+					<span
+						aria-hidden="true"
+						class="text-[0.6875rem] text-fg-muted"
+						>To</span
 					>
-					<input
-						uiInput
-						type="date"
-						[value]="finishedTo()"
-						(input)="finishedTo.set($any($event.target).value)"
+					<ui-date-picker
+						label="Finished to"
+						placeholder="Any"
+						clearable
+						[minDate]="finishedFrom()"
+						[(value)]="finishedTo"
 					/>
-				</label>
+				</div>
 			</div>
 		</app-filter-section>
 

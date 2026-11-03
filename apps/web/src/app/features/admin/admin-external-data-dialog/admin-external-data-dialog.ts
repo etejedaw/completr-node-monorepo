@@ -9,14 +9,21 @@ import {
 } from "@angular/core";
 
 import { type Game } from "../../../core/models";
-import { UiAlert, UiButton, UiCheckbox, UiDialog } from "../../../shared/ui";
+import { FilterSection } from "../../../shared/components/filter-section/filter-section";
+import {
+	UiAlert,
+	UiBadge,
+	UiButton,
+	UiCheckbox,
+	UiDialog,
+	UiEyebrow
+} from "../../../shared/ui";
 import {
 	type ExternalDataRefreshResult,
 	type ExternalDataSource
 } from "../../games/games.model";
 import {
 	type ExternalDataRefreshState,
-	type ExternalDataResultTone,
 	type ExternalDataResultView,
 	type ExternalDataSourceOption
 } from "./admin-external-data-dialog.model";
@@ -33,13 +40,6 @@ const SOURCE_OPTIONS: ExternalDataSourceOption[] = [
 		label: "HowLongToBeat — duration"
 	}
 ];
-
-const TONE_CLASSES: Record<ExternalDataResultTone, string> = {
-	success: "bg-success/10 text-success",
-	warning: "bg-warning/10 text-warning",
-	danger: "bg-danger/10 text-danger",
-	muted: "bg-fg-muted/10 text-fg-muted"
-};
 
 function hasStoredValue(game: Game, source: ExternalDataSource): boolean {
 	return source === "metacritic"
@@ -135,7 +135,7 @@ function resultView(
 			return {
 				statusLabel: "No data",
 				icon: "remove_circle_outline",
-				tone: "muted",
+				tone: "neutral",
 				details: [
 					noDataDetail(result.source),
 					...rawScoreDetails(result)
@@ -153,7 +153,15 @@ function resultView(
 
 @Component({
 	selector: "app-admin-external-data-dialog",
-	imports: [UiAlert, UiButton, UiCheckbox, UiDialog],
+	imports: [
+		FilterSection,
+		UiAlert,
+		UiBadge,
+		UiButton,
+		UiCheckbox,
+		UiDialog,
+		UiEyebrow
+	],
 	templateUrl: "./admin-external-data-dialog.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -215,10 +223,6 @@ export class AdminExternalDataDialog {
 		}
 		const time = game.times.find(t => t.source === "hltb");
 		return time ? `Current: ${time.duration} h` : "Missing";
-	}
-
-	protected toneClasses(tone: ExternalDataResultTone): string {
-		return TONE_CLASSES[tone];
 	}
 
 	protected submit() {

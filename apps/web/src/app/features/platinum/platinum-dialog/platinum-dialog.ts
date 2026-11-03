@@ -17,9 +17,10 @@ import { type PickerOption } from "../../../shared/components/option-picker/opti
 import {
 	UiAlert,
 	UiButton,
+	UiDatePicker,
 	UiDialog,
 	UiFieldLabel,
-	UiInput,
+	UiFieldOptional,
 	UiSkeleton,
 	UiTextarea
 } from "../../../shared/ui";
@@ -53,11 +54,12 @@ const NO_SELECTION = "";
 		SelectedGameRow,
 		UiAlert,
 		UiButton,
+		UiDatePicker,
 		UiDialog,
 		UiFieldLabel,
-		UiInput,
 		UiSkeleton,
-		UiTextarea
+		UiTextarea,
+		UiFieldOptional
 	],
 	templateUrl: "./platinum-dialog.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

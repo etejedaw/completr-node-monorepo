@@ -1,9 +1,4 @@
-<app-library-hero heading="Tags" [posters]="heroPosters()">
-	<span
-		heroEyebrow
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Library</span
-	>
+<app-library-hero eyebrow="Library" heading="Tags" [posters]="heroPosters()">
 	<p heroSubtitle class="m-0 mt-2 max-w-xl text-sm text-fg-secondary">
 		<span
 			class="font-semibold text-fg tabular-nums"
@@ -34,7 +29,8 @@
 @if (loading() || tags().length > 0) {
 <app-library-toolbar>
 	<ui-search-bar
-		class="flex-1 min-w-[12rem] max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+		size="sm"
+		class="flex-1 min-w-[12rem] max-w-2xl"
 		placeholder="Search tags..."
 		[value]="searchQuery()"
 		(valueChange)="searchQuery.set($event)"
@@ -103,59 +99,27 @@
 			[saving]="saving() === tag.tag"
 			(editRequested)="startEdit(tag)"
 			(deleteRequested)="requestDelete(tag)"
-			(moreRequested)="actionSheetTag.set(tag)"
+			(showGamesRequested)="showInMyGames(tag)"
 			(saved)="commitEdit(tag, $event)"
 			(cancelled)="cancelEdit()"
 		/>
 	</li>
 	}
 </ul>
-} @if (actionSheetTag(); as sheetTag) {
-<ui-bottom-sheet
-	[heading]="sheetTag.tag"
-	[subheading]="sheetTag.usageCount + (sheetTag.usageCount === 1 ? ' game' : ' games')"
-	(closed)="actionSheetTag.set(null)"
->
-	<ul class="list-none m-0 p-0 flex flex-col gap-1">
-		@for (action of sheetActions; track action.id) {
-		<li>
-			<button
-				type="button"
-				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border-0 text-base font-medium text-left cursor-pointer transition active:bg-surface"
-				[class]="action.danger ? 'text-danger' : 'text-fg'"
-				(click)="runSheetAction(sheetTag, action.id)"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-2xl"
-					[class]="action.danger ? 'text-danger' : 'text-fg-muted'"
-					>{{ action.icon }}</span
-				>
-				{{ action.label }}
-			</button>
-		</li>
-		}
-	</ul>
-</ui-bottom-sheet>
 } @if (pendingDelete(); as tag) {
 <ui-dialog
 	eyebrow="Tags"
+	icon="delete"
+	tone="danger"
 	heading="Delete tag?"
 	size="sm"
 	[dismissible]="saving() !== tag.tag"
 	(closed)="cancelDelete()"
 >
-	<span
-		dialogLead
-		aria-hidden="true"
-		class="material-icons text-2xl text-danger mt-1"
-		>warning</span
-	>
 	<p class="text-sm text-fg-secondary m-0">
 		The tag
-		<span
-			class="inline-block px-2 py-0.5 rounded-full bg-brand-subtle text-brand text-xs font-medium mx-0.5"
-			>{{ tag.tag }}</span
+		<ui-badge tone="brand" class="mx-0.5 align-middle"
+			>{{ tag.tag }}</ui-badge
 		>
 		@if (tag.usageCount > 0) { will be removed from
 		<strong class="text-fg">{{ tag.usageCount }}</strong>

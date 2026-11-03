@@ -1,48 +1,41 @@
 <ui-dialog
 	heading="Add to your lists"
 	eyebrow="Lists"
+	icon="playlist_add"
 	size="sm"
 	[subheading]="gameTitle"
 	[dismissible]="!state().saving"
 	(closed)="close()"
 >
 	@if (myLists.length === 0) {
-	<div class="flex flex-col items-center text-center gap-2 py-6">
-		<span aria-hidden="true" class="material-icons text-3xl text-fg-muted"
-			>playlist_add</span
-		>
-		<p class="m-0 text-sm font-semibold text-fg">No lists yet</p>
-		<p class="m-0 text-[0.8125rem] text-fg-muted">
-			Create your first one below.
-		</p>
-	</div>
+	<ui-plain-empty-state
+		icon="playlist_add"
+		title="No lists yet"
+		message="Create your first one below."
+		[compact]="true"
+		[headingLevel]="3"
+	/>
 	} @else {
 	<fieldset class="m-0 p-0 border-0">
 		<legend class="sr-only">Lists that include {{ gameTitle }}</legend>
 		<ul class="list-none m-0 p-0 -mx-2">
 			@for (list of myLists; track list.id) {
 			<li>
-				<label
-					class="flex items-center gap-3 min-h-[44px] px-2 rounded-card cursor-pointer transition hover:bg-surface"
+				<ui-checkbox
+					class="!flex w-full min-h-[44px] px-2 rounded-card text-sm text-fg transition hover:bg-surface"
+					[label]="list.name"
+					[checked]="isChecked(list.id)"
+					(checkedChange)="setSelected(list.id, $event)"
 				>
-					<input
-						type="checkbox"
-						class="w-4 h-4 cursor-pointer accent-brand"
-						[checked]="isChecked(list.id)"
-						(change)="toggleSelection(list.id)"
-					/>
-					<span class="flex-1 text-sm text-fg truncate"
-						>{{ list.name }}</span
-					>
 					@if (!list.isPublic) {
 					<span
-						class="material-icons text-sm text-fg-muted shrink-0"
+						class="material-icons ml-auto text-sm text-fg-muted shrink-0"
 						aria-label="Private"
 						title="Private"
 						>lock</span
 					>
 					}
-				</label>
+				</ui-checkbox>
 			</li>
 			}
 		</ul>
@@ -67,7 +60,7 @@
 			<button
 				uiButton
 				variant="secondary"
-				class="shrink-0 max-md:min-h-[44px]"
+				class="shrink-0"
 				[disabled]="!state().newListName.trim() || state().creatingNew"
 				(click)="createNewList()"
 			>

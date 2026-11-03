@@ -9,13 +9,11 @@ import {
 
 import { type PlatinumEntry } from "../../../../core/models";
 import { GameTitleCell } from "../../../../shared/components/game-title-cell/game-title-cell";
-
-const HEADER_CELL_CLASS =
-	"sticky top-0 bg-sidebar/95 backdrop-blur z-[1] text-left px-4 py-3 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.12em] border-b border-line whitespace-nowrap";
+import { UiBadge, UiIconButton, UiTable } from "../../../../shared/ui";
 
 @Component({
 	selector: "app-platinum-table",
-	imports: [DatePipe, GameTitleCell],
+	imports: [DatePipe, GameTitleCell, UiBadge, UiIconButton, UiTable],
 	templateUrl: "./platinum-table.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -25,7 +23,6 @@ export class PlatinumTable {
 	readonly showNotes = input(false);
 	readonly selected = output<PlatinumEntry>();
 
-	protected readonly headerCellClass = HEADER_CELL_CLASS;
 	protected readonly columns = computed(() => [
 		"Title",
 		"Platform",

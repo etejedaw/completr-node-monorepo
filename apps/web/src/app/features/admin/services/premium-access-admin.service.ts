@@ -3,7 +3,10 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
-import { SUPPRESS_VALIDATION_TOAST } from "../../../shared/utils/validation-errors";
+import {
+	SUPPRESS_CONFLICT_TOAST,
+	SUPPRESS_VALIDATION_TOAST
+} from "../../../shared/utils/validation-errors";
 import {
 	type CreatePremiumGrantRequest,
 	type PremiumFeatureDefinition,
@@ -14,6 +17,10 @@ const SUPPRESS_TOAST_CONTEXT = new HttpContext().set(
 	SUPPRESS_VALIDATION_TOAST,
 	true
 );
+
+const SUPPRESS_GRANT_CHANGE_TOAST_CONTEXT = new HttpContext()
+	.set(SUPPRESS_VALIDATION_TOAST, true)
+	.set(SUPPRESS_CONFLICT_TOAST, true);
 
 @Injectable({ providedIn: "root" })
 export class PremiumAccessAdminService {
@@ -50,7 +57,7 @@ export class PremiumAccessAdminService {
 			.patch<{ data: { grant: PremiumGrant } }>(
 				`${environment.apiUrl}/admin/users/${userId}/premium-grants/${grantId}`,
 				{ expiresAt },
-				{ context: SUPPRESS_TOAST_CONTEXT }
+				{ context: SUPPRESS_GRANT_CHANGE_TOAST_CONTEXT }
 			)
 			.pipe(map(res => res.data.grant));
 	}
@@ -60,7 +67,7 @@ export class PremiumAccessAdminService {
 			.post<{ data: { grant: PremiumGrant } }>(
 				`${environment.apiUrl}/admin/users/${userId}/premium-grants/${grantId}/revoke`,
 				{},
-				{ context: SUPPRESS_TOAST_CONTEXT }
+				{ context: SUPPRESS_GRANT_CHANGE_TOAST_CONTEXT }
 			)
 			.pipe(map(res => res.data.grant));
 	}

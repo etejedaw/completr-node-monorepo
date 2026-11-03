@@ -2,13 +2,14 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 
 import { type PlatinumEntry } from "../../../core/models";
 import { PlatinumCoverCard } from "../../../shared/components/platinum-cover-card/platinum-cover-card";
+import { UiBadge } from "../../../shared/ui";
 import { ProfileSectionHeader } from "./profile-section-header";
 
 const MOBILE_VISIBLE_PLATINUMS = 4;
 
 @Component({
 	selector: "app-profile-platinums",
-	imports: [ProfileSectionHeader, PlatinumCoverCard],
+	imports: [ProfileSectionHeader, PlatinumCoverCard, UiBadge],
 	template: `
 		<section aria-labelledby="platinums-heading">
 			<app-profile-section-header
@@ -17,17 +18,17 @@ const MOBILE_VISIBLE_PLATINUMS = 4;
 				eyebrow="Trophy cabinet"
 				[seeAllLink]="['/user', username(), 'platinums']"
 			>
-				<span
-					class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold tabular-nums text-platinum bg-platinum/10 ring-1 ring-platinum/30"
+				<ui-badge
+					tone="platinum"
+					icon="emoji_events"
+					class="tabular-nums"
+					>{{ total()
+					}}<span class="sr-only"
+						>&nbsp;{{
+							total() === 1 ? "platinum" : "platinums"
+						}}</span
+					></ui-badge
 				>
-					<span aria-hidden="true" class="material-icons text-sm"
-						>emoji_events</span
-					>
-					{{ total() }}
-					<span class="sr-only">{{
-						total() === 1 ? "platinum" : "platinums"
-					}}</span>
-				</span>
 			</app-profile-section-header>
 			<ol
 				class="list-none m-0 p-0 grid grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4"

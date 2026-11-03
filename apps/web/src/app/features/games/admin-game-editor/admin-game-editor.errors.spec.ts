@@ -88,8 +88,7 @@ describe("AdminGameEditor API errors and value validation", () => {
 	}
 
 	function section(name: string) {
-		return screen.getByRole("heading", { level: 4, name })
-			.parentElement as HTMLElement;
+		return screen.getByRole("group", { name });
 	}
 
 	function field(label: string) {
@@ -374,9 +373,11 @@ describe("AdminGameEditor API errors and value validation", () => {
 		it("keeps the add buttons disabled for a new score above the scale or a new duration of zero", async () => {
 			await renderEditor(existingGame);
 			const scores = within(section("Scores"));
-			await userEvent.selectOptions(
-				scores.getByDisplayValue("Source..."),
-				"opencritic"
+			await userEvent.click(
+				scores.getByRole("button", { name: /^Source:/ })
+			);
+			await userEvent.click(
+				await screen.findByRole("menuitemradio", { name: "opencritic" })
 			);
 			await userEvent.type(field("New score value"), "101");
 
@@ -387,9 +388,11 @@ describe("AdminGameEditor API errors and value validation", () => {
 			expect(addScore).toBeDisabled();
 
 			const durations = within(section("Durations"));
-			await userEvent.selectOptions(
-				durations.getByDisplayValue("Source..."),
-				"rawg"
+			await userEvent.click(
+				durations.getByRole("button", { name: /^Source:/ })
+			);
+			await userEvent.click(
+				await screen.findByRole("menuitemradio", { name: "rawg" })
 			);
 			await userEvent.type(field("New duration in hours"), "0");
 

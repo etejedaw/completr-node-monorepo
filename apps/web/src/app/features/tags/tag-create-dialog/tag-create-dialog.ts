@@ -14,7 +14,9 @@ import {
 	UiButton,
 	UiDescription,
 	UiDialog,
+	UiFieldError,
 	UiFieldLabel,
+	UiFieldOptional,
 	UiFormField,
 	UiInput,
 	UiLabel
@@ -30,13 +32,15 @@ const TAG_DESCRIPTION_MAX_LENGTH = 255;
 	imports: [
 		UiAlert,
 		UiFieldLabel,
+		UiFieldOptional,
 		FormField,
 		UiButton,
 		UiDescription,
 		UiDialog,
 		UiFormField,
 		UiInput,
-		UiLabel
+		UiLabel,
+		UiFieldError
 	],
 	templateUrl: "./tag-create-dialog.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

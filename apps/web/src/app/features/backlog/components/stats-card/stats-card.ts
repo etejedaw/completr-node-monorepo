@@ -1,19 +1,19 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 
+import { UiEyebrow } from "../../../../shared/ui";
+
 let nextStatsCardId = 0;
 
 @Component({
 	selector: "app-stats-card",
+	imports: [UiEyebrow],
 	template: `
 		<section
 			class="h-full flex flex-col gap-3 rounded-card border border-line bg-surface p-4"
 			[attr.aria-labelledby]="headingId"
 		>
 			<header class="flex items-baseline justify-between gap-3">
-				<h3
-					class="m-0 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-					[id]="headingId"
-				>
+				<h3 uiEyebrow class="m-0" [id]="headingId">
 					{{ label() }}
 				</h3>
 				@if (meta()) {

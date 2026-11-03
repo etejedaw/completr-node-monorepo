@@ -4,15 +4,19 @@ import {
 	computed,
 	input
 } from "@angular/core";
+import { RouterLink } from "@angular/router";
 
 import { GamePoster } from "../game-poster/game-poster";
-import { type LibraryHeroPoster } from "./library-hero.model";
+import {
+	type LibraryHeroBackLink,
+	type LibraryHeroPoster
+} from "./library-hero.model";
 
 const MOSAIC_LENGTH = 14;
 
 @Component({
 	selector: "app-library-hero",
-	imports: [GamePoster],
+	imports: [GamePoster, RouterLink],
 	template: `
 		<header
 			class="bleed bleed-top relative isolate overflow-hidden mb-6 border-b border-line"
@@ -49,7 +53,26 @@ const MOSAIC_LENGTH = 14;
 					class="flex flex-col sm:flex-row sm:items-end justify-between gap-4"
 				>
 					<div class="min-w-0">
-						<ng-content select="[heroEyebrow]" />
+						@if (backLink(); as back) {
+							<a
+								class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand rounded-sm"
+								[routerLink]="back.link"
+							>
+								<span
+									aria-hidden="true"
+									class="material-icons text-sm"
+									>arrow_back</span
+								>
+								{{ back.label }}
+							</a>
+						} @else if (eyebrow()) {
+							<span
+								class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
+								>{{ eyebrow() }}</span
+							>
+						} @else {
+							<ng-content select="[heroEyebrow]" />
+						}
 						<h1
 							class="font-display m-0 mt-1 text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-none"
 						>
@@ -70,6 +93,8 @@ const MOSAIC_LENGTH = 14;
 })
 export class LibraryHero {
 	readonly heading = input.required<string>();
+	readonly eyebrow = input<string | null>(null);
+	readonly backLink = input<LibraryHeroBackLink | null>(null);
 	readonly posters = input<LibraryHeroPoster[]>([]);
 
 	protected readonly mosaic = computed(() => {

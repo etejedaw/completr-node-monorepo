@@ -1,9 +1,4 @@
-<app-library-hero heading="Jobs">
-	<span
-		heroEyebrow
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Admin</span
-	>
+<app-library-hero heading="Jobs" eyebrow="Admin">
 	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
 		<span class="font-semibold text-fg tabular-nums"
 			>{{ jobs().length }}</span
@@ -13,8 +8,8 @@
 	<div heroActions class="flex items-center gap-2">
 		<button
 			uiButton
-			variant="secondary"
-			class="!bg-surface/70 backdrop-blur min-w-[44px] !px-2"
+			variant="glass"
+			class="min-w-[44px] !px-2"
 			aria-label="Refresh"
 			title="Refresh"
 			(click)="refresh()"
@@ -68,78 +63,39 @@
 />
 } @else {
 <div class="max-md:hidden overflow-x-auto">
-	<table class="w-full border-collapse text-[0.8125rem]">
+	<table uiTable>
 		<thead>
 			<tr>
-				<th
-					scope="col"
-					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
-				>
-					Type
-				</th>
-				<th
-					scope="col"
-					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
-				>
-					Status
-				</th>
-				<th
-					scope="col"
-					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
-				>
-					Result
-				</th>
-				<th
-					scope="col"
-					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
-				>
-					Started
-				</th>
-				<th
-					scope="col"
-					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
-				>
-					Completed
-				</th>
-				<th scope="col" class="border-b border-line">
-					<span class="sr-only">Actions</span>
-				</th>
+				<th scope="col">Type</th>
+				<th scope="col">Status</th>
+				<th scope="col">Result</th>
+				<th scope="col">Started</th>
+				<th scope="col">Completed</th>
+				<th scope="col"><span class="sr-only">Actions</span></th>
 			</tr>
 		</thead>
 		<tbody>
 			@for (job of jobs(); track job.id) {
-			<tr class="border-b border-line transition hover:bg-surface-hover">
-				<td class="px-3 py-2.5 text-fg align-middle font-medium">
-					{{ job.type }}
-				</td>
-				<td class="px-3 py-2.5 align-middle">
-					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold"
-						[class]="statusStyle(job.status).classes"
+			<tr>
+				<td class="font-medium text-fg">{{ job.type }}</td>
+				<td>
+					<ui-badge
+						[tone]="statusStyle(job.status).tone"
+						[icon]="statusStyle(job.status).icon"
+						>{{ job.status }}</ui-badge
 					>
-						<span aria-hidden="true" class="material-icons text-sm"
-							>{{ statusStyle(job.status).icon }}</span
-						>
-						{{ job.status }}
-					</span>
 				</td>
-				<td
-					class="px-3 py-2.5 text-fg-secondary text-xs align-middle max-w-[300px]"
-				>
+				<td class="text-fg-secondary text-xs max-w-[300px]">
 					{{ job.result ?? '-' }}
 				</td>
-				<td
-					class="px-3 py-2.5 text-fg-secondary align-middle tabular-nums"
-				>
+				<td class="text-fg-secondary tabular-nums">
 					{{ job.createdAt | date : "yyyy-MM-dd HH:mm" }}
 				</td>
-				<td
-					class="px-3 py-2.5 text-fg-secondary align-middle tabular-nums"
-				>
+				<td class="text-fg-secondary tabular-nums">
 					{{ job.completedAt ? (job.completedAt | date : "yyyy-MM-dd
 					HH:mm") : "-" }}
 				</td>
-				<td class="px-3 py-2.5 align-middle text-right">
+				<td class="text-right">
 					@if (job.status === 'running') {
 					<button
 						uiButton
@@ -168,15 +124,12 @@
 			<span class="font-medium text-sm text-fg break-all"
 				>{{ job.type }}</span
 			>
-			<span
-				class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold shrink-0"
-				[class]="statusStyle(job.status).classes"
+			<ui-badge
+				class="shrink-0"
+				[tone]="statusStyle(job.status).tone"
+				[icon]="statusStyle(job.status).icon"
+				>{{ job.status }}</ui-badge
 			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>{{ statusStyle(job.status).icon }}</span
-				>
-				{{ job.status }}
-			</span>
 		</div>
 		@if (job.result) {
 		<p class="m-0 text-xs text-fg-secondary break-words">
@@ -185,21 +138,13 @@
 		}
 		<dl class="m-0 grid grid-cols-2 gap-3 text-xs">
 			<div>
-				<dt
-					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Started
-				</dt>
+				<dt uiEyebrow>Started</dt>
 				<dd class="m-0 mt-0.5 text-fg-secondary tabular-nums">
 					{{ job.createdAt | date : "yyyy-MM-dd HH:mm" }}
 				</dd>
 			</div>
 			<div>
-				<dt
-					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Completed
-				</dt>
+				<dt uiEyebrow>Completed</dt>
 				<dd class="m-0 mt-0.5 text-fg-secondary tabular-nums">
 					{{ job.completedAt ? (job.completedAt | date : "yyyy-MM-dd
 					HH:mm") : "-" }}

@@ -1,4 +1,5 @@
 import * as premiumAccessDomainError from "./errors/premium-access.domain-error";
+import * as premiumAccessServiceError from "./errors/premium-access.service-error";
 import {
 	FULL_PREMIUM_FEATURE,
 	type PremiumGrantFeature
@@ -45,6 +46,7 @@ export async function updatePremiumGrantExpiration(
 	now = new Date()
 ) {
 	const grant = await findOwnedGrant(userId, grantId);
+	assertGrantIsActive(grant, now);
 	await grant.update({
 		expiresAt: resolveExpiration({ ...input, feature: grant.feature }, now)
 	});
@@ -57,6 +59,7 @@ export async function revokePremiumGrant(
 	now = new Date()
 ) {
 	const grant = await findOwnedGrant(userId, grantId);
+	assertGrantIsActive(grant, now);
 	await grant.update({ expiresAt: now });
 	return grant;
 }
@@ -67,6 +70,11 @@ async function findOwnedGrant(userId: string, grantId: string) {
 	});
 	if (!grant) throw premiumAccessDomainError.premiumGrantNotFound();
 	return grant;
+}
+
+function assertGrantIsActive(grant: PremiumGrant, now: Date) {
+	if (grant.expiresAt !== null && grant.expiresAt <= now)
+		throw premiumAccessServiceError.premiumGrantNotActive();
 }
 
 function resolveExpiration(input: PremiumGrantExpirationInput, now: Date) {

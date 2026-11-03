@@ -33,7 +33,7 @@ auth:
 docs: |-
     ## Update Premium Grant
 
-    Extends or corrects a grant expiration. The grant must belong to `:userId`. Full premium requires a future date; an individual feature also accepts null for access without expiration.
+    Extends or corrects the expiration of an active grant. The grant must belong to `:userId`. An expired or revoked grant cannot be reactivated: create a new grant instead. Full premium requires a future date; an individual feature also accepts null for access without expiration.
 
     **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
 
@@ -68,5 +68,6 @@ docs: |-
     | Status | Code | Description |
     |--------|------|-------------|
     | 404 | PREMIUM_GRANT_NOT_FOUND | Grant does not exist or belongs to another user |
+    | 409 | PREMIUM_GRANT_NOT_ACTIVE | The grant already expired or was revoked; nothing changes |
     | 422 | PREMIUM_GRANT_INVALID_EXPIRATION | Full premium has no expiration or the date is not future |
     | 422 | COMMON_SCHEMA_INVALID | Invalid UUID, invalid date or extra field |

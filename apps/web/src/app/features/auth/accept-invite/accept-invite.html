@@ -59,11 +59,7 @@
 
 	<form (submit)="onSubmit($event)" novalidate class="flex flex-col gap-5">
 		<div>
-			<label
-				for="username"
-				class="block mb-1.5 text-sm font-medium text-fg-secondary"
-				>Username</label
-			>
+			<label for="username" uiFieldLabel>Username</label>
 			<div class="relative">
 				<span
 					aria-hidden="true"
@@ -84,9 +80,9 @@
 				/>
 			</div>
 			@if (form.username().touched() && form.username().invalid()) {
-			<p id="username-error" class="m-0 mt-1.5 text-xs text-danger">
-				{{ form.username().errors()[0]?.message }}
-			</p>
+			<ui-field-error id="username-error"
+				>{{ form.username().errors()[0]?.message }}</ui-field-error
+			>
 			} @else {
 			<p id="username-hint" class="m-0 mt-1.5 text-xs text-fg-muted">
 				4–15 lowercase letters, numbers, dots or underscores. It's your
@@ -96,11 +92,7 @@
 		</div>
 
 		<div>
-			<label
-				for="name"
-				class="block mb-1.5 text-sm font-medium text-fg-secondary"
-				>Name</label
-			>
+			<label for="name" uiFieldLabel>Name</label>
 			<div class="relative">
 				<span
 					aria-hidden="true"
@@ -119,18 +111,14 @@
 				/>
 			</div>
 			@if (form.name().touched() && form.name().invalid()) {
-			<p id="name-error" class="m-0 mt-1.5 text-xs text-danger">
-				{{ form.name().errors()[0]?.message }}
-			</p>
+			<ui-field-error id="name-error"
+				>{{ form.name().errors()[0]?.message }}</ui-field-error
+			>
 			}
 		</div>
 
 		<div>
-			<label
-				for="new-password"
-				class="block mb-1.5 text-sm font-medium text-fg-secondary"
-				>Password</label
-			>
+			<label for="new-password" uiFieldLabel>Password</label>
 			<div class="relative">
 				<span
 					aria-hidden="true"
@@ -163,9 +151,9 @@
 				</button>
 			</div>
 			@if (form.password().touched() && form.password().invalid()) {
-			<p id="new-password-error" class="m-0 mt-1.5 text-xs text-danger">
-				{{ form.password().errors()[0]?.message }}
-			</p>
+			<ui-field-error id="new-password-error"
+				>{{ form.password().errors()[0]?.message }}</ui-field-error
+			>
 			}
 			<app-password-rules
 				listId="new-password-rules"
@@ -174,11 +162,7 @@
 		</div>
 
 		<div>
-			<label
-				for="confirm-password"
-				class="block mb-1.5 text-sm font-medium text-fg-secondary"
-				>Confirm password</label
-			>
+			<label for="confirm-password" uiFieldLabel>Confirm password</label>
 			<div class="relative">
 				<span
 					aria-hidden="true"
@@ -197,12 +181,10 @@
 			</div>
 			@if (form.confirmPassword().touched() &&
 			form.confirmPassword().invalid()) {
-			<p
-				id="confirm-password-error"
-				class="m-0 mt-1.5 text-xs text-danger"
+			<ui-field-error id="confirm-password-error"
+				>{{ form.confirmPassword().errors()[0]?.message
+				}}</ui-field-error
 			>
-				{{ form.confirmPassword().errors()[0]?.message }}
-			</p>
 			}
 		</div>
 

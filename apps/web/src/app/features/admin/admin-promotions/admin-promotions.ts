@@ -13,18 +13,28 @@ import { form, FormField, required, validate } from "@angular/forms/signals";
 import { type Observable, type Subscription } from "rxjs";
 
 import { ToastService } from "../../../core/services/toast";
+import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
+import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import {
 	UiAlert,
+	UiBadge,
+	type UiBadgeTone,
 	UiButton,
+	UiDatePicker,
+	UiDescription,
 	UiDialog,
 	UiEmptyState,
+	UiEyebrow,
+	UiFieldError,
 	UiFieldLabel,
 	UiFormField,
 	UiInput,
 	UiLabel,
-	UiSelect,
-	UiSkeleton
+	UiSkeleton,
+	UiTable
 } from "../../../shared/ui";
 import { validationSummary } from "../../../shared/utils/validation-errors";
 import { type PremiumGrantFeature } from "../services/premium-access-admin.model";
@@ -40,12 +50,13 @@ import { PremiumPromotionsAdminService } from "../services/premium-promotions-ad
 interface PromotionStatusStyle {
 	label: string;
 	icon: string;
-	classes: string;
+	tone: UiBadgeTone;
 }
 
 interface PromotionRow {
 	promotion: PremiumPromotion;
 	status: PremiumPromotionStatus;
+	menuItems: ActionMenuItem[];
 }
 
 type PromotionDialog =
@@ -60,17 +71,17 @@ const STATUS_STYLES: Record<PremiumPromotionStatus, PromotionStatusStyle> = {
 	scheduled: {
 		label: "Scheduled",
 		icon: "schedule",
-		classes: "bg-info/10 text-info"
+		tone: "info"
 	},
 	active: {
 		label: "Active",
 		icon: "check_circle",
-		classes: "bg-success/10 text-success"
+		tone: "success"
 	},
 	ended: {
 		label: "Ended",
 		icon: "event_busy",
-		classes: "bg-fg-muted/10 text-fg-muted"
+		tone: "neutral"
 	}
 };
 
@@ -118,19 +129,26 @@ function endsAtError(startsAt: string, endsAt: string) {
 @Component({
 	selector: "app-admin-promotions",
 	imports: [
+		ActionMenu,
 		DatePipe,
 		FormField,
 		LibraryHero,
+		OptionPicker,
 		UiAlert,
+		UiBadge,
 		UiButton,
+		UiDatePicker,
+		UiDescription,
 		UiDialog,
+		UiEyebrow,
 		UiEmptyState,
+		UiFieldError,
 		UiFieldLabel,
 		UiFormField,
 		UiInput,
 		UiLabel,
-		UiSelect,
-		UiSkeleton
+		UiSkeleton,
+		UiTable
 	],
 	templateUrl: "./admin-promotions.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -153,12 +171,34 @@ export class AdminPromotions implements OnInit {
 	protected readonly isBusy = computed(() => this.busyKey() !== "");
 	protected readonly skeletonRows = [1, 2, 3, 4];
 	protected readonly featureOptions = PREMIUM_PROMOTION_FEATURE_OPTIONS;
+	protected readonly featurePickerOptions: PickerOption[] =
+		PREMIUM_PROMOTION_FEATURE_OPTIONS.map(option => ({
+			value: option.feature,
+			label: option.label
+		}));
 
 	protected readonly rows = computed<PromotionRow[]>(() => {
 		const now = this.now();
+		const busy = this.isBusy();
 		return this.promotions().map(promotion => ({
 			promotion,
-			status: premiumPromotionStatus(promotion, now)
+			status: premiumPromotionStatus(promotion, now),
+			menuItems: [
+				{
+					id: "edit",
+					label: "Edit dates",
+					icon: "edit",
+					disabled: busy
+				},
+				{
+					id: "revoke",
+					label: "End early",
+					icon: "event_busy",
+					iconClass: "text-danger",
+					disabled: busy,
+					busy: this.busyKey() === `revoke:${promotion.id}`
+				}
+			]
 		}));
 	});
 
@@ -236,6 +276,22 @@ export class AdminPromotions implements OnInit {
 			this.featureOptions.find(option => option.feature === feature)
 				?.label ?? feature
 		);
+	}
+
+	protected readonly showFeatureError = computed(() => {
+		const feature = this.createForm.feature();
+		return feature.touched() && feature.invalid();
+	});
+
+	protected setFeature(value: string) {
+		const feature = this.createForm.feature();
+		feature.value.set(value as PremiumGrantFeature);
+		feature.markAsTouched();
+	}
+
+	protected runRowAction(promotion: PremiumPromotion, action: string) {
+		if (action === "edit") this.openEdit(promotion);
+		if (action === "revoke") this.openRevoke(promotion);
 	}
 
 	protected statusStyle(status: PremiumPromotionStatus) {

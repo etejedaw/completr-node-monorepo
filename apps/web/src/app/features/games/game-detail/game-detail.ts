@@ -23,9 +23,12 @@ import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-t
 import { InView } from "../../../shared/directives/in-view";
 import {
 	UiAlert,
+	UiBadge,
 	UiButton,
 	UiDialog,
+	UiEyebrow,
 	UiFieldLabel,
+	UiPlainEmptyState,
 	UiSkeleton,
 	UiTextarea
 } from "../../../shared/ui";
@@ -84,7 +87,10 @@ import { GameRuns } from "./components/game-runs";
 import { GameScoreCard } from "./components/game-score-card";
 import { GameSection } from "./components/game-section";
 import { GameSocialActivity } from "./components/game-social-activity";
-import { type ReportModalState } from "./game-detail.model";
+import {
+	type ExternalLinkView,
+	type ReportModalState
+} from "./game-detail.model";
 import { resolveQueueIntent } from "./queue-intent";
 import { type QueueIntent } from "./queue-intent.model";
 
@@ -96,14 +102,32 @@ const TIME_SOURCE_LABELS: Record<string, string> = {
 
 const HERO_SCORE_SOURCES_LIMIT = 3;
 
+const EXTERNAL_LINK_SOURCES: Record<
+	string,
+	{ label: string; url: (externalId: string) => string }
+> = {
+	rawg: { label: "RAWG", url: id => `https://rawg.io/games/${id}` },
+	steam: {
+		label: "Steam",
+		url: id => `https://store.steampowered.com/app/${id}`
+	},
+	metacritic: {
+		label: "Metacritic",
+		url: id => `https://www.metacritic.com/game/${id}`
+	}
+};
+
 @Component({
 	selector: "app-game-detail",
 	imports: [
 		RouterLink,
 		AdminGameEditor,
 		UiAlert,
+		UiBadge,
 		UiButton,
+		UiEyebrow,
 		UiFieldLabel,
+		UiPlainEmptyState,
 		UiTextarea,
 		GameSection,
 		InView,
@@ -144,6 +168,19 @@ export class GameDetail implements OnInit {
 	private readonly toast = inject(ToastService);
 
 	protected readonly game = signal<Game | null>(null);
+	protected readonly externalLinks = computed<ExternalLinkView[]>(() =>
+		(this.game()?.externalLinks ?? []).flatMap(link => {
+			const source = EXTERNAL_LINK_SOURCES[link.source];
+			if (!source) return [];
+			return [
+				{
+					source: link.source,
+					label: source.label,
+					href: source.url(link.externalId)
+				}
+			];
+		})
+	);
 	protected readonly isLoggedIn = this.authService.isLoggedIn;
 	private readonly franchiseTracking = injectFranchiseTracking({
 		onMissing: () => this.reloadGame()

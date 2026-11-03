@@ -18,7 +18,16 @@ import {
 	PASSWORD_MAX_LENGTH
 } from "../../../core/utils/password-policy";
 import { PasswordRules } from "../../../shared/components/password-rules/password-rules";
-import { UiButton, UiInput, UiPagination } from "../../../shared/ui";
+import {
+	UiBadge,
+	UiButton,
+	UiDialog,
+	UiFieldError,
+	UiIconButton,
+	UiInput,
+	UiPagination,
+	UiSkeleton
+} from "../../../shared/ui";
 import { SettingsPanel } from "../components/settings-panel";
 import { SettingsRow } from "../components/settings-row";
 import { currentSessionFirst, describeDevice, timeAgo } from "./session-device";
@@ -33,9 +42,14 @@ const EMPTY_PASSWORDS = { newPassword: "", confirmPassword: "" };
 		PasswordRules,
 		SettingsPanel,
 		SettingsRow,
+		UiBadge,
 		UiButton,
+		UiDialog,
+		UiIconButton,
 		UiInput,
-		UiPagination
+		UiPagination,
+		UiSkeleton,
+		UiFieldError
 	],
 	templateUrl: "./settings-security.html",
 	host: { class: "contents" },
@@ -88,6 +102,10 @@ export class SettingsSecurity implements OnInit {
 	protected readonly otherSessionsCount = computed(() =>
 		Math.max(this.total() - 1, 0)
 	);
+	protected readonly signOutOthersHeading = computed(() => {
+		const count = this.otherSessionsCount();
+		return `Sign out ${count} other ${count === 1 ? "device" : "devices"}?`;
+	});
 
 	ngOnInit() {
 		this.loadSessions();
@@ -145,7 +163,13 @@ export class SettingsSecurity implements OnInit {
 		});
 	}
 
+	protected cancelSignOutOthers() {
+		if (this.signingOutOthers()) return;
+		this.confirmingSignOutOthers.set(false);
+	}
+
 	protected signOutOtherSessions() {
+		if (this.signingOutOthers()) return;
 		const current = this.currentSessionId();
 		if (!current) {
 			this.toast.warning("Sign in again to manage your devices.");

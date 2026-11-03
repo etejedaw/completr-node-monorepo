@@ -1,8 +1,6 @@
 @if (isLoading()) {
 <div aria-busy="true" aria-label="Loading list">
-	<div
-		class="bleed bleed-top h-72 bg-surface/40 animate-[skeletonPulse_1.4s_ease-in-out_infinite]"
-	></div>
+	<ui-skeleton class="bleed bleed-top h-72" />
 	<div class="mt-6 rounded-card border border-line divide-y divide-line">
 		@for (i of skeletonRange; track i) {
 		<div class="flex items-center gap-4 px-4 py-3">
@@ -28,30 +26,11 @@
 	<a uiButton variant="secondary" routerLink="/lists">Back to lists</a>
 </ui-empty-state>
 } @else { @let current = list()!;
-<app-library-hero [heading]="current.name" [posters]="heroPosters()">
-	@if (fromUsername(); as username) {
-	<a
-		heroEyebrow
-		class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover"
-		[routerLink]="['/user', username]"
-	>
-		<span aria-hidden="true" class="material-icons text-sm"
-			>arrow_back</span
-		>
-		{{ '@' + username }}'s profile
-	</a>
-	} @else {
-	<a
-		heroEyebrow
-		class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover"
-		routerLink="/lists"
-	>
-		<span aria-hidden="true" class="material-icons text-sm"
-			>arrow_back</span
-		>
-		Lists
-	</a>
-	}
+<app-library-hero
+	[backLink]="backLink()"
+	[heading]="current.name"
+	[posters]="heroPosters()"
+>
 	<div heroSubtitle class="mt-2 flex flex-col gap-2 max-w-2xl">
 		@if (current.description) {
 		<p class="m-0 text-sm text-fg-secondary">{{ current.description }}</p>
@@ -142,12 +121,7 @@
 			>
 			{{ current.isFollowing ? 'Following' : 'Follow' }}
 		</button>
-		<button
-			uiButton
-			variant="secondary"
-			class="!bg-surface/70 backdrop-blur"
-			(click)="openDuplicate()"
-		>
+		<button uiButton variant="glass" (click)="openDuplicate()">
 			<span aria-hidden="true" class="material-icons text-base"
 				>content_copy</span
 			>
@@ -249,6 +223,7 @@
 	</h2>
 	<ui-search-bar
 		class="block max-w-2xl"
+		size="lg"
 		placeholder="Search games to add..."
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"
@@ -365,60 +340,8 @@
 			(moveUp)="moveUp(i)"
 			(moveDown)="moveDown(i)"
 			(remove)="removeItem(item)"
-			(moreRequested)="itemSheet.set({ item, index: i })"
 		/>
 	</li>
 	}
 </ol>
-} @if (itemSheet(); as sheet) {
-<ui-bottom-sheet
-	[heading]="sheet.item.game.title"
-	[subheading]="'Position ' + sheet.item.position"
-	(closed)="itemSheet.set(null)"
->
-	<ul class="list-none m-0 p-0 flex flex-col gap-1">
-		<li>
-			<button
-				type="button"
-				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border-0 text-base font-medium text-fg text-left cursor-pointer transition active:bg-surface disabled:opacity-40 disabled:cursor-default"
-				[disabled]="sheet.index === 0"
-				(click)="runItemAction('up')"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-2xl text-fg-muted"
-					>arrow_upward</span
-				>
-				Move up
-			</button>
-		</li>
-		<li>
-			<button
-				type="button"
-				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border-0 text-base font-medium text-fg text-left cursor-pointer transition active:bg-surface disabled:opacity-40 disabled:cursor-default"
-				[disabled]="sheet.index === current.items.length - 1"
-				(click)="runItemAction('down')"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-2xl text-fg-muted"
-					>arrow_downward</span
-				>
-				Move down
-			</button>
-		</li>
-		<li>
-			<button
-				type="button"
-				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border-0 text-base font-medium text-danger text-left cursor-pointer transition active:bg-surface"
-				(click)="runItemAction('remove')"
-			>
-				<span aria-hidden="true" class="material-icons text-2xl"
-					>playlist_remove</span
-				>
-				Remove from list
-			</button>
-		</li>
-	</ul>
-</ui-bottom-sheet>
 } }

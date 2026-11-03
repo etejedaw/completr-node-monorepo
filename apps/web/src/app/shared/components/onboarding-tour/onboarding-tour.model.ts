@@ -6,6 +6,7 @@ export interface SectionItem {
 }
 
 export interface Step {
+	icon: string;
 	heading: string;
 	tagline: string;
 	items: SectionItem[];

@@ -1,9 +1,4 @@
-<app-library-hero heading="Pending Reports">
-	<span
-		heroEyebrow
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Admin</span
-	>
+<app-library-hero heading="Pending Reports" eyebrow="Admin">
 	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
 		<span class="font-semibold text-fg tabular-nums"
 			>{{ reports().length }}</span
@@ -13,8 +8,8 @@
 	<div heroActions>
 		<button
 			uiButton
-			variant="secondary"
-			class="!bg-surface/70 backdrop-blur min-w-[44px] !px-2"
+			variant="glass"
+			class="min-w-[44px] !px-2"
 			aria-label="Refresh"
 			title="Refresh"
 			(click)="reload()"
@@ -86,7 +81,7 @@
 			class="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 sm:gap-4 mb-2"
 		>
 			<a
-				class="font-display font-semibold text-base text-brand no-underline hover:underline tap:min-h-[44px] tap:inline-flex tap:items-center"
+				class="font-display font-semibold text-base text-brand no-underline hover:underline tap:min-h-[44px] tap:min-w-[44px] tap:inline-flex tap:items-center"
 				[routerLink]="['/games', report.Game.code]"
 			>
 				{{ report.Game.title }}

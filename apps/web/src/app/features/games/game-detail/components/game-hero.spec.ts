@@ -183,6 +183,18 @@ describe("GameHero", () => {
 				(element.querySelector("button") as HTMLButtonElement).disabled
 			).toBe(true);
 		});
+
+		it("ignores repeated clicks while the toggle is saving", () => {
+			const { element, toggled } = render(
+				{ franchise },
+				{ isLoggedIn: true, togglingFranchise: true }
+			);
+
+			const button = element.querySelector("button") as HTMLButtonElement;
+			button.click();
+			button.click();
+			expect(toggled).not.toHaveBeenCalled();
+		});
 	});
 
 	describe("images", () => {

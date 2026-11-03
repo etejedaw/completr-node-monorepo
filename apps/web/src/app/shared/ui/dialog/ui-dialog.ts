@@ -10,9 +10,17 @@ import {
 
 import { ViewportService } from "../../../core/services/viewport";
 import { UiFocusTrap } from "../focus-trap/ui-focus-trap";
+import { UiIconButton } from "../icon-button/ui-icon-button";
 import { injectBodyPortal } from "../portal/body-portal";
+import {
+	UI_TONE_COLOR,
+	UI_TONE_HALO_CLASS,
+	UI_TONE_ICON_CLASS,
+	type UiTone
+} from "../tone/ui-tone";
 
 export type UiDialogSize = "sm" | "md" | "lg" | "xl";
+export type UiDialogTone = UiTone;
 
 const DIALOG_WIDTH: Record<UiDialogSize, string> = {
 	sm: "md:w-[440px]",
@@ -30,7 +38,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 
 @Component({
 	selector: "ui-dialog",
-	imports: [UiFocusTrap],
+	imports: [UiFocusTrap, UiIconButton],
 	template: `
 		<div
 			class="fixed inset-0 z-[1000] flex items-end justify-center md:items-center md:p-6"
@@ -67,9 +75,24 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 						class="md:hidden mx-auto mt-2.5 h-1.5 w-10 rounded-full bg-fg-muted/40"
 					></div>
 					<header
-						class="flex items-start gap-3 px-5 pt-3 pb-3 md:px-6 md:pt-5 md:pb-4"
+						class="flex items-start gap-3.5 px-5 pt-3 pb-4 md:px-6 md:pt-6 md:pb-5 border-b border-line"
+						[class]="haloClass"
+						[class.mb-4]="!flush()"
+						[style.--ui-tone]="toneColor()"
 					>
-						<ng-content select="[dialogLead]" />
+						@if (icon()) {
+							<span
+								aria-hidden="true"
+								class="shrink-0 inline-flex size-12 items-center justify-center rounded-xl ring-1 ring-inset shadow-[0_8px_24px_-10px_currentColor]"
+								[class]="iconToneClass()"
+							>
+								<span class="material-icons text-[22px]">{{
+									icon()
+								}}</span>
+							</span>
+						} @else {
+							<ng-content select="[dialogLead]" />
+						}
 						<div class="flex-1 min-w-0">
 							@if (eyebrow()) {
 								<span
@@ -78,14 +101,14 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 								>
 							}
 							<h2
-								class="m-0 font-display text-lg md:text-xl font-bold tracking-tight leading-tight text-fg text-balance break-words"
+								class="m-0 font-display text-xl md:text-2xl font-bold tracking-tight leading-tight text-fg text-balance break-words"
 								[id]="titleId"
 							>
 								{{ heading() }}
 							</h2>
 							@if (subheading()) {
 								<p
-									class="m-0 mt-1 text-[0.8125rem] text-fg-muted text-pretty"
+									class="m-0 mt-1.5 text-sm text-fg-muted text-pretty"
 									[id]="subtitleId"
 								>
 									{{ subheading() }}
@@ -93,8 +116,11 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 							}
 						</div>
 						<button
+							uiIconButton
+							size="lg"
+							shape="circle"
 							type="button"
-							class="shrink-0 -mr-2 -mt-1 size-[36px] max-md:size-[44px] tap:size-[44px] rounded-full bg-transparent border-0 text-fg-muted cursor-pointer inline-flex items-center justify-center transition hover:text-fg hover:bg-surface focus-visible:outline-2 focus-visible:outline-brand aria-disabled:opacity-40 aria-disabled:cursor-not-allowed aria-disabled:hover:text-fg-muted aria-disabled:hover:bg-transparent"
+							class="shrink-0 -mr-2 -mt-1"
 							[attr.aria-label]="'Close ' + heading()"
 							[attr.aria-disabled]="dismissible() ? null : 'true'"
 							(click)="dismiss()"
@@ -117,7 +143,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 					<ng-content />
 				</div>
 				<div
-					class="empty:hidden shrink-0 flex flex-wrap items-center justify-end gap-2 px-5 py-3 md:px-6 md:py-4 border-t border-line max-md:[&>*]:flex-1 max-md:[&>.ui-button]:min-h-[44px]"
+					class="empty:hidden shrink-0 flex flex-wrap items-center justify-end gap-2 px-5 py-3 md:px-6 md:py-4 border-t border-line bg-surface/40 max-md:flex-col-reverse max-md:items-stretch max-md:[&>.ui-button]:min-h-[44px] max-md:[&>.ui-button]:w-full"
 				>
 					<ng-content select="[dialogFooter]" />
 				</div>
@@ -130,6 +156,8 @@ export class UiDialog {
 	readonly heading = input.required<string>();
 	readonly subheading = input<string | null>(null);
 	readonly eyebrow = input<string | null>(null);
+	readonly icon = input<string | null>(null);
+	readonly tone = input<UiDialogTone>("brand");
 	readonly size = input<UiDialogSize>("md");
 	readonly dismissible = input(true);
 	readonly flush = input(false);
@@ -143,6 +171,11 @@ export class UiDialog {
 	protected readonly titleId = `ui-dialog-title-${nextDialogId}`;
 	protected readonly subtitleId = `ui-dialog-subtitle-${nextDialogId++}`;
 	protected readonly dragging = signal(false);
+	protected readonly iconToneClass = computed(
+		() => UI_TONE_ICON_CLASS[this.tone()]
+	);
+	protected readonly haloClass = UI_TONE_HALO_CLASS;
+	protected readonly toneColor = computed(() => UI_TONE_COLOR[this.tone()]);
 	protected readonly widthClass = computed(() => DIALOG_WIDTH[this.size()]);
 	protected readonly dragTransform = computed(() =>
 		this.dragOffset() ? `translateY(${this.dragOffset()}px)` : null

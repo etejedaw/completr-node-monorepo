@@ -7,7 +7,14 @@ import {
 	type TestRequest
 } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { render, screen, waitFor, within } from "@testing-library/angular";
+import { Router } from "@angular/router";
+import {
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within
+} from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
@@ -204,6 +211,36 @@ describe("Admin users interaction", () => {
 		});
 	}
 
+	const ROLE_LABELS: Record<string, string> = {
+		user: "User",
+		premium: "Premium",
+		moderator: "Moderator",
+		admin: "Admin"
+	};
+
+	function roleTrigger(dialog: HTMLElement) {
+		return within(dialog).getByRole("button", { name: /^Role:/ });
+	}
+
+	function expectRole(dialog: HTMLElement, role: string) {
+		expect(roleTrigger(dialog)).toHaveAccessibleName(
+			`Role: ${ROLE_LABELS[role]}`
+		);
+	}
+
+	async function chooseRole(user: User, dialog: HTMLElement, role: string) {
+		await user.click(roleTrigger(dialog));
+		await user.click(
+			await screen.findByRole("menuitemradio", {
+				name: new RegExp(`^${ROLE_LABELS[role]}`)
+			})
+		);
+	}
+
+	function activeSwitch(dialog: HTMLElement) {
+		return within(dialog).getByRole("switch", { name: "Account active" });
+	}
+
 	function submitEditButton(dialog: HTMLElement) {
 		return within(dialog).getByRole("button", {
 			name: /^(Save Changes|Saving\.\.\.)$/
@@ -362,14 +399,35 @@ describe("Admin users interaction", () => {
 			await user.click(submitCreateButton(dialog));
 
 			expect(pending("POST", USERS_URL)).toHaveLength(0);
-			const alert = within(dialog).getByRole("alert");
-			expect(alert).toHaveTextContent("Username is required.");
-			expect(alert).toHaveTextContent("Email is required.");
-			expect(alert).toHaveTextContent("Name is required.");
-			expect(alert).toHaveTextContent("Password is required.");
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			for (const message of [
+				"Username is required.",
+				"Email is required.",
+				"Name is required.",
+				"Password is required."
+			])
+				expect(within(dialog).getAllByText(message)).toHaveLength(1);
+			await waitFor(() =>
+				expect(within(dialog).getByLabelText(/^Username/)).toHaveFocus()
+			);
+		});
+
+		it("double clicking Create on an invalid form shows each error once and focuses the first invalid field", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const dialog = await openCreate(user);
+			await fillCreate(user, dialog, { email: "nope" });
+
+			await user.dblClick(submitCreateButton(dialog));
+
+			expect(pending("POST", USERS_URL)).toHaveLength(0);
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
 			expect(
-				within(dialog).getAllByText("Username is required.").length
-			).toBeGreaterThan(0);
+				within(dialog).getAllByText("Email is not valid.")
+			).toHaveLength(1);
+			await waitFor(() =>
+				expect(within(dialog).getByLabelText(/^Email/)).toHaveFocus()
+			);
 		});
 
 		it("explains username, email, name and password problems field by field", async () => {
@@ -385,15 +443,18 @@ describe("Admin users interaction", () => {
 			});
 			await user.click(submitCreateButton(dialog));
 
-			const alert = within(dialog).getByRole("alert");
-			expect(alert).toHaveTextContent(
-				"only lowercase letters, digits, dots or underscores"
-			);
-			expect(alert).toHaveTextContent("Email is not valid.");
-			expect(alert).toHaveTextContent("Name must not contain < or >");
-			expect(alert).toHaveTextContent(
-				"Password must be between 8 and 15"
-			);
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			for (const message of [
+				/only lowercase letters, digits, dots or underscores/,
+				"Email is not valid.",
+				/Name must not contain < or >/,
+				/Password must be between 8 and 15/
+			])
+				expect(
+					within(dialog).getAllByText(message, {
+						selector: "ui-field-error span"
+					})
+				).toHaveLength(1);
 			expect(pending("POST", USERS_URL)).toHaveLength(0);
 		});
 
@@ -417,9 +478,13 @@ describe("Admin users interaction", () => {
 			const dialog = await openCreate(user);
 			await fillCreate(user, dialog, { password });
 			await user.click(submitCreateButton(dialog));
-			expect(within(dialog).getByRole("alert")).toHaveTextContent(
-				message
-			);
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			expect(
+				within(dialog).getByText(message, {
+					selector: "ui-field-error span",
+					exact: false
+				})
+			).toBeInTheDocument();
 			expect(pending("POST", USERS_URL)).toHaveLength(0);
 		});
 
@@ -440,9 +505,13 @@ describe("Admin users interaction", () => {
 			const dialog = await openCreate(user);
 			await fillCreate(user, dialog, { username });
 			await user.click(submitCreateButton(dialog));
-			expect(within(dialog).getByRole("alert")).toHaveTextContent(
-				message
-			);
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			expect(
+				within(dialog).getByText(message, {
+					selector: "ui-field-error span",
+					exact: false
+				})
+			).toBeInTheDocument();
 			expect(pending("POST", USERS_URL)).toHaveLength(0);
 		});
 
@@ -453,9 +522,12 @@ describe("Admin users interaction", () => {
 			await fillCreate(user, dialog, { name: "     " });
 			await user.click(submitCreateButton(dialog));
 
-			expect(within(dialog).getByRole("alert")).toHaveTextContent(
-				"Name is required."
-			);
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			expect(
+				within(dialog).getByText("Name is required.", {
+					selector: "ui-field-error span"
+				})
+			).toBeInTheDocument();
 			expect(pending("POST", USERS_URL)).toHaveLength(0);
 		});
 
@@ -468,12 +540,18 @@ describe("Admin users interaction", () => {
 				password: "short"
 			});
 			await user.click(submitCreateButton(dialog));
-			expect(within(dialog).getByRole("alert")).toBeInTheDocument();
+			expect(
+				within(dialog).getByText("Email is not valid.", {
+					selector: "ui-field-error span"
+				})
+			).toBeInTheDocument();
 
 			await fillCreate(user, dialog);
 			await user.click(submitCreateButton(dialog));
 
-			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			expect(
+				within(dialog).queryByText("Email is not valid.")
+			).not.toBeInTheDocument();
 			const [post] = pending("POST", USERS_URL);
 			expect(post!.request.body).toEqual({
 				username: "newuser",
@@ -567,7 +645,11 @@ describe("Admin users interaction", () => {
 			const dialog = await openCreate(user);
 			await fillCreate(user, dialog, { username: "x", email: "bad" });
 			await user.click(submitCreateButton(dialog));
-			expect(within(dialog).getByRole("alert")).toBeInTheDocument();
+			expect(
+				within(dialog).getByText("Email is not valid.", {
+					selector: "ui-field-error span"
+				})
+			).toBeInTheDocument();
 			await user.click(
 				within(dialog).getByRole("button", { name: "Cancel" })
 			);
@@ -646,7 +728,7 @@ describe("Admin users interaction", () => {
 			}
 		);
 
-		it("shows 422 validation issues under their fields and in the summary", async () => {
+		it("shows 422 field issues only under their fields, without a summary", async () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openCreate(user);
@@ -671,20 +753,18 @@ describe("Admin users interaction", () => {
 				{ status: 422, statusText: "Unprocessable" }
 			);
 
-			const alert = await within(dialog).findByRole("alert");
-			expect(alert).toHaveTextContent(
-				"Email already registered. · Username is reserved."
-			);
 			expect(
-				within(dialog).getByText("Email already registered.", {
-					selector: "p"
+				await within(dialog).findByText("Email already registered.", {
+					selector: "ui-field-error span"
 				})
 			).toBeInTheDocument();
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
 			expect(
-				within(dialog).getByText("Username is reserved.", {
-					selector: "p"
-				})
-			).toBeInTheDocument();
+				within(dialog).getAllByText("Email already registered.")
+			).toHaveLength(1);
+			expect(
+				within(dialog).getAllByText("Username is reserved.")
+			).toHaveLength(1);
 		});
 
 		it("changing the offending field after a server error and resubmitting clears the stale error", async () => {
@@ -706,7 +786,9 @@ describe("Admin users interaction", () => {
 				},
 				{ status: 422, statusText: "Unprocessable" }
 			);
-			await within(dialog).findByRole("alert");
+			await within(dialog).findByText("Email already registered.", {
+				selector: "ui-field-error span"
+			});
 
 			await user.clear(within(dialog).getByLabelText(/^Email/));
 			await user.type(
@@ -743,13 +825,51 @@ describe("Admin users interaction", () => {
 			flushIssues(pending("POST", USERS_URL)[0]!, [
 				{ path: "email", message: "Email already registered." }
 			]);
+			await within(dialog).findByText("Email already registered.", {
+				selector: "ui-field-error span"
+			});
+			return dialog;
+		}
+
+		async function createWithMixedIssues(user: User) {
+			const dialog = await openCreate(user);
+			await fillCreate(user, dialog);
+			await user.click(submitCreateButton(dialog));
+			flushIssues(pending("POST", USERS_URL)[0]!, [
+				{ path: "email", message: "Email already registered." },
+				{ path: "captcha", message: "Too many accounts today." }
+			]);
 			await within(dialog).findByRole("alert");
 			return dialog;
 		}
 
+		it("a mixed 422 lists only the issue without a field in the summary and the other under its field", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const dialog = await createWithMixedIssues(user);
+
+			const alert = within(dialog).getByRole("alert");
+			expect(alert).toHaveTextContent(/Too many accounts today\.\s*$/);
+			expect(alert).not.toHaveTextContent("Email already registered.");
+			expect(
+				within(dialog).getAllByText("Email already registered.")
+			).toHaveLength(1);
+			expect(
+				within(dialog).getByText("Email already registered.", {
+					selector: "ui-field-error span"
+				})
+			).toBeInTheDocument();
+			expect(
+				within(dialog).getAllByText("Too many accounts today.")
+			).toHaveLength(1);
+
+			await user.dblClick(submitCreateButton(dialog));
+			expect(pending("POST", USERS_URL)).toHaveLength(1);
+		});
+
 		function emailFieldError(dialog: HTMLElement) {
 			return within(dialog).queryByText("Email already registered.", {
-				selector: "p"
+				selector: "ui-field-error span"
 			});
 		}
 
@@ -769,7 +889,7 @@ describe("Admin users interaction", () => {
 		it("editing another field hides the summary but keeps the error under the field that failed", async () => {
 			const user = userEvent.setup();
 			await renderUsers();
-			const dialog = await createWithEmailIssue(user);
+			const dialog = await createWithMixedIssues(user);
 
 			await user.type(within(dialog).getByLabelText(/^Name/), "!");
 
@@ -780,7 +900,7 @@ describe("Admin users interaction", () => {
 		it("typing back exactly the value that failed shows the server error again", async () => {
 			const user = userEvent.setup();
 			await renderUsers();
-			const dialog = await createWithEmailIssue(user);
+			const dialog = await createWithMixedIssues(user);
 			const email = within(dialog).getByLabelText(/^Email/);
 
 			await user.type(email, "x");
@@ -789,7 +909,7 @@ describe("Admin users interaction", () => {
 
 			expect(emailFieldError(dialog)).toBeInTheDocument();
 			expect(within(dialog).getByRole("alert")).toHaveTextContent(
-				"Email already registered."
+				"Too many accounts today."
 			);
 
 			await user.clear(email);
@@ -812,18 +932,18 @@ describe("Admin users interaction", () => {
 				{ path: "email", message: "Email domain is blocked." }
 			]);
 
-			expect(await within(dialog).findByRole("alert")).toHaveTextContent(
-				"Email domain is blocked."
-			);
 			expect(
-				within(dialog).getByText("Email domain is blocked.", {
-					selector: "p"
+				await within(dialog).findByText("Email domain is blocked.", {
+					selector: "ui-field-error span"
 				})
 			).toBeInTheDocument();
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
 			expect(emailFieldError(dialog)).not.toBeInTheDocument();
 
 			await user.type(email, "{Backspace}");
-			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			expect(
+				within(dialog).queryByText("Email domain is blocked.")
+			).not.toBeInTheDocument();
 		});
 
 		it("a 409 without issues disappears when the admin edits any field", async () => {
@@ -946,7 +1066,7 @@ describe("Admin users interaction", () => {
 
 			const reopened = await openEdit(user);
 			expect(
-				within(reopened).getByLabelText("New Password")
+				within(reopened).getByLabelText(/^New password/)
 			).toHaveAttribute("type", "password");
 		});
 
@@ -1021,8 +1141,8 @@ describe("Admin users interaction", () => {
 			expect(within(dialog).getByLabelText("Name")).toHaveValue(
 				"Bob Builder"
 			);
-			expect(within(dialog).getByLabelText("Role")).toHaveValue("user");
-			expect(within(dialog).getByRole("checkbox")).not.toBeChecked();
+			expectRole(dialog, "user");
+			expect(activeSwitch(dialog)).not.toBeChecked();
 			expect(within(dialog).getByText("Inactive")).toBeInTheDocument();
 			await user.keyboard("{Escape}");
 			await waitFor(() =>
@@ -1145,11 +1265,8 @@ describe("Admin users interaction", () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openEdit(user);
-			await user.selectOptions(
-				within(dialog).getByLabelText("Role"),
-				"moderator"
-			);
-			await user.click(within(dialog).getByRole("checkbox"));
+			await chooseRole(user, dialog, "moderator");
+			await user.click(activeSwitch(dialog));
 			await user.click(submitEditButton(dialog));
 
 			const [patch] = pending("PATCH", `${USERS_URL}/u2`);
@@ -1173,7 +1290,7 @@ describe("Admin users interaction", () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openEdit(user);
-			const checkbox = within(dialog).getByRole("checkbox");
+			const checkbox = activeSwitch(dialog);
 			await user.click(checkbox);
 			await user.click(checkbox);
 			await user.keyboard("{Escape}");
@@ -1184,10 +1301,7 @@ describe("Admin users interaction", () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openEdit(user);
-			await user.selectOptions(
-				within(dialog).getByLabelText("Role"),
-				"premium"
-			);
+			await chooseRole(user, dialog, "premium");
 			await user.tripleClick(submitEditButton(dialog));
 			expect(pending("PATCH", `${USERS_URL}/u2`)).toHaveLength(1);
 			expect(submitEditButton(dialog)).toBeDisabled();
@@ -1198,10 +1312,7 @@ describe("Admin users interaction", () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openEdit(user);
-			await user.selectOptions(
-				within(dialog).getByLabelText("Role"),
-				"premium"
-			);
+			await chooseRole(user, dialog, "premium");
 			await user.click(submitEditButton(dialog));
 			await user.keyboard("{Escape}");
 			await user.click(
@@ -1229,22 +1340,34 @@ describe("Admin users interaction", () => {
 
 			await user.clear(name);
 			await user.click(submitEditButton(dialog));
-			expect(within(dialog).getByRole("alert")).toHaveTextContent(
-				"Name is required."
-			);
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			expect(
+				within(dialog).getByText("Name is required.", {
+					selector: "ui-field-error span",
+					exact: false
+				})
+			).toBeInTheDocument();
 
 			await user.type(name, "abc");
 			await user.click(submitEditButton(dialog));
-			expect(within(dialog).getByRole("alert")).toHaveTextContent(
-				"Name must be between 4 and 80"
-			);
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			expect(
+				within(dialog).getByText("Name must be between 4 and 80", {
+					selector: "ui-field-error span",
+					exact: false
+				})
+			).toBeInTheDocument();
 
 			await user.clear(name);
 			await user.type(name, "<script>");
 			await user.click(submitEditButton(dialog));
-			expect(within(dialog).getByRole("alert")).toHaveTextContent(
-				"Name must not contain < or >"
-			);
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			expect(
+				within(dialog).getByText("Name must not contain < or >", {
+					selector: "ui-field-error span",
+					exact: false
+				})
+			).toBeInTheDocument();
 			expect(http.match(req => req.method === "PATCH")).toHaveLength(0);
 		});
 
@@ -1257,9 +1380,13 @@ describe("Admin users interaction", () => {
 			await user.type(name, "     ");
 			await user.click(submitEditButton(dialog));
 
-			expect(within(dialog).getByRole("alert")).toHaveTextContent(
-				"Name is required."
-			);
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			expect(
+				within(dialog).getByText("Name is required.", {
+					selector: "ui-field-error span",
+					exact: false
+				})
+			).toBeInTheDocument();
 			expect(http.match(req => req.method === "PATCH")).toHaveLength(0);
 		});
 
@@ -1267,20 +1394,28 @@ describe("Admin users interaction", () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openEdit(user);
-			const password = within(dialog).getByLabelText("New Password");
+			const password = within(dialog).getByLabelText(/^New password/);
 
 			await user.type(password, "short");
 			await user.click(submitEditButton(dialog));
-			expect(within(dialog).getByRole("alert")).toHaveTextContent(
-				"Password must be between 8 and 15"
-			);
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			expect(
+				within(dialog).getByText("Password must be between 8 and 15", {
+					selector: "ui-field-error span",
+					exact: false
+				})
+			).toBeInTheDocument();
 
 			await user.clear(password);
 			await user.type(password, "nouppercase1!");
 			await user.click(submitEditButton(dialog));
-			expect(within(dialog).getByRole("alert")).toHaveTextContent(
-				"at least one uppercase"
-			);
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+			expect(
+				within(dialog).getByText("at least one uppercase", {
+					selector: "ui-field-error span",
+					exact: false
+				})
+			).toBeInTheDocument();
 
 			await user.clear(password);
 			await user.type(password, "Valid1pass!");
@@ -1297,7 +1432,7 @@ describe("Admin users interaction", () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openEdit(user);
-			const password = within(dialog).getByLabelText("New Password");
+			const password = within(dialog).getByLabelText(/^New password/);
 			await user.type(password, "Valid1pass!");
 			await user.clear(password);
 			await user.click(submitEditButton(dialog));
@@ -1334,29 +1469,24 @@ describe("Admin users interaction", () => {
 				const user = userEvent.setup();
 				await renderUsers();
 				const dialog = await openEdit(user);
-				await user.selectOptions(
-					within(dialog).getByLabelText("Role"),
-					"admin"
-				);
+				await chooseRole(user, dialog, "admin");
 				await user.click(submitEditButton(dialog));
 				fail(pending("PATCH", `${USERS_URL}/u2`)[0]!, status, body);
 
 				expect(
 					await within(dialog).findByRole("alert")
 				).toHaveTextContent(message);
-				expect(within(dialog).getByLabelText("Role")).toHaveValue(
-					"admin"
-				);
+				expectRole(dialog, "admin");
 				expect(submitEditButton(dialog)).toBeEnabled();
 			}
 		);
 
-		it("shows 422 issues under the password and name and clears them on resubmit", async () => {
+		it("shows a 422 password issue only under the password and clears it on resubmit", async () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openEdit(user);
 			await user.type(
-				within(dialog).getByLabelText("New Password"),
+				within(dialog).getByLabelText(/^New password/),
 				"Valid1pass!"
 			);
 			await user.click(submitEditButton(dialog));
@@ -1373,14 +1503,17 @@ describe("Admin users interaction", () => {
 				},
 				{ status: 422, statusText: "Unprocessable" }
 			);
-			expect(await within(dialog).findByRole("alert")).toHaveTextContent(
-				"Password was breached."
-			);
 			expect(
-				within(dialog).getAllByText("Password was breached.").length
-			).toBeGreaterThan(1);
+				await within(dialog).findByText("Password was breached.", {
+					selector: "ui-field-error span"
+				})
+			).toBeInTheDocument();
+			expect(
+				within(dialog).getAllByText("Password was breached.")
+			).toHaveLength(1);
+			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
 
-			const password = within(dialog).getByLabelText("New Password");
+			const password = within(dialog).getByLabelText(/^New password/);
 			await user.clear(password);
 			await user.type(password, "Other1pass!");
 			await user.click(submitEditButton(dialog));
@@ -1404,6 +1537,11 @@ describe("Admin users interaction", () => {
 							path: "name",
 							code: "custom",
 							message: "Name is not allowed."
+						},
+						{
+							path: "role",
+							code: "custom",
+							message: "Role changes are locked."
 						}
 					]
 				},
@@ -1415,7 +1553,7 @@ describe("Admin users interaction", () => {
 
 		function nameFieldError(dialog: HTMLElement) {
 			return within(dialog).queryByText("Name is not allowed.", {
-				selector: "p"
+				selector: "ui-field-error span"
 			});
 		}
 
@@ -1424,6 +1562,12 @@ describe("Admin users interaction", () => {
 			await renderUsers();
 			const dialog = await editWithNameIssue(user);
 			expect(nameFieldError(dialog)).toBeInTheDocument();
+			expect(within(dialog).getByRole("alert")).toHaveTextContent(
+				/Role changes are locked\.\s*$/
+			);
+			expect(
+				within(dialog).getAllByText("Name is not allowed.")
+			).toHaveLength(1);
 
 			await user.type(within(dialog).getByLabelText("Name"), "y");
 
@@ -1437,19 +1581,16 @@ describe("Admin users interaction", () => {
 			await renderUsers();
 			const dialog = await editWithNameIssue(user);
 
-			await user.selectOptions(
-				within(dialog).getByLabelText("Role"),
-				"admin"
-			);
+			await chooseRole(user, dialog, "admin");
 
 			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
 			expect(nameFieldError(dialog)).toBeInTheDocument();
 
-			await user.selectOptions(
-				within(dialog).getByLabelText("Role"),
-				"user"
-			);
+			await chooseRole(user, dialog, "user");
 			expect(within(dialog).getByRole("alert")).toHaveTextContent(
+				"Role changes are locked."
+			);
+			expect(within(dialog).getByRole("alert")).not.toHaveTextContent(
 				"Name is not allowed."
 			);
 		});
@@ -1494,7 +1635,11 @@ describe("Admin users interaction", () => {
 			const dialog = await openEdit(user, "bob");
 			await user.clear(within(dialog).getByLabelText("Name"));
 			await user.click(submitEditButton(dialog));
-			expect(within(dialog).getByRole("alert")).toBeInTheDocument();
+			expect(
+				within(dialog).getByText("Name is required.", {
+					selector: "ui-field-error span"
+				})
+			).toBeInTheDocument();
 			await user.click(
 				within(dialog).getByRole("button", { name: "Cancel" })
 			);
@@ -1506,8 +1651,8 @@ describe("Admin users interaction", () => {
 			expect(within(second).getByLabelText("Name")).toHaveValue(
 				"Ada Lovelace"
 			);
-			expect(within(second).getByLabelText("Role")).toHaveValue("admin");
-			expect(within(second).getByLabelText("New Password")).toHaveValue(
+			expectRole(second, "admin");
+			expect(within(second).getByLabelText(/^New password/)).toHaveValue(
 				""
 			);
 			expect(within(second).queryByRole("alert")).not.toBeInTheDocument();
@@ -1517,10 +1662,7 @@ describe("Admin users interaction", () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openEdit(user);
-			await user.selectOptions(
-				within(dialog).getByLabelText("Role"),
-				"admin"
-			);
+			await chooseRole(user, dialog, "admin");
 			await user.click(submitEditButton(dialog));
 			fail(pending("PATCH", `${USERS_URL}/u2`)[0]!, 500);
 			await within(dialog).findByRole("alert");
@@ -1530,7 +1672,7 @@ describe("Admin users interaction", () => {
 			);
 
 			const reopened = await openEdit(user);
-			expect(within(reopened).getByLabelText("Role")).toHaveValue("user");
+			expectRole(reopened, "user");
 			expect(
 				within(reopened).queryByRole("alert")
 			).not.toBeInTheDocument();
@@ -1544,22 +1686,27 @@ describe("Admin users interaction", () => {
 				within(dialog).getByRole("button", { name: "Show password" })
 			);
 			expect(
-				within(dialog).getByLabelText("New Password")
+				within(dialog).getByLabelText(/^New password/)
 			).toHaveAttribute("type", "text");
 			expect(
 				within(dialog).getByRole("button", { name: "Hide password" })
 			).toHaveAttribute("aria-pressed", "true");
 		});
 
-		it("the Active/Inactive label follows the checkbox and Space toggles it", async () => {
+		it("the Active/Inactive label follows the switch and the keyboard toggles it", async () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openEdit(user);
-			const checkbox = within(dialog).getByRole("checkbox");
-			checkbox.focus();
-			await user.keyboard(" ");
-			expect(checkbox).toBeChecked();
+			const toggle = activeSwitch(dialog);
+			expect(toggle).not.toBeChecked();
+			expect(within(dialog).getByText("Inactive")).toBeInTheDocument();
+			toggle.focus();
+			await user.keyboard("{Enter}");
+			expect(toggle).toBeChecked();
 			expect(within(dialog).getByText("Active")).toBeInTheDocument();
+			expect(
+				within(dialog).getByText("The account can sign in.")
+			).toBeInTheDocument();
 		});
 
 		it("edit buttons have names that identify the user", async () => {
@@ -1573,17 +1720,432 @@ describe("Admin users interaction", () => {
 		});
 	});
 
-	describe("invitations panel", () => {
-		it("lists pending and expired invitations and shows the empty copy", async () => {
-			await renderUsers(USERS, INVITATIONS);
-			expect(screen.getByText("pending@example.com")).toBeInTheDocument();
-			expect(screen.getByText(/Expired/)).toBeInTheDocument();
+	describe("search", () => {
+		function searchBox() {
+			return screen.getByRole("textbox", {
+				name: "Search by username, name or email"
+			});
+		}
+
+		function typeQuickly(text: string) {
+			const box = searchBox();
+			for (let length = 1; length <= text.length; length++) {
+				fireEvent.input(box, {
+					target: { value: text.slice(0, length) }
+				});
+			}
+		}
+
+		async function nextListRequest() {
+			let request: TestRequest | undefined;
+			await waitFor(() => {
+				const requests = listRequests();
+				expect(requests).toHaveLength(1);
+				request = requests[0];
+			});
+			return request!;
+		}
+
+		function heroTotal() {
+			return screen.getByText(/in total/);
+		}
+
+		it("searches once after the admin stops typing and keeps the hero total", async () => {
+			await renderUsers(USERS, [], 120);
+			typeQuickly("ada");
+
+			const request = await nextListRequest();
+			expect(request.request.params.get("q")).toBe("ada");
+			expect(request.request.params.get("offset")).toBe("0");
+			flushUsers(request, [ADA], 1);
+
+			await waitFor(() =>
+				expect(screen.getByRole("status")).toHaveTextContent(
+					"1 match for “ada”"
+				)
+			);
+			expect(
+				screen.queryByText("bob@example.com")
+			).not.toBeInTheDocument();
+			expect(heroTotal()).toHaveTextContent("120 accounts in total");
 		});
 
-		it("shows the empty copy without invitations", async () => {
+		it("cancels the older search so a late response never replaces the newer one", async () => {
 			await renderUsers();
+			typeQuickly("a");
+			const older = await nextListRequest();
+
+			typeQuickly("bo");
+			const newer = await nextListRequest();
+			expect(older.cancelled).toBe(true);
+			expect(newer.request.params.get("q")).toBe("bo");
+
+			flushUsers(newer, [BOB], 1);
+			await waitFor(() =>
+				expect(
+					screen.getAllByText("bob@example.com").length
+				).toBeGreaterThan(0)
+			);
 			expect(
-				screen.getByText(/No pending invitations/)
+				screen.queryByText("ada@example.com")
+			).not.toBeInTheDocument();
+		});
+
+		it("returns to the first page when the search changes", async () => {
+			const user = userEvent.setup();
+			const many = Array.from({ length: 50 }, (_, index) =>
+				makeUser(index + 10)
+			);
+			await renderUsers(many, [], 120);
+			await user.click(screen.getByRole("button", { name: "Next page" }));
+			const secondPage = listRequests()[0]!;
+			expect(secondPage.request.params.get("offset")).toBe("50");
+			flushUsers(secondPage, many, 120);
+
+			typeQuickly("user1");
+			const request = await nextListRequest();
+			expect(request.request.params.get("offset")).toBe("0");
+			flushUsers(request, [makeUser(10)], 1);
+		});
+
+		it("shows no matches with a way back to the full list", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			typeQuickly("zzz");
+			flushUsers(await nextListRequest(), [], 0);
+
+			const hint = await screen.findByText(/No account matches “zzz”/);
+			const noMatches = hint.closest("ui-no-matches") as HTMLElement;
+			await user.click(
+				within(noMatches).getByRole("button", { name: "Clear search" })
+			);
+
+			const request = await nextListRequest();
+			expect(request.request.params.has("q")).toBe(false);
+			flushUsers(request);
+			await waitFor(() => expect(searchBox()).toHaveValue(""));
+			expect(
+				screen.getAllByText("ada@example.com").length
+			).toBeGreaterThan(0);
+			expect(screen.getByRole("status")).toBeEmptyDOMElement();
+		});
+
+		it("clearing before the debounce fires never sends the half-typed search", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			typeQuickly("ad");
+			await user.click(
+				screen.getByRole("button", { name: "Clear search" })
+			);
+			await new Promise(resolve => setTimeout(resolve, 400));
+			expect(listRequests()).toHaveLength(0);
+			expect(searchBox()).toHaveValue("");
+		});
+
+		it("searches again for the same text typed right after clearing it from no matches", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			typeQuickly("zzz");
+			flushUsers(await nextListRequest(), [], 0);
+
+			const hint = await screen.findByText(/No account matches “zzz”/);
+			const noMatches = hint.closest("ui-no-matches") as HTMLElement;
+			await user.click(
+				within(noMatches).getByRole("button", { name: "Clear search" })
+			);
+			typeQuickly("zzz");
+
+			const seen: TestRequest[] = [];
+			await waitFor(() => {
+				seen.push(...listRequests());
+				const open = seen.filter(request => !request.cancelled);
+				expect(open.at(-1)?.request.params.get("q")).toBe("zzz");
+			});
+			flushUsers(
+				seen.filter(request => !request.cancelled).at(-1)!,
+				[],
+				0
+			);
+			expect(
+				await screen.findByText(/No account matches “zzz”/)
+			).toBeInTheDocument();
+			expect(searchBox()).toHaveValue("zzz");
+		});
+
+		it("ignores a search made only of spaces", async () => {
+			await renderUsers();
+			typeQuickly("    ");
+			await new Promise(resolve => setTimeout(resolve, 400));
+			expect(listRequests()).toHaveLength(0);
+		});
+
+		it("sends wildcard and markup characters to the API as typed", async () => {
+			await renderUsers();
+			typeQuickly("  %_<b>\\  ");
+			const request = await nextListRequest();
+			expect(request.request.params.get("q")).toBe("%_<b>\\");
+			flushUsers(request, [], 0);
+			expect(
+				await screen.findByText(/No account matches “%_<b>\\”/)
+			).toBeInTheDocument();
+		});
+
+		it("keeps the search when retrying after a failed search", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			typeQuickly("ada");
+			fail(await nextListRequest(), 500);
+
+			await user.click(
+				await screen.findByRole("button", { name: "Try again" })
+			);
+			const retry = await nextListRequest();
+			expect(retry.request.params.get("q")).toBe("ada");
+			flushUsers(retry, [ADA], 1);
+			expect(
+				await screen.findByText("1 match for “ada”")
+			).toBeInTheDocument();
+		});
+
+		it("does not show the search bar when there are no accounts at all", async () => {
+			await renderUsers([], [], 0);
+			expect(
+				screen.queryByRole("textbox", {
+					name: "Search by username, name or email"
+				})
+			).not.toBeInTheDocument();
+			expect(screen.getByText("No users found")).toBeInTheDocument();
+		});
+	});
+
+	describe("row actions menu", () => {
+		async function openRowMenu(user: User, username: string) {
+			await user.click(
+				screen.getByRole("button", {
+					name: `More actions for ${username}`
+				})
+			);
+			return screen.findByRole("menu", { name: username });
+		}
+
+		it("offers edit, premium access and profile for each row", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const menu = await openRowMenu(user, "bob");
+			expect(
+				within(menu)
+					.getAllByRole("menuitem")
+					.map(item => item.getAttribute("aria-label"))
+			).toEqual(["Edit user", "Premium access", "View profile"]);
+		});
+
+		it("opens the editor for that row and only once on a double click", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const menu = await openRowMenu(user, "bob");
+			await user.dblClick(
+				within(menu).getByRole("menuitem", { name: "Edit user" })
+			);
+			const dialogs = await screen.findAllByRole("dialog", {
+				name: "Edit user"
+			});
+			expect(dialogs).toHaveLength(1);
+			expect(within(dialogs[0]!).getByLabelText("Name")).toHaveValue(
+				"Bob Builder"
+			);
+		});
+
+		it("opens premium access for a regular account", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const menu = await openRowMenu(user, "bob");
+			await user.click(
+				within(menu).getByRole("menuitem", { name: "Premium access" })
+			);
+			const dialog = await screen.findByRole("dialog", {
+				name: "Premium access"
+			});
+			expect(dialog).toHaveTextContent("bob");
+			http.expectOne(`${USERS_URL}/u2/premium-grants`).flush({
+				data: { grants: [] }
+			});
+			http.expectOne(`${api}/admin/premium-features`).flush({
+				data: { features: [] }
+			});
+		});
+
+		it("disables premium access with its reason when the role already includes it", async () => {
+			const user = userEvent.setup();
+			await renderUsers([ADA, BOB]);
+			const menu = await openRowMenu(user, "ada");
+			const item = within(menu).getByRole("menuitem", {
+				name: "Premium access"
+			});
+			expect(item).toHaveAttribute("data-disabled");
+			expect(item).toHaveAttribute(
+				"aria-description",
+				"Premium through the admin role"
+			);
+			await user.click(item);
+			expect(
+				screen.queryByRole("dialog", { name: "Premium access" })
+			).not.toBeInTheDocument();
+			http.expectNone(`${USERS_URL}/u1/premium-grants`);
+		});
+
+		it("links View profile to the public profile so it can open in a new tab", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const navigate = vi
+				.spyOn(TestBed.inject(Router), "navigateByUrl")
+				.mockResolvedValue(true);
+			const menu = await openRowMenu(user, "bob");
+			const profile = within(menu).getByRole("menuitem", {
+				name: "View profile"
+			});
+			expect(profile).toHaveAttribute("href", "/user/bob");
+			await user.click(profile);
+			expect(navigate).toHaveBeenCalledTimes(1);
+			expect(String(navigate.mock.calls[0][0])).toBe("/user/bob");
+			await waitFor(() =>
+				expect(screen.queryByRole("menu")).not.toBeInTheDocument()
+			);
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+		});
+
+		it("closing the menu with Escape triggers no action", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			await openRowMenu(user, "bob");
+			await user.keyboard("{Escape}");
+			await waitFor(() =>
+				expect(screen.queryByRole("menu")).not.toBeInTheDocument()
+			);
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+		});
+	});
+
+	describe("invitations panel", () => {
+		it("lists pending and expired invitations", async () => {
+			await renderUsers(USERS, INVITATIONS);
+			const section = screen.getByRole("region", {
+				name: /Pending invitations/
+			});
+			expect(
+				within(section).getByText("pending@example.com")
+			).toBeInTheDocument();
+			expect(within(section).getByText("Pending")).toBeInTheDocument();
+			expect(within(section).getByText("Expired")).toBeInTheDocument();
+			expect(within(section).getByText(/· Expired /)).toBeInTheDocument();
+			expect(within(section).getByText(/· Expires /)).toBeInTheDocument();
+		});
+
+		function invitationsSection() {
+			return screen.queryByRole("region", {
+				name: /Pending invitations/
+			});
+		}
+
+		it("renders nothing for invitations while the first load is pending", async () => {
+			await render(AdminUsers, {
+				providers: [
+					provideHttpClient(),
+					provideHttpClientTesting(),
+					{ provide: ToastService, useValue: toast }
+				]
+			});
+			http = TestBed.inject(HttpTestingController);
+			expect(invitationsSection()).not.toBeInTheDocument();
+			expect(
+				screen.getByRole("button", { name: /Invite by email/ })
+			).toBeEnabled();
+
+			flushInvitations(invitationListRequests()[0]!, INVITATIONS);
+			flushUsers(listRequests()[0]!);
+			await waitFor(() =>
+				expect(invitationsSection()).toBeInTheDocument()
+			);
+			expect(
+				within(invitationsSection()!).getByText("2")
+			).toBeInTheDocument();
+		});
+
+		it("hides the section when there are no pending invitations", async () => {
+			await renderUsers();
+			expect(invitationsSection()).not.toBeInTheDocument();
+			expect(
+				screen.queryByText(/No pending invitations/)
+			).not.toBeInTheDocument();
+		});
+
+		it("invites from the hero next to Create User, and a double click opens one dialog", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const invite = screen.getByRole("button", {
+				name: /Invite by email/
+			});
+			expect(invite.parentElement).toBe(
+				screen.getByRole("button", { name: /Create User/ })
+					.parentElement
+			);
+			await user.dblClick(invite);
+			expect(
+				await screen.findAllByRole("dialog", {
+					name: "Invite by email"
+				})
+			).toHaveLength(1);
+		});
+
+		it("makes the section appear after inviting with an empty list", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const dialog = await openInvite(user);
+			await user.type(
+				within(dialog).getByLabelText(/^Email/),
+				"pending@example.com"
+			);
+			await user.click(
+				within(dialog).getByRole("button", { name: "Send invitation" })
+			);
+			pending("POST", INVITATIONS_URL)[0]!.flush({
+				data: { invitation: INVITATIONS[0] }
+			});
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+			expect(invitationsSection()).not.toBeInTheDocument();
+			flushInvitations(invitationListRequests()[0]!, [INVITATIONS[0]]);
+
+			await waitFor(() =>
+				expect(invitationsSection()).toBeInTheDocument()
+			);
+			expect(
+				within(invitationsSection()!).getByText("pending@example.com")
+			).toBeInTheDocument();
+		});
+
+		it("hides the section after revoking the last invitation", async () => {
+			const user = userEvent.setup();
+			await renderUsers(USERS, [INVITATIONS[0]]);
+			const section = invitationsSection()!;
+			await user.click(
+				within(section).getByRole("button", { name: /Revoke/ })
+			);
+			await user.dblClick(
+				within(section).getByRole("button", { name: "Revoke" })
+			);
+			const deletes = pending("DELETE", `${INVITATIONS_URL}/i1`);
+			expect(deletes).toHaveLength(1);
+			deletes[0]!.flush(null);
+			for (const reload of invitationListRequests()) {
+				flushInvitations(reload, []);
+			}
+
+			await waitFor(() =>
+				expect(invitationsSection()).not.toBeInTheDocument()
+			);
+			expect(
+				screen.getByRole("button", { name: /Invite by email/ })
 			).toBeInTheDocument();
 		});
 

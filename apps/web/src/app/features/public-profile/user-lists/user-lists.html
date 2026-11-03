@@ -5,17 +5,11 @@
 	privateTitle="These lists are private"
 />
 } @else {
-<app-library-hero heading="Lists" [posters]="heroPosters()">
-	<a
-		heroEyebrow
-		class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover"
-		[routerLink]="['/user', username]"
-	>
-		<span aria-hidden="true" class="material-icons text-sm"
-			>arrow_back</span
-		>
-		{{ '@' + username }}'s profile
-	</a>
+<app-library-hero
+	[backLink]="backLink"
+	heading="Lists"
+	[posters]="heroPosters()"
+>
 	<p
 		heroSubtitle
 		class="m-0 mt-2 flex items-center gap-2 text-sm text-fg-secondary"
@@ -66,7 +60,8 @@
 @if (!hasNoLists() && !hasLoadFailed()) {
 <app-library-toolbar>
 	<ui-search-bar
-		class="flex-1 max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+		size="sm"
+		class="flex-1 max-w-2xl"
 		[placeholder]="tab() === 'following' ? 'Search followed lists...' : 'Search ' + username + '\'s lists...'"
 		[value]="query()"
 		(valueChange)="onSearch($event)"

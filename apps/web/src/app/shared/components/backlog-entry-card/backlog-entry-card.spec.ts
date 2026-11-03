@@ -1,9 +1,14 @@
+import "@testing-library/jest-dom/vitest";
+
 import { Component, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
+import { screen, waitFor, within } from "@testing-library/angular";
+import userEvent from "@testing-library/user-event";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
-import { BACKLOG_STATUS_FILTERS } from "../../utils/backlog-status";
+import { PointerService } from "../../../core/services/pointer";
+import { ViewportService } from "../../../core/services/viewport";
 import { BacklogEntryCard } from "./backlog-entry-card";
 
 function entryWithStatus(status: BacklogStatus): BacklogEntry {
@@ -15,6 +20,11 @@ function entryWithStatus(status: BacklogStatus): BacklogEntry {
 		platform: { id: "platform-1", abbreviation: "PC" }
 	};
 }
+
+const DEVICE_PROVIDERS = [
+	{ provide: ViewportService, useValue: { isMobile: signal(false) } },
+	{ provide: PointerService, useValue: { isCoarse: signal(false) } }
+];
 
 const POSTER_COMPLETE_SELECTOR = 'button[aria-label="Mark as completed"]';
 const POSTER_PLAY_SELECTOR = 'button[aria-label="Start playing"]';
@@ -40,7 +50,7 @@ describe("BacklogEntryCard quick status actions", () => {
 	beforeEach(() => {
 		TestBed.configureTestingModule({
 			imports: [BacklogEntryCard],
-			providers: [provideRouter([])]
+			providers: [provideRouter([]), ...DEVICE_PROVIDERS]
 		});
 	});
 
@@ -93,7 +103,7 @@ describe("BacklogEntryCard accessible name", () => {
 	beforeEach(() => {
 		TestBed.configureTestingModule({
 			imports: [BacklogEntryCard],
-			providers: [provideRouter([])]
+			providers: [provideRouter([]), ...DEVICE_PROVIDERS]
 		});
 	});
 
@@ -126,7 +136,7 @@ describe("BacklogEntryCard accessible name", () => {
 });
 
 describe("BacklogEntryCard rendering cost", () => {
-	function render(statusMenuOpen = false) {
+	function render() {
 		const fixture = TestBed.createComponent(BacklogEntryCard);
 		fixture.componentRef.setInput("entry", {
 			...entryWithStatus("playing"),
@@ -135,7 +145,6 @@ describe("BacklogEntryCard rendering cost", () => {
 				backgroundUrl: "https://media.rawg.io/media/games/abc/hades.jpg"
 			}
 		});
-		fixture.componentRef.setInput("statusMenuOpen", statusMenuOpen);
 		fixture.detectChanges();
 		return fixture.nativeElement as HTMLElement;
 	}
@@ -143,7 +152,7 @@ describe("BacklogEntryCard rendering cost", () => {
 	beforeEach(() => {
 		TestBed.configureTestingModule({
 			imports: [BacklogEntryCard],
-			providers: [provideRouter([])]
+			providers: [provideRouter([]), ...DEVICE_PROVIDERS]
 		});
 	});
 
@@ -165,221 +174,190 @@ describe("BacklogEntryCard rendering cost", () => {
 	it("skips rendering off-screen cards with content-visibility and an intrinsic size", () => {
 		const element = render();
 
-		expect(element.style.contentVisibility).toBe("auto");
+		expect(element.className).toContain("[content-visibility:auto]");
 		expect(element.className).toContain(
 			"[contain-intrinsic-size:auto_180px]"
 		);
-	});
-
-	it("keeps the card fully rendered while the status menu is open", () => {
-		const element = render(true);
-
-		expect(element.style.contentVisibility).toBe("visible");
 	});
 });
 
 @Component({
 	imports: [BacklogEntryCard],
 	template: `<app-backlog-entry-card
-			[entry]="entry()"
-			[statusMenuOpen]="menuOpen()"
-			[statusOptions]="options"
-			(statusMenuToggled)="menuOpen.set(!menuOpen())"
-			(statusMenuClosed)="menuOpen.set(false)"
-			(opened)="opened = opened + 1"
-		/>
-		<button type="button" id="outside">Outside</button>`
+		[entry]="entry()"
+		[statusUpdating]="updating()"
+		(statusChanged)="changes.push($event)"
+		(opened)="opened = opened + 1"
+	/>`
 })
 class CardHost {
 	readonly entry = signal(entryWithStatus("playing"));
-	readonly menuOpen = signal(false);
-	readonly options = BACKLOG_STATUS_FILTERS.map(filter => ({ ...filter }));
+	readonly updating = signal(false);
+	readonly changes: BacklogStatus[] = [];
 	opened = 0;
 }
 
-describe("BacklogEntryCard status menu keyboard", () => {
+describe("BacklogEntryCard status picker", () => {
+	const isMobile = signal(false);
+
 	beforeEach(() => {
+		isMobile.set(false);
 		TestBed.configureTestingModule({
 			imports: [CardHost],
-			providers: [provideRouter([])]
+			providers: [
+				provideRouter([]),
+				{ provide: ViewportService, useValue: { isMobile } },
+				{
+					provide: PointerService,
+					useValue: { isCoarse: signal(false) }
+				}
+			]
 		});
+	});
+
+	afterEach(() => {
+		document.body.innerHTML = "";
 	});
 
 	function render(status: BacklogStatus = "playing") {
 		const fixture = TestBed.createComponent(CardHost);
 		fixture.componentInstance.entry.set(entryWithStatus(status));
-		fixture.detectChanges();
-		const element = fixture.nativeElement as HTMLElement;
-		const trigger = element.querySelector<HTMLButtonElement>(
-			"button[aria-haspopup='menu']"
-		)!;
-		return {
-			fixture,
-			host: fixture.componentInstance,
-			element,
-			trigger,
-			outside: element.querySelector<HTMLElement>("#outside")!,
-			menu: () => element.querySelector("[role='menu']"),
-			items: () =>
-				Array.from(
-					element.querySelectorAll<HTMLButtonElement>(
-						"[role='menuitem']"
-					)
-				)
-		};
+		fixture.autoDetectChanges();
+		document.body.appendChild(fixture.nativeElement);
+		return { fixture, host: fixture.componentInstance };
 	}
 
-	async function openMenu(view: ReturnType<typeof render>) {
-		view.trigger.click();
-		view.fixture.detectChanges();
-		await view.fixture.whenStable();
-	}
-
-	function press(
-		target: EventTarget,
-		key: string,
-		init: KeyboardEventInit = {}
-	) {
-		const event = new KeyboardEvent("keydown", {
-			key,
-			bubbles: true,
-			cancelable: true,
-			...init
+	function trigger(status = "Playing") {
+		return screen.getByRole("button", {
+			name: `Status of Hades: ${status}`
 		});
-		target.dispatchEvent(event);
-		return event;
 	}
 
-	function focused() {
-		return Array.from(document.activeElement?.childNodes ?? [])
-			.filter(node => node.nodeType === Node.TEXT_NODE)
-			.map(node => node.textContent)
-			.join("")
-			.trim();
-	}
+	it.each<[BacklogStatus, boolean]>([
+		["not_started", true],
+		["playing", true],
+		["endless", true],
+		["completed", false],
+		["abandoned", false]
+	])("lets the user change a %s entry: %s", (status, changeable) => {
+		render(status);
 
-	it("moves the focus to the first enabled option when the menu opens", async () => {
-		const view = render("playing");
-
-		await openMenu(view);
-
-		expect(view.menu()).not.toBeNull();
-		expect(focused()).toBe("Not Started");
+		expect(
+			screen.queryByRole("button", { name: /^Status of Hades/ }) !== null
+		).toBe(changeable);
+		expect(
+			document.querySelector("app-backlog-status-badge")
+		).not.toBeNull();
 	});
 
-	it("skips the current status when it is the first option", async () => {
-		const view = render("not_started");
+	it("shows only the badge on a readonly card", () => {
+		const card = TestBed.createComponent(BacklogEntryCard);
+		card.componentRef.setInput("entry", entryWithStatus("playing"));
+		card.componentRef.setInput("readonly", true);
+		card.detectChanges();
+		const element = card.nativeElement as HTMLElement;
 
-		await openMenu(view);
-
-		expect(focused()).toBe("Playing");
+		expect(element.querySelector("app-backlog-status-picker")).toBeNull();
+		expect(
+			element.querySelector("app-backlog-status-badge")
+		).not.toBeNull();
 	});
 
-	it("closes with Escape while the focus is on the trigger and keeps it there", async () => {
-		const view = render();
-		await openMenu(view);
-		view.trigger.focus();
+	it("emits the chosen status from the menu without opening the entry", async () => {
+		const user = userEvent.setup();
+		const { host } = render();
 
-		press(view.trigger, "Escape");
-		view.fixture.detectChanges();
-
-		expect(view.menu()).toBeNull();
-		expect(document.activeElement).toBe(view.trigger);
-	});
-
-	it("closes with Escape from inside the menu and returns the focus to the trigger", async () => {
-		const view = render();
-		await openMenu(view);
-
-		press(view.items()[0], "Escape");
-		view.fixture.detectChanges();
-
-		expect(view.menu()).toBeNull();
-		expect(document.activeElement).toBe(view.trigger);
-	});
-
-	it("closes with Escape pressed elsewhere on the page and returns the focus to the trigger", async () => {
-		const view = render();
-		await openMenu(view);
-		view.outside.focus();
-
-		press(view.outside, "Escape");
-		view.fixture.detectChanges();
-
-		expect(view.menu()).toBeNull();
-		expect(document.activeElement).toBe(view.trigger);
-	});
-
-	it("walks the enabled options with the arrows, skipping the current status and wrapping around", async () => {
-		const view = render("playing");
-		await openMenu(view);
-
-		const down = ["ArrowDown", "ArrowDown", "ArrowDown", "ArrowDown"].map(
-			key => {
-				press(document.activeElement!, key);
-				return focused();
-			}
-		);
-		const up = ["ArrowUp", "ArrowUp"].map(key => {
-			press(document.activeElement!, key);
-			return focused();
-		});
-
-		expect(down).toEqual([
-			"Completed",
-			"Endless",
-			"Abandoned",
-			"Not Started"
-		]);
-		expect(up).toEqual(["Abandoned", "Endless"]);
-	});
-
-	it("jumps to the first and last enabled options with Home and End", async () => {
-		const view = render("playing");
-		await openMenu(view);
-
-		press(document.activeElement!, "End");
-		expect(focused()).toBe("Abandoned");
-
-		press(document.activeElement!, "Home");
-		expect(focused()).toBe("Not Started");
-	});
-
-	it("closes on Tab without trapping the focus", async () => {
-		const view = render();
-		await openMenu(view);
-
-		const event = press(document.activeElement!, "Tab");
-		view.fixture.detectChanges();
-
-		expect(view.menu()).toBeNull();
-		expect(event.defaultPrevented).toBe(false);
-	});
-
-	it("keeps Enter and Space on the menu from opening the entry", async () => {
-		const view = render();
-		await openMenu(view);
-		const openedBefore = view.host.opened;
-
-		const enter = press(view.items()[0], "Enter");
-		const space = press(view.items()[0], " ");
-
-		expect(view.host.opened).toBe(openedBefore);
-		expect(space.defaultPrevented).toBe(false);
-		expect(enter.defaultPrevented).toBe(false);
-	});
-
-	it("emits the chosen status when an option is clicked", async () => {
-		const view = render();
-		await openMenu(view);
-		const selections: string[] = [];
-		const card = view.fixture.debugElement.children[0].componentInstance;
-		card.statusSelected.subscribe((selection: { status: string }) =>
-			selections.push(selection.status)
+		await user.click(trigger());
+		const menu = await screen.findByRole("menu", { name: "Change status" });
+		await user.click(
+			within(menu).getByRole("menuitemradio", { name: /Completed/ })
 		);
 
-		view.items()[2].click();
+		expect(host.changes).toEqual(["completed"]);
+		expect(host.opened).toBe(0);
+	});
 
-		expect(selections).toEqual(["completed"]);
+	it("keeps the keys pressed inside the menu from opening the entry", async () => {
+		const user = userEvent.setup();
+		const { host } = render();
+
+		trigger().focus();
+		await user.keyboard("{Enter}");
+		await screen.findByRole("menu");
+		const openedWithMenuOpen = host.opened;
+		await user.keyboard("{ArrowDown}{ArrowDown}{Enter}");
+
+		expect(host.changes).toHaveLength(1);
+		expect(host.opened).toBe(openedWithMenuOpen);
+	});
+
+	it("closes with Escape, returns the focus to the badge and keeps the status", async () => {
+		const user = userEvent.setup();
+		const { host } = render();
+
+		await user.click(trigger());
+		await screen.findByRole("menu");
+		await user.keyboard("{Escape}");
+
+		await waitFor(() =>
+			expect(screen.queryByRole("menu")).not.toBeInTheDocument()
+		);
+		await waitFor(() => expect(trigger()).toHaveFocus());
+		expect(host.changes).toEqual([]);
+		expect(host.opened).toBe(0);
+	});
+
+	it("emits once when an option is double clicked", async () => {
+		const user = userEvent.setup();
+		const { host } = render("not_started");
+
+		await user.click(trigger("Not Started"));
+		await user.dblClick(
+			within(await screen.findByRole("menu")).getByRole("menuitemradio", {
+				name: /Playing/
+			})
+		);
+
+		expect(host.changes).toEqual(["playing"]);
+	});
+
+	it("keeps the card rendered normally while its menu is open, since the menu lives outside it", async () => {
+		const user = userEvent.setup();
+		const { fixture } = render();
+
+		await user.click(trigger());
+		const menu = await screen.findByRole("menu");
+		const card = fixture.nativeElement.querySelector(
+			"app-backlog-entry-card"
+		) as HTMLElement;
+
+		expect(card.contains(menu)).toBe(false);
+		expect(card.className).toContain("[content-visibility:auto]");
+	});
+
+	it("opens a sheet on mobile and ignores taps once the save started", async () => {
+		isMobile.set(true);
+		const user = userEvent.setup();
+		const { host } = render();
+
+		await user.click(trigger());
+		const sheet = await screen.findByRole("dialog", {
+			name: "Change status"
+		});
+		host.updating.set(true);
+		await user.click(
+			within(sheet).getByRole("button", { name: /Endless/ })
+		);
+
+		expect(host.changes).toEqual([]);
+		expect(host.opened).toBe(0);
+	});
+
+	it("disables the badge while the status is saving", () => {
+		const { host } = render();
+		host.updating.set(true);
+		TestBed.tick();
+
+		expect(trigger()).toBeDisabled();
 	});
 });

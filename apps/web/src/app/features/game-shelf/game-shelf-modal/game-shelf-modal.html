@@ -1,5 +1,6 @@
 <ui-dialog
 	eyebrow="My Shelf"
+	[icon]="isEdit() && viewMode() === 'edit' ? 'edit_note' : 'shelves'"
 	size="md"
 	[heading]="heading()"
 	[subheading]="subheading()"
@@ -12,38 +13,27 @@
 	} @if (isEdit() && viewMode() === "summary") { @let e = entry!;
 	<div class="flex items-start gap-4">
 		<app-game-poster
-			class="w-24 aspect-[2/3] shrink-0 rounded-md ring-1 ring-white/10 shadow-lg shadow-black/40"
+			framed
+			class="w-24 aspect-[2/3] shrink-0 rounded-md shadow-lg shadow-black/40"
 			[src]="e.game.backgroundUrl"
 			[title]="e.game.title"
 			[width]="200"
 		/>
 		<dl class="m-0 flex-1 min-w-0 grid grid-cols-1 gap-3 text-[0.8125rem]">
 			<div>
-				<dt
-					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Platform
-				</dt>
+				<dt uiEyebrow>Platform</dt>
 				<dd class="m-0 mt-0.5 text-fg">
 					{{ e.platform.abbreviation }}
 				</dd>
 			</div>
 			@if (e.edition) {
 			<div>
-				<dt
-					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Edition
-				</dt>
+				<dt uiEyebrow>Edition</dt>
 				<dd class="m-0 mt-0.5 text-fg">{{ e.edition }}</dd>
 			</div>
 			}
 			<div>
-				<dt
-					class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
-				>
-					Acquired
-				</dt>
+				<dt uiEyebrow>Acquired</dt>
 				<dd class="m-0 mt-0.5 text-fg">
 					{{ e.acquiredAt ? (e.acquiredAt | date: "MMM d, y") : "—" }}
 				</dd>
@@ -53,11 +43,7 @@
 
 	@if (e.notes) {
 	<figure class="m-0 mt-5 border-l-2 border-nav-shelf/60 pl-3">
-		<figcaption
-			class="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted mb-1"
-		>
-			Notes
-		</figcaption>
+		<figcaption uiEyebrow class="mb-1">Notes</figcaption>
 		<p class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap">
 			{{ e.notes }}
 		</p>
@@ -87,15 +73,20 @@
 		/>
 
 		@if (platformOptions().length > 0) {
-		<app-option-picker
-			label="Platform"
-			heading="Platform"
-			placeholder="Required — pick one"
-			placeholderIcon="sports_esports"
-			[options]="platformOptions()"
-			[value]="form.platformId().value()"
-			(valueChange)="setPlatform($event)"
-		/>
+		<div>
+			<label uiFieldLabel for="shelf-platform">Platform</label>
+			<app-option-picker
+				variant="input"
+				triggerId="shelf-platform"
+				label="Platform"
+				heading="Platform"
+				placeholder="Pick a platform"
+				placeholderIcon="sports_esports"
+				[options]="platformOptions()"
+				[value]="form.platformId().value()"
+				(valueChange)="setPlatform($event)"
+			/>
+		</div>
 		} @else {
 		<p
 			class="m-0 px-3 py-2.5 rounded-card border border-dashed border-line text-[0.8125rem] text-fg-muted"
@@ -106,11 +97,9 @@
 		} }
 
 		<div>
-			<label
-				for="shelf-edition"
-				class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
-				>Edition</label
-			>
+			<label for="shelf-edition" uiFieldLabel
+				>Edition <ui-field-optional
+			/></label>
 			<input
 				uiInput
 				id="shelf-edition"
@@ -130,25 +119,21 @@
 		</div>
 
 		<div>
-			<label
-				for="shelf-acquired"
-				class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
-				>Acquired</label
-			>
-			<input
-				uiInput
-				id="shelf-acquired"
-				type="date"
+			<label for="shelf-acquired" uiFieldLabel
+				>Acquired <ui-field-optional
+			/></label>
+			<ui-date-picker
+				triggerId="shelf-acquired"
+				label="Acquired"
+				clearable
 				[formField]="form.acquiredAt"
 			/>
 		</div>
 
 		<div>
-			<label
-				for="shelf-notes"
-				class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
-				>Notes</label
-			>
+			<label for="shelf-notes" uiFieldLabel
+				>Notes <ui-field-optional
+			/></label>
 			<textarea
 				uiTextarea
 				id="shelf-notes"

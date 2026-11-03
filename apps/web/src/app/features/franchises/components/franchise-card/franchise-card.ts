@@ -8,11 +8,12 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
+import { UiButton } from "../../../../shared/ui";
 import { type FranchiseSummary } from "../../franchises.model";
 
 @Component({
 	selector: "app-franchise-card",
-	imports: [RouterLink, GamePoster],
+	imports: [RouterLink, GamePoster, UiButton],
 	template: `
 		<article
 			class="group relative isolate flex flex-col justify-end aspect-[16/10] rounded-card overflow-hidden bg-surface ring-1 ring-line shadow-lg shadow-black/40 transition duration-200 hover:-translate-y-1 hover:ring-brand/60 has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-brand motion-reduce:transition-none motion-reduce:hover:translate-y-0"
@@ -69,13 +70,12 @@ import { type FranchiseSummary } from "../../franchises.model";
 			</div>
 
 			<button
+				uiButton
 				type="button"
-				class="absolute top-3 right-3 z-10 inline-flex items-center gap-1 h-[32px] tap:min-h-[44px] px-3 rounded-full border text-xs font-semibold cursor-pointer backdrop-blur-md transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-wait disabled:opacity-60"
-				[class]="
-					tracked()
-						? 'border-brand bg-canvas/80 text-brand'
-						: 'border-white/30 bg-canvas/60 text-white hover:border-white/60'
-				"
+				variant="glass"
+				size="sm"
+				class="absolute top-3 right-3 z-10"
+				[active]="tracked()"
 				[attr.aria-pressed]="tracked()"
 				[attr.aria-busy]="pending()"
 				[disabled]="pending()"

@@ -4,7 +4,7 @@ describe("elevatedRoleBadge", () => {
 	it("returns the admin badge with the shield icon", () => {
 		expect(elevatedRoleBadge("admin")).toEqual({
 			label: "Admin",
-			className: "bg-admin-metal text-admin",
+			tone: "admin",
 			icon: "shield"
 		});
 	});

@@ -71,16 +71,18 @@ describe("SettingsProfile", () => {
 		expect(
 			screen.getByLabelText("Loading profile settings")
 		).toHaveAttribute("aria-busy", "true");
-		expect(screen.queryByLabelText("Display name")).not.toBeInTheDocument();
+		expect(
+			screen.queryByLabelText(/^Display name/)
+		).not.toBeInTheDocument();
 	});
 
 	it("fills the form with the saved profile and hides the save bar", async () => {
 		await renderProfile();
 
-		expect(screen.getByLabelText("Display name")).toHaveValue(
+		expect(screen.getByLabelText(/^Display name/)).toHaveValue(
 			"Ada Lovelace"
 		);
-		expect(screen.getByLabelText("Bio")).toHaveValue("Backlog survivor.");
+		expect(screen.getByLabelText(/^Bio/)).toHaveValue("Backlog survivor.");
 		expect(
 			screen.getByRole("radio", { name: "Use my initial" })
 		).toHaveAttribute("aria-checked", "true");
@@ -89,11 +91,17 @@ describe("SettingsProfile", () => {
 		).not.toBeInTheDocument();
 	});
 
+	it("marks the display name and bio as optional", async () => {
+		await renderProfile();
+
+		expect(screen.getAllByText("Optional")).toHaveLength(2);
+	});
+
 	it("falls back to empty fields when the account has no name or bio", async () => {
 		await renderProfile(buildUser({ name: null, bio: null } as never));
 
-		expect(screen.getByLabelText("Display name")).toHaveValue("");
-		expect(screen.getByLabelText("Bio")).toHaveValue("");
+		expect(screen.getByLabelText(/^Display name/)).toHaveValue("");
+		expect(screen.getByLabelText(/^Bio/)).toHaveValue("");
 		expect(screen.getByText("@ada")).toBeInTheDocument();
 	});
 
@@ -101,7 +109,7 @@ describe("SettingsProfile", () => {
 		const typist = userEvent.setup();
 		await renderProfile();
 
-		const name = screen.getByLabelText("Display name");
+		const name = screen.getByLabelText(/^Display name/);
 		await typist.clear(name);
 		await typist.type(name, "Grace");
 
@@ -115,7 +123,7 @@ describe("SettingsProfile", () => {
 		const typist = userEvent.setup();
 		await renderProfile();
 
-		await typist.clear(screen.getByLabelText("Display name"));
+		await typist.clear(screen.getByLabelText(/^Display name/));
 
 		expect(
 			screen.getByRole("region", { name: "Profile preview" })
@@ -127,7 +135,7 @@ describe("SettingsProfile", () => {
 		const typist = userEvent.setup();
 		await renderProfile();
 
-		const name = screen.getByLabelText("Display name");
+		const name = screen.getByLabelText(/^Display name/);
 		await typist.type(name, "!");
 		expect(
 			screen.getByRole("region", { name: "Unsaved changes" })
@@ -143,11 +151,11 @@ describe("SettingsProfile", () => {
 		const typist = userEvent.setup();
 		await renderProfile();
 
-		await typist.type(screen.getByLabelText("Display name"), " Jr");
+		await typist.type(screen.getByLabelText(/^Display name/), " Jr");
 		await typist.click(screen.getByRole("radio", { name: "Avatar 3" }));
 		await typist.click(screen.getByRole("button", { name: "Discard" }));
 
-		expect(screen.getByLabelText("Display name")).toHaveValue(
+		expect(screen.getByLabelText(/^Display name/)).toHaveValue(
 			"Ada Lovelace"
 		);
 		expect(
@@ -185,7 +193,7 @@ describe("SettingsProfile", () => {
 		await renderProfile();
 		update.mockReturnValue(of(buildUser()));
 
-		const name = screen.getByLabelText("Display name");
+		const name = screen.getByLabelText(/^Display name/);
 		await typist.clear(name);
 		await typist.type(name, "  Grace Hopper  ");
 		await typist.click(screen.getByRole("radio", { name: "Avatar 2" }));
@@ -211,8 +219,8 @@ describe("SettingsProfile", () => {
 		await renderProfile();
 		update.mockReturnValue(of(buildUser()));
 
-		await typist.clear(screen.getByLabelText("Display name"));
-		await typist.clear(screen.getByLabelText("Bio"));
+		await typist.clear(screen.getByLabelText(/^Display name/));
+		await typist.clear(screen.getByLabelText(/^Bio/));
 		await typist.click(
 			screen.getByRole("button", { name: "Save changes" })
 		);
@@ -230,7 +238,7 @@ describe("SettingsProfile", () => {
 		const pending = new Subject<User>();
 		update.mockReturnValue(pending);
 
-		await typist.type(screen.getByLabelText("Display name"), "!");
+		await typist.type(screen.getByLabelText(/^Display name/), "!");
 		await typist.click(
 			screen.getByRole("button", { name: "Save changes" })
 		);
@@ -244,14 +252,14 @@ describe("SettingsProfile", () => {
 		await renderProfile();
 		update.mockReturnValue(throwError(() => ({ status: 500 })));
 
-		await typist.type(screen.getByLabelText("Display name"), "!");
+		await typist.type(screen.getByLabelText(/^Display name/), "!");
 		await typist.click(
 			screen.getByRole("button", { name: "Save changes" })
 		);
 
 		expect(toast.warning).toHaveBeenCalledWith("Could not update profile.");
 		expect(toast.success).not.toHaveBeenCalled();
-		expect(screen.getByLabelText("Display name")).toHaveValue(
+		expect(screen.getByLabelText(/^Display name/)).toHaveValue(
 			"Ada Lovelace!"
 		);
 		expect(
@@ -262,11 +270,11 @@ describe("SettingsProfile", () => {
 	it("limits the inputs with the maximum lengths", async () => {
 		await renderProfile();
 
-		expect(screen.getByLabelText("Display name")).toHaveAttribute(
+		expect(screen.getByLabelText(/^Display name/)).toHaveAttribute(
 			"maxlength",
 			"80"
 		);
-		expect(screen.getByLabelText("Bio")).toHaveAttribute(
+		expect(screen.getByLabelText(/^Bio/)).toHaveAttribute(
 			"maxlength",
 			"250"
 		);
@@ -275,7 +283,7 @@ describe("SettingsProfile", () => {
 	it("flags a name over 80 characters and blocks saving", async () => {
 		await renderProfile();
 
-		fireEvent.input(screen.getByLabelText("Display name"), {
+		fireEvent.input(screen.getByLabelText(/^Display name/), {
 			target: { value: "a".repeat(81) }
 		});
 
@@ -294,7 +302,7 @@ describe("SettingsProfile", () => {
 	it("flags a bio over 250 characters", async () => {
 		await renderProfile();
 
-		fireEvent.input(screen.getByLabelText("Bio"), {
+		fireEvent.input(screen.getByLabelText(/^Bio/), {
 			target: { value: "b".repeat(251) }
 		});
 
@@ -309,7 +317,7 @@ describe("SettingsProfile", () => {
 	it("accepts a name of exactly 80 characters", async () => {
 		await renderProfile();
 
-		fireEvent.input(screen.getByLabelText("Display name"), {
+		fireEvent.input(screen.getByLabelText(/^Display name/), {
 			target: { value: "a".repeat(80) }
 		});
 

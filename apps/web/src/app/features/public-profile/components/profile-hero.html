@@ -37,16 +37,9 @@
 						{{ displayName() }}
 					</h1>
 					@if (roleBadge(); as badge) {
-					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.16em] backdrop-blur-md"
-						[class]="badge.className"
+					<ui-badge [tone]="badge.tone" [icon]="badge.icon"
+						>{{ badge.label }}</ui-badge
 					>
-						@if (badge.icon; as icon) {
-						<span aria-hidden="true" class="material-icons text-xs"
-							>{{ icon }}</span
-						>
-						} {{ badge.label }}
-					</span>
 					}
 				</div>
 				<p
@@ -74,9 +67,9 @@
 				>
 					<a
 						uiButton
-						variant="secondary"
+						variant="glass"
 						size="lg"
-						class="!bg-surface/70 backdrop-blur h-10 tap:min-h-[44px] !text-fg-secondary hover:!text-fg"
+						class="h-10 tap:min-h-[44px] !text-fg-secondary hover:!text-fg"
 						[routerLink]="['/user', user().username, 'followers']"
 					>
 						<strong class="text-base text-fg tabular-nums"
@@ -89,9 +82,9 @@
 					</a>
 					<a
 						uiButton
-						variant="secondary"
+						variant="glass"
 						size="lg"
-						class="!bg-surface/70 backdrop-blur h-10 tap:min-h-[44px] !text-fg-secondary hover:!text-fg"
+						class="h-10 tap:min-h-[44px] !text-fg-secondary hover:!text-fg"
 						[routerLink]="['/user', user().username, 'following']"
 					>
 						<strong class="text-base text-fg tabular-nums"
@@ -105,10 +98,10 @@
 					@if (isSelf()) {
 					<a
 						uiButton
-						variant="secondary"
+						variant="glass"
 						size="lg"
 						routerLink="/settings/profile"
-						class="!bg-surface/70 backdrop-blur h-10 tap:min-h-[44px] font-semibold"
+						class="h-10 tap:min-h-[44px] font-semibold"
 					>
 						<span
 							aria-hidden="true"
@@ -123,8 +116,8 @@
 						size="lg"
 						type="button"
 						class="h-10 tap:min-h-[44px] min-w-[8.5rem] font-semibold"
-						[variant]="isFollowEngaged() ? 'secondary' : 'primary'"
-						[class]="isFollowEngaged() ? '!bg-surface/70 backdrop-blur' : 'shadow-lg shadow-brand/30'"
+						[variant]="isFollowEngaged() ? 'glass' : 'primary'"
+						[class]="isFollowEngaged() ? '' : 'shadow-lg shadow-brand/30'"
 						[disabled]="togglingFollow()"
 						[attr.aria-pressed]="profile().isFollowing"
 						[title]="profile().hasPendingRequest ? 'Cancel follow request' : ''"
@@ -152,13 +145,29 @@
 						>
 						Follow
 					</a>
-					}
+					} @if (canManagePremium()) {
 					<button
 						uiButton
-						variant="secondary"
+						variant="glass"
 						size="lg"
 						type="button"
-						class="!bg-surface/70 backdrop-blur h-10 tap:min-h-[44px] w-10 !p-0 tap:min-w-[44px] !text-fg-secondary hover:!text-fg"
+						class="h-10 tap:min-h-[44px] font-semibold"
+						title="Admin: manage premium grants"
+						(click)="premiumAccessRequested.emit()"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base text-premium"
+							>workspace_premium</span
+						>
+						Premium access
+					</button>
+					}
+					<button
+						uiIconButton
+						variant="glass"
+						size="lg"
+						type="button"
 						aria-label="Share profile"
 						title="Copy profile link"
 						(click)="shared.emit()"

@@ -8,9 +8,11 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { type BacklogStatus } from "../../../core/models";
-import { UiIconButton } from "../../../shared/ui";
+import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
+import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
+import { BacklogStatusBadge } from "../../../shared/components/backlog-status-badge/backlog-status-badge";
+import { UiBadge, UiIconButton } from "../../../shared/ui";
 import {
-	backlogStatusClass,
 	backlogStatusIcon,
 	backlogStatusLabel
 } from "../../../shared/utils/backlog-status";
@@ -20,7 +22,11 @@ import { type ViewChip } from "./saved-view-card.model";
 
 type ViewActionId = "share" | "duplicate" | "edit";
 
-const NEUTRAL_CHIP = "bg-input-bg text-fg-secondary border border-line";
+const MENU_ITEMS: readonly ActionMenuItem[] = [
+	{ id: "share", icon: "share", label: "Copy public link" },
+	{ id: "duplicate", icon: "content_copy", label: "Duplicate" },
+	{ id: "edit", icon: "edit", label: "Edit" }
+];
 
 const SORT_LABELS: Record<string, string> = {
 	title: "Title",
@@ -43,38 +49,39 @@ function buildChips(view: SavedFilter): ViewChip[] {
 		chips.push({
 			label: backlogStatusLabel(status as BacklogStatus),
 			icon: backlogStatusIcon(status as BacklogStatus),
-			classes: backlogStatusClass(status as BacklogStatus)
+			tone: "neutral",
+			status: status as BacklogStatus
 		});
 	}
 	if (filters["platform_id"] || filters["platforms"]) {
 		chips.push({
 			label: "Platform",
 			icon: "devices",
-			classes: "bg-brand-subtle text-brand"
+			tone: "brand"
 		});
 	}
 	if (filters["genres"]) {
 		chips.push({
 			label: "Genres",
 			icon: "category",
-			classes: NEUTRAL_CHIP
+			tone: "neutral"
 		});
 	}
 	if (filters["started_from"] || filters["started_to"]) {
 		chips.push({
 			label: "Started",
 			icon: "play_arrow",
-			classes: NEUTRAL_CHIP
+			tone: "neutral"
 		});
 	}
 	if (filters["finished_from"] || filters["finished_to"]) {
-		chips.push({ label: "Finished", icon: "flag", classes: NEUTRAL_CHIP });
+		chips.push({ label: "Finished", icon: "flag", tone: "neutral" });
 	}
 	if (filters["min_rating"] || filters["max_rating"]) {
 		chips.push({
 			label: "Rating",
 			icon: "star",
-			classes: "bg-rating/10 text-rating"
+			tone: "rating"
 		});
 	}
 	if (view.sortBy && view.sortBy !== "createdAt") {
@@ -82,7 +89,7 @@ function buildChips(view: SavedFilter): ViewChip[] {
 		chips.push({
 			label: `${SORT_LABELS[view.sortBy] ?? view.sortBy} ${arrow}`,
 			icon: "sort",
-			classes: NEUTRAL_CHIP
+			tone: "neutral"
 		});
 	}
 	return chips;
@@ -90,7 +97,13 @@ function buildChips(view: SavedFilter): ViewChip[] {
 
 @Component({
 	selector: "app-saved-view-card",
-	imports: [RouterLink, UiIconButton],
+	imports: [
+		ActionMenu,
+		BacklogStatusBadge,
+		RouterLink,
+		UiBadge,
+		UiIconButton
+	],
 	templateUrl: "./saved-view-card.html",
 	host: { class: "block h-full" },
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -102,11 +115,11 @@ export class SavedViewCard {
 	readonly shared = output<void>();
 	readonly duplicated = output<void>();
 	readonly edited = output<void>();
-	readonly moreRequested = output<void>();
 
 	protected readonly accent = computed(
 		() => savedFilterColorHex(this.view().color) ?? "var(--color-brand)"
 	);
+	protected readonly menuItems = MENU_ITEMS;
 	protected readonly chips = computed(() => buildChips(this.view()));
 	protected readonly actions = computed(() => {
 		const name = this.view().name;
@@ -125,9 +138,9 @@ export class SavedViewCard {
 		];
 	});
 
-	protected trigger(id: ViewActionId) {
+	protected trigger(id: ViewActionId | string) {
 		if (id === "share") this.shared.emit();
 		else if (id === "duplicate") this.duplicated.emit();
-		else this.edited.emit();
+		else if (id === "edit") this.edited.emit();
 	}
 }

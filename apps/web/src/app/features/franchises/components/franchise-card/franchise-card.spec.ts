@@ -102,6 +102,35 @@ describe("FranchiseCard", () => {
 		expect(toggled).toHaveBeenCalledTimes(1);
 	});
 
+	it("uses the glass button and tints it while tracked", () => {
+		const untracked: HTMLElement = renderCard(residentEvil).nativeElement;
+		const button = untracked.querySelector("button")!;
+		expect(button.getAttribute("data-variant")).toBe("glass");
+		expect(button.hasAttribute("data-active")).toBe(false);
+
+		TestBed.resetTestingModule();
+		const tracked: HTMLElement = renderCard(residentEvil, {
+			tracked: true
+		}).nativeElement;
+		expect(
+			tracked.querySelector("button")!.hasAttribute("data-active")
+		).toBe(true);
+	});
+
+	it("does not emit when a pending button is clicked repeatedly", () => {
+		const fixture = renderCard(residentEvil, { pending: true });
+		const toggled = vi.fn();
+		fixture.componentInstance.trackToggled.subscribe(toggled);
+		const button = (fixture.nativeElement as HTMLElement).querySelector(
+			"button"
+		)!;
+
+		button.click();
+		button.click();
+
+		expect(toggled).not.toHaveBeenCalled();
+	});
+
 	it("falls back to an icon when the saga has no games to preview", () => {
 		const element: HTMLElement = renderCard({
 			...residentEvil,

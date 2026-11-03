@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 
+import { UiFieldOptional } from "../../../shared/ui";
+
 @Component({
 	selector: "app-settings-row",
+	imports: [UiFieldOptional],
 	template: `
 		<div class="flex items-start gap-3 min-w-0 md:w-56 lg:w-64 shrink-0">
 			@if (icon()) {
@@ -15,17 +18,21 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 			}
 			<div class="min-w-0">
 				@if (controlId(); as id) {
-					<label
-						class="block text-sm font-medium text-fg"
-						[for]="id"
-						>{{ label() }}</label
-					>
+					<label class="block text-sm font-medium text-fg" [for]="id"
+						>{{ label() }}
+						@if (optional()) {
+							<ui-field-optional />
+						}
+					</label>
 				} @else {
 					<span
 						class="block text-sm font-medium text-fg"
 						[id]="labelId()"
-						>{{ label() }}</span
-					>
+						>{{ label() }}
+						@if (optional()) {
+							<ui-field-optional />
+						}
+					</span>
 				}
 				@if (hint()) {
 					<p class="m-0 mt-1 text-xs text-fg-muted leading-relaxed">
@@ -46,6 +53,7 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 export class SettingsRow {
 	readonly label = input.required<string>();
 	readonly hint = input<string | null>(null);
+	readonly optional = input(false);
 	readonly controlId = input<string | null>(null);
 	readonly labelId = input<string | null>(null);
 	readonly icon = input<string | null>(null);

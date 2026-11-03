@@ -95,7 +95,23 @@
 			{{ p.isFollowing ? 'Following' : p.hasPendingRequest ? 'Requested' :
 			'Request to follow' }}
 		</button>
-		} }
+		} } @if (canManagePremium()) {
+		<button
+			uiButton
+			variant="secondary"
+			type="button"
+			class="mt-3"
+			title="Admin: manage premium grants"
+			(click)="openPremiumAccess()"
+		>
+			<span
+				aria-hidden="true"
+				class="material-icons text-base text-premium"
+				>workspace_premium</span
+			>
+			Premium access
+		</button>
+		}
 	</div>
 </section>
 } @else if (profile(); as p) {
@@ -106,7 +122,9 @@
 	[isLoggedIn]="isLoggedIn()"
 	[togglingFollow]="togglingFollow()"
 	(followToggled)="onFollowButtonClick()"
+	[canManagePremium]="canManagePremium()"
 	(shared)="shareProfile()"
+	(premiumAccessRequested)="openPremiumAccess()"
 />
 
 <app-profile-stats
@@ -326,6 +344,8 @@
 @if (showUnfollowConfirm()) {
 <ui-dialog
 	size="sm"
+	icon="person_remove"
+	tone="danger"
 	[heading]="'Unfollow @' + (profile()?.user?.username || username()) + '?'"
 	[dismissible]="!togglingFollow()"
 	(closed)="showUnfollowConfirm.set(false)"
@@ -353,4 +373,6 @@
 		</button>
 	</ng-container>
 </ui-dialog>
+} @if (showPremiumAccess() && profile(); as p) {
+<app-admin-premium-access [user]="p.user" (closed)="closePremiumAccess()" />
 }

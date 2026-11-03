@@ -595,6 +595,26 @@ describe("GamesBrowse", () => {
 			).not.toBeInTheDocument();
 		});
 
+		it("keeps the panel closed after a double click and names the active filters", async () => {
+			await renderBrowse();
+			const toggle = screen.getByRole("button", { name: "Filters" });
+			expect(toggle).not.toHaveAttribute("aria-haspopup");
+
+			await userEvent.dblClick(toggle);
+
+			expect(toggle).toHaveAttribute("aria-expanded", "false");
+			expect(
+				screen.queryByRole("region", { name: "Filters" })
+			).not.toBeInTheDocument();
+
+			await userEvent.click(toggle);
+			await userEvent.click(chip("RPG"));
+
+			expect(
+				await screen.findByRole("button", { name: "Filters, 1 active" })
+			).toHaveAttribute("aria-expanded", "true");
+		});
+
 		it("switches to the filtered view and queries with the selected genre", async () => {
 			await renderBrowse();
 			await openFilters();
@@ -734,7 +754,9 @@ describe("GamesBrowse", () => {
 
 			await userEvent.click(chip("RPG"));
 
-			expect(screen.getByRole("status")).toHaveTextContent("Loading...");
+			expect(screen.getByRole("status")).toHaveTextContent(
+				"Loading results"
+			);
 			expect(screen.getByLabelText("Loading games")).toBeInTheDocument();
 			pending.next({
 				data: { games: [game("f1")], total: 1, limit: 50, offset: 0 }
@@ -775,7 +797,7 @@ describe("GamesBrowse", () => {
 				await screen.findByText("No games match these filters")
 			).toBeInTheDocument();
 			expect(screen.getByRole("status")).not.toHaveTextContent(
-				"Loading..."
+				"Loading results"
 			);
 		});
 

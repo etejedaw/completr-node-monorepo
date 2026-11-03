@@ -3,19 +3,15 @@ import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { injectDialogRef } from "ng-primitives/dialog";
 
 import { type BacklogEntry } from "../../../../core/models";
-import { UiButton, UiDialog } from "../../../../shared/ui";
-import {
-	backlogStatusClass,
-	backlogStatusIcon,
-	backlogStatusLabel
-} from "../../../../shared/utils/backlog-status";
+import { BacklogStatusBadge } from "../../../../shared/components/backlog-status-badge/backlog-status-badge";
+import { UiButton, UiDialog, UiEyebrow } from "../../../../shared/ui";
 import { type GameQueueRunPickerData } from "./game-queue-run-picker.model";
 
 export type GameQueueRunPickerResult = BacklogEntry | "newRun";
 
 @Component({
 	selector: "app-game-queue-run-picker",
-	imports: [DatePipe, UiButton, UiDialog],
+	imports: [DatePipe, UiButton, UiDialog, UiEyebrow, BacklogStatusBadge],
 	templateUrl: "./game-queue-run-picker.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -27,10 +23,6 @@ export class GameQueueRunPicker {
 
 	protected readonly gameTitle = this.dialogRef.data.gameTitle;
 	protected readonly runs = this.dialogRef.data.runs;
-
-	protected readonly statusClass = backlogStatusClass;
-	protected readonly statusIcon = backlogStatusIcon;
-	protected readonly statusLabel = backlogStatusLabel;
 
 	protected choose(run: BacklogEntry) {
 		this.dialogRef.close(run);

@@ -19,8 +19,10 @@ import { LibraryToolbar } from "../../../shared/components/library-toolbar/libra
 import { ListCard } from "../../../shared/components/list-card/list-card";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
+	UiAlert,
 	UiButton,
 	UiEmptyState,
+	UiEyebrow,
 	UiPagination,
 	UiPremiumBadge,
 	UiSearchBar,
@@ -37,6 +39,7 @@ import { ListsService } from "../lists";
 @Component({
 	selector: "app-list-overview",
 	imports: [
+		UiAlert,
 		NgTemplateOutlet,
 		GiftOfferCard,
 		LibraryHero,
@@ -44,6 +47,7 @@ import { ListsService } from "../lists";
 		ListCard,
 		UiButton,
 		UiEmptyState,
+		UiEyebrow,
 		UiPagination,
 		UiSearchBar,
 		UiSkeleton,

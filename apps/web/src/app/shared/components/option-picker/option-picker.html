@@ -9,25 +9,36 @@
 	[attr.aria-label]="label() + ': ' + (current?.label ?? placeholder())"
 	[attr.aria-invalid]="invalid() || null"
 	[attr.aria-describedby]="describedBy()"
+	[attr.id]="triggerId()"
 	class="aria-invalid:!border-danger"
 	[class]="
-		variant() === 'field'
+		variant() === 'input'
+			? 'ui-input w-full flex items-center gap-2.5 text-left cursor-pointer data-[open]:border-brand'
+			: variant() === 'field'
 			? 'w-full h-12 min-h-[44px] px-3.5 flex items-center gap-2.5 rounded-card border border-line bg-surface/70 backdrop-blur text-left cursor-pointer transition hover:border-line-hover active:bg-surface-hover'
 			: (size() === 'md' ? 'h-10 ' : 'h-9 ') + 'max-sm:min-h-[44px] tap:min-h-[44px] px-3 inline-flex items-center gap-1.5 rounded-card border bg-transparent text-sm font-medium whitespace-nowrap cursor-pointer transition hover:border-brand hover:text-brand ' +
 				(value() ? 'border-brand text-brand' : 'border-line text-fg-secondary')
 	"
 	(click)="openSheet()"
 >
+	@if (variant() !== "input" || current?.icon) {
 	<span
 		aria-hidden="true"
 		class="material-icons shrink-0"
-		[class.text-lg]="variant() === 'field'"
+		[class.text-lg]="variant() !== 'compact'"
 		[class.text-base]="variant() === 'compact'"
-		[class]="current?.iconClass ?? (variant() === 'field' ? 'text-fg-secondary' : '')"
+		[class]="current?.iconClass ?? (variant() !== 'compact' ? 'text-fg-secondary' : '')"
 		[style.color]="current?.iconColor ?? null"
 		>{{ current?.icon ?? placeholderIcon() }}</span
 	>
-	@if (variant() === "field") {
+	} @if (variant() === "input") {
+	<span
+		class="flex-1 min-w-0 truncate"
+		[class.text-fg]="current"
+		[class.text-fg-muted]="!current"
+		>{{ current?.label ?? placeholder() }}</span
+	>
+	} @else if (variant() === "field") {
 	<span class="flex-1 min-w-0 flex flex-col gap-0.5 leading-none">
 		<span
 			class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"

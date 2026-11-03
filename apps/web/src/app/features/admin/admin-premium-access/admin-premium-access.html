@@ -1,20 +1,13 @@
 <ui-dialog
 	eyebrow="Users · Premium"
+	icon="workspace_premium"
+	tone="premium"
 	heading="Premium access"
 	size="lg"
 	[subheading]="user().username + ' · Grants do not change the account role.'"
 	[dismissible]="!busy()"
 	(closed)="closed.emit()"
 >
-	<span
-		dialogLead
-		class="flex size-11 items-center justify-center rounded-full bg-premium/10 text-premium"
-	>
-		<span aria-hidden="true" class="material-icons text-2xl"
-			>workspace_premium</span
-		>
-	</span>
-
 	@if (isLoading()) {
 	<div
 		class="flex flex-col gap-4"
@@ -36,12 +29,7 @@
 	} @else { @if (mutationError()) {
 	<ui-alert class="mb-4">{{ mutationError() }}</ui-alert>
 	} @if (successMessage()) {
-	<p
-		role="status"
-		class="m-0 mb-4 rounded-card border border-success/30 bg-success/10 px-3 py-2 text-sm text-success"
-	>
-		{{ successMessage() }}
-	</p>
+	<ui-alert tone="success" class="mb-4">{{ successMessage() }}</ui-alert>
 	}
 
 	<section
@@ -66,85 +54,93 @@
 			(submit)="createFull($event)"
 			novalidate
 		>
-			<div uiFormField class="min-w-0 flex-1">
-				<label uiLabel uiFieldLabel for="full-premium-expiration"
+			<div class="min-w-0 flex-1">
+				<label uiFieldLabel for="full-premium-expiration"
 					>Expires at</label
 				>
-				<input
-					id="full-premium-expiration"
-					uiInput
-					type="datetime-local"
-					[min]="minimumExpiration"
+				<ui-date-picker
+					mode="datetime"
+					triggerId="full-premium-expiration"
+					label="Expires at"
+					[minDate]="minimumExpiration"
+					[describedBy]="fullForm.expiresAt().touched() && fullForm.expiresAt().invalid() ? 'full-premium-expiration-error' : null"
 					[formField]="fullForm.expiresAt"
 				/>
 				@if (fullForm.expiresAt().touched() &&
 				fullForm.expiresAt().invalid()) {
-				<p class="m-0 mt-1 text-xs text-danger">
-					{{ fullForm.expiresAt().errors()[0]?.message }}
-				</p>
+				<ui-field-error id="full-premium-expiration-error"
+					>{{ fullForm.expiresAt().errors()[0]?.message
+					}}</ui-field-error
+				>
 				}
 			</div>
 			<button
 				uiButton
 				variant="primary"
 				type="submit"
+				class="min-h-11"
 				[disabled]="!!busy()"
 			>
 				{{ busy() === "create" ? "Granting..." : "Grant full premium" }}
 			</button>
 		</form>
 		<div class="mt-4 flex flex-col gap-3">
-			@for (grant of fullGrants(); track grant.id) {
+			@for (grant of fullGrants(); track grant.id) { @let active =
+			isActive(grant);
 			<article class="rounded-card border border-line bg-surface p-3">
 				<div
 					class="mb-3 flex flex-wrap items-center justify-between gap-2"
 				>
 					<strong class="text-sm text-fg">Full premium</strong>
-					<span
-						class="rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold"
-						[class.bg-success/10]="isActive(grant)"
-						[class.text-success]="isActive(grant)"
-						[class.bg-fg-muted/10]="!isActive(grant)"
-						[class.text-fg-muted]="!isActive(grant)"
-						>{{ isActive(grant) ? "Active" : "Expired" }}</span
-					>
+					@if (active) {
+					<ui-badge tone="success">Active</ui-badge>
+					} @else {
+					<ui-badge>Expired</ui-badge>
+					}
 				</div>
-				<p class="m-0 mb-3 text-xs text-fg-secondary">
-					Current expiration: {{ grant.expiresAt | date: "medium" }}
+				<p class="m-0 text-xs text-fg-secondary" [class.mb-3]="active">
+					{{ active ? "Current expiration:" : "Expired on" }} {{
+					grant.expiresAt | date: "medium" }}
 				</p>
+				@if (active) {
 				<div class="flex flex-col gap-2 sm:flex-row sm:items-end">
-					<div uiFormField class="min-w-0 flex-1">
-						<label
-							uiLabel
-							uiFieldLabel
-							[for]="'expiration-' + grant.id"
+					<div class="min-w-0 flex-1">
+						<label uiFieldLabel [for]="'expiration-' + grant.id"
 							>New expiration</label
 						>
-						<input
-							uiInput
-							type="datetime-local"
-							[id]="'expiration-' + grant.id"
-							[min]="minimumExpiration"
-							[value]="toLocalInput(grant.expiresAt)"
+						<ui-date-picker
 							#expiration
+							mode="datetime"
+							label="New expiration"
+							[triggerId]="'expiration-' + grant.id"
+							[minDate]="minimumExpiration"
+							[value]="toLocalInput(grant.expiresAt)"
+							[invalid]="extendError()?.grantId === grant.id"
+							[describedBy]="extendError()?.grantId === grant.id ? 'expiration-error-' + grant.id : null"
 						/>
+						@if (extendError(); as failed) { @if (failed.grantId ===
+						grant.id) {
+						<ui-field-error [id]="'expiration-error-' + grant.id"
+							>{{ failed.message }}</ui-field-error
+						>
+						} }
 					</div>
 					<div class="flex gap-2">
 						<button
 							uiButton
-							size="sm"
 							variant="secondary"
 							type="button"
+							class="min-h-11"
 							[disabled]="!!busy()"
-							(click)="extend(grant, expiration.value)"
+							(click)="extend(grant, expiration.value())"
 						>
 							Save date
 						</button>
 						<button
 							uiButton
-							size="sm"
 							variant="danger"
 							type="button"
+							class="min-h-11"
 							[disabled]="!!busy()"
 							(click)="requestRevoke(grant)"
 						>
@@ -153,9 +149,15 @@
 						</button>
 					</div>
 				</div>
+				}
 			</article>
 			} @empty {
-			<p class="m-0 text-xs text-fg-muted">No full-premium grants yet.</p>
+			<p class="m-0 flex items-center gap-1.5 text-xs text-fg-muted">
+				<span aria-hidden="true" class="material-icons text-sm"
+					>info</span
+				>
+				No full-premium grants yet.
+			</p>
 			}
 		</div>
 	</section>
@@ -179,33 +181,40 @@
 			novalidate
 		>
 			<div uiFormField>
-				<label uiLabel uiFieldLabel for="premium-feature"
+				<label uiLabel uiFieldLabel for="feature-grant-feature"
 					>Feature</label
 				>
-				<select
-					uiSelect
-					id="premium-feature"
-					[formField]="featureForm.feature"
+				<app-option-picker
+					variant="input"
+					triggerId="feature-grant-feature"
+					label="Feature"
+					heading="Feature"
+					placeholder="Choose a feature"
+					placeholderIcon="workspace_premium"
+					[options]="featureOptions()"
+					[value]="featureForm.feature().value()"
+					[invalid]="featureForm.feature().touched() && featureForm.feature().invalid()"
+					[describedBy]="featureForm.feature().touched() && featureForm.feature().invalid() ? 'feature-grant-feature-error' : null"
+					(valueChange)="setFeature($event)"
+				/>
+				@if (featureForm.feature().touched() &&
+				featureForm.feature().invalid()) {
+				<ui-field-error id="feature-grant-feature-error"
+					>{{ featureForm.feature().errors()[0]?.message
+					}}</ui-field-error
 				>
-					@for (feature of features(); track feature.feature) {
-					<option [value]="feature.feature">
-						{{ featureLabel(feature.feature) }}
-					</option>
-					}
-				</select>
+				}
 			</div>
-			<div uiFormField>
-				<label uiLabel uiFieldLabel for="feature-expiration"
-					>Expires at
-					<span class="font-normal text-fg-muted"
-						>(optional)</span
-					></label
-				>
-				<input
-					id="feature-expiration"
-					uiInput
-					type="datetime-local"
-					[min]="minimumExpiration"
+			<div>
+				<label uiFieldLabel for="feature-expiration"
+					>Expires at <ui-field-optional
+				/></label>
+				<ui-date-picker
+					mode="datetime"
+					triggerId="feature-expiration"
+					label="Expires at"
+					clearable
+					[minDate]="minimumExpiration"
 					[formField]="featureForm.expiresAt"
 				/>
 			</div>
@@ -220,7 +229,8 @@
 			</button>
 		</form>
 		<div class="mt-3 flex flex-col gap-3">
-			@for (grant of individualGrants(); track grant.id) {
+			@for (grant of individualGrants(); track grant.id) { @let active =
+			isActive(grant);
 			<article class="rounded-card border border-line bg-surface p-3">
 				<div
 					class="mb-3 flex flex-wrap items-center justify-between gap-2"
@@ -235,52 +245,58 @@
 							}
 						</p>
 					</div>
-					<span
-						class="rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold"
-						[class.bg-success/10]="isActive(grant)"
-						[class.text-success]="isActive(grant)"
-						[class.bg-fg-muted/10]="!isActive(grant)"
-						[class.text-fg-muted]="!isActive(grant)"
-						>{{ isActive(grant) ? "Active" : "Expired" }}</span
-					>
+					@if (active) {
+					<ui-badge tone="success">Active</ui-badge>
+					} @else {
+					<ui-badge>Expired</ui-badge>
+					}
 				</div>
-				<p class="m-0 mb-3 text-xs text-fg-secondary">
-					{{ grant.expiresAt ? (grant.expiresAt | date: "medium") :
-					"No expiration" }}
+				<p class="m-0 text-xs text-fg-secondary" [class.mb-3]="active">
+					@if (!active) { Expired on {{ grant.expiresAt | date:
+					"medium" }} } @else if (grant.expiresAt) { {{
+					grant.expiresAt | date: "medium" }} } @else { No expiration
+					}
 				</p>
+				@if (active) {
 				<div class="flex flex-col gap-2 sm:flex-row sm:items-end">
-					<div uiFormField class="min-w-0 flex-1">
-						<label
-							uiLabel
-							uiFieldLabel
-							[for]="'expiration-' + grant.id"
+					<div class="min-w-0 flex-1">
+						<label uiFieldLabel [for]="'expiration-' + grant.id"
 							>New expiration</label
 						>
-						<input
-							uiInput
-							type="datetime-local"
-							[id]="'expiration-' + grant.id"
-							[min]="minimumExpiration"
-							[value]="toLocalInput(grant.expiresAt)"
+						<ui-date-picker
 							#expiration
+							mode="datetime"
+							label="New expiration"
+							clearable
+							[triggerId]="'expiration-' + grant.id"
+							[minDate]="minimumExpiration"
+							[value]="toLocalInput(grant.expiresAt)"
+							[invalid]="extendError()?.grantId === grant.id"
+							[describedBy]="extendError()?.grantId === grant.id ? 'expiration-error-' + grant.id : null"
 						/>
+						@if (extendError(); as failed) { @if (failed.grantId ===
+						grant.id) {
+						<ui-field-error [id]="'expiration-error-' + grant.id"
+							>{{ failed.message }}</ui-field-error
+						>
+						} }
 					</div>
 					<div class="flex gap-2">
 						<button
 							uiButton
-							size="sm"
 							variant="secondary"
 							type="button"
+							class="min-h-11"
 							[disabled]="!!busy()"
-							(click)="extend(grant, expiration.value)"
+							(click)="extend(grant, expiration.value())"
 						>
 							Save date
 						</button>
 						<button
 							uiButton
-							size="sm"
 							variant="danger"
 							type="button"
+							class="min-h-11"
 							[disabled]="!!busy()"
 							(click)="requestRevoke(grant)"
 						>
@@ -289,19 +305,18 @@
 						</button>
 					</div>
 				</div>
+				}
 			</article>
 			} @empty {
-			<div
-				class="rounded-card border border-dashed border-line px-4 py-6 text-center"
-			>
-				<p class="m-0 text-sm font-medium text-fg">
-					No individual grants
-				</p>
-				<p class="m-0 mt-1 text-xs text-fg-muted">
-					Choose a feature above to grant access without changing the
-					user's role.
-				</p>
-			</div>
+			<ui-plain-empty-state
+				class="rounded-card border border-dashed border-line"
+				icon="workspace_premium"
+				title="No individual grants"
+				message="Choose a feature above to grant access without changing the user's role."
+				[compact]="true"
+				[inset]="true"
+				[headingLevel]="3"
+			/>
 			}
 		</div>
 	</section>

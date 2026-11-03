@@ -12,7 +12,6 @@ import {
 	type AuthSession,
 	type LoginRequest,
 	type PendingInvitation,
-	type RegisterRequest,
 	type UserResponse
 } from "./auth.model";
 import { StorageService } from "./storage";
@@ -76,10 +75,6 @@ export class AuthService {
 
 	login(credentials: LoginRequest) {
 		return this.postAuth("/auth/login", credentials);
-	}
-
-	register(data: RegisterRequest) {
-		return this.postAuth("/auth/register", data);
 	}
 
 	getInvitation(token: string) {

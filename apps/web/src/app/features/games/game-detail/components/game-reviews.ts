@@ -15,7 +15,12 @@ import { RatingDistribution } from "../../../../shared/components/rating-distrib
 import { ReviewCard } from "../../../../shared/components/review-card/review-card";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { getRatingLabel } from "../../../../shared/constants/rating-labels";
-import { UiButton, UiTextarea } from "../../../../shared/ui";
+import {
+	UiButton,
+	UiEyebrow,
+	UiPlainEmptyState,
+	UiTextarea
+} from "../../../../shared/ui";
 import { BacklogService } from "../../../backlog/backlog";
 import { ReviewsService } from "../../reviews";
 import { type Review } from "../../reviews.model";
@@ -30,6 +35,8 @@ const RATING_BUCKETS = [5, 4, 3, 2, 1];
 		ReviewCard,
 		StarRating,
 		UiButton,
+		UiEyebrow,
+		UiPlainEmptyState,
 		UiTextarea
 	],
 	templateUrl: "./game-reviews.html",

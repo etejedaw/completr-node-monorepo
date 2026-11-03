@@ -384,11 +384,11 @@ describe("BacklogModal characterization", () => {
 			);
 			await openNotes(dialog);
 			await userEvent.type(
-				within(dialog).getByRole("textbox", { name: "Tags" }),
+				within(dialog).getByRole("textbox", { name: "Tags Optional" }),
 				"cozy{Enter}"
 			);
 			await userEvent.type(
-				within(dialog).getByLabelText("Where I am"),
+				within(dialog).getByLabelText("Where I am Optional"),
 				"Chapter 3"
 			);
 			await submit(dialog);
@@ -445,7 +445,7 @@ describe("BacklogModal characterization", () => {
 			);
 			await openNotes(dialog);
 			await userEvent.type(
-				within(dialog).getByLabelText("Review (optional)"),
+				within(dialog).getByLabelText("Review Optional"),
 				"Escaped at last"
 			);
 			await submit(dialog);

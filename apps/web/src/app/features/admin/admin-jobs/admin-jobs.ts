@@ -13,7 +13,14 @@ import { ToastService } from "../../../core/services/toast";
 import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
 import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { UiButton, UiEmptyState, UiSkeleton } from "../../../shared/ui";
+import {
+	UiBadge,
+	UiButton,
+	UiEmptyState,
+	UiEyebrow,
+	UiSkeleton,
+	UiTable
+} from "../../../shared/ui";
 import { type JobEntry } from "../services/jobs.model";
 import { JobsService } from "../services/jobs.service";
 import { type JobAction, type JobStatusStyle } from "./admin-jobs.model";
@@ -34,14 +41,14 @@ const JOB_ACTIONS: JobAction[] = [
 ];
 
 const JOB_STATUS_STYLES: Record<string, JobStatusStyle> = {
-	running: { icon: "autorenew", classes: "bg-warning/10 text-warning" },
-	completed: { icon: "check_circle", classes: "bg-success/10 text-success" },
-	failed: { icon: "error_outline", classes: "bg-danger/10 text-danger" }
+	running: { icon: "autorenew", tone: "warning" },
+	completed: { icon: "check_circle", tone: "success" },
+	failed: { icon: "error_outline", tone: "danger" }
 };
 
 const DEFAULT_JOB_STATUS_STYLE: JobStatusStyle = {
 	icon: "remove_circle_outline",
-	classes: "bg-fg-muted/10 text-fg-muted"
+	tone: "neutral"
 };
 
 @Component({
@@ -50,9 +57,12 @@ const DEFAULT_JOB_STATUS_STYLE: JobStatusStyle = {
 		ActionMenu,
 		DatePipe,
 		LibraryHero,
+		UiBadge,
 		UiButton,
 		UiEmptyState,
-		UiSkeleton
+		UiEyebrow,
+		UiSkeleton,
+		UiTable
 	],
 	templateUrl: "./admin-jobs.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

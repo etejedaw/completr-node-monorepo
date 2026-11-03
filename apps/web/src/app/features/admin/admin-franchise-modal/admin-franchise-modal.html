@@ -1,6 +1,7 @@
 <ui-dialog
 	eyebrow="Franchises"
 	size="md"
+	[icon]="isEdit() ? 'edit_note' : 'library_add'"
 	[heading]="isEdit() ? 'Edit Franchise' : 'New Franchise'"
 	[dismissible]="!isLoading()"
 	(closed)="onClose()"
@@ -11,9 +12,7 @@
 
 	<form id="franchise-form" (submit)="onSubmit($event)">
 		<div uiFormField class="mb-4">
-			<label uiLabel for="name" uiFieldLabel
-				>Name <span class="text-danger font-bold">*</span></label
-			>
+			<label uiLabel for="name" uiFieldLabel>Name</label>
 			<input
 				uiInput
 				id="name"
@@ -23,20 +22,16 @@
 				placeholder="Resident Evil, The Legend of Zelda..."
 			/>
 			@if (form.name().touched() && form.name().invalid()) {
-			<p
-				uiDescription
-				class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger"
+			<ui-field-error uiDescription
+				>{{ form.name().errors()[0]?.message }}</ui-field-error
 			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>error_outline</span
-				>
-				{{ form.name().errors()[0]?.message }}
-			</p>
 			}
 		</div>
 
 		<div uiFormField class="mb-6">
-			<label uiLabel for="description" uiFieldLabel>Description</label>
+			<label uiLabel for="description" uiFieldLabel
+				>Description <ui-field-optional
+			/></label>
 			<textarea
 				uiTextarea
 				id="description"
@@ -46,20 +41,16 @@
 				placeholder="What's this franchise about?"
 			></textarea>
 			@if (form.description().touched() && form.description().invalid()) {
-			<p
-				uiDescription
-				class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger"
+			<ui-field-error uiDescription
+				>{{ form.description().errors()[0]?.message }}</ui-field-error
 			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>error_outline</span
-				>
-				{{ form.description().errors()[0]?.message }}
-			</p>
 			}
 		</div>
 
 		<section aria-labelledby="franchise-games-heading">
-			<h3 id="franchise-games-heading" uiFieldLabel class="m-0">Games</h3>
+			<h3 id="franchise-games-heading" uiEyebrow class="m-0 mb-2">
+				Games
+			</h3>
 
 			<div class="relative">
 				<span
@@ -101,13 +92,18 @@
 					}
 				</ul>
 				} @else if (searchError()) {
-				<p class="m-0 px-3 py-6 text-center text-sm text-danger">
-					Could not search games. Try again.
-				</p>
+				<ui-alert class="m-3"
+					>Could not search games. Try again.</ui-alert
+				>
 				} @else if (results().length === 0) {
-				<p class="m-0 px-3 py-6 text-center text-sm text-fg-muted">
-					No games found.
-				</p>
+				<ui-plain-empty-state
+					[compact]="true"
+					[headingLevel]="3"
+					[inset]="true"
+					icon="search_off"
+					title="No games found"
+					message="Try a different title."
+				/>
 				} @else {
 				<ul class="list-none m-0 p-0 divide-y divide-line">
 					@for (game of results(); track game.id) {
@@ -127,8 +123,8 @@
 									>{{ game.title }}</span
 								>
 								@if (game.franchiseName) {
-								<span class="text-[0.6875rem] text-warning"
-									>in {{ game.franchiseName }}</span
+								<ui-badge class="self-start" tone="warning"
+									>in {{ game.franchiseName }}</ui-badge
 								>
 								} @else if (game.releaseAt) {
 								<span
@@ -189,15 +185,12 @@
 				</ui-alert>
 				} @else {
 				<div class="flex items-center justify-between gap-2 mb-2">
-					<span
-						class="text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-fg-muted tabular-nums"
+					<span uiEyebrow class="tabular-nums"
 						>{{ games().length }} game{{ games().length === 1 ? "" :
 						"s" }} in this franchise</span
 					>
 					@if (hasMoreGames()) {
-					<span class="text-[0.6875rem] text-warning"
-						>showing first 100</span
-					>
+					<ui-badge tone="warning">showing first 100</ui-badge>
 					}
 				</div>
 				@if (hasMoreGames()) {
@@ -206,22 +199,16 @@
 					games can't be changed from this dialog.
 				</p>
 				} @if (games().length === 0) {
-				<div
-					class="flex flex-col items-center gap-1 px-4 py-6 text-center rounded-card border border-dashed border-line"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-2xl text-fg-muted"
-						>sports_esports</span
-					>
-					<p
-						id="franchise-games-required"
-						class="m-0 text-sm text-fg-muted"
-					>
-						A saga needs at least one game. Search above to add
-						some.
-					</p>
-				</div>
+				<ui-plain-empty-state
+					id="franchise-games-required"
+					[compact]="true"
+					[headingLevel]="3"
+					[inset]="true"
+					class="rounded-card border border-dashed border-line"
+					icon="sports_esports"
+					title="A saga needs at least one game"
+					message="Search above to add some."
+				/>
 				} @else {
 				<ul
 					class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line"

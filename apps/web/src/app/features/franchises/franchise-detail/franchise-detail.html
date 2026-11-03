@@ -1,8 +1,6 @@
 @if (isFirstLoad()) {
 <div aria-busy="true" aria-label="Loading saga">
-	<div
-		class="bleed bleed-top h-72 mb-6 border-b border-line bg-surface/40 animate-[skeletonPulse_1.4s_ease-in-out_infinite]"
-	></div>
+	<ui-skeleton class="bleed bleed-top h-72 mb-6 border-b border-line" />
 	<app-cover-grid [loading]="true" loadingLabel="Loading games" />
 </div>
 } @else if (notFound()) {
@@ -41,9 +39,7 @@
 		heroActions
 		uiButton
 		type="button"
-		[variant]="tracked() ? 'secondary' : 'primary'"
-		[class.!bg-surface/70]="tracked()"
-		[class.backdrop-blur]="tracked()"
+		[variant]="tracked() ? 'glass' : 'primary'"
 		class="tap:min-h-[44px]"
 		[attr.aria-pressed]="tracked()"
 		[attr.aria-busy]="toggling()"

@@ -17,12 +17,10 @@
 	</header>
 	}
 
-	<div class="px-5 py-5 md:px-6 border-b border-line">
-		<h4
-			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-		>
-			RAWG Lookup
-		</h4>
+	<app-filter-section
+		class="px-5 py-5 md:px-6 border-b border-line"
+		label="RAWG Lookup"
+	>
 		<div class="flex flex-col gap-2 sm:flex-row">
 			<input
 				uiInput
@@ -31,6 +29,8 @@
 				aria-label="RAWG slug"
 				placeholder="RAWG slug (e.g. resident-evil-4)"
 				[formField]="form.rawgSlug"
+				[attr.aria-invalid]="rawgError() ? true : null"
+				[attr.aria-describedby]="rawgError() ? 'editor-rawg-error' : null"
 				(keydown.enter)="fetchRawg()"
 			/>
 			<button
@@ -48,20 +48,20 @@
 			</button>
 		</div>
 		@if (rawgError()) {
-		<span class="block mt-2 text-xs text-danger">{{ rawgError() }}</span>
+		<ui-field-error id="editor-rawg-error" announce
+			>{{ rawgError() }}</ui-field-error
+		>
 		} @if (rawgId()) {
-		<span class="block mt-2 text-xs text-brand"
-			>RAWG ID: {{ rawgId() }}</span
+		<ui-badge tone="info" icon="cloud_download" class="mt-2"
+			>RAWG ID: {{ rawgId() }}</ui-badge
 		>
 		}
-	</div>
+	</app-filter-section>
 
-	<div class="px-5 py-5 md:px-6 border-b border-line">
-		<h4
-			class="font-display m-0 mb-1 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-		>
-			External IDs
-		</h4>
+	<app-filter-section
+		class="px-5 py-5 md:px-6 border-b border-line"
+		label="External IDs"
+	>
 		<p class="m-0 mb-4 text-xs text-fg-muted text-pretty">
 			Used by Refresh external data. Type the ID or paste the game page
 			URL.
@@ -70,8 +70,8 @@
 		<div class="grid gap-4 md:grid-cols-2">
 			<div class="min-w-0">
 				<label uiFieldLabel for="editor-hltb-id"
-					>HowLongToBeat ID</label
-				>
+					>HowLongToBeat ID <ui-field-optional
+				/></label>
 				<input
 					uiInput
 					id="editor-hltb-id"
@@ -87,12 +87,9 @@
 					(blur)="normalizeHltbIdField()"
 				/>
 				@if (hltbIdError()) {
-				<p
-					class="m-0 mt-1 text-xs text-danger"
-					id="editor-hltb-id-error"
+				<ui-field-error id="editor-hltb-id-error"
+					>{{ hltbIdError() }}</ui-field-error
 				>
-					{{ hltbIdError() }}
-				</p>
 				} @else if (hltbIdCleared()) {
 				<p
 					class="m-0 mt-1 text-xs text-warning text-pretty"
@@ -119,8 +116,8 @@
 
 			<div class="min-w-0">
 				<label uiFieldLabel for="editor-metacritic-slug"
-					>Metacritic slug</label
-				>
+					>Metacritic slug <ui-field-optional
+				/></label>
 				<input
 					uiInput
 					id="editor-metacritic-slug"
@@ -136,12 +133,9 @@
 					(blur)="normalizeMetacriticSlugField()"
 				/>
 				@if (metacriticSlugError()) {
-				<p
-					class="m-0 mt-1 text-xs text-danger"
-					id="editor-metacritic-slug-error"
+				<ui-field-error id="editor-metacritic-slug-error"
+					>{{ metacriticSlugError() }}</ui-field-error
 				>
-					{{ metacriticSlugError() }}
-				</p>
 				} @else if (metacriticSlugCleared()) {
 				<p
 					class="m-0 mt-1 text-xs text-warning text-pretty"
@@ -166,15 +160,12 @@
 				}
 			</div>
 		</div>
-	</div>
+	</app-filter-section>
 
-	<div class="px-5 py-5 md:px-6 border-b border-line">
-		<h4
-			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-		>
-			Game Info
-		</h4>
-
+	<app-filter-section
+		class="px-5 py-5 md:px-6 border-b border-line"
+		label="Game Info"
+	>
 		<div class="grid gap-4 md:grid-cols-2">
 			<div class="md:col-span-2">
 				<label uiFieldLabel for="editor-title">Title</label>
@@ -187,7 +178,9 @@
 			</div>
 
 			<div class="md:col-span-2">
-				<label uiFieldLabel for="editor-description">Description</label>
+				<label uiFieldLabel for="editor-description"
+					>Description <ui-field-optional
+				/></label>
 				<textarea
 					uiTextarea
 					id="editor-description"
@@ -199,20 +192,20 @@
 
 			<div>
 				<label uiFieldLabel for="editor-release-date"
-					>Release date</label
-				>
-				<input
-					uiInput
-					id="editor-release-date"
-					type="date"
+					>Release date <ui-field-optional
+				/></label>
+				<ui-date-picker
+					triggerId="editor-release-date"
+					label="Release date"
+					clearable
 					[formField]="form.releaseAt"
 				/>
 			</div>
 
 			<div>
 				<label uiFieldLabel for="editor-background-url"
-					>Background URL</label
-				>
+					>Background URL <ui-field-optional
+				/></label>
 				<input
 					uiInput
 					id="editor-background-url"
@@ -224,19 +217,30 @@
 
 			@if (backgroundUrl()) {
 			<div
-				class="md:col-span-2 rounded-card overflow-hidden border border-line h-28 md:h-40"
+				class="md:col-span-2 flex items-center gap-4 p-3 rounded-card border border-line bg-surface/60"
+				data-cover-preview
 			>
-				<img
-					class="w-full h-full object-cover block"
+				<app-game-poster
+					framed
+					class="w-16 aspect-[2/3] shrink-0 rounded"
 					[src]="backgroundUrl()"
-					alt="Preview"
-					loading="lazy"
+					[title]="title() || 'Preview'"
+					[width]="200"
 				/>
+				<div class="flex flex-col gap-0.5 min-w-0">
+					<span uiEyebrow>Cover preview</span>
+					<span class="text-xs text-fg-muted text-pretty"
+						>How this image shows up on covers across the
+						catalog.</span
+					>
+				</div>
 			</div>
 			}
 
 			<div class="md:col-span-2">
-				<label uiFieldLabel for="editor-variant">Variant label</label>
+				<label uiFieldLabel for="editor-variant"
+					>Variant label <ui-field-optional
+				/></label>
 				<input
 					uiInput
 					id="editor-variant"
@@ -247,155 +251,99 @@
 			</div>
 
 			<div class="md:col-span-2">
-				<label
-					class="flex items-center gap-3 min-h-11 cursor-pointer text-[0.8125rem] font-medium text-fg"
-				>
-					<input
-						type="checkbox"
-						class="size-5 shrink-0 accent-brand cursor-pointer"
-						[formField]="form.isDlc"
-					/>
-					DLC
-				</label>
+				<label uiFieldLabel for="editor-franchise"
+					>Franchise <ui-field-optional
+				/></label>
+				<app-option-picker
+					variant="input"
+					triggerId="editor-franchise"
+					label="Franchise"
+					heading="Franchise"
+					placeholderIcon="collections_bookmark"
+					[options]="franchiseOptions()"
+					[value]="selectedFranchiseId()"
+					(valueChange)="selectedFranchiseId.set($event)"
+				/>
+			</div>
+
+			<div
+				class="md:col-span-2 flex items-center gap-3 min-h-[52px] py-2"
+			>
+				<span class="flex-1 min-w-0">
+					<span class="block text-sm text-fg">DLC</span>
+					<span class="block text-[0.6875rem] text-fg-muted"
+						>Downloadable content that belongs to a base game</span
+					>
+				</span>
+				<ui-switch
+					ariaLabel="DLC"
+					[checked]="isDlc()"
+					(checkedChange)="setDlc($event)"
+				/>
 			</div>
 
 			@if (isDlc()) {
-			<div class="md:col-span-2">
-				<span uiFieldLabel>Parent Game</span>
-				@if (parentGame()) {
-				<div
-					class="flex items-center gap-3 py-2 pl-3 pr-2 min-h-11 bg-input-bg border border-line rounded-card"
-				>
-					@if (parentGame()!.backgroundUrl) {
-					<img
-						class="size-9 object-cover rounded shrink-0"
-						[src]="parentGame()!.backgroundUrl"
-						[alt]="parentGame()!.title"
-						loading="lazy"
-					/>
-					}
-					<span
-						class="flex-1 min-w-0 truncate text-[0.8125rem] font-medium"
-						>{{ parentGame()!.title }}</span
-					>
-					<button
-						uiIconButton
-						type="button"
-						aria-label="Clear parent game"
-						(click)="clearParentGame()"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
-							>close</span
-						>
-					</button>
-				</div>
+			<div class="md:col-span-2 flex flex-col gap-2">
+				@if (parentGame(); as parent) {
+				<app-selected-game-row
+					label="Parent game"
+					[game]="parent"
+					[meta]="parent.code"
+					[autofocus]="parentFocus() === 'selected'"
+					(changeRequested)="clearParentGame()"
+				/>
 				} @else {
-				<div class="flex flex-col gap-2 sm:flex-row">
-					<input
-						uiInput
-						type="text"
-						class="sm:flex-1"
-						aria-label="Parent game slug"
-						[formField]="form.parentSlug"
-						(keydown.enter)="fetchParentGame()"
-						placeholder="Completr slug (e.g. resident-evil-4)"
-					/>
-					<button
-						uiButton
-						variant="secondary"
-						type="button"
-						class="shrink-0"
-						(click)="fetchParentGame()"
-						[disabled]="fetchingParent() || !parentSlug().trim()"
-					>
-						{{ fetchingParent() ? '...' : 'Search' }}
-					</button>
-				</div>
-				@if (parentError()) {
-				<span class="block mt-2 text-xs text-danger"
-					>{{ parentError() }}</span
-				>
+				<span uiFieldLabel class="!mb-0">Parent game</span>
+				<app-catalog-game-picker
+					label="Search parent game"
+					placeholder="Search the base game by title..."
+					[excludedIds]="parentExcludedIds()"
+					[autofocus]="parentFocus() === 'search'"
+					(picked)="pickParentGame($event)"
+				/>
+				@if (parentRemovalPending()) {
+				<p class="m-0 text-xs text-warning text-pretty">
+					Saving without picking a game removes the current parent.
+				</p>
 				} }
 			</div>
 			}
 		</div>
-	</div>
+	</app-filter-section>
 
-	<div class="px-5 py-5 md:px-6 border-b border-line">
-		<h4
-			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-		>
-			Platforms
-		</h4>
-		<div class="flex flex-wrap gap-2">
-			@for (p of allPlatforms(); track p.id) {
-			<button
-				type="button"
-				class="inline-flex items-center justify-center min-h-8 tap:min-h-11 px-3 rounded-full text-xs font-semibold cursor-pointer transition border focus-visible:outline-2 focus-visible:outline-brand"
-				[class]="selectedPlatforms().has(p.code) ? 'bg-brand-subtle border-brand text-brand' : 'bg-input-bg border-line text-fg-muted hover:border-line-hover hover:text-fg'"
-				[attr.aria-pressed]="selectedPlatforms().has(p.code)"
-				(click)="togglePlatform(p.code)"
-			>
-				{{ p.abbreviation }}
-			</button>
-			}
-		</div>
-	</div>
+	<app-filter-section
+		class="px-5 py-5 md:px-6 border-b border-line"
+		label="Platforms"
+	>
+		<app-chip-group
+			mode="multiple"
+			[options]="platformOptions()"
+			[value]="platformValues()"
+			(valueChange)="setPlatforms($event)"
+		/>
+	</app-filter-section>
 
-	<div class="px-5 py-5 md:px-6 border-b border-line">
-		<h4
-			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-		>
-			Genres
-		</h4>
-		<div class="flex flex-wrap gap-2">
-			@for (g of allGenres(); track g.id) {
-			<button
-				type="button"
-				class="inline-flex items-center justify-center min-h-8 tap:min-h-11 px-3 rounded-full text-xs font-semibold cursor-pointer transition border focus-visible:outline-2 focus-visible:outline-brand"
-				[class]="selectedGenres().has(g.code) ? 'bg-brand-subtle border-brand text-brand' : 'bg-input-bg border-line text-fg-muted hover:border-line-hover hover:text-fg'"
-				[attr.aria-pressed]="selectedGenres().has(g.code)"
-				(click)="toggleGenre(g.code)"
-			>
-				{{ g.name }}
-			</button>
-			}
-		</div>
-	</div>
-
-	<div class="px-5 py-5 md:px-6 border-b border-line">
-		<h4
-			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-		>
-			Franchise
-		</h4>
-		<select
-			uiSelect
-			aria-label="Franchise"
-			[value]="selectedFranchiseId()"
-			(change)="selectedFranchiseId.set($any($event.target).value)"
-		>
-			<option value="">— None —</option>
-			@for (f of allFranchises(); track f.id) {
-			<option [value]="f.id">{{ f.name }}</option>
-			}
-		</select>
-	</div>
+	<app-filter-section
+		class="px-5 py-5 md:px-6 border-b border-line"
+		label="Genres"
+	>
+		<app-chip-group
+			mode="multiple"
+			[options]="genreOptions()"
+			[value]="genreValues()"
+			(valueChange)="setGenres($event)"
+		/>
+	</app-filter-section>
 
 	<div class="grid lg:grid-cols-2 lg:divide-x lg:divide-line">
-		<div class="px-5 py-5 md:px-6 border-b border-line">
-			<h4
-				class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-			>
-				Scores
-			</h4>
+		<app-filter-section
+			class="px-5 py-5 md:px-6 border-b border-line"
+			label="Scores"
+		>
 			@for (s of scores(); track s.source; let i = $index) {
 			<div class="mb-2">
 				<div class="flex items-center gap-2">
-					<span
-						class="w-24 shrink-0 truncate text-xs font-semibold text-fg-secondary uppercase tracking-wider"
+					<span uiEyebrow class="w-24 shrink-0 truncate"
 						>{{ s.source }}</span
 					>
 					<div class="flex-1 min-w-0 max-w-40">
@@ -429,29 +377,25 @@
 					</button>
 				</div>
 				@if (scoreErrors()[i]) {
-				<p
-					class="m-0 mt-1 text-xs text-danger"
-					[id]="'score-error-' + s.source"
+				<ui-field-error [id]="'score-error-' + s.source"
+					>{{ scoreErrors()[i] }}</ui-field-error
 				>
-					{{ scoreErrors()[i] }}
-				</p>
 				}
 			</div>
-			} @if (availableScoreSources.length > 0) {
-			<div class="flex flex-wrap items-center gap-2 mt-3">
-				<div class="flex-1 min-w-28">
-					<select
-						uiSelect
-						aria-label="New score source"
-						[value]="newScoreSource()"
-						(change)="newScoreSource.set($any($event.target).value)"
-					>
-						<option value="">Source...</option>
-						@for (src of availableScoreSources; track src) {
-						<option [value]="src">{{ src }}</option>
-						}
-					</select>
-				</div>
+			} @if (availableScoreSources().length > 0) {
+			<span uiEyebrow class="mt-4 mb-2">Add a score</span>
+			<div class="flex flex-wrap items-center gap-2">
+				<app-option-picker
+					class="flex-1 min-w-36"
+					variant="input"
+					label="Source"
+					heading="New score source"
+					placeholder="Pick one"
+					placeholderIcon="star_outline"
+					[options]="availableScoreSources()"
+					[value]="newScoreSource()"
+					(valueChange)="newScoreSource.set($event)"
+				/>
 				<div class="w-28">
 					<input
 						uiInput
@@ -472,7 +416,7 @@
 					uiIconButton
 					tone="accent"
 					type="button"
-					class="shrink-0 border border-line"
+					class="shrink-0 size-11 border border-line"
 					aria-label="Add score"
 					(click)="addScore()"
 					[disabled]="!newScoreSource() || newScoreValue() === null || !!newScoreError()"
@@ -483,23 +427,20 @@
 				</button>
 			</div>
 			@if (newScoreError()) {
-			<p class="m-0 mt-1 text-xs text-danger" id="new-score-error">
-				{{ newScoreError() }}
-			</p>
-			} }
-		</div>
-
-		<div class="px-5 py-5 md:px-6 border-b border-line">
-			<h4
-				class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
+			<ui-field-error id="new-score-error"
+				>{{ newScoreError() }}</ui-field-error
 			>
-				Durations
-			</h4>
+			} }
+		</app-filter-section>
+
+		<app-filter-section
+			class="px-5 py-5 md:px-6 border-b border-line"
+			label="Durations"
+		>
 			@for (t of times(); track t.source; let i = $index) {
 			<div class="mb-2">
 				<div class="flex items-center gap-2">
-					<span
-						class="w-24 shrink-0 truncate text-xs font-semibold text-fg-secondary uppercase tracking-wider"
+					<span uiEyebrow class="w-24 shrink-0 truncate"
 						>{{ t.source }}</span
 					>
 					<div class="flex-1 min-w-0 max-w-40">
@@ -532,29 +473,25 @@
 					</button>
 				</div>
 				@if (timeErrors()[i]) {
-				<p
-					class="m-0 mt-1 text-xs text-danger"
-					[id]="'time-error-' + t.source"
+				<ui-field-error [id]="'time-error-' + t.source"
+					>{{ timeErrors()[i] }}</ui-field-error
 				>
-					{{ timeErrors()[i] }}
-				</p>
 				}
 			</div>
-			} @if (availableTimeSources.length > 0) {
-			<div class="flex flex-wrap items-center gap-2 mt-3">
-				<div class="flex-1 min-w-28">
-					<select
-						uiSelect
-						aria-label="New duration source"
-						[value]="newTimeSource()"
-						(change)="newTimeSource.set($any($event.target).value)"
-					>
-						<option value="">Source...</option>
-						@for (src of availableTimeSources; track src) {
-						<option [value]="src">{{ src }}</option>
-						}
-					</select>
-				</div>
+			} @if (availableTimeSources().length > 0) {
+			<span uiEyebrow class="mt-4 mb-2">Add a duration</span>
+			<div class="flex flex-wrap items-center gap-2">
+				<app-option-picker
+					class="flex-1 min-w-36"
+					variant="input"
+					label="Source"
+					heading="New duration source"
+					placeholder="Pick one"
+					placeholderIcon="schedule"
+					[options]="availableTimeSources()"
+					[value]="newTimeSource()"
+					(valueChange)="newTimeSource.set($event)"
+				/>
 				<div class="w-28">
 					<input
 						uiInput
@@ -574,7 +511,7 @@
 					uiIconButton
 					tone="accent"
 					type="button"
-					class="shrink-0 border border-line"
+					class="shrink-0 size-11 border border-line"
 					aria-label="Add duration"
 					(click)="addTime()"
 					[disabled]="!newTimeSource() || newTimeValue() === null || !!newTimeError()"
@@ -585,20 +522,18 @@
 				</button>
 			</div>
 			@if (newTimeError()) {
-			<p class="m-0 mt-1 text-xs text-danger" id="new-time-error">
-				{{ newTimeError() }}
-			</p>
+			<ui-field-error id="new-time-error"
+				>{{ newTimeError() }}</ui-field-error
+			>
 			} }
-		</div>
+		</app-filter-section>
 	</div>
 
 	@if (isEditMode()) {
-	<div class="px-5 py-5 md:px-6 border-b border-line">
-		<h4
-			class="font-display m-0 mb-3 text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.2em]"
-		>
-			Structure
-		</h4>
+	<app-filter-section
+		class="px-5 py-5 md:px-6 border-b border-line"
+		label="Structure"
+	>
 		<div class="grid gap-3 md:grid-cols-2">
 			<div
 				class="flex flex-col items-start gap-3 rounded-card border border-line bg-surface p-4"
@@ -644,7 +579,7 @@
 				</button>
 			</div>
 		</div>
-	</div>
+	</app-filter-section>
 	}
 
 	<div
@@ -677,6 +612,7 @@
 <ui-dialog
 	heading="Split game into variants"
 	eyebrow="Admin"
+	icon="call_split"
 	subheading="Use this when an external source (e.g. RAWG) bundles distinct titles in one record. This game is not kept as a bundle: it is renamed to the first variant, and the rest are created as new games sharing platforms, genres, scores, times and external ids. To keep the bundle as a compilation, create it again afterwards with its own variant label."
 	size="lg"
 	[dismissible]="!splitting()"
@@ -690,10 +626,7 @@
 		@for (v of splitVariants(); track $index; let i = $index) {
 		<div class="rounded-card border border-line bg-surface p-3">
 			<div class="flex items-center justify-between gap-2 mb-2">
-				<span
-					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.16em]"
-					>Variant {{ i + 1 }}</span
-				>
+				<span uiEyebrow>Variant {{ i + 1 }}</span>
 				<button
 					uiIconButton
 					tone="danger"
@@ -764,7 +697,7 @@
 	<button
 		uiButton
 		dialogFooter
-		variant="secondary"
+		variant="ghost"
 		type="button"
 		(click)="closeSplitModal()"
 		[disabled]="splitting()"
@@ -784,6 +717,7 @@
 } @if (compilationOpen()) {
 <ui-dialog
 	eyebrow="Admin"
+	icon="library_books"
 	size="lg"
 	[heading]="game()?.isCompilation ? 'Edit compilation' : 'Mark as compilation'"
 	subheading="Define the games that this compilation contains. Link existing when the title is already in the catalog (e.g. classic Mass Effect 1 inside Mass Effect Trilogy). Create new when the bundled title doesn't exist standalone (e.g. Mass Effect 1 Legendary Edition inside MEL): a new game page will be created, inheriting cover and description from this compilation, editable later."
@@ -798,30 +732,14 @@
 		@for (row of compilationRows(); track row.id; let i = $index) {
 		<div class="rounded-card border border-line bg-surface p-3">
 			<div class="flex items-center gap-2 mb-3">
-				<span
-					class="text-[0.6875rem] font-semibold text-fg-muted uppercase tracking-[0.16em]"
-					>#{{ i + 1 }}</span
-				>
-				<div class="flex flex-wrap gap-1.5 ml-1">
-					<button
-						type="button"
-						class="inline-flex items-center justify-center min-h-8 tap:min-h-11 px-3 rounded-full text-xs font-semibold cursor-pointer transition border focus-visible:outline-2 focus-visible:outline-brand"
-						[class]="row.mode === 'link' ? 'bg-brand-subtle border-brand text-brand' : 'bg-transparent border-line text-fg-muted hover:border-line-hover hover:text-fg'"
-						[attr.aria-pressed]="row.mode === 'link'"
-						(click)="setCompilationRowMode(i, 'link')"
-					>
-						Link existing
-					</button>
-					<button
-						type="button"
-						class="inline-flex items-center justify-center min-h-8 tap:min-h-11 px-3 rounded-full text-xs font-semibold cursor-pointer transition border focus-visible:outline-2 focus-visible:outline-brand"
-						[class]="row.mode === 'create' ? 'bg-brand-subtle border-brand text-brand' : 'bg-transparent border-line text-fg-muted hover:border-line-hover hover:text-fg'"
-						[attr.aria-pressed]="row.mode === 'create'"
-						(click)="setCompilationRowMode(i, 'create')"
-					>
-						Create new
-					</button>
-				</div>
+				<span uiEyebrow>#{{ i + 1 }}</span>
+				<app-segmented-control
+					class="ml-1"
+					[label]="'Item ' + (i + 1) + ' source'"
+					[options]="compilationRowModes"
+					[value]="row.mode"
+					(valueChange)="setCompilationRowMode(i, $event)"
+				/>
 				<button
 					uiIconButton
 					tone="danger"
@@ -837,77 +755,23 @@
 				</button>
 			</div>
 
-			@if (row.mode === 'link') { @if (row.linkedGame) {
-			<div
-				class="flex items-center gap-3 py-2 pl-3 pr-2 min-h-11 bg-input-bg border border-line rounded-card"
-			>
-				@if (row.linkedGame.backgroundUrl) {
-				<img
-					class="size-9 object-cover rounded shrink-0"
-					[src]="row.linkedGame.backgroundUrl"
-					[alt]="row.linkedGame.title"
-					loading="lazy"
-				/>
-				}
-				<span
-					class="flex-1 min-w-0 truncate text-[0.8125rem] font-medium"
-					>{{ row.linkedGame.title }}</span
-				>
-				<span class="hidden sm:inline text-xs text-fg-muted"
-					>{{ row.linkedGame.code }}</span
-				>
-				<button
-					uiIconButton
-					type="button"
-					class="shrink-0"
-					aria-label="Clear linked game"
-					(click)="clearCompilationRowGame(i)"
-				>
-					<span aria-hidden="true" class="material-icons text-base"
-						>close</span
-					>
-				</button>
-			</div>
-			} @else {
-			<input
-				uiInput
-				type="text"
-				aria-label="Search existing game"
-				placeholder="Search existing game..."
-				[value]="row.searchQuery"
-				(input)="updateCompilationRowQuery(i, $any($event.target).value)"
+			@if (row.mode === 'link') { @if (row.linkedGame; as linked) {
+			<app-selected-game-row
+				label="Linked game"
+				[game]="linked"
+				[meta]="linked.code"
+				[autofocus]="row.focus === 'selected'"
+				(changeRequested)="clearCompilationRowGame(i)"
 			/>
-			@if (row.searching) {
-			<div class="text-xs text-fg-muted mt-2">Searching...</div>
-			} @if (row.searchResults.length > 0) {
-			<div
-				class="border border-line rounded-card mt-2 max-h-56 overflow-y-auto bg-input-bg divide-y divide-line"
-			>
-				@for (g of row.searchResults; track g.id) {
-				<button
-					type="button"
-					class="w-full min-h-11 flex items-center gap-3 px-3 py-2 text-left hover:bg-brand-subtle transition border-0 cursor-pointer bg-transparent text-fg focus-visible:outline-2 focus-visible:outline-brand"
-					(click)="pickCompilationRowGame(i, g)"
-				>
-					@if (g.backgroundUrl) {
-					<img
-						class="size-8 object-cover rounded shrink-0"
-						[src]="g.backgroundUrl"
-						[alt]="g.title"
-						loading="lazy"
-					/>
-					}
-					<span class="flex-1 min-w-0 truncate text-[0.8125rem]"
-						>{{ g.title }}</span
-					>
-					<span
-						class="hidden sm:inline text-[0.6875rem] text-fg-muted"
-						>{{ g.code }}</span
-					>
-				</button>
-				}
-			</div>
-			} } } @else {
+			} @else {
+			<app-catalog-game-picker
+				label="Search existing game"
+				placeholder="Search existing game..."
+				[excludedIds]="compilationExcludedIds().get(row.id) ?? []"
+				[autofocus]="row.focus === 'search'"
+				(picked)="pickCompilationRowGame(i, $event)"
+			/>
+			} } @else {
 			<div>
 				<input
 					uiInput
@@ -960,7 +824,7 @@
 	<button
 		uiButton
 		dialogFooter
-		variant="secondary"
+		variant="ghost"
 		type="button"
 		(click)="closeCompilationModal()"
 		[disabled]="compilationSaving() || compilationClearing()"

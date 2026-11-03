@@ -19,6 +19,7 @@ import { ExportActions } from "../../../shared/components/export-actions/export-
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import {
+	UiAlert,
 	UiButton,
 	UiPagination,
 	UiPlainEmptyState,
@@ -50,6 +51,7 @@ import { type QueueEntryMove } from "./queue-browser.model";
 		QueueSkeleton,
 		QueueSortControl,
 		SwipeActions,
+		UiAlert,
 		UiButton,
 		UiPagination,
 		UiPlainEmptyState,

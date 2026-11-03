@@ -11,7 +11,7 @@ import { catchError, forkJoin, of } from "rxjs";
 
 import { ViewportService } from "../../../core/services/viewport";
 import { ListCard } from "../../../shared/components/list-card/list-card";
-import { UiSkeleton } from "../../../shared/ui";
+import { UiEyebrow, UiSkeleton } from "../../../shared/ui";
 import {
 	type PublicList,
 	type PublicListsPage
@@ -26,7 +26,7 @@ const EMPTY_PAGE: PublicListsPage = { items: [], total: 0 };
 
 @Component({
 	selector: "app-profile-lists",
-	imports: [ListCard, ProfileSectionHeader, UiSkeleton],
+	imports: [ListCard, ProfileSectionHeader, UiEyebrow, UiSkeleton],
 	templateUrl: "./profile-lists.html",
 	host: { class: "block empty:hidden" },
 	changeDetection: ChangeDetectionStrategy.OnPush

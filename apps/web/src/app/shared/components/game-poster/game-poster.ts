@@ -1,4 +1,5 @@
 import {
+	booleanAttribute,
 	ChangeDetectionStrategy,
 	Component,
 	computed,
@@ -61,7 +62,11 @@ function hueFromText(text: string): number {
 			</div>
 		}
 	`,
-	host: { class: "block overflow-hidden bg-input-bg" },
+	host: {
+		class: "block overflow-hidden bg-input-bg",
+		"[class.ring-1]": "framed()",
+		"[class.ring-line-hover]": "framed()"
+	},
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GamePoster {
@@ -70,6 +75,7 @@ export class GamePoster {
 	readonly width = input<200 | 420 | 640>(420);
 	readonly compact = input(false);
 	readonly titleSize = input("0.8125rem");
+	readonly framed = input(false, { transform: booleanAttribute });
 
 	protected readonly fallbackBackground = computed(() => {
 		const hue = hueFromText(this.title());

@@ -20,14 +20,19 @@ import { type Game } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import {
 	UiAlert,
+	UiBadge,
 	UiButton,
 	UiDescription,
 	UiDialog,
+	UiEyebrow,
+	UiFieldError,
 	UiFieldLabel,
+	UiFieldOptional,
 	UiFormField,
 	UiIconButton,
 	UiInput,
 	UiLabel,
+	UiPlainEmptyState,
 	UiSkeleton,
 	UiTextarea
 } from "../../../shared/ui";
@@ -47,16 +52,21 @@ export type AdminFranchiseModalResult = "saved";
 		FormField,
 		GamePoster,
 		UiAlert,
+		UiBadge,
 		UiButton,
 		UiDescription,
 		UiDialog,
+		UiEyebrow,
 		UiFieldLabel,
+		UiFieldOptional,
 		UiIconButton,
 		UiInput,
 		UiTextarea,
 		UiFormField,
 		UiLabel,
-		UiSkeleton
+		UiPlainEmptyState,
+		UiSkeleton,
+		UiFieldError
 	],
 	templateUrl: "./admin-franchise-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

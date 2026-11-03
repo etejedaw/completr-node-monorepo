@@ -62,6 +62,15 @@ export function premiumGrantInvalidExpiration(
 	);
 }
 
+export function premiumGrantNotActive(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"PREMIUM_GRANT_NOT_ACTIVE",
+		"An expired or revoked premium grant cannot be changed",
+		context
+	);
+}
+
 export function giftOfferNotFound(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

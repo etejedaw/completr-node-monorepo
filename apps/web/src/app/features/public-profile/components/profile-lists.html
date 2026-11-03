@@ -20,11 +20,9 @@
 	<div class="flex flex-col gap-8">
 		@for (group of groups(); track group.tab) {
 		<div>
-			<h3
-				class="m-0 mb-3 flex items-baseline gap-2 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-			>
+			<h3 uiEyebrow class="m-0 mb-3">
 				{{ group.title }}
-				<span class="tabular-nums">{{ group.total }}</span>
+				<span class="ml-2 tabular-nums">{{ group.total }}</span>
 			</h3>
 			<ul
 				class="list-none m-0 p-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3"

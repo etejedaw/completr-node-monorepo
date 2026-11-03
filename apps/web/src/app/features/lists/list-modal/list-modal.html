@@ -1,5 +1,6 @@
 <ui-dialog
 	eyebrow="Lists"
+	[icon]="isEdit() ? 'edit_note' : 'playlist_add'"
 	size="md"
 	[heading]="isEdit() ? 'Edit list' : 'Create list'"
 	subheading="Its games are ranked by ratio, using the score and duration sources you pick."
@@ -12,9 +13,7 @@
 
 	<form id="list-form" (submit)="onSubmit($event)">
 		<div uiFormField class="mb-4">
-			<label uiLabel for="list-name" uiFieldLabel
-				>Name <span class="text-danger font-bold">*</span></label
-			>
+			<label uiLabel for="list-name" uiFieldLabel>Name</label>
 			<input
 				uiInput
 				id="list-name"
@@ -24,22 +23,16 @@
 				placeholder="Saga Resident Evil, Top 10 RPGs..."
 			/>
 			@if (form.name().touched() && form.name().invalid()) {
-			<p
-				uiDescription
-				class="m-0 mt-1.5 flex items-center gap-1 text-xs text-danger"
+			<ui-field-error uiDescription
+				>{{ form.name().errors()[0]?.message }}</ui-field-error
 			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>error_outline</span
-				>
-				{{ form.name().errors()[0]?.message }}
-			</p>
 			}
 		</div>
 
 		<div uiFormField class="mb-4">
 			<label uiLabel for="list-description" uiFieldLabel
-				>Description</label
-			>
+				>Description <ui-field-optional
+			/></label>
 			<textarea
 				uiTextarea
 				id="list-description"
@@ -52,10 +45,7 @@
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-3">
 			@for (group of sourceGroups(); track group.field) {
 			<fieldset class="m-0 mb-4 p-0 border-0 min-w-0">
-				<legend uiFieldLabel>
-					{{ group.label }}
-					<span class="text-danger font-bold">*</span>
-				</legend>
+				<legend uiFieldLabel>{{ group.label }}</legend>
 				<app-chip-group
 					mode="single"
 					[allowEmpty]="false"

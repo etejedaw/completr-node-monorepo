@@ -1,9 +1,8 @@
-<app-library-hero heading="What's new" [posters]="posters()">
-	<span
-		heroEyebrow
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Changelog</span
-	>
+<app-library-hero
+	eyebrow="Changelog"
+	heading="What's new"
+	[posters]="posters()"
+>
 	<p
 		heroSubtitle
 		class="m-0 mt-2 max-w-xl text-sm sm:text-base text-fg-secondary leading-relaxed"
@@ -78,8 +77,9 @@
 			</h2>
 			@for (group of visibleGroups(); track group.month) {
 			<h3
+				uiEyebrow
 				[id]="monthAnchor(group.month)"
-				class="scroll-mt-[var(--topbar-height)] sticky top-[var(--topbar-height)] z-10 m-0 mt-6 py-2 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted bg-canvas/85 backdrop-blur-md"
+				class="scroll-mt-[var(--topbar-height)] sticky top-[var(--topbar-height)] z-10 m-0 mt-6 py-2 bg-canvas/85 backdrop-blur-md"
 			>
 				{{ group.month + "-01" | date: "MMMM y" : "UTC" }}
 			</h3>
@@ -112,9 +112,11 @@
 			}
 		</section>
 		} } @else {
-		<p class="m-0 py-16 text-center text-sm text-fg-muted">
-			No updates published yet.
-		</p>
+		<ui-plain-empty-state
+			icon="history"
+			title="No updates published yet"
+			message="New releases will show up here as soon as they ship."
+		/>
 		}
 	</div>
 	@if (months().length > 1) {
@@ -123,11 +125,7 @@
 			aria-label="Updates by month"
 			class="sticky top-[calc(var(--topbar-height)+1.5rem)]"
 		>
-			<p
-				class="m-0 mb-3 px-3 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-fg-muted"
-			>
-				Jump to
-			</p>
+			<p uiEyebrow class="m-0 mb-3 px-3">Jump to</p>
 			<ol class="m-0 p-0 list-none flex flex-col border-l border-line">
 				@for (entry of months(); track entry.month) {
 				<li>

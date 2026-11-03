@@ -25,8 +25,10 @@
 						aria-describedby="new-password-rules new-password-error"
 					/>
 					<button
+						uiIconButton
+						size="lg"
 						type="button"
-						class="absolute inset-y-0 right-0 w-[44px] inline-flex items-center justify-center bg-transparent border-0 text-fg-muted cursor-pointer rounded-r-md hover:text-fg focus-visible:outline-2 focus-visible:outline-brand"
+						class="absolute right-1 top-1/2 -translate-y-1/2 tap:min-h-[44px] tap:min-w-[44px] tap:right-0"
 						[attr.aria-label]="showPasswords() ? 'Hide passwords' : 'Show passwords'"
 						[attr.aria-pressed]="showPasswords()"
 						(click)="showPasswords.set(!showPasswords())"
@@ -39,12 +41,10 @@
 				</div>
 				@if (passwordForm.newPassword().touched() &&
 				passwordForm.newPassword().invalid()) {
-				<p
-					id="new-password-error"
-					class="m-0 mt-1.5 text-xs text-danger"
+				<ui-field-error id="new-password-error"
+					>{{ passwordForm.newPassword().errors()[0]?.message
+					}}</ui-field-error
 				>
-					{{ passwordForm.newPassword().errors()[0]?.message }}
-				</p>
 				}
 				<app-password-rules
 					listId="new-password-rules"
@@ -66,12 +66,10 @@
 				/>
 				@if (passwordForm.confirmPassword().touched() &&
 				passwordForm.confirmPassword().invalid()) {
-				<p
-					id="confirm-password-error"
-					class="m-0 mt-1.5 text-xs text-danger"
+				<ui-field-error id="confirm-password-error"
+					>{{ passwordForm.confirmPassword().errors()[0]?.message
+					}}</ui-field-error
 				>
-					{{ passwordForm.confirmPassword().errors()[0]?.message }}
-				</p>
 				}
 			</app-settings-row>
 
@@ -93,7 +91,7 @@
 		headingId="security-devices-heading"
 		description="Browsers and phones where you're signed in. Sign out any you don't recognize."
 	>
-		@if (otherSessionsCount() > 0 && !confirmingSignOutOthers()) {
+		@if (otherSessionsCount() > 0) {
 		<button
 			panelActions
 			uiButton
@@ -107,40 +105,37 @@
 			Sign out other devices
 		</button>
 		} @if (confirmingSignOutOthers()) {
-		<div
-			role="alertdialog"
-			aria-labelledby="sign-out-others-title"
-			class="flex flex-wrap items-center gap-3 my-4 p-3 rounded-card border border-danger/30 bg-danger/10"
+		<ui-dialog
+			eyebrow="Security"
+			icon="logout"
+			tone="danger"
+			size="sm"
+			[heading]="signOutOthersHeading()"
+			[dismissible]="!signingOutOthers()"
+			(closed)="cancelSignOutOthers()"
 		>
-			<p
-				id="sign-out-others-title"
-				class="m-0 flex-1 min-w-[12rem] text-sm text-fg"
-			>
-				Sign out {{ otherSessionsCount() }} other {{
-				otherSessionsCount() === 1 ? 'device' : 'devices' }}? You'll
-				stay signed in here.
+			<p class="m-0 text-sm text-fg-secondary">
+				They'll need to sign in again. You'll stay signed in here.
 			</p>
-			<div class="flex gap-2">
+			<ng-container dialogFooter>
 				<button
 					uiButton
 					variant="ghost"
-					size="sm"
 					[disabled]="signingOutOthers()"
-					(click)="confirmingSignOutOthers.set(false)"
+					(click)="cancelSignOutOthers()"
 				>
 					Cancel
 				</button>
 				<button
 					uiButton
 					variant="danger"
-					size="sm"
 					[disabled]="signingOutOthers()"
 					(click)="signOutOtherSessions()"
 				>
 					{{ signingOutOthers() ? 'Signing out…' : 'Sign them out' }}
 				</button>
-			</div>
-		</div>
+			</ng-container>
+		</ui-dialog>
 		} @if (sessionsLoading() && sessions().length === 0) {
 		<div
 			class="flex flex-col gap-2 py-4"
@@ -148,9 +143,7 @@
 			aria-label="Loading devices"
 		>
 			@for (i of [0, 1, 2]; track i) {
-			<div
-				class="h-14 rounded-card bg-input-bg animate-[skeletonPulse_1.4s_ease-in-out_infinite]"
-			></div>
+			<ui-skeleton class="h-14 rounded-card" />
 			}
 		</div>
 		} @else if (sessions().length === 0) {
@@ -175,10 +168,7 @@
 						class="m-0 flex flex-wrap items-center gap-2 text-sm font-medium text-fg"
 					>
 						{{ device.name }} @if (isCurrent) {
-						<span
-							class="px-1.5 py-0.5 rounded-full bg-success/15 text-success text-[0.625rem] font-semibold uppercase tracking-[0.16em]"
-							>This device</span
-						>
+						<ui-badge tone="success">This device</ui-badge>
 						}
 					</p>
 					<p class="m-0 mt-0.5 text-xs text-fg-muted">

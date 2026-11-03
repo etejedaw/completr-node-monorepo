@@ -220,6 +220,7 @@ function emptyExternalDataReport(): ExternalDataJobReport {
 		candidates: 0,
 		processed: 0,
 		skippedComplete: 0,
+		skippedRecentlyAttempted: 0,
 		metacritic: emptyTally(),
 		hltb: emptyTally(),
 		hltbIdLookupPausedReason: null,
@@ -241,7 +242,7 @@ function describeHltbIdLookupPause(report: ExternalDataJobReport) {
 
 function describeExternalDataReport(report: ExternalDataJobReport) {
 	return [
-		`Candidates: ${report.candidates}, Processed: ${report.processed}, Metacritic scores updated: ${report.metacritic.updated}, HLTB durations updated: ${report.hltb.updated}, Skipped complete: ${report.skippedComplete}`,
+		`Candidates: ${report.candidates}, Processed: ${report.processed}, Metacritic scores updated: ${report.metacritic.updated}, HLTB durations updated: ${report.hltb.updated}, Skipped complete: ${report.skippedComplete}, Skipped recently attempted: ${report.skippedRecentlyAttempted}`,
 		describeTally("Metacritic", report.metacritic),
 		describeTally("HLTB", report.hltb),
 		...describeHltbIdLookupPause(report)
@@ -352,10 +353,11 @@ async function runPopulateExternalData(jobId: string, limit?: number) {
 	};
 
 	try {
-		const { candidates, completeCount } =
+		const { candidates, completeCount, recentlyAttemptedCount } =
 			await gamesService.findGamesMissingExternalData();
 		report.candidates = candidates.length;
 		report.skippedComplete = completeCount;
+		report.skippedRecentlyAttempted = recentlyAttemptedCount;
 
 		const toProcess = limit ? candidates.slice(0, limit) : candidates;
 		await reportRunningProgress(jobId, describeExternalDataReport(report));

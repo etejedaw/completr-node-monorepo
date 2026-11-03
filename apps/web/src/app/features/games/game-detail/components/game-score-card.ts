@@ -8,6 +8,7 @@ import {
 
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { getRatingLabel } from "../../../../shared/constants/rating-labels";
+import { UiAlert, UiButton, UiEyebrow } from "../../../../shared/ui";
 import { type CanonicalScore } from "../../../../shared/utils/canonical-score.model";
 import { metascoreColorClass } from "../../../../shared/utils/metascore-color";
 import { type ScoreCardVariant } from "./game-score-card.model";
@@ -41,7 +42,7 @@ function buildVariant(score: CanonicalScore): ScoreCardVariant | null {
 			description:
 				"Provisional — Metacritic and HowLongToBeat until the community weighs in.",
 			frameClass:
-				"border-dashed border-info/50 bg-[linear-gradient(160deg,rgba(56,189,248,0.08),transparent_65%)]",
+				"border-dashed border-info/50 bg-[linear-gradient(160deg,color-mix(in_srgb,var(--color-info)_8%,transparent),transparent_65%)]",
 			accentClass: "text-info",
 			rows: [
 				{
@@ -73,7 +74,7 @@ function buildVariant(score: CanonicalScore): ScoreCardVariant | null {
 
 @Component({
 	selector: "app-game-score-card",
-	imports: [StarRating],
+	imports: [StarRating, UiAlert, UiButton, UiEyebrow],
 	templateUrl: "./game-score-card.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush

@@ -365,10 +365,6 @@ export function parseRewindYear(raw: string | null): number | null {
 	return year >= MIN_REWIND_YEAR && year <= MAX_REWIND_YEAR ? year : null;
 }
 
-export function pluralize(count: number, singular: string, plural: string) {
-	return englishPlural(count, singular, plural);
-}
-
 export function rewindSummarySentence(
 	totals: RewindTotals,
 	language: RewindLanguage = DEFAULT_REWIND_LANGUAGE

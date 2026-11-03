@@ -149,7 +149,7 @@ describe("BacklogModal interaction", () => {
 		);
 		await userEvent.click(screen.getByRole("tab", { name: /Notes/ }));
 		await userEvent.type(
-			screen.getByLabelText("Where I am"),
+			screen.getByLabelText("Where I am Optional"),
 			"  Chapter 3  "
 		);
 		await submit();
@@ -175,6 +175,53 @@ describe("BacklogModal interaction", () => {
 			(writes[0].body as Record<string, unknown>)["review"]
 		).toBeUndefined();
 		expect(close).toHaveBeenCalledWith("saved");
+	});
+
+	it("labels the form pickers outside their box and drives them from the keyboard", async () => {
+		const user = userEvent.setup();
+		await renderModal();
+
+		const platform = screen.getByLabelText("Platform");
+		expect(platform.tagName).toBe("BUTTON");
+		expect(platform).toHaveAccessibleName("Platform: PC");
+
+		const status = screen.getByLabelText("Status");
+		status.focus();
+		await user.keyboard("{Enter}");
+		await user.click(
+			await screen.findByRole("menuitemradio", { name: /Completed/ })
+		);
+
+		await waitFor(() =>
+			expect(screen.getByLabelText("Status")).toHaveAccessibleName(
+				/^Status: Completed/
+			)
+		);
+		expect(screen.getByLabelText("Started Optional")).toBeInTheDocument();
+		expect(screen.getByLabelText("Finished Optional")).toBeInTheDocument();
+		expect(
+			screen.getByRole("spinbutton", {
+				name: /^Real duration \(h\)\s+Optional/
+			})
+		).toBeInTheDocument();
+	});
+
+	it("never marks the required reference fields with an asterisk", async () => {
+		const user = userEvent.setup();
+		await renderModal();
+		await user.click(
+			screen.getByRole("button", { name: "Edit reference data" })
+		);
+
+		const dialog = screen.getByRole("dialog");
+		expect(dialog.textContent).not.toContain("*");
+		expect(dialog.textContent).not.toContain("Required — pick one");
+		expect(
+			screen.getByRole("spinbutton", { name: /^Critic score/ })
+		).toHaveAttribute("id", "score");
+		expect(
+			screen.getByRole("spinbutton", { name: /^Duration \(h\)/ })
+		).toHaveAttribute("id", "duration");
 	});
 
 	it("leaves the extras out of the request when none is chosen", async () => {

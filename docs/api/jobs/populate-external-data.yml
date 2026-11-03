@@ -48,8 +48,10 @@ docs: |-
 
     ### Behavior while running
 
-    - Candidates: active games missing the `metacritic` score or the `hltb` time (either one). Each game is asked only for the missing sources. External ids do not exclude anyone.
-    - Games are processed one at a time; cancellation is checked before each game. A cancelled job stays `cancelled` and records its partial result.
+    - Candidates: active games missing the `metacritic` score or the `hltb` time (either one). Each game is asked only for the missing sources that are not waiting after a recent attempt. External ids do not exclude anyone.
+    - Recent attempts: every `not_found`, `ambiguous`, `no_data` or `failed` result is remembered per game and source, and that source is skipped for 30 days (`not_found`, `ambiguous`) or 7 days (`no_data`, `failed`). Rate limits, blocks, parse errors, Wikidata failures and the HLTB id lookup pause are not remembered. A game whose missing sources are all waiting is not a candidate and is counted as skipped recently attempted.
+    - Order: games never attempted first, then the oldest attempt first, ties by title. A stopped run is picked up by the next one where it left off.
+    - Games are processed one at a time and each value is saved as soon as it is found; cancellation is checked before each game. A cancelled job stays `cancelled` and records its partial result.
     - `not_found`, `ambiguous` and `no_data` are counted and the job continues.
     - A `*_RATE_LIMITED`, `*_BLOCKED` or `*_PARSE_ERROR` failure, or a database error, stops the job as `failed`. `*_TIMEOUT`, `*_REQUEST_ERROR` and unknown failures are counted and the job continues, unless the same source fails three times in a row.
     - Wikidata failures (the HLTB id lookup) never stop the job. `WIKIDATA_RATE_LIMITED`, `WIKIDATA_BLOCKED`, `WIKIDATA_PARSE_ERROR`, or three Wikidata timeouts/request errors in a row, pause the HLTB id lookup for the rest of the run: games without a known HLTB id skip HLTB, games with one still read it, and Metacritic goes on. In the background, Wikidata's `Retry-After` is honored up to 10 minutes before giving up.
@@ -57,7 +59,7 @@ docs: |-
 
     ### Result string
 
-    `Candidates: C, Processed: P, Metacritic scores updated: M, HLTB durations updated: H, Skipped complete: S. Metacritic not found: n, ambiguous: a, no data: d, failed: f. HLTB not found: n, ambiguous: a, no data: d, failed: f`
+    `Candidates: C, Processed: P, Metacritic scores updated: M, HLTB durations updated: H, Skipped complete: S, Skipped recently attempted: R. Metacritic not found: n, ambiguous: a, no data: d, failed: f. HLTB not found: n, ambiguous: a, no data: d, failed: f`
 
     - Running: prefixed with `Running. ` and updated after each game.
     - Cancelled: prefixed with `Cancelled. `

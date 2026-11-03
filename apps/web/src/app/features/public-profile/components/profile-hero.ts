@@ -10,7 +10,7 @@ import { RouterLink } from "@angular/router";
 import { avatarRing } from "../../../core/utils/premium";
 import { elevatedRoleBadge } from "../../../core/utils/role-badge";
 import { ProfileBackdrop } from "../../../shared/components/profile-backdrop/profile-backdrop";
-import { UiAvatar, UiButton } from "../../../shared/ui";
+import { UiAvatar, UiBadge, UiButton, UiIconButton } from "../../../shared/ui";
 import { type PublicProfile } from "../public-profile.model";
 
 const MEMBER_SINCE_FORMAT = new Intl.DateTimeFormat("en", {
@@ -20,7 +20,14 @@ const MEMBER_SINCE_FORMAT = new Intl.DateTimeFormat("en", {
 
 @Component({
 	selector: "app-profile-hero",
-	imports: [RouterLink, ProfileBackdrop, UiAvatar, UiButton],
+	imports: [
+		RouterLink,
+		ProfileBackdrop,
+		UiAvatar,
+		UiBadge,
+		UiButton,
+		UiIconButton
+	],
 	templateUrl: "./profile-hero.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -31,9 +38,11 @@ export class ProfileHero {
 	readonly isSelf = input(false);
 	readonly isLoggedIn = input(false);
 	readonly togglingFollow = input(false);
+	readonly canManagePremium = input(false);
 
 	readonly followToggled = output<void>();
 	readonly shared = output<void>();
+	readonly premiumAccessRequested = output<void>();
 
 	protected readonly user = computed(() => this.profile().user);
 	protected readonly displayName = computed(

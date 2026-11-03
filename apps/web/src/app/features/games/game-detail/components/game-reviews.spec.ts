@@ -100,7 +100,10 @@ describe("GameReviews", () => {
 			expect(screen.getByText("Not rated yet")).toBeInTheDocument();
 			expect(screen.getByText("0 reviews")).toBeInTheDocument();
 			expect(
-				screen.getByText(/No reviews yet. Be the first/)
+				screen.getByRole("heading", { name: "No reviews yet" })
+			).toBeInTheDocument();
+			expect(
+				screen.getByText("Be the first to share how it went.")
 			).toBeInTheDocument();
 			expect(
 				screen.getByRole("button", {

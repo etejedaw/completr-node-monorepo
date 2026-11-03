@@ -36,6 +36,7 @@ import {
 	UsernameParamSchema
 } from "./schemas";
 import { AdminUpdateUserSchema } from "./schemas/admin-update-user.schema";
+import { AdminUsersQuerySchema } from "./schemas/admin-users-query.schema";
 import { UserDiscoverQuerySchema } from "./schemas/user-discover-query.schema";
 import { UserIdParamSchema } from "./schemas/user-id-params.schema";
 import { UserListsQuerySchema } from "./schemas/user-lists-query.schema";
@@ -61,7 +62,7 @@ router.get(
 	[
 		rateLimiterMiddleware(userLimiter),
 		hiddenRouteMiddleware(),
-		validateSchemaMiddleware(PaginationQuerySchema, "query")
+		validateSchemaMiddleware(AdminUsersQuerySchema, "query")
 	],
 	usersAdminController.getAdminUsers
 );

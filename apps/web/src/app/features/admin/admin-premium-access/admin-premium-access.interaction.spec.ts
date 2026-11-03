@@ -5,11 +5,13 @@ import {
 	HttpTestingController,
 	provideHttpClientTesting
 } from "@angular/common/http/testing";
+import { getDebugNode } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
+import { type UiDatePicker } from "../../../shared/ui";
 import { type AdminUser } from "../services/user-admin.model";
 import { AdminPremiumAccess } from "./admin-premium-access";
 
@@ -32,6 +34,13 @@ const FEATURES = [
 	},
 	{ feature: "export.json", allowsExpiration: true, allowsGlobalGrant: true }
 ];
+
+function pickDate(trigger: HTMLElement, value: string) {
+	const picker = getDebugNode(trigger.closest("ui-date-picker"))
+		?.componentInstance as UiDatePicker;
+	picker.value.set(value);
+	picker.touch.emit();
+}
 
 function grant(overrides: Record<string, unknown> = {}) {
 	return {
@@ -64,6 +73,28 @@ describe("AdminPremiumAccess interaction", () => {
 		});
 		vi.unstubAllGlobals();
 	});
+
+	function expectReadOnly(card: HTMLElement) {
+		expect(within(card).queryByRole("button")).not.toBeInTheDocument();
+		expect(within(card).queryByLabelText("New expiration")).toBeNull();
+	}
+
+	function articleOf(dialog: HTMLElement, heading: string) {
+		return within(dialog)
+			.getByRole("heading", { name: heading })
+			.closest("article") as HTMLElement;
+	}
+
+	function flushReload(grants: unknown[]) {
+		http.expectOne(`${api}/admin/users/u1/premium-grants`).flush({
+			data: { grants }
+		});
+		http.expectOne(`${api}/admin/premium-features`).flush({
+			data: { features: FEATURES }
+		});
+	}
+
+	const NOT_ACTIVE_MESSAGE = /already expired or was revoked/;
 
 	async function renderDialog(grants: unknown[] = []) {
 		const view = await render(AdminPremiumAccess, {
@@ -110,6 +141,110 @@ describe("AdminPremiumAccess interaction", () => {
 		expect(within(dialog).getByText("No expiration")).toBeInTheDocument();
 	});
 
+	it("grants the feature chosen in the picker", async () => {
+		const user = userEvent.setup();
+		await renderDialog();
+		const dialog = await screen.findByRole("dialog", {
+			name: "Premium access"
+		});
+		const picker = within(dialog).getByRole("button", {
+			name: /^Feature:/
+		});
+		expect(picker).toHaveAccessibleName("Feature: Unlimited lists");
+
+		await user.click(picker);
+		await user.dblClick(
+			await screen.findByRole("menuitemradio", { name: /JSON export/ })
+		);
+		expect(picker).toHaveAccessibleName("Feature: JSON export");
+
+		await user.click(
+			within(dialog).getByRole("button", { name: "Grant feature" })
+		);
+		const req = http.expectOne(`${api}/admin/users/u1/premium-grants`);
+		expect(req.request.body).toEqual({
+			feature: "export.json",
+			expiresAt: null
+		});
+		req.flush({ data: { grant: grant({ feature: "export.json" }) } });
+		expect(
+			await within(dialog).findByRole("heading", { name: "JSON export" })
+		).toBeInTheDocument();
+	});
+
+	it("closing the picker with Escape keeps the current feature", async () => {
+		const user = userEvent.setup();
+		await renderDialog();
+		const dialog = await screen.findByRole("dialog", {
+			name: "Premium access"
+		});
+		const picker = within(dialog).getByRole("button", {
+			name: /^Feature:/
+		});
+		await user.click(picker);
+		await screen.findByRole("menuitemradio", { name: /JSON export/ });
+		await user.keyboard("{Escape}");
+		await waitFor(() =>
+			expect(screen.queryByRole("menu")).not.toBeInTheDocument()
+		);
+		expect(picker).toHaveAccessibleName("Feature: Unlimited lists");
+		expect(
+			screen.getByRole("dialog", { name: "Premium access" })
+		).toBeInTheDocument();
+	});
+
+	it("shows active and expired grants with their status badge", async () => {
+		await renderDialog([
+			grant({ id: "a", expiresAt: null }),
+			grant({
+				id: "b",
+				feature: "export.json",
+				expiresAt: "2020-01-01T00:00:00.000Z"
+			})
+		]);
+		const dialog = await screen.findByRole("dialog", {
+			name: "Premium access"
+		});
+		const active = within(dialog)
+			.getByRole("heading", { name: "Unlimited lists" })
+			.closest("article") as HTMLElement;
+		const expired = within(dialog)
+			.getByRole("heading", { name: "JSON export" })
+			.closest("article") as HTMLElement;
+		expect(
+			within(active).getByText("Active").closest("ui-badge")
+		).not.toBeNull();
+		expect(
+			within(expired).getByText("Expired").closest("ui-badge")
+		).not.toBeNull();
+		expect(expired).toHaveTextContent("Expired on");
+		expectReadOnly(expired);
+		expect(
+			within(active).getByRole("button", { name: "Revoke" })
+		).toBeInTheDocument();
+		expect(within(active).getByLabelText("New expiration")).toBeEnabled();
+	});
+
+	it("shows an expired or revoked full grant as read-only history", async () => {
+		await renderDialog([
+			grant({
+				id: "old",
+				feature: "*",
+				expiresAt: "2026-01-15T10:00:00.000Z"
+			})
+		]);
+		const dialog = await screen.findByRole("dialog", {
+			name: "Premium access"
+		});
+		const card = within(dialog)
+			.getByText("Full premium", { selector: "strong" })
+			.closest("article") as HTMLElement;
+
+		expect(card).toHaveTextContent("Expired on");
+		expect(card).not.toHaveTextContent("Current expiration");
+		expectReadOnly(card);
+	});
+
 	it("requires a date for full premium and submits an ISO expiration", async () => {
 		const user = userEvent.setup();
 		const view = await renderDialog();
@@ -119,7 +254,7 @@ describe("AdminPremiumAccess interaction", () => {
 		const date = within(dialog).getByLabelText("Expires at", {
 			selector: "#full-premium-expiration"
 		});
-		await user.clear(date);
+		pickDate(date, "");
 		await user.click(
 			within(dialog).getByRole("button", { name: "Grant full premium" })
 		);
@@ -127,9 +262,22 @@ describe("AdminPremiumAccess interaction", () => {
 			await within(dialog).findAllByText(
 				"Full premium requires an expiration date."
 			)
-		).toHaveLength(2);
+		).toHaveLength(1);
+		expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+		expect(date).toHaveAccessibleDescription(
+			"Full premium requires an expiration date."
+		);
+		await user.dblClick(
+			within(dialog).getByRole("button", { name: "Grant full premium" })
+		);
+		expect(
+			within(dialog).getAllByText(
+				"Full premium requires an expiration date."
+			)
+		).toHaveLength(1);
+		http.expectNone(`${api}/admin/users/u1/premium-grants`);
 
-		await user.type(date, "2027-02-01T12:30");
+		pickDate(date, "2027-02-01T12:30");
 		await user.click(
 			within(dialog).getByRole("button", { name: "Grant full premium" })
 		);
@@ -153,6 +301,59 @@ describe("AdminPremiumAccess interaction", () => {
 		).toBeInTheDocument();
 	});
 
+	it("explains an empty date under the full grant being extended and sends nothing", async () => {
+		const user = userEvent.setup();
+		await renderDialog([
+			grant({
+				id: "full",
+				feature: "*",
+				expiresAt: "2027-01-01T00:00:00.000Z"
+			}),
+			grant({
+				id: "other",
+				feature: "*",
+				expiresAt: "2027-03-01T00:00:00.000Z"
+			})
+		]);
+		const dialog = await screen.findByRole("dialog", {
+			name: "Premium access"
+		});
+		const date = within(dialog).getByLabelText("New expiration", {
+			selector: "#expiration-full"
+		});
+		pickDate(date, "");
+		const [saveFull] = within(dialog).getAllByRole("button", {
+			name: "Save date"
+		});
+		await user.dblClick(saveFull!);
+
+		expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
+		expect(
+			within(dialog).getAllByText(
+				"Full premium requires an expiration date."
+			)
+		).toHaveLength(1);
+		expect(date).toHaveAttribute("aria-invalid", "true");
+		expect(date).toHaveAccessibleDescription(
+			"Full premium requires an expiration date."
+		);
+		expect(
+			within(dialog).getByLabelText("New expiration", {
+				selector: "#expiration-other"
+			})
+		).not.toHaveAttribute("aria-invalid");
+		http.expectNone(req => req.method === "PATCH");
+
+		pickDate(date, "2027-05-01T10:00");
+		await user.click(saveFull!);
+		expect(
+			within(dialog).queryByText(
+				"Full premium requires an expiration date."
+			)
+		).not.toBeInTheDocument();
+		http.expectOne(req => req.method === "PATCH");
+	});
+
 	it("extends and revokes an existing grant", async () => {
 		const user = userEvent.setup();
 		const view = await renderDialog([grant()]);
@@ -160,7 +361,7 @@ describe("AdminPremiumAccess interaction", () => {
 			name: "Premium access"
 		});
 		const date = within(dialog).getByLabelText("New expiration");
-		await user.type(date, "2027-03-01T10:00");
+		pickDate(date, "2027-03-01T10:00");
 		await user.click(
 			within(dialog).getByRole("button", { name: "Save date" })
 		);
@@ -193,6 +394,124 @@ describe("AdminPremiumAccess interaction", () => {
 		expect(
 			within(dialog).getByText("Premium access revoked.")
 		).toBeInTheDocument();
+		expectReadOnly(articleOf(dialog, "Unlimited lists"));
+	});
+
+	it("does not send a revoke for a grant that expired while the dialog was open, even on a double click", async () => {
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(new Date("2026-11-03T10:00:00.000Z"));
+		try {
+			const user = userEvent.setup();
+			const expiring = grant({ expiresAt: "2026-11-03T10:05:00.000Z" });
+			const view = await renderDialog([expiring]);
+			const dialog = await screen.findByRole("dialog", {
+				name: "Premium access"
+			});
+			const revoke = within(dialog).getByRole("button", {
+				name: "Revoke"
+			});
+
+			vi.setSystemTime(new Date("2026-11-03T10:06:00.000Z"));
+			await user.dblClick(revoke);
+
+			http.expectNone(request => request.url.endsWith("/revoke"));
+			flushReload([expiring]);
+			view.fixture.detectChanges();
+			expect(
+				await within(dialog).findByText(NOT_ACTIVE_MESSAGE)
+			).toBeInTheDocument();
+			expectReadOnly(articleOf(dialog, "Unlimited lists"));
+			expect(articleOf(dialog, "Unlimited lists")).toHaveTextContent(
+				"Expired on"
+			);
+			http.expectNone(request => request.url.endsWith("/revoke"));
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("reloads and explains a 409 when another tab already revoked the grant", async () => {
+		const user = userEvent.setup();
+		const view = await renderDialog([grant()]);
+		const dialog = await screen.findByRole("dialog", {
+			name: "Premium access"
+		});
+
+		await user.dblClick(
+			within(dialog).getByRole("button", { name: "Revoke" })
+		);
+		const [revoke, ...extra] = http.match(request =>
+			request.url.endsWith("/revoke")
+		);
+		expect(extra).toHaveLength(0);
+		revoke!.flush(
+			{
+				type: "PREMIUM_GRANT_NOT_ACTIVE",
+				title: "An expired or revoked premium grant cannot be changed"
+			},
+			{ status: 409, statusText: "Conflict" }
+		);
+		flushReload([grant({ expiresAt: "2026-10-30T00:00:00.000Z" })]);
+		view.fixture.detectChanges();
+
+		expect(
+			await within(dialog).findByText(NOT_ACTIVE_MESSAGE)
+		).toBeInTheDocument();
+		expect(within(dialog).getAllByText(NOT_ACTIVE_MESSAGE)).toHaveLength(1);
+		expectReadOnly(articleOf(dialog, "Unlimited lists"));
+	});
+
+	it("reloads after a 409 on Save date instead of reactivating the grant", async () => {
+		const user = userEvent.setup();
+		const view = await renderDialog([
+			grant({ feature: "*", expiresAt: "2027-01-01T00:00:00.000Z" })
+		]);
+		const dialog = await screen.findByRole("dialog", {
+			name: "Premium access"
+		});
+		const date = within(dialog).getByLabelText("New expiration");
+		pickDate(date, "");
+		pickDate(date, "2027-06-01T10:00");
+		await user.click(
+			within(dialog).getByRole("button", { name: "Save date" })
+		);
+		http.expectOne(`${api}/admin/users/u1/premium-grants/g1`).flush(
+			{ type: "PREMIUM_GRANT_NOT_ACTIVE", title: "Not active" },
+			{ status: 409, statusText: "Conflict" }
+		);
+		flushReload([
+			grant({ feature: "*", expiresAt: "2026-10-30T00:00:00.000Z" })
+		]);
+		view.fixture.detectChanges();
+
+		expect(
+			await within(dialog).findByText(NOT_ACTIVE_MESSAGE)
+		).toBeInTheDocument();
+		const card = within(dialog)
+			.getByText("Full premium", { selector: "strong" })
+			.closest("article") as HTMLElement;
+		expectReadOnly(card);
+		expect(within(dialog).queryByText("Expiration updated.")).toBeNull();
+	});
+
+	it("keeps the server title for other conflicts and does not reload", async () => {
+		const user = userEvent.setup();
+		await renderDialog([grant()]);
+		const dialog = await screen.findByRole("dialog", {
+			name: "Premium access"
+		});
+		await user.click(
+			within(dialog).getByRole("button", { name: "Revoke" })
+		);
+		http.expectOne(`${api}/admin/users/u1/premium-grants/g1/revoke`).flush(
+			{ type: "SOMETHING_ELSE", title: "Try again later" },
+			{ status: 409, statusText: "Conflict" }
+		);
+
+		expect(
+			await within(dialog).findByText("Try again later")
+		).toBeInTheDocument();
+		http.expectNone(`${api}/admin/users/u1/premium-grants`);
 	});
 
 	it("shows the origin of an offer grant", async () => {

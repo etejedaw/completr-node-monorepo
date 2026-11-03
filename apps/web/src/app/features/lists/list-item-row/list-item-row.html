@@ -30,7 +30,8 @@
 			[title]="entry.game.title"
 			[width]="200"
 			[compact]="true"
-			class="w-11 sm:w-14 aspect-[2/3] rounded ring-1 ring-white/10 shadow-md shadow-black/40"
+			framed
+			class="w-11 sm:w-14 aspect-[2/3] rounded shadow-md shadow-black/40"
 		/>
 	</a>
 
@@ -171,11 +172,7 @@
 	>
 		@for (stat of stats(); track stat.label) {
 		<div class="flex flex-col gap-1.5">
-			<dt
-				class="text-[0.5625rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-			>
-				{{ stat.label }}
-			</dt>
+			<dt uiEyebrow>{{ stat.label }}</dt>
 			<dd
 				class="m-0 text-base font-semibold tabular-nums"
 				[class]="stat.value ? stat.valueClass : 'text-fg-muted/50'"
@@ -195,18 +192,18 @@
 
 	@if (editable()) {
 	<div class="shrink-0 flex items-center gap-0.5">
-		<button
-			uiIconButton
-			type="button"
-			class="sm:!hidden tap:min-w-[44px] tap:min-h-[44px] !rounded-full active:!bg-surface-hover"
-			aria-haspopup="dialog"
-			[attr.aria-label]="'More actions for ' + entry.game.title"
-			(click)="moreRequested.emit()"
-		>
-			<span aria-hidden="true" class="material-icons text-xl"
-				>more_vert</span
-			>
-		</button>
+		<div class="sm:hidden">
+			<app-action-menu
+				[label]="'More actions for ' + entry.game.title"
+				[heading]="entry.game.title"
+				[iconOnly]="true"
+				icon="more_vert"
+				variant="ghost"
+				size="lg"
+				[items]="mobileActions()"
+				(selected)="runMobileAction($event)"
+			/>
+		</div>
 		<div
 			class="max-sm:hidden flex items-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100 transition-opacity"
 		>

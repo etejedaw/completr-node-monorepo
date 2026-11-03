@@ -7,6 +7,7 @@ import {
 } from "@angular/core";
 
 import { type ChipOption } from "./chip-group.model";
+import { FilterChip } from "./filter-chip";
 
 export type ChipGroupMode = "multiple" | "single";
 
@@ -19,6 +20,7 @@ const ARROW_STEP: Record<string, number> = {
 
 @Component({
 	selector: "app-chip-group",
+	imports: [FilterChip],
 	template: `
 		<div
 			class="flex flex-wrap gap-2"
@@ -27,13 +29,8 @@ const ARROW_STEP: Record<string, number> = {
 		>
 			@for (option of options(); track option.value; let index = $index) {
 				<button
-					type="button"
-					class="inline-flex items-center gap-1.5 px-3 py-1.5 tap:min-h-[44px] tap:min-w-[44px] justify-center rounded-full border text-xs font-medium font-sans cursor-pointer transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-					[class]="
-						isSelected(option.value)
-							? 'border-brand bg-brand-subtle text-brand'
-							: 'border-line bg-input-bg text-fg-secondary hover:border-line-hover hover:text-fg'
-					"
+					appFilterChip
+					[selected]="isSelected(option.value)"
 					[attr.role]="mode() === 'single' ? 'radio' : null"
 					[attr.aria-checked]="
 						mode() === 'single' ? isSelected(option.value) : null

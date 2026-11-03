@@ -1,9 +1,8 @@
-<app-library-hero heading="Want to Get" [posters]="heroPosters()">
-	<span
-		heroEyebrow
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Library</span
-	>
+<app-library-hero
+	heading="Want to Get"
+	eyebrow="Library"
+	[posters]="heroPosters()"
+>
 	<p
 		heroSubtitle
 		class="m-0 mt-2 flex items-center gap-1.5 text-sm text-fg-secondary"
@@ -53,7 +52,8 @@
 >
 	<ng-template appLibraryPageToolbar>
 		<ui-search-bar
-			class="flex-1 max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+			size="sm"
+			class="flex-1 max-w-2xl"
 			placeholder="Search your wishlist..."
 			ariaLabel="Search Want to Get"
 			[value]="searchQuery()"

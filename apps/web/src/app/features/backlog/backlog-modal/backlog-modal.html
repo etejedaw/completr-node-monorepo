@@ -1,5 +1,6 @@
 <ui-dialog
 	eyebrow="My Games"
+	[icon]="!isEdit() ? 'library_add' : viewMode() === 'summary' ? 'sports_esports' : 'edit_note'"
 	[size]="(isEdit() && viewMode() === 'summary') || isSearchStep() ? 'md' : 'lg'"
 	[heading]="heading()"
 	[subheading]="subheading()"
@@ -47,9 +48,7 @@
 					>library_books</span
 				>
 				<div class="flex-1 min-w-0 flex flex-col gap-0.5">
-					<span
-						id="compilation-heading"
-						class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-brand"
+					<span uiEyebrow id="compilation-heading" class="!text-brand"
 						>Compilation</span
 					>
 					<span class="text-sm font-medium text-fg truncate"
@@ -126,20 +125,34 @@
 		/>
 
 		@if (!compilationParent() && availableCompilationParents().length > 0) {
-		<app-option-picker
-			label="Part of compilation"
-			heading="Part of compilation"
-			[options]="compilationParentOptions()"
-			[value]="''"
-			(valueChange)="onCompilationParentChange($event)"
-		/>
+		<div>
+			<label uiFieldLabel for="backlog-compilation-parent"
+				>Part of compilation <ui-field-optional
+			/></label>
+			<app-option-picker
+				variant="input"
+				triggerId="backlog-compilation-parent"
+				label="Part of compilation"
+				heading="Part of compilation"
+				placeholder="Not part of a compilation"
+				placeholderIcon="library_books"
+				[options]="compilationParentOptions()"
+				[value]="''"
+				(valueChange)="onCompilationParentChange($event)"
+			/>
+		</div>
 		} @if (!isEdit()) {
 		<div #platformField class="flex flex-col gap-1.5">
 			@if (platformOptions().length > 0) {
+			<label uiFieldLabel class="!mb-0" for="backlog-platform"
+				>Platform</label
+			>
 			<app-option-picker
+				variant="input"
+				triggerId="backlog-platform"
 				label="Platform"
 				heading="Platform"
-				placeholder="Required — pick one"
+				placeholder="Pick a platform"
 				placeholderIcon="sports_esports"
 				[options]="platformOptions()"
 				[value]="form.platformId().value()"
@@ -148,15 +161,9 @@
 				(valueChange)="setPlatform($event)"
 			/>
 			@if (showPlatformError()) {
-			<p
-				id="platform-error"
-				class="m-0 flex items-center gap-1 text-xs text-danger"
+			<ui-field-error id="platform-error"
+				>{{ form.platformId().errors()[0]?.message }}</ui-field-error
 			>
-				<span aria-hidden="true" class="material-icons text-sm"
-					>error_outline</span
-				>
-				{{ form.platformId().errors()[0]?.message }}
-			</p>
 			} } @else {
 			<p
 				tabindex="-1"
@@ -239,18 +246,17 @@
 
 			<div uiTabPanel value="tracking" class="pt-1">
 				<div class="flex items-baseline justify-between mb-3">
-					<h3
-						class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-[0.16em]"
-					>
-						Your tracking
-					</h3>
+					<h3 uiEyebrow class="m-0">Your tracking</h3>
 					<span class="text-[0.6875rem] text-fg-muted italic"
 						>personal data</span
 					>
 				</div>
 
+				<label uiFieldLabel for="backlog-status">Status</label>
 				<app-option-picker
 					class="mb-4"
+					variant="input"
+					triggerId="backlog-status"
 					label="Status"
 					heading="Status"
 					[options]="statusOptions"
@@ -261,29 +267,25 @@
 				@if (showTrackingDetails()) {
 				<div class="grid grid-cols-2 gap-3">
 					<div class="mb-4">
-						<label
-							for="startedAt"
-							class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
-							>Started</label
-						>
-						<input
-							id="startedAt"
-							type="date"
+						<label for="startedAt" uiFieldLabel
+							>Started <ui-field-optional
+						/></label>
+						<ui-date-picker
+							triggerId="startedAt"
+							label="Started"
+							clearable
 							[formField]="form.startedAt"
-							uiInput
 						/>
 					</div>
 					<div class="mb-4">
-						<label
-							for="finishedAt"
-							class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
-							>Finished</label
-						>
-						<input
-							id="finishedAt"
-							type="date"
+						<label for="finishedAt" uiFieldLabel
+							>Finished <ui-field-optional
+						/></label>
+						<ui-date-picker
+							triggerId="finishedAt"
+							label="Finished"
+							clearable
 							[formField]="form.finishedAt"
-							uiInput
 						/>
 					</div>
 				</div>
@@ -292,9 +294,10 @@
 					<div class="mb-4">
 						<span
 							id="backlog-my-rating-label"
-							class="flex items-center gap-1 mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
+							uiFieldLabel
+							class="!items-center !gap-1"
 						>
-							My Rating
+							My rating <ui-field-optional />
 							<button
 								type="button"
 								class="tap-area bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
@@ -317,8 +320,9 @@
 					<div class="mb-4">
 						<label
 							for="realDuration"
-							class="flex items-center gap-1 mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
-							>Real Duration (h)
+							uiFieldLabel
+							class="!items-center !gap-1"
+							>Real duration (h) <ui-field-optional />
 							<button
 								type="button"
 								class="tap-area bg-none border-0 p-0 ml-0.5 text-fg-muted cursor-pointer hover:text-brand inline-flex items-center"
@@ -344,10 +348,7 @@
 				</div>
 				} @if (showPlatinumSection()) {
 				<div class="mb-4 pt-3 border-t border-line">
-					<span
-						class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
-						>Platinum</span
-					>
+					<span uiEyebrow class="mb-1.5">Platinum</span>
 					@if (platinumElsewhere(); as other) {
 					<p
 						class="flex items-center gap-2 m-0 mb-1 text-xs text-fg-secondary"
@@ -378,17 +379,11 @@
 						/>
 					</div>
 					@if (platinumInRun()) {
-					<label
-						for="platinumedAt"
-						class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
-						>Platinumed on</label
-					>
-					<input
-						id="platinumedAt"
-						type="date"
-						uiInput
-						[value]="platinumDate()"
-						(input)="platinumDate.set($any($event.target).value)"
+					<label for="platinumedAt" uiFieldLabel>Platinumed on</label>
+					<ui-date-picker
+						triggerId="platinumedAt"
+						label="Platinumed on"
+						[(value)]="platinumDate"
 					/>
 					}
 				</div>
@@ -400,10 +395,7 @@
 				</p>
 				} @if (isEdit()) {
 				<div class="mb-4 pt-3 border-t border-line">
-					<span
-						class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
-						>Played with</span
-					>
+					<span uiEyebrow class="mb-1.5">Played with</span>
 					<p
 						class="text-[0.6875rem] text-fg-muted m-0 mb-2 leading-snug"
 					>
@@ -473,7 +465,12 @@
 						}
 					</ul>
 					} @if (coopFriendActions().length > 0) {
+					<label uiFieldLabel for="backlog-coop-add"
+						>Add a friend <ui-field-optional
+					/></label>
 					<app-option-picker
+						variant="input"
+						triggerId="backlog-coop-add"
 						label="Played with"
 						heading="Add a friend you follow"
 						placeholderIcon="person_add"
@@ -494,22 +491,16 @@
 
 			<div uiTabPanel value="notes" class="pt-1">
 				<div class="flex items-baseline justify-between mb-3">
-					<h3
-						class="m-0 text-[0.6875rem] font-bold text-fg-secondary uppercase tracking-[0.16em]"
-					>
-						Your annotations
-					</h3>
+					<h3 uiEyebrow class="m-0">Your annotations</h3>
 					<span class="text-[0.6875rem] text-fg-muted italic"
 						>tags, progress, notes</span
 					>
 				</div>
 
 				<div class="mb-4">
-					<span
-						id="backlog-tags-label"
-						class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
-						>Tags</span
-					>
+					<span id="backlog-tags-label" uiFieldLabel
+						>Tags <ui-field-optional
+					/></span>
 					<app-mood-tags-input
 						ariaLabelledby="backlog-tags-label"
 						[tags]="moodTags()"
@@ -524,11 +515,9 @@
 				</div>
 
 				<div class="mb-4">
-					<label
-						for="progress-note"
-						class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
-						>Where I am</label
-					>
+					<label for="progress-note" uiFieldLabel
+						>Where I am <ui-field-optional
+					/></label>
 					<div class="flex gap-2">
 						<input
 							uiInput
@@ -636,17 +625,15 @@
 					<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted">
 						@if (isEdit()) { Short notes to remember where you left
 						off. Each add creates a new entry; history is preserved.
-						} @else { Optional. Will be saved with the backlog so
-						you can pick up later. }
+						} @else { Saved with the backlog so you can pick up
+						later. }
 					</p>
 				</div>
 
 				<div class="mb-4">
-					<label
-						for="notes"
-						class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
-						>Notes</label
-					>
+					<label for="notes" uiFieldLabel
+						>Notes <ui-field-optional
+					/></label>
 					<textarea
 						uiTextarea
 						id="notes"
@@ -672,11 +659,9 @@
 				</div>
 				} @else if (isFirstReviewableTransition()) {
 				<div class="mt-3 pt-3 border-t border-line">
-					<label
-						for="review-content"
-						class="block mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
-						>Review (optional)</label
-					>
+					<label for="review-content" uiFieldLabel
+						>Review <ui-field-optional
+					/></label>
 					<textarea
 						uiTextarea
 						id="review-content"
@@ -793,6 +778,7 @@
 @if (pickerUserId()) {
 <ui-dialog
 	eyebrow="Co-op"
+	icon="group_add"
 	size="sm"
 	[heading]="'Pick a run for ' + pickerUserName()"
 	(closed)="cancelPicker()"
@@ -811,17 +797,7 @@
 				[disabled]="!!c.coopRunId"
 			>
 				<div class="flex items-center justify-between mb-1">
-					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold"
-						[class]="backlogStatusClass(c.status)"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.875rem]"
-							>{{ backlogStatusIcon(c.status) }}</span
-						>
-						{{ backlogStatusLabel(c.status) }}
-					</span>
+					<app-backlog-status-badge [status]="c.status" />
 					@if (c.coopRunId) {
 					<span class="text-[0.625rem] text-warning"
 						>Already in another co-op</span
@@ -853,6 +829,7 @@
 } @if (syncMember(); as m) {
 <ui-dialog
 	eyebrow="Co-op"
+	icon="sync"
 	size="sm"
 	subheading="Pick which fields to copy. Your personal data (score, rating, notes) is never synced."
 	[heading]="'Sync from ' + (m.name || m.username)"

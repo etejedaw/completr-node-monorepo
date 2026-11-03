@@ -5,7 +5,8 @@ export interface BacklogTableEntryEvent {
 	event: Event;
 }
 
-export interface BacklogTableStatusSelection extends BacklogTableEntryEvent {
+export interface BacklogTableStatusChange {
+	entry: BacklogEntry;
 	status: BacklogStatus;
 }
 
@@ -19,9 +20,13 @@ export interface BacklogTableFavoriteToggle {
 	event: Event;
 }
 
+export type BacklogTableColumnAlign = "start" | "end";
+
 export interface BacklogTableColumn {
 	label: string;
 	sortKey: string | null;
 	headerClass: string;
+	align: BacklogTableColumnAlign;
+	highlighted?: boolean;
 	hint?: string;
 }

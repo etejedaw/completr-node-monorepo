@@ -1,4 +1,5 @@
 import { ServiceError } from "../../common/errors/service-error";
+import * as externalDataAttemptsService from "../../external-data-attempts/external-data-attempts.service";
 import { type ExternalSource } from "../../game-external/game-external.model";
 import * as gameExternalService from "../../game-external/game-external.service";
 import * as gameScoresService from "../../game-scores/game-scores.service";
@@ -6,13 +7,16 @@ import * as gameTimesService from "../../game-times/game-times.service";
 import * as gamesServiceError from "../errors/games.service-error";
 import {
 	EXTERNAL_DATA_DEADLINE_EXCEEDED,
+	EXTERNAL_DATA_SOURCE_UNAVAILABLE,
 	type ExternalDataSource,
 	HLTB_ID_LOOKUP_PAUSED
 } from "../games.constants";
 import {
+	type ExternalDataAttemptRecord,
 	type ExternalDataCandidate,
 	type ExternalDataCandidates,
 	type ExternalDataGame,
+	type ExternalDataPendingCandidate,
 	type ExternalDataRefreshOptions,
 	type ExternalDataRequestOptions,
 	type ExternalDataResult,
@@ -27,6 +31,8 @@ import {
 } from "../games-external-data.types";
 import { buildMetacriticSlugCandidates } from "../utils/build-metacritic-slug-candidates.util";
 import { classifyExternalDataError } from "../utils/classify-external-data-error.util";
+import { externalDataAttemptStatus } from "../utils/external-data-attempt-status.util";
+import { isCoolingDown } from "../utils/is-cooling-down.util";
 import { isReleaseYearMismatch } from "../utils/is-release-year-mismatch.util";
 import { normalizeGameTitle } from "../utils/normalize-game-title.util";
 import { pickMetacriticScore } from "../utils/pick-metacritic-score.util";
@@ -44,7 +50,6 @@ import {
 	findGameById
 } from "./games-search.service";
 
-const SOURCE_UNAVAILABLE = "SOURCE_UNAVAILABLE";
 const METACRITIC_SCORE_SOURCE = "metacritic";
 const HLTB_TIME_SOURCE = "hltb";
 
@@ -102,39 +107,108 @@ export async function refreshExternalDataForGame(
 			results.push(deadlineExceededResult(source));
 			continue;
 		}
-		results.push(
+		const result =
 			source === "metacritic"
 				? await refreshMetacritic(
 						game,
 						externalIdOf("metacritic"),
 						options
 					)
-				: await refreshHltb(game, externalIdOf("hltb"), options)
-		);
+				: await refreshHltb(game, externalIdOf("hltb"), options);
+		await recordExternalDataAttempt(game.id, result);
+		results.push(result);
 	}
 	return results;
 }
 
-export async function findGamesMissingExternalData(): Promise<ExternalDataCandidates> {
-	const [games, gameIdsWithScore, gameIdsWithTime] = await Promise.all([
-		findActiveGamesForExternalData(),
-		gameScoresService.findGameIdsBySource(METACRITIC_SCORE_SOURCE),
-		gameTimesService.findGameIdsBySource(HLTB_TIME_SOURCE)
-	]);
+async function recordExternalDataAttempt(
+	gameId: string,
+	result: ExternalDataResult
+) {
+	const status = externalDataAttemptStatus(result);
+	if (status === null) return;
+	if (status === "updated")
+		await externalDataAttemptsService.clear(gameId, result.source);
+	else
+		await externalDataAttemptsService.record(gameId, result.source, status);
+}
+
+export async function findGamesMissingExternalData(
+	now = new Date()
+): Promise<ExternalDataCandidates> {
+	const [games, gameIdsWithScore, gameIdsWithTime, attempts] =
+		await Promise.all([
+			findActiveGamesForExternalData(),
+			gameScoresService.findGameIdsBySource(METACRITIC_SCORE_SOURCE),
+			gameTimesService.findGameIdsBySource(HLTB_TIME_SOURCE),
+			externalDataAttemptsService.findAll()
+		]);
 	const hasScore = new Set(gameIdsWithScore);
 	const hasTime = new Set(gameIdsWithTime);
+	const attemptByKey = new Map(
+		attempts.map(attempt => [
+			attemptKey(attempt.gameId, attempt.source),
+			attempt as ExternalDataAttemptRecord
+		])
+	);
 
-	const candidates = games
+	const pending: ExternalDataPendingCandidate[] = games
 		.map(game => ({
 			game: game.get({ plain: true }) as ExternalDataGame,
-			sources: missingExternalDataSources(
+			missing: missingExternalDataSources(
 				hasScore.has(game.id),
 				hasTime.has(game.id)
 			)
 		}))
-		.filter(candidate => candidate.sources.length > 0);
+		.filter(({ missing }) => missing.length > 0)
+		.map(({ game, missing }) => {
+			const sourceAttempts = missing.map(source => ({
+				source,
+				attempt: attemptByKey.get(attemptKey(game.id, source))
+			}));
+			const due = sourceAttempts.filter(
+				({ attempt }) => !isCoolingDown(attempt, now)
+			);
+			return {
+				game,
+				sources: due.map(({ source }) => source),
+				oldestAttemptedAt: oldestAttemptTime(
+					due.map(({ attempt }) => attempt)
+				)
+			};
+		});
+	const candidates = pending
+		.filter(({ sources }) => sources.length > 0)
+		.sort(byOldestAttemptFirst)
+		.map(({ game, sources }) => ({ game, sources }));
 
-	return { candidates, completeCount: games.length - candidates.length };
+	return {
+		candidates,
+		completeCount: games.length - pending.length,
+		recentlyAttemptedCount: pending.length - candidates.length
+	};
+}
+
+function byOldestAttemptFirst(
+	a: ExternalDataPendingCandidate,
+	b: ExternalDataPendingCandidate
+) {
+	if (a.oldestAttemptedAt === b.oldestAttemptedAt) return 0;
+	return a.oldestAttemptedAt < b.oldestAttemptedAt ? -1 : 1;
+}
+
+function attemptKey(gameId: string, source: ExternalDataSource) {
+	return `${gameId}:${source}`;
+}
+
+function oldestAttemptTime(
+	attempts: (ExternalDataAttemptRecord | undefined)[]
+) {
+	return Math.min(
+		...attempts.map(attempt =>
+			attempt ? attempt.attemptedAt.getTime() : Number.NEGATIVE_INFINITY
+		)
+	);
 }
 
 export async function findExternalDataCandidate(
@@ -181,7 +255,8 @@ async function refreshMetacritic(
 	options: ExternalDataRequestOptions
 ): Promise<ExternalDataResult> {
 	const metacritic = getMetacriticSource();
-	if (!metacritic) return failedResult("metacritic", SOURCE_UNAVAILABLE);
+	if (!metacritic)
+		return failedResult("metacritic", EXTERNAL_DATA_SOURCE_UNAVAILABLE);
 
 	let lookup: MetacriticLookup;
 	try {
@@ -292,7 +367,7 @@ async function refreshHltb(
 	options: ExternalDataRefreshOptions
 ): Promise<ExternalDataResult> {
 	const hltb = getHltbSource();
-	if (!hltb) return failedResult("hltb", SOURCE_UNAVAILABLE);
+	if (!hltb) return failedResult("hltb", EXTERNAL_DATA_SOURCE_UNAVAILABLE);
 	if (!externalId && options.resolveHltbId === false)
 		return failedResult("hltb", HLTB_ID_LOOKUP_PAUSED);
 

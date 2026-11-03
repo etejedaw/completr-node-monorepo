@@ -13,6 +13,8 @@ import { UiButton, UiDialog } from "../../ui";
 	template: `
 		<ui-dialog
 			size="sm"
+			icon="person_remove"
+			tone="danger"
 			[heading]="'Unfollow @' + username() + '?'"
 			[dismissible]="!busy()"
 			(closed)="cancelled.emit()"

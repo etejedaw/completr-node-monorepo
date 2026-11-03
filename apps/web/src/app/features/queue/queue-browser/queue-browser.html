@@ -1,7 +1,8 @@
 @if (isLoading() || !queueIsEmpty()) {
 <app-library-toolbar>
 	<ui-search-bar
-		class="flex-1 min-w-[12rem] [&_input]:!py-2 [&_input]:!text-sm"
+		size="sm"
+		class="flex-1 min-w-[12rem]"
 		[placeholder]="searchPlaceholder()"
 		[value]="searchQuery()"
 		(valueChange)="searchChange.emit($event)"
@@ -16,22 +17,22 @@
 	}
 </app-library-toolbar>
 @if (!readonly() && !isManual()) {
-<div
-	class="flex flex-wrap items-center justify-between gap-2 mb-6 px-3 py-2 rounded-card border border-line text-xs text-fg-muted"
-	role="status"
->
-	Previewing a sorted order. Your saved order is unchanged.
-	<button
-		uiButton
-		variant="ghost"
-		size="sm"
-		[disabled]="savingOrder()"
-		(click)="saveOrder.emit(sortedEntries())"
-	>
-		<span aria-hidden="true" class="material-icons text-sm">save</span>
-		{{ savingOrder() ? 'Saving...' : 'Save as my order' }}
-	</button>
-</div>
+<ui-alert tone="info" icon="sort" class="mb-6">
+	<div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+		<span>Previewing a sorted order. Your saved order is unchanged.</span>
+		<button
+			uiButton
+			variant="ghost"
+			size="sm"
+			class="-my-1"
+			[disabled]="savingOrder()"
+			(click)="saveOrder.emit(sortedEntries())"
+		>
+			<span aria-hidden="true" class="material-icons text-sm">save</span>
+			{{ savingOrder() ? 'Saving...' : 'Save as my order' }}
+		</button>
+	</div>
+</ui-alert>
 } } @if (isLoading()) {
 <app-queue-skeleton />
 } @else if (queueIsEmpty()) {

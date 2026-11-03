@@ -11,39 +11,36 @@ import {
 	backlogStatusIcon,
 	backlogStatusIconColor
 } from "../../utils/backlog-status";
+import {
+	FilterChip,
+	type FilterChipTouchTarget
+} from "../chip-group/filter-chip";
 
 export type BacklogStatusPillsLayout = "wrap" | "scroll";
 
-const PILL_BASE_CLASS =
-	"inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full border border-line bg-surface/60 backdrop-blur text-sm font-medium text-fg-secondary cursor-pointer transition hover:border-line-hover hover:text-fg";
+const NAV_CLASSES: Record<BacklogStatusPillsLayout, string> = {
+	wrap: "max-md:hidden flex flex-wrap gap-2",
+	scroll: "max-md:hidden -mx-[var(--page-pad-x)] px-[var(--page-pad-x)] tap:py-[8px] tap:-mb-[8px] flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+};
 
-const LAYOUT_CLASSES: Record<
-	BacklogStatusPillsLayout,
-	{ nav: string; pill: string }
-> = {
-	wrap: {
-		nav: "max-md:hidden flex flex-wrap gap-2",
-		pill: `${PILL_BASE_CLASS} tap:h-11`
-	},
-	scroll: {
-		nav: "max-md:hidden -mx-[var(--page-pad-x)] px-[var(--page-pad-x)] tap:py-[8px] tap:-mb-[8px] flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-		pill: `tap-area shrink-0 ${PILL_BASE_CLASS}`
-	}
+const TOUCH_TARGETS: Record<BacklogStatusPillsLayout, FilterChipTouchTarget> = {
+	wrap: "grow",
+	scroll: "area"
 };
 
 const ALL_STATUSES = "";
 
 @Component({
 	selector: "app-backlog-status-pills",
+	imports: [FilterChip],
 	template: `
-		<nav aria-label="Filter by status" [class]="classes().nav">
+		<nav aria-label="Filter by status" [class]="navClass()">
 			@for (option of options; track option.value) {
 				<button
-					type="button"
-					[class]="classes().pill"
-					[class.!text-brand]="isActive(option.value)"
-					[class.!border-brand]="isActive(option.value)"
-					[class.!bg-brand-subtle]="isActive(option.value)"
+					appFilterChip
+					chipSize="md"
+					[touchTarget]="touchTarget()"
+					[selected]="isActive(option.value)"
 					[attr.aria-pressed]="isActive(option.value)"
 					(click)="statusSelect.emit(option.value)"
 				>
@@ -75,7 +72,10 @@ export class BacklogStatusPills {
 			status: filter.value
 		}))
 	];
-	protected readonly classes = computed(() => LAYOUT_CLASSES[this.layout()]);
+	protected readonly navClass = computed(() => NAV_CLASSES[this.layout()]);
+	protected readonly touchTarget = computed(
+		() => TOUCH_TARGETS[this.layout()]
+	);
 	protected readonly icon = backlogStatusIcon;
 	protected readonly iconColor = backlogStatusIconColor;
 

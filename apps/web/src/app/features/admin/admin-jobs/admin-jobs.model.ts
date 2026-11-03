@@ -1,3 +1,5 @@
+import { type UiBadgeTone } from "../../../shared/ui";
+
 export interface JobAction {
 	type: string;
 	label: string;
@@ -6,5 +8,5 @@ export interface JobAction {
 
 export interface JobStatusStyle {
 	icon: string;
-	classes: string;
+	tone: UiBadgeTone;
 }

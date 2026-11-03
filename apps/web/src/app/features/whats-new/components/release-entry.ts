@@ -1,7 +1,9 @@
 import { DatePipe } from "@angular/common";
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 
+import { UiBadge } from "../../../shared/ui";
 import {
+	releaseBadgeTone,
 	releaseTintClass,
 	releaseTintTextClass,
 	type ReleaseView
@@ -9,7 +11,7 @@ import {
 
 @Component({
 	selector: "app-release-entry",
-	imports: [DatePipe],
+	imports: [DatePipe, UiBadge],
 	template: `
 		@let entry = release();
 		@if (variant() === "featured") {
@@ -23,15 +25,10 @@ import {
 					class="absolute -z-10 -top-32 -right-20 w-80 h-80 rounded-full bg-brand-glow blur-3xl opacity-50"
 				></div>
 				<div class="flex flex-wrap items-center gap-2">
-					<span
-						class="px-2.5 py-1 rounded-full bg-brand-solid text-white text-[0.6875rem] font-bold uppercase tracking-[0.16em]"
-						>Latest</span
-					>
-					<span
-						class="px-2.5 py-1 rounded-full text-[0.6875rem] font-semibold uppercase tracking-[0.16em]"
-						[class]="tintClass(entry.tint)"
-						>{{ entry.tag }}</span
-					>
+					<ui-badge tone="brand">Latest</ui-badge>
+					<ui-badge [tone]="badgeTone(entry.tint)">{{
+						entry.tag
+					}}</ui-badge>
 					<time
 						class="text-xs text-fg-muted"
 						[attr.datetime]="entry.date"
@@ -120,7 +117,7 @@ import {
 export class ReleaseEntryCard {
 	readonly release = input.required<ReleaseView>();
 	readonly variant = input<"featured" | "timeline">("timeline");
-
+	protected readonly badgeTone = releaseBadgeTone;
 	protected readonly tintClass = releaseTintClass;
 	protected readonly tintTextClass = releaseTintTextClass;
 }

@@ -3,10 +3,10 @@
 		@if (latestRun(); as run) {
 		<button
 			uiButton
-			variant="secondary"
+			variant="glass"
 			size="lg"
 			type="button"
-			class="flex-1 sm:flex-none h-11 !rounded-card !bg-surface/70 backdrop-blur-md active:scale-[0.98]"
+			class="flex-1 sm:flex-none h-11 !rounded-card active:scale-[0.98]"
 			[title]="'Open your ' + statusLabel(run.status).toLowerCase() + ' run'"
 			(click)="openPrimary()"
 		>
@@ -38,11 +38,11 @@
 		}
 		<button
 			uiButton
-			variant="secondary"
+			variant="glass"
 			size="lg"
 			type="button"
-			class="shrink-0 h-11 w-11 !px-0 tap:min-w-[44px] !rounded-card backdrop-blur-md active:scale-95"
-			[class]="(favorite() ? '!border-nav-favorites/50 !bg-nav-favorites/15 !text-nav-favorites' : '!bg-surface/70') + (variant() === 'full' ? ' md:w-auto md:!px-3.5' : '')"
+			class="shrink-0 h-11 w-11 !px-0 tap:min-w-[44px] !rounded-card active:scale-95"
+			[class]="(favorite() ? '!border-nav-favorites/50 !bg-nav-favorites/15 !text-nav-favorites' : '') + (variant() === 'full' ? ' md:w-auto md:!px-3.5' : '')"
 			[disabled]="togglingFavorite()"
 			[attr.aria-pressed]="favorite()"
 			[attr.aria-label]="favorite() ? 'Remove from favorites' : 'Add to favorites'"

@@ -1,6 +1,7 @@
 <ui-dialog
 	eyebrow="Up Next"
 	heading="Pick a run for Up Next"
+	icon="playlist_add"
 	size="sm"
 	[subheading]="gameTitle"
 	(closed)="close()"
@@ -14,20 +15,11 @@
 				(click)="choose(item.run)"
 			>
 				<span class="flex items-center gap-2 mb-1">
-					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold"
-						[class]="statusClass(item.run.status)"
-					>
-						<span aria-hidden="true" class="material-icons text-sm"
-							>{{ statusIcon(item.run.status) }}</span
-						>
-						{{ statusLabel(item.run.status) }}
-					</span>
+					<app-backlog-status-badge [status]="item.run.status" />
 					<span class="text-xs font-medium text-fg-secondary"
 						>{{ item.run.platform.abbreviation }}</span
 					>
-					<span
-						class="ml-auto text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-fg-muted"
+					<span uiEyebrow class="ml-auto"
 						>Run #{{ item.number }}</span
 					>
 				</span>

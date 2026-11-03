@@ -20,14 +20,28 @@ import {
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { adminErrorMessage } from "../../../core/utils/admin-error-message";
+import { ChipGroup } from "../../../shared/components/chip-group/chip-group";
+import { type ChipOption } from "../../../shared/components/chip-group/chip-group.model";
+import { FilterSection } from "../../../shared/components/filter-section/filter-section";
+import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
+import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
+import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
 import {
 	UiAlert,
+	UiBadge,
 	UiButton,
+	UiDatePicker,
 	UiDialog,
+	UiEyebrow,
+	UiFieldError,
 	UiFieldLabel,
+	UiFieldOptional,
 	UiIconButton,
 	UiInput,
-	UiSelect,
+	UiSwitch,
 	UiTextarea
 } from "../../../shared/ui";
 import { FranchisesService } from "../../franchises/franchises";
@@ -44,6 +58,7 @@ import {
 	type CompilationRowMode,
 	type ManualExternalSource
 } from "./admin-game-editor.model";
+import { CatalogGamePicker } from "./catalog-game-picker";
 import {
 	buildHltbSearchUrl,
 	buildMetacriticGameUrl,
@@ -65,18 +80,35 @@ const METACRITIC_SLUG_ERROR =
 
 let nextCompilationRowId = 0;
 
+const COMPILATION_ROW_MODES: SegmentedOption<CompilationRowMode>[] = [
+	{ value: "link", label: "Link existing", icon: "link" },
+	{ value: "create", label: "Create new", icon: "add_circle_outline" }
+];
+
 @Component({
 	selector: "app-admin-game-editor",
 	imports: [
+		CatalogGamePicker,
+		ChipGroup,
+		FilterSection,
 		FormField,
+		GamePoster,
+		OptionPicker,
+		SegmentedControl,
+		SelectedGameRow,
 		UiAlert,
+		UiBadge,
 		UiButton,
+		UiDatePicker,
 		UiDialog,
+		UiEyebrow,
 		UiFieldLabel,
+		UiFieldOptional,
 		UiIconButton,
 		UiInput,
-		UiSelect,
-		UiTextarea
+		UiSwitch,
+		UiTextarea,
+		UiFieldError
 	],
 	templateUrl: "./admin-game-editor.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -98,6 +130,29 @@ export class AdminGameEditor implements OnInit {
 	protected readonly allGenres = signal<Genre[]>([]);
 	protected readonly allFranchises = signal<Franchise[]>([]);
 	protected readonly selectedFranchiseId = signal<string>("");
+	protected readonly compilationRowModes = COMPILATION_ROW_MODES;
+
+	protected readonly platformOptions = computed<ChipOption[]>(() =>
+		this.allPlatforms().map(platform => ({
+			value: platform.code,
+			label: platform.abbreviation,
+			hint: platform.name
+		}))
+	);
+	protected readonly genreOptions = computed<ChipOption[]>(() =>
+		this.allGenres().map(genre => ({
+			value: genre.code,
+			label: genre.name
+		}))
+	);
+	protected readonly franchiseOptions = computed<PickerOption[]>(() => [
+		{ value: "", label: "None", icon: "block" },
+		...this.allFranchises().map(franchise => ({
+			value: franchise.id,
+			label: franchise.name,
+			icon: "collections_bookmark"
+		}))
+	]);
 
 	protected readonly model = signal({
 		rawgSlug: "",
@@ -107,7 +162,6 @@ export class AdminGameEditor implements OnInit {
 		backgroundUrl: "",
 		isDlc: false,
 		variant: "",
-		parentSlug: "",
 		hltbId: "",
 		metacriticSlug: ""
 	});
@@ -137,9 +191,6 @@ export class AdminGameEditor implements OnInit {
 	);
 	protected readonly isDlc = computed(() => this.form.isDlc().value());
 	protected readonly variant = computed(() => this.form.variant().value());
-	protected readonly parentSlug = computed(() =>
-		this.form.parentSlug().value()
-	);
 
 	private readonly normalizedHltbId = computed(() =>
 		normalizeHltbId(this.form.hltbId().value())
@@ -185,18 +236,26 @@ export class AdminGameEditor implements OnInit {
 	protected readonly rawgId = signal<number | null>(null);
 	private rawgRequest: { slug: string; subscription: Subscription } | null =
 		null;
-	private parentRequest: {
-		slug: string;
-		subscription: Subscription;
-	} | null = null;
-	private readonly compilationSearches = new Map<string, Subscription>();
 
 	protected readonly parentGame = signal<GameSummary | null>(null);
-	private readonly parentCleared = signal(false);
-	protected readonly fetchingParent = signal(false);
-	protected readonly parentError = signal("");
+	protected readonly parentCleared = signal(false);
+	protected readonly parentRemovalPending = computed(
+		() =>
+			!!this.game()?.parentGame &&
+			this.parentCleared() &&
+			!this.parentGame()
+	);
+	protected readonly parentFocus = signal<"search" | "selected" | null>(null);
+	protected readonly parentExcludedIds = computed(() => {
+		const ownId = this.game()?.id;
+		return ownId ? [ownId] : [];
+	});
 	protected readonly selectedPlatforms = signal<Set<string>>(new Set());
 	protected readonly selectedGenres = signal<Set<string>>(new Set());
+	protected readonly platformValues = computed(() => [
+		...this.selectedPlatforms()
+	]);
+	protected readonly genreValues = computed(() => [...this.selectedGenres()]);
 	protected readonly scores = signal<{ source: string; score: number }[]>([]);
 	protected readonly times = signal<{ source: string; duration: number }[]>(
 		[]
@@ -220,6 +279,23 @@ export class AdminGameEditor implements OnInit {
 	protected readonly compilationClearing = signal(false);
 	protected readonly compilationError = signal("");
 	protected readonly compilationRows = signal<CompilationRow[]>([]);
+	protected readonly compilationExcludedIds = computed(() => {
+		const rows = this.compilationRows();
+		const ownId = this.game()?.id;
+		return new Map(
+			rows.map(row => [
+				row.id,
+				[
+					...(ownId ? [ownId] : []),
+					...rows
+						.filter(
+							other => other.id !== row.id && other.linkedGame
+						)
+						.map(other => other.linkedGame!.id)
+				]
+			])
+		);
+	});
 
 	protected readonly newScoreSource = signal("");
 	protected readonly newScoreValue = signal<number | null>(null);
@@ -291,46 +367,17 @@ export class AdminGameEditor implements OnInit {
 		this.times.set(g.times.map(t => ({ ...t })));
 	}
 
-	fetchParentGame() {
-		const slug = this.parentSlug().trim();
-		if (!slug || this.parentRequest?.slug === slug) return;
-		if (slug.toLowerCase() === this.game()?.code) {
-			this.parentError.set("A game can't be its own parent.");
-			return;
-		}
-
-		this.parentRequest?.subscription.unsubscribe();
-		this.fetchingParent.set(true);
-		this.parentError.set("");
-
-		const subscription = this.gamesService.getByCode(slug).subscribe({
-			next: game => {
-				this.parentRequest = null;
-				this.fetchingParent.set(false);
-				if (game.id === this.game()?.id) {
-					this.parentError.set("A game can't be its own parent.");
-					return;
-				}
-				this.parentGame.set(game);
-				this.parentCleared.set(false);
-			},
-			error: () => {
-				this.parentRequest = null;
-				this.parentError.set("Game not found");
-				this.fetchingParent.set(false);
-			}
-		});
-		this.parentRequest = { slug, subscription };
+	pickParentGame(picked: Game) {
+		if (picked.id === this.game()?.id) return;
+		this.parentGame.set(picked);
+		this.parentCleared.set(false);
+		this.parentFocus.set("selected");
 	}
 
 	clearParentGame() {
-		this.parentRequest?.subscription.unsubscribe();
-		this.parentRequest = null;
-		this.fetchingParent.set(false);
 		if (this.parentGame()) this.parentCleared.set(true);
 		this.parentGame.set(null);
-		this.model.update(m => ({ ...m, parentSlug: "" }));
-		this.parentError.set("");
+		this.parentFocus.set("search");
 	}
 
 	fetchRawg() {
@@ -406,26 +453,16 @@ export class AdminGameEditor implements OnInit {
 		this.times.set(merged);
 	}
 
-	togglePlatform(code: string) {
-		const current = this.selectedPlatforms();
-		const next = new Set(current);
-		if (next.has(code)) {
-			next.delete(code);
-		} else {
-			next.add(code);
-		}
-		this.selectedPlatforms.set(next);
+	setPlatforms(codes: readonly string[]) {
+		this.selectedPlatforms.set(new Set(codes));
 	}
 
-	toggleGenre(code: string) {
-		const current = this.selectedGenres();
-		const next = new Set(current);
-		if (next.has(code)) {
-			next.delete(code);
-		} else {
-			next.add(code);
-		}
-		this.selectedGenres.set(next);
+	setGenres(codes: readonly string[]) {
+		this.selectedGenres.set(new Set(codes));
+	}
+
+	setDlc(isDlc: boolean) {
+		this.form.isDlc().value.set(isDlc);
 	}
 
 	removeScore(index: number) {
@@ -842,7 +879,6 @@ export class AdminGameEditor implements OnInit {
 	openCompilationModal() {
 		const g = this.game();
 		if (!g || this.compilationOpen()) return;
-		this.cancelAllCompilationSearches();
 		this.compilationError.set("");
 		const existing = (g.compilationItems ?? [])
 			.filter(item => item.game)
@@ -868,7 +904,6 @@ export class AdminGameEditor implements OnInit {
 
 	closeCompilationModal() {
 		if (this.compilationSaving() || this.compilationClearing()) return;
-		this.cancelAllCompilationSearches();
 		this.compilationOpen.set(false);
 	}
 
@@ -878,20 +913,8 @@ export class AdminGameEditor implements OnInit {
 			mode,
 			title: "",
 			linkedGame: null,
-			searchQuery: "",
-			searching: false,
-			searchResults: []
+			focus: null
 		};
-	}
-
-	private cancelCompilationSearch(rowId: string) {
-		this.compilationSearches.get(rowId)?.unsubscribe();
-		this.compilationSearches.delete(rowId);
-	}
-
-	private cancelAllCompilationSearches() {
-		this.compilationSearches.forEach(search => search.unsubscribe());
-		this.compilationSearches.clear();
 	}
 
 	private patchCompilationRow(rowId: string, patch: Partial<CompilationRow>) {
@@ -913,22 +936,18 @@ export class AdminGameEditor implements OnInit {
 		const row = this.compilationRows()[index];
 		if (!row || this.compilationRows().length <= 1) return;
 		this.compilationError.set("");
-		this.cancelCompilationSearch(row.id);
 		this.compilationRows.update(rows => rows.filter(r => r.id !== row.id));
 	}
 
 	setCompilationRowMode(index: number, mode: CompilationRowMode) {
 		const row = this.compilationRows()[index];
-		if (!row) return;
+		if (!row || row.mode === mode) return;
 		this.compilationError.set("");
-		this.cancelCompilationSearch(row.id);
 		this.patchCompilationRow(row.id, {
 			mode,
 			title: "",
 			linkedGame: null,
-			searchQuery: "",
-			searching: false,
-			searchResults: []
+			focus: null
 		});
 	}
 
@@ -939,58 +958,13 @@ export class AdminGameEditor implements OnInit {
 		this.patchCompilationRow(row.id, { title: value });
 	}
 
-	updateCompilationRowQuery(index: number, value: string) {
-		const row = this.compilationRows()[index];
-		if (!row) return;
-		this.compilationError.set("");
-		this.cancelCompilationSearch(row.id);
-		const trimmed = value.trim();
-		if (trimmed.length < 2) {
-			this.patchCompilationRow(row.id, {
-				searchQuery: value,
-				linkedGame: null,
-				searchResults: [],
-				searching: false
-			});
-			return;
-		}
-		this.patchCompilationRow(row.id, {
-			searchQuery: value,
-			linkedGame: null,
-			searching: true
-		});
-		const ownId = this.game()?.id;
-		const search = this.gamesService.searchLocal(trimmed).subscribe({
-			next: games => {
-				this.compilationSearches.delete(row.id);
-				this.patchCompilationRow(row.id, {
-					searching: false,
-					searchResults: games
-						.filter(found => found.id !== ownId)
-						.slice(0, 8)
-				});
-			},
-			error: () => {
-				this.compilationSearches.delete(row.id);
-				this.patchCompilationRow(row.id, {
-					searching: false,
-					searchResults: []
-				});
-			}
-		});
-		this.compilationSearches.set(row.id, search);
-	}
-
 	pickCompilationRowGame(index: number, picked: Game) {
 		const row = this.compilationRows()[index];
-		if (!row) return;
+		if (!row || row.mode !== "link") return;
 		this.compilationError.set("");
-		this.cancelCompilationSearch(row.id);
 		this.patchCompilationRow(row.id, {
 			linkedGame: picked,
-			searchQuery: picked.title,
-			searching: false,
-			searchResults: []
+			focus: "selected"
 		});
 	}
 
@@ -998,11 +972,7 @@ export class AdminGameEditor implements OnInit {
 		const row = this.compilationRows()[index];
 		if (!row) return;
 		this.compilationError.set("");
-		this.patchCompilationRow(row.id, {
-			linkedGame: null,
-			searchQuery: "",
-			searchResults: []
-		});
+		this.patchCompilationRow(row.id, { linkedGame: null, focus: "search" });
 	}
 
 	previewSlug(title: string): string {
@@ -1069,7 +1039,6 @@ export class AdminGameEditor implements OnInit {
 			return;
 		}
 
-		this.cancelAllCompilationSearches();
 		this.compilationSaving.set(true);
 		this.compilationError.set("");
 
@@ -1125,18 +1094,28 @@ export class AdminGameEditor implements OnInit {
 		});
 	}
 
-	protected get availableScoreSources() {
+	protected readonly availableScoreSources = computed<PickerOption[]>(() => {
 		const used = new Set(this.scores().map(s => s.source));
 		return this.scoreSourcesService
 			.manualSources()
-			.map(source => source.code)
-			.filter(code => !used.has(code));
-	}
+			.filter(source => !used.has(source.code))
+			.map(source => ({
+				value: source.code,
+				label: source.code,
+				icon: "star_outline"
+			}));
+	});
 
-	protected get availableTimeSources() {
+	protected readonly availableTimeSources = computed<PickerOption[]>(() => {
 		const used = new Set(this.times().map(t => t.source));
-		return this.timeSources.filter(s => !used.has(s));
-	}
+		return this.timeSources
+			.filter(source => !used.has(source))
+			.map(source => ({
+				value: source,
+				label: source,
+				icon: "schedule"
+			}));
+	});
 }
 
 function externalIdOf(game: Game, source: ManualExternalSource) {

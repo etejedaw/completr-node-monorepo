@@ -100,6 +100,7 @@ describe("AdminGames interaction", () => {
 	) => ApiResponse | "network-error";
 	let unexpectedRequests: string[];
 	const gamesQueries: URLSearchParams[] = [];
+	const previewQueries: URLSearchParams[] = [];
 	const reactivations: string[] = [];
 	const deactivations: string[] = [];
 	const detailRequests: string[] = [];
@@ -113,7 +114,10 @@ describe("AdminGames interaction", () => {
 
 	function listGames(req: TestRequest): ApiResponse {
 		const params = req.request.params;
-		gamesQueries.push(new URLSearchParams(params.toString()));
+		const isPreview = params.get("limit") === "1";
+		(isPreview ? previewQueries : gamesQueries).push(
+			new URLSearchParams(params.toString())
+		);
 		if (nextGamesFailure) {
 			const response = nextGamesFailure;
 			nextGamesFailure = null;
@@ -300,7 +304,10 @@ describe("AdminGames interaction", () => {
 		let found: TestRequest | undefined;
 		await waitFor(() => {
 			[found] = httpTesting.match(
-				req => req.method === "GET" && req.url === gamesUrl
+				req =>
+					req.method === "GET" &&
+					req.url === gamesUrl &&
+					req.params.get("limit") !== "1"
 			);
 			expect(found).toBeDefined();
 		});
@@ -322,8 +329,39 @@ describe("AdminGames interaction", () => {
 		return screen.getByRole("textbox", { name: "Search games" });
 	}
 
+	function filtersButton() {
+		return screen.getByRole("button", { name: /^Filters/ });
+	}
+
+	function filtersPanel() {
+		return screen.getByRole("dialog", { name: "Filters" });
+	}
+
+	async function openFilters(user: ReturnType<typeof userEvent.setup>) {
+		await user.click(filtersButton());
+		return screen.findByRole("dialog", { name: "Filters" });
+	}
+
 	function chip(name: string) {
-		return screen.getByRole("button", { name });
+		return within(filtersPanel()).getByRole("button", { name });
+	}
+
+	function showResultsButton() {
+		return within(filtersPanel()).getByRole("button", { name: /^Show/ });
+	}
+
+	async function applyMissing(
+		user: ReturnType<typeof userEvent.setup>,
+		names: string[]
+	) {
+		await openFilters(user);
+		for (const name of names) await user.click(chip(name));
+		await user.click(showResultsButton());
+		await waitFor(() =>
+			expect(
+				screen.queryByRole("dialog", { name: "Filters" })
+			).not.toBeInTheDocument()
+		);
 	}
 
 	function statusOption(name: string) {
@@ -391,6 +429,7 @@ describe("AdminGames interaction", () => {
 		refreshRequests.length = 0;
 		unexpectedRequests = [];
 		gamesQueries.length = 0;
+		previewQueries.length = 0;
 		reactivations.length = 0;
 		deactivations.length = 0;
 		detailRequests.length = 0;
@@ -455,13 +494,15 @@ describe("AdminGames interaction", () => {
 		});
 
 		it("keeps working without unhandled errors when the reports and score sources fail to load", async () => {
+			const user = userEvent.setup();
 			reportsFailure = failure(500);
 			scoreSourcesFailure = failure(500);
 			await renderLoaded();
+			await openFilters(user);
 
 			expect(screen.getByText("Alpha 001")).toBeInTheDocument();
 			expect(
-				screen.queryByRole("button", { name: "View report" })
+				screen.queryByRole("link", { name: "View report" })
 			).not.toBeInTheDocument();
 			expect(chip("No scores")).toBeInTheDocument();
 			expect(
@@ -470,7 +511,9 @@ describe("AdminGames interaction", () => {
 		});
 
 		it("offers a chip per manual score source and per time source but not the computed one", async () => {
+			const user = userEvent.setup();
 			await renderLoaded();
+			await openFilters(user);
 
 			expect(chip("Metacritic")).toBeInTheDocument();
 			expect(chip("HowLongToBeat")).toBeInTheDocument();
@@ -676,9 +719,9 @@ describe("AdminGames interaction", () => {
 			await renderLoaded();
 
 			held = req => req.method === "GET" && req.url === gamesUrl;
-			await user.click(chip("No scores"));
+			await applyMissing(user, ["No scores"]);
 			const first = await nextGamesRequest();
-			await user.click(chip("No times"));
+			await applyMissing(user, ["No times"]);
 			const second = await nextGamesRequest();
 
 			expect(first.cancelled).toBe(true);
@@ -775,30 +818,42 @@ describe("AdminGames interaction", () => {
 		});
 	});
 
-	describe("missing data chips", () => {
-		it("filters by one chip and toggles it off again", async () => {
+	describe("missing data filters panel", () => {
+		it("keeps the missing data chips out of the page until Filters is opened", async () => {
+			await renderLoaded();
+
+			expect(
+				screen.queryByRole("button", { name: "No scores" })
+			).not.toBeInTheDocument();
+			expect(filtersButton()).toHaveAttribute("aria-haspopup", "dialog");
+			expect(filtersButton()).toHaveAccessibleName("Filters");
+		});
+
+		it("filters by one chip and toggles it off again, with the count on the Filters button", async () => {
 			const user = userEvent.setup();
 			await renderLoaded();
 
-			await user.click(chip("No scores"));
+			await applyMissing(user, ["No scores"]);
 			await untilVisible(() =>
 				expect(titlesOnScreen()).toEqual(["Zelda: Breath of the Wild"])
 			);
-			expect(chip("No scores")).toHaveAttribute("aria-pressed", "true");
 			expect(lastQuery().get("no_scores")).toBe("true");
+			expect(filtersButton()).toHaveAccessibleName("Filters, 1 active");
 
+			await openFilters(user);
+			expect(chip("No scores")).toHaveAttribute("aria-pressed", "true");
 			await user.click(chip("No scores"));
+			await user.click(showResultsButton());
 			await untilVisible(() => expect(titlesOnScreen()).toHaveLength(50));
-			expect(chip("No scores")).toHaveAttribute("aria-pressed", "false");
 			expect(lastQuery().has("no_scores")).toBe(false);
+			expect(filtersButton()).toHaveAccessibleName("Filters");
 		});
 
 		it("combines several chips and drops to no matches when they exclude each other", async () => {
 			const user = userEvent.setup();
 			await renderLoaded();
 
-			await user.click(chip("No scores"));
-			await user.click(chip("No times"));
+			await applyMissing(user, ["No scores", "No times"]);
 
 			await untilVisible(() =>
 				expect(
@@ -807,15 +862,14 @@ describe("AdminGames interaction", () => {
 			);
 			expect(lastQuery().get("no_scores")).toBe("true");
 			expect(lastQuery().get("no_times")).toBe("true");
+			expect(filtersButton()).toHaveAccessibleName("Filters, 2 active");
 		});
 
 		it("sends source filters joined with commas", async () => {
 			const user = userEvent.setup();
 			await renderLoaded();
 
-			await user.click(chip("HowLongToBeat"));
-			await user.click(chip("RAWG"));
-			await user.click(chip("Metacritic"));
+			await applyMissing(user, ["HowLongToBeat", "RAWG", "Metacritic"]);
 
 			await untilVisible(() =>
 				expect(lastQuery().get("no_score_source")).toBe("metacritic")
@@ -823,7 +877,7 @@ describe("AdminGames interaction", () => {
 			expect(lastQuery().get("no_time_source")).toBe("hltb,rawg");
 		});
 
-		it("returns to the first page when a chip changes while on a later page", async () => {
+		it("returns to the first page when the filters change while on a later page", async () => {
 			const user = userEvent.setup();
 			await renderLoaded();
 			await user.click(screen.getByRole("button", { name: "Next page" }));
@@ -831,7 +885,7 @@ describe("AdminGames interaction", () => {
 				expect(screen.getByText("Alpha 048")).toBeInTheDocument()
 			);
 
-			await user.click(chip("No platforms"));
+			await applyMissing(user, ["No platforms"]);
 
 			await untilVisible(() =>
 				expect(titlesOnScreen()).toEqual(["Ñandú Quest 🎮"])
@@ -839,37 +893,202 @@ describe("AdminGames interaction", () => {
 			expect(lastQuery().get("offset")).toBe("0");
 		});
 
-		it("toggles with Space and Enter from the keyboard", async () => {
+		it("previews the number of results before applying and sends no list request until Show", async () => {
 			const user = userEvent.setup();
 			await renderLoaded();
+			const listLoads = gamesQueries.length;
+
+			await openFilters(user);
+			await untilVisible(() =>
+				expect(showResultsButton()).toHaveTextContent(
+					"Show 123 results"
+				)
+			);
+			await user.click(chip("No scores"));
+			await untilVisible(() =>
+				expect(showResultsButton()).toHaveTextContent("Show 1 result")
+			);
+			await user.click(chip("No times"));
+			await untilVisible(() =>
+				expect(showResultsButton()).toHaveTextContent("Show 0 results")
+			);
+			expect(
+				previewQueries[previewQueries.length - 1]!.get("no_times")
+			).toBe("true");
+			expect(gamesQueries).toHaveLength(listLoads);
+			expect(titlesOnScreen()).toHaveLength(50);
+		});
+
+		it("toggles chips with Space and Enter from the keyboard without reloading the list", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			const listLoads = gamesQueries.length;
+			await openFilters(user);
 
 			chip("No times").focus();
 			await user.keyboard(" ");
-			await untilVisible(() =>
-				expect(chip("No times")).toHaveAttribute("aria-pressed", "true")
-			);
+			expect(chip("No times")).toHaveAttribute("aria-pressed", "true");
 			await user.keyboard("{Enter}");
-			await untilVisible(() =>
-				expect(chip("No times")).toHaveAttribute(
-					"aria-pressed",
-					"false"
-				)
-			);
+			expect(chip("No times")).toHaveAttribute("aria-pressed", "false");
+			answerPending();
+			expect(gamesQueries).toHaveLength(listLoads);
 		});
 
 		it("an odd number of rapid clicks leaves the chip on and the list filtered", async () => {
 			const user = userEvent.setup();
 			await renderLoaded();
+			await openFilters(user);
 
 			await user.tripleClick(chip("No scores"));
+			expect(chip("No scores")).toHaveAttribute("aria-pressed", "true");
+			await user.click(showResultsButton());
 
 			await untilVisible(() =>
-				expect(chip("No scores")).toHaveAttribute(
-					"aria-pressed",
-					"true"
+				expect(titlesOnScreen()).toEqual(["Zelda: Breath of the Wild"])
+			);
+		});
+
+		it("closing the panel halfway with Escape discards the chips picked", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			const listLoads = gamesQueries.length;
+
+			await openFilters(user);
+			await user.click(chip("No scores"));
+			await user.click(chip("RAWG"));
+			await user.keyboard("{Escape}");
+			await waitFor(() =>
+				expect(
+					screen.queryByRole("dialog", { name: "Filters" })
+				).not.toBeInTheDocument()
+			);
+			answerPending();
+
+			expect(gamesQueries).toHaveLength(listLoads);
+			expect(filtersButton()).toHaveAccessibleName("Filters");
+			expect(titlesOnScreen()).toHaveLength(50);
+			await openFilters(user);
+			expect(chip("No scores")).toHaveAttribute("aria-pressed", "false");
+			expect(chip("RAWG")).toHaveAttribute("aria-pressed", "false");
+		});
+
+		it("closing while the preview is still loading leaves no stale count behind", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			held = req =>
+				req.method === "GET" &&
+				req.url === gamesUrl &&
+				req.params.get("limit") === "1";
+
+			await openFilters(user);
+			await user.click(chip("No scores"));
+			await waitFor(() =>
+				expect(
+					httpTesting.match(
+						req =>
+							req.url === gamesUrl &&
+							req.params.get("limit") === "1"
+					).length
+				).toBeGreaterThan(0)
+			);
+			await user.keyboard("{Escape}");
+			held = () => false;
+			answerPending();
+
+			await openFilters(user);
+			expect(showResultsButton()).toHaveTextContent("Show results");
+			await untilVisible(() =>
+				expect(showResultsButton()).toHaveTextContent(
+					"Show 123 results"
 				)
 			);
-			expect(titlesOnScreen()).toEqual(["Zelda: Breath of the Wild"]);
+		});
+
+		it("applying without changes closes the panel and sends nothing", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			const listLoads = gamesQueries.length;
+
+			await applyMissing(user, []);
+			await applyMissing(user, ["No scores", "No scores"]);
+			answerPending();
+
+			expect(gamesQueries).toHaveLength(listLoads);
+			expect(titlesOnScreen()).toHaveLength(50);
+		});
+
+		it("a double click on Show results sends a single list request", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			const listLoads = gamesQueries.length;
+
+			await openFilters(user);
+			await user.click(chip("No scores"));
+			await user.dblClick(showResultsButton());
+			await untilVisible(() =>
+				expect(titlesOnScreen()).toEqual(["Zelda: Breath of the Wild"])
+			);
+
+			expect(gamesQueries).toHaveLength(listLoads + 1);
+			expect(
+				screen.queryByRole("dialog", { name: "Filters" })
+			).not.toBeInTheDocument();
+		});
+
+		it("Clear empties the draft, is disabled with nothing picked and applies on Show", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			await applyMissing(user, ["No scores", "HowLongToBeat"]);
+			await untilVisible(() =>
+				expect(
+					screen.getByText("No games match these filters.")
+				).toBeInTheDocument()
+			);
+
+			await openFilters(user);
+			const clear = within(filtersPanel()).getByRole("button", {
+				name: "Clear"
+			});
+			expect(clear).toBeEnabled();
+			await user.dblClick(clear);
+			expect(chip("No scores")).toHaveAttribute("aria-pressed", "false");
+			expect(chip("HowLongToBeat")).toHaveAttribute(
+				"aria-pressed",
+				"false"
+			);
+			expect(clear).toBeDisabled();
+			await untilVisible(() =>
+				expect(showResultsButton()).toHaveTextContent(
+					"Show 123 results"
+				)
+			);
+			await user.click(showResultsButton());
+
+			await untilVisible(() => expect(titlesOnScreen()).toHaveLength(50));
+			expect(lastQuery().has("no_scores")).toBe(false);
+			expect(lastQuery().has("no_time_source")).toBe(false);
+			expect(filtersButton()).toHaveAccessibleName("Filters");
+		});
+
+		it("keeps the search and status when previewing the count", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			await user.click(statusOption("All"));
+			await user.type(searchBox(), "dead");
+			await untilVisible(() =>
+				expect(titlesOnScreen()).toEqual([
+					"Dead Game One",
+					"Dead Game Two"
+				])
+			);
+
+			await openFilters(user);
+			await untilVisible(() =>
+				expect(showResultsButton()).toHaveTextContent("Show 2 results")
+			);
+			const preview = previewQueries[previewQueries.length - 1]!;
+			expect(preview.get("search")).toBe("dead");
+			expect(preview.get("include_inactive")).toBe("true");
 		});
 	});
 
@@ -879,11 +1098,11 @@ describe("AdminGames interaction", () => {
 			await renderLoaded();
 
 			held = req => req.method === "GET" && req.url === gamesUrl;
-			await user.click(chip("No scores"));
+			await applyMissing(user, ["No scores"]);
 			const first = await nextGamesRequest();
-			await user.click(chip("No scores"));
+			await applyMissing(user, ["No scores"]);
 			const second = await nextGamesRequest();
-			await user.click(chip("No times"));
+			await applyMissing(user, ["No times"]);
 			const third = await nextGamesRequest();
 			held = () => false;
 			answer(third);
@@ -894,8 +1113,10 @@ describe("AdminGames interaction", () => {
 				expect(titlesOnScreen()).toEqual(["Pokémon Rojo"])
 			);
 			await settle();
-			expect(chip("No times")).toHaveAttribute("aria-pressed", "true");
 			expect(titlesOnScreen()).toEqual(["Pokémon Rojo"]);
+			await openFilters(user);
+			expect(chip("No times")).toHaveAttribute("aria-pressed", "true");
+			expect(chip("No scores")).toHaveAttribute("aria-pressed", "false");
 		});
 	});
 
@@ -906,7 +1127,7 @@ describe("AdminGames interaction", () => {
 
 			await user.type(searchBox(), "zzz");
 			await user.click(statusOption("All"));
-			await user.click(chip("No scores"));
+			await applyMissing(user, ["No scores"]);
 			await untilVisible(() =>
 				expect(
 					screen.getByText("No games match these filters.")
@@ -923,7 +1144,7 @@ describe("AdminGames interaction", () => {
 				"aria-checked",
 				"true"
 			);
-			expect(chip("No scores")).toHaveAttribute("aria-pressed", "false");
+			expect(filtersButton()).toHaveAccessibleName("Filters");
 			const query = lastQuery();
 			expect(query.has("search")).toBe(false);
 			expect(query.has("no_scores")).toBe(false);
@@ -1118,14 +1339,14 @@ describe("AdminGames interaction", () => {
 			const user = userEvent.setup();
 			await renderLoaded();
 			nextGamesFailure = failure(500);
-			await user.click(chip("No scores"));
+			await applyMissing(user, ["No scores"]);
 			await untilVisible(() =>
 				expect(
 					screen.getByText(/Could not load games/)
 				).toBeInTheDocument()
 			);
 
-			await user.click(chip("No scores"));
+			await applyMissing(user, ["No scores"]);
 
 			await untilVisible(() => expect(titlesOnScreen()).toHaveLength(50));
 		});
@@ -1358,28 +1579,19 @@ describe("AdminGames interaction", () => {
 	});
 
 	describe("reports", () => {
-		it("flags games with a pending report and opens the report from the flag", async () => {
-			const user = userEvent.setup();
+		it("flags games with a pending report and links the flag to the report", async () => {
 			pendingReports = [{ id: "r1", gameId: "a002" }];
 			await renderLoaded();
-			const navigate = vi
-				.spyOn(TestBed.inject(Router), "navigate")
-				.mockResolvedValue(true);
 
 			expect(
-				within(rowOf("Alpha 001")).queryByRole("button", {
+				within(rowOf("Alpha 001")).queryByRole("link", {
 					name: "View report"
 				})
 			).not.toBeInTheDocument();
-			const flag = within(rowOf("Alpha 002")).getByRole("button", {
+			const flag = within(rowOf("Alpha 002")).getByRole("link", {
 				name: "View report"
 			});
-			await user.click(flag);
-
-			expect(navigate).toHaveBeenCalledTimes(1);
-			expect(navigate).toHaveBeenCalledWith(["/admin/reports"], {
-				queryParams: { gameId: "a002" }
-			});
+			expect(flag).toHaveAttribute("href", "/admin/reports?gameId=a002");
 		});
 
 		it("keeps the flag when the list is filtered and refetched", async () => {
@@ -1387,13 +1599,13 @@ describe("AdminGames interaction", () => {
 			pendingReports = [{ id: "r1", gameId: "zelda" }];
 			await renderLoaded();
 
-			await user.click(chip("No scores"));
+			await applyMissing(user, ["No scores"]);
 
 			await untilVisible(() =>
 				expect(titlesOnScreen()).toEqual(["Zelda: Breath of the Wild"])
 			);
 			expect(
-				within(rowOf("Zelda: Breath of the Wild")).getByRole("button", {
+				within(rowOf("Zelda: Breath of the Wild")).getByRole("link", {
 					name: "View report"
 				})
 			).toBeInTheDocument();
@@ -1885,15 +2097,139 @@ describe("AdminGames interaction", () => {
 	});
 
 	describe("mobile viewport", () => {
+		async function openRowMenu(
+			user: ReturnType<typeof userEvent.setup>,
+			title: string
+		) {
+			await user.click(
+				within(rowOf(title)).getByRole("button", {
+					name: `Actions for ${title}`
+				})
+			);
+			return screen.findByRole("dialog", { name: title });
+		}
+
+		it("groups the row actions of an active game in one menu", async () => {
+			const user = userEvent.setup();
+			await renderLoaded(true);
+
+			const sheet = await openRowMenu(user, "Alpha 001");
+
+			expect(
+				within(sheet)
+					.getAllByRole("button")
+					.map(button => button.getAttribute("aria-label"))
+					.filter(label => label && label !== "Close")
+			).toEqual([
+				"Edit game",
+				"Refresh external data",
+				"Deactivate game"
+			]);
+		});
+
+		it("offers the report and marks the game as reported", async () => {
+			const user = userEvent.setup();
+			pendingReports = [{ id: "r1", gameId: "a002" }];
+			await renderLoaded(true);
+			const navigate = vi
+				.spyOn(TestBed.inject(Router), "navigateByUrl")
+				.mockResolvedValue(true);
+
+			expect(
+				within(rowOf("Alpha 002")).getByText("Reported")
+			).toBeInTheDocument();
+			expect(
+				within(rowOf("Alpha 001")).queryByText("Reported")
+			).not.toBeInTheDocument();
+			const sheet = await openRowMenu(user, "Alpha 002");
+			const report = within(sheet).getByRole("link", {
+				name: "View report"
+			});
+			expect(report).toHaveAttribute(
+				"href",
+				"/admin/reports?gameId=a002"
+			);
+			await user.click(report);
+
+			expect(navigate).toHaveBeenCalledTimes(1);
+			expect(String(navigate.mock.calls[0][0])).toBe(
+				"/admin/reports?gameId=a002"
+			);
+			await waitFor(() =>
+				expect(
+					screen.queryByRole("dialog", { name: "Alpha 002" })
+				).not.toBeInTheDocument()
+			);
+		});
+
+		it("reactivates a deactivated game once even when the menu item is tapped three times", async () => {
+			const user = userEvent.setup();
+			await renderLoaded(true);
+			await user.click(statusOption("Deactivated"));
+			await untilVisible(() =>
+				expect(screen.getByText("Dead Game One")).toBeInTheDocument()
+			);
+
+			const sheet = await openRowMenu(user, "Dead Game One");
+			expect(
+				within(sheet).queryByRole("button", {
+					name: "Refresh external data"
+				})
+			).not.toBeInTheDocument();
+			await user.tripleClick(
+				within(sheet).getByRole("button", { name: "Reactivate game" })
+			);
+
+			await untilVisible(() =>
+				expect(toast.success).toHaveBeenCalledTimes(1)
+			);
+			expect(reactivations).toEqual(["dead1"]);
+		});
+
+		it("asks for confirmation before deactivating from the menu", async () => {
+			const user = userEvent.setup();
+			await renderLoaded(true);
+
+			const sheet = await openRowMenu(user, "Alpha 003");
+			await user.dblClick(
+				within(sheet).getByRole("button", { name: "Deactivate game" })
+			);
+
+			expect(
+				await screen.findByRole("dialog", {
+					name: "Deactivate Alpha 003?"
+				})
+			).toBeInTheDocument();
+			expect(screen.getAllByRole("dialog")).toHaveLength(1);
+			expect(deactivations).toEqual([]);
+		});
+
+		it("loads the game once when Edit game is tapped repeatedly", async () => {
+			const user = userEvent.setup();
+			await renderLoaded(true);
+
+			const sheet = await openRowMenu(user, "Alpha 004");
+			await user.tripleClick(
+				within(sheet).getByRole("button", { name: "Edit game" })
+			);
+
+			await untilVisible(() =>
+				expect(
+					screen.getByRole("dialog", { name: "Edit game" })
+				).toBeInTheDocument()
+			);
+			expect(detailRequests).toEqual(["alpha-004"]);
+		});
+
 		it("filters, pages and reactivates the same way", async () => {
 			const user = userEvent.setup();
 			await renderLoaded(true);
 
-			await user.click(chip("No scores"));
+			await applyMissing(user, ["No scores"]);
 			await untilVisible(() =>
 				expect(titlesOnScreen()).toEqual(["Zelda: Breath of the Wild"])
 			);
-			await user.click(chip("No scores"));
+			await applyMissing(user, ["No scores"]);
 			await user.click(statusOption("Deactivated"));
 			await untilVisible(() =>
 				expect(screen.getByText("Dead Game One")).toBeInTheDocument()

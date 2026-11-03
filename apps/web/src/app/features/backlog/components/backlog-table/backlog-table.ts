@@ -4,77 +4,73 @@ import {
 	Component,
 	inject,
 	input,
-	model,
 	output
 } from "@angular/core";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../../core/models";
+import { BacklogStatusBadge } from "../../../../shared/components/backlog-status-badge/backlog-status-badge";
+import { BacklogStatusPicker } from "../../../../shared/components/backlog-status-picker/backlog-status-picker";
 import { GameTitleCell } from "../../../../shared/components/game-title-cell/game-title-cell";
 import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/platinum-trophy";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { FloatingXScrollbar } from "../../../../shared/directives/floating-x-scrollbar";
-import { MenuKeyboard } from "../../../../shared/directives/menu-keyboard";
-import { UiAvatar } from "../../../../shared/ui";
 import {
-	BACKLOG_STATUS_FILTERS,
-	backlogStatusClass,
-	backlogStatusIcon,
-	backlogStatusIconColor,
-	backlogStatusLabel
-} from "../../../../shared/utils/backlog-status";
+	UiAvatar,
+	UiBadge,
+	UiIconButton,
+	UiTable
+} from "../../../../shared/ui";
 import { isPlatinumRun } from "../../../../shared/utils/platinum";
 import { FavoritesService } from "../../../favorites/favorites";
 import {
 	type BacklogTableColumn,
+	type BacklogTableColumnAlign,
 	type BacklogTableEntryEvent,
 	type BacklogTableFavoriteToggle,
 	type BacklogTableRating,
-	type BacklogTableStatusSelection
+	type BacklogTableStatusChange
 } from "./backlog-table.model";
 
-const HEADER_BASE_CLASS =
-	"sticky top-0 bg-sidebar/95 backdrop-blur z-[1] px-3 py-3 text-[0.6875rem] uppercase tracking-[0.12em] border-b border-line select-none whitespace-nowrap";
+const HEADER_BASE_CLASS = "select-none";
 const SORTABLE_HEADER_CLASS = `focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand cursor-pointer ${HEADER_BASE_CLASS}`;
-const MUTED_HEADER_CLASS =
-	"text-fg-muted font-semibold hover:text-fg-secondary";
-const HIGHLIGHTED_HEADER_CLASS = "text-brand font-bold hover:text-brand-deep";
-const ALIGN_CLASSES = { left: "text-left", right: "text-right" } as const;
+const MUTED_HEADER_CLASS = "hover:text-fg-secondary";
 
 function sortableColumn(
 	label: string,
 	sortKey: string,
-	align: keyof typeof ALIGN_CLASSES,
+	align: BacklogTableColumnAlign,
 	extra: { highlighted?: boolean; hint?: string; minWidth?: string } = {}
 ): BacklogTableColumn {
-	const tone = extra.highlighted
-		? HIGHLIGHTED_HEADER_CLASS
-		: MUTED_HEADER_CLASS;
+	const tone = extra.highlighted ? "" : MUTED_HEADER_CLASS;
 	return {
 		label,
 		sortKey,
+		align,
+		highlighted: extra.highlighted,
 		hint: extra.hint,
 		headerClass:
-			`${SORTABLE_HEADER_CLASS} ${ALIGN_CLASSES[align]} ${tone} ${extra.minWidth ?? ""}`.trim()
+			`${SORTABLE_HEADER_CLASS} ${tone} ${extra.minWidth ?? ""}`.trim()
 	};
 }
 
 const BACKLOG_TABLE_COLUMNS: readonly BacklogTableColumn[] = [
-	sortableColumn("Title", "title", "left", { minWidth: "min-w-[180px]" }),
+	sortableColumn("Title", "title", "start", { minWidth: "min-w-[180px]" }),
 	{
 		label: "Platform",
 		sortKey: null,
-		headerClass: `${HEADER_BASE_CLASS} ${ALIGN_CLASSES.left} ${MUTED_HEADER_CLASS}`
+		align: "start",
+		headerClass: `${HEADER_BASE_CLASS} ${MUTED_HEADER_CLASS}`
 	},
-	sortableColumn("Score", "score", "right"),
-	sortableColumn("Duration", "duration", "right"),
-	sortableColumn("Ratio", "ratio", "right", { highlighted: true }),
-	sortableColumn("Real", "realDuration", "right"),
-	sortableColumn("Your run", "personalRatio", "right", {
+	sortableColumn("Score", "score", "end"),
+	sortableColumn("Duration", "duration", "end"),
+	sortableColumn("Ratio", "ratio", "end", { highlighted: true }),
+	sortableColumn("Real", "realDuration", "end"),
+	sortableColumn("Your run", "personalRatio", "end", {
 		hint: "Score per hour you actually played"
 	}),
-	sortableColumn("Rating", "userRating", "left"),
-	sortableColumn("Finished", "finishedAt", "left"),
-	sortableColumn("Status", "status", "left")
+	sortableColumn("Rating", "userRating", "start"),
+	sortableColumn("Finished", "finishedAt", "start"),
+	sortableColumn("Status", "status", "start")
 ];
 
 const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
@@ -92,13 +88,17 @@ const STATUS_CHANGEABLE_FROM: ReadonlySet<BacklogStatus> = new Set([
 @Component({
 	selector: "app-backlog-table",
 	imports: [
+		BacklogStatusBadge,
+		BacklogStatusPicker,
 		DatePipe,
 		FloatingXScrollbar,
 		GameTitleCell,
-		MenuKeyboard,
 		PlatinumTrophy,
 		StarRating,
-		UiAvatar
+		UiAvatar,
+		UiBadge,
+		UiIconButton,
+		UiTable
 	],
 	templateUrl: "./backlog-table.html",
 	host: { class: "block" },
@@ -112,23 +112,16 @@ export class BacklogTable {
 	readonly sortOrder = input.required<"asc" | "desc">();
 	readonly queuedBacklogIds = input<ReadonlySet<string>>(new Set());
 	readonly updatingStatusIds = input<ReadonlySet<string>>(new Set());
-	readonly statusMenuOpenId = model<string | null>(null);
 	readonly readonly = input(false);
 
 	readonly sortChange = output<string>();
 	readonly entryOpen = output<BacklogTableEntryEvent>();
-	readonly statusMenuToggle = output<BacklogTableEntryEvent>();
-	readonly statusSelect = output<BacklogTableStatusSelection>();
+	readonly statusChange = output<BacklogTableStatusChange>();
 	readonly quickRate = output<BacklogTableRating>();
 	readonly favoriteToggle = output<BacklogTableFavoriteToggle>();
 	readonly queueToggle = output<BacklogEntry>();
 
 	protected readonly columns = BACKLOG_TABLE_COLUMNS;
-	protected readonly statusOptions = BACKLOG_STATUS_FILTERS;
-	protected readonly statusClass = backlogStatusClass;
-	protected readonly statusLabel = backlogStatusLabel;
-	protected readonly statusIcon = backlogStatusIcon;
-	protected readonly statusIconColor = backlogStatusIconColor;
 	protected readonly isPlatinumRun = isPlatinumRun;
 
 	protected ariaSortFor(column: string): "ascending" | "descending" | "none" {

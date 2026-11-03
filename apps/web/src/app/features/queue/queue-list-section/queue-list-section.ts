@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 
+import { UiEyebrow } from "../../../shared/ui";
+
 @Component({
 	selector: "app-queue-list-section",
+	imports: [UiEyebrow],
 	template: `
 		<section aria-labelledby="queue-list-heading">
-			<h2
-				id="queue-list-heading"
-				class="m-0 mb-1 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-			>
+			<h2 uiEyebrow id="queue-list-heading" class="m-0 mb-1">
 				@if (afterFeatured()) {
 					After that
 				} @else {

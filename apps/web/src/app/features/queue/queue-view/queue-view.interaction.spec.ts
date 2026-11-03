@@ -18,6 +18,7 @@ import userEvent from "@testing-library/user-event";
 import { environment } from "../../../../environments/environment";
 import { type BacklogEntry, type QueueEntry } from "../../../core/models";
 import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
+import { pickCalendarDate } from "../../../shared/ui/date-picker/ui-date-picker.testing";
 import { QueueView } from "./queue-view";
 
 @Component({
@@ -340,6 +341,44 @@ describe("QueueView interaction", () => {
 		expect(queueOrder()).toEqual(["Hollow Knight", "Hades", "Celeste"]);
 	});
 
+	it("moves a game once from the More actions menu even when its option is double clicked", async () => {
+		const user = userEvent.setup();
+		await renderQueue();
+
+		await user.click(
+			row("Celeste").getByRole("button", {
+				name: "More actions for Celeste"
+			})
+		);
+		const menu = await screen.findByRole("menu", { name: "Celeste" });
+		await user.dblClick(
+			within(menu).getByRole("menuitem", { name: "Move to top" })
+		);
+
+		await untilVisible(() => expect(moves).toHaveLength(1));
+		expect(moves[0]).toEqual({ backlogId: "b2", position: 1 });
+		expect(queueOrder()).toEqual(["Celeste", "Hades", "Hollow Knight"]);
+	});
+
+	it("changes nothing when the More actions menu is dismissed with Escape", async () => {
+		const user = userEvent.setup();
+		await renderQueue();
+		const more = row("Hollow Knight").getByRole("button", {
+			name: "More actions for Hollow Knight"
+		});
+
+		await user.click(more);
+		await screen.findByRole("menu", { name: "Hollow Knight" });
+		await user.keyboard("{Escape}");
+
+		await untilVisible(() =>
+			expect(screen.queryByRole("menu")).not.toBeInTheDocument()
+		);
+		await waitFor(() => expect(more).toHaveFocus());
+		expect(moves).toEqual([]);
+		expect(queueOrder()).toEqual(["Hades", "Celeste", "Hollow Knight"]);
+	});
+
 	it("removes a game with undo, then commits the removal", async () => {
 		const user = userEvent.setup();
 		await renderQueue();
@@ -586,10 +625,11 @@ describe("QueueView interaction", () => {
 			name: "Start playing Hades?"
 		});
 		const startedOn = within(dialog).getByLabelText("Started on");
-		expect(startedOn).not.toHaveValue("");
+		expect(startedOn).toHaveAccessibleName(
+			/^Started on: [A-Z][a-z]{2} \d{1,2}, \d{4}$/
+		);
 
-		await user.clear(startedOn);
-		await user.type(startedOn, "2026-10-01");
+		await pickCalendarDate(user, startedOn, "2026-10-01");
 		await user.click(
 			within(dialog).getByRole("button", { name: "Start playing" })
 		);
@@ -601,6 +641,38 @@ describe("QueueView interaction", () => {
 		expect(statusUpdates).toEqual([
 			{ id: "b1", body: { status: "playing", startedAt: "2026-10-01" } }
 		]);
+	});
+
+	it("shows the illustrated empty state with a single Add from library action", async () => {
+		const user = userEvent.setup();
+		queuedIds = [];
+		await renderQueue([]);
+		await untilVisible(() =>
+			expect(
+				screen.getByRole("heading", { name: "Nothing queued yet" })
+			).toBeInTheDocument()
+		);
+
+		const addButtons = screen.getAllByRole("button", {
+			name: /Add from library/
+		});
+		expect(addButtons).toHaveLength(1);
+		expect(addButtons[0]).toHaveAttribute("data-variant", "primary");
+
+		await user.dblClick(addButtons[0]);
+
+		await untilVisible(() =>
+			expect(
+				screen.getAllByRole("dialog", { name: "Add to Up Next" })
+			).toHaveLength(1)
+		);
+		await user.keyboard("{Escape}");
+		await waitFor(() =>
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+		);
+		expect(
+			screen.getByRole("heading", { name: "Nothing queued yet" })
+		).toBeInTheDocument();
 	});
 
 	it("adds an unstarted game from the library", async () => {

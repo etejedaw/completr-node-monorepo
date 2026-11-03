@@ -280,6 +280,30 @@ describe("admin services", () => {
 			req.flush({ data: { users: [], total: 0 } });
 		});
 
+		it("sends the trimmed search as q and omits it when blank", () => {
+			service.listUsers(50, 0, "  ada  ").subscribe();
+			service.listUsers(50, 0, "   ").subscribe();
+
+			const [withSearch, blank] = httpTesting.match(
+				r => r.url === `${api}/admin/users`
+			);
+			expect(withSearch!.request.params.get("q")).toBe("ada");
+			expect(blank!.request.params.has("q")).toBe(false);
+			withSearch!.flush({ data: { users: [], total: 0 } });
+			blank!.flush({ data: { users: [], total: 0 } });
+		});
+
+		it("does not encode wildcard characters away from the search", () => {
+			service.listUsers(50, 0, "100%_off").subscribe();
+
+			const req = httpTesting.expectOne(
+				r => r.url === `${api}/admin/users`
+			);
+			expect(req.request.params.get("q")).toBe("100%_off");
+			expect(req.request.urlWithParams).toContain("q=100%25_off");
+			req.flush({ data: { users: [], total: 0 } });
+		});
+
 		it("edits a user suppressing the automatic validation toast", () => {
 			let result: unknown;
 

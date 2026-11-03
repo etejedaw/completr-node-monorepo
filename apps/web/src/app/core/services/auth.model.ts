@@ -5,13 +5,6 @@ export interface LoginRequest {
 	password: string;
 }
 
-export interface RegisterRequest {
-	username: string;
-	email: string;
-	password: string;
-	name: string;
-}
-
 export interface PendingInvitation {
 	email: string;
 	expiresAt: string;

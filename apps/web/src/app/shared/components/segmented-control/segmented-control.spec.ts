@@ -70,4 +70,44 @@ describe("SegmentedControl", () => {
 		expect(radios(fixture)[1].getAttribute("aria-checked")).toBe("true");
 		expect(radios(fixture)[0].getAttribute("aria-checked")).toBe("false");
 	});
+
+	it("hides the labels for screen readers only and titles every radio in icon-only mode", () => {
+		const fixture = render();
+		fixture.componentRef.setInput("iconOnly", true);
+		fixture.detectChanges();
+
+		expect(
+			radios(fixture).map(
+				radio => radio.querySelector(".sr-only")?.textContent
+			)
+		).toEqual(["All", "Mine", "None"]);
+		expect(
+			radios(fixture).map(radio => radio.getAttribute("title"))
+		).toEqual(["All", "Only yours", "None"]);
+	});
+
+	it("shows the labels without a title by default", () => {
+		const fixture = render();
+
+		expect(radios(fixture)[0].querySelector(".sr-only")).toBeNull();
+	});
+
+	it("can act as a group of toggle buttons instead of radios", () => {
+		const fixture = render("mine");
+		fixture.componentRef.setInput("semantics", "toggle");
+		fixture.detectChanges();
+		const root = fixture.nativeElement as HTMLElement;
+		const buttons = Array.from(root.querySelectorAll("button"));
+
+		expect(
+			root.querySelector('[role="group"]')?.getAttribute("aria-label")
+		).toBe("Scope");
+		expect(radios(fixture)).toHaveLength(0);
+		expect(
+			buttons.map(button => button.getAttribute("aria-pressed"))
+		).toEqual(["false", "true", "false"]);
+		expect(
+			buttons.some(button => button.hasAttribute("aria-checked"))
+		).toBe(false);
+	});
 });

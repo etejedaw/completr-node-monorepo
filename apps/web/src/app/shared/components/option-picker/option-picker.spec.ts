@@ -262,4 +262,53 @@ describe("OptionPicker", () => {
 			expect(anchor?.getAttribute("href")).toBe("/help#a");
 		});
 	});
+
+	describe("input variant", () => {
+		it("uses the input box, takes the trigger id and keeps the value in the accessible name", () => {
+			const fixture = render({
+				variant: "input",
+				triggerId: "status-field"
+			});
+			const button = trigger(fixture);
+
+			expect(button.id).toBe("status-field");
+			expect(button.classList).toContain("ui-input");
+			expect(button.getAttribute("aria-label")).toBe("Status: All");
+		});
+
+		it("does not render the inline label of the field variant", () => {
+			const fixture = render({ variant: "input", value: "playing" });
+
+			expect(trigger(fixture).textContent).not.toContain("Status");
+			expect(trigger(fixture).textContent).toContain("Playing");
+		});
+
+		it("shows the placeholder without an icon when nothing is picked", () => {
+			const fixture = render({
+				variant: "input",
+				options: [{ value: "a", label: "Alpha" }],
+				value: "",
+				placeholder: "Pick a feature"
+			});
+			const button = trigger(fixture);
+
+			expect(button.textContent).toContain("Pick a feature");
+			expect(button.querySelectorAll(".material-icons")).toHaveLength(1);
+		});
+
+		it("is named by an external label pointing at the trigger id", () => {
+			const host = document.createElement("label");
+			host.htmlFor = "feature-field";
+			host.textContent = "Feature";
+			document.body.append(host);
+			const fixture = render({
+				variant: "input",
+				triggerId: "feature-field"
+			});
+			document.body.append(root(fixture));
+
+			expect(host.control).toBe(trigger(fixture));
+			host.remove();
+		});
+	});
 });

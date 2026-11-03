@@ -140,9 +140,9 @@ describe("AdminGameEditor external IDs", () => {
 	}
 
 	const hltbInput = () =>
-		screen.getByRole("textbox", { name: "HowLongToBeat ID" });
+		screen.getByRole("textbox", { name: /^HowLongToBeat ID/ });
 	const metacriticInput = () =>
-		screen.getByRole("textbox", { name: "Metacritic slug" });
+		screen.getByRole("textbox", { name: /^Metacritic slug/ });
 	const titleInput = () => screen.getByLabelText("Title");
 	const saveButton = () =>
 		screen.getByRole("button", { name: /Save Changes|Saving/ });
@@ -421,9 +421,9 @@ describe("AdminGameEditor external IDs", () => {
 				).not.toBeInTheDocument();
 				await userEvent.tab();
 
-				const error = screen.getByText(
-					/Enter the HowLongToBeat game ID/
-				);
+				const error = screen
+					.getByText(/Enter the HowLongToBeat game ID/)
+					.closest("ui-field-error") as HTMLElement;
 				expect(hltbInput()).toHaveAttribute("aria-invalid", "true");
 				expect(hltbInput()).toHaveAttribute(
 					"aria-describedby",

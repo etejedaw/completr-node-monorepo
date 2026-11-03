@@ -31,8 +31,8 @@ export class UserAdminService {
 			.pipe(map(res => res.data.user));
 	}
 
-	listUsers(limit = 50, offset = 0) {
-		const params = buildHttpParams({ limit, offset });
+	listUsers(limit = 50, offset = 0, q = "") {
+		const params = buildHttpParams({ limit, offset, q: q.trim() });
 		return this.http
 			.get<{
 				data: { users: AdminUser[]; total: number };

@@ -1,9 +1,4 @@
-<app-library-hero heading="Feed" [posters]="heroPosters()">
-	<span
-		heroEyebrow
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Activity</span
-	>
+<app-library-hero eyebrow="Activity" heading="Feed" [posters]="heroPosters()">
 	<p
 		heroSubtitle
 		class="m-0 mt-2 max-w-xl text-sm sm:text-base text-fg-secondary leading-relaxed"
@@ -165,7 +160,8 @@
 		<section [attr.aria-labelledby]="'feed-day-' + group.key">
 			<h2
 				[id]="'feed-day-' + group.key"
-				class="sticky top-[var(--topbar-height)] z-10 py-2 m-0 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted bg-canvas/85 backdrop-blur-md"
+				uiEyebrow
+				class="sticky top-[var(--topbar-height)] z-10 py-2 m-0 bg-canvas/85 backdrop-blur-md"
 			>
 				{{ group.label }}
 			</h2>

@@ -5,17 +5,11 @@
 	privateTitle="This library is private"
 />
 } @else {
-<app-library-hero [heading]="viewName() || 'Games'" [posters]="heroPosters()">
-	<a
-		heroEyebrow
-		class="tap-area inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand no-underline hover:text-brand-hover"
-		[routerLink]="['/user', username()]"
-	>
-		<span aria-hidden="true" class="material-icons text-sm"
-			>arrow_back</span
-		>
-		{{ '@' + username() }}'s library
-	</a>
+<app-library-hero
+	[backLink]="backLink()"
+	[heading]="viewName() || 'Games'"
+	[posters]="heroPosters()"
+>
 	<div heroSubtitle>
 		<p class="m-0 mt-2 text-sm text-fg-secondary">
 			<span class="font-semibold text-fg tabular-nums"
@@ -46,23 +40,20 @@
 	/>
 </app-library-hero>
 
-<div
-	class="bleed bleed-inner sticky top-[var(--topbar-height)] z-30 py-3 mb-4 bg-canvas/85 backdrop-blur-md border-b border-line/60"
->
-	<div class="flex flex-wrap items-center gap-2">
-		<ui-search-bar
-			class="flex-1 min-w-[12rem] [&_input]:!py-2 [&_input]:!text-sm"
-			[placeholder]="'Search ' + username() + '\'s games...'"
-			[value]="searchQuery()"
-			(valueChange)="onSearch($event)"
-		/>
-		<app-view-mode-toggle
-			[options]="viewModes"
-			[value]="viewMode()"
-			(valueChange)="setViewMode($event)"
-		/>
-	</div>
-</div>
+<app-library-toolbar>
+	<ui-search-bar
+		size="sm"
+		class="flex-1 min-w-[12rem]"
+		[placeholder]="'Search ' + username() + '\'s games...'"
+		[value]="searchQuery()"
+		(valueChange)="onSearch($event)"
+	/>
+	<app-view-mode-toggle
+		[options]="viewModes"
+		[value]="viewMode()"
+		(valueChange)="setViewMode($event)"
+	/>
+</app-library-toolbar>
 
 @if (isLoading()) {
 <div class="grid gap-3 xl:grid-cols-2" aria-busy="true" aria-label="Loading">

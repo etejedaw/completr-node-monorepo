@@ -13,7 +13,14 @@ import {
 	PASSWORD_MAX_LENGTH
 } from "../../../core/utils/password-policy";
 import { PasswordRules } from "../../../shared/components/password-rules/password-rules";
-import { UiAlert, UiButton, UiIconButton, UiInput } from "../../../shared/ui";
+import {
+	UiAlert,
+	UiButton,
+	UiFieldError,
+	UiFieldLabel,
+	UiIconButton,
+	UiInput
+} from "../../../shared/ui";
 import { AuthPage } from "../auth-page/auth-page";
 
 type ResetStatus = "editing" | "done" | "invalidLink";
@@ -21,6 +28,7 @@ type ResetStatus = "editing" | "done" | "invalidLink";
 @Component({
 	selector: "app-reset-password",
 	imports: [
+		UiFieldLabel,
 		AuthPage,
 		FormField,
 		PasswordRules,
@@ -28,7 +36,8 @@ type ResetStatus = "editing" | "done" | "invalidLink";
 		UiAlert,
 		UiButton,
 		UiIconButton,
-		UiInput
+		UiInput,
+		UiFieldError
 	],
 	templateUrl: "./reset-password.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

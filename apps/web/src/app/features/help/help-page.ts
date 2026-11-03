@@ -11,6 +11,7 @@ import { AuthService } from "../../core/services/auth";
 import { OnboardingService } from "../../core/services/onboarding";
 import { NAV_SECTIONS } from "../../layout/nav-sections";
 import { type NavItem } from "../../layout/nav-sections.model";
+import { BacklogStatusBadge } from "../../shared/components/backlog-status-badge/backlog-status-badge";
 import { GamePoster } from "../../shared/components/game-poster/game-poster";
 import { InfoPageLinks } from "../../shared/components/info-page-links/info-page-links";
 import { LibraryHero } from "../../shared/components/library-hero/library-hero";
@@ -21,12 +22,7 @@ import { injectSectionScrollSpy } from "../../shared/components/page-toc/section
 import { RatioSummary } from "../../shared/components/ratio-summary/ratio-summary";
 import { StarRating } from "../../shared/components/star-rating/star-rating";
 import { InView } from "../../shared/directives/in-view";
-import { UiButton, UiProgress } from "../../shared/ui";
-import {
-	backlogStatusClass,
-	backlogStatusIcon,
-	backlogStatusLabel
-} from "../../shared/utils/backlog-status";
+import { UiButton, UiEyebrow, UiProgress } from "../../shared/ui";
 import { type CanonicalScore } from "../../shared/utils/canonical-score.model";
 import { injectLibraryPosters } from "../backlog/library-posters";
 import { GameScoreCard } from "../games/game-detail/components/game-score-card";
@@ -120,7 +116,9 @@ const SCORE_EXAMPLES: readonly CanonicalScore[] = [
 		StarRating,
 		GameScoreCard,
 		InfoPageLinks,
+		BacklogStatusBadge,
 		UiButton,
+		UiEyebrow,
 		UiProgress
 	],
 	templateUrl: "./help-page.html",
@@ -143,10 +141,6 @@ export class HelpPage {
 		return username ? ["/user", username, "rewind"] : ["/profile"];
 	});
 	protected readonly scrollSpy = injectSectionScrollSpy(SECTIONS);
-
-	protected readonly statusClass = backlogStatusClass;
-	protected readonly statusIcon = backlogStatusIcon;
-	protected readonly statusLabel = backlogStatusLabel;
 
 	protected openTour() {
 		this.onboarding.open();

@@ -1,9 +1,8 @@
-<app-library-hero heading="Saved Views" [posters]="heroPosters()">
-	<span
-		heroEyebrow
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Library</span
-	>
+<app-library-hero
+	heading="Saved Views"
+	eyebrow="Library"
+	[posters]="heroPosters()"
+>
 	<p
 		heroSubtitle
 		class="m-0 mt-2 flex items-center gap-1.5 text-sm text-fg-secondary"
@@ -38,7 +37,8 @@
 @if (isLoading() || filters().length > 0 || searchQuery().trim()) {
 <app-library-toolbar>
 	<ui-search-bar
-		class="flex-1 min-w-[12rem] max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+		size="sm"
+		class="flex-1 min-w-[12rem] max-w-2xl"
 		placeholder="Search saved views..."
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"
@@ -65,14 +65,10 @@
 	/>
 </app-library-toolbar>
 } @if (frozen()) {
-<div
-	role="status"
-	class="flex items-start gap-2 px-3.5 py-2.5 mb-6 bg-premium/10 border border-premium/25 text-premium rounded-card text-sm max-w-2xl"
->
-	<span aria-hidden="true" class="material-icons text-base mt-0.5">lock</span>
+<ui-alert tone="premium" icon="lock" class="mb-6 max-w-2xl">
 	Saved views are frozen. Delete views to go below the free limit (5) to
 	create or edit again.
-</div>
+</ui-alert>
 } @if (isLoading()) {
 <div
 	class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
@@ -107,10 +103,7 @@
 </ui-empty-state>
 } } @else { @if (featuredViews().length > 0) {
 <section class="mb-10" aria-labelledby="featured-views-heading">
-	<h2
-		id="featured-views-heading"
-		class="m-0 mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-	>
+	<h2 uiEyebrow id="featured-views-heading" class="m-0 mb-3">
 		Pinned & default
 	</h2>
 	<ul class="list-none m-0 p-0 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -121,7 +114,6 @@
 				(shared)="shareFilter(filter)"
 				(duplicated)="openDuplicate(filter)"
 				(edited)="openEdit(filter)"
-				(moreRequested)="actionSheetView.set(filter)"
 			/>
 		</li>
 		}
@@ -130,12 +122,7 @@
 } @if (otherViews().length > 0) {
 <section aria-labelledby="all-views-heading">
 	@if (featuredViews().length > 0) {
-	<h2
-		id="all-views-heading"
-		class="m-0 mb-3 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-	>
-		All views
-	</h2>
+	<h2 uiEyebrow id="all-views-heading" class="m-0 mb-3">All views</h2>
 	} @else {
 	<h2 id="all-views-heading" class="sr-only">All views</h2>
 	}
@@ -150,7 +137,6 @@
 				(shared)="shareFilter(filter)"
 				(duplicated)="openDuplicate(filter)"
 				(edited)="openEdit(filter)"
-				(moreRequested)="actionSheetView.set(filter)"
 			/>
 		</li>
 		}
@@ -163,34 +149,10 @@
 	[total]="total()"
 	(offsetChange)="onOffsetChange($event)"
 />
-} @if (actionSheetView(); as sheetView) {
-<ui-bottom-sheet
-	[heading]="sheetView.name"
-	subheading="Saved view"
-	(closed)="actionSheetView.set(null)"
->
-	<ul class="list-none m-0 p-0 flex flex-col gap-1">
-		@for (action of sheetActions; track action.id) {
-		<li>
-			<button
-				type="button"
-				class="w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border-0 text-base font-medium text-fg text-left cursor-pointer transition active:bg-surface"
-				(click)="runSheetAction(sheetView, action.id)"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-2xl text-fg-muted"
-					>{{ action.icon }}</span
-				>
-				{{ action.label }}
-			</button>
-		</li>
-		}
-	</ul>
-</ui-bottom-sheet>
 } @if (showModal()) {
 <ui-dialog
 	eyebrow="Saved views"
+	icon="tune"
 	heading="Edit view"
 	size="sm"
 	[dismissible]="!saving() && !deleting()"
@@ -210,13 +172,13 @@
 
 		<div>
 			<label for="saved-filter-description" uiFieldLabel
-				>Description</label
-			>
+				>Description <ui-field-optional
+			/></label>
 			<textarea
 				uiTextarea
 				id="saved-filter-description"
 				rows="3"
-				placeholder="Optional description..."
+				placeholder="What does this view show?"
 				[value]="editDescription()"
 				(input)="editDescription.set($any($event.target).value)"
 			></textarea>
@@ -256,7 +218,7 @@
 		</div>
 
 		<fieldset class="m-0 p-0 border-0">
-			<legend uiFieldLabel>Icon</legend>
+			<legend uiFieldLabel>Icon <ui-field-optional /></legend>
 			<div class="flex flex-wrap gap-1.5">
 				<button
 					type="button"
@@ -292,7 +254,7 @@
 		</fieldset>
 
 		<fieldset class="m-0 p-0 border-0">
-			<legend uiFieldLabel>Color</legend>
+			<legend uiFieldLabel>Color <ui-field-optional /></legend>
 			<div class="flex flex-wrap items-center gap-2">
 				<button
 					type="button"
@@ -346,6 +308,7 @@
 } @if (showDuplicateModal()) {
 <ui-dialog
 	eyebrow="Saved views"
+	icon="content_copy"
 	heading="Duplicate view"
 	size="sm"
 	[dismissible]="!duplicating()"

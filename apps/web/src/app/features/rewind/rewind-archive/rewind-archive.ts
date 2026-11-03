@@ -11,6 +11,7 @@ import { map } from "rxjs";
 import { AuthService } from "../../../core/services/auth";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { type LibraryHeroPoster } from "../../../shared/components/library-hero/library-hero.model";
+import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
 import { UiButton, UiPlainEmptyState, UiSkeleton } from "../../../shared/ui";
 import { ProfileAccessState } from "../../public-profile/components/profile-access-state";
 import { RewindYearCard } from "../components/rewind-year-card/rewind-year-card";
@@ -39,6 +40,9 @@ export class RewindArchive {
 	protected readonly username = toSignal(
 		this.route.paramMap.pipe(map(params => params.get("username") ?? "")),
 		{ initialValue: this.route.snapshot.paramMap.get("username") ?? "" }
+	);
+	protected readonly backLink = computed(() =>
+		profileBackLink(this.username())
 	);
 
 	private readonly archive = rxResource({

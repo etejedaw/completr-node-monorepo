@@ -6,7 +6,10 @@ import {
 import { TestBed } from "@angular/core/testing";
 
 import { environment } from "../../../../environments/environment";
-import { SUPPRESS_VALIDATION_TOAST } from "../../../shared/utils/validation-errors";
+import {
+	SUPPRESS_CONFLICT_TOAST,
+	SUPPRESS_VALIDATION_TOAST
+} from "../../../shared/utils/validation-errors";
 import { PremiumAccessAdminService } from "./premium-access-admin.service";
 
 describe("PremiumAccessAdminService", () => {
@@ -52,6 +55,7 @@ describe("PremiumAccessAdminService", () => {
 		expect(req.request.method).toBe("POST");
 		expect(req.request.body).toEqual(body);
 		expect(req.request.context.get(SUPPRESS_VALIDATION_TOAST)).toBe(true);
+		expect(req.request.context.get(SUPPRESS_CONFLICT_TOAST)).toBe(false);
 		req.flush({ data: { grant: { id: "g1" } } });
 		expect(result).toEqual({ id: "g1" });
 	});
@@ -63,6 +67,7 @@ describe("PremiumAccessAdminService", () => {
 		);
 		expect(update.request.method).toBe("PATCH");
 		expect(update.request.body).toEqual({ expiresAt: null });
+		expect(update.request.context.get(SUPPRESS_CONFLICT_TOAST)).toBe(true);
 		update.flush({ data: { grant: { id: "g1" } } });
 
 		service.revokeGrant("u1", "g1").subscribe();
@@ -73,6 +78,7 @@ describe("PremiumAccessAdminService", () => {
 		expect(revoke.request.context.get(SUPPRESS_VALIDATION_TOAST)).toBe(
 			true
 		);
+		expect(revoke.request.context.get(SUPPRESS_CONFLICT_TOAST)).toBe(true);
 		revoke.flush({ data: { grant: { id: "g1" } } });
 	});
 });

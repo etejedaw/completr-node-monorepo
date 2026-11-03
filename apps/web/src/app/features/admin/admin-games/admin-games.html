@@ -1,9 +1,4 @@
-<app-library-hero heading="Games">
-	<span
-		heroEyebrow
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Admin</span
-	>
+<app-library-hero heading="Games" eyebrow="Admin">
 	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
 		<span class="font-semibold text-fg tabular-nums">{{ total() }}</span>
 		{{ total() === 1 ? "game" : "games" }} in the catalog
@@ -21,11 +16,20 @@
 
 <app-library-toolbar>
 	<ui-search-bar
-		class="flex-1 min-w-[12rem] max-w-2xl [&_input]:!py-2 [&_input]:!text-sm"
+		size="sm"
+		class="flex-1 min-w-[12rem] max-w-2xl"
 		placeholder="Search games..."
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"
 	/>
+	<button
+		uiFiltersButton
+		[count]="activeMissingCount()"
+		[active]="showFilters() || activeMissingCount() > 0"
+		(click)="openFilters()"
+	>
+		Filters
+	</button>
 	<app-segmented-control
 		class="max-sm:basis-full max-sm:[&>div]:flex max-sm:[&>div]:w-full max-sm:[&_button]:flex-1"
 		label="Game status"
@@ -35,50 +39,80 @@
 	/>
 </app-library-toolbar>
 
-<section
-	aria-labelledby="missing-data-heading"
-	class="mb-6 flex flex-col gap-4"
+@if (showFilters()) { @if (isMobile()) {
+<ui-bottom-sheet
+	eyebrow="Games"
+	heading="Filters"
+	[subheading]="filtersSubheading()"
+	(closed)="closeFilters()"
 >
-	<h2
-		id="missing-data-heading"
-		class="m-0 text-[0.6875rem] font-semibold uppercase tracking-[0.18em] text-fg-muted"
-	>
-		Missing data
-	</h2>
-	<div class="grid gap-4 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:gap-8">
-		<div class="flex flex-col gap-2">
-			<h3 class="m-0 text-xs font-medium text-fg-secondary">General</h3>
+	<div class="px-2 pt-2">
+		<ng-container *ngTemplateOutlet="filtersBody" />
+	</div>
+	<ng-container ngProjectAs="[sheetFooter]">
+		<ng-container *ngTemplateOutlet="filtersFooter" />
+	</ng-container>
+</ui-bottom-sheet>
+} @else {
+<ui-drawer
+	eyebrow="Games"
+	heading="Filters"
+	[subheading]="filtersSubheading()"
+	(closed)="closeFilters()"
+>
+	<ng-container *ngTemplateOutlet="filtersBody" />
+	<ng-container ngProjectAs="[drawerFooter]">
+		<ng-container *ngTemplateOutlet="filtersFooter" />
+	</ng-container>
+</ui-drawer>
+} }
+
+<ng-template #filtersBody>
+	<div class="flex flex-col gap-6">
+		<app-filter-section label="Missing data">
 			<app-chip-group
 				label="Games missing any data"
 				[options]="generalMissingOptions"
-				[value]="missingValue()"
-				(valueChange)="onMissingChange($event, generalMissingOptions)"
+				[value]="draftMissing()"
+				(valueChange)="onDraftMissingChange($event, generalMissingOptions)"
 			/>
-		</div>
-		<div class="flex flex-col gap-2">
-			<h3 class="m-0 text-xs font-medium text-fg-secondary">
-				No score from
-			</h3>
+		</app-filter-section>
+		<app-filter-section label="No score from">
 			<app-chip-group
 				label="Games missing a score from"
 				[options]="scoreMissingOptions()"
-				[value]="missingValue()"
-				(valueChange)="onMissingChange($event, scoreMissingOptions())"
+				[value]="draftMissing()"
+				(valueChange)="onDraftMissingChange($event, scoreMissingOptions())"
 			/>
-		</div>
-		<div class="flex flex-col gap-2">
-			<h3 class="m-0 text-xs font-medium text-fg-secondary">
-				No time from
-			</h3>
+		</app-filter-section>
+		<app-filter-section label="No time from">
 			<app-chip-group
 				label="Games missing a time from"
 				[options]="timeMissingOptions"
-				[value]="missingValue()"
-				(valueChange)="onMissingChange($event, timeMissingOptions)"
+				[value]="draftMissing()"
+				(valueChange)="onDraftMissingChange($event, timeMissingOptions)"
 			/>
-		</div>
+		</app-filter-section>
 	</div>
-</section>
+</ng-template>
+
+<ng-template #filtersFooter>
+	<button
+		type="button"
+		uiButton
+		variant="ghost"
+		[disabled]="draftMissing().length === 0"
+		(click)="clearDraftMissing()"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>filter_alt_off</span
+		>
+		Clear
+	</button>
+	<button type="button" uiButton variant="primary" (click)="applyFilters()">
+		{{ applyLabel() }}
+	</button>
+</ng-template>
 
 @if (isLoading()) {
 <ul
@@ -123,14 +157,14 @@
 } } @else {
 <div
 	aria-hidden="true"
-	class="hidden md:grid md:grid-cols-[2.5rem_minmax(10rem,2fr)_minmax(5rem,1fr)_minmax(7rem,1.3fr)_minmax(5rem,1fr)_9rem] gap-x-4 px-3 pb-2 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-fg-muted"
+	class="hidden md:grid md:grid-cols-[2.5rem_minmax(10rem,2fr)_minmax(5rem,1fr)_minmax(7rem,1.3fr)_minmax(5rem,1fr)_9rem] gap-x-4 px-3 pb-2"
 >
 	<span></span>
-	<span>Title</span>
-	<span>Platforms</span>
-	<span>Scores</span>
-	<span>Times</span>
-	<span class="text-right">Actions</span>
+	<span uiEyebrow>Title</span>
+	<span uiEyebrow>Platforms</span>
+	<span uiEyebrow>Scores</span>
+	<span uiEyebrow>Times</span>
+	<span uiEyebrow class="text-right">Actions</span>
 </div>
 <ul
 	class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"
@@ -153,26 +187,21 @@
 				<span class="text-fg-muted font-medium" [title]="game.title"
 					>{{ game.title }}</span
 				>
-				<span
-					class="inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold bg-danger/10 text-danger"
-					>Deactivated</span
-				>
+				<ui-badge tone="danger">Deactivated</ui-badge>
 				} @else {
 				<a
-					class="inline-flex items-center tap:min-h-[44px] text-fg font-medium no-underline transition hover:text-brand"
+					class="inline-flex items-center tap:min-h-[44px] tap:min-w-[44px] text-fg font-medium no-underline transition hover:text-brand"
 					[routerLink]="['/games', game.code]"
 				>
 					{{ game.title }}
 				</a>
 				} @if (game.variant) {
-				<span
-					class="inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold bg-brand-subtle text-brand"
-					>{{ game.variant }}</span
-				>
+				<ui-badge tone="brand">{{ game.variant }}</ui-badge>
 				} @if (game.isDlc) {
-				<span
-					class="inline-block px-1.5 py-0.5 rounded-full text-[0.625rem] font-semibold bg-warning/10 text-warning"
-					>DLC</span
+				<ui-badge tone="warning">DLC</ui-badge>
+				} @if (reportedGameIds().has(game.id)) {
+				<ui-badge class="md:hidden" tone="danger" icon="flag"
+					>Reported</ui-badge
 				>
 				}
 			</div>
@@ -184,76 +213,91 @@
 		<div
 			class="flex items-center justify-end gap-1 md:col-start-6 md:row-start-1"
 		>
-			@if (reportedGameIds().has(game.id)) {
-			<button
-				uiIconButton
-				tone="danger"
-				title="View report"
-				aria-label="View report"
-				(click)="goToGameReport(game.id)"
-			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>flag</span
+			<div class="md:hidden">
+				<app-action-menu
+					icon="more_vert"
+					variant="ghost"
+					[iconOnly]="true"
+					[label]="'Actions for ' + game.title"
+					[heading]="game.title"
+					[items]="rowMenus().get(game.id) ?? []"
+					[busy]="isRowBusy(game.id)"
+					(selected)="runRowAction(game, $event)"
+				/>
+			</div>
+			<div class="max-md:hidden flex items-center justify-end gap-1">
+				@if (reportedGameIds().has(game.id)) {
+				<a
+					uiIconButton
+					tone="danger"
+					title="View report"
+					aria-label="View report"
+					routerLink="/admin/reports"
+					[queryParams]="{ gameId: game.id }"
 				>
-			</button>
-			}
-			<button
-				uiIconButton
-				title="Edit game"
-				aria-haspopup="dialog"
-				[attr.aria-label]="'Edit ' + game.title"
-				[attr.aria-busy]="loadingEditorId() === game.id"
-				[disabled]="loadingEditorId() === game.id"
-				(click)="openEditor(game)"
-			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>{{ loadingEditorId() === game.id ? "hourglass_empty" :
-					"edit" }}</span
+					<span aria-hidden="true" class="material-icons text-base"
+						>flag</span
+					>
+				</a>
+				}
+				<button
+					uiIconButton
+					title="Edit game"
+					aria-haspopup="dialog"
+					[attr.aria-label]="'Edit ' + game.title"
+					[attr.aria-busy]="loadingEditorId() === game.id"
+					[disabled]="loadingEditorId() === game.id"
+					(click)="openEditor(game)"
 				>
-			</button>
-			@if (game.isActive !== false) {
-			<button
-				uiIconButton
-				aria-haspopup="dialog"
-				[title]="isRefreshingExternal(game.id) ? 'Refreshing external data...' : 'Refresh external data'"
-				[attr.aria-label]="'Refresh external data for ' + game.title"
-				[attr.aria-busy]="isRefreshingExternal(game.id) || null"
-				(click)="openExternalData(game)"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-base"
-					[class.motion-safe:animate-spin]="isRefreshingExternal(game.id)"
-					>{{ isRefreshingExternal(game.id) ? "autorenew" :
-					"cloud_sync" }}</span
+					<span aria-hidden="true" class="material-icons text-base"
+						>{{ loadingEditorId() === game.id ? "hourglass_empty" :
+						"edit" }}</span
+					>
+				</button>
+				@if (game.isActive !== false) {
+				<button
+					uiIconButton
+					aria-haspopup="dialog"
+					[title]="isRefreshingExternal(game.id) ? 'Refreshing external data...' : 'Refresh external data'"
+					[attr.aria-label]="'Refresh external data for ' + game.title"
+					[attr.aria-busy]="isRefreshingExternal(game.id) || null"
+					(click)="openExternalData(game)"
 				>
-			</button>
-			} @if (game.isActive === false) {
-			<button
-				uiIconButton
-				tone="accent"
-				title="Reactivate game"
-				aria-label="Reactivate game"
-				[disabled]="isReactivating(game.id)"
-				(click)="reactivate(game)"
-			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>restore_from_trash</span
+					<span
+						aria-hidden="true"
+						class="material-icons text-base"
+						[class.motion-safe:animate-spin]="isRefreshingExternal(game.id)"
+						>{{ isRefreshingExternal(game.id) ? "autorenew" :
+						"cloud_sync" }}</span
+					>
+				</button>
+				} @if (game.isActive === false) {
+				<button
+					uiIconButton
+					tone="accent"
+					title="Reactivate game"
+					aria-label="Reactivate game"
+					[disabled]="isReactivating(game.id)"
+					(click)="reactivate(game)"
 				>
-			</button>
-			} @else {
-			<button
-				uiIconButton
-				tone="danger"
-				title="Deactivate game"
-				[attr.aria-label]="'Deactivate ' + game.title"
-				(click)="askDeactivate(game)"
-			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>visibility_off</span
+					<span aria-hidden="true" class="material-icons text-base"
+						>restore_from_trash</span
+					>
+				</button>
+				} @else {
+				<button
+					uiIconButton
+					tone="danger"
+					title="Deactivate game"
+					[attr.aria-label]="'Deactivate ' + game.title"
+					(click)="askDeactivate(game)"
 				>
-			</button>
-			}
+					<span aria-hidden="true" class="material-icons text-base"
+						>visibility_off</span
+					>
+				</button>
+				}
+			</div>
 		</div>
 
 		<div
@@ -265,17 +309,15 @@
 			</p>
 			<div class="flex flex-wrap gap-1 md:self-center">
 				@for (s of game.scores; track s.source) {
-				<span
-					class="inline-block px-1.5 py-0.5 bg-surface rounded text-[0.6875rem] text-fg-secondary tabular-nums"
-					>{{ s.source }}: {{ s.score }}</span
+				<ui-badge class="tabular-nums"
+					>{{ s.source }}: {{ s.score }}</ui-badge
 				>
 				}
 			</div>
 			<div class="flex flex-wrap gap-1 md:self-center">
 				@for (t of game.times; track t.source) {
-				<span
-					class="inline-block px-1.5 py-0.5 bg-surface rounded text-[0.6875rem] text-fg-secondary tabular-nums"
-					>{{ t.source }}: {{ t.duration }}h</span
+				<ui-badge class="tabular-nums"
+					>{{ t.source }}: {{ t.duration }}h</ui-badge
 				>
 				}
 			</div>
@@ -294,6 +336,8 @@
 <ui-dialog
 	size="sm"
 	eyebrow="Games"
+	icon="visibility_off"
+	tone="danger"
 	[heading]="'Deactivate ' + target.title + '?'"
 	[dismissible]="!isDeactivating()"
 	(closed)="cancelDeactivate()"
@@ -327,6 +371,7 @@
 <ui-dialog
 	size="xl"
 	eyebrow="Games"
+	icon="add_circle"
 	heading="New game"
 	subheading="Fetch it from RAWG or fill in the details by hand."
 	[flush]="true"
@@ -341,6 +386,7 @@
 <ui-dialog
 	size="xl"
 	eyebrow="Games"
+	icon="edit_note"
 	heading="Edit game"
 	[subheading]="editing.title"
 	[flush]="true"

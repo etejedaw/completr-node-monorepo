@@ -12,8 +12,11 @@ import { email, form, FormField, required } from "@angular/forms/signals";
 import { ToastService } from "../../../core/services/toast";
 import {
 	UiAlert,
+	UiBadge,
 	UiButton,
 	UiDialog,
+	UiEyebrow,
+	UiFieldError,
 	UiFieldLabel,
 	UiFormField,
 	UiInput,
@@ -28,12 +31,15 @@ import { InvitationAdminService } from "../services/invitation-admin.service";
 		DatePipe,
 		FormField,
 		UiAlert,
+		UiBadge,
 		UiButton,
 		UiDialog,
+		UiEyebrow,
 		UiFieldLabel,
 		UiFormField,
 		UiInput,
-		UiLabel
+		UiLabel,
+		UiFieldError
 	],
 	templateUrl: "./admin-invitations.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -77,7 +83,7 @@ export class AdminInvitations implements OnInit {
 		});
 	}
 
-	protected openInvite() {
+	openInvite() {
 		this.inviteModel.set({ email: "" });
 		this.inviteForm().reset();
 		this.inviteError.set("");

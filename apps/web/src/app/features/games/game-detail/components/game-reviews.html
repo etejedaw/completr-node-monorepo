@@ -10,8 +10,7 @@
 					[class]="averageRating() ? 'text-rating' : 'text-fg-muted'"
 					>{{ averageRating() ?? '—' }}</span
 				>
-				<span
-					class="mt-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-fg-muted"
+				<span uiEyebrow class="mt-1.5"
 					>{{ ratingLabel(averageRating()) || 'Not rated yet' }}</span
 				>
 			</div>
@@ -149,8 +148,12 @@
 		</ul>
 	</section>
 	} @else if (!myReview()) {
-	<p class="m-0 py-6 text-center text-sm text-fg-muted">
-		No reviews yet. Be the first to share how it went.
-	</p>
+	<ui-plain-empty-state
+		icon="rate_review"
+		title="No reviews yet"
+		message="Be the first to share how it went."
+		[compact]="true"
+		[headingLevel]="3"
+	/>
 	}
 </div>

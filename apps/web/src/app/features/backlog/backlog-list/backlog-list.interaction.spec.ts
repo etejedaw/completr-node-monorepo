@@ -12,6 +12,7 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type BacklogEntry, type Platform } from "../../../core/models";
+import { pickCalendarDate } from "../../../shared/ui/date-picker/ui-date-picker.testing";
 import { type SavedFilter } from "../saved-filters.model";
 import { BacklogList } from "./backlog-list";
 
@@ -431,14 +432,16 @@ describe("BacklogList interaction", () => {
 		await renderBacklog();
 
 		const hades = within(card("Hades"));
-		await user.click(hades.getByRole("button", { name: /Playing/ }));
-		const menu = screen.getByRole("menu", { name: "Change status" });
+		await user.click(
+			hades.getByRole("button", { name: "Status of Hades: Playing" })
+		);
+		const menu = await screen.findByRole("menu", { name: "Change status" });
 		expect(
-			within(menu).getByRole("menuitem", { name: /Playing/ })
-		).toBeDisabled();
+			within(menu).getByRole("menuitemradio", { name: /Playing/ })
+		).toHaveAttribute("aria-checked", "true");
 
 		await user.click(
-			within(menu).getByRole("menuitem", { name: /Completed/ })
+			within(menu).getByRole("menuitemradio", { name: /Completed/ })
 		);
 
 		const dialog = await screen.findByRole("dialog", {
@@ -446,12 +449,12 @@ describe("BacklogList interaction", () => {
 		});
 		expect(within(dialog).getByLabelText(/Finished/)).toBeInTheDocument();
 		expect(
-			within(dialog).getByLabelText("Real duration (hours)")
+			within(dialog).getByLabelText("Real duration (hours) Optional")
 		).toBeInTheDocument();
-		const notes = within(dialog).getByLabelText("Notes");
+		const notes = within(dialog).getByLabelText("Notes Optional");
 		await user.type(notes, "Escaped at last");
 		await user.type(
-			within(dialog).getByLabelText("Real duration (hours)"),
+			within(dialog).getByLabelText("Real duration (hours) Optional"),
 			"32"
 		);
 		await user.click(
@@ -484,12 +487,14 @@ describe("BacklogList interaction", () => {
 		await renderBacklog();
 
 		await user.click(
-			within(card("Hades")).getByRole("button", { name: /Playing/ })
+			within(card("Hades")).getByRole("button", {
+				name: "Status of Hades: Playing"
+			})
 		);
 		await user.click(
 			within(
-				screen.getByRole("menu", { name: "Change status" })
-			).getByRole("menuitem", { name: /Completed/ })
+				await screen.findByRole("menu", { name: "Change status" })
+			).getByRole("menuitemradio", { name: /Completed/ })
 		);
 		const dialog = await screen.findByRole("dialog", {
 			name: "Completed?"
@@ -502,8 +507,7 @@ describe("BacklogList interaction", () => {
 			within(dialog).getByRole("switch", { name: "Mark as platinumed" })
 		);
 		const platinumedOn = within(dialog).getByLabelText("Platinumed on");
-		await user.clear(platinumedOn);
-		await user.type(platinumedOn, "2026-03-12");
+		await pickCalendarDate(user, platinumedOn, "2026-03-12");
 		await user.click(
 			within(dialog).getByRole("button", { name: "Confirm" })
 		);
@@ -550,12 +554,14 @@ describe("BacklogList interaction", () => {
 		).not.toBeInTheDocument();
 
 		await user.click(
-			within(card("Hades")).getByRole("button", { name: /Playing/ })
+			within(card("Hades")).getByRole("button", {
+				name: "Status of Hades: Playing"
+			})
 		);
 		await user.click(
 			within(
-				screen.getByRole("menu", { name: "Change status" })
-			).getByRole("menuitem", { name: /Completed/ })
+				await screen.findByRole("menu", { name: "Change status" })
+			).getByRole("menuitemradio", { name: /Completed/ })
 		);
 		const dialog = await screen.findByRole("dialog", {
 			name: "Completed?"
@@ -578,6 +584,64 @@ describe("BacklogList interaction", () => {
 		).toBeInTheDocument();
 	});
 
+	it("changes the status from the Hardcore table with a double click and opens a single dialog", async () => {
+		const user = userEvent.setup();
+		await renderBacklog();
+
+		await user.click(
+			screen.queryByRole("radio", { name: /Hardcore/ }) ??
+				screen.getByRole("button", { name: /Hardcore/ })
+		);
+		await user.click(
+			await screen.findByRole("button", {
+				name: "Status of Hades: Playing"
+			})
+		);
+		await user.dblClick(
+			within(
+				await screen.findByRole("menu", { name: "Change status" })
+			).getByRole("menuitemradio", { name: /Completed/ })
+		);
+
+		const dialog = await screen.findByRole("dialog", {
+			name: "Completed?"
+		});
+		expect(screen.getAllByRole("dialog")).toEqual([dialog]);
+		await user.click(
+			within(dialog).getByRole("button", { name: "Cancel" })
+		);
+		await untilVisible(() =>
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+		);
+		expect(backlogPatches).toEqual([]);
+	});
+
+	it("leaves the status alone when the menu is opened and dismissed twice", async () => {
+		const user = userEvent.setup();
+		await renderBacklog();
+		const trigger = () =>
+			within(card("Celeste")).getByRole("button", {
+				name: "Status of Celeste: Not Started"
+			});
+
+		await user.click(trigger());
+		await screen.findByRole("menu", { name: "Change status" });
+		await user.keyboard("{Escape}");
+		await untilVisible(() =>
+			expect(screen.queryByRole("menu")).not.toBeInTheDocument()
+		);
+		await user.click(trigger());
+		await user.click(
+			within(
+				await screen.findByRole("menu", { name: "Change status" })
+			).getByRole("menuitemradio", { name: /Not Started/ })
+		);
+
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+		expect(backlogPatches).toEqual([]);
+		expect(trigger()).toBeInTheDocument();
+	});
+
 	it("asks for notes when abandoning but not when starting to play", async () => {
 		const user = userEvent.setup();
 		await renderBacklog();
@@ -592,7 +656,7 @@ describe("BacklogList interaction", () => {
 			within(playing).getByLabelText("Started on")
 		).toBeInTheDocument();
 		expect(
-			within(playing).queryByLabelText("Notes")
+			within(playing).queryByLabelText("Notes Optional")
 		).not.toBeInTheDocument();
 		await user.click(
 			within(playing).getByRole("button", { name: "Cancel" })
@@ -600,9 +664,13 @@ describe("BacklogList interaction", () => {
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
 		await user.click(
-			within(card("Celeste")).getByRole("button", { name: /Not Started/ })
+			within(card("Celeste")).getByRole("button", {
+				name: "Status of Celeste: Not Started"
+			})
 		);
-		await user.click(screen.getByRole("menuitem", { name: /Abandoned/ }));
+		await user.click(
+			await screen.findByRole("menuitemradio", { name: /Abandoned/ })
+		);
 
 		const abandoned = await screen.findByRole("dialog", {
 			name: "Abandoned?"
@@ -610,10 +678,9 @@ describe("BacklogList interaction", () => {
 		expect(
 			within(abandoned).getByLabelText(/Abandoned on/)
 		).toBeInTheDocument();
-		expect(within(abandoned).getByLabelText("Notes")).toHaveAttribute(
-			"placeholder",
-			"Why did you drop it?"
-		);
+		expect(
+			within(abandoned).getByLabelText("Notes Optional")
+		).toHaveAttribute("placeholder", "Why did you drop it?");
 		expect(backlogPatches).toEqual([]);
 	});
 
@@ -628,7 +695,7 @@ describe("BacklogList interaction", () => {
 		await user.click(within(summary).getByRole("button", { name: "Edit" }));
 
 		const editor = await screen.findByRole("dialog", { name: "Edit run" });
-		const notes = within(editor).getByLabelText("Notes");
+		const notes = within(editor).getByLabelText("Notes Optional");
 		await user.clear(notes);
 		await user.type(notes, "Bring the dream nail");
 		await user.click(within(editor).getByRole("button", { name: "Save" }));
@@ -700,7 +767,7 @@ describe("BacklogList interaction", () => {
 		function filtersButton() {
 			return screen
 				.getAllByRole("button", { name: /^Filters/ })
-				.find(button => !button.classList.contains("sm:hidden"))!;
+				.find(button => button.classList.contains("max-sm:!hidden"))!;
 		}
 
 		function platformTrigger() {
@@ -863,6 +930,49 @@ describe("BacklogList interaction", () => {
 			expect(platformTrigger()).toHaveAccessibleName(
 				"Platform: PlayStation 2"
 			);
+		});
+
+		it("opens Filters & stats as a sheet on mobile and reaches the filters from it", async () => {
+			vi.stubGlobal(
+				"matchMedia",
+				vi.fn(() => ({
+					matches: true,
+					addEventListener: vi.fn(),
+					removeEventListener: vi.fn()
+				}))
+			);
+			const user = userEvent.setup();
+			savedViews = [
+				savedView({
+					id: "legacy",
+					name: "Only PS2",
+					isDefault: true,
+					filters: { platform_id: "p2" }
+				})
+			];
+			await renderBacklog();
+			await untilVisible(() =>
+				expect(lastLibraryQuery().get("platforms")).toBe("ps2")
+			);
+
+			const trigger = screen.getByRole("button", {
+				name: /^Filters & stats, \d+ active$/
+			});
+			await user.click(trigger);
+			const sheet = await screen.findByRole("dialog", {
+				name: "Filters & stats"
+			});
+			expect(sheet).toHaveTextContent("Only PS2");
+			expect(
+				within(sheet).getByRole("button", { name: "Filters" })
+			).toHaveAccessibleDescription("1 active");
+			await user.dblClick(
+				within(sheet).getByRole("button", { name: "Filters" })
+			);
+
+			expect(
+				await screen.findByRole("button", { name: /^Platform:/ })
+			).toHaveAccessibleName("Platform: PlayStation 2");
 		});
 
 		it("merges platform_id with platforms when a view has both", async () => {

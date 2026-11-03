@@ -1,12 +1,17 @@
 import { DatePipe } from "@angular/common";
 import {
+	afterNextRender,
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	inject,
+	Injector,
 	type OnInit,
-	signal
+	signal,
+	viewChild
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import {
 	email,
 	form,
@@ -18,6 +23,8 @@ import {
 	validate,
 	type ValidationError
 } from "@angular/forms/signals";
+import { RouterLink } from "@angular/router";
+import { debounceTime, Subject, type Subscription } from "rxjs";
 
 import {
 	NAME_LENGTH_MESSAGE,
@@ -29,25 +36,36 @@ import {
 import { avatarRing, isPremiumRole } from "../../../core/utils/premium";
 import { elevatedRoleBadge } from "../../../core/utils/role-badge";
 import { type RoleBadge } from "../../../core/utils/role-badge.model";
+import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
+import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
+import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
+import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import {
 	UiAlert,
 	UiAvatar,
+	UiBadge,
 	UiButton,
+	UiDescription,
 	UiDialog,
+	UiEyebrow,
+	UiFieldError,
 	UiFieldLabel,
+	UiFieldOptional,
 	UiFormField,
+	UiIconButton,
 	UiInput,
 	UiLabel,
+	UiNoMatches,
 	UiPagination,
 	UiPlainEmptyState,
-	UiSelect,
-	UiSkeleton
+	UiSearchBar,
+	UiSkeleton,
+	UiSwitch,
+	UiTable
 } from "../../../shared/ui";
-import {
-	fieldErrorsFromResponse,
-	validationSummary
-} from "../../../shared/utils/validation-errors";
+import { fieldErrorsFromResponse } from "../../../shared/utils/validation-errors";
 import { AdminInvitations } from "../admin-invitations/admin-invitations";
 import { AdminPremiumAccess } from "../admin-premium-access/admin-premium-access";
 import { type AdminUser } from "../services/user-admin.model";
@@ -98,16 +116,52 @@ function passwordCompositionError(
 		: null;
 }
 
-function summarize(errors: readonly ValidationError.WithFieldTree[]): string {
-	return errors
-		.map(error => error.message)
-		.filter((message): message is string => !!message)
+function serverErrorOutsideFields(
+	err: { error?: { detail?: string; title?: string } | null },
+	fields: readonly string[],
+	fallback: string
+): string {
+	const issues = Object.entries(fieldErrorsFromResponse(err));
+	if (issues.length === 0)
+		return err.error?.detail || err.error?.title || fallback;
+	return issues
+		.filter(([field]) => !fields.includes(field))
+		.map(([, message]) => message)
 		.join(" · ");
 }
 
+const CREATE_FIELDS = ["username", "name", "email", "password"] as const;
+const EDIT_FIELDS = ["name", "password"] as const;
+
+const SEARCH_DEBOUNCE_MS = 300;
+
+const ROLE_OPTIONS: readonly PickerOption[] = [
+	{ value: "user", label: "User", icon: "person" },
+	{
+		value: "premium",
+		label: "Premium",
+		icon: "workspace_premium",
+		iconClass: "text-premium"
+	},
+	{
+		value: "moderator",
+		label: "Moderator",
+		icon: "verified_user",
+		iconClass: "text-info"
+	},
+	{
+		value: "admin",
+		label: "Admin",
+		icon: "shield",
+		iconClass: "text-admin"
+	}
+];
+
+type UserRowAction = "edit" | "premium";
+
 const USER_ROLE_BADGE: RoleBadge = {
 	label: "User",
-	className: "bg-fg-muted/10 text-fg-muted",
+	tone: "neutral",
 	icon: null
 };
 
@@ -136,39 +190,71 @@ function editedSince(snapshot: FormSnapshot | null, current: FormSnapshot) {
 @Component({
 	selector: "app-admin-users",
 	imports: [
+		ActionMenu,
 		AdminInvitations,
 		AdminPremiumAccess,
 		DatePipe,
 		FormField,
 		LibraryHero,
+		LibraryToolbar,
+		OptionPicker,
+		RouterLink,
 		UiAlert,
 		UiAvatar,
+		UiBadge,
 		UiButton,
 		UiDialog,
+		UiEyebrow,
 		UiFieldLabel,
+		UiFieldOptional,
 		UiFormField,
+		UiIconButton,
 		UiInput,
 		UiLabel,
+		UiNoMatches,
 		UiPagination,
 		UiPlainEmptyState,
-		UiSelect,
-		UiSkeleton
+		UiSearchBar,
+		UiSkeleton,
+		UiSwitch,
+		UiTable,
+		UiDescription,
+		UiFieldError
 	],
 	templateUrl: "./admin-users.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminUsers implements OnInit {
 	private readonly userAdminService = inject(UserAdminService);
+	private readonly injector = inject(Injector);
+	protected readonly invitationsPanel = viewChild.required(AdminInvitations);
+	private readonly searchChanges = new Subject<string>();
+	private listSubscription: Subscription | null = null;
 
 	protected readonly Math = Math;
+	protected readonly roleOptions = ROLE_OPTIONS;
 	protected readonly users = signal<AdminUser[]>([]);
 	protected readonly total = signal(0);
+	protected readonly accountsTotal = signal(0);
+	protected readonly query = signal("");
+	protected readonly search = signal("");
 	protected readonly offset = signal(0);
 	protected readonly limit = 50;
 	protected readonly isLoading = signal(true);
 	protected readonly loadFailed = signal(false);
 	protected readonly skeletonRows = [1, 2, 3, 4, 5, 6];
 	protected readonly avatarRing = avatarRing;
+	protected readonly hasNoAccounts = computed(
+		() =>
+			!this.isLoading() &&
+			!this.loadFailed() &&
+			!this.search() &&
+			this.users().length === 0
+	);
+	protected readonly rowActions = computed(
+		() =>
+			new Map(this.users().map(user => [user.id, this.actionsFor(user)]))
+	);
 
 	protected readonly showCreateModal = signal(false);
 	protected readonly isCreating = signal(false);
@@ -294,7 +380,34 @@ export class AdminUsers implements OnInit {
 		this.showEditPassword.update(v => !v);
 	}
 
+	constructor() {
+		this.searchChanges
+			.pipe(debounceTime(SEARCH_DEBOUNCE_MS), takeUntilDestroyed())
+			.subscribe(search => this.applySearch(search));
+		inject(DestroyRef).onDestroy(() =>
+			this.listSubscription?.unsubscribe()
+		);
+	}
+
 	ngOnInit() {
+		this.loadUsers();
+	}
+
+	protected onSearch(value: string) {
+		this.query.set(value);
+		this.searchChanges.next(value.trim());
+	}
+
+	protected clearSearch() {
+		this.query.set("");
+		this.searchChanges.next("");
+		this.applySearch("");
+	}
+
+	private applySearch(search: string) {
+		if (search === this.search()) return;
+		this.search.set(search);
+		this.offset.set(0);
 		this.loadUsers();
 	}
 
@@ -303,19 +416,24 @@ export class AdminUsers implements OnInit {
 	}
 
 	loadUsers() {
+		this.listSubscription?.unsubscribe();
 		this.isLoading.set(true);
 		this.loadFailed.set(false);
-		this.userAdminService.listUsers(this.limit, this.offset()).subscribe({
-			next: res => {
-				this.users.set(res.users);
-				this.total.set(res.total);
-				this.isLoading.set(false);
-			},
-			error: () => {
-				this.loadFailed.set(true);
-				this.isLoading.set(false);
-			}
-		});
+		const search = this.search();
+		this.listSubscription = this.userAdminService
+			.listUsers(this.limit, this.offset(), search)
+			.subscribe({
+				next: res => {
+					this.users.set(res.users);
+					this.total.set(res.total);
+					if (!search) this.accountsTotal.set(res.total);
+					this.isLoading.set(false);
+				},
+				error: () => {
+					this.loadFailed.set(true);
+					this.isLoading.set(false);
+				}
+			});
 	}
 
 	openCreate() {
@@ -351,7 +469,10 @@ export class AdminUsers implements OnInit {
 		// and submitting an invalid form surfaces the reasons instead.
 		if (this.createForm().invalid()) {
 			this.createForm().markAsTouched();
-			this.createError.set(summarize(this.createForm().errorSummary()));
+			const firstInvalid = CREATE_FIELDS.find(field =>
+				this.createForm[field]().invalid()
+			);
+			if (firstInvalid) this.focusField(`create-${firstInvalid}`);
 			return;
 		}
 
@@ -363,6 +484,8 @@ export class AdminUsers implements OnInit {
 			next: () => {
 				this.isCreating.set(false);
 				this.closeCreate();
+				if (this.search())
+					this.accountsTotal.update(count => count + 1);
 				this.offset.set(0);
 				this.loadUsers();
 			},
@@ -370,10 +493,11 @@ export class AdminUsers implements OnInit {
 				this.createServerSnapshot.set({ ...this.createModel() });
 				this.createFieldErrors.set(fieldErrorsFromResponse(err));
 				this.createError.set(
-					validationSummary(err) ||
-						err.error?.detail ||
-						err.error?.title ||
+					serverErrorOutsideFields(
+						err,
+						CREATE_FIELDS,
 						"Failed to create user"
+					)
 				);
 				this.isCreating.set(false);
 			}
@@ -399,6 +523,45 @@ export class AdminUsers implements OnInit {
 	closeEdit() {
 		this.showEditModal.set(false);
 		this.editingUser.set(null);
+	}
+
+	protected setEditRole(role: string) {
+		this.editForm.role().value.set(role);
+	}
+
+	protected setEditActive(isActive: boolean) {
+		this.editForm.isActive().value.set(isActive);
+	}
+
+	protected onRowAction(user: AdminUser, action: string) {
+		switch (action as UserRowAction) {
+			case "edit":
+				this.openEdit(user);
+				return;
+			case "premium":
+				this.openPremiumAccess(user);
+				return;
+		}
+	}
+
+	private actionsFor(user: AdminUser): ActionMenuItem[] {
+		return [
+			{ id: "edit", label: "Edit user", icon: "edit" },
+			{
+				id: "premium",
+				label: "Premium access",
+				icon: "workspace_premium",
+				premium: !this.hasPremiumRole(user),
+				disabled: this.hasPremiumRole(user),
+				hint: this.premiumAccessHint(user) ?? undefined
+			},
+			{
+				id: "profile",
+				label: "View profile",
+				icon: "account_circle",
+				link: { routerLink: ["/user", user.username] }
+			}
+		];
 	}
 
 	protected hasPremiumRole(user: AdminUser): boolean {
@@ -442,7 +605,10 @@ export class AdminUsers implements OnInit {
 		// form explains itself instead of doing nothing.
 		if (this.editForm().invalid()) {
 			this.editForm().markAsTouched();
-			this.editError.set(summarize(this.editForm().errorSummary()));
+			const firstInvalid = EDIT_FIELDS.find(field =>
+				this.editForm[field]().invalid()
+			);
+			if (firstInvalid) this.focusField(`edit-${firstInvalid}`);
 			return;
 		}
 
@@ -477,13 +643,20 @@ export class AdminUsers implements OnInit {
 				this.editServerSnapshot.set({ ...this.editModel() });
 				this.editFieldErrors.set(fieldErrorsFromResponse(err));
 				this.editError.set(
-					validationSummary(err) ||
-						err.error?.detail ||
-						err.error?.title ||
+					serverErrorOutsideFields(
+						err,
+						EDIT_FIELDS,
 						"Failed to update user"
+					)
 				);
 				this.isEditing.set(false);
 			}
+		});
+	}
+
+	private focusField(id: string) {
+		afterNextRender(() => document.getElementById(id)?.focus(), {
+			injector: this.injector
 		});
 	}
 

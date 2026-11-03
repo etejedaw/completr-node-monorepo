@@ -1,9 +1,4 @@
-<app-library-hero heading="Audit Log">
-	<span
-		heroEyebrow
-		class="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand"
-		>Admin</span
-	>
+<app-library-hero heading="Audit Log" eyebrow="Admin">
 	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
 		<span class="font-semibold text-fg tabular-nums">{{ total() }}</span>
 		{{ total() === 1 ? 'entry' : 'entries' }}
@@ -52,8 +47,16 @@
 		(valueChange)="setTargetTypeFilter($event)"
 	/>
 	@if (hasFilters()) {
-	<button uiButton variant="ghost" size="sm" (click)="clearFilters()">
-		<span aria-hidden="true" class="material-icons text-base">close</span>
+	<button
+		uiButton
+		variant="ghost"
+		type="button"
+		class="shrink-0 h-10 max-md:h-12 tap:min-h-[44px]"
+		(click)="clearFilters()"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>filter_alt_off</span
+		>
 		Clear filters
 	</button>
 	}
@@ -96,62 +99,36 @@
 />
 } } @else {
 <div class="max-md:hidden overflow-x-auto">
-	<table class="w-full border-collapse text-[0.8125rem]">
+	<table uiTable>
 		<thead>
 			<tr>
-				<th
-					scope="col"
-					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
-				>
-					User
-				</th>
-				<th
-					scope="col"
-					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
-				>
-					Action
-				</th>
-				<th
-					scope="col"
-					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
-				>
-					Target
-				</th>
-				<th
-					scope="col"
-					class="text-left px-3 py-2.5 text-fg-muted font-semibold text-[0.6875rem] uppercase tracking-[0.16em] border-b border-line whitespace-nowrap"
-				>
-					Date
-				</th>
+				<th scope="col">User</th>
+				<th scope="col">Action</th>
+				<th scope="col">Target</th>
+				<th scope="col">Date</th>
 			</tr>
 		</thead>
 		<tbody>
 			@for (log of logs(); track log.id) {
-			<tr class="border-b border-line transition hover:bg-surface-hover">
-				<td class="px-3 py-2.5 text-fg align-middle font-medium">
+			<tr>
+				<td class="font-medium text-fg">
 					{{ log.user?.username ?? 'Unknown' }}
 				</td>
-				<td class="px-3 py-2.5 align-middle whitespace-nowrap">
-					<span
-						class="inline-block px-2 py-0.5 bg-surface border border-line rounded-full text-[0.6875rem] font-semibold text-fg-secondary"
-						>{{ log.action }}</span
-					>
+				<td class="whitespace-nowrap">
+					<ui-badge>{{ log.action }}</ui-badge>
 				</td>
-				<td class="px-3 py-2.5 text-fg-secondary align-middle">
-					<span
-						class="inline-block px-1.5 py-0.5 mr-1.5 bg-input-bg rounded text-[0.625rem] uppercase tracking-wider text-fg-muted"
-						>{{ log.targetType }}</span
-					>
+				<td class="text-fg-secondary">
+					<ui-badge class="mr-1.5">{{ log.targetType }}</ui-badge>
 					@if (log.target?.type === 'game' && log.target.code) {
 					<a
-						class="text-brand no-underline hover:underline"
+						class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px] tap:min-w-[44px]"
 						[routerLink]="['/games', log.target!.code]"
 						>{{ log.target!.label }}</a
 					>
 					} @else if (log.target?.type === 'user' &&
 					log.target.username) {
 					<a
-						class="text-brand no-underline hover:underline"
+						class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px] tap:min-w-[44px]"
 						[routerLink]="['/user', log.target!.username]"
 						>{{ log.target!.label }}</a
 					>
@@ -162,7 +139,7 @@
 					}
 				</td>
 				<td
-					class="px-3 py-2.5 text-fg-muted text-xs whitespace-nowrap align-middle tabular-nums"
+					class="text-fg-muted text-xs whitespace-nowrap tabular-nums"
 				>
 					{{ log.createdAt | date:'yyyy-MM-dd HH:mm' }}
 				</td>
@@ -176,10 +153,7 @@
 	@for (log of logs(); track log.id) {
 	<li class="py-3 flex flex-col gap-2">
 		<div class="flex items-center justify-between gap-3">
-			<span
-				class="inline-block px-2 py-0.5 bg-surface border border-line rounded-full text-[0.6875rem] font-semibold text-fg-secondary"
-				>{{ log.action }}</span
-			>
+			<ui-badge>{{ log.action }}</ui-badge>
 			<span class="text-xs text-fg-muted tabular-nums"
 				>{{ log.createdAt | date:'yyyy-MM-dd HH:mm' }}</span
 			>
@@ -189,19 +163,16 @@
 				>{{ log.user?.username ?? 'Unknown' }}</span
 			>
 			&middot;
-			<span
-				class="inline-block px-1.5 py-0.5 mr-1 bg-input-bg rounded text-[0.625rem] uppercase tracking-wider text-fg-muted"
-				>{{ log.targetType }}</span
-			>
+			<ui-badge class="mr-1">{{ log.targetType }}</ui-badge>
 			@if (log.target?.type === 'game' && log.target.code) {
 			<a
-				class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px]"
+				class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px] tap:min-w-[44px]"
 				[routerLink]="['/games', log.target!.code]"
 				>{{ log.target!.label }}</a
 			>
 			} @else if (log.target?.type === 'user' && log.target.username) {
 			<a
-				class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px]"
+				class="text-brand no-underline hover:underline inline-flex items-center tap:min-h-[44px] tap:min-w-[44px]"
 				[routerLink]="['/user', log.target!.username]"
 				>{{ log.target!.label }}</a
 			>

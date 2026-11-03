@@ -10,8 +10,10 @@ import {
 import { TestBed } from "@angular/core/testing";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
+import { Subject } from "rxjs";
 
 import { environment } from "../../../../environments/environment";
+import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
 import { AdminFranchises } from "./admin-franchises";
 
@@ -58,6 +60,7 @@ describe("AdminFranchises interaction", () => {
 	let nextListFailure: ApiResponse | null;
 	let deleteFailure: ApiResponse | null;
 	let unexpectedRequests: string[];
+	let dialogs: { open: ReturnType<typeof vi.fn> } | null;
 	const listRequests: URLSearchParams[] = [];
 	const deletions: string[] = [];
 	const toast = {
@@ -76,7 +79,18 @@ describe("AdminFranchises interaction", () => {
 				nextListFailure = null;
 				return response;
 			}
-			return ok({ data: { franchises, total: franchises.length } });
+			const search = params.get("search")?.toLowerCase() ?? "";
+			const offset = Number(params.get("offset") ?? 0);
+			const limit = Number(params.get("limit") ?? franchises.length);
+			const matches = franchises.filter(f =>
+				f.name.toLowerCase().includes(search)
+			);
+			return ok({
+				data: {
+					franchises: matches.slice(offset, offset + limit),
+					total: matches.length
+				}
+			});
 		}
 		const deleteMatch = url.match(/\/franchises\/([^/?]+)$/);
 		if (method === "DELETE" && deleteMatch) {
@@ -139,6 +153,17 @@ describe("AdminFranchises interaction", () => {
 		return screen.findByRole("dialog", { name: `Delete ${name}?` });
 	}
 
+	function lastListRequest() {
+		return listRequests[listRequests.length - 1];
+	}
+
+	function manyFranchises(count: number, prefix = "Saga") {
+		return Array.from({ length: count }, (_, index) => {
+			const number = String(index + 1).padStart(3, "0");
+			return franchise(`${prefix}-${number}`, `${prefix} ${number}`);
+		});
+	}
+
 	async function renderFranchises(mobile = false) {
 		vi.stubGlobal(
 			"matchMedia",
@@ -152,7 +177,10 @@ describe("AdminFranchises interaction", () => {
 			providers: [
 				provideHttpClient(),
 				provideHttpClientTesting(),
-				{ provide: ToastService, useValue: toast }
+				{ provide: ToastService, useValue: toast },
+				...(dialogs
+					? [{ provide: DialogService, useValue: dialogs }]
+					: [])
 			],
 			routes: []
 		});
@@ -180,6 +208,7 @@ describe("AdminFranchises interaction", () => {
 		nextListFailure = null;
 		deleteFailure = null;
 		unexpectedRequests = [];
+		dialogs = null;
 		listRequests.length = 0;
 		deletions.length = 0;
 		toast.success.mockClear();
@@ -198,7 +227,7 @@ describe("AdminFranchises interaction", () => {
 	});
 
 	describe("listing", () => {
-		it("shows a busy skeleton and then every franchise with the limit of 100", async () => {
+		it("shows a busy skeleton and then the first page of franchises", async () => {
 			await renderFranchises();
 
 			expect(
@@ -210,7 +239,9 @@ describe("AdminFranchises interaction", () => {
 				).toBeInTheDocument()
 			);
 			expect(namesOnScreen()).toEqual(["Souls", "Zelda", "Metroid"]);
-			expect(listRequests[0].get("limit")).toBe("100");
+			expect(listRequests[0].get("limit")).toBe("50");
+			expect(listRequests[0].get("offset")).toBe("0");
+			expect(listRequests[0].has("search")).toBe(false);
 			expect(screen.getByText("3")).toBeInTheDocument();
 			expect(screen.getByText(/franchises grouping/)).toBeInTheDocument();
 			expect(
@@ -263,6 +294,454 @@ describe("AdminFranchises interaction", () => {
 			expect(
 				row.getByRole("button", { name: "Delete franchise" })
 			).toBeInTheDocument();
+		});
+	});
+
+	describe("search", () => {
+		function searchBox() {
+			return screen.getByRole("textbox", { name: "Search franchises" });
+		}
+
+		function searchRequests() {
+			return listRequests.filter(params => params.has("search"));
+		}
+
+		it("asks the API once with the trimmed text after a pause", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+
+			await user.type(searchBox(), "  ZEL ");
+
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(["Zelda"])
+			);
+			expect(listRequests).toHaveLength(2);
+			expect(lastListRequest().get("search")).toBe("ZEL");
+			expect(lastListRequest().get("offset")).toBe("0");
+			expect(lastListRequest().get("limit")).toBe("50");
+			expect(screen.getByRole("status")).toHaveTextContent(
+				"1 match for “ZEL”"
+			);
+		});
+
+		it("follows a burst of fast typing, deleting and retyping with a single request", async () => {
+			const user = userEvent.setup({ delay: null });
+			await renderLoaded();
+
+			await user.type(
+				searchBox(),
+				"metroidx{Backspace}{Backspace}{Backspace}"
+			);
+			await user.type(
+				searchBox(),
+				"{Backspace}{Backspace}{Backspace}{Backspace}{Backspace}so"
+			);
+
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(["Souls"])
+			);
+			expect(
+				searchRequests().map(params => params.get("search"))
+			).toEqual(["so"]);
+		});
+
+		it("never lets the answer to an older search replace the newer one", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			held = req => req.params.get("search") === "zel";
+
+			await user.type(searchBox(), "zel");
+			const stale = await waitFor(() => {
+				const [request] = httpTesting.match(
+					req => req.params.get("search") === "zel"
+				);
+				expect(request).toBeDefined();
+				return request;
+			});
+			await user.clear(searchBox());
+			await user.type(searchBox(), "met");
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(["Metroid"])
+			);
+
+			expect(stale.cancelled).toBe(true);
+			held = () => false;
+			answerPending();
+			expect(namesOnScreen()).toEqual(["Metroid"]);
+			expect(searchBox()).toHaveValue("met");
+		});
+
+		it("does not ask again when the text is only spaces", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+
+			await user.type(searchBox(), "   ");
+			await new Promise(resolve => setTimeout(resolve, 400));
+			answerPending();
+
+			expect(namesOnScreen()).toEqual(["Souls", "Zelda", "Metroid"]);
+			expect(listRequests).toHaveLength(1);
+		});
+
+		it("caps an endless paste at the length the API accepts", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+
+			await user.click(searchBox());
+			await user.paste("z".repeat(500));
+
+			await untilVisible(() =>
+				expect(screen.getByText("No matches found")).toBeInTheDocument()
+			);
+			expect(lastListRequest().get("search")).toHaveLength(100);
+		});
+
+		it("explains when nothing matches and restores the list at once with Clear search", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+
+			await user.type(searchBox(), "nothing here");
+
+			await untilVisible(() =>
+				expect(screen.getByText("No matches found")).toBeInTheDocument()
+			);
+			expect(
+				screen.getByText("No franchises match “nothing here”.")
+			).toBeInTheDocument();
+			expect(namesOnScreen()).toEqual([]);
+			expect(screen.queryByText("No franchises yet")).toBeNull();
+
+			const emptyState = screen
+				.getByText("No matches found")
+				.closest("ui-empty-state") as HTMLElement;
+			await user.click(
+				within(emptyState).getByRole("button", { name: "Clear search" })
+			);
+
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(["Souls", "Zelda", "Metroid"])
+			);
+			expect(searchBox()).toHaveValue("");
+			expect(lastListRequest().has("search")).toBe(false);
+		});
+
+		it("sends markup, regex symbols and emoji as plain text", async () => {
+			const user = userEvent.setup();
+			franchises = [
+				franchise("f1", "<b>Bold</b> 🎮"),
+				franchise("f2", "Zelda")
+			];
+			await renderFranchises();
+			await untilVisible(() =>
+				expect(
+					screen.getByRole("link", { name: "Zelda" })
+				).toBeInTheDocument()
+			);
+
+			await user.type(searchBox(), "<b>");
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(["<b>Bold</b> 🎮"])
+			);
+			expect(lastListRequest().get("search")).toBe("<b>");
+			expect(document.querySelector("b")).toBeNull();
+
+			await user.clear(searchBox());
+			await user.type(searchBox(), ".*(");
+			await untilVisible(() =>
+				expect(screen.getByText("No matches found")).toBeInTheDocument()
+			);
+
+			await user.clear(searchBox());
+			await user.type(searchBox(), "🎮");
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(["<b>Bold</b> 🎮"])
+			);
+		});
+
+		it("clears with Escape and with the clear button of the bar", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+
+			await user.type(searchBox(), "zel");
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(["Zelda"])
+			);
+			await user.keyboard("{Escape}");
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(["Souls", "Zelda", "Metroid"])
+			);
+
+			await user.type(searchBox(), "met");
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(["Metroid"])
+			);
+			await user.click(
+				screen.getByRole("button", { name: "Clear search" })
+			);
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(["Souls", "Zelda", "Metroid"])
+			);
+		});
+
+		it("keeps the search and the toolbar while a delete reloads the list", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			await user.type(searchBox(), "o");
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(["Souls", "Metroid"])
+			);
+
+			const dialog = await openDeleteFor("Souls", user);
+			await user.click(
+				within(dialog).getByRole("button", { name: "Delete" })
+			);
+
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(["Metroid"])
+			);
+			expect(searchBox()).toHaveValue("o");
+			expect(lastListRequest().get("search")).toBe("o");
+			expect(screen.getByText(/franchises grouping/)).toHaveTextContent(
+				"2 franchises grouping"
+			);
+		});
+
+		it("keeps the search and the page after saving in the franchise dialog", async () => {
+			const user = userEvent.setup();
+			const closed = new Subject<string | undefined>();
+			dialogs = {
+				open: vi.fn(() => ({ afterClosed: closed.asObservable() }))
+			};
+			franchises = manyFranchises(120);
+			await renderFranchises();
+			await untilVisible(() => expect(namesOnScreen()).toHaveLength(50));
+			await user.type(searchBox(), "saga 0");
+			await untilVisible(() =>
+				expect(screen.getByRole("status")).toHaveTextContent(
+					"99 matches for “saga 0”"
+				)
+			);
+			await user.click(screen.getByRole("button", { name: "Next page" }));
+			await untilVisible(() =>
+				expect(namesOnScreen()[0]).toBe("Saga 051")
+			);
+			const before = listRequests.length;
+
+			await user.click(
+				within(rowOf("Saga 051")).getByRole("button", {
+					name: "Edit franchise"
+				})
+			);
+			franchises[50] = { ...franchises[50], name: "Saga 051 Remastered" };
+			closed.next("saved");
+
+			await untilVisible(() =>
+				expect(namesOnScreen()[0]).toBe("Saga 051 Remastered")
+			);
+			expect(listRequests.length - before).toBe(1);
+			expect(lastListRequest().get("search")).toBe("saga 0");
+			expect(lastListRequest().get("offset")).toBe("50");
+			expect(searchBox()).toHaveValue("saga 0");
+		});
+
+		it("keeps the toolbar and retries the same search after it fails", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			nextListFailure = failure(500);
+
+			await user.type(searchBox(), "zel");
+			await untilVisible(() =>
+				expect(
+					screen.getByText("Could not load franchises.")
+				).toBeInTheDocument()
+			);
+			expect(searchBox()).toHaveValue("zel");
+
+			await user.click(screen.getByRole("button", { name: "Try again" }));
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(["Zelda"])
+			);
+			expect(lastListRequest().get("search")).toBe("zel");
+		});
+
+		it("is not offered when there are no franchises or the load failed", async () => {
+			franchises = [];
+			await renderFranchises();
+			await untilVisible(() =>
+				expect(
+					screen.getByText("No franchises yet")
+				).toBeInTheDocument()
+			);
+			expect(screen.queryByRole("textbox")).toBeNull();
+		});
+
+		it("is not offered after a failed load", async () => {
+			nextListFailure = failure(500);
+			await renderFranchises();
+			await untilVisible(() =>
+				expect(
+					screen.getByText("Could not load franchises.")
+				).toBeInTheDocument()
+			);
+			expect(screen.queryByRole("textbox")).toBeNull();
+		});
+	});
+
+	describe("pagination", () => {
+		function searchBox() {
+			return screen.getByRole("textbox", { name: "Search franchises" });
+		}
+
+		async function renderMany(count: number) {
+			franchises = manyFranchises(count);
+			await renderFranchises();
+			await untilVisible(() => expect(namesOnScreen()).toHaveLength(50));
+		}
+
+		it("pages through every franchise beyond the first 50", async () => {
+			const user = userEvent.setup();
+			await renderMany(120);
+
+			expect(screen.getByText("120")).toBeInTheDocument();
+			await user.click(screen.getByRole("button", { name: "Last page" }));
+
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(
+					franchises.slice(100).map(f => f.name)
+				)
+			);
+			expect(lastListRequest().get("offset")).toBe("100");
+		});
+
+		it("is hidden when everything fits in one page", async () => {
+			await renderLoaded();
+
+			expect(
+				screen.queryByRole("button", { name: "Next page" })
+			).toBeNull();
+		});
+
+		it("finds a franchise that lives past the first page", async () => {
+			const user = userEvent.setup();
+			await renderMany(120);
+
+			await user.type(searchBox(), "saga 117");
+
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(["Saga 117"])
+			);
+			expect(
+				screen.queryByRole("button", { name: "Next page" })
+			).toBeNull();
+		});
+
+		it("goes back to the first page when the search changes", async () => {
+			const user = userEvent.setup();
+			await renderMany(120);
+			await user.click(screen.getByRole("button", { name: "Next page" }));
+			await untilVisible(() =>
+				expect(namesOnScreen()[0]).toBe("Saga 051")
+			);
+
+			await user.type(searchBox(), "saga");
+
+			await untilVisible(() =>
+				expect(namesOnScreen()[0]).toBe("Saga 001")
+			);
+			expect(lastListRequest().get("offset")).toBe("0");
+			expect(lastListRequest().get("search")).toBe("saga");
+		});
+
+		it("pages within the matches of a search", async () => {
+			const user = userEvent.setup();
+			franchises = [
+				...manyFranchises(70, "Zelda"),
+				...manyFranchises(40, "Metroid")
+			];
+			await renderFranchises();
+			await untilVisible(() => expect(namesOnScreen()).toHaveLength(50));
+
+			await user.type(searchBox(), "zelda");
+			await untilVisible(() =>
+				expect(screen.getByRole("status")).toHaveTextContent(
+					"70 matches for “zelda”"
+				)
+			);
+			await user.click(screen.getByRole("button", { name: "Next page" }));
+
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(
+					franchises.slice(50, 70).map(f => f.name)
+				)
+			);
+			expect(lastListRequest().get("search")).toBe("zelda");
+			expect(lastListRequest().get("offset")).toBe("50");
+		});
+
+		it("returns to the first page and the whole catalog when the search is cleared", async () => {
+			const user = userEvent.setup();
+			franchises = manyFranchises(120);
+			await renderFranchises();
+			await untilVisible(() => expect(namesOnScreen()).toHaveLength(50));
+			await user.type(searchBox(), "saga 0");
+			await untilVisible(() =>
+				expect(screen.getByRole("status")).toHaveTextContent(
+					"99 matches for “saga 0”"
+				)
+			);
+			await user.click(screen.getByRole("button", { name: "Next page" }));
+			await untilVisible(() =>
+				expect(namesOnScreen()[0]).toBe("Saga 051")
+			);
+
+			await user.click(
+				screen.getByRole("button", { name: "Clear search" })
+			);
+
+			await untilVisible(() =>
+				expect(namesOnScreen()[0]).toBe("Saga 001")
+			);
+			expect(lastListRequest().get("offset")).toBe("0");
+			expect(lastListRequest().has("search")).toBe(false);
+		});
+
+		it("shows only the last page asked for when pages are clicked in a hurry", async () => {
+			const user = userEvent.setup();
+			await renderMany(120);
+			held = req =>
+				req.url === franchisesUrl && req.params.get("offset") === "50";
+
+			await user.click(screen.getByRole("button", { name: "Next page" }));
+			await user.click(screen.getByRole("button", { name: "Last page" }));
+			await untilVisible(() =>
+				expect(namesOnScreen()[0]).toBe("Saga 101")
+			);
+
+			held = () => false;
+			answerPending();
+			expect(namesOnScreen()[0]).toBe("Saga 101");
+		});
+
+		it("steps back a page when the only franchise of the last page is deleted", async () => {
+			const user = userEvent.setup();
+			await renderMany(101);
+			await user.click(screen.getByRole("button", { name: "Last page" }));
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(["Saga 101"])
+			);
+
+			const dialog = await openDeleteFor("Saga 101", user);
+			await user.click(
+				within(dialog).getByRole("button", { name: "Delete" })
+			);
+
+			await untilVisible(() =>
+				expect(namesOnScreen()).toEqual(
+					franchises.slice(50, 100).map(f => f.name)
+				)
+			);
+			expect(lastListRequest().get("offset")).toBe("50");
+			expect(screen.queryByText("No franchises yet")).toBeNull();
 		});
 	});
 
@@ -635,6 +1114,41 @@ describe("AdminFranchises interaction", () => {
 	});
 
 	describe("mobile viewport", () => {
+		it("groups edit and delete in a menu per row", async () => {
+			const user = userEvent.setup();
+			await renderLoaded(true);
+
+			await user.click(
+				screen.getByRole("button", { name: "Actions for Zelda" })
+			);
+			const sheet = await screen.findByRole("dialog", { name: "Zelda" });
+			await user.click(
+				within(sheet).getByRole("button", { name: "Delete franchise" })
+			);
+
+			expect(
+				await screen.findByRole("dialog", { name: "Delete Zelda?" })
+			).toBeInTheDocument();
+			expect(screen.queryByRole("dialog", { name: "Zelda" })).toBeNull();
+		});
+
+		it("opens the delete dialog once when the menu item is double tapped", async () => {
+			const user = userEvent.setup();
+			await renderLoaded(true);
+
+			await user.click(
+				screen.getByRole("button", { name: "Actions for Zelda" })
+			);
+			const sheet = await screen.findByRole("dialog", { name: "Zelda" });
+			await user.dblClick(
+				within(sheet).getByRole("button", { name: "Delete franchise" })
+			);
+
+			await screen.findByRole("dialog", { name: "Delete Zelda?" });
+			expect(screen.getAllByRole("dialog")).toHaveLength(1);
+			expect(deletions).toEqual([]);
+		});
+
 		it("deletes a franchise through the same dialog", async () => {
 			const user = userEvent.setup();
 			await renderLoaded(true);

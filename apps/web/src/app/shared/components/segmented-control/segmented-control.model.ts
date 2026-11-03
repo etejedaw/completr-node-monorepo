@@ -5,3 +5,5 @@ export interface SegmentedOption<T extends string = string> {
 	icon?: string;
 	hint?: string;
 }
+
+export type SegmentedControlSemantics = "radio" | "toggle";

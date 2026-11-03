@@ -322,6 +322,175 @@ void describe("GET /admin/users", () => {
 	});
 });
 
+void describe("GET /admin/users?q", () => {
+	async function listIds(
+		authorization: string,
+		query: Record<string, string | number>
+	) {
+		const response = await api()
+			.get("/admin/users")
+			.query(query)
+			.set("Authorization", authorization);
+		assert.equal(response.status, 200);
+		return {
+			ids: (response.body.data.users as AdminUserBody[]).map(user => user.id),
+			total: response.body.data.total as number
+		};
+	}
+
+	void it("finds a user by part of the username", async () => {
+		const admin = await createUserWithSession("admin");
+		const token = uniqueSuffix();
+		const target = await createUser({ username: `zz${token}` });
+		await createUser();
+
+		const result = await listIds(admin.authorization, { q: `zz${token}` });
+
+		assert.deepEqual(result.ids, [target.id]);
+		assert.equal(result.total, 1);
+	});
+
+	void it("finds a user by the display name", async () => {
+		const admin = await createUserWithSession("admin");
+		const token = uniqueSuffix();
+		const target = await createUser();
+		await target.update({ name: `Quillon ${token}` });
+
+		const result = await listIds(admin.authorization, {
+			q: `quillon ${token}`
+		});
+
+		assert.deepEqual(result.ids, [target.id]);
+	});
+
+	void it("finds a user by the email", async () => {
+		const admin = await createUserWithSession("admin");
+		const token = uniqueSuffix();
+		const target = await createUser({ email: `inbox${token}@mail.test` });
+
+		const result = await listIds(admin.authorization, {
+			q: `inbox${token}@mail`
+		});
+
+		assert.deepEqual(result.ids, [target.id]);
+	});
+
+	void it("ignores letter case and surrounding spaces", async () => {
+		const admin = await createUserWithSession("admin");
+		const token = uniqueSuffix();
+		const target = await createUser({ username: `case_${token}` });
+
+		const result = await listIds(admin.authorization, {
+			q: `   CASE_${token.toUpperCase()}  `
+		});
+
+		assert.deepEqual(result.ids, [target.id]);
+	});
+
+	void it("finds inactive accounts too", async () => {
+		const admin = await createUserWithSession("admin");
+		const token = uniqueSuffix();
+		const inactive = await createUser({
+			username: `gone_${token}`,
+			isActive: false
+		});
+
+		const result = await listIds(admin.authorization, { q: token });
+
+		assert.deepEqual(result.ids, [inactive.id]);
+	});
+
+	void it("treats % and _ as literal text instead of wildcards", async () => {
+		const admin = await createUserWithSession("admin");
+		const unfiltered = await listIds(admin.authorization, {});
+
+		for (const wildcard of ["%", "_", "%%", "\\", "_%_"]) {
+			const result = await listIds(admin.authorization, { q: wildcard });
+			assert.equal(result.total, unfiltered.total, `q=${wildcard}`);
+		}
+
+		const token = uniqueSuffix();
+		const target = await createUser({ username: `pct_${token}` });
+		const wrapped = await listIds(admin.authorization, {
+			q: `%${token}%`
+		});
+		assert.deepEqual(wrapped.ids, [target.id]);
+	});
+
+	void it("returns an empty page with total 0 when nothing matches", async () => {
+		const admin = await createUserWithSession("admin");
+
+		const result = await listIds(admin.authorization, {
+			q: `nobody${uniqueSuffix()}`
+		});
+
+		assert.deepEqual(result.ids, []);
+		assert.equal(result.total, 0);
+	});
+
+	void it("lists everyone when q is empty or only spaces", async () => {
+		const admin = await createUserWithSession("admin");
+		const unfiltered = await listIds(admin.authorization, {});
+
+		const empty = await listIds(admin.authorization, { q: "" });
+		const blank = await listIds(admin.authorization, { q: "    " });
+
+		assert.equal(empty.total, unfiltered.total);
+		assert.equal(blank.total, unfiltered.total);
+		assert.deepEqual(empty.ids, unfiltered.ids);
+	});
+
+	void it("rejects a q longer than 100 characters with 422 COMMON_SCHEMA_INVALID", async () => {
+		const admin = await createUserWithSession("admin");
+
+		const response = await api()
+			.get("/admin/users")
+			.query({ q: "a".repeat(101) })
+			.set("Authorization", admin.authorization);
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+	});
+
+	void it("accepts a q of exactly 100 characters", async () => {
+		const admin = await createUserWithSession("admin");
+
+		const response = await api()
+			.get("/admin/users")
+			.query({ q: "a".repeat(100) })
+			.set("Authorization", admin.authorization);
+
+		assert.equal(response.status, 200);
+	});
+
+	void it("paginates the filtered result and reports the filtered total", async () => {
+		const admin = await createUserWithSession("admin");
+		const token = uniqueSuffix();
+		const oldest = await createUser({ username: `pg_${token}_a` });
+		const middle = await createUser({ username: `pg_${token}_b` });
+		const newest = await createUser({ username: `pg_${token}_c` });
+		await createUser();
+		await setCreatedAtMinutesFromNow(oldest.id, 1);
+		await setCreatedAtMinutesFromNow(middle.id, 2);
+		await setCreatedAtMinutesFromNow(newest.id, 3);
+
+		const firstPage = await listIds(admin.authorization, {
+			q: token,
+			limit: 2
+		});
+		const secondPage = await listIds(admin.authorization, {
+			q: token,
+			limit: 2,
+			offset: 2
+		});
+
+		assert.deepEqual(firstPage.ids, [newest.id, middle.id]);
+		assert.deepEqual(secondPage.ids, [oldest.id]);
+		assert.equal(firstPage.total, 3);
+		assert.equal(secondPage.total, 3);
+	});
+});
+
 void describe("PATCH /admin/users/:userId", () => {
 	void it("updates name, role and activation and returns the admin serialization", async () => {
 		const admin = await createUserWithSession("admin");
