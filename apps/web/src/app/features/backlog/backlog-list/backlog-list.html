@@ -78,18 +78,35 @@
 			}
 
 			<div class="flex items-center gap-2">
+				@if (activeFilterId()) {
+				<div class="sm:hidden">
+					<app-action-menu
+						#mobileToolsMenu
+						label="Filters & stats"
+						heading="Filters & stats"
+						eyebrow="My Games"
+						[subheading]="activeView()?.name ?? null"
+						icon="tune"
+						size="md"
+						[count]="activeFiltersCount() + enabledStatsCount()"
+						[active]="hasActiveFilters() || hasAnyStatEnabled()"
+						[items]="mobileToolsItems()"
+						(selected)="runMobileTool($event)"
+					/>
+				</div>
+				} @else {
 				<button
 					#mobileToolsButton
 					uiFiltersButton
 					class="sm:!hidden"
 					labelVisibility="always"
-					[label]="activeFilterId() ? 'Filters & stats' : 'Filters'"
 					[count]="activeFiltersCount() + enabledStatsCount()"
 					[active]="hasActiveFilters() || hasAnyStatEnabled()"
-					(click)="openMobileTools()"
+					(click)="openFilters()"
 				>
-					{{ activeFilterId() ? 'Filters & stats' : 'Filters' }}
+					Filters
 				</button>
+				}
 				<button
 					uiFiltersButton
 					class="max-sm:!hidden"
@@ -128,8 +145,7 @@
 					<span aria-hidden="true" class="material-icons text-lg"
 						>insights</span
 					>
-					Stats
-					@if (enabledStatsCount() > 0) {
+					Stats @if (enabledStatsCount() > 0) {
 					<ui-count-badge [count]="enabledStatsCount()" />
 					}
 				</button>
@@ -386,15 +402,5 @@
 	[entry]="ratingEntry"
 	(saved)="saveRatingSheet(ratingEntry, $event)"
 	(closed)="ratingSheetEntry.set(null)"
-/>
-} @if (toolsSheetOpen()) {
-<app-backlog-tools-sheet
-	[viewName]="activeView()?.name ?? null"
-	[hasActiveView]="!!activeFilterId()"
-	[activeFiltersCount]="activeFiltersCount()"
-	[enabledStatsCount]="enabledStatsCount()"
-	(filtersRequested)="openFiltersFromSheet()"
-	(statsRequested)="openStatsFromSheet()"
-	(closed)="toolsSheetOpen.set(false)"
 />
 }

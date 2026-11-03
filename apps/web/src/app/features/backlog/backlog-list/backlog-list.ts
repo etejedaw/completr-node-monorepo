@@ -35,6 +35,8 @@ import {
 import { DialogService } from "../../../core/services/dialog";
 import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
+import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
+import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
 import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
 import { ExportActions } from "../../../shared/components/export-actions/export-actions";
@@ -82,7 +84,6 @@ import {
 	type SortOrder
 } from "../components/backlog-filters-panel/backlog-filters-panel";
 import { BacklogTable } from "../components/backlog-table/backlog-table";
-import { BacklogToolsSheet } from "../components/backlog-tools-sheet/backlog-tools-sheet";
 import { EntryRatingSheet } from "../components/entry-rating-sheet/entry-rating-sheet";
 import { ReorderViewsDialog } from "../components/reorder-views-dialog/reorder-views-dialog";
 import { SavedViewStats } from "../components/saved-view-stats/saved-view-stats";
@@ -158,7 +159,7 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 		UiSearchBar,
 		UiSkeleton,
 		BacklogFiltersPanel,
-		BacklogToolsSheet,
+		ActionMenu,
 		EntryRatingSheet,
 		ReorderViewsDialog,
 		SavedViewStats,
@@ -193,7 +194,6 @@ export class BacklogList implements OnInit {
 	protected readonly activeStatuses = signal<Set<string>>(new Set());
 	protected readonly pointer = inject(PointerService);
 	protected readonly ratingSheetEntry = signal<BacklogEntry | null>(null);
-	protected readonly toolsSheetOpen = signal(false);
 
 	protected readonly activeView = computed(
 		() =>
@@ -796,7 +796,6 @@ export class BacklogList implements OnInit {
 
 	protected openFilters() {
 		this.showStatsPanel.set(false);
-		this.toolsSheetOpen.set(false);
 		this.showFilters.set(true);
 	}
 
@@ -816,16 +815,23 @@ export class BacklogList implements OnInit {
 		string,
 		ElementRef<HTMLButtonElement>
 	>("mobileToolsButton", { read: ElementRef });
+	private readonly mobileToolsMenu = viewChild("mobileToolsMenu", {
+		read: ActionMenu
+	});
 	private focusToolsButtonOnClose = false;
 
 	private returnFocusToToolsButton() {
 		if (!this.focusToolsButtonOnClose) return;
 		this.focusToolsButtonOnClose = false;
 		afterNextRender(
-			() =>
-				this.mobileToolsButton()?.nativeElement.focus({
-					preventScroll: true
-				}),
+			() => {
+				const menu = this.mobileToolsMenu();
+				if (menu) menu.focusTrigger();
+				else
+					this.mobileToolsButton()?.nativeElement.focus({
+						preventScroll: true
+					});
+			},
 			{ injector: this.injector }
 		);
 	}
@@ -835,9 +841,36 @@ export class BacklogList implements OnInit {
 		this.closeFilters();
 	}
 
-	protected openMobileTools() {
-		if (this.activeFilterId()) this.toolsSheetOpen.set(true);
-		else this.openFilters();
+	protected readonly mobileToolsItems = computed<ActionMenuItem[]>(() => {
+		const filters = this.activeFiltersCount();
+		const stats = this.enabledStatsCount();
+		return [
+			{
+				id: "filters",
+				label: "Filters",
+				icon: "tune",
+				iconClass: "text-brand",
+				hint:
+					filters > 0
+						? `${filters} active`
+						: "Platform, rating, tags, genres and more"
+			},
+			{
+				id: "stats",
+				label: "Stats",
+				icon: "insights",
+				iconClass: "text-brand",
+				hint:
+					stats > 0
+						? `${stats} visible`
+						: "Choose which stats to show"
+			}
+		];
+	});
+
+	protected runMobileTool(id: string) {
+		if (id === "filters") this.openFiltersFromSheet();
+		else if (id === "stats") this.openStatsFromSheet();
 	}
 
 	protected setStatuses(values: readonly string[]) {
@@ -1283,7 +1316,6 @@ export class BacklogList implements OnInit {
 	}
 
 	protected openStatsFromSheet() {
-		this.toolsSheetOpen.set(false);
 		this.closeFilters();
 		this.toggleStatsPanel();
 		this.focusToolsButtonOnClose = true;

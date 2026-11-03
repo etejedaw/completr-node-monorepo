@@ -767,7 +767,7 @@ describe("BacklogList interaction", () => {
 		function filtersButton() {
 			return screen
 				.getAllByRole("button", { name: /^Filters/ })
-				.find(button => !button.classList.contains("sm:!hidden"))!;
+				.find(button => button.classList.contains("max-sm:!hidden"))!;
 		}
 
 		function platformTrigger() {
@@ -930,6 +930,49 @@ describe("BacklogList interaction", () => {
 			expect(platformTrigger()).toHaveAccessibleName(
 				"Platform: PlayStation 2"
 			);
+		});
+
+		it("opens Filters & stats as a sheet on mobile and reaches the filters from it", async () => {
+			vi.stubGlobal(
+				"matchMedia",
+				vi.fn(() => ({
+					matches: true,
+					addEventListener: vi.fn(),
+					removeEventListener: vi.fn()
+				}))
+			);
+			const user = userEvent.setup();
+			savedViews = [
+				savedView({
+					id: "legacy",
+					name: "Only PS2",
+					isDefault: true,
+					filters: { platform_id: "p2" }
+				})
+			];
+			await renderBacklog();
+			await untilVisible(() =>
+				expect(lastLibraryQuery().get("platforms")).toBe("ps2")
+			);
+
+			const trigger = screen.getByRole("button", {
+				name: /^Filters & stats, \d+ active$/
+			});
+			await user.click(trigger);
+			const sheet = await screen.findByRole("dialog", {
+				name: "Filters & stats"
+			});
+			expect(sheet).toHaveTextContent("Only PS2");
+			expect(
+				within(sheet).getByRole("button", { name: "Filters" })
+			).toHaveAccessibleDescription("1 active");
+			await user.dblClick(
+				within(sheet).getByRole("button", { name: "Filters" })
+			);
+
+			expect(
+				await screen.findByRole("button", { name: /^Platform:/ })
+			).toHaveAccessibleName("Platform: PlayStation 2");
 		});
 
 		it("merges platform_id with platforms when a view has both", async () => {
