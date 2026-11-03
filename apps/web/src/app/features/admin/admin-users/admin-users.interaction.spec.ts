@@ -7,7 +7,14 @@ import {
 	type TestRequest
 } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { render, screen, waitFor, within } from "@testing-library/angular";
+import { Router } from "@angular/router";
+import {
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+	within
+} from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
@@ -202,6 +209,36 @@ describe("Admin users interaction", () => {
 		return within(dialog).getByRole("button", {
 			name: /^(Create User|Creating\.\.\.)$/
 		});
+	}
+
+	const ROLE_LABELS: Record<string, string> = {
+		user: "User",
+		premium: "Premium",
+		moderator: "Moderator",
+		admin: "Admin"
+	};
+
+	function roleTrigger(dialog: HTMLElement) {
+		return within(dialog).getByRole("button", { name: /^Role:/ });
+	}
+
+	function expectRole(dialog: HTMLElement, role: string) {
+		expect(roleTrigger(dialog)).toHaveAccessibleName(
+			`Role: ${ROLE_LABELS[role]}`
+		);
+	}
+
+	async function chooseRole(user: User, dialog: HTMLElement, role: string) {
+		await user.click(roleTrigger(dialog));
+		await user.click(
+			await screen.findByRole("menuitemradio", {
+				name: new RegExp(`^${ROLE_LABELS[role]}`)
+			})
+		);
+	}
+
+	function activeSwitch(dialog: HTMLElement) {
+		return within(dialog).getByRole("switch", { name: "Account active" });
 	}
 
 	function submitEditButton(dialog: HTMLElement) {
@@ -1021,8 +1058,8 @@ describe("Admin users interaction", () => {
 			expect(within(dialog).getByLabelText("Name")).toHaveValue(
 				"Bob Builder"
 			);
-			expect(within(dialog).getByLabelText("Role")).toHaveValue("user");
-			expect(within(dialog).getByRole("checkbox")).not.toBeChecked();
+			expectRole(dialog, "user");
+			expect(activeSwitch(dialog)).not.toBeChecked();
 			expect(within(dialog).getByText("Inactive")).toBeInTheDocument();
 			await user.keyboard("{Escape}");
 			await waitFor(() =>
@@ -1145,11 +1182,8 @@ describe("Admin users interaction", () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openEdit(user);
-			await user.selectOptions(
-				within(dialog).getByLabelText("Role"),
-				"moderator"
-			);
-			await user.click(within(dialog).getByRole("checkbox"));
+			await chooseRole(user, dialog, "moderator");
+			await user.click(activeSwitch(dialog));
 			await user.click(submitEditButton(dialog));
 
 			const [patch] = pending("PATCH", `${USERS_URL}/u2`);
@@ -1173,7 +1207,7 @@ describe("Admin users interaction", () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openEdit(user);
-			const checkbox = within(dialog).getByRole("checkbox");
+			const checkbox = activeSwitch(dialog);
 			await user.click(checkbox);
 			await user.click(checkbox);
 			await user.keyboard("{Escape}");
@@ -1184,10 +1218,7 @@ describe("Admin users interaction", () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openEdit(user);
-			await user.selectOptions(
-				within(dialog).getByLabelText("Role"),
-				"premium"
-			);
+			await chooseRole(user, dialog, "premium");
 			await user.tripleClick(submitEditButton(dialog));
 			expect(pending("PATCH", `${USERS_URL}/u2`)).toHaveLength(1);
 			expect(submitEditButton(dialog)).toBeDisabled();
@@ -1198,10 +1229,7 @@ describe("Admin users interaction", () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openEdit(user);
-			await user.selectOptions(
-				within(dialog).getByLabelText("Role"),
-				"premium"
-			);
+			await chooseRole(user, dialog, "premium");
 			await user.click(submitEditButton(dialog));
 			await user.keyboard("{Escape}");
 			await user.click(
@@ -1334,19 +1362,14 @@ describe("Admin users interaction", () => {
 				const user = userEvent.setup();
 				await renderUsers();
 				const dialog = await openEdit(user);
-				await user.selectOptions(
-					within(dialog).getByLabelText("Role"),
-					"admin"
-				);
+				await chooseRole(user, dialog, "admin");
 				await user.click(submitEditButton(dialog));
 				fail(pending("PATCH", `${USERS_URL}/u2`)[0]!, status, body);
 
 				expect(
 					await within(dialog).findByRole("alert")
 				).toHaveTextContent(message);
-				expect(within(dialog).getByLabelText("Role")).toHaveValue(
-					"admin"
-				);
+				expectRole(dialog, "admin");
 				expect(submitEditButton(dialog)).toBeEnabled();
 			}
 		);
@@ -1437,18 +1460,12 @@ describe("Admin users interaction", () => {
 			await renderUsers();
 			const dialog = await editWithNameIssue(user);
 
-			await user.selectOptions(
-				within(dialog).getByLabelText("Role"),
-				"admin"
-			);
+			await chooseRole(user, dialog, "admin");
 
 			expect(within(dialog).queryByRole("alert")).not.toBeInTheDocument();
 			expect(nameFieldError(dialog)).toBeInTheDocument();
 
-			await user.selectOptions(
-				within(dialog).getByLabelText("Role"),
-				"user"
-			);
+			await chooseRole(user, dialog, "user");
 			expect(within(dialog).getByRole("alert")).toHaveTextContent(
 				"Name is not allowed."
 			);
@@ -1506,7 +1523,7 @@ describe("Admin users interaction", () => {
 			expect(within(second).getByLabelText("Name")).toHaveValue(
 				"Ada Lovelace"
 			);
-			expect(within(second).getByLabelText("Role")).toHaveValue("admin");
+			expectRole(second, "admin");
 			expect(within(second).getByLabelText("New Password")).toHaveValue(
 				""
 			);
@@ -1517,10 +1534,7 @@ describe("Admin users interaction", () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openEdit(user);
-			await user.selectOptions(
-				within(dialog).getByLabelText("Role"),
-				"admin"
-			);
+			await chooseRole(user, dialog, "admin");
 			await user.click(submitEditButton(dialog));
 			fail(pending("PATCH", `${USERS_URL}/u2`)[0]!, 500);
 			await within(dialog).findByRole("alert");
@@ -1530,7 +1544,7 @@ describe("Admin users interaction", () => {
 			);
 
 			const reopened = await openEdit(user);
-			expect(within(reopened).getByLabelText("Role")).toHaveValue("user");
+			expectRole(reopened, "user");
 			expect(
 				within(reopened).queryByRole("alert")
 			).not.toBeInTheDocument();
@@ -1551,15 +1565,20 @@ describe("Admin users interaction", () => {
 			).toHaveAttribute("aria-pressed", "true");
 		});
 
-		it("the Active/Inactive label follows the checkbox and Space toggles it", async () => {
+		it("the Active/Inactive label follows the switch and the keyboard toggles it", async () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const dialog = await openEdit(user);
-			const checkbox = within(dialog).getByRole("checkbox");
-			checkbox.focus();
-			await user.keyboard(" ");
-			expect(checkbox).toBeChecked();
+			const toggle = activeSwitch(dialog);
+			expect(toggle).not.toBeChecked();
+			expect(within(dialog).getByText("Inactive")).toBeInTheDocument();
+			toggle.focus();
+			await user.keyboard("{Enter}");
+			expect(toggle).toBeChecked();
 			expect(within(dialog).getByText("Active")).toBeInTheDocument();
+			expect(
+				within(dialog).getByText("The account can sign in.")
+			).toBeInTheDocument();
 		});
 
 		it("edit buttons have names that identify the user", async () => {
@@ -1573,11 +1592,322 @@ describe("Admin users interaction", () => {
 		});
 	});
 
+	describe("search", () => {
+		function searchBox() {
+			return screen.getByRole("textbox", {
+				name: "Search by username, name or email"
+			});
+		}
+
+		function typeQuickly(text: string) {
+			const box = searchBox();
+			for (let length = 1; length <= text.length; length++) {
+				fireEvent.input(box, {
+					target: { value: text.slice(0, length) }
+				});
+			}
+		}
+
+		async function nextListRequest() {
+			let request: TestRequest | undefined;
+			await waitFor(() => {
+				const requests = listRequests();
+				expect(requests).toHaveLength(1);
+				request = requests[0];
+			});
+			return request!;
+		}
+
+		function heroTotal() {
+			return screen.getByText(/in total/);
+		}
+
+		it("searches once after the admin stops typing and keeps the hero total", async () => {
+			await renderUsers(USERS, [], 120);
+			typeQuickly("ada");
+
+			const request = await nextListRequest();
+			expect(request.request.params.get("q")).toBe("ada");
+			expect(request.request.params.get("offset")).toBe("0");
+			flushUsers(request, [ADA], 1);
+
+			await waitFor(() =>
+				expect(screen.getByRole("status")).toHaveTextContent(
+					"1 match for “ada”"
+				)
+			);
+			expect(screen.queryByText("bob@example.com")).not.toBeInTheDocument();
+			expect(heroTotal()).toHaveTextContent("120 accounts in total");
+		});
+
+		it("cancels the older search so a late response never replaces the newer one", async () => {
+			await renderUsers();
+			typeQuickly("a");
+			const older = await nextListRequest();
+
+			typeQuickly("bo");
+			const newer = await nextListRequest();
+			expect(older.cancelled).toBe(true);
+			expect(newer.request.params.get("q")).toBe("bo");
+
+			flushUsers(newer, [BOB], 1);
+			await waitFor(() =>
+				expect(
+					screen.getAllByText("bob@example.com").length
+				).toBeGreaterThan(0)
+			);
+			expect(screen.queryByText("ada@example.com")).not.toBeInTheDocument();
+		});
+
+		it("returns to the first page when the search changes", async () => {
+			const user = userEvent.setup();
+			const many = Array.from({ length: 50 }, (_, index) =>
+				makeUser(index + 10)
+			);
+			await renderUsers(many, [], 120);
+			await user.click(screen.getByRole("button", { name: "Next page" }));
+			const secondPage = listRequests()[0]!;
+			expect(secondPage.request.params.get("offset")).toBe("50");
+			flushUsers(secondPage, many, 120);
+
+			typeQuickly("user1");
+			const request = await nextListRequest();
+			expect(request.request.params.get("offset")).toBe("0");
+			flushUsers(request, [makeUser(10)], 1);
+		});
+
+		it("shows no matches with a way back to the full list", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			typeQuickly("zzz");
+			flushUsers(await nextListRequest(), [], 0);
+
+			const hint = await screen.findByText(/No account matches “zzz”/);
+			const noMatches = hint.closest("ui-no-matches") as HTMLElement;
+			await user.click(
+				within(noMatches).getByRole("button", { name: "Clear search" })
+			);
+
+			const request = await nextListRequest();
+			expect(request.request.params.has("q")).toBe(false);
+			flushUsers(request);
+			await waitFor(() => expect(searchBox()).toHaveValue(""));
+			expect(
+				screen.getAllByText("ada@example.com").length
+			).toBeGreaterThan(0);
+			expect(screen.getByRole("status")).toBeEmptyDOMElement();
+		});
+
+		it("clearing before the debounce fires never sends the half-typed search", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			typeQuickly("ad");
+			await user.click(screen.getByRole("button", { name: "Clear search" }));
+			await new Promise(resolve => setTimeout(resolve, 400));
+			expect(listRequests()).toHaveLength(0);
+			expect(searchBox()).toHaveValue("");
+		});
+
+		it("ignores a search made only of spaces", async () => {
+			await renderUsers();
+			typeQuickly("    ");
+			await new Promise(resolve => setTimeout(resolve, 400));
+			expect(listRequests()).toHaveLength(0);
+		});
+
+		it("sends wildcard and markup characters to the API as typed", async () => {
+			await renderUsers();
+			typeQuickly("  %_<b>\\  ");
+			const request = await nextListRequest();
+			expect(request.request.params.get("q")).toBe("%_<b>\\");
+			flushUsers(request, [], 0);
+			expect(
+				await screen.findByText(/No account matches “%_<b>\\”/)
+			).toBeInTheDocument();
+		});
+
+		it("keeps the search when retrying after a failed search", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			typeQuickly("ada");
+			fail(await nextListRequest(), 500);
+
+			await user.click(
+				await screen.findByRole("button", { name: "Try again" })
+			);
+			const retry = await nextListRequest();
+			expect(retry.request.params.get("q")).toBe("ada");
+			flushUsers(retry, [ADA], 1);
+			expect(await screen.findByText("1 match for “ada”")).toBeInTheDocument();
+		});
+
+		it("does not show the search bar when there are no accounts at all", async () => {
+			await renderUsers([], [], 0);
+			expect(
+				screen.queryByRole("textbox", {
+					name: "Search by username, name or email"
+				})
+			).not.toBeInTheDocument();
+			expect(screen.getByText("No users found")).toBeInTheDocument();
+		});
+	});
+
+	describe("row actions menu", () => {
+		async function openRowMenu(user: User, username: string) {
+			await user.click(
+				screen.getByRole("button", {
+					name: `More actions for ${username}`
+				})
+			);
+			return screen.findByRole("menu", { name: username });
+		}
+
+		it("offers edit, premium access and profile for each row", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const menu = await openRowMenu(user, "bob");
+			expect(
+				within(menu)
+					.getAllByRole("menuitem")
+					.map(item => item.getAttribute("aria-label"))
+			).toEqual(["Edit user", "Premium access", "View profile"]);
+		});
+
+		it("opens the editor for that row and only once on a double click", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const menu = await openRowMenu(user, "bob");
+			await user.dblClick(
+				within(menu).getByRole("menuitem", { name: "Edit user" })
+			);
+			const dialogs = await screen.findAllByRole("dialog", {
+				name: "Edit user"
+			});
+			expect(dialogs).toHaveLength(1);
+			expect(within(dialogs[0]!).getByLabelText("Name")).toHaveValue(
+				"Bob Builder"
+			);
+		});
+
+		it("opens premium access for a regular account", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const menu = await openRowMenu(user, "bob");
+			await user.click(
+				within(menu).getByRole("menuitem", { name: "Premium access" })
+			);
+			const dialog = await screen.findByRole("dialog", {
+				name: "Premium access"
+			});
+			expect(dialog).toHaveTextContent("bob");
+			http.expectOne(`${USERS_URL}/u2/premium-grants`).flush({
+				data: { grants: [] }
+			});
+			http.expectOne(`${api}/admin/premium-features`).flush({
+				data: { features: [] }
+			});
+		});
+
+		it("disables premium access with its reason when the role already includes it", async () => {
+			const user = userEvent.setup();
+			await renderUsers([ADA, BOB]);
+			const menu = await openRowMenu(user, "ada");
+			const item = within(menu).getByRole("menuitem", {
+				name: "Premium access"
+			});
+			expect(item).toHaveAttribute("data-disabled");
+			expect(item).toHaveAttribute(
+				"aria-description",
+				"Premium through the admin role"
+			);
+			await user.click(item);
+			expect(
+				screen.queryByRole("dialog", { name: "Premium access" })
+			).not.toBeInTheDocument();
+			http.expectNone(`${USERS_URL}/u1/premium-grants`);
+		});
+
+		it("goes to the public profile from View profile", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const navigate = vi
+				.spyOn(TestBed.inject(Router), "navigate")
+				.mockResolvedValue(true);
+			const menu = await openRowMenu(user, "bob");
+			await user.click(
+				within(menu).getByRole("menuitem", { name: "View profile" })
+			);
+			expect(navigate).toHaveBeenCalledWith(["/user", "bob"]);
+		});
+
+		it("closing the menu with Escape triggers no action", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			await openRowMenu(user, "bob");
+			await user.keyboard("{Escape}");
+			await waitFor(() =>
+				expect(screen.queryByRole("menu")).not.toBeInTheDocument()
+			);
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+		});
+	});
+
 	describe("invitations panel", () => {
 		it("lists pending and expired invitations and shows the empty copy", async () => {
 			await renderUsers(USERS, INVITATIONS);
-			expect(screen.getByText("pending@example.com")).toBeInTheDocument();
-			expect(screen.getByText(/Expired/)).toBeInTheDocument();
+			const section = screen.getByRole("region", {
+				name: /Pending invitations/
+			});
+			expect(
+				within(section).getByText("pending@example.com")
+			).toBeInTheDocument();
+			expect(within(section).getByText("Pending")).toBeInTheDocument();
+			expect(within(section).getByText("Expired")).toBeInTheDocument();
+			expect(within(section).getByText(/· Expired /)).toBeInTheDocument();
+			expect(within(section).getByText(/· Expires /)).toBeInTheDocument();
+		});
+
+		it("shows skeleton rows while invitations load and no stale count or invite button", async () => {
+			await render(AdminUsers, {
+				providers: [
+					provideHttpClient(),
+					provideHttpClientTesting(),
+					{ provide: ToastService, useValue: toast }
+				]
+			});
+			http = TestBed.inject(HttpTestingController);
+			const section = screen.getByRole("region", {
+				name: /Pending invitations/
+			});
+			expect(
+				within(section).getByLabelText("Loading invitations")
+			).toHaveAttribute("aria-busy", "true");
+			expect(within(section).queryByText("0")).not.toBeInTheDocument();
+
+			flushInvitations(invitationListRequests()[0]!, INVITATIONS);
+			flushUsers(listRequests()[0]!);
+			await waitFor(() =>
+				expect(
+					within(section).queryByLabelText("Loading invitations")
+				).not.toBeInTheDocument()
+			);
+			expect(within(section).getByText("2")).toBeInTheDocument();
+		});
+
+		it("offers a single invite action from the empty state", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+			const section = screen.getByRole("region", {
+				name: /Pending invitations/
+			});
+			const buttons = within(section).getAllByRole("button", {
+				name: /Invite by email/
+			});
+			expect(buttons).toHaveLength(1);
+			await user.dblClick(buttons[0]!);
+			expect(
+				await screen.findAllByRole("dialog", { name: "Invite by email" })
+			).toHaveLength(1);
 		});
 
 		it("shows the empty copy without invitations", async () => {
