@@ -8,7 +8,6 @@ import { GameExternal } from "../../src/game-external/game-external.model";
 import { GameScore } from "../../src/game-scores/game-score.model";
 import { Game } from "../../src/games/game.model";
 import { EXTERNAL_DATA_DEADLINE_EXCEEDED } from "../../src/games/games.constants";
-import { createRequestPacer } from "../../src/games/utils/create-request-pacer.util";
 import {
 	registerExternalDataRefreshTimer,
 	registerExternalDataSources,
@@ -19,6 +18,7 @@ import {
 	isImportEnrichmentPaused,
 	whenImportEnrichmentIdle
 } from "../../src/games/services/games-import-enrichment.service";
+import { createRequestPacer } from "../../src/games/utils/create-request-pacer.util";
 import { type IgdbGame } from "../../src/igdb/igdb.interface";
 import { Job } from "../../src/jobs/job.model";
 import { api } from "../helpers/app.helper";
@@ -295,7 +295,9 @@ void describe("POST /games/:id/external-data/refresh — IGDB lookup", () => {
 
 	void it("treats the same game repeated in the search as one match", async () => {
 		const game = await createCatalogGame("Hades", { code: "x" });
-		registerIgdbOnly(fakeIgdb({ search: () => [hades(), hades(), hades()] }));
+		registerIgdbOnly(
+			fakeIgdb({ search: () => [hades(), hades(), hades()] })
+		);
 
 		const response = await refresh(game.id, ["igdb"]);
 
@@ -579,7 +581,9 @@ void describe("POST /games/:id/external-data/refresh — concurrent IGDB refresh
 			1
 		);
 		assert.equal(
-			await GameScore.count({ where: { gameId: game.id, source: "igdb" } }),
+			await GameScore.count({
+				where: { gameId: game.id, source: "igdb" }
+			}),
 			1
 		);
 	});
@@ -645,12 +649,15 @@ void describe("POST /admin/jobs/populate-external-data — IGDB", () => {
 			job.result,
 			"Candidates: 2, Processed: 2, Metacritic scores updated: 0, HLTB durations updated: 0, IGDB scores updated: 1, Skipped complete: 1, Skipped recently attempted: 0. Metacritic not found: 0, ambiguous: 0, no data: 0, failed: 0. HLTB not found: 0, ambiguous: 0, no data: 0, failed: 0. IGDB not found: 1, ambiguous: 0, no data: 0, failed: 0"
 		);
-		assert.deepEqual(igdb.calls.sort(), [
-			"search:Celeste",
-			"search:Hades",
-			`slug:${missingIgdb.code}`,
-			`slug:${notOnIgdb.code}`
-		].sort());
+		assert.deepEqual(
+			igdb.calls.sort(),
+			[
+				"search:Celeste",
+				"search:Hades",
+				`slug:${missingIgdb.code}`,
+				`slug:${notOnIgdb.code}`
+			].sort()
+		);
 		assert.equal((await igdbState(missingIgdb.id)).score, 92.35);
 		assert.equal((await igdbState(notOnIgdb.id)).attempt, "not_found");
 	});
@@ -697,9 +704,13 @@ void describe("POST /admin/jobs/populate-external-data — IGDB", () => {
 			assert.equal(await Job.count(), 0);
 		});
 
-	for (const code of ["IGDB_RATE_LIMITED", "IGDB_AUTH_ERROR", "IGDB_DISABLED"]) {
+	for (const code of [
+		"IGDB_RATE_LIMITED",
+		"IGDB_AUTH_ERROR",
+		"IGDB_DISABLED"
+	]) {
 		void it(`stops at once on ${code} and keeps what was already saved`, async () => {
-				await completeGame("Hades");
+			await completeGame("Hades");
 			await completeGame("Celeste");
 			let calls = 0;
 			registerFakes({
@@ -711,7 +722,13 @@ void describe("POST /admin/jobs/populate-external-data — IGDB", () => {
 						if (calls === 1)
 							return query === "Hades"
 								? [hades()]
-								: [igdbGame({ id: 2, name: "Celeste", rating: 90 })];
+								: [
+										igdbGame({
+											id: 2,
+											name: "Celeste",
+											rating: 90
+										})
+									];
 						return providerError(code);
 					}
 				})
@@ -738,7 +755,9 @@ void describe("POST /admin/jobs/populate-external-data — IGDB", () => {
 		registerFakes({
 			metacritic: metacriticPages([]),
 			hltb: hltbPages([]),
-			igdb: fakeIgdb({ search: () => providerError("IGDB_REQUEST_ERROR") })
+			igdb: fakeIgdb({
+				search: () => providerError("IGDB_REQUEST_ERROR")
+			})
 		});
 
 		const job = await runJob();
@@ -751,7 +770,8 @@ void describe("POST /admin/jobs/populate-external-data — IGDB", () => {
 	});
 
 	void it("keeps at least the IGDB interval between two IGDB requests", async () => {
-		for (const title of ["Alpha", "Beta", "Gamma"]) await completeGame(title);
+		for (const title of ["Alpha", "Beta", "Gamma"])
+			await completeGame(title);
 		registerIgdbRequestPacer();
 		const startedAt: number[] = [];
 		const igdb = fakeIgdb({
@@ -842,7 +862,10 @@ void describe("import enrichment queue — IGDB", () => {
 		await whenImportEnrichmentIdle();
 
 		assert.equal(isImportEnrichmentPaused(), true);
-		assert.equal(igdb.calls.filter(call => call.startsWith("search")).length, 1);
+		assert.equal(
+			igdb.calls.filter(call => call.startsWith("search")).length,
+			1
+		);
 		assert.equal(await ExternalDataAttempt.count(), 0);
 	});
 });

@@ -19,16 +19,16 @@ import {
 	createCatalogGame,
 	deferred,
 	fakeHltb,
+	fakeIgdb,
 	fakeMetacritic,
 	fakeWikidata,
 	hltbCandidate,
 	hltbDetail,
 	hltbPages,
+	igdbGame,
 	linkExternal,
 	metacriticDetail,
 	metacriticPages,
-	fakeIgdb,
-	igdbGame,
 	providerError,
 	registerFakes as registerSourceFakes,
 	wikidataCandidates
@@ -75,9 +75,7 @@ function ratedIgdb() {
 	});
 }
 
-function registerFakes(
-	fakes: Parameters<typeof registerSourceFakes>[0]
-) {
+function registerFakes(fakes: Parameters<typeof registerSourceFakes>[0]) {
 	registerSourceFakes({ igdb: ratedIgdb(), ...fakes });
 }
 
@@ -230,8 +228,11 @@ void describe("POST /admin/jobs/populate-external-data — selection", () => {
 			10
 		);
 		assert.equal(
-			(await GameScore.findOne({ where: { gameId: missingTime.id, source: "metacritic" } }))
-				?.score,
+			(
+				await GameScore.findOne({
+					where: { gameId: missingTime.id, source: "metacritic" }
+				})
+			)?.score,
 			70
 		);
 		assert.equal(
@@ -254,7 +255,11 @@ void describe("POST /admin/jobs/populate-external-data — selection", () => {
 		assert.equal(job.status, "completed");
 		assert.deepEqual(metacritic.calls, ["alpha-pc"]);
 		assert.equal(
-			(await GameScore.findOne({ where: { gameId: game.id, source: "metacritic" } }))?.score,
+			(
+				await GameScore.findOne({
+					where: { gameId: game.id, source: "metacritic" }
+				})
+			)?.score,
 			90
 		);
 	});
@@ -283,7 +288,10 @@ void describe("POST /admin/jobs/populate-external-data — selection", () => {
 			})
 		);
 		assert.deepEqual(metacritic.calls, ["alpha", "bravo"]);
-		assert.equal(await GameScore.count({ where: { source: "metacritic" } }), 2);
+		assert.equal(
+			await GameScore.count({ where: { source: "metacritic" } }),
+			2
+		);
 	});
 
 	for (const limit of ["0", "-1", "abc", "1.5", ""]) {
@@ -421,7 +429,11 @@ void describe("POST /admin/jobs/populate-external-data — outcomes", () => {
 			})
 		);
 		assert.equal(
-			(await GameScore.findOne({ where: { gameId: good.id, source: "metacritic" } }))?.score,
+			(
+				await GameScore.findOne({
+					where: { gameId: good.id, source: "metacritic" }
+				})
+			)?.score,
 			93
 		);
 		assert.equal(
@@ -459,9 +471,14 @@ void describe("POST /admin/jobs/populate-external-data — outcomes", () => {
 				})}. Stopped: METACRITIC_${suffix}`
 			);
 			assert.deepEqual(metacritic.calls, ["alpha", "bravo"]);
-			assert.equal(await GameScore.count({ where: { source: "metacritic" } }), 1);
 			assert.equal(
-				await GameScore.count({ where: { gameId: failing.id, source: "metacritic" } }),
+				await GameScore.count({ where: { source: "metacritic" } }),
+				1
+			);
+			assert.equal(
+				await GameScore.count({
+					where: { gameId: failing.id, source: "metacritic" }
+				}),
 				0
 			);
 		});
@@ -486,7 +503,11 @@ void describe("POST /admin/jobs/populate-external-data — outcomes", () => {
 		assert.match(job.result ?? "", /Stopped: HLTB_BLOCKED$/);
 		assert.deepEqual(metacritic.calls, ["alpha"]);
 		assert.equal(
-			(await GameScore.findOne({ where: { gameId: game.id, source: "metacritic" } }))?.score,
+			(
+				await GameScore.findOne({
+					where: { gameId: game.id, source: "metacritic" }
+				})
+			)?.score,
 			80
 		);
 	});
@@ -576,7 +597,9 @@ void describe("POST /admin/jobs/populate-external-data — outcomes", () => {
 				/^Candidates: 1, Processed: 0, .*\. Stopped: /
 			);
 			assert.equal(
-				await GameScore.count({ where: { gameId: game.id, source: "metacritic" } }),
+				await GameScore.count({
+					where: { gameId: game.id, source: "metacritic" }
+				}),
 				0
 			);
 		} finally {
@@ -1049,8 +1072,11 @@ void describe("POST /admin/jobs/populate-external-data — recently attempted ga
 			assert.equal(second.status, "completed");
 			assert.deepEqual(metacritic.calls, ["bravo", "bravo", "alpha"]);
 			assert.equal(
-				(await GameScore.findOne({ where: { gameId: blocked.id, source: "metacritic" } }))
-					?.score,
+				(
+					await GameScore.findOne({
+						where: { gameId: blocked.id, source: "metacritic" }
+					})
+				)?.score,
 				70
 			);
 		});
