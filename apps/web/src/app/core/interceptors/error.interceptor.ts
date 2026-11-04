@@ -27,6 +27,7 @@ import { AuthService } from "../services/auth";
 import { ToastService } from "../services/toast";
 import { adminErrorMessage } from "../utils/admin-error-message";
 import { planLimitMessage } from "../utils/plan-limit-message";
+import { isRawgOutage } from "../utils/rawg-outage";
 
 let isRefreshing = false;
 const PLAN_LIMIT_TOAST_TITLE = "Free plan limit";
@@ -69,7 +70,7 @@ export function errorInterceptor(
 						return throwError(() => error);
 					}
 
-					if (error.status === 429) {
+					if (error.status === 429 && !isRawgOutage(error)) {
 						toast.warning(
 							"Too many requests. Please wait a moment and try again."
 						);

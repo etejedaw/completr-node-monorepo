@@ -6,7 +6,12 @@ export interface GamesResponse {
 }
 
 export interface GamesSearchResponse {
-	data: { games: Game[] };
+	data: { games: Game[]; rawgAvailable?: boolean };
+}
+
+export interface OnlineGameSearchResult {
+	games: Game[];
+	rawgUnavailable: boolean;
 }
 
 export interface PlatformsResponse {
