@@ -47,14 +47,17 @@ docs: |-
             "scores": [{ "source": "metacritic", "score": 95 }],
             "times": [{ "source": "rawg", "duration": 62 }]
           }
-        ]
+        ],
+        "rawgAvailable": true
       }
     }
     ```
 
     Returns empty array if no results found locally or in RAWG.
 
-    Without `force_rawg`, a failure of the RAWG fallback (rate limit, 5xx, network) is logged and the response is still 200 with an empty `games` array. Failures resolving an individual RAWG result or the slug of the query are always tolerated and skipped.
+    `rawgAvailable` is only present when the search reached RAWG (no local match, or `force_rawg=true`). It is `false` when RAWG is disabled, when the RAWG fallback failed, or when RAWG listed results but every detail lookup failed; otherwise `true`, including when RAWG simply found nothing. Clients use it to tell "RAWG is down" apart from "no games found". It is absent when the answer comes from the local catalog or with `local_only=true`.
+
+    Without `force_rawg`, a failure of the RAWG fallback (rate limit, 5xx, network) is logged and the response is still 200 with an empty `games` array and `rawgAvailable: false`. Failures resolving an individual RAWG result or the slug of the query are always tolerated and skipped.
 
     ### Errors
 

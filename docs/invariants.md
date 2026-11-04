@@ -496,13 +496,14 @@ Toda búsqueda de texto de la API (el `search` de los listados paginados, `q` de
 - Sigue las [reglas de búsqueda de texto](#reglas-de-búsqueda-de-texto) sobre `Game.title`.
 - Fallback a RAWG cuando no hay match local, salvo `local_only=true`. Importa hasta 3 resultados con detalle, excluye DLCs.
 - `force_rawg=true` salta búsqueda local y propaga el fallo de la búsqueda en RAWG (429 `RAWG_RATE_LIMITED`, 502 `RAWG_REQUEST_ERROR` / `RAWG_PARSE_ERROR`). En el fallback implícito el fallo se registra como warning y la respuesta es 200 con lista vacía. El fallo al resolver un resultado individual se tolera en ambos casos.
+- Cuando la búsqueda consulta RAWG, la respuesta trae `rawgAvailable`: `false` si RAWG está deshabilitado, si la búsqueda en RAWG falló en el fallback implícito, o si RAWG devolvió resultados y falló el detalle de todos sin que ninguno se resolviera; `true` en cualquier otro caso, también cuando RAWG no encuentra nada. Si la respuesta sale solo del catálogo local (hay match local o `local_only=true`), `rawgAvailable` no viene. Con `force_rawg=true` el fallo de la búsqueda en RAWG sigue siendo un error HTTP.
 - `sort_by=random` disponible para discover.
 - `force_rawg` y `local_only` se parsean con `z.stringbool()`: `"true"` / `"false"` (y sus variantes) valen lo que dicen; cualquier otro valor responde 422 `COMMON_SCHEMA_INVALID`.
 - `GET /games` con `min_score` / `max_score` compara contra el score canónico normalizado a 0–5 (el de la fuente con menor `priority`), el mismo que usa `sort_by=score`; los juegos sin score quedan fuera del rango.
 - `GET /games/latest-reviewed` acepta `limit` entero entre 1 y 50 (por defecto 16); otro valor o un parámetro desconocido responde 422 `COMMON_SCHEMA_INVALID`. Los juegos inactivos se descartan antes de aplicar el `limit`.
 - `PATCH /games/:id` con un título cuyo slug ya usa otro juego responde 409 `GAME_UNIQUE_CONSTRAINT`. `DELETE /games/:id` (baja lógica) sobre un juego inexistente o ya inactivo responde 404 `GAME_NOT_FOUND` y no registra auditoría.
 - `GET /genres/:code/games` devuelve cada juego con todos sus géneros; el género pedido solo filtra qué juegos entran.
-- Si RAWG está deshabilitado no hay fallback: la búsqueda devuelve solo catálogo local.
+- Si RAWG está deshabilitado no hay fallback: la búsqueda devuelve solo catálogo local y, sin match local, `rawgAvailable: false`.
 
 ## Showcase de juegos
 
