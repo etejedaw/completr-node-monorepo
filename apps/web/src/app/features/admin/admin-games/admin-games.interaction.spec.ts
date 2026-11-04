@@ -85,6 +85,8 @@ function initialCatalog(): StoredGame[] {
 	];
 }
 
+const UNTIL_VISIBLE_TIMEOUT_MS = 5000;
+
 describe("AdminGames interaction", () => {
 	let httpTesting: HttpTestingController;
 	let catalog: StoredGame[];
@@ -328,10 +330,13 @@ describe("AdminGames interaction", () => {
 	}
 
 	async function untilVisible(assertion: () => void) {
-		await waitFor(() => {
-			answerPending();
-			assertion();
-		});
+		await waitFor(
+			() => {
+				answerPending();
+				assertion();
+			},
+			{ timeout: UNTIL_VISIBLE_TIMEOUT_MS }
+		);
 	}
 
 	function searchBox() {
