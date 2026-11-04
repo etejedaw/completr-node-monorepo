@@ -47,7 +47,7 @@ describe("UiEyebrow", () => {
 
 	it.each<UiEyebrowTone>(["muted", "brand", "premium"])(
 		"keeps the base classes and the consumer classes in the %s tone",
-		(tone) => {
+		tone => {
 			const eyebrow = renderedEyebrow(tone);
 
 			expect(eyebrow.classList).toContain("block");

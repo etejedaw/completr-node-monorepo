@@ -822,7 +822,9 @@ describe("PublicProfileComponent", () => {
 						})
 					);
 
-					expect(await screen.findByRole("alert")).toBeInTheDocument();
+					expect(
+						await screen.findByRole("alert")
+					).toBeInTheDocument();
 					expect(
 						screen.getByRole("heading", { name: "Rewind 2026" })
 					).toBeInTheDocument();

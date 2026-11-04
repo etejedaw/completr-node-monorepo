@@ -125,7 +125,11 @@ export async function findUserByIdUnfiltered(id: string) {
 
 export async function findAllUsers(limit = 50, offset = 0, query?: string) {
 	const searchWhere = query
-		? buildTextSearchWhere(query, ["User.username", "User.name", "User.email"])
+		? buildTextSearchWhere(query, [
+				"User.username",
+				"User.name",
+				"User.email"
+			])
 		: null;
 	return User.findAndCountAll({
 		...(searchWhere ? { where: searchWhere } : {}),
