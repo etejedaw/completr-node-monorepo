@@ -25,7 +25,12 @@ import {
 	take
 } from "rxjs";
 
-import { type Game, type List, type ListItem } from "../../../core/models";
+import {
+	type Game,
+	type List,
+	type ListItem,
+	type OnlineSearchSource
+} from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
@@ -37,7 +42,13 @@ import { GiftOfferCard } from "../../../shared/components/gift-offer-card/gift-o
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { type LibraryHeroBackLink } from "../../../shared/components/library-hero/library-hero.model";
 import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
+import { OnlineSourceNote } from "../../../shared/components/online-source-note/online-source-note";
 import { ProgressMeter } from "../../../shared/components/progress-meter/progress-meter";
+import {
+	ONLINE_SEARCH_UNAVAILABLE_HINT,
+	ONLINE_SEARCH_UNAVAILABLE_TITLE,
+	onlineSourceLabel
+} from "../../../shared/constants/online-search";
 import {
 	UiButton,
 	UiEmptyState,
@@ -48,6 +59,7 @@ import { PendingRemovals } from "../../../shared/utils/pending-removals";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { catalogOnlyResult } from "../../games/game-search";
 import { GamesService } from "../../games/games";
+import { type OnlineGameSearchResult } from "../../games/games.model";
 import {
 	DuplicateListModal,
 	type DuplicateListModalResult
@@ -81,6 +93,7 @@ const LIST_ACTIONS: ActionMenuItem[] = [
 		GamePoster,
 		LibraryHero,
 		ListItemRow,
+		OnlineSourceNote,
 		ProgressMeter,
 		UiButton,
 		UiEmptyState,
@@ -117,7 +130,12 @@ export class ListDetail implements OnInit {
 	protected readonly searchResults = signal<Game[]>([]);
 	protected readonly isSearching = signal(false);
 	protected readonly isSearchingOnline = signal(false);
-	protected readonly rawgUnavailable = signal(false);
+	protected readonly onlineSearchUnavailable = signal(false);
+	protected readonly onlineSearchSource = signal<
+		OnlineSearchSource | undefined
+	>(undefined);
+	protected readonly unavailableTitle = ONLINE_SEARCH_UNAVAILABLE_TITLE;
+	protected readonly unavailableHint = ONLINE_SEARCH_UNAVAILABLE_HINT;
 	protected readonly togglingFollow = signal(false);
 	protected readonly exporter = injectExportDownload({
 		resource: () => ({ listId: this.listId }),
@@ -223,7 +241,8 @@ export class ListDetail implements OnInit {
 				debounceTime(400),
 				distinctUntilChanged(),
 				switchMap(query => {
-					this.rawgUnavailable.set(false);
+					this.onlineSearchUnavailable.set(false);
+					this.onlineSearchSource.set(undefined);
 					if (query.length < 2) {
 						this.isSearching.set(false);
 						this.isSearchingOnline.set(false);
@@ -245,10 +264,19 @@ export class ListDetail implements OnInit {
 			)
 			.subscribe(result => {
 				this.searchResults.set(result.games);
-				this.rawgUnavailable.set(result.rawgUnavailable);
+				this.applyOnlineState(result);
 				this.isSearching.set(false);
 				this.isSearchingOnline.set(false);
 			});
+	}
+
+	protected sourceLabel(): string {
+		return onlineSourceLabel(this.onlineSearchSource());
+	}
+
+	private applyOnlineState(result: OnlineGameSearchResult) {
+		this.onlineSearchUnavailable.set(result.onlineSearchUnavailable);
+		this.onlineSearchSource.set(result.onlineSearchSource);
 	}
 
 	onSearch(query: string) {

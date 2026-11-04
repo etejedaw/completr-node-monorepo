@@ -27,6 +27,7 @@ import {
 	type Game,
 	type Genre,
 	type List,
+	type OnlineSearchSource,
 	type Platform
 } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
@@ -36,10 +37,16 @@ import { LibraryHero } from "../../../shared/components/library-hero/library-her
 import { type LibraryHeroPoster } from "../../../shared/components/library-hero/library-hero.model";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { ListCard } from "../../../shared/components/list-card/list-card";
+import { OnlineSourceNote } from "../../../shared/components/online-source-note/online-source-note";
 import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shelf";
+import {
+	ONLINE_SEARCH_UNAVAILABLE_HINT,
+	ONLINE_SEARCH_UNAVAILABLE_TITLE,
+	onlineSourceLabel
+} from "../../../shared/constants/online-search";
 import {
 	UiBottomSheet,
 	UiButton,
@@ -52,6 +59,7 @@ import { ListsService } from "../../lists/lists";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import { catalogOnlyResult } from "../game-search";
 import { GamesService } from "../games";
+import { type OnlineGameSearchResult } from "../games.model";
 import { BrowseFilters } from "./components/browse-filters";
 import { type BrowseSortOption } from "./components/browse-filters.model";
 import { BrowseHero } from "./components/browse-hero";
@@ -89,6 +97,7 @@ const SORT_ICONS: Record<string, string> = {
 		BrowseHero,
 		GameCoverCard,
 		ListCard,
+		OnlineSourceNote,
 		PosterShelf
 	],
 	templateUrl: "./games-browse.html",
@@ -113,8 +122,11 @@ export class GamesBrowse implements OnInit {
 	protected readonly isSearching = signal(false);
 	protected readonly isSearchingOnline = signal(false);
 	protected readonly showCreateEditor = signal(false);
-	protected readonly searchingRawg = signal(false);
-	protected readonly rawgUnavailable = signal(false);
+	protected readonly searchingOnline = signal(false);
+	protected readonly onlineSearchUnavailable = signal(false);
+	protected readonly onlineSearchSource = signal<
+		OnlineSearchSource | undefined
+	>(undefined);
 
 	protected readonly latestGames = signal<Game[]>([]);
 	protected readonly randomGenre = signal<Genre | null>(null);
@@ -254,7 +266,8 @@ export class GamesBrowse implements OnInit {
 				debounceTime(400),
 				distinctUntilChanged(),
 				switchMap(query => {
-					this.rawgUnavailable.set(false);
+					this.onlineSearchUnavailable.set(false);
+					this.onlineSearchSource.set(undefined);
 					if (query.length < 2) {
 						this.isSearching.set(false);
 						this.isSearchingOnline.set(false);
@@ -277,7 +290,7 @@ export class GamesBrowse implements OnInit {
 			)
 			.subscribe(result => {
 				this.searchResults.set(result.games);
-				this.rawgUnavailable.set(result.rawgUnavailable);
+				this.applyOnlineState(result);
 				this.isSearching.set(false);
 				this.isSearchingOnline.set(false);
 			});
@@ -314,18 +327,30 @@ export class GamesBrowse implements OnInit {
 		this.loadFiltered();
 	}
 
-	searchRawg() {
+	protected readonly unavailableTitle = ONLINE_SEARCH_UNAVAILABLE_TITLE;
+	protected readonly unavailableHint = ONLINE_SEARCH_UNAVAILABLE_HINT;
+
+	protected sourceLabel(): string {
+		return onlineSourceLabel(this.onlineSearchSource());
+	}
+
+	private applyOnlineState(result: OnlineGameSearchResult) {
+		this.onlineSearchUnavailable.set(result.onlineSearchUnavailable);
+		this.onlineSearchSource.set(result.onlineSearchSource);
+	}
+
+	searchOnline() {
 		const query = this.searchQuery().trim();
-		if (query.length < 2) return;
-		this.searchingRawg.set(true);
+		if (query.length < 2 || this.searchingOnline()) return;
+		this.searchingOnline.set(true);
 		this.gamesService.search(query, true).subscribe({
 			next: result => {
-				this.searchingRawg.set(false);
+				this.searchingOnline.set(false);
 				if (this.searchQuery().trim() !== query) return;
 				this.searchResults.set(result.games);
-				this.rawgUnavailable.set(result.rawgUnavailable);
+				this.applyOnlineState(result);
 			},
-			error: () => this.searchingRawg.set(false)
+			error: () => this.searchingOnline.set(false)
 		});
 	}
 

@@ -175,7 +175,7 @@
 					Results for "{{ searchQuery() }}"
 				</h2>
 				@if (!isSearching() && !isSearchingOnline() &&
-				!rawgUnavailable()) {
+				!onlineSearchUnavailable()) {
 				<p class="m-0 mt-1 text-sm text-fg-muted" role="status">
 					{{ searchResults().length }} {{ searchResults().length === 1
 					? 'game' : 'games' }} found
@@ -186,15 +186,15 @@
 				uiButton
 				variant="ghost"
 				size="sm"
-				(click)="searchRawg()"
-				[disabled]="searchingRawg()"
-				title="Look the title up on RAWG and import it if it's missing"
+				(click)="searchOnline()"
+				[disabled]="searchingOnline()"
+				title="Look the title up online and import it if it's missing"
 			>
 				<span aria-hidden="true" class="material-icons text-base"
 					>travel_explore</span
 				>
-				{{ searchingRawg() ? 'Searching RAWG...' : 'Not here? Search
-				RAWG' }}
+				{{ searchingOnline() ? 'Searching online...' : 'Not here? Search
+				online' }}
 			</button>
 		</header>
 		@if (isSearching() || isSearchingOnline()) { @if (isSearchingOnline()) {
@@ -205,42 +205,45 @@
 			<span aria-hidden="true" class="material-icons text-base"
 				>travel_explore</span
 			>
-			Not in Completr yet — searching RAWG...
+			Not in Completr yet — searching online...
 		</p>
 		}
 		<ng-container *ngTemplateOutlet="gridSkeleton" />
-		} @else if (searchResults().length === 0 && rawgUnavailable()) {
+		} @else if (searchResults().length === 0 && onlineSearchUnavailable()) {
 		<div role="status">
 			<ui-empty-state
 				icon="cloud_off"
-				title="RAWG is unavailable"
-				hint="This game isn't in Completr yet and the online search (RAWG) isn't responding right now. Try again in a few minutes."
+				[title]="unavailableTitle"
+				[hint]="unavailableHint"
 			>
 				<button
 					uiButton
 					variant="secondary"
-					[disabled]="searchingRawg()"
-					(click)="searchRawg()"
+					[disabled]="searchingOnline()"
+					(click)="searchOnline()"
 				>
 					<span aria-hidden="true" class="material-icons text-base"
 						>refresh</span
 					>
-					{{ searchingRawg() ? 'Searching RAWG...' : 'Try again' }}
+					{{ searchingOnline() ? 'Searching online...' : 'Try again'
+					}}
 				</button>
 			</ui-empty-state>
 		</div>
 		} @else if (searchResults().length === 0) {
 		<ng-container
-			*ngTemplateOutlet="emptyResults; context: { $implicit: 'No games found', hint: 'Check the spelling, or search RAWG to import it into the catalog.' }"
+			*ngTemplateOutlet="emptyResults; context: { $implicit: 'No games found', hint: 'Check the spelling, or search online to import it into the catalog.' }"
 		/>
-		} @else {
+		} @else { @if (onlineSearchSource() === 'igdb') {
+		<app-online-source-note class="mb-4" />
+		}
 		<ul class="list-none m-0 p-0 poster-grid">
 			@for (game of searchResults(); track game.id) {
 			<li>
 				<app-game-cover-card
 					[game]="game"
 					[ratio]="game.ratio"
-					[topLeftBadge]="game.justImported ? 'New from RAWG' : game.isDlc ? 'DLC' : undefined"
+					[topLeftBadge]="game.justImported ? 'New from ' + sourceLabel() : game.isDlc ? 'DLC' : undefined"
 				/>
 			</li>
 			}
