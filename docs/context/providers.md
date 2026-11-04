@@ -240,6 +240,7 @@ Consecuencias:
 | Provider                   | Propósito                                                                                                                 |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `apps/api/src/rawg/`       | RAWG API: géneros, descripciones, covers, scores                                                                          |
+| `apps/api/src/igdb/`       | IGDB API (con token de Twitch): búsqueda y detalle de juegos como fuente auxiliar de RAWG                                 |
 | `apps/api/src/hltb/`       | HowLongToBeat por scraping de la página de detalle: duraciones Main Story, Main + Extras y Completionist                  |
 | `apps/api/src/metacritic/` | Metacritic por scraping de la página de detalle: Metascore, User Score, plataformas y año                                 |
 | `apps/api/src/wikidata/`   | Wikidata por su endpoint SPARQL público: descubre el id de HowLongToBeat de un juego a partir de su slug de RAWG o título |
@@ -247,6 +248,39 @@ Consecuencias:
 | `apps/api/src/ia/`         | Generación de texto y JSON estructurado con IA. Proveedor interno: `ia/deepseek/`. Se deshabilita sin `DEEPSEEK_API_KEY`  |
 
 **Qué integraciones vienen después no se decide acá:** el roadmap de fuentes externas es planificación de producto, y varias dependen de revisiones de licencia todavía abiertas.
+
+## Provider de IGDB
+
+`apps/api/src/igdb/` habla con la API v4 de IGDB, que se autentica con un token de aplicación de Twitch. Sigue la estructura de RAWG (clase base abstracta, `igdb.interface.ts`, `errors/` en tres capas) y suma `igdb-token.client.ts`, que maneja el token.
+
+```
+apps/api/src/igdb/
+├── igdb.provider.ts        IgdbClient (create), IgdbProvider y DisabledIgdbProvider
+├── igdb-token.client.ts    IgdbTokenClient: pide, cachea y renueva el token de Twitch
+├── igdb.interface.ts       IgdbGame, IgdbSearchOptions, IgdbTokenResponse
+└── errors/                 Errores en 3 capas (service y módulo "IGDB Provider")
+```
+
+- **Credenciales:** `IGDB_CLIENT_ID` e `IGDB_CLIENT_SECRET`, ambas opcionales en `common/config/api-keys.config.ts`. `IgdbClient.create(clientId, clientSecret)` devuelve `DisabledIgdbProvider` si falta cualquiera de las dos; sus métodos devuelven una promesa rechazada con `IGDB_DISABLED`, sin lanzar de forma síncrona. Al arrancar, `app.ts` deja un warning si falta alguna.
+- **Métodos:** `searchGame(query, { limit?, mainGamesOnly? })`, `getGameById(id)` y `getGameBySlug(slug)`. Todos devuelven `IgdbGame` tal como lo manda IGDB, sin mapear: los campos ausentes quedan `undefined`.
+- **Request:** `POST https://api.igdb.com/v4/games` con headers `Client-ID`, `Authorization: Bearer <token>` y `Accept: application/json`, y un cuerpo Apicalypse que pide en un solo request `id`, `name`, `slug`, `summary`, `first_release_date`, `rating`, `rating_count`, `url`, `game_type.{id,type}`, `cover.{id,image_id}`, `platforms.{id,slug}`, `genres.{id,slug}` y `themes.{id,slug}`.
+- **Búsqueda:** `search "<texto>"` con las comillas y las barras invertidas escapadas, así el texto nunca sale del literal. `limit` por defecto es 10; un valor que no es entero positivo vuelve al defecto y el máximo es 500 (el tope de IGDB). `mainGamesOnly` agrega `where game_type = 0;` (0 es `Main Game` en el endpoint `game_types`). Un texto en blanco devuelve `[]` sin llamar a la red.
+- **Detalle:** `getGameById` y `getGameBySlug` usan `where id = <id>;` / `where slug = "<slug>";` con `limit 1`. IGDB responde 200 con un array; si viene vacío, es `IGDB_NOT_FOUND`. Un id que no es entero positivo o un slug en blanco son `IGDB_NOT_FOUND` sin hacer la request.
+- **Token:** `IgdbTokenClient` lo pide con `POST https://id.twitch.tv/oauth2/token` y `client_id`, `client_secret` y `grant_type=client_credentials` en el cuerpo (form), nunca en la URL. Lo guarda en memoria y lo renueva 5 minutos antes de `expires_in`. Las llamadas concurrentes comparten el mismo pedido en curso; si ese pedido falla, todas reciben el mismo error y la siguiente llamada vuelve a pedirlo. Twitch respondiendo 400, 401 o 403 es `IGDB_AUTH_ERROR`; otro status de error o un fallo de red, `IGDB_REQUEST_ERROR`; un cuerpo sin `access_token` o `expires_in` válidos, `IGDB_PARSE_ERROR`. El provider no pide token hasta su primera request.
+- **401 de IGDB:** se invalida el token (solo si sigue siendo el que falló, para que un 401 tardío no tire uno ya renovado), se pide otro y se reintenta una sola vez. Un segundo 401 es `IGDB_AUTH_ERROR`. Varios 401 concurrentes comparten una sola renovación.
+- **Sin límite de frecuencia:** IGDB permite 4 requests por segundo, pero el provider no encola ni espera. Respetar ese límite queda a cargo de quien lo llama; si se pasa, IGDB responde 429 y el provider lanza `IGDB_RATE_LIMITED` sin reintentar.
+
+| Código                | Status | Cuándo                                                                      |
+| --------------------- | ------ | --------------------------------------------------------------------------- |
+| `IGDB_DISABLED`       | 503    | Falta `IGDB_CLIENT_ID` o `IGDB_CLIENT_SECRET`                               |
+| `IGDB_NOT_FOUND`      | 404    | `getGameById` / `getGameBySlug` sin resultados, o id/slug inválido          |
+| `IGDB_RATE_LIMITED`   | 429    | IGDB respondió 429                                                          |
+| `IGDB_AUTH_ERROR`     | 502    | Twitch rechazó las credenciales, o IGDB respondió 401 después del reintento |
+| `IGDB_REQUEST_ERROR`  | 502    | IGDB o Twitch respondieron con otro status de error, o falló la red         |
+| `IGDB_PARSE_ERROR`    | 502    | Un 2xx que no es JSON válido, que no es un array o un token sin los campos  |
+| `IGDB_INTERNAL_ERROR` | 500    | Código de `IGDB Provider` sin mapeo propio                                  |
+
+Los errores llevan `service: "IGDB Provider"` y están registrados en los normalizers globales de `common/errors/`.
 
 ## Providers de scraping: HLTB y Metacritic
 

@@ -517,6 +517,7 @@ Toda búsqueda de texto de la API (el `search` de los listados paginados, `q` de
 - Un provider externo expone `isEnabled` en su clase base.
 - Si falta su credencial, el `create` de la clase base devuelve la implementación deshabilitada: el backend arranca igual y cada método lanza `<PROVIDER>_DISABLED`.
 - RAWG: `RAWG_API_KEY` es opcional (vacía o ausente = deshabilitado). Sus métodos deshabilitados devuelven una promesa rechazada con `RAWG_DISABLED`, no lanzan de forma síncrona.
+- IGDB: `IGDB_CLIENT_ID` e `IGDB_CLIENT_SECRET` son opcionales (vacía o ausente cualquiera de las dos = deshabilitado). Sus métodos deshabilitados devuelven una promesa rechazada con `IGDB_DISABLED`, no lanzan de forma síncrona. El token de Twitch vive en memoria y se renueva solo; el provider no limita la frecuencia de requests (IGDB permite 4 por segundo), eso queda a cargo de quien lo llama.
 - Mail: `SMTP_HOST` es opcional (vacío o ausente = deshabilitado). Códigos: `MAIL_DISABLED` (503) y `MAIL_SEND_ERROR` (502).
 - IA: `DEEPSEEK_API_KEY` es opcional (vacía o ausente = IA no configurada). El modelo (`deepseek-flash`) y el timeout por defecto (30 s) son fijos en la clase de DeepSeek. Un consumidor consulta `iaProvider.isConfigured` de `ia/ia.provider` antes de llamar si quiere degradar en silencio; si no, `iaProvider.generateText` y `iaProvider.generateJson` rechazan con `IA_NOT_CONFIGURED`. `iaProvider.generateJson(schema, request)` pide salida JSON estructurada y la valida con el schema zod recibido; si la salida no es JSON o no cumple el schema, rechaza con `IA_INVALID_OUTPUT`.
 
@@ -542,6 +543,18 @@ Toda búsqueda de texto de la API (el `search` de los listados paginados, `q` de
 | `RAWG_REQUEST_ERROR`  | 502    | RAWG respondió con otro status de error, o falló la red al llamarlo |
 | `RAWG_PARSE_ERROR`    | 502    | RAWG respondió 2xx con un cuerpo que no es JSON válido              |
 | `RAWG_INTERNAL_ERROR` | 500    | Código de `RAWG Provider` sin mapeo propio                          |
+
+### Códigos de error de IGDB
+
+| Código                | Status | Cuándo                                                                      |
+| --------------------- | ------ | --------------------------------------------------------------------------- |
+| `IGDB_DISABLED`       | 503    | `IGDB_CLIENT_ID` o `IGDB_CLIENT_SECRET` ausente o vacía                     |
+| `IGDB_NOT_FOUND`      | 404    | Búsqueda por id o slug sin resultados (array vacío), o id/slug inválido     |
+| `IGDB_RATE_LIMITED`   | 429    | IGDB respondió 429                                                          |
+| `IGDB_AUTH_ERROR`     | 502    | Twitch rechazó las credenciales, o IGDB respondió 401 después del reintento |
+| `IGDB_REQUEST_ERROR`  | 502    | IGDB o Twitch respondieron con otro status de error, o falló la red         |
+| `IGDB_PARSE_ERROR`    | 502    | IGDB o Twitch respondieron 2xx con un cuerpo que no tiene el shape esperado |
+| `IGDB_INTERNAL_ERROR` | 500    | Código de `IGDB Provider` sin mapeo propio                                  |
 
 Con RAWG deshabilitado: `GET /games/rawg-lookup`, `GET /games/rawg-detail/:rawgId`, `GET /game-external/rawg/:slug` y `POST /admin/jobs/populate-rawg` responden 503; el resto del backend no se ve afectado.
 
