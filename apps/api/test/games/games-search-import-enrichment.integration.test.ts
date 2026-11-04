@@ -73,7 +73,7 @@ function stubRawgCatalog(details: RawgGameDetail[]) {
 function searchGames(query: string, forceRawg = true) {
 	return api()
 		.get("/games/search")
-		.query({ query, ...(forceRawg ? { force_rawg: "true" } : {}) })
+		.query({ query, ...(forceRawg ? { force_online: "true" } : {}) })
 		.set("Authorization", authorization);
 }
 

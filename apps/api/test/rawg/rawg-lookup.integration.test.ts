@@ -176,7 +176,10 @@ void describe("GET /games/rawg-lookup", () => {
 		["an empty query", { query: "" }],
 		["a query over 200 characters", { query: "a".repeat(201) }],
 		["an unknown param", { query: "zelda", page: "2" }],
-		["a non-boolean force_rawg", { query: "zelda", force_rawg: "maybe" }]
+		[
+			"a non-boolean force_online",
+			{ query: "zelda", force_online: "maybe" }
+		]
 	];
 
 	for (const [label, query] of invalidQueries) {
