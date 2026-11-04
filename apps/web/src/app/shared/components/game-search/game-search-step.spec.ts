@@ -99,6 +99,35 @@ describe("GameSearchStep", () => {
 		).toContain("1 game found");
 	});
 
+	it("explains that RAWG is unavailable instead of saying nothing was found", () => {
+		const fixture = render({ rawgUnavailable: true });
+		const searchOnline = vi.fn();
+		fixture.componentInstance.searchOnline.subscribe(searchOnline);
+
+		const notice = root(fixture).querySelector('[role="status"]');
+		expect(notice?.textContent).toContain("RAWG is unavailable");
+		expect(notice?.textContent).not.toContain("No games found");
+		button(fixture, /Try again/).click();
+
+		expect(searchOnline).toHaveBeenCalledOnce();
+	});
+
+	it("disables the retry while the online search is running", () => {
+		const fixture = render({
+			rawgUnavailable: true,
+			onlineSearching: true
+		});
+
+		expect(button(fixture, /Searching online/).disabled).toBe(true);
+	});
+
+	it("keeps the usual empty state while RAWG is available", () => {
+		const fixture = render({ rawgUnavailable: false });
+
+		expect(root(fixture).textContent).toContain("No games found");
+		expect(root(fixture).textContent).not.toContain("RAWG is unavailable");
+	});
+
 	it("emits picked with the selected game", () => {
 		const fixture = render({
 			results: [game(), game({ id: "2", title: "Celeste" })]

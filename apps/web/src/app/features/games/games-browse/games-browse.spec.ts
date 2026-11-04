@@ -23,6 +23,7 @@ import { ViewportService } from "../../../core/services/viewport";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ListsService } from "../../lists/lists";
 import { GamesService } from "../games";
+import { type OnlineGameSearchResult } from "../games.model";
 import { GamesBrowse } from "./games-browse";
 
 const game = (id: string, overrides: Partial<Game> = {}) =>
@@ -60,6 +61,10 @@ const platforms: Platform[] = [
 ];
 
 const latestGames = [game("a"), game("b"), game("c")];
+const onlineResult = (
+	games: Game[],
+	rawgUnavailable = false
+): OnlineGameSearchResult => ({ games, rawgUnavailable });
 
 describe("GamesBrowse", () => {
 	const isMobile = signal(false);
@@ -185,7 +190,7 @@ describe("GamesBrowse", () => {
 					data: { games: latestGames, total: 3, limit: 16, offset: 0 }
 				});
 			});
-		search.mockReset().mockReturnValue(of([]));
+		search.mockReset().mockReturnValue(of(onlineResult([])));
 		searchLocal.mockReset().mockReturnValue(of([]));
 		getGenres.mockReset().mockReturnValue(of(genres));
 		getPlatforms.mockReset().mockReturnValue(of(platforms));
@@ -490,7 +495,7 @@ describe("GamesBrowse", () => {
 		});
 
 		it("falls back to RAWG when the catalog has no match and says so while waiting", async () => {
-			const online = new Subject<Game[]>();
+			const online = new Subject<OnlineGameSearchResult>();
 			search.mockReturnValue(online);
 			const view = await renderBrowse();
 
@@ -500,7 +505,9 @@ describe("GamesBrowse", () => {
 				await screen.findByText(/Not in Completr yet — searching RAWG/)
 			).toBeInTheDocument();
 			expect(search).toHaveBeenCalledWith("ze");
-			online.next([game("imported", { justImported: true })]);
+			online.next(
+				onlineResult([game("imported", { justImported: true })])
+			);
 			view.detectChanges();
 			expect(
 				await screen.findByText("Game imported")
@@ -529,7 +536,7 @@ describe("GamesBrowse", () => {
 
 		it("searches RAWG on demand and replaces the results", async () => {
 			searchLocal.mockReturnValue(of([game("z1")]));
-			const online = new Subject<Game[]>();
+			const online = new Subject<OnlineGameSearchResult>();
 			search.mockReturnValue(online);
 			const view = await renderBrowse();
 			await typeSearch("ze");
@@ -543,12 +550,55 @@ describe("GamesBrowse", () => {
 			expect(
 				screen.getByRole("button", { name: "Searching RAWG..." })
 			).toBeDisabled();
-			online.next([game("rawg1")]);
+			online.next(onlineResult([game("rawg1")]));
 			view.detectChanges();
 			expect(screen.getByText("Game rawg1")).toBeInTheDocument();
 			expect(screen.queryByText("Game z1")).not.toBeInTheDocument();
 			expect(
 				screen.getByRole("button", { name: "Not here? Search RAWG" })
+			).toBeEnabled();
+		});
+
+		it("explains that RAWG is unavailable instead of an empty list and lets the user retry", async () => {
+			search.mockReturnValue(of(onlineResult([], true)));
+			const view = await renderBrowse();
+
+			await typeSearch("zzz");
+
+			expect(
+				await screen.findByText("RAWG is unavailable")
+			).toBeInTheDocument();
+			expect(
+				screen.queryByText("No games found")
+			).not.toBeInTheDocument();
+			search.mockReturnValue(of(onlineResult([game("rawg1")])));
+			await userEvent.click(
+				screen.getByRole("button", { name: "Try again" })
+			);
+			view.detectChanges();
+			expect(search).toHaveBeenLastCalledWith("zzz", true);
+			expect(await screen.findByText("Game rawg1")).toBeInTheDocument();
+			expect(
+				screen.queryByText("RAWG is unavailable")
+			).not.toBeInTheDocument();
+		});
+
+		it("keeps the notice while a retry fails again and re-enables the button", async () => {
+			search.mockReturnValue(of(onlineResult([], true)));
+			await renderBrowse();
+			await typeSearch("zzz");
+			await screen.findByText("RAWG is unavailable");
+
+			await userEvent.click(
+				screen.getByRole("button", { name: "Try again" })
+			);
+			await userEvent.click(
+				screen.getByRole("button", { name: "Try again" })
+			);
+
+			expect(screen.getByText("RAWG is unavailable")).toBeInTheDocument();
+			expect(
+				screen.getByRole("button", { name: "Try again" })
 			).toBeEnabled();
 		});
 

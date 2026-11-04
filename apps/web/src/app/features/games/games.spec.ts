@@ -72,7 +72,32 @@ describe("GamesService", () => {
 			httpTesting
 				.expectOne(`${api}/games/search?query=a%26b%20c`)
 				.flush({ data: { games: [{ id: "g1" }] } });
-			expect(result).toEqual([{ id: "g1" }]);
+			expect(result).toEqual({
+				games: [{ id: "g1" }],
+				rawgUnavailable: false
+			});
+		});
+
+		it("reports RAWG as unavailable when the API says so", () => {
+			let result: unknown;
+
+			service.search("zelda").subscribe(r => (result = r));
+
+			httpTesting
+				.expectOne(`${api}/games/search?query=zelda`)
+				.flush({ data: { games: [], rawgAvailable: false } });
+			expect(result).toEqual({ games: [], rawgUnavailable: true });
+		});
+
+		it("reports RAWG as available when it answered with nothing", () => {
+			let result: unknown;
+
+			service.search("zelda").subscribe(r => (result = r));
+
+			httpTesting
+				.expectOne(`${api}/games/search?query=zelda`)
+				.flush({ data: { games: [], rawgAvailable: true } });
+			expect(result).toEqual({ games: [], rawgUnavailable: false });
 		});
 
 		it("forces the RAWG lookup when asked", () => {
@@ -83,7 +108,34 @@ describe("GamesService", () => {
 				.flush({ data: { games: [] } });
 		});
 
-		it("warns the user and rethrows when the forced RAWG search fails", () => {
+		it.each([
+			["RAWG_REQUEST_ERROR", 502],
+			["RAWG_PARSE_ERROR", 502],
+			["RAWG_DISABLED", 503],
+			["RAWG_RATE_LIMITED", 429]
+		])(
+			"turns a forced search failing with %s into RAWG unavailable without a toast",
+			(type, status) => {
+				let result: unknown;
+				let failure: unknown;
+
+				service.search("zelda", true).subscribe({
+					next: r => (result = r),
+					error: error => (failure = error)
+				});
+
+				httpTesting
+					.expectOne(
+						`${api}/games/search?query=zelda&force_rawg=true`
+					)
+					.flush({ type }, { status, statusText: "Error" });
+				expect(failure).toBeUndefined();
+				expect(result).toEqual({ games: [], rawgUnavailable: true });
+				expect(toast.warning).not.toHaveBeenCalled();
+			}
+		);
+
+		it("warns the user and rethrows when the forced search fails for another reason", () => {
 			let failure: HttpErrorResponse | undefined;
 
 			service.search("zelda", true).subscribe({
@@ -92,17 +144,14 @@ describe("GamesService", () => {
 
 			httpTesting
 				.expectOne(`${api}/games/search?query=zelda&force_rawg=true`)
-				.flush(
-					{ type: "RAWG_REQUEST_ERROR" },
-					{ status: 502, statusText: "Bad Gateway" }
-				);
-			expect(failure?.status).toBe(502);
+				.flush({}, { status: 500, statusText: "Server Error" });
+			expect(failure?.status).toBe(500);
 			expect(toast.warning).toHaveBeenCalledWith(
 				"Couldn't search online right now. Try again in a moment."
 			);
 		});
 
-		it("leaves the rate limit warning to the error interceptor", () => {
+		it("leaves our own rate limit warning to the error interceptor", () => {
 			let failure: HttpErrorResponse | undefined;
 
 			service.search("zelda", true).subscribe({
@@ -112,7 +161,7 @@ describe("GamesService", () => {
 			httpTesting
 				.expectOne(`${api}/games/search?query=zelda&force_rawg=true`)
 				.flush(
-					{ type: "RAWG_RATE_LIMITED" },
+					{ type: "AUTH_RATE_LIMITED" },
 					{ status: 429, statusText: "Too Many Requests" }
 				);
 			expect(failure?.status).toBe(429);

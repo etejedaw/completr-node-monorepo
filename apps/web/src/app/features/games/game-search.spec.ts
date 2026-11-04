@@ -10,8 +10,13 @@ import {
 	isSearchableQuery
 } from "./game-search";
 import { GamesService } from "./games";
+import { type OnlineGameSearchResult } from "./games.model";
 
 const game = (id: string) => ({ id, code: id, title: id }) as Game;
+const onlineResult = (
+	games: Game[],
+	rawgUnavailable = false
+): OnlineGameSearchResult => ({ games, rawgUnavailable });
 
 describe("isSearchableQuery", () => {
 	it("requires the minimum number of characters", () => {
@@ -53,7 +58,7 @@ describe("injectGameSearch", () => {
 		query.set("");
 		allowOnline.set(true);
 		searchLocal.mockReset().mockReturnValue(of([]));
-		search.mockReset().mockReturnValue(of([]));
+		search.mockReset().mockReturnValue(of(onlineResult([])));
 		TestBed.configureTestingModule({
 			providers: [
 				{ provide: GamesService, useValue: { searchLocal, search } }
@@ -164,7 +169,7 @@ describe("injectGameSearch", () => {
 	});
 
 	it("falls back to the online search when nothing is found locally", () => {
-		search.mockReturnValue(of([game("imported")]));
+		search.mockReturnValue(of(onlineResult([game("imported")])));
 		const { results, status } = setup();
 
 		type("imported");
@@ -176,7 +181,7 @@ describe("injectGameSearch", () => {
 	});
 
 	it("reports searchingOnline while the fallback is pending", () => {
-		const online = new Subject<Game[]>();
+		const online = new Subject<OnlineGameSearchResult>();
 		search.mockReturnValue(online);
 		const { status } = setup();
 
@@ -184,7 +189,7 @@ describe("injectGameSearch", () => {
 		settle();
 
 		expect(status()).toBe("searchingOnline");
-		online.next([]);
+		online.next(onlineResult([]));
 		expect(status()).toBe("done");
 	});
 
@@ -222,6 +227,42 @@ describe("injectGameSearch", () => {
 		expect(status()).toBe("done");
 	});
 
+	it("reports RAWG as unavailable when the online fallback says so", () => {
+		search.mockReturnValue(of(onlineResult([], true)));
+		const { results, status, rawgUnavailable } = setup();
+
+		type("zelda");
+		settle();
+
+		expect(results()).toEqual([]);
+		expect(rawgUnavailable()).toBe(true);
+		expect(status()).toBe("done");
+	});
+
+	it("forgets that RAWG was unavailable as soon as the user types again", () => {
+		search.mockReturnValue(of(onlineResult([], true)));
+		const { rawgUnavailable } = setup();
+		type("zelda");
+		settle();
+		searchLocal.mockReturnValue(of([game("zelda")]));
+
+		type("zeld");
+
+		expect(rawgUnavailable()).toBe(false);
+		settle();
+		expect(rawgUnavailable()).toBe(false);
+	});
+
+	it("does not flag RAWG when the catalog answers", () => {
+		searchLocal.mockReturnValue(of([game("zelda")]));
+		const { rawgUnavailable } = setup();
+
+		type("zelda");
+		settle();
+
+		expect(rawgUnavailable()).toBe(false);
+	});
+
 	it("clears results and goes idle when the query drops below the minimum", () => {
 		searchLocal.mockReturnValue(of([game("zelda")]));
 		const { results, status } = setup();
@@ -247,7 +288,7 @@ describe("injectGameSearch", () => {
 
 	describe("searchOnline", () => {
 		it("forces a RAWG lookup and replaces the results", () => {
-			search.mockReturnValue(of([game("rawg-hit")]));
+			search.mockReturnValue(of(onlineResult([game("rawg-hit")])));
 			const { results, status, searchOnline, forceSearching } = setup();
 			type("zelda");
 			settle();
@@ -261,7 +302,7 @@ describe("injectGameSearch", () => {
 		});
 
 		it("flags forceSearching while the request is in flight", () => {
-			const online = new Subject<Game[]>();
+			const online = new Subject<OnlineGameSearchResult>();
 			search.mockReturnValue(online);
 			const { searchOnline, forceSearching } = setup();
 			type("zelda");
@@ -269,7 +310,7 @@ describe("injectGameSearch", () => {
 			searchOnline();
 
 			expect(forceSearching()).toBe(true);
-			online.next([]);
+			online.next(onlineResult([]));
 			online.complete();
 			expect(forceSearching()).toBe(false);
 		});
@@ -277,7 +318,9 @@ describe("injectGameSearch", () => {
 		it("ignores calls while a forced search is already running", () => {
 			const { searchOnline } = setup();
 			type("zelda");
-			search.mockClear().mockReturnValue(new Subject<Game[]>());
+			search
+				.mockClear()
+				.mockReturnValue(new Subject<OnlineGameSearchResult>());
 
 			searchOnline();
 			searchOnline();
@@ -304,6 +347,38 @@ describe("injectGameSearch", () => {
 			expect(search).toHaveBeenCalledWith("zelda", true);
 		});
 
+		it("reports RAWG as unavailable and clears it when a retry succeeds", () => {
+			search.mockReturnValue(of(onlineResult([], true)));
+			const { results, rawgUnavailable, searchOnline } = setup();
+			type("zelda");
+			settle();
+			expect(rawgUnavailable()).toBe(true);
+
+			search.mockReturnValue(of(onlineResult([game("rawg-hit")])));
+			searchOnline();
+
+			expect(rawgUnavailable()).toBe(false);
+			expect(results().map(g => g.id)).toEqual(["rawg-hit"]);
+		});
+
+		it("ignores a forced answer that arrives after the user changed the query", () => {
+			searchLocal.mockReturnValue(of([game("mario")]));
+			const online = new Subject<OnlineGameSearchResult>();
+			search.mockReturnValue(online);
+			const { results, rawgUnavailable, searchOnline, forceSearching } =
+				setup();
+			type("zelda");
+			searchOnline();
+
+			type("mario");
+			settle();
+			online.next(onlineResult([], true));
+
+			expect(results().map(g => g.id)).toEqual(["mario"]);
+			expect(rawgUnavailable()).toBe(false);
+			expect(forceSearching()).toBe(false);
+		});
+
 		it("keeps the previous results and allows a retry when the request fails", () => {
 			searchLocal.mockReturnValue(of([game("zelda")]));
 			const { results, searchOnline, forceSearching } = setup();
@@ -315,7 +390,7 @@ describe("injectGameSearch", () => {
 
 			expect(results().map(g => g.id)).toEqual(["zelda"]);
 			expect(forceSearching()).toBe(false);
-			search.mockReturnValue(of([game("again")]));
+			search.mockReturnValue(of(onlineResult([game("again")])));
 			searchOnline();
 			expect(results().map(g => g.id)).toEqual(["again"]);
 		});
