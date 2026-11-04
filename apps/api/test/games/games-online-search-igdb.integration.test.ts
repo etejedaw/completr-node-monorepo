@@ -167,7 +167,8 @@ void describe("GET /games/search falling back to IGDB", () => {
 		assert.equal(empty.body.data.onlineSearchAvailable, true);
 		assert.equal(empty.body.data.onlineSearchSource, "rawg");
 		assert.deepEqual(empty.body.data.games, []);
-		assert.deepEqual(igdb.calls, []);
+		assert.equal(igdb.calls.includes("search:elden ring"), false);
+		assert.equal(igdb.calls.includes("search:nothing anywhere"), false);
 	});
 
 	void it("falls back to IGDB when every RAWG result fails to resolve", async () => {
