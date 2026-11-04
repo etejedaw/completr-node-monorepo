@@ -9,7 +9,11 @@ import { GameExternal } from "../../src/game-external/game-external.model";
 import { GameScore } from "../../src/game-scores/game-score.model";
 import { GameTime } from "../../src/game-times/game-time.model";
 import { Game } from "../../src/games/game.model";
-import { registerExternalDataSources } from "../../src/games/services/external-data-sources.service";
+import {
+	registerExternalDataSources,
+	registerIgdbRequestPacer
+} from "../../src/games/services/external-data-sources.service";
+import { createRequestPacer } from "../../src/games/utils/create-request-pacer.util";
 import { Job } from "../../src/jobs/job.model";
 import {
 	createCatalogGame,
@@ -23,8 +27,10 @@ import {
 	linkExternal,
 	metacriticDetail,
 	metacriticPages,
+	fakeIgdb,
+	igdbGame,
 	providerError,
-	registerFakes,
+	registerFakes as registerSourceFakes,
 	wikidataCandidates
 } from "../games/external-data-fakes.helper";
 import { api } from "../helpers/app.helper";
@@ -42,8 +48,11 @@ const JOB_POLL_INTERVAL_MS = 25;
 
 let authorization: string;
 
+registerIgdbRequestPacer(createRequestPacer(0));
+
 useTestDatabase(async () => {
 	await createScoreSource({ code: "metacritic", scale: 100 });
+	await createScoreSource({ code: "igdb", scale: 100 });
 	authorization = (await createUserWithSession("admin")).authorization;
 });
 
@@ -59,6 +68,18 @@ beforeEach(async () => {
 afterEach(() => {
 	registerExternalDataSources({});
 });
+
+function ratedIgdb() {
+	return fakeIgdb({
+		search: title => [igdbGame({ id: 1, name: title, rating: 80 })]
+	});
+}
+
+function registerFakes(
+	fakes: Parameters<typeof registerSourceFakes>[0]
+) {
+	registerSourceFakes({ igdb: ratedIgdb(), ...fakes });
+}
 
 async function finishedJob(jobId: string) {
 	const deadline = Date.now() + JOB_TIMEOUT_MS;
@@ -95,6 +116,8 @@ function report(fields: {
 	recentlyAttempted?: number;
 	mc?: [number, number, number, number];
 	hltb?: [number, number, number, number];
+	igdbUpdated?: number;
+	igdb?: [number, number, number, number];
 	hltbIdLookupPaused?: { reason: string; skippedWithoutId: number };
 }) {
 	const [mcNotFound, mcAmbiguous, mcNoData, mcFailed] = fields.mc ?? [
@@ -103,10 +126,14 @@ function report(fields: {
 	const [hNotFound, hAmbiguous, hNoData, hFailed] = fields.hltb ?? [
 		0, 0, 0, 0
 	];
+	const [iNotFound, iAmbiguous, iNoData, iFailed] = fields.igdb ?? [
+		0, 0, 0, 0
+	];
 	return [
-		`Candidates: ${fields.candidates}, Processed: ${fields.processed}, Metacritic scores updated: ${fields.mcUpdated ?? 0}, HLTB durations updated: ${fields.hltbUpdated ?? 0}, Skipped complete: ${fields.skipped ?? 0}, Skipped recently attempted: ${fields.recentlyAttempted ?? 0}`,
+		`Candidates: ${fields.candidates}, Processed: ${fields.processed}, Metacritic scores updated: ${fields.mcUpdated ?? 0}, HLTB durations updated: ${fields.hltbUpdated ?? 0}, IGDB scores updated: ${fields.igdbUpdated ?? fields.processed}, Skipped complete: ${fields.skipped ?? 0}, Skipped recently attempted: ${fields.recentlyAttempted ?? 0}`,
 		`Metacritic not found: ${mcNotFound}, ambiguous: ${mcAmbiguous}, no data: ${mcNoData}, failed: ${mcFailed}`,
 		`HLTB not found: ${hNotFound}, ambiguous: ${hAmbiguous}, no data: ${hNoData}, failed: ${hFailed}`,
+		`IGDB not found: ${iNotFound}, ambiguous: ${iAmbiguous}, no data: ${iNoData}, failed: ${iFailed}`,
 		...(fields.hltbIdLookupPaused
 			? [
 					`HLTB ID lookup paused: ${fields.hltbIdLookupPaused.reason}, HLTB skipped without ID: ${fields.hltbIdLookupPaused.skippedWithoutId}`
@@ -165,6 +192,7 @@ void describe("POST /admin/jobs/populate-external-data — selection", () => {
 		await linkExternal(complete.id, "hltb", "d");
 		await createGameScore(complete.id, "metacritic", 70);
 		await createGameTime(complete.id, "hltb", 10);
+		await createGameScore(complete.id, "igdb", 80);
 		const inactive = await createCatalogGame("Echo", { isActive: false });
 		await linkExternal(inactive.id, "hltb", "e");
 		const metacritic = metacriticPages([
@@ -202,7 +230,7 @@ void describe("POST /admin/jobs/populate-external-data — selection", () => {
 			10
 		);
 		assert.equal(
-			(await GameScore.findOne({ where: { gameId: missingTime.id } }))
+			(await GameScore.findOne({ where: { gameId: missingTime.id, source: "metacritic" } }))
 				?.score,
 			70
 		);
@@ -226,7 +254,7 @@ void describe("POST /admin/jobs/populate-external-data — selection", () => {
 		assert.equal(job.status, "completed");
 		assert.deepEqual(metacritic.calls, ["alpha-pc"]);
 		assert.equal(
-			(await GameScore.findOne({ where: { gameId: game.id } }))?.score,
+			(await GameScore.findOne({ where: { gameId: game.id, source: "metacritic" } }))?.score,
 			90
 		);
 	});
@@ -255,7 +283,7 @@ void describe("POST /admin/jobs/populate-external-data — selection", () => {
 			})
 		);
 		assert.deepEqual(metacritic.calls, ["alpha", "bravo"]);
-		assert.equal(await GameScore.count(), 2);
+		assert.equal(await GameScore.count({ where: { source: "metacritic" } }), 2);
 	});
 
 	for (const limit of ["0", "-1", "abc", "1.5", ""]) {
@@ -393,7 +421,7 @@ void describe("POST /admin/jobs/populate-external-data — outcomes", () => {
 			})
 		);
 		assert.equal(
-			(await GameScore.findOne({ where: { gameId: good.id } }))?.score,
+			(await GameScore.findOne({ where: { gameId: good.id, source: "metacritic" } }))?.score,
 			93
 		);
 		assert.equal(
@@ -431,9 +459,9 @@ void describe("POST /admin/jobs/populate-external-data — outcomes", () => {
 				})}. Stopped: METACRITIC_${suffix}`
 			);
 			assert.deepEqual(metacritic.calls, ["alpha", "bravo"]);
-			assert.equal(await GameScore.count(), 1);
+			assert.equal(await GameScore.count({ where: { source: "metacritic" } }), 1);
 			assert.equal(
-				await GameScore.count({ where: { gameId: failing.id } }),
+				await GameScore.count({ where: { gameId: failing.id, source: "metacritic" } }),
 				0
 			);
 		});
@@ -458,7 +486,7 @@ void describe("POST /admin/jobs/populate-external-data — outcomes", () => {
 		assert.match(job.result ?? "", /Stopped: HLTB_BLOCKED$/);
 		assert.deepEqual(metacritic.calls, ["alpha"]);
 		assert.equal(
-			(await GameScore.findOne({ where: { gameId: game.id } }))?.score,
+			(await GameScore.findOne({ where: { gameId: game.id, source: "metacritic" } }))?.score,
 			80
 		);
 	});
@@ -548,7 +576,7 @@ void describe("POST /admin/jobs/populate-external-data — outcomes", () => {
 				/^Candidates: 1, Processed: 0, .*\. Stopped: /
 			);
 			assert.equal(
-				await GameScore.count({ where: { gameId: game.id } }),
+				await GameScore.count({ where: { gameId: game.id, source: "metacritic" } }),
 				0
 			);
 		} finally {
@@ -916,9 +944,11 @@ void describe("POST /admin/jobs/populate-external-data — recently attempted ga
 	void it("retries a game once its wait is over, after the games never tried and oldest first", async () => {
 		const longAgo = await createCatalogGame("Alpha");
 		await createGameTime(longAgo.id, "hltb", 10);
+		await createGameScore(longAgo.id, "igdb", 80);
 		await recordAttempt(longAgo.id, "metacritic", "not_found", daysAgo(31));
 		const recentNoData = await createCatalogGame("Bravo");
 		await createGameTime(recentNoData.id, "hltb", 10);
+		await createGameScore(recentNoData.id, "igdb", 80);
 		await recordAttempt(
 			recentNoData.id,
 			"metacritic",
@@ -927,9 +957,11 @@ void describe("POST /admin/jobs/populate-external-data — recently attempted ga
 		);
 		const waiting = await createCatalogGame("Charlie");
 		await createGameTime(waiting.id, "hltb", 10);
+		await createGameScore(waiting.id, "igdb", 80);
 		await recordAttempt(waiting.id, "metacritic", "not_found", daysAgo(10));
 		const waitingFailure = await createCatalogGame("Delta");
 		await createGameTime(waitingFailure.id, "hltb", 10);
+		await createGameScore(waitingFailure.id, "igdb", 80);
 		await recordAttempt(
 			waitingFailure.id,
 			"metacritic",
@@ -938,6 +970,7 @@ void describe("POST /admin/jobs/populate-external-data — recently attempted ga
 		);
 		const neverTried = await createCatalogGame("Echo");
 		await createGameTime(neverTried.id, "hltb", 10);
+		await createGameScore(neverTried.id, "igdb", 80);
 		const metacritic = metacriticPages([scorePage("bravo", "Bravo", 75)]);
 		registerFakes({ metacritic, hltb: hltbPages([]) });
 
@@ -950,6 +983,7 @@ void describe("POST /admin/jobs/populate-external-data — recently attempted ga
 				candidates: 3,
 				processed: 3,
 				mcUpdated: 1,
+				igdbUpdated: 0,
 				recentlyAttempted: 2,
 				mc: [2, 0, 0, 0]
 			})
@@ -987,8 +1021,10 @@ void describe("POST /admin/jobs/populate-external-data — recently attempted ga
 		void it(`does not hold back a game that hit METACRITIC_${suffix} and starts the next run with it`, async () => {
 			const blocked = await createCatalogGame("Bravo");
 			await createGameTime(blocked.id, "hltb", 10);
+			await createGameScore(blocked.id, "igdb", 80);
 			const before = await createCatalogGame("Alpha");
 			await createGameTime(before.id, "hltb", 10);
+			await createGameScore(before.id, "igdb", 80);
 			await recordAttempt(
 				before.id,
 				"metacritic",
@@ -1013,7 +1049,7 @@ void describe("POST /admin/jobs/populate-external-data — recently attempted ga
 			assert.equal(second.status, "completed");
 			assert.deepEqual(metacritic.calls, ["bravo", "bravo", "alpha"]);
 			assert.equal(
-				(await GameScore.findOne({ where: { gameId: blocked.id } }))
+				(await GameScore.findOne({ where: { gameId: blocked.id, source: "metacritic" } }))
 					?.score,
 				70
 			);
