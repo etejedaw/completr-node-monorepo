@@ -33,6 +33,7 @@ import {
 	type IgdbLookup,
 	type MetacriticLookup
 } from "../games-external-data.types";
+import { extractIgdbUserRating } from "../mappers/extractors/igdb-score.extractors";
 import { buildMetacriticSlugCandidates } from "../utils/build-metacritic-slug-candidates.util";
 import { classifyExternalDataError } from "../utils/classify-external-data-error.util";
 import { externalDataAttemptStatus } from "../utils/external-data-attempt-status.util";
@@ -44,13 +45,13 @@ import { resolveHltbId } from "../utils/resolve-hltb-id.util";
 import { untilAborted } from "../utils/until-aborted.util";
 import {
 	findUnavailableSources,
-	isExternalDataSourceTracked,
 	getExternalDataRefreshTimer,
 	getHltbIdResolver,
 	getHltbSource,
 	getIgdbRequestPacer,
 	getIgdbSource,
-	getMetacriticSource
+	getMetacriticSource,
+	isExternalDataSourceTracked
 } from "./external-data-sources.service";
 import {
 	findActiveGamesForExternalData,
@@ -61,7 +62,6 @@ const METACRITIC_SCORE_SOURCE = "metacritic";
 const HLTB_TIME_SOURCE = "hltb";
 const IGDB_SCORE_SOURCE = "igdb";
 const IGDB_ID_PATTERN = /^\d+$/;
-const IGDB_MAX_RATING = 100;
 
 export function assertExternalDataSourcesAvailable(
 	sources: readonly ExternalDataSource[]
@@ -510,26 +510,13 @@ async function refreshIgdb(
 	if (lookup.isNewMatch)
 		await saveExternalId(game.id, "igdb", String(detail.id));
 
-	const score = extractIgdbScore(detail);
+	const score = extractIgdbUserRating(detail);
 	if (score === null)
 		return { source: "igdb", status: "no_data", errorCode: null };
 
 	if (options.signal?.aborted) return deadlineExceededResult("igdb");
 	await gameScoresService.upsertScore(game.id, IGDB_SCORE_SOURCE, score);
 	return { source: "igdb", status: "updated", score, errorCode: null };
-}
-
-function extractIgdbScore(detail: IgdbGame) {
-	const { rating } = detail;
-	if (
-		typeof rating !== "number" ||
-		!Number.isFinite(rating) ||
-		rating <= 0 ||
-		rating > IGDB_MAX_RATING
-	)
-		return null;
-	const score = Math.round(rating * 100) / 100;
-	return score > 0 ? score : null;
 }
 
 async function requestIgdb<T>(
