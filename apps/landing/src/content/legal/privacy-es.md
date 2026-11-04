@@ -1,7 +1,7 @@
 ---
 lang: es
-version: "2.2"
-updated: 2026-11-01
+version: "2.3"
+updated: 2026-11-04
 title: Política de privacidad
 summary: "La idea de fondo es simple: recojo lo mínimo para que la app funcione, no vendo tus datos ni los cedo con fines comerciales, y puedes borrarlos cuando quieras."
 highlights:
@@ -107,7 +107,7 @@ A nadie se los cedo con fines comerciales. Pero para que la app funcione tus dat
 
 Los datos de los videojuegos provienen de catálogos y sitios externos (como RAWG, IGDB, Metacritic, HowLongToBeat y Wikidata), pero esa es información que _recibo_: nunca envío tus datos personales a esos servicios.
 
-Fuera de esos, no hay terceros. Las tipografías y los iconos se sirven desde mis propios servidores, así que tu navegador no se conecta a Google ni a ninguna CDN externa mientras navegas por Completr.
+Fuera de esos y de los servidores de imágenes que explico a continuación, no hay terceros. Las tipografías y los iconos se sirven desde mis propios servidores, así que tu navegador no se conecta a Google ni a ninguna CDN externa por ellos. Las imágenes de los juegos (portadas y fondos) se cargan directamente desde los servidores de imágenes de RAWG e IGDB: tu navegador se conecta a ellos para descargarlas y, como en cualquier conexión, ven tu dirección IP y tu navegador, pero no reciben ningún otro dato tuyo.
 
 ## Salida de tus datos fuera de Chile
 

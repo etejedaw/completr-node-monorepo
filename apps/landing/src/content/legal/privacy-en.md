@@ -1,7 +1,7 @@
 ---
 lang: en
-version: "2.2"
-updated: 2026-11-01
+version: "2.3"
+updated: 2026-11-04
 title: Privacy Policy
 summary: "The idea is simple: I collect the minimum needed for the app to work, I never sell your data or share it for commercial purposes, and you can delete it whenever you want."
 highlights:
@@ -107,7 +107,7 @@ I don't hand it to anyone for commercial purposes. But for the app to work, your
 
 Video game data comes from external catalogs and sites (such as RAWG, IGDB, Metacritic, HowLongToBeat and Wikidata), but that's information I _receive_: I never send your personal data to those services.
 
-Beyond those, there are no third parties. Fonts and icons are served from my own servers, so your browser doesn't connect to Google or any external CDN while you use Completr.
+Beyond those and the image servers described next, there are no third parties. Fonts and icons are served from my own servers, so your browser doesn't connect to Google or any external CDN for them. Game images (covers and backgrounds) are loaded directly from the RAWG and IGDB image servers: your browser connects to them to download the images and, as with any connection, they see your IP address and browser, but they don't receive any other data about you.
 
 ## Transfers outside Chile
 
