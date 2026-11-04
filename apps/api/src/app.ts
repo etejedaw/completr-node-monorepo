@@ -4,6 +4,7 @@ import { PinoLogger } from "./common/logger/pino.logger";
 import { initDatabase } from "./database/init.database";
 import { registerExternalDataSources } from "./games/services/external-data-sources.service";
 import { HltbClient } from "./hltb/hltb.provider";
+import { IgdbClient } from "./igdb/igdb.provider";
 import * as jobsService from "./jobs/jobs.service";
 import { MetacriticClient } from "./metacritic/metacritic.provider";
 import { createApp } from "./server";
@@ -28,11 +29,20 @@ function warnIfIgdbDisabled() {
 	);
 }
 
+function createIgdbSourceIfEnabled() {
+	const igdb = IgdbClient.create(
+		apiKeysConfig.IGDB_CLIENT_ID,
+		apiKeysConfig.IGDB_CLIENT_SECRET
+	);
+	return igdb.isEnabled ? igdb : undefined;
+}
+
 function registerScrapingProviders() {
 	registerExternalDataSources({
 		metacritic: MetacriticClient.create(),
 		hltb: HltbClient.create(),
-		hltbIdResolver: WikidataClient.create()
+		hltbIdResolver: WikidataClient.create(),
+		igdb: createIgdbSourceIfEnabled()
 	});
 }
 
