@@ -89,8 +89,9 @@
 	<div
 		id="global-search-results"
 		role="region"
+		(mousedown)="keepFocusOnResultPress($event)"
 		aria-label="Search results"
-		[class]="variant() === 'overlay' ? 'flex-1 overflow-y-auto py-2' : 'absolute top-full inset-x-0 mt-2 max-h-[min(32rem,70vh)] overflow-y-auto rounded-card bg-sidebar/95 backdrop-blur-xl border border-line shadow-[0_24px_60px_-20px_rgba(0,0,0,0.9)] py-2 z-50 motion-safe:animate-[uiFadeUp_180ms_ease-out]'"
+		[class]="variant() === 'overlay' ? 'flex-1 overflow-y-auto py-2' : 'absolute top-full inset-x-0 mt-2 max-h-[min(32rem,70vh)] overflow-y-auto rounded-card bg-sidebar/95 backdrop-blur-xl border border-line shadow-popover py-2 z-50 motion-safe:animate-[uiFadeUp_180ms_ease-out]'"
 	>
 		@if (scope(); as activeScope) {
 		<div class="flex items-center gap-3 px-4 py-2.5">

@@ -105,6 +105,24 @@ describe("GlobalSearch", () => {
 			expect(status()).toHaveTextContent("");
 		});
 
+		it("keeps the focus in the field when a result is pressed, so the dropdown stays open until the click", async () => {
+			const user = userEvent.setup();
+			await renderHost("feed");
+			await user.type(field(), "ce");
+			const result = (await screen.findByText("Celeste")).closest(
+				"button, a"
+			) as HTMLElement;
+
+			const press = new MouseEvent("mousedown", {
+				bubbles: true,
+				cancelable: true
+			});
+			result.dispatchEvent(press);
+
+			expect(press.defaultPrevented).toBe(true);
+			expect(field()).toHaveFocus();
+		});
+
 		it("focuses the bar with the slash shortcut", async () => {
 			const user = userEvent.setup();
 			await renderHost("feed");

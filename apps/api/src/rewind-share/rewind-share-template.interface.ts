@@ -10,23 +10,9 @@ export interface OgTemplateInput {
 	artwork: ShareArtwork;
 }
 
-export interface PersonaBadgeSizes {
-	titleSize: number;
-	phraseSize: number;
-}
-
 export interface StatTile {
 	label: string;
 	value: string;
-	color: string;
-}
-
-export interface TileBoxStyle {
-	valueSize: number;
-	labelSize: number;
-	width: number | string;
-	height: number;
-	stacked: boolean;
 }
 
 export interface CoverFanLayout {
@@ -38,6 +24,47 @@ export interface CoverFanLayout {
 	dropY: number;
 	tiltDegrees: number;
 	shrinkPerStep: number;
+}
+
+export interface BrandBandLayout {
+	top: number;
+	width: number;
+	height: number;
+	paddingX: number;
+	wordmarkSize: number;
+	labelSize: number;
+}
+
+export interface TotalCountSizes {
+	maxSize: number;
+	widthBudget: number;
+	labelSize: number;
+	labelMaxWidth: number;
+	captionSize: number;
+	gap: number;
+}
+
+export interface PersonaLineSizes {
+	chipSize: number;
+	phraseSize: number;
+	gap: number;
+}
+
+export interface InlineStatSizes {
+	valueSize: number;
+	labelSize: number;
+	gap: number;
+}
+
+export interface CoverMosaicLayout {
+	columns: number;
+	rows: number;
+	tileWidth: number;
+	tileHeight: number;
+	gap: number;
+	top: number;
+	left: number;
+	tiltDegrees: number;
 }
 
 export interface FanSlot {
@@ -59,11 +86,6 @@ export interface SatoriElement {
 export interface CanvasSize {
 	width: number;
 	height: number;
-}
-
-export interface BackgroundLayer {
-	image: string;
-	size: string;
 }
 
 export interface StoryTemplateInput {

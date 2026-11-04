@@ -6,7 +6,8 @@ import {
 	type RewindLanguage,
 	type RewindLengthRange,
 	type RewindPersonaCode,
-	type RewindPremiumAccessKind} from "./rewind.constants";
+	type RewindPremiumAccessKind
+} from "./rewind.constants";
 
 export interface RewindGameRef {
 	gameId: string;

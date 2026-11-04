@@ -206,7 +206,9 @@ export class RewindAiRecap {
 
 	protected readonly premiumLabel = computed(() => {
 		const kind = this.premiumAccessKind();
-		return kind ? rewindCopy(this.language()).aiRecap.premiumLabels[kind] : null;
+		return kind
+			? rewindCopy(this.language()).aiRecap.premiumLabels[kind]
+			: null;
 	});
 	protected readonly frameClass = REWIND_PREMIUM_FRAME_CLASS;
 	protected readonly tintSecondaryClass = TONE_TINT_SECONDARY_CLASS;

@@ -34,7 +34,7 @@ const RATED_NOUN = { one: "run already has", other: "runs already have" };
 			eyebrow="Rate"
 			size="sm"
 			icon="star"
-			[heading]="'Rate ' + runsText() + '?'"
+			[heading]="heading()"
 			[subheading]="selectedText() + ' selected'"
 			(closed)="cancelled.emit()"
 		>
@@ -76,7 +76,12 @@ const RATED_NOUN = { one: "run already has", other: "runs already have" };
 						replacedText()
 					}}</ui-alert>
 				}
-				@if (skippedCount() > 0) {
+				@if (targetCount() === 0) {
+					<ui-alert tone="info"
+						>All the selected runs are not started. Turn on Include
+						not started runs to rate them.</ui-alert
+					>
+				} @else if (skippedCount() > 0) {
 					<ui-alert tone="info">{{ skippedText() }}</ui-alert>
 				}
 			</div>
@@ -90,7 +95,7 @@ const RATED_NOUN = { one: "run already has", other: "runs already have" };
 					[disabled]="rating() === null || targetCount() === 0"
 					(click)="confirm()"
 				>
-					Rate {{ runsText() }}
+					{{ confirmLabel() }}
 				</button>
 			</ng-container>
 		</ui-dialog>
@@ -128,6 +133,14 @@ export class BulkRatingDialog {
 
 	protected readonly runsText = computed(() =>
 		countOf(this.targetCount(), RUN_NOUN)
+	);
+	protected readonly heading = computed(() =>
+		this.targetCount() === 0
+			? "Nothing to rate yet"
+			: `Rate ${this.runsText()}?`
+	);
+	protected readonly confirmLabel = computed(() =>
+		this.targetCount() === 0 ? "Rate" : `Rate ${this.runsText()}`
 	);
 	protected readonly selectedText = computed(() =>
 		countOf(this.startedCount() + this.notStartedCount(), RUN_NOUN)

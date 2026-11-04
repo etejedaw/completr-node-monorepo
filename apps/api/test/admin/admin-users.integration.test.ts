@@ -333,7 +333,9 @@ void describe("GET /admin/users?q", () => {
 			.set("Authorization", authorization);
 		assert.equal(response.status, 200);
 		return {
-			ids: (response.body.data.users as AdminUserBody[]).map(user => user.id),
+			ids: (response.body.data.users as AdminUserBody[]).map(
+				user => user.id
+			),
 			total: response.body.data.total as number
 		};
 	}

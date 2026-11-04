@@ -45,7 +45,7 @@ void describe("supportingTiles", () => {
 		);
 		assert.deepEqual(
 			tiles.map(tile => `${tile.value} ${tile.label}`),
-			["213 hours played", "82% finish rate", "3 platinums"]
+			["213 hours", "82% finished", "3 platinums"]
 		);
 	});
 
@@ -57,7 +57,7 @@ void describe("supportingTiles", () => {
 		);
 		assert.deepEqual(
 			tiles.map(tile => `${tile.value} ${tile.label}`),
-			["0% finish rate", "4 left behind"]
+			["0% finished", "4 left behind"]
 		);
 	});
 
@@ -95,13 +95,26 @@ void describe("stat tiles in Spanish", () => {
 		assert.deepEqual(
 			tiles.map(tile => `${tile.value} ${tile.label}`),
 			[
-				"12,5 horas jugadas",
-				"50% tasa de finalización",
+				"12,5 horas",
+				"50% acabados",
 				"1 platino",
 				"2 abandonados",
 				"4,5 nota media",
 				"1 género"
 			]
+		);
+	});
+});
+
+void describe("year caption", () => {
+	void it("captions the year with the owner's username", () => {
+		assert.equal(
+			SPANISH.yearCaption(2026, "esteban"),
+			"en 2026 · @esteban"
+		);
+		assert.equal(
+			ENGLISH.yearCaption(2026, "esteban"),
+			"in 2026 · @esteban"
 		);
 	});
 });

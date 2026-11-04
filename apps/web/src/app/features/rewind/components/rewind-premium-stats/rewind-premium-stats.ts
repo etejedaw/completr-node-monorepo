@@ -169,7 +169,9 @@ export class RewindPremiumStats {
 
 	protected readonly premiumLabel = computed(() => {
 		const kind = this.premiumAccessKind();
-		return kind ? rewindCopy(this.language()).premiumStats.premiumLabels[kind] : null;
+		return kind
+			? rewindCopy(this.language()).premiumStats.premiumLabels[kind]
+			: null;
 	});
 	protected readonly frameClass = REWIND_PREMIUM_FRAME_CLASS;
 

@@ -863,8 +863,9 @@ describe("Rewind interaction", () => {
 			const recap = screen.getByRole("region", { name: "AI recap" });
 			expect(within(recap).queryByText("workspace_premium")).toBeNull();
 			expect(
-				within(screen.getByRole("region", { name: "Premium stats" }))
-					.queryByText("workspace_premium")
+				within(
+					screen.getByRole("region", { name: "Premium stats" })
+				).queryByText("workspace_premium")
 			).toBeNull();
 		});
 

@@ -1468,11 +1468,16 @@ describe("BacklogList interaction", () => {
 
 			await user.click(include);
 
-			expect(dialog).toHaveAccessibleName("Rate 0 runs?");
+			expect(dialog).toHaveAccessibleName("Nothing to rate yet");
+			expect(
+				within(dialog).getByText(
+					"All the selected runs are not started. Turn on Include not started runs to rate them."
+				)
+			).toBeInTheDocument();
 			within(dialog).getByRole("slider", { name: "Your rating" }).focus();
 			await user.keyboard("{ArrowRight}");
 			expect(
-				within(dialog).getByRole("button", { name: "Rate 0 runs" })
+				within(dialog).getByRole("button", { name: "Rate" })
 			).toBeDisabled();
 		});
 

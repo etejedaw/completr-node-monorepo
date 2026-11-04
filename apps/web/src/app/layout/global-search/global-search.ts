@@ -165,6 +165,11 @@ export class GlobalSearch {
 		this.focused.set(false);
 	}
 
+	keepFocusOnResultPress(event: MouseEvent) {
+		const target = event.target as Element | null;
+		if (target?.closest("button, a")) event.preventDefault();
+	}
+
 	onDocumentKeydown(event: KeyboardEvent) {
 		if (this.variant() !== "inline" || event.key !== "/") return;
 		const target = event.target as HTMLElement | null;

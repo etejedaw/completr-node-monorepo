@@ -199,62 +199,61 @@ void describe("renderRewindImage", () => {
 		}
 	});
 
-	void it("renders without background art and never asks for one", async () => {
+	void it("never asks for background art in either format", async () => {
 		const fetchMock = stubFetch(() =>
 			Promise.resolve(new Response(new Uint8Array(samplePng())))
 		);
-
-		const image = await renderRewindImage(buildRewind(), "story");
-
-		assert.equal(fetchMock.mock.callCount(), 0);
-		assert.equal(image.hasMissingImages, false);
-		assert.deepEqual(pngDimensions(image.png), {
-			width: 1080,
-			height: 1920
-		});
-	});
-
-	void it("fetches the top rated background art at backdrop width", async () => {
-		const fetchMock = stubFetch(() =>
-			Promise.resolve(new Response(new Uint8Array(samplePng())))
-		);
-		const rewind = rewindWithBackdrop(
-			"https://media.rawg.io/media/games/top/art.jpg"
-		);
-
-		const image = await renderRewindImage(rewind, "og");
-
-		assert.equal(image.hasMissingImages, false);
-		assert.deepEqual(
-			fetchMock.mock.calls.map(call => call.arguments[0]),
-			["https://media.rawg.io/media/resize/640/-/games/top/art.jpg"]
-		);
-	});
-
-	void it("still renders when the background art fails and flags it as missing", async () => {
-		stubFetch(() => Promise.reject(new Error("network down")));
 
 		for (const format of ["story", "og"] as const) {
 			const image = await renderRewindImage(
-				rewindWithBackdrop("https://art.test/broken.jpg"),
+				rewindWithBackdrop(
+					"https://media.rawg.io/media/games/top/art.jpg"
+				),
 				format
 			);
-			assert.ok(hasPngSignature(image.png));
-			assert.equal(image.hasMissingImages, true);
+			assert.equal(image.hasMissingImages, false);
+		}
+		assert.equal(fetchMock.mock.callCount(), 0);
+	});
+
+	void it("downloads up to 12 covers for the mosaic of both formats", async () => {
+		const coverUrls = Array.from(
+			{ length: 15 },
+			(_, index) => `https://covers.test/${index}.png`
+		);
+
+		for (const format of ["story", "og"] as const) {
+			const fetchMock = stubFetch(() =>
+				Promise.resolve(new Response(new Uint8Array(samplePng())))
+			);
+			const image = await renderRewindImage(
+				rewindWithCovers(...coverUrls),
+				format
+			);
+			assert.equal(fetchMock.mock.callCount(), 12);
+			assert.equal(image.hasMissingImages, false);
+			mock.restoreAll();
 		}
 	});
 
-	void it("ignores background art with a non-http URL", async () => {
-		const fetchMock = stubFetch(() =>
+	void it("renders both formats with one cover, with three-digit counts and with a long username", async () => {
+		stubFetch(() =>
 			Promise.resolve(new Response(new Uint8Array(samplePng())))
 		);
 
-		const image = await renderRewindImage(
-			rewindWithBackdrop("javascript:alert(1)"),
-			"story"
+		await assertRendersBothFormats(
+			rewindWithCovers("https://covers.test/only.png")
 		);
-
-		assert.equal(fetchMock.mock.callCount(), 0);
-		assert.ok(hasPngSignature(image.png));
+		await assertRendersBothFormats(
+			buildRewind({
+				user: {
+					username: "un_usuario_con_nombre_larguisimo_2026",
+					name: "Largo",
+					avatarUrl: null,
+					role: "user"
+				},
+				totals: emptyTotals({ finished: 148, hoursPlayed: 2310.4 })
+			})
+		);
 	});
 });

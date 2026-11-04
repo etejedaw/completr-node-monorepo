@@ -209,7 +209,10 @@ void describe("Rewind premium access", () => {
 		const gifted = await generate(player, 2026).expect(201);
 		assert.equal(gifted.body.data.premiumAccessKind, "gift");
 
-		await User.update({ role: "premium" }, { where: { id: player.user.id } });
+		await User.update(
+			{ role: "premium" },
+			{ where: { id: player.user.id } }
+		);
 		const upgraded = await generate(
 			player,
 			2026,
@@ -286,7 +289,10 @@ void describe("Rewind premium access", () => {
 		assert.equal(regenerated.body.data.premiumAccessKind, null);
 		assert.equal(regenerated.body.data.aiRecap, null);
 		assert.equal(regenerated.body.data.premiumStats, null);
-		assert.equal((await findRewindRow(player, 2026))?.premiumAccessKind, null);
+		assert.equal(
+			(await findRewindRow(player, 2026))?.premiumAccessKind,
+			null
+		);
 	});
 
 	void it("leaves existing Rewinds without a label until premium content is generated again", async () => {

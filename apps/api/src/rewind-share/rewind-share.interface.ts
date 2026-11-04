@@ -12,7 +12,6 @@ export interface ShareCover {
 
 export interface ShareArtwork {
 	covers: ShareCover[];
-	backdrop: string | null;
 }
 
 export interface SharePageMeta {
@@ -34,23 +33,25 @@ export interface ShareCountLabel {
 	other: string;
 }
 
+export interface ShareTileLabels {
+	gamesFinished: ShareCountLabel;
+	gamesStarted: ShareCountLabel;
+	hoursPlayed: string;
+	finishRate: string;
+	platinums: ShareCountLabel;
+	leftBehind: string;
+	averageRating: string;
+	genres: ShareCountLabel;
+}
+
 export interface ShareCopy {
 	language: RewindLanguage;
 	numberLocale: string;
 	personas: Record<RewindPersonaCode, SharePersona>;
-	ownerLabel: (username: string) => string;
 	pageTitle: (username: string, year: number) => string;
 	continueLink: string;
-	tiles: {
-		gamesFinished: ShareCountLabel;
-		gamesStarted: ShareCountLabel;
-		hoursPlayed: string;
-		finishRate: string;
-		platinums: ShareCountLabel;
-		leftBehind: string;
-		averageRating: string;
-		genres: ShareCountLabel;
-	};
+	yearCaption: (year: number, username: string) => string;
+	tiles: ShareTileLabels;
 	summary: {
 		emptyYear: string;
 		games: ShareCountLabel;

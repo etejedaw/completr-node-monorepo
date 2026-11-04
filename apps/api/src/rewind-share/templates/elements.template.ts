@@ -1,10 +1,6 @@
 import { SHARE_COLORS, SHARE_FONT_FAMILY } from "../rewind-share.constants";
-import { type ShareCopy, type ShareCover } from "../rewind-share.interface";
-import {
-	type BackgroundLayer,
-	type CanvasSize,
-	type SatoriElement
-} from "../rewind-share-template.interface";
+import { type ShareCover } from "../rewind-share.interface";
+import { type SatoriElement } from "../rewind-share-template.interface";
 import {
 	type CoverMarkerSide,
 	type FallbackContent,
@@ -15,7 +11,6 @@ import { displayText } from "../utils/display-text.util";
 import { titleGradient } from "../utils/title-gradient.util";
 
 const COVER_TITLE_MAX_LENGTH = 60;
-const YEAR_GRADIENT = `linear-gradient(100deg, #ddd6fe 0%, ${SHARE_COLORS.brandLight} 28%, ${SHARE_COLORS.pink} 64%, ${SHARE_COLORS.orange} 100%)`;
 const FILL: SatoriStyle = {
 	position: "absolute",
 	top: 0,
@@ -64,9 +59,12 @@ export function diamond(size: number, color: string): SatoriElement {
 	});
 }
 
-export function wordmark(fontSize: number): SatoriElement {
+export function wordmark(
+	fontSize: number,
+	diamondColor: string = SHARE_COLORS.brand
+): SatoriElement {
 	return box({ alignItems: "center", gap: fontSize * 0.45 }, [
-		diamond(fontSize * 0.62, SHARE_COLORS.brand),
+		diamond(fontSize * 0.62, diamondColor),
 		text(
 			{
 				fontFamily: SHARE_FONT_FAMILY.display,
@@ -78,76 +76,6 @@ export function wordmark(fontSize: number): SatoriElement {
 			"COMPLETR"
 		)
 	]);
-}
-
-export function gradientYear(year: number, fontSize: number): SatoriElement {
-	return text(
-		{
-			fontFamily: SHARE_FONT_FAMILY.display,
-			fontWeight: 700,
-			fontSize,
-			lineHeight: 0.84,
-			letterSpacing: "-0.045em",
-			marginLeft: -fontSize * 0.05,
-			paddingRight: fontSize * 0.06,
-			backgroundImage: YEAR_GRADIENT,
-			backgroundClip: "text",
-			color: "transparent"
-		},
-		String(year)
-	);
-}
-
-const FULL_SIZE = "100% 100%";
-
-const COLOR_BLOBS: BackgroundLayer[] = [
-	{
-		image: "radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.6) 0%, rgba(139, 92, 246, 0) 55%)",
-		size: FULL_SIZE
-	},
-	{
-		image: "radial-gradient(circle at 0% 55%, rgba(251, 113, 133, 0.34) 0%, rgba(251, 113, 133, 0) 45%)",
-		size: FULL_SIZE
-	},
-	{
-		image: "radial-gradient(circle at 100% 100%, rgba(45, 212, 191, 0.24) 0%, rgba(45, 212, 191, 0) 50%)",
-		size: FULL_SIZE
-	}
-];
-
-const ART_VEIL: BackgroundLayer = {
-	image: "linear-gradient(180deg, rgba(10, 10, 12, 0.55) 0%, rgba(10, 10, 12, 0.7) 40%, rgba(10, 10, 12, 0.93) 100%)",
-	size: FULL_SIZE
-};
-
-function artFit(size: CanvasSize): string {
-	return size.height > size.width ? "auto 100%" : "100% auto";
-}
-
-function backdropLayers(
-	art: string | null,
-	size: CanvasSize
-): BackgroundLayer[] {
-	if (!art) return COLOR_BLOBS;
-	return [
-		ART_VEIL,
-		...COLOR_BLOBS,
-		{ image: `url(${art})`, size: artFit(size) }
-	];
-}
-
-export function backdropStyle(
-	art: string | null,
-	size: CanvasSize
-): SatoriStyle {
-	const layers = backdropLayers(art, size);
-	return {
-		backgroundColor: SHARE_COLORS.canvas,
-		backgroundImage: layers.map(layer => layer.image).join(", "),
-		backgroundSize: layers.map(layer => layer.size).join(", "),
-		backgroundPosition: "center",
-		backgroundRepeat: "no-repeat"
-	};
 }
 
 const FALLBACK_STRIPES: SatoriElement = box({
@@ -268,22 +196,5 @@ export function partlyHiddenCoverCard(
 		width,
 		height,
 		style
-	);
-}
-
-export function ownerLabel(
-	username: string,
-	copy: ShareCopy,
-	fontSize: number
-): SatoriElement {
-	return text(
-		{
-			fontFamily: SHARE_FONT_FAMILY.text,
-			fontWeight: 600,
-			fontSize,
-			color: SHARE_COLORS.foreground,
-			flexShrink: 0
-		},
-		copy.ownerLabel(username)
 	);
 }

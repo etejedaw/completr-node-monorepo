@@ -276,6 +276,17 @@ h6 {
 	);
 }
 
+:root[data-bulk-bar-open] [data-ngp-toast-container] {
+	bottom: var(--bulk-bar-clearance) !important;
+	transition: bottom 180ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	:root[data-bulk-bar-open] [data-ngp-toast-container] {
+		transition: none;
+	}
+}
+
 @keyframes toastCountdown {
 	from {
 		stroke-dashoffset: 0;
