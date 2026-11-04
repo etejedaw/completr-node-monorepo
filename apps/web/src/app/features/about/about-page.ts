@@ -27,6 +27,11 @@ const DATA_SOURCES: readonly DataSource[] = [
 		name: "Metacritic",
 		url: "https://www.metacritic.com",
 		provides: "Critic scores"
+	},
+	{
+		name: "IGDB",
+		url: "https://www.igdb.com",
+		provides: "User scores"
 	}
 ];
 
