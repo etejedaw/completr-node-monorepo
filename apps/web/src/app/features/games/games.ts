@@ -4,7 +4,7 @@ import {
 	type HttpErrorResponse
 } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { catchError, map, type Observable, of, throwError } from "rxjs";
+import { catchError, map, type Observable, throwError } from "rxjs";
 
 import { environment } from "../../../environments/environment";
 import {
@@ -14,7 +14,6 @@ import {
 } from "../../core/models";
 import { ToastService } from "../../core/services/toast";
 import { buildHttpParams } from "../../core/utils/http-params";
-import { isRawgOutage } from "../../core/utils/rawg-outage";
 import { SUPPRESS_VALIDATION_TOAST } from "../../shared/utils/validation-errors";
 import {
 	type CompilationItemResponse,
@@ -56,9 +55,9 @@ export class GamesService {
 
 	search(
 		query: string,
-		forceRawg = false
+		forceOnline = false
 	): Observable<OnlineGameSearchResult> {
-		const params = `query=${encodeURIComponent(query)}${forceRawg ? "&force_rawg=true" : ""}`;
+		const params = `query=${encodeURIComponent(query)}${forceOnline ? "&force_online=true" : ""}`;
 		return this.http
 			.get<GamesSearchResponse>(
 				`${environment.apiUrl}/games/search?${params}`
@@ -66,12 +65,12 @@ export class GamesService {
 			.pipe(
 				map(res => ({
 					games: res.data.games,
-					rawgUnavailable: res.data.rawgAvailable === false
+					onlineSearchUnavailable:
+						res.data.onlineSearchAvailable === false,
+					onlineSearchSource: res.data.onlineSearchSource
 				})),
 				catchError((error: HttpErrorResponse) => {
-					if (isRawgOutage(error))
-						return of({ games: [], rawgUnavailable: true });
-					if (forceRawg && error.status !== RATE_LIMITED_STATUS)
+					if (forceOnline && error.status !== RATE_LIMITED_STATUS)
 						this.toast.warning(ONLINE_SEARCH_FAILED_MESSAGE);
 					return throwError(() => error);
 				})

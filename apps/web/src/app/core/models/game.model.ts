@@ -1,5 +1,7 @@
 import { type GamePlatinum } from "./backlog.model";
 
+export type OnlineSearchSource = "rawg" | "igdb";
+
 export interface Game {
 	id: string;
 	title: string;
