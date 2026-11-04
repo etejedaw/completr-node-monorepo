@@ -4,17 +4,10 @@ export const SHARE_COLORS = {
 	foreground: "#f5f5f7",
 	secondary: "#d4d4d8",
 	muted: "#a1a1aa",
-	ink: "#0a0a0c",
 	brand: "#8b5cf6",
 	brandLight: "#a78bfa",
-	finished: "#10b981",
-	abandoned: "#ef4444",
-	started: "#38bdf8",
-	platinum: "#67e8f9",
-	pink: "#fb7185",
-	orange: "#fb923c",
-	lime: "#a3e635",
-	blue: "#60a5fa"
+	brandPale: "#c4b5fd",
+	brandDeep: "#6d28d9"
 } as const;
 
 export const SHARE_FONT_FAMILY = {
@@ -30,7 +23,6 @@ export const SHARE_IMAGE_SIZES = {
 export const COVER_FETCH_TIMEOUT_MS = 3000;
 export const COVER_MAX_BYTES = 5 * 1024 * 1024;
 export const COVER_FETCH_WIDTH = 420;
-export const BACKDROP_FETCH_WIDTH = 640;
 export const SHARE_IMAGE_CACHE_SIZE = 100;
 
 export type RewindImageFormat = keyof typeof SHARE_IMAGE_SIZES;

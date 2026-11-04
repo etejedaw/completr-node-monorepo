@@ -8,8 +8,6 @@ import {
 import { type SatoriStyle } from "../rewind-share-template.types";
 import { box, image } from "./elements.template";
 
-const DUOTONE_TINT = "#6d28d9";
-
 function fillOf(size: CanvasSize): SatoriStyle {
 	return {
 		position: "absolute",
@@ -87,7 +85,7 @@ export function duotoneCoverMosaic(
 		]),
 		box({
 			...fillOf(size),
-			backgroundColor: DUOTONE_TINT,
+			backgroundColor: SHARE_COLORS.brandDeep,
 			mixBlendMode: "multiply"
 		})
 	];

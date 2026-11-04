@@ -4,7 +4,6 @@ import satori from "satori";
 import { environmentConfig } from "../common/config/environment.config";
 import { type Rewind, type RewindGameRef } from "../rewind/rewind.interface";
 import {
-	BACKDROP_FETCH_WIDTH,
 	type RewindImageFormat,
 	SHARE_IMAGE_CACHE_SIZE,
 	SHARE_IMAGE_SIZES
@@ -25,7 +24,6 @@ import { hashRewind } from "./utils/hash-rewind.util";
 import { loadShareFonts } from "./utils/load-share-fonts.util";
 import { LruCache } from "./utils/lru-cache.util";
 import { rewindSummary } from "./utils/rewind-summary.util";
-import { selectBackdropUrl } from "./utils/select-backdrop-url.util";
 import { selectShareCovers } from "./utils/select-share-covers.util";
 import { shareCopy } from "./utils/share-copy.util";
 
@@ -39,11 +37,6 @@ const TRAILING_SLASHES = /\/+$/;
 const COVER_LIMITS: Record<RewindImageFormat, number> = {
 	story: STORY_COVER_LIMIT,
 	og: OG_COVER_LIMIT
-};
-
-const USES_BACKDROP: Record<RewindImageFormat, boolean> = {
-	story: false,
-	og: true
 };
 
 const imageCache = new LruCache<Promise<RenderedImage>>(SHARE_IMAGE_CACHE_SIZE);
@@ -75,19 +68,10 @@ async function loadArtwork(
 	format: RewindImageFormat
 ): Promise<LoadedArtwork> {
 	const games = selectShareCovers(rewind, COVER_LIMITS[format]);
-	const backdropUrl = USES_BACKDROP[format]
-		? selectBackdropUrl(rewind)
-		: null;
-	const [covers, backdrop] = await Promise.all([
-		Promise.all(games.map(loadCover)),
-		fetchImageDataUri(backdropUrl, BACKDROP_FETCH_WIDTH)
-	]);
+	const covers = await Promise.all(games.map(loadCover));
 	return {
 		covers,
-		backdrop,
-		hasMissingImages:
-			failedToLoad(backdropUrl, backdrop) ||
-			covers.some(cover => cover.failedToLoad)
+		hasMissingImages: covers.some(cover => cover.failedToLoad)
 	};
 }
 

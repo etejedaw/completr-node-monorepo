@@ -12,7 +12,6 @@ export interface ShareCover {
 
 export interface ShareArtwork {
 	covers: ShareCover[];
-	backdrop: string | null;
 }
 
 export interface SharePageMeta {
@@ -49,12 +48,10 @@ export interface ShareCopy {
 	language: RewindLanguage;
 	numberLocale: string;
 	personas: Record<RewindPersonaCode, SharePersona>;
-	ownerLabel: (username: string) => string;
 	pageTitle: (username: string, year: number) => string;
 	continueLink: string;
 	yearCaption: (year: number, username: string) => string;
 	tiles: ShareTileLabels;
-	compactTiles: ShareTileLabels;
 	summary: {
 		emptyYear: string;
 		games: ShareCountLabel;
