@@ -72,6 +72,7 @@ describe("GameDetail interaction", () => {
 	let sagaName: string;
 	let sagaTrackCalls: string[];
 	let sagaTrackFailures: number[];
+	let externalLinks: { source: string; externalId: string }[];
 	const createdRuns: unknown[] = [];
 	const listUpdates: string[][] = [];
 	const wishlistAdds: unknown[] = [];
@@ -89,6 +90,7 @@ describe("GameDetail interaction", () => {
 				data: {
 					game: {
 						...hades,
+						externalLinks,
 						franchise: sagaExists
 							? { ...metroidSaga, name: sagaName }
 							: null,
@@ -259,6 +261,7 @@ describe("GameDetail interaction", () => {
 		sagaName = metroidSaga.name;
 		sagaTrackCalls = [];
 		sagaTrackFailures = [];
+		externalLinks = [];
 		createdRuns.length = 0;
 		listUpdates.length = 0;
 		wishlistAdds.length = 0;
@@ -284,6 +287,33 @@ describe("GameDetail interaction", () => {
 		answerPending();
 		httpTesting.verify();
 		vi.unstubAllGlobals();
+	});
+
+	it("links to IGDB with its short url and skips unusable external ids", async () => {
+		externalLinks = [
+			{ source: "rawg", externalId: "1234" },
+			{ source: "igdb", externalId: "1942" },
+			{ source: "unknown-source", externalId: "1" }
+		];
+		await renderGame();
+
+		expect(screen.getByRole("link", { name: /IGDB/ })).toHaveAttribute(
+			"href",
+			"https://www.igdb.com/g/1hy"
+		);
+		expect(screen.getByRole("link", { name: /RAWG/ })).toHaveAttribute(
+			"href",
+			"https://rawg.io/games/1234"
+		);
+	});
+
+	it("hides the IGDB link when the stored id is not numeric", async () => {
+		externalLinks = [{ source: "igdb", externalId: "the-witcher-3" }];
+		await renderGame();
+
+		expect(
+			screen.queryByRole("link", { name: /IGDB/ })
+		).not.toBeInTheDocument();
 	});
 
 	it("adds the game to My Games and shows the new run status", async () => {
