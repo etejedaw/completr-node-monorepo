@@ -1,8 +1,8 @@
 import {
 	EXTERNAL_DATA_REFRESH_DEADLINE_MS,
-	REQUIRED_EXTERNAL_DATA_SOURCES,
 	type ExternalDataSource,
-	IGDB_MIN_REQUEST_INTERVAL_MS
+	IGDB_MIN_REQUEST_INTERVAL_MS,
+	REQUIRED_EXTERNAL_DATA_SOURCES
 } from "../games.constants";
 import {
 	type ExternalDataRefreshTimer,
@@ -67,9 +67,9 @@ export function findUnavailableSources(sources: readonly ExternalDataSource[]) {
 
 export function isExternalDataSourceTracked(source: ExternalDataSource) {
 	return (
-		(REQUIRED_EXTERNAL_DATA_SOURCES as readonly ExternalDataSource[]).includes(
-			source
-		) || Boolean(registeredSources[source])
+		(
+			REQUIRED_EXTERNAL_DATA_SOURCES as readonly ExternalDataSource[]
+		).includes(source) || Boolean(registeredSources[source])
 	);
 }
 
