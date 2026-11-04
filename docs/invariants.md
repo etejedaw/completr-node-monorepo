@@ -498,16 +498,18 @@ Toda búsqueda de texto de la API (el `search` de los listados paginados, `q` de
 ## Búsqueda de juegos
 
 - Sigue las [reglas de búsqueda de texto](#reglas-de-búsqueda-de-texto) sobre `Game.title`.
-- Fallback a RAWG cuando no hay match local, salvo `local_only=true`. Importa hasta 3 resultados con detalle, excluye DLCs.
-- `force_rawg=true` salta búsqueda local y propaga el fallo de la búsqueda en RAWG (429 `RAWG_RATE_LIMITED`, 502 `RAWG_REQUEST_ERROR` / `RAWG_PARSE_ERROR`). En el fallback implícito el fallo se registra como warning y la respuesta es 200 con lista vacía. El fallo al resolver un resultado individual se tolera en ambos casos.
-- Cuando la búsqueda consulta RAWG, la respuesta trae `rawgAvailable`: `false` si RAWG está deshabilitado, si la búsqueda en RAWG falló en el fallback implícito, o si RAWG devolvió resultados y falló el detalle de todos sin que ninguno se resolviera; `true` en cualquier otro caso, también cuando RAWG no encuentra nada. Si la respuesta sale solo del catálogo local (hay match local o `local_only=true`), `rawgAvailable` no viene. Con `force_rawg=true` el fallo de la búsqueda en RAWG sigue siendo un error HTTP.
+- Sin match local (salvo `local_only=true`), o con `force_online=true`, la búsqueda va online por una cadena de fuentes (Chain of Responsibility en `games/services/online-search.handler.ts`): RAWG (`rawg-search.handler.ts`) y, solo si RAWG falla, IGDB (`igdb-search.handler.ts`). Una fuente falla si está deshabilitada o sin registrar, si su búsqueda falla (rate limit, 5xx, red, cuerpo ilegible) o si devolvió resultados y no se pudo importar ninguno. Que RAWG responda sin resultados no es un fallo y no se consulta IGDB.
+- RAWG importa hasta 3 resultados con detalle más el slug exacto de la consulta, y excluye DLCs. IGDB pide 10 candidatos, se queda con los `game_type` main game, standalone expansion, remake, remaster, expanded game y port (descarta DLC, bundle, mod, episode, season, fork, pack y update) e importa los 3 primeros con el mapper `igdb-to-game` (portada, fondo horizontal, plataformas, géneros y la nota `igdb`), guardando el `GameExternal` `igdb`.
+- Un resultado de IGDB ya vinculado por `GameExternal` devuelve ese juego. Si su título coincide con un juego del catálogo (mismo `code`), se vincula el id de IGDB a ese juego solo si todavía no tiene uno, y no se importa; por eso varios resultados con el mismo título (por ejemplo el original, el remake y el remaster) terminan en un solo juego con un solo id de IGDB.
+- Los fallos de las fuentes se registran como warning y nunca llegan como error HTTP, tampoco con `force_online=true`: si fallan todas, la respuesta es 200 con lista vacía.
+- Cuando la búsqueda va online, la respuesta trae `onlineSearchAvailable`: `true` si alguna fuente respondió (aunque no encuentre nada) y `false` si fallaron todas. Con `true` trae también `onlineSearchSource` (`rawg` o `igdb`), la fuente de la que vienen todos los juegos importados en esa respuesta. Si la respuesta sale solo del catálogo local, no vienen ninguno de los dos.
 - `sort_by=random` disponible para discover.
-- `force_rawg` y `local_only` se parsean con `z.stringbool()`: `"true"` / `"false"` (y sus variantes) valen lo que dicen; cualquier otro valor responde 422 `COMMON_SCHEMA_INVALID`.
+- `force_online` y `local_only` se parsean con `z.stringbool()`: `"true"` / `"false"` (y sus variantes) valen lo que dicen; cualquier otro valor responde 422 `COMMON_SCHEMA_INVALID`.
 - `GET /games` con `min_score` / `max_score` compara contra el score canónico normalizado a 0–5 (el de la fuente con menor `priority`), el mismo que usa `sort_by=score`; los juegos sin score quedan fuera del rango.
 - `GET /games/latest-reviewed` acepta `limit` entero entre 1 y 50 (por defecto 16); otro valor o un parámetro desconocido responde 422 `COMMON_SCHEMA_INVALID`. Los juegos inactivos se descartan antes de aplicar el `limit`.
 - `PATCH /games/:id` con un título cuyo slug ya usa otro juego responde 409 `GAME_UNIQUE_CONSTRAINT`. `DELETE /games/:id` (baja lógica) sobre un juego inexistente o ya inactivo responde 404 `GAME_NOT_FOUND` y no registra auditoría.
 - `GET /genres/:code/games` devuelve cada juego con todos sus géneros; el género pedido solo filtra qué juegos entran.
-- Si RAWG está deshabilitado no hay fallback: la búsqueda devuelve solo catálogo local y, sin match local, `rawgAvailable: false`.
+- Sin RAWG ni IGDB configurados, la búsqueda devuelve solo catálogo local y, sin match local, `onlineSearchAvailable: false`.
 
 ## Showcase de juegos
 
