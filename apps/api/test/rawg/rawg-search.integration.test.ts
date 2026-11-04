@@ -527,6 +527,19 @@ void describe("GET /games/search with local_only=true", () => {
 });
 
 void describe("GET /games/search validation and access", () => {
+	void it("rejects a non-boolean force_online with 422 COMMON_SCHEMA_INVALID and does not call RAWG", async () => {
+		const { rawgCalls } = stubRawgFetch(rawgCatalogHandler({}));
+
+		const response = await searchGames({
+			query: "zelda",
+			force_online: "maybe"
+		});
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		assert.equal(rawgCalls.length, 0);
+	});
+
 	void it("rejects a missing query with 422 COMMON_SCHEMA_INVALID and does not call RAWG", async () => {
 		const { rawgCalls } = stubRawgFetch(rawgCatalogHandler({}));
 
