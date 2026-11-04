@@ -105,3 +105,38 @@ void describe("stat tiles in Spanish", () => {
 		);
 	});
 });
+
+void describe("compact tile labels", () => {
+	void it("uses the short labels for the story stats in both languages", () => {
+		const totals = emptyTotals({
+			finished: 18,
+			hoursPlayed: 212.5,
+			platinums: 1,
+			finishRate: 82
+		});
+
+		assert.deepEqual(
+			supportingTiles(totals, SPANISH, 3, SPANISH.compactTiles).map(
+				tile => `${tile.value} ${tile.label}`
+			),
+			["213 horas", "82% acabados", "1 platino"]
+		);
+		assert.deepEqual(
+			supportingTiles(totals, ENGLISH, 3, ENGLISH.compactTiles).map(
+				tile => `${tile.value} ${tile.label}`
+			),
+			["213 hours", "82% finished", "1 platinum"]
+		);
+	});
+
+	void it("captions the year with the owner's username", () => {
+		assert.equal(
+			SPANISH.yearCaption(2026, "esteban"),
+			"en 2026 · @esteban"
+		);
+		assert.equal(
+			ENGLISH.yearCaption(2026, "esteban"),
+			"in 2026 · @esteban"
+		);
+	});
+});

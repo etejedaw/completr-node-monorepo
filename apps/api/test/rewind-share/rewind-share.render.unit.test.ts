@@ -231,16 +231,82 @@ void describe("renderRewindImage", () => {
 		);
 	});
 
-	void it("still renders when the background art fails and flags it as missing", async () => {
+	void it("still renders the og image when the background art fails and flags it as missing", async () => {
 		stubFetch(() => Promise.reject(new Error("network down")));
 
-		for (const format of ["story", "og"] as const) {
+		const image = await renderRewindImage(
+			rewindWithBackdrop("https://art.test/broken.jpg"),
+			"og"
+		);
+
+		assert.ok(hasPngSignature(image.png));
+		assert.equal(image.hasMissingImages, true);
+	});
+
+	void it("never asks for background art when drawing the story", async () => {
+		const fetchMock = stubFetch(() =>
+			Promise.resolve(new Response(new Uint8Array(samplePng())))
+		);
+
+		const image = await renderRewindImage(
+			rewindWithBackdrop("https://media.rawg.io/media/games/top/art.jpg"),
+			"story"
+		);
+
+		assert.equal(fetchMock.mock.callCount(), 0);
+		assert.equal(image.hasMissingImages, false);
+	});
+
+	void it("downloads up to 12 covers for the story mosaic and 3 for the og image", async () => {
+		const coverUrls = Array.from(
+			{ length: 15 },
+			(_, index) => `https://covers.test/${index}.png`
+		);
+
+		for (const [format, expected] of [
+			["story", 12],
+			["og", 3]
+		] as const) {
+			const fetchMock = stubFetch(() =>
+				Promise.resolve(new Response(new Uint8Array(samplePng())))
+			);
 			const image = await renderRewindImage(
-				rewindWithBackdrop("https://art.test/broken.jpg"),
+				rewindWithCovers(...coverUrls),
 				format
 			);
-			assert.ok(hasPngSignature(image.png));
-			assert.equal(image.hasMissingImages, true);
+			assert.equal(fetchMock.mock.callCount(), expected);
+			assert.equal(image.hasMissingImages, false);
+			mock.restoreAll();
+		}
+	});
+
+	void it("renders the story with one cover, with three-digit counts and with a long username", async () => {
+		stubFetch(() =>
+			Promise.resolve(new Response(new Uint8Array(samplePng())))
+		);
+
+		const oneCover = await renderRewindImage(
+			rewindWithCovers("https://covers.test/only.png"),
+			"story"
+		);
+		const bigYear = await renderRewindImage(
+			buildRewind({
+				user: {
+					username: "un_usuario_con_nombre_larguisimo_2026",
+					name: "Largo",
+					avatarUrl: null,
+					role: "user"
+				},
+				totals: emptyTotals({ finished: 148, hoursPlayed: 2310.4 })
+			}),
+			"story"
+		);
+
+		for (const image of [oneCover, bigYear]) {
+			assert.deepEqual(pngDimensions(image.png), {
+				width: 1080,
+				height: 1920
+			});
 		}
 	});
 
