@@ -9,6 +9,8 @@ const optionalApiKey = z
 const ApiKeysConfigSchema = z
 	.object({
 		RAWG_API_KEY: optionalApiKey,
+		IGDB_CLIENT_ID: optionalApiKey,
+		IGDB_CLIENT_SECRET: optionalApiKey,
 		DEEPSEEK_API_KEY: optionalApiKey
 	})
 	.readonly();

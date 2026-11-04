@@ -19,6 +19,15 @@ function warnIfRawgDisabled() {
 	);
 }
 
+function warnIfIgdbDisabled() {
+	if (apiKeysConfig.IGDB_CLIENT_ID && apiKeysConfig.IGDB_CLIENT_SECRET)
+		return;
+	logger.warn(
+		"startup",
+		"IGDB_CLIENT_ID or IGDB_CLIENT_SECRET not set: the IGDB integration is disabled"
+	);
+}
+
 function registerScrapingProviders() {
 	registerExternalDataSources({
 		metacritic: MetacriticClient.create(),
@@ -39,6 +48,7 @@ async function bootstrap() {
 	await initDatabase();
 	await failJobsInterruptedByRestart();
 	warnIfRawgDisabled();
+	warnIfIgdbDisabled();
 	registerScrapingProviders();
 
 	const port = environmentConfig.PORT;
