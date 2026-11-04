@@ -4,12 +4,14 @@ import { type ExternalSource } from "../../game-external/game-external.model";
 import * as gameExternalService from "../../game-external/game-external.service";
 import * as gameScoresService from "../../game-scores/game-scores.service";
 import * as gameTimesService from "../../game-times/game-times.service";
+import { type IgdbGame } from "../../igdb/igdb.interface";
 import * as gamesServiceError from "../errors/games.service-error";
 import {
 	EXTERNAL_DATA_DEADLINE_EXCEEDED,
 	EXTERNAL_DATA_SOURCE_UNAVAILABLE,
 	type ExternalDataSource,
-	HLTB_ID_LOOKUP_PAUSED
+	HLTB_ID_LOOKUP_PAUSED,
+	IGDB_SEARCH_LIMIT
 } from "../games.constants";
 import {
 	type ExternalDataAttemptRecord,
@@ -21,12 +23,14 @@ import {
 	type ExternalDataRequestOptions,
 	type ExternalDataResult,
 	type HltbSource,
+	type IgdbSource,
 	type MetacriticSlugCandidate,
 	type MetacriticSource,
 	type MetacriticSourceDetail
 } from "../games-external-data.interface";
 import {
 	type HltbLookup,
+	type IgdbLookup,
 	type MetacriticLookup
 } from "../games-external-data.types";
 import { buildMetacriticSlugCandidates } from "../utils/build-metacritic-slug-candidates.util";
@@ -40,9 +44,12 @@ import { resolveHltbId } from "../utils/resolve-hltb-id.util";
 import { untilAborted } from "../utils/until-aborted.util";
 import {
 	findUnavailableSources,
+	isExternalDataSourceTracked,
 	getExternalDataRefreshTimer,
 	getHltbIdResolver,
 	getHltbSource,
+	getIgdbRequestPacer,
+	getIgdbSource,
 	getMetacriticSource
 } from "./external-data-sources.service";
 import {
@@ -52,6 +59,9 @@ import {
 
 const METACRITIC_SCORE_SOURCE = "metacritic";
 const HLTB_TIME_SOURCE = "hltb";
+const IGDB_SCORE_SOURCE = "igdb";
+const IGDB_ID_PATTERN = /^\d+$/;
+const IGDB_MAX_RATING = 100;
 
 export function assertExternalDataSourcesAvailable(
 	sources: readonly ExternalDataSource[]
@@ -107,18 +117,28 @@ export async function refreshExternalDataForGame(
 			results.push(deadlineExceededResult(source));
 			continue;
 		}
-		const result =
-			source === "metacritic"
-				? await refreshMetacritic(
-						game,
-						externalIdOf("metacritic"),
-						options
-					)
-				: await refreshHltb(game, externalIdOf("hltb"), options);
+		const result = await refreshSource(
+			game,
+			source,
+			externalIdOf(source),
+			options
+		);
 		await recordExternalDataAttempt(game.id, result);
 		results.push(result);
 	}
 	return results;
+}
+
+function refreshSource(
+	game: ExternalDataGame,
+	source: ExternalDataSource,
+	externalId: string | null,
+	options: ExternalDataRefreshOptions
+) {
+	if (source === "metacritic")
+		return refreshMetacritic(game, externalId, options);
+	if (source === "hltb") return refreshHltb(game, externalId, options);
+	return refreshIgdb(game, externalId, options);
 }
 
 async function recordExternalDataAttempt(
@@ -136,15 +156,22 @@ async function recordExternalDataAttempt(
 export async function findGamesMissingExternalData(
 	now = new Date()
 ): Promise<ExternalDataCandidates> {
-	const [games, gameIdsWithScore, gameIdsWithTime, attempts] =
-		await Promise.all([
-			findActiveGamesForExternalData(),
-			gameScoresService.findGameIdsBySource(METACRITIC_SCORE_SOURCE),
-			gameTimesService.findGameIdsBySource(HLTB_TIME_SOURCE),
-			externalDataAttemptsService.findAll()
-		]);
+	const [
+		games,
+		gameIdsWithScore,
+		gameIdsWithTime,
+		gameIdsWithIgdbScore,
+		attempts
+	] = await Promise.all([
+		findActiveGamesForExternalData(),
+		gameScoresService.findGameIdsBySource(METACRITIC_SCORE_SOURCE),
+		gameTimesService.findGameIdsBySource(HLTB_TIME_SOURCE),
+		gameScoresService.findGameIdsBySource(IGDB_SCORE_SOURCE),
+		externalDataAttemptsService.findAll()
+	]);
 	const hasScore = new Set(gameIdsWithScore);
 	const hasTime = new Set(gameIdsWithTime);
+	const hasIgdbScore = new Set(gameIdsWithIgdbScore);
 	const attemptByKey = new Map(
 		attempts.map(attempt => [
 			attemptKey(attempt.gameId, attempt.source),
@@ -157,7 +184,8 @@ export async function findGamesMissingExternalData(
 			game: game.get({ plain: true }) as ExternalDataGame,
 			missing: missingExternalDataSources(
 				hasScore.has(game.id),
-				hasTime.has(game.id)
+				hasTime.has(game.id),
+				hasIgdbScore.has(game.id)
 			)
 		}))
 		.filter(({ missing }) => missing.length > 0)
@@ -223,19 +251,23 @@ export async function findExternalDataCandidate(
 			game.GameScores.some(
 				score => score.source === METACRITIC_SCORE_SOURCE
 			),
-			game.GameTimes.some(time => time.source === HLTB_TIME_SOURCE)
+			game.GameTimes.some(time => time.source === HLTB_TIME_SOURCE),
+			game.GameScores.some(score => score.source === IGDB_SCORE_SOURCE)
 		)
 	};
 }
 
 function missingExternalDataSources(
 	hasMetacriticScore: boolean,
-	hasHltbTime: boolean
+	hasHltbTime: boolean,
+	hasIgdbScore: boolean
 ): ExternalDataSource[] {
-	return [
+	const missing: ExternalDataSource[] = [
 		...(hasMetacriticScore ? [] : (["metacritic"] as const)),
-		...(hasHltbTime ? [] : (["hltb"] as const))
+		...(hasHltbTime ? [] : (["hltb"] as const)),
+		...(hasIgdbScore ? [] : (["igdb"] as const))
 	];
+	return missing.filter(isExternalDataSourceTracked);
 }
 
 function failedResult(
@@ -450,6 +482,125 @@ async function findHltbMatch(
 		detail: { ...detail, id: detail.id || resolution.hltbId },
 		isNewMatch: true
 	};
+}
+
+async function refreshIgdb(
+	game: ExternalDataGame,
+	externalId: string | null,
+	options: ExternalDataRequestOptions
+): Promise<ExternalDataResult> {
+	const igdb = getIgdbSource();
+	if (!igdb) return failedResult("igdb", EXTERNAL_DATA_SOURCE_UNAVAILABLE);
+
+	let lookup: IgdbLookup;
+	try {
+		lookup = externalId
+			? await findIgdbGameById(igdb, externalId, options)
+			: await findIgdbMatch(game, igdb, options);
+	} catch (error) {
+		if (options.signal?.aborted) return deadlineExceededResult("igdb");
+		return { source: "igdb", ...classifyExternalDataError(error) };
+	}
+
+	if (lookup.status !== "matched")
+		return { source: "igdb", status: lookup.status, errorCode: null };
+
+	const { detail } = lookup;
+	if (options.signal?.aborted) return deadlineExceededResult("igdb");
+	if (lookup.isNewMatch)
+		await saveExternalId(game.id, "igdb", String(detail.id));
+
+	const score = extractIgdbScore(detail);
+	if (score === null)
+		return { source: "igdb", status: "no_data", errorCode: null };
+
+	if (options.signal?.aborted) return deadlineExceededResult("igdb");
+	await gameScoresService.upsertScore(game.id, IGDB_SCORE_SOURCE, score);
+	return { source: "igdb", status: "updated", score, errorCode: null };
+}
+
+function extractIgdbScore(detail: IgdbGame) {
+	const { rating } = detail;
+	if (
+		typeof rating !== "number" ||
+		!Number.isFinite(rating) ||
+		rating <= 0 ||
+		rating > IGDB_MAX_RATING
+	)
+		return null;
+	const score = Math.round(rating * 100) / 100;
+	return score > 0 ? score : null;
+}
+
+async function requestIgdb<T>(
+	request: () => Promise<T>,
+	options: ExternalDataRequestOptions
+) {
+	await getIgdbRequestPacer().waitForTurn(options.signal);
+	return untilAborted(request(), options.signal);
+}
+
+async function findIgdbGameById(
+	igdb: IgdbSource,
+	externalId: string,
+	options: ExternalDataRequestOptions
+): Promise<IgdbLookup> {
+	if (!IGDB_ID_PATTERN.test(externalId)) return { status: "not_found" };
+	const detail = await requestIgdb(
+		() => igdb.getGameById(Number(externalId)),
+		options
+	);
+	return { status: "matched", detail, isNewMatch: false };
+}
+
+async function findIgdbMatch(
+	game: ExternalDataGame,
+	igdb: IgdbSource,
+	options: ExternalDataRequestOptions
+): Promise<IgdbLookup> {
+	if (normalizeGameTitle(game.title) === "") return { status: "not_found" };
+
+	const slug = game.code?.trim();
+	if (slug) {
+		const bySlug = await fetchUnlessNotFound(() =>
+			requestIgdb(() => igdb.getGameBySlug(slug), options)
+		);
+		if (bySlug && isIgdbMatch(game, bySlug))
+			return { status: "matched", detail: bySlug, isNewMatch: true };
+	}
+
+	const results = await requestIgdb(
+		() => igdb.searchGame(game.title, { limit: IGDB_SEARCH_LIMIT }),
+		options
+	);
+	const matches = distinctIgdbGames(
+		results.filter(result => isIgdbMatch(game, result))
+	);
+	if (matches.length === 1)
+		return { status: "matched", detail: matches[0]!, isNewMatch: true };
+	if (matches.length > 1) return { status: "ambiguous" };
+	return { status: "not_found" };
+}
+
+function isIgdbMatch(game: ExternalDataGame, detail: IgdbGame) {
+	return (
+		Number.isSafeInteger(detail.id) &&
+		detail.id > 0 &&
+		typeof detail.name === "string" &&
+		normalizeGameTitle(detail.name) === normalizeGameTitle(game.title) &&
+		!isReleaseYearMismatch(game.releaseAt, igdbReleaseYear(detail))
+	);
+}
+
+function igdbReleaseYear(detail: IgdbGame) {
+	const releaseDate = detail.first_release_date;
+	if (typeof releaseDate !== "number" || !Number.isFinite(releaseDate))
+		return null;
+	return new Date(releaseDate * 1000).getUTCFullYear();
+}
+
+function distinctIgdbGames(games: IgdbGame[]) {
+	return [...new Map(games.map(game => [game.id, game])).values()];
 }
 
 async function saveExternalId(

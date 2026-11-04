@@ -1,4 +1,5 @@
 import { type ExternalDataAttemptStatus } from "../external-data-attempts/external-data-attempt.model";
+import { type IgdbGame, type IgdbSearchOptions } from "../igdb/igdb.interface";
 import { type ExternalDataSource } from "./games.constants";
 import {
 	type ExternalDataRequestPriority,
@@ -46,6 +47,21 @@ export interface HltbSource {
 	): Promise<HltbSourceDetail>;
 }
 
+export interface IgdbSource {
+	getGameById(id: number): Promise<IgdbGame>;
+	getGameBySlug(slug: string): Promise<IgdbGame>;
+	searchGame(query: string, options?: IgdbSearchOptions): Promise<IgdbGame[]>;
+}
+
+export interface RequestPacerClock {
+	now(): number;
+	sleep(milliseconds: number, signal?: AbortSignal): Promise<void>;
+}
+
+export interface ExternalDataRequestPacer {
+	waitForTurn(signal?: AbortSignal): Promise<void>;
+}
+
 export interface HltbIdCandidate {
 	hltbId: string;
 	label: string | null;
@@ -67,6 +83,7 @@ export interface ExternalDataSources {
 	metacritic?: MetacriticSource;
 	hltb?: HltbSource;
 	hltbIdResolver?: HltbIdResolver;
+	igdb?: IgdbSource;
 }
 
 export interface ExternalDataRefreshTimer {

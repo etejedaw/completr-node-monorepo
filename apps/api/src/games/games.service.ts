@@ -46,7 +46,10 @@ import { assertVariantConsistency } from "./services/games-variant.service";
 
 export type { GamesQueryOptions, SplitVariantInput } from "./games.interface";
 export type { SetCompilationItemInput } from "./games.types";
-export { registerExternalDataSources } from "./services/external-data-sources.service";
+export {
+	isExternalDataSourceTracked,
+	registerExternalDataSources
+} from "./services/external-data-sources.service";
 export {
 	clearCompilation,
 	existsActiveCompilation,
