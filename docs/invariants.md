@@ -562,6 +562,8 @@ Toda búsqueda de texto de la API (el `search` de los listados paginados, `q` de
 | `IGDB_PARSE_ERROR`    | 502    | IGDB o Twitch respondieron 2xx con un cuerpo que no tiene el shape esperado |
 | `IGDB_INTERNAL_ERROR` | 500    | Código de `IGDB Provider` sin mapeo propio                                  |
 
-Con RAWG deshabilitado: `GET /games/rawg-lookup`, `GET /games/rawg-detail/:rawgId`, `GET /game-external/rawg/:slug` y `POST /admin/jobs/populate-rawg` responden 503; el resto del backend no se ve afectado.
+Con RAWG deshabilitado: `GET /game-external/rawg/:slug` y `POST /admin/jobs/populate-rawg` responden 503; el resto del backend no se ve afectado. Con IGDB sin configurar, `GET /game-external/igdb/:slug` responde 503 `IGDB_DISABLED`.
+
+`GET /game-external/rawg/:slug` y `GET /game-external/igdb/:slug` (solo moderadores) consultan la fuente sin importar nada y responden el mismo shape: `source`, `externalId`, `title`, `description`, `coverUrl`, `backgroundUrl`, `releaseAt`, `platforms`, `genres`, `scores` (sin las fuentes que no están en el catálogo) y `times`. RAWG siempre manda `coverUrl` en `null` y su arte en `backgroundUrl`; IGDB no manda `times`.
 
 El job `populate_rawg` cuenta como no encontrado un juego al que RAWG responde 404 (`RAWG_NOT_FOUND`) y sigue con el siguiente. Cualquier otro fallo (429, 5xx, red, cuerpo ilegible o error al guardar) lo detiene de inmediato con status `failed` y un `result` con los juegos procesados, los no encontrados y el motivo.

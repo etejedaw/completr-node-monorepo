@@ -18,7 +18,7 @@ settings:
 docs: |-
     ## Get RAWG Data by Slug
 
-    Fetches full game data from RAWG API by slug. Used by admin editor to populate game fields from RAWG.
+    Fetches full game data from RAWG by slug without importing it. Used by the admin game editor when RAWG is the selected lookup source.
 
     **Authentication:** Bearer token required (role: moderator).
     **Rate Limit:** 50 requests per minute.
@@ -31,14 +31,18 @@ docs: |-
 
     ### Response (200)
 
+    The same shape as `GET /game-external/igdb/:slug`, so the editor fills its fields the same way whatever the source. RAWG has no portrait cover, so `coverUrl` is always `null` and its artwork comes in `backgroundUrl`. Scores from sources missing in the score source catalog are left out.
+
     ```json
     {
       "data": {
         "game": {
-          "rawgId": 58134,
+          "source": "rawg",
+          "externalId": "58134",
           "title": "Resident Evil 4",
           "description": "...",
-          "coverUrl": "https://media.rawg.io/...",
+          "coverUrl": null,
+          "backgroundUrl": "https://media.rawg.io/...",
           "releaseAt": "2005-01-11",
           "platforms": ["pc", "playstation-4", "xbox-one"],
           "genres": ["action", "shooter"],
