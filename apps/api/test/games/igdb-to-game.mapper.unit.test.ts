@@ -55,12 +55,15 @@ void describe("igdbToGameMapper", () => {
 			assert.deepEqual(mapped.game.genres, []);
 		});
 
-		void it("uses the portrait cover as coverUrl and leaves backgroundUrl empty", () => {
+		void it("uses the portrait cover as coverUrl and the key art as backgroundUrl", () => {
 			assert.equal(
 				mapped.game.coverUrl,
 				"https://images.igdb.com/igdb/image/upload/t_cover_big_2x/co1abc.jpg"
 			);
-			assert.equal(mapped.game.backgroundUrl, undefined);
+			assert.equal(
+				mapped.game.backgroundUrl,
+				"https://images.igdb.com/igdb/image/upload/t_1080p/ar-keyart.jpg"
+			);
 		});
 
 		void it("maps and expands platforms without duplicates", () => {
@@ -97,6 +100,171 @@ void describe("igdbToGameMapper", () => {
 		});
 	});
 
+	void describe("horizontal background", () => {
+		const artwork = (
+			image_id: string,
+			image_type: number | undefined,
+			width = 1920,
+			height = 1080
+		) => ({ id: image_id.length, image_id, image_type, width, height });
+		const screenshot = (image_id: string, width = 1920, height = 1080) => ({
+			id: image_id.length,
+			image_id,
+			width,
+			height
+		});
+		const backgroundOf = (game: Partial<IgdbGame>) =>
+			igdbToGameMapper(buildIgdbGame(game)).game.backgroundUrl;
+		const urlFor = (imageId: string) =>
+			`https://images.igdb.com/igdb/image/upload/t_1080p/${imageId}.jpg`;
+
+		void it("prefers key art without logo, then artwork, then key art with logo", () => {
+			assert.equal(
+				backgroundOf({
+					artworks: [
+						artwork("with-logo", 3),
+						artwork("plain-art", 1),
+						artwork("no-logo", 2)
+					]
+				}),
+				urlFor("no-logo")
+			);
+			assert.equal(
+				backgroundOf({
+					artworks: [artwork("with-logo", 3), artwork("plain-art", 1)]
+				}),
+				urlFor("plain-art")
+			);
+			assert.equal(
+				backgroundOf({ artworks: [artwork("with-logo", 3)] }),
+				urlFor("with-logo")
+			);
+		});
+
+		void it("keeps the first artwork of the preferred type", () => {
+			assert.equal(
+				backgroundOf({
+					artworks: [artwork("first", 2), artwork("second", 2)]
+				}),
+				urlFor("first")
+			);
+		});
+
+		void it("skips logos, covers, icons, infographics and concept art", () => {
+			for (const imageType of [
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				undefined
+			]) {
+				assert.equal(
+					backgroundOf({
+						artworks: [artwork("not-a-background", imageType)]
+					}),
+					undefined,
+					String(imageType)
+				);
+			}
+		});
+
+		void it("skips portrait, square or sizeless images", () => {
+			assert.equal(
+				backgroundOf({
+					artworks: [
+						artwork("portrait", 2, 1200, 1600),
+						artwork("square", 2, 2000, 2000),
+						{ id: 1, image_id: "sizeless", image_type: 2 }
+					]
+				}),
+				undefined
+			);
+		});
+
+		void it("skips banners wider than 2:1 and images narrower than 4:3", () => {
+			assert.equal(
+				backgroundOf({
+					artworks: [
+						artwork("ultra-wide-banner", 2, 1920, 620),
+						artwork("almost-square", 2, 1200, 1000)
+					],
+					screenshots: [screenshot("wide-shot")]
+				}),
+				urlFor("wide-shot")
+			);
+		});
+
+		void it("accepts the 4:3 and 2:1 limits", () => {
+			assert.equal(
+				backgroundOf({
+					artworks: [artwork("four-three", 2, 1440, 1080)]
+				}),
+				urlFor("four-three")
+			);
+			assert.equal(
+				backgroundOf({ artworks: [artwork("two-one", 2, 2000, 1000)] }),
+				urlFor("two-one")
+			);
+		});
+
+		void it("ignores images with zero or negative height", () => {
+			assert.equal(
+				backgroundOf({
+					artworks: [artwork("zero-height", 2, 1920, 0)],
+					screenshots: [screenshot("negative-height", 1920, -1080)]
+				}),
+				undefined
+			);
+		});
+
+		void it("falls back to the first landscape screenshot", () => {
+			assert.equal(
+				backgroundOf({
+					artworks: [artwork("portrait-art", 2, 600, 800)],
+					screenshots: [
+						screenshot("mobile-shot", 1080, 1920),
+						screenshot("wide-shot"),
+						screenshot("later-shot")
+					]
+				}),
+				urlFor("wide-shot")
+			);
+		});
+
+		void it("prefers any usable artwork over screenshots", () => {
+			assert.equal(
+				backgroundOf({
+					artworks: [artwork("with-logo", 3)],
+					screenshots: [screenshot("shot")]
+				}),
+				urlFor("with-logo")
+			);
+		});
+
+		void it("ignores images with an unusable id and keeps looking", () => {
+			assert.equal(
+				backgroundOf({
+					artworks: [artwork("../x", 2), artwork("a b", 1)],
+					screenshots: [screenshot(""), screenshot("good-shot")]
+				}),
+				urlFor("good-shot")
+			);
+		});
+
+		void it("leaves backgroundUrl empty without artworks or screenshots", () => {
+			assert.equal(
+				backgroundOf({ artworks: [], screenshots: [] }),
+				undefined
+			);
+		});
+	});
+
 	void describe("missing fields", () => {
 		void it("maps a bare game to its title and empty collections", () => {
 			const mapped = igdbToGameMapper(buildIgdbGame());
@@ -105,6 +273,7 @@ void describe("igdbToGameMapper", () => {
 			assert.equal(mapped.game.description, undefined);
 			assert.equal(mapped.game.releaseAt, undefined);
 			assert.equal(mapped.game.coverUrl, undefined);
+			assert.equal(mapped.game.backgroundUrl, undefined);
 			assert.deepEqual(mapped.game.platforms, []);
 			assert.deepEqual(mapped.enrichment.scores, []);
 			assert.deepEqual(mapped.enrichment.times, []);

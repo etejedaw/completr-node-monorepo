@@ -29,5 +29,16 @@ export const COMPLETE_IGDB_GAME: IgdbGame = {
 	cover: { id: 525627, image_id: "co1abc" },
 	platforms: igdbRefs("series-x-s", "ps4--1", "win", "ios", "ps5", "switch"),
 	genres: igdbRefs("role-playing-rpg", "hack-and-slash-beat-em-up", "indie"),
-	themes: igdbRefs("action", "fantasy")
+	themes: igdbRefs("action", "fantasy"),
+	artworks: [
+		{ id: 1, image_id: "ar-logo", image_type: 5, width: 800, height: 317 },
+		{
+			id: 2,
+			image_id: "ar-keyart",
+			image_type: 2,
+			width: 1920,
+			height: 1080
+		}
+	],
+	screenshots: [{ id: 3, image_id: "sc-first", width: 1920, height: 1080 }]
 };

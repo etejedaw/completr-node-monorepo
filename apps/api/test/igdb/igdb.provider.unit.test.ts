@@ -23,7 +23,7 @@ import {
 const CLIENT_ID = "fake-client-id";
 const CLIENT_SECRET = "fake-client-secret";
 const GAME_FIELDS =
-	"fields id,name,slug,summary,first_release_date,rating,rating_count,url,game_type.id,game_type.type,cover.id,cover.image_id,platforms.id,platforms.slug,genres.id,genres.slug,themes.id,themes.slug;";
+	"fields id,name,slug,summary,first_release_date,rating,rating_count,url,game_type.id,game_type.type,cover.id,cover.image_id,platforms.id,platforms.slug,genres.id,genres.slug,themes.id,themes.slug,artworks.id,artworks.image_id,artworks.width,artworks.height,artworks.image_type,screenshots.id,screenshots.image_id,screenshots.width,screenshots.height;";
 
 function assertServiceError(error: unknown, code: string) {
 	assert.ok(error instanceof ServiceError);
