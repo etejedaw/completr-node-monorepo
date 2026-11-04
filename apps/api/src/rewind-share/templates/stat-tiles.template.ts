@@ -1,6 +1,9 @@
 import { type RewindTotals } from "../../rewind/rewind.interface";
 import { SHARE_COLORS, SHARE_FONT_FAMILY } from "../rewind-share.constants";
-import { type ShareCopy } from "../rewind-share.interface";
+import {
+	type ShareCopy,
+	type ShareTileLabels
+} from "../rewind-share.interface";
 import {
 	type SatoriElement,
 	type StatTile,
@@ -36,9 +39,10 @@ function hoursColor(totals: RewindTotals): string {
 
 function candidateTiles(
 	totals: RewindTotals,
-	copy: ShareCopy
+	copy: ShareCopy,
+	tiles: ShareTileLabels
 ): (StatTile | null)[] {
-	const { tiles, numberLocale: locale } = copy;
+	const locale = copy.numberLocale;
 	return [
 		totals.hoursPlayed > 0
 			? {
@@ -88,9 +92,10 @@ function candidateTiles(
 export function supportingTiles(
 	totals: RewindTotals,
 	copy: ShareCopy,
-	limit: number
+	limit: number,
+	labels: ShareTileLabels = copy.tiles
 ): StatTile[] {
-	return candidateTiles(totals, copy)
+	return candidateTiles(totals, copy, labels)
 		.filter((tile): tile is StatTile => tile !== null)
 		.slice(0, limit);
 }

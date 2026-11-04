@@ -34,6 +34,17 @@ export interface ShareCountLabel {
 	other: string;
 }
 
+export interface ShareTileLabels {
+	gamesFinished: ShareCountLabel;
+	gamesStarted: ShareCountLabel;
+	hoursPlayed: string;
+	finishRate: string;
+	platinums: ShareCountLabel;
+	leftBehind: string;
+	averageRating: string;
+	genres: ShareCountLabel;
+}
+
 export interface ShareCopy {
 	language: RewindLanguage;
 	numberLocale: string;
@@ -41,16 +52,9 @@ export interface ShareCopy {
 	ownerLabel: (username: string) => string;
 	pageTitle: (username: string, year: number) => string;
 	continueLink: string;
-	tiles: {
-		gamesFinished: ShareCountLabel;
-		gamesStarted: ShareCountLabel;
-		hoursPlayed: string;
-		finishRate: string;
-		platinums: ShareCountLabel;
-		leftBehind: string;
-		averageRating: string;
-		genres: ShareCountLabel;
-	};
+	yearCaption: (year: number, username: string) => string;
+	tiles: ShareTileLabels;
+	compactTiles: ShareTileLabels;
 	summary: {
 		emptyYear: string;
 		games: ShareCountLabel;

@@ -57,3 +57,33 @@ export function personaBadge(
 		)
 	]);
 }
+
+export function personaChip(
+	persona: RewindPersonaCode,
+	copy: ShareCopy,
+	titleSize: number
+): SatoriElement {
+	return box(
+		{
+			alignItems: "center",
+			alignSelf: "flex-start",
+			gap: titleSize * 0.32,
+			padding: `${titleSize * 0.3}px ${titleSize * 0.6}px`,
+			borderRadius: titleSize * 0.32,
+			backgroundColor: SHARE_COLORS.brand
+		},
+		[
+			diamond(titleSize * 0.45, "#ffffff"),
+			text(
+				{
+					fontFamily: SHARE_FONT_FAMILY.display,
+					fontWeight: 700,
+					fontSize: titleSize,
+					lineHeight: 1.1,
+					color: "#ffffff"
+				},
+				copy.personas[persona].title
+			)
+		]
+	);
+}

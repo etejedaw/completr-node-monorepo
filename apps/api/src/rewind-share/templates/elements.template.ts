@@ -64,9 +64,12 @@ export function diamond(size: number, color: string): SatoriElement {
 	});
 }
 
-export function wordmark(fontSize: number): SatoriElement {
+export function wordmark(
+	fontSize: number,
+	diamondColor: string = SHARE_COLORS.brand
+): SatoriElement {
 	return box({ alignItems: "center", gap: fontSize * 0.45 }, [
-		diamond(fontSize * 0.62, SHARE_COLORS.brand),
+		diamond(fontSize * 0.62, diamondColor),
 		text(
 			{
 				fontFamily: SHARE_FONT_FAMILY.display,

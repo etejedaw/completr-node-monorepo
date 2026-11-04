@@ -37,6 +37,7 @@ const ENGLISH_COPY: ShareCopy = {
 	ownerLabel: username => `@${username}'s Rewind`,
 	pageTitle: (username, year) => `@${username}'s ${year} Rewind`,
 	continueLink: "Continue to Completr",
+	yearCaption: (year, username) => `in ${year} · @${username}`,
 	tiles: {
 		gamesFinished: { one: "game finished", other: "games finished" },
 		gamesStarted: { one: "game started", other: "games started" },
@@ -45,6 +46,16 @@ const ENGLISH_COPY: ShareCopy = {
 		platinums: { one: "platinum", other: "platinums" },
 		leftBehind: "left behind",
 		averageRating: "average rating",
+		genres: { one: "genre", other: "genres" }
+	},
+	compactTiles: {
+		gamesFinished: { one: "game finished", other: "games finished" },
+		gamesStarted: { one: "game started", other: "games started" },
+		hoursPlayed: "hours",
+		finishRate: "finished",
+		platinums: { one: "platinum", other: "platinums" },
+		leftBehind: "left behind",
+		averageRating: "avg. rating",
 		genres: { one: "genre", other: "genres" }
 	},
 	summary: {
@@ -93,11 +104,22 @@ const SPANISH_COPY: ShareCopy = {
 	ownerLabel: username => `Rewind de @${username}`,
 	pageTitle: (username, year) => `Rewind ${year} de @${username}`,
 	continueLink: "Continuar a Completr",
+	yearCaption: (year, username) => `en ${year} · @${username}`,
 	tiles: {
 		gamesFinished: { one: "juego terminado", other: "juegos terminados" },
 		gamesStarted: { one: "juego empezado", other: "juegos empezados" },
 		hoursPlayed: "horas jugadas",
 		finishRate: "tasa de finalización",
+		platinums: { one: "platino", other: "platinos" },
+		leftBehind: "abandonados",
+		averageRating: "nota media",
+		genres: { one: "género", other: "géneros" }
+	},
+	compactTiles: {
+		gamesFinished: { one: "juego terminado", other: "juegos terminados" },
+		gamesStarted: { one: "juego empezado", other: "juegos empezados" },
+		hoursPlayed: "horas",
+		finishRate: "acabados",
 		platinums: { one: "platino", other: "platinos" },
 		leftBehind: "abandonados",
 		averageRating: "nota media",

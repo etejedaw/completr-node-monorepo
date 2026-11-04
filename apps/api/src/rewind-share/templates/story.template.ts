@@ -7,157 +7,262 @@ import {
 import { type ShareCopy, type ShareCover } from "../rewind-share.interface";
 import {
 	type SatoriElement,
+	type StatTile,
 	type StoryTemplateInput
 } from "../rewind-share-template.interface";
 import { displayText } from "../utils/display-text.util";
-import { rewindSummary } from "../utils/rewind-summary.util";
 import { shareCopy } from "../utils/share-copy.util";
 import { coverFan } from "./cover-fan.template";
-import {
-	backdropStyle,
-	box,
-	gradientYear,
-	ownerLabel,
-	text,
-	wordmark
-} from "./elements.template";
-import { personaBadge } from "./persona-badge.template";
-import { leadTile, supportingTiles, tileBox } from "./stat-tiles.template";
+import { duotoneCoverMosaic } from "./cover-mosaic.template";
+import { box, text, wordmark } from "./elements.template";
+import { personaChip } from "./persona-badge.template";
+import { leadTile, supportingTiles } from "./stat-tiles.template";
 
-export const STORY_COVER_LIMIT = 5;
+export const STORY_COVER_LIMIT = 12;
 
 const { width: STORY_WIDTH, height: STORY_HEIGHT } = SHARE_IMAGE_SIZES.story;
 const SIDE_PADDING = 80;
-const CONTENT_WIDTH = STORY_WIDTH - SIDE_PADDING * 2;
-const TOP_SAFE_AREA = 220;
 const BOTTOM_SAFE_AREA = 280;
-const FOOTER_OFFSET = 64;
+const FOOTER_OFFSET = 70;
+const BAND_TOP = 150;
+const BAND_HEIGHT = 104;
+const BAND_GRADIENT = `linear-gradient(90deg, #6d28d9 0%, ${SHARE_COLORS.brand} 60%, ${SHARE_COLORS.brandLight} 100%)`;
+const ART_TOP = BAND_TOP + BAND_HEIGHT;
+const ART_HEIGHT = 700;
+const ART_FADE =
+	"linear-gradient(180deg, rgba(10, 10, 12, 0.2) 0%, rgba(10, 10, 12, 0.35) 50%, #0a0a0c 100%)";
+const ART_FALLBACK_GLOW =
+	"radial-gradient(circle at 85% 0%, rgba(139, 92, 246, 0.45) 0%, rgba(139, 92, 246, 0) 60%)";
+const CONTENT_TOP = ART_TOP + 60;
 const USERNAME_MAX_LENGTH = 22;
-const TILES_HEIGHT = 348;
-const TILES_GAP = 16;
-const LEAD_TILE_WIDTH = 400;
-const SUPPORTING_TILE_LIMIT = 3;
+const FAN_COVER_LIMIT = 5;
+const INLINE_STAT_LIMIT = 3;
+const COUNT_MAX_SIZE = 360;
+const COUNT_WIDTH_BUDGET = 720;
+const COUNT_LABEL_SIZE = 58;
+const COUNT_LABEL_MAX_WIDTH = 420;
+const COUNT_GRADIENT = `linear-gradient(180deg, #ffffff 0%, #c4b5fd 100%)`;
 const FAN_LAYOUT = {
-	coverWidth: 244,
-	coverHeight: 344,
+	coverWidth: 270,
+	coverHeight: 380,
 	areaWidth: STORY_WIDTH,
-	areaHeight: 380,
-	spreadX: 168,
+	areaHeight: 420,
+	spreadX: 182,
 	dropY: 10,
 	tiltDegrees: 7,
 	shrinkPerStep: 0.07
 };
+const MOSAIC_LAYOUT = {
+	columns: 6,
+	rows: 5,
+	tileWidth: 230,
+	tileHeight: 306,
+	gap: 18,
+	top: -120,
+	left: -260,
+	tiltDegrees: -9
+};
 
-function header(username: string, copy: ShareCopy): SatoriElement {
+function band(year: number): SatoriElement {
 	return box(
 		{
+			position: "absolute",
+			top: BAND_TOP,
+			left: 0,
+			width: STORY_WIDTH,
+			height: BAND_HEIGHT,
+			padding: `0px ${SIDE_PADDING}px`,
 			justifyContent: "space-between",
 			alignItems: "center",
-			width: CONTENT_WIDTH,
-			flexShrink: 0
+			backgroundImage: BAND_GRADIENT
 		},
 		[
-			wordmark(34),
-			ownerLabel(displayText(username, USERNAME_MAX_LENGTH), copy, 36)
-		]
-	);
-}
-
-function titleBlock(rewind: Rewind): SatoriElement {
-	const copy = shareCopy(rewind.language);
-	return box({ flexDirection: "column", marginTop: 56, flexShrink: 0 }, [
-		gradientYear(rewind.year, 384),
-		box({ marginTop: 40 }, [
-			personaBadge(rewind.persona, copy, {
-				titleSize: 76,
-				phraseSize: 36
-			})
-		])
-	]);
-}
-
-function summaryHeadline(rewind: Rewind): SatoriElement {
-	const copy = shareCopy(rewind.language);
-	return box(
-		{
-			flexGrow: 1,
-			flexShrink: 1,
-			minHeight: 0,
-			alignItems: "center",
-			width: CONTENT_WIDTH
-		},
-		[
+			wordmark(34, "#ffffff"),
 			text(
 				{
 					fontFamily: SHARE_FONT_FAMILY.display,
 					fontWeight: 700,
-					fontSize: 92,
-					lineHeight: 1.02,
-					color: SHARE_COLORS.foreground
+					fontSize: 30,
+					letterSpacing: "0.22em",
+					color: "#ffffff"
 				},
-				rewindSummary(rewind.totals, copy)
+				`REWIND · ${year}`
 			)
 		]
 	);
 }
 
-function coverStage(rewind: Rewind, covers: ShareCover[]): SatoriElement {
-	if (covers.length === 0) return summaryHeadline(rewind);
+function coverArt(covers: ShareCover[]): SatoriElement {
+	const size = { width: STORY_WIDTH, height: ART_HEIGHT };
+	const mosaic = duotoneCoverMosaic(covers, MOSAIC_LAYOUT, size);
 	return box(
 		{
-			flexGrow: 1,
-			flexShrink: 1,
-			minHeight: 0,
-			alignItems: "center",
-			flexDirection: "column",
-			justifyContent: "center",
-			gap: 20,
-			marginLeft: -SIDE_PADDING,
-			width: STORY_WIDTH
+			position: "absolute",
+			top: ART_TOP,
+			left: 0,
+			width: STORY_WIDTH,
+			height: ART_HEIGHT,
+			overflow: "hidden",
+			...(mosaic.length === 0 && { backgroundImage: ART_FALLBACK_GLOW })
 		},
-		[coverFan(covers, FAN_LAYOUT)]
+		[
+			...mosaic,
+			box({
+				position: "absolute",
+				top: 0,
+				left: 0,
+				width: STORY_WIDTH,
+				height: ART_HEIGHT,
+				backgroundImage: ART_FADE
+			})
+		]
 	);
 }
 
-function statTiles(rewind: Rewind): SatoriElement {
-	const copy = shareCopy(rewind.language);
-	const supporting = supportingTiles(
-		rewind.totals,
-		copy,
-		SUPPORTING_TILE_LIMIT
+function countSize(value: string): number {
+	return Math.min(
+		COUNT_MAX_SIZE,
+		Math.floor(COUNT_WIDTH_BUDGET / value.length)
 	);
-	const lead = tileBox(leadTile(rewind.totals, copy), {
-		valueSize: 200,
-		labelSize: 40,
-		width: supporting.length > 0 ? LEAD_TILE_WIDTH : CONTENT_WIDTH,
-		height: TILES_HEIGHT,
-		stacked: true
-	});
-	if (supporting.length === 0) return lead;
+}
 
-	const tileHeight =
-		(TILES_HEIGHT - TILES_GAP * (supporting.length - 1)) /
-		supporting.length;
-	return box({ gap: TILES_GAP, width: CONTENT_WIDTH, flexShrink: 0 }, [
-		lead,
+function bigCount(rewind: Rewind, copy: ShareCopy): SatoriElement {
+	const lead = leadTile(rewind.totals, copy);
+	const size = countSize(lead.value);
+	const username = displayText(rewind.user.username, USERNAME_MAX_LENGTH);
+	return box({ alignItems: "flex-end", gap: 28 }, [
+		text(
+			{
+				fontFamily: SHARE_FONT_FAMILY.display,
+				fontWeight: 700,
+				fontSize: size,
+				lineHeight: 0.8,
+				letterSpacing: "-0.05em",
+				marginLeft: -size * 0.04,
+				paddingRight: size * 0.05,
+				flexShrink: 0,
+				backgroundImage: COUNT_GRADIENT,
+				backgroundClip: "text",
+				color: "transparent"
+			},
+			lead.value
+		),
 		box(
 			{
 				flexDirection: "column",
-				gap: TILES_GAP,
-				width: CONTENT_WIDTH - LEAD_TILE_WIDTH - TILES_GAP,
-				flexShrink: 0
+				flexShrink: 1,
+				maxWidth: COUNT_LABEL_MAX_WIDTH,
+				paddingBottom: 16
 			},
-			supporting.map(tile =>
-				tileBox(tile, {
-					valueSize: 72,
-					labelSize: 32,
-					width: "100%",
-					height: tileHeight,
-					stacked: false
-				})
-			)
+			[
+				text(
+					{
+						fontFamily: SHARE_FONT_FAMILY.display,
+						fontWeight: 700,
+						fontSize: COUNT_LABEL_SIZE,
+						lineHeight: 1,
+						color: SHARE_COLORS.foreground
+					},
+					lead.label
+				),
+				text(
+					{
+						fontFamily: SHARE_FONT_FAMILY.text,
+						fontWeight: 600,
+						fontSize: 30,
+						lineHeight: 1.3,
+						color: SHARE_COLORS.brandLight,
+						marginTop: 12
+					},
+					copy.yearCaption(rewind.year, username)
+				)
+			]
 		)
 	]);
+}
+
+function inlineStat(tile: StatTile): SatoriElement {
+	return box({ alignItems: "baseline", gap: 14 }, [
+		text(
+			{
+				fontFamily: SHARE_FONT_FAMILY.display,
+				fontWeight: 700,
+				fontSize: 54,
+				color: SHARE_COLORS.foreground
+			},
+			tile.value
+		),
+		text(
+			{
+				fontFamily: SHARE_FONT_FAMILY.text,
+				fontWeight: 600,
+				fontSize: 30,
+				color: SHARE_COLORS.muted
+			},
+			tile.label
+		)
+	]);
+}
+
+function inlineStats(rewind: Rewind, copy: ShareCopy): SatoriElement | null {
+	const tiles = supportingTiles(
+		rewind.totals,
+		copy,
+		INLINE_STAT_LIMIT,
+		copy.compactTiles
+	);
+	if (tiles.length === 0) return null;
+	return box(
+		{ flexWrap: "wrap", gap: 48, marginTop: 46 },
+		tiles.map(inlineStat)
+	);
+}
+
+function details(rewind: Rewind, copy: ShareCopy): SatoriElement {
+	const stats = inlineStats(rewind, copy);
+	return box(
+		{
+			flexDirection: "column",
+			padding: `0px ${SIDE_PADDING}px`,
+			flexShrink: 0
+		},
+		[
+			bigCount(rewind, copy),
+			box({ marginTop: 50 }, [personaChip(rewind.persona, copy, 40)]),
+			text(
+				{
+					fontFamily: SHARE_FONT_FAMILY.text,
+					fontWeight: 400,
+					fontSize: 34,
+					lineHeight: 1.3,
+					color: SHARE_COLORS.secondary,
+					marginTop: 18
+				},
+				copy.personas[rewind.persona].phrase
+			),
+			...(stats ? [stats] : [])
+		]
+	);
+}
+
+function content(rewind: Rewind, covers: ShareCover[]): SatoriElement {
+	const copy = shareCopy(rewind.language);
+	const fanCovers = covers.slice(0, FAN_COVER_LIMIT);
+	return box(
+		{
+			position: "absolute",
+			top: CONTENT_TOP,
+			left: 0,
+			width: STORY_WIDTH,
+			height: STORY_HEIGHT - BOTTOM_SAFE_AREA - CONTENT_TOP,
+			flexDirection: "column",
+			justifyContent: "space-evenly"
+		},
+		[
+			...(fanCovers.length > 0 ? [coverFan(fanCovers, FAN_LAYOUT)] : []),
+			details(rewind, copy)
+		]
+	);
 }
 
 function footer(host: string): SatoriElement {
@@ -168,7 +273,7 @@ function footer(host: string): SatoriElement {
 			top: STORY_HEIGHT - BOTTOM_SAFE_AREA + FOOTER_OFFSET,
 			fontFamily: SHARE_FONT_FAMILY.text,
 			fontWeight: 600,
-			fontSize: 32,
+			fontSize: 30,
 			color: SHARE_COLORS.muted
 		},
 		host
@@ -180,22 +285,18 @@ export function storyTemplate({
 	artwork,
 	host
 }: StoryTemplateInput): SatoriElement {
-	const copy = shareCopy(rewind.language);
 	return box(
 		{
 			position: "relative",
-			flexDirection: "column",
 			width: STORY_WIDTH,
 			height: STORY_HEIGHT,
-			padding: `${TOP_SAFE_AREA}px ${SIDE_PADDING}px ${BOTTOM_SAFE_AREA}px`,
 			overflow: "hidden",
-			...backdropStyle(artwork.backdrop, SHARE_IMAGE_SIZES.story)
+			backgroundColor: SHARE_COLORS.canvas
 		},
 		[
-			header(rewind.user.username, copy),
-			titleBlock(rewind),
-			coverStage(rewind, artwork.covers),
-			statTiles(rewind),
+			coverArt(artwork.covers),
+			band(rewind.year),
+			content(rewind, artwork.covers),
 			footer(host)
 		]
 	);

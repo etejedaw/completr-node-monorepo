@@ -40,6 +40,17 @@ export interface CoverFanLayout {
 	shrinkPerStep: number;
 }
 
+export interface CoverMosaicLayout {
+	columns: number;
+	rows: number;
+	tileWidth: number;
+	tileHeight: number;
+	gap: number;
+	top: number;
+	left: number;
+	tiltDegrees: number;
+}
+
 export interface FanSlot {
 	cover: ShareCover;
 	offset: number;

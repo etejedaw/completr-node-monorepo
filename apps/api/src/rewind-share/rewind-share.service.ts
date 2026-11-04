@@ -41,6 +41,11 @@ const COVER_LIMITS: Record<RewindImageFormat, number> = {
 	og: OG_COVER_LIMIT
 };
 
+const USES_BACKDROP: Record<RewindImageFormat, boolean> = {
+	story: false,
+	og: true
+};
+
 const imageCache = new LruCache<Promise<RenderedImage>>(SHARE_IMAGE_CACHE_SIZE);
 
 function webAppHost(): string {
@@ -70,7 +75,9 @@ async function loadArtwork(
 	format: RewindImageFormat
 ): Promise<LoadedArtwork> {
 	const games = selectShareCovers(rewind, COVER_LIMITS[format]);
-	const backdropUrl = selectBackdropUrl(rewind);
+	const backdropUrl = USES_BACKDROP[format]
+		? selectBackdropUrl(rewind)
+		: null;
 	const [covers, backdrop] = await Promise.all([
 		Promise.all(games.map(loadCover)),
 		fetchImageDataUri(backdropUrl, BACKDROP_FETCH_WIDTH)
