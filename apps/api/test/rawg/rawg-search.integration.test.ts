@@ -68,6 +68,7 @@ void describe("GET /games/search with force_rawg=true", () => {
 		});
 
 		assert.equal(response.status, 200);
+		assert.equal(response.body.data.rawgAvailable, true);
 		assert.equal(response.body.data.games.length, 1);
 		const [entry] = response.body.data.games;
 		assert.equal(entry.title, "Elden Ring");
@@ -191,6 +192,7 @@ void describe("GET /games/search with force_rawg=true", () => {
 
 		assert.equal(response.status, 200);
 		assert.equal(response.body.data.games.length, 1);
+		assert.equal(response.body.data.rawgAvailable, undefined);
 		assert.equal(rawgCalls.length, 0);
 	});
 
@@ -251,6 +253,7 @@ void describe("GET /games/search with force_rawg=true", () => {
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.games, []);
+		assert.equal(response.body.data.rawgAvailable, false);
 	});
 });
 
@@ -270,6 +273,7 @@ void describe("GET /games/search falling back to RAWG", () => {
 		const response = await searchGames({ query: "obscure prototype" });
 
 		assert.equal(response.status, 200);
+		assert.equal(response.body.data.rawgAvailable, true);
 		assert.equal(response.body.data.games.length, 1);
 		const [entry] = response.body.data.games;
 		assert.equal(entry.title, "Obscure Prototype");
@@ -354,6 +358,7 @@ void describe("GET /games/search falling back to RAWG", () => {
 		const response = await searchGames({ query: "blasphemous" });
 
 		assert.equal(response.status, 200);
+		assert.equal(response.body.data.rawgAvailable, true);
 		assert.deepEqual(
 			response.body.data.games.map(
 				(game: { title: string }) => game.title
@@ -369,26 +374,29 @@ void describe("GET /games/search falling back to RAWG", () => {
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.games, []);
+		assert.equal(response.body.data.rawgAvailable, true);
 		assert.ok(searchCall(rawgCalls));
 	});
 
-	void it("answers 200 with no games when RAWG is down", async () => {
+	void it("answers 200 with no games and RAWG not available when RAWG is down", async () => {
 		const { rawgCalls } = stubRawgFetch(rawgFailureHandler(503));
 
 		const response = await searchGames({ query: "unreachable game" });
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.games, []);
+		assert.equal(response.body.data.rawgAvailable, false);
 		assert.ok(searchCall(rawgCalls));
 	});
 
-	void it("answers 200 with no games when RAWG rate limits the search", async () => {
+	void it("answers 200 with no games and RAWG not available when RAWG rate limits the search", async () => {
 		stubRawgFetch(rawgFailureHandler(429));
 
 		const response = await searchGames({ query: "throttled game" });
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.games, []);
+		assert.equal(response.body.data.rawgAvailable, false);
 	});
 
 	void it("answers 200 with no games when the network to RAWG fails", async () => {
@@ -400,6 +408,59 @@ void describe("GET /games/search falling back to RAWG", () => {
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.games, []);
+		assert.equal(response.body.data.rawgAvailable, false);
+	});
+
+	void it("reports RAWG as not available when it answers something that is not JSON", async () => {
+		stubRawgFetch(
+			() =>
+				new Response("<html>Bad gateway</html>", {
+					status: 200,
+					headers: { "content-type": "text/html" }
+				})
+		);
+
+		const response = await searchGames({ query: "garbled game" });
+
+		assert.equal(response.status, 200);
+		assert.deepEqual(response.body.data.games, []);
+		assert.equal(response.body.data.rawgAvailable, false);
+	});
+
+	void it("reports RAWG as not available when the search answers but every detail fails", async () => {
+		stubRawgFetch(url => {
+			if (url.pathname === "/api/games")
+				return jsonResponse({
+					count: 1,
+					next: null,
+					results: [
+						{
+							...UNRATED_SEARCH_RESULT,
+							id: 900001,
+							slug: "half-broken",
+							name: "Half Broken"
+						}
+					]
+				});
+			return jsonResponse({ detail: "Failure" }, 500);
+		});
+
+		const response = await searchGames({ query: "half broken" });
+
+		assert.equal(response.status, 200);
+		assert.deepEqual(response.body.data.games, []);
+		assert.equal(response.body.data.rawgAvailable, false);
+	});
+
+	void it("reports the status of each search on its own when RAWG recovers", async () => {
+		stubRawgFetch(rawgFailureHandler(503));
+		const whileDown = await searchGames({ query: "flaky game" });
+		mock.restoreAll();
+		stubRawgFetch(rawgCatalogHandler({}));
+		const afterRecovery = await searchGames({ query: "flaky game" });
+
+		assert.equal(whileDown.body.data.rawgAvailable, false);
+		assert.equal(afterRecovery.body.data.rawgAvailable, true);
 	});
 });
 
@@ -421,6 +482,7 @@ void describe("GET /games/search with a local match", () => {
 		assert.equal(response.body.data.games.length, 1);
 		assert.equal(response.body.data.games[0].title, "Celeste");
 		assert.equal(response.body.data.games[0].justImported, false);
+		assert.equal(response.body.data.rawgAvailable, undefined);
 		assert.equal(rawgCalls.length, 0);
 	});
 
@@ -431,6 +493,7 @@ void describe("GET /games/search with a local match", () => {
 
 		assert.equal(response.status, 200);
 		assert.equal(response.body.data.games.length, 1);
+		assert.equal(response.body.data.rawgAvailable, undefined);
 		assert.equal(rawgCalls.length, 0);
 	});
 });
@@ -455,6 +518,7 @@ void describe("GET /games/search with local_only=true", () => {
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.games, []);
+		assert.equal(response.body.data.rawgAvailable, undefined);
 		assert.equal(rawgCalls.length, 0);
 	});
 
