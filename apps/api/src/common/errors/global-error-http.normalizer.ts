@@ -17,6 +17,7 @@ import { gamesDomainToHttpMapper } from "../../games/errors/games.domain-to-http
 import { genresDomainToHttpMapper } from "../../genres/errors/genres.domain-to-http.mapper";
 import { hltbDomainToHttpMapper } from "../../hltb/errors/hltb.domain-to-http.mapper";
 import { iaDomainToHttpMapper } from "../../ia/errors/ia.domain-to-http.mapper";
+import { igdbDomainToHttpMapper } from "../../igdb/errors/igdb.domain-to-http.mapper";
 import { invitationsDomainToHttpMapper } from "../../invitations/errors/invitations.domain-to-http.mapper";
 import { listFollowersDomainToHttpMapper } from "../../list-followers/errors/list-followers.domain-to-http.mapper";
 import { listItemsDomainToHttpMapper } from "../../list-items/errors/list-items.domain-to-http.mapper";
@@ -137,6 +138,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "RAWG Provider")
 		return rawgDomainToHttpMapper(error, request);
+
+	if (error.module === "IGDB Provider")
+		return igdbDomainToHttpMapper(error, request);
 
 	if (error.module === "HLTB Provider")
 		return hltbDomainToHttpMapper(error, request);
