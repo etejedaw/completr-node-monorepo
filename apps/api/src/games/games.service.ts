@@ -4,7 +4,6 @@ import * as activityService from "../activity/activity.service";
 import * as backlogService from "../backlog/backlog.service";
 import { apiKeysConfig } from "../common/config/api-keys.config";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
-import { ServiceError } from "../common/errors/service-error";
 import { PinoLogger } from "../common/logger/pino.logger";
 import {
 	buildTextSearchRelevanceOrder,
@@ -22,10 +21,10 @@ import * as gameScoresService from "../game-scores/game-scores.service";
 import * as gameShelfService from "../game-shelf/game-shelf.service";
 import * as gameTimesService from "../game-times/game-times.service";
 import * as genresService from "../genres/genres.service";
+import { type IgdbGame } from "../igdb/igdb.interface";
 import * as listItemsService from "../list-items/list-items.service";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as platformsService from "../platforms/platforms.service";
-import * as rawgServiceError from "../rawg/errors/rawg.service-error";
 import { RawgClient } from "../rawg/rawg.provider";
 import * as reviewsService from "../reviews/reviews.service";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
@@ -34,8 +33,17 @@ import { type RegisterGameDto } from "./dtos/register-game.dto";
 import { type UpdateGameDto } from "./dtos/update-game.dto";
 import * as gamesServiceError from "./errors/games.service-error";
 import { Game } from "./game.model";
-import { type GameScoreEntry } from "./games.interface";
+import {
+	type GameScoreEntry,
+	type ResolvedOnlineGame
+} from "./games.interface";
+import { type OnlineSearchSource } from "./games.types";
+import { igdbToGameMapper } from "./mappers/igdb-to-game.mapper";
 import { rawgToGameMapper } from "./mappers/rawg-to-game.mapper";
+import {
+	getIgdbRequestPacer,
+	getIgdbSource
+} from "./services/external-data-sources.service";
 import { enqueueImportedGames } from "./services/games-import-enrichment.service";
 import {
 	findGameByCode,
@@ -43,6 +51,8 @@ import {
 	GAME_TITLE_COLUMN
 } from "./services/games-search.service";
 import { assertVariantConsistency } from "./services/games-variant.service";
+import { IgdbSearchHandler } from "./services/igdb-search.handler";
+import { RawgSearchHandler } from "./services/rawg-search.handler";
 
 export type { GamesQueryOptions, SplitVariantInput } from "./games.interface";
 export type { SetCompilationItemInput } from "./games.types";
@@ -91,6 +101,10 @@ export { findShowcaseGames } from "./services/games-showcase.service";
 export { splitGame } from "./services/games-variant.service";
 
 const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
+const onlineSearch = new RawgSearchHandler(rawg, resolveRawgResult);
+onlineSearch.setNext(
+	new IgdbSearchHandler(getIgdbSource, getIgdbRequestPacer, resolveIgdbResult)
+);
 const logger = new PinoLogger("GamesService");
 
 export async function registerGame(registerGameDto: RegisterGameDto) {
@@ -273,8 +287,8 @@ async function isGameInUse(gameId: string, transaction: Transaction) {
 	return false;
 }
 
-export async function searchGames(query: string, forceRawg = false) {
-	if (!forceRawg) {
+export async function searchGames(query: string, forceOnline = false) {
+	if (!forceOnline) {
 		const titleWhere = buildTextSearchWhere(query, [GAME_TITLE_COLUMN]);
 		if (titleWhere) {
 			const localResults = await Game.findAll({
@@ -295,93 +309,34 @@ export async function searchGames(query: string, forceRawg = false) {
 				return {
 					games: localResults,
 					importedIds: new Set<string>(),
-					rawgAvailable: undefined
+					onlineSearchAvailable: undefined,
+					onlineSearchSource: undefined
 				};
 			}
 		}
 	}
 
-	const result = await searchAndCreateFromRawg(query, forceRawg);
-	enqueueImportedGames([...result.importedIds]);
-	return result;
-}
-
-async function searchAndCreateFromRawg(
-	query: string,
-	forceRawg: boolean
-): Promise<{
-	games: Game[];
-	importedIds: Set<string>;
-	rawgAvailable: boolean;
-}> {
-	const importedIds = new Set<string>();
-	if (!rawg.isEnabled)
-		return { games: [], importedIds, rawgAvailable: false };
-
-	try {
-		const rawgResults = await rawg.searchGame(query, {
-			page_size: 3,
-			exclude_additions: true
-		});
-
-		const games: Game[] = [];
-		let failedDetails = 0;
-
-		for (const result of rawgResults) {
-			try {
-				const resolved = await resolveRawgResult(result.id);
-				if (resolved) {
-					games.push(resolved.game);
-					if (resolved.justImported)
-						importedIds.add(resolved.game.id);
-				}
-			} catch (error) {
-				failedDetails++;
-				logger.warn(
-					"searchAndCreateFromRawg",
-					`Failed to resolve RAWG ID ${result.id}`,
-					error
-				);
-			}
-		}
-
-		const slugResolved = await resolveRawgBySlug(query);
-		if (slugResolved && !games.some(g => g.id === slugResolved.game.id)) {
-			games.unshift(slugResolved.game);
-			if (slugResolved.justImported)
-				importedIds.add(slugResolved.game.id);
-		}
-
-		const everyDetailFailed = games.length === 0 && failedDetails > 0;
+	const outcome = await onlineSearch.handle(query);
+	if (!outcome.available)
 		return {
-			games,
-			importedIds,
-			rawgAvailable: !everyDetailFailed
+			games: [] as Game[],
+			importedIds: new Set<string>(),
+			onlineSearchAvailable: false,
+			onlineSearchSource: undefined
 		};
-	} catch (error) {
-		if (forceRawg) {
-			throw error instanceof ServiceError
-				? error
-				: rawgServiceError.requestError(error);
-		}
-		logger.warn("searchAndCreateFromRawg", "RAWG fallback failed", error);
-		return { games: [], importedIds, rawgAvailable: false };
-	}
-}
 
-async function resolveRawgBySlug(query: string) {
-	try {
-		const slug = titleToSlug(query);
-		const detail = await rawg.getGameBySlug(slug);
-		return await resolveRawgResult(detail.id);
-	} catch {
-		return null;
-	}
+	enqueueImportedGames([...outcome.importedIds]);
+	return {
+		games: outcome.games,
+		importedIds: outcome.importedIds,
+		onlineSearchAvailable: true,
+		onlineSearchSource: outcome.source
+	};
 }
 
 async function resolveRawgResult(
 	rawgNumericId: number
-): Promise<{ game: Game; justImported: boolean } | null> {
+): Promise<ResolvedOnlineGame | null> {
 	const rawgId = String(rawgNumericId);
 
 	const existingExternal = await gameExternalService.findByExternalId(
@@ -403,7 +358,10 @@ async function resolveRawgResult(
 
 	const game = await registerGame({
 		...mapped.game,
-		scores: await keepCatalogedScores(mapped.enrichment.scores, rawgId),
+		scores: await keepCatalogedScores(mapped.enrichment.scores, {
+			source: "rawg",
+			externalId: rawgId
+		}),
 		times: mapped.enrichment.times,
 		genres: mapped.enrichment.genreSlugs ?? []
 	});
@@ -411,6 +369,48 @@ async function resolveRawgResult(
 	await gameExternalService.create(game.id, "rawg", rawgId);
 
 	return { game, justImported: true };
+}
+
+async function resolveIgdbResult(
+	igdbGame: IgdbGame
+): Promise<ResolvedOnlineGame | null> {
+	const igdbId = String(igdbGame.id);
+
+	const existingExternal = await gameExternalService.findByExternalId(
+		"igdb",
+		igdbId
+	);
+	if (existingExternal) {
+		const game = await findGameById(existingExternal.gameId);
+		return game ? { game, justImported: false } : null;
+	}
+
+	const mapped = igdbToGameMapper(igdbGame);
+	const existingByCode = await findGameByCode(titleToSlug(mapped.game.title));
+	if (existingByCode) {
+		await linkIgdbIdIfMissing(existingByCode.id, igdbId);
+		return { game: existingByCode, justImported: false };
+	}
+
+	const game = await registerGame({
+		...mapped.game,
+		scores: await keepCatalogedScores(mapped.enrichment.scores, {
+			source: "igdb",
+			externalId: igdbId
+		}),
+		times: mapped.enrichment.times,
+		genres: mapped.enrichment.genreSlugs ?? []
+	});
+
+	await gameExternalService.create(game.id, "igdb", igdbId);
+
+	return { game, justImported: true };
+}
+
+async function linkIgdbIdIfMissing(gameId: string, igdbId: string) {
+	const externals = await gameExternalService.findByGameId(gameId);
+	if (externals.some(external => external.source === "igdb")) return;
+	await gameExternalService.create(gameId, "igdb", igdbId);
 }
 
 async function upsertExternalIds(
@@ -449,7 +449,7 @@ async function assertScoreSourcesExist(scores: RegisterGameDto["scores"]) {
 
 async function keepCatalogedScores(
 	scores: GameScoreEntry[] | undefined,
-	rawgId: string
+	importedFrom: { source: OnlineSearchSource; externalId: string }
 ): Promise<GameScoreEntry[]> {
 	if (!scores?.length) return [];
 	const existing = await scoreSourcesService.findExistingCodes(
@@ -457,8 +457,8 @@ async function keepCatalogedScores(
 	);
 	const skipped = scores.filter(score => !existing.has(score.source));
 	if (skipped.length > 0)
-		logger.warn("importFromRawg", "score skipped: unknown source", {
-			rawgId,
+		logger.warn("importOnlineGame", "score skipped: unknown source", {
+			...importedFrom,
 			sources: skipped.map(score => score.source)
 		});
 	return scores.filter(score => existing.has(score.source));

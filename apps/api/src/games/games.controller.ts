@@ -116,17 +116,16 @@ export async function searchGames(request: Request, response: Response) {
 		return response.status(200).json({ data });
 	}
 
-	const { games, importedIds, rawgAvailable } = await gameService.searchGames(
-		query.query,
-		query.force_rawg
-	);
+	const { games, importedIds, onlineSearchAvailable, onlineSearchSource } =
+		await gameService.searchGames(query.query, query.force_online);
 	const data = {
 		games: games
 			.map(g => g.get({ plain: true }))
 			.map(g =>
 				gameSerializer(g, { justImported: importedIds.has(g.id) })
 			),
-		...(rawgAvailable !== undefined && { rawgAvailable })
+		...(onlineSearchAvailable !== undefined && { onlineSearchAvailable }),
+		...(onlineSearchSource && { onlineSearchSource })
 	};
 	return response.status(200).json({ data });
 }
