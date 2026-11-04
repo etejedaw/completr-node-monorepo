@@ -50,6 +50,7 @@ import {
 } from "../../../shared/ui";
 import { ListsService } from "../../lists/lists";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
+import { catalogOnlyResult } from "../game-search";
 import { GamesService } from "../games";
 import { BrowseFilters } from "./components/browse-filters";
 import { type BrowseSortOption } from "./components/browse-filters.model";
@@ -113,6 +114,7 @@ export class GamesBrowse implements OnInit {
 	protected readonly isSearchingOnline = signal(false);
 	protected readonly showCreateEditor = signal(false);
 	protected readonly searchingRawg = signal(false);
+	protected readonly rawgUnavailable = signal(false);
 
 	protected readonly latestGames = signal<Game[]>([]);
 	protected readonly randomGenre = signal<Genre | null>(null);
@@ -252,28 +254,30 @@ export class GamesBrowse implements OnInit {
 				debounceTime(400),
 				distinctUntilChanged(),
 				switchMap(query => {
+					this.rawgUnavailable.set(false);
 					if (query.length < 2) {
 						this.isSearching.set(false);
 						this.isSearchingOnline.set(false);
-						return of([]);
+						return of(catalogOnlyResult([]));
 					}
 					this.isSearching.set(true);
 					this.isSearchingOnline.set(false);
 					return this.gamesService.searchLocal(query).pipe(
 						switchMap(localResults => {
 							if (localResults.length > 0) {
-								return of(localResults);
+								return of(catalogOnlyResult(localResults));
 							}
 							this.isSearching.set(false);
 							this.isSearchingOnline.set(true);
 							return this.gamesService.search(query);
 						}),
-						catchError(() => of<Game[]>([]))
+						catchError(() => of(catalogOnlyResult([])))
 					);
 				})
 			)
-			.subscribe(games => {
-				this.searchResults.set(games);
+			.subscribe(result => {
+				this.searchResults.set(result.games);
+				this.rawgUnavailable.set(result.rawgUnavailable);
 				this.isSearching.set(false);
 				this.isSearchingOnline.set(false);
 			});
@@ -315,9 +319,11 @@ export class GamesBrowse implements OnInit {
 		if (query.length < 2) return;
 		this.searchingRawg.set(true);
 		this.gamesService.search(query, true).subscribe({
-			next: games => {
-				this.searchResults.set(games);
+			next: result => {
 				this.searchingRawg.set(false);
+				if (this.searchQuery().trim() !== query) return;
+				this.searchResults.set(result.games);
+				this.rawgUnavailable.set(result.rawgUnavailable);
 			},
 			error: () => this.searchingRawg.set(false)
 		});

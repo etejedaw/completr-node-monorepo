@@ -174,7 +174,8 @@
 				>
 					Results for "{{ searchQuery() }}"
 				</h2>
-				@if (!isSearching() && !isSearchingOnline()) {
+				@if (!isSearching() && !isSearchingOnline() &&
+				!rawgUnavailable()) {
 				<p class="m-0 mt-1 text-sm text-fg-muted" role="status">
 					{{ searchResults().length }} {{ searchResults().length === 1
 					? 'game' : 'games' }} found
@@ -208,6 +209,26 @@
 		</p>
 		}
 		<ng-container *ngTemplateOutlet="gridSkeleton" />
+		} @else if (searchResults().length === 0 && rawgUnavailable()) {
+		<div role="status">
+			<ui-empty-state
+				icon="cloud_off"
+				title="RAWG is unavailable"
+				hint="This game isn't in Completr yet and the online search (RAWG) isn't responding right now. Try again in a few minutes."
+			>
+				<button
+					uiButton
+					variant="secondary"
+					[disabled]="searchingRawg()"
+					(click)="searchRawg()"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>refresh</span
+					>
+					{{ searchingRawg() ? 'Searching RAWG...' : 'Try again' }}
+				</button>
+			</ui-empty-state>
+		</div>
 		} @else if (searchResults().length === 0) {
 		<ng-container
 			*ngTemplateOutlet="emptyResults; context: { $implicit: 'No games found', hint: 'Check the spelling, or search RAWG to import it into the catalog.' }"

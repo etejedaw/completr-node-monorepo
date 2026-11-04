@@ -46,6 +46,7 @@ import {
 } from "../../../shared/ui";
 import { PendingRemovals } from "../../../shared/utils/pending-removals";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
+import { catalogOnlyResult } from "../../games/game-search";
 import { GamesService } from "../../games/games";
 import {
 	DuplicateListModal,
@@ -116,6 +117,7 @@ export class ListDetail implements OnInit {
 	protected readonly searchResults = signal<Game[]>([]);
 	protected readonly isSearching = signal(false);
 	protected readonly isSearchingOnline = signal(false);
+	protected readonly rawgUnavailable = signal(false);
 	protected readonly togglingFollow = signal(false);
 	protected readonly exporter = injectExportDownload({
 		resource: () => ({ listId: this.listId }),
@@ -221,17 +223,18 @@ export class ListDetail implements OnInit {
 				debounceTime(400),
 				distinctUntilChanged(),
 				switchMap(query => {
+					this.rawgUnavailable.set(false);
 					if (query.length < 2) {
 						this.isSearching.set(false);
 						this.isSearchingOnline.set(false);
-						return of([]);
+						return of(catalogOnlyResult([]));
 					}
 					this.isSearching.set(true);
 					this.isSearchingOnline.set(false);
 					return this.gamesService.searchLocal(query).pipe(
 						switchMap(localResults => {
 							if (localResults.length > 0) {
-								return of(localResults);
+								return of(catalogOnlyResult(localResults));
 							}
 							this.isSearching.set(false);
 							this.isSearchingOnline.set(true);
@@ -240,8 +243,9 @@ export class ListDetail implements OnInit {
 					);
 				})
 			)
-			.subscribe(games => {
-				this.searchResults.set(games);
+			.subscribe(result => {
+				this.searchResults.set(result.games);
+				this.rawgUnavailable.set(result.rawgUnavailable);
 				this.isSearching.set(false);
 				this.isSearchingOnline.set(false);
 			});

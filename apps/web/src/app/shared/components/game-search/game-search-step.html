@@ -23,7 +23,33 @@
 <ng-container
 	*ngTemplateOutlet="searchingRows; context: { $implicit: 'Searching online…' }"
 />
-} @default { @if (results().length === 0) {
+} @default { @if (results().length === 0 && rawgUnavailable()) {
+<div
+	class="flex flex-col items-center text-center gap-2 px-6 py-10"
+	role="status"
+>
+	<span aria-hidden="true" class="material-icons text-3xl text-warning"
+		>cloud_off</span
+	>
+	<p class="m-0 text-sm font-semibold text-fg">RAWG is unavailable</p>
+	<p class="m-0 text-[0.8125rem] text-fg-muted max-w-[20rem]">
+		This game isn't in Completr yet and the online search (RAWG) isn't
+		responding right now. Try again in a few minutes.
+	</p>
+	<button
+		uiButton
+		variant="secondary"
+		size="sm"
+		type="button"
+		class="mt-2 min-h-[44px]"
+		[disabled]="onlineSearching()"
+		(click)="searchOnline.emit()"
+	>
+		<span aria-hidden="true" class="material-icons text-base">refresh</span>
+		{{ onlineSearching() ? "Searching online..." : "Try again" }}
+	</button>
+</div>
+} @else if (results().length === 0) {
 <div
 	class="flex flex-col items-center text-center gap-2 px-6 py-10"
 	role="status"

@@ -37,6 +37,7 @@ export class GameSearchStep {
 	readonly status = input.required<GameSearchStatus>();
 	readonly allowOnline = input(true);
 	readonly onlineSearching = input(false);
+	readonly rawgUnavailable = input(false);
 	readonly placeholder = input("Search games by title...");
 	readonly emptyHint = input("Try another spelling or a shorter title.");
 	readonly autofocus = input(false);
