@@ -44,6 +44,16 @@
 				"timeout": "10s",
 				"strategy": "performance"
 			}
+		},
+		{
+			"name": "igdb-images",
+			"urls": ["https://images.igdb.com/**"],
+			"cacheConfig": {
+				"maxSize": 500,
+				"maxAge": "30d",
+				"timeout": "10s",
+				"strategy": "performance"
+			}
 		}
 	]
 }
