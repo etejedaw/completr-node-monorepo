@@ -92,9 +92,8 @@ export {
 	findGamesByGenreCode,
 	findGamesByIds,
 	findLatestReviewed,
-	rawgDetail,
+	igdbDetailBySlug,
 	rawgDetailBySlug,
-	rawgLookup,
 	searchGamesLocal
 } from "./services/games-search.service";
 export { findShowcaseGames } from "./services/games-showcase.service";

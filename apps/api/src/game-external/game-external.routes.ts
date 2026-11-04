@@ -5,7 +5,7 @@ import { userLimiter } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import * as gameExternalController from "./game-external.controller";
-import { RawgSlugParamSchema } from "./schemas/rawg-slug-params.schema";
+import { ExternalSlugParamSchema } from "./schemas/external-slug-params.schema";
 
 const router = Router();
 
@@ -14,9 +14,19 @@ router.get(
 	[
 		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
-		validateSchemaMiddleware(RawgSlugParamSchema, "params")
+		validateSchemaMiddleware(ExternalSlugParamSchema, "params")
 	],
 	gameExternalController.getRawgBySlug
+);
+
+router.get(
+	"/game-external/igdb/:slug",
+	[
+		rateLimiterMiddleware(userLimiter),
+		authMiddleware("moderator"),
+		validateSchemaMiddleware(ExternalSlugParamSchema, "params")
+	],
+	gameExternalController.getIgdbBySlug
 );
 
 export default router;

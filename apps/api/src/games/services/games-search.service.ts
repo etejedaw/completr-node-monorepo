@@ -6,12 +6,19 @@ import {
 	buildTextSearchWhere
 } from "../../common/utils/text-search.util";
 import { sequelize } from "../../database/sequelize.database";
-import { type RawgGameDetail } from "../../rawg/rawg.interface";
+import * as igdbServiceError from "../../igdb/errors/igdb.service-error";
 import { RawgClient } from "../../rawg/rawg.provider";
 import * as reviewsService from "../../reviews/reviews.service";
 import * as scoreSourcesService from "../../score-sources/score-sources.service";
 import { Game } from "../game.model";
-import { type GamesFilters, type GamesQueryOptions } from "../games.interface";
+import {
+	type ExternalGameDetail,
+	type GamesFilters,
+	type GamesQueryOptions,
+	type RawgMappedData
+} from "../games.interface";
+import { type OnlineSearchSource } from "../games.types";
+import { igdbToGameMapper } from "../mappers/igdb-to-game.mapper";
 import { rawgToGameMapper } from "../mappers/rawg-to-game.mapper";
 import {
 	buildActiveFlagWhere,
@@ -25,6 +32,10 @@ import {
 	buildReleaseDateRangeWhere,
 	buildSourceExclusionCondition
 } from "../utils/search-filters.util";
+import {
+	getIgdbRequestPacer,
+	getIgdbSource
+} from "./external-data-sources.service";
 
 const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
 
@@ -308,47 +319,49 @@ export async function searchGamesLocal(query: string) {
 	});
 }
 
-export async function rawgLookup(query: string) {
-	const results = await rawg.searchGame(query, {
-		page_size: 10,
-		exclude_additions: true
-	});
-
-	return results.map(r => ({
-		rawgId: r.id,
-		title: r.name,
-		backgroundUrl: r.background_image,
-		releaseAt: r.released,
-		metacritic: r.metacritic,
-		playtime: r.playtime,
-		platforms: r.platforms.map(p => p.platform.slug),
-		genres: r.genres.map(g => g.slug)
-	}));
-}
-
-export async function rawgDetail(rawgId: number) {
-	const detail = await rawg.getGameById(rawgId);
-	return mapRawgDetail(detail);
-}
-
-export async function rawgDetailBySlug(slug: string) {
+export async function rawgDetailBySlug(
+	slug: string
+): Promise<ExternalGameDetail> {
 	const detail = await rawg.getGameBySlug(slug);
-	return mapRawgDetail(detail);
+	return toExternalGameDetail(
+		"rawg",
+		String(detail.id),
+		rawgToGameMapper(detail)
+	);
 }
 
-async function mapRawgDetail(detail: RawgGameDetail) {
-	const mapped = rawgToGameMapper(detail);
+export async function igdbDetailBySlug(
+	slug: string
+): Promise<ExternalGameDetail> {
+	const igdb = getIgdbSource();
+	if (!igdb) throw igdbServiceError.disabledError();
+	await getIgdbRequestPacer().waitForTurn();
+	const detail = await igdb.getGameBySlug(slug);
+	return toExternalGameDetail(
+		"igdb",
+		String(detail.id),
+		igdbToGameMapper(detail)
+	);
+}
+
+async function toExternalGameDetail(
+	source: OnlineSearchSource,
+	externalId: string,
+	mapped: RawgMappedData
+): Promise<ExternalGameDetail> {
 	const scores = mapped.enrichment.scores ?? [];
 	const catalogedSources = await scoreSourcesService.findExistingCodes(
 		scores.map(score => score.source)
 	);
 	return {
-		rawgId: detail.id,
-		title: detail.name,
-		description: detail.description_raw,
-		coverUrl: detail.background_image,
-		releaseAt: detail.released,
-		platforms: mapped.game.platforms,
+		source,
+		externalId,
+		title: mapped.game.title,
+		description: mapped.game.description ?? null,
+		coverUrl: mapped.game.coverUrl ?? null,
+		backgroundUrl: mapped.game.backgroundUrl ?? null,
+		releaseAt: mapped.game.releaseAt ?? null,
+		platforms: mapped.game.platforms ?? [],
 		genres: mapped.enrichment.genreSlugs ?? [],
 		scores: scores.filter(score => catalogedSources.has(score.source)),
 		times: mapped.enrichment.times ?? []

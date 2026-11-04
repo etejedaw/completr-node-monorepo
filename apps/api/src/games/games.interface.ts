@@ -169,3 +169,17 @@ export interface OnlineSearchFound {
 export interface OnlineSearchUnavailable {
 	available: false;
 }
+
+export interface ExternalGameDetail {
+	source: OnlineSearchSource;
+	externalId: string;
+	title: string;
+	description: string | null;
+	coverUrl: string | null;
+	backgroundUrl: string | null;
+	releaseAt: string | null;
+	platforms: string[];
+	genres: string[];
+	scores: GameScoreEntry[];
+	times: GameTimeEntry[];
+}
