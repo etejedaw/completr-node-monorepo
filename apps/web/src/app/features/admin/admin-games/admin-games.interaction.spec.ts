@@ -200,6 +200,13 @@ describe("AdminGames interaction", () => {
 					userScore: 8.4
 				};
 			}
+			if (source === "igdb") {
+				game.scores = [
+					...game.scores.filter(s => s.source !== "igdb"),
+					{ source: "igdb", score: 74 }
+				];
+				return { source, status: "updated", score: 74 };
+			}
 			game.times = [
 				...game.times.filter(t => t.source !== "hltb"),
 				{ source: "hltb", duration: 12.5 }
@@ -2282,7 +2289,10 @@ describe("AdminGames interaction", () => {
 		}
 
 		function sourceBox(
-			name: "Metacritic — score" | "HowLongToBeat — duration"
+			name:
+				| "Metacritic — score"
+				| "HowLongToBeat — duration"
+				| "IGDB — user score"
 		) {
 			return within(refreshDialog()).getByRole("checkbox", { name });
 		}
@@ -2334,9 +2344,10 @@ describe("AdminGames interaction", () => {
 			await openRefresh(user, "Zelda: Breath of the Wild");
 			expect(sourceBox("Metacritic — score")).toBeChecked();
 			expect(sourceBox("HowLongToBeat — duration")).not.toBeChecked();
+			expect(sourceBox("IGDB — user score")).toBeChecked();
 			expect(
-				within(refreshDialog()).getByText("Missing")
-			).toBeInTheDocument();
+				within(refreshDialog()).getAllByText("Missing")
+			).toHaveLength(2);
 			expect(
 				within(refreshDialog()).getByText("Current: 10 h")
 			).toBeInTheDocument();
@@ -2348,6 +2359,22 @@ describe("AdminGames interaction", () => {
 			await openRefresh(user, "Pokémon Rojo");
 			expect(sourceBox("Metacritic — score")).not.toBeChecked();
 			expect(sourceBox("HowLongToBeat — duration")).toBeChecked();
+			expect(sourceBox("IGDB — user score")).toBeChecked();
+		});
+
+		it("leaves IGDB unselected and shows its current score when the game already has one", async () => {
+			const user = userEvent.setup();
+			const withIgdbScore = catalog.find(game => game.id === "a003");
+			withIgdbScore?.scores.push({ source: "igdb", score: 74 });
+			await renderLoaded();
+
+			await openRefresh(user, "Alpha 003");
+
+			expect(sourceBox("IGDB — user score")).not.toBeChecked();
+			expect(
+				within(refreshDialog()).getByText("Current: 74")
+			).toBeInTheDocument();
+			expect(submitButton()).toBeDisabled();
 		});
 
 		it("disables the submit without a selection and lets the admin pick sources that already have data", async () => {
@@ -2357,6 +2384,8 @@ describe("AdminGames interaction", () => {
 
 			expect(sourceBox("Metacritic — score")).not.toBeChecked();
 			expect(sourceBox("HowLongToBeat — duration")).not.toBeChecked();
+			expect(sourceBox("IGDB — user score")).toBeChecked();
+			await user.click(sourceBox("IGDB — user score"));
 			expect(submitButton()).toBeDisabled();
 			await user.click(submitButton());
 			expect(refreshRequests).toEqual([]);
@@ -2396,7 +2425,7 @@ describe("AdminGames interaction", () => {
 			const pending = takeHeldRefreshes();
 			expect(pending).toHaveLength(1);
 			expect(pending[0].request.body).toEqual({
-				sources: ["metacritic", "hltb"]
+				sources: ["metacritic", "hltb", "igdb"]
 			});
 			const busy = submitButton("Refreshing...");
 			expect(busy).toHaveAttribute("aria-disabled", "true");
