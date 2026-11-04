@@ -109,7 +109,7 @@ export interface GamesQuery extends Record<string, Appendable> {
 	detailed?: boolean;
 }
 
-export type ExternalDataSource = "metacritic" | "hltb";
+export type ExternalDataSource = "metacritic" | "hltb" | "igdb";
 
 export type ExternalDataRefreshStatus =
 	"updated" | "not_found" | "ambiguous" | "no_data" | "failed";

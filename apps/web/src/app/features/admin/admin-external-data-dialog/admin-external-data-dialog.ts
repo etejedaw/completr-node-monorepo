@@ -38,13 +38,18 @@ const SOURCE_OPTIONS: ExternalDataSourceOption[] = [
 		source: "hltb",
 		name: "HowLongToBeat",
 		label: "HowLongToBeat — duration"
+	},
+	{
+		source: "igdb",
+		name: "IGDB",
+		label: "IGDB — user score"
 	}
 ];
 
 function hasStoredValue(game: Game, source: ExternalDataSource): boolean {
-	return source === "metacritic"
-		? game.scores.some(score => score.source === "metacritic")
-		: game.times.some(time => time.source === "hltb");
+	return source === "hltb"
+		? game.times.some(time => time.source === "hltb")
+		: game.scores.some(score => score.source === source);
 }
 
 function missingSources(game: Game): ExternalDataSource[] {
@@ -64,12 +69,12 @@ function rawScoreDetails(result: ExternalDataRefreshResult): string[] {
 
 function updatedView(result: ExternalDataRefreshResult) {
 	const value =
-		result.source === "metacritic"
-			? typeof result.score === "number"
-				? `Score ${result.score}`
-				: null
-			: typeof result.duration === "number"
+		result.source === "hltb"
+			? typeof result.duration === "number"
 				? `${result.duration} h`
+				: null
+			: typeof result.score === "number"
+				? `Score ${result.score}`
 				: null;
 	return {
 		statusLabel: value ? `Updated: ${value}` : "Updated",
@@ -79,23 +84,25 @@ function updatedView(result: ExternalDataRefreshResult) {
 	};
 }
 
-function notFoundDetail(source: ExternalDataSource): string {
-	return source === "hltb"
-		? "The HowLongToBeat ID of this game couldn't be found automatically. Add it by hand from the game editor and refresh again."
-		: "No Metacritic page was found for this game. If its slug differs from the title, set the Metacritic slug from the game editor and refresh again.";
-}
+const NOT_FOUND_DETAILS: Record<ExternalDataSource, string> = {
+	hltb: "The HowLongToBeat ID of this game couldn't be found automatically. Add it by hand from the game editor and refresh again.",
+	metacritic:
+		"No Metacritic page was found for this game. If its slug differs from the title, set the Metacritic slug from the game editor and refresh again.",
+	igdb: "No IGDB entry was found for this game by its title, so there is nothing to link yet."
+};
 
-function ambiguousHint(source: ExternalDataSource): string {
-	return source === "hltb"
-		? "Add the HowLongToBeat ID by hand from the game editor and refresh again."
-		: "Set the Metacritic slug from the game editor to point to the right page and refresh again.";
-}
+const AMBIGUOUS_HINTS: Record<ExternalDataSource, string> = {
+	hltb: "Add the HowLongToBeat ID by hand from the game editor and refresh again.",
+	metacritic:
+		"Set the Metacritic slug from the game editor to point to the right page and refresh again.",
+	igdb: "IGDB is searched by title, so a generic title can match several entries. The game was left unlinked."
+};
 
-function noDataDetail(source: ExternalDataSource): string {
-	return source === "hltb"
-		? "The HowLongToBeat page has no Main Story time yet."
-		: "The Metacritic page has no score yet.";
-}
+const NO_DATA_DETAILS: Record<ExternalDataSource, string> = {
+	hltb: "The HowLongToBeat page has no Main Story time yet.",
+	metacritic: "The Metacritic page has no score yet.",
+	igdb: "The game is on IGDB but doesn't have a user score yet."
+};
 
 const DEADLINE_EXCEEDED_CODE = "EXTERNAL_DATA_DEADLINE_EXCEEDED";
 
@@ -118,7 +125,7 @@ function resultView(
 				statusLabel: "Not found",
 				icon: "search_off",
 				tone: "warning",
-				details: [notFoundDetail(result.source)]
+				details: [NOT_FOUND_DETAILS[result.source]]
 			};
 		case "ambiguous":
 			return {
@@ -127,7 +134,7 @@ function resultView(
 				tone: "warning",
 				details: [
 					"The page found doesn't clearly match this game, so nothing was saved.",
-					ambiguousHint(result.source),
+					AMBIGUOUS_HINTS[result.source],
 					...rawScoreDetails(result)
 				]
 			};
@@ -137,7 +144,7 @@ function resultView(
 				icon: "remove_circle_outline",
 				tone: "neutral",
 				details: [
-					noDataDetail(result.source),
+					NO_DATA_DETAILS[result.source],
 					...rawScoreDetails(result)
 				]
 			};
@@ -217,12 +224,12 @@ export class AdminExternalDataDialog {
 
 	protected storedValue(source: ExternalDataSource): string {
 		const game = this.game();
-		if (source === "metacritic") {
-			const score = game.scores.find(s => s.source === "metacritic");
-			return score ? `Current: ${score.score}` : "Missing";
+		if (source === "hltb") {
+			const time = game.times.find(t => t.source === "hltb");
+			return time ? `Current: ${time.duration} h` : "Missing";
 		}
-		const time = game.times.find(t => t.source === "hltb");
-		return time ? `Current: ${time.duration} h` : "Missing";
+		const score = game.scores.find(s => s.source === source);
+		return score ? `Current: ${score.score}` : "Missing";
 	}
 
 	protected submit() {
