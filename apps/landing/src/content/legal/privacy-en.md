@@ -1,7 +1,7 @@
 ---
 lang: en
-version: "2.2"
-updated: 2026-11-01
+version: "2.3"
+updated: 2026-11-04
 title: Privacy Policy
 summary: "The idea is simple: I collect the minimum needed for the app to work, I never sell your data or share it for commercial purposes, and you can delete it whenever you want."
 highlights:
@@ -105,9 +105,9 @@ I don't hand it to anyone for commercial purposes. But for the app to work, your
 - **Email service** (São Paulo, Brazil). It receives the email address you leave when you request an invitation.
 - **DeepSeek** (China). It writes the AI summary of the Rewind. It only receives data when you generate a Rewind that includes that summary, and only the data for that year: your games, with their dates, platform, genres, hours and your ratings, and the statistics calculated from them. Your notes and your private runs only go if you turn on their switches. It receives nothing that identifies you: no email, username, display name or account ID, only your runs. The request is sent from my servers, so it doesn't see your IP address either. The only exception is anything identifying you write yourself in your notes, and only if you choose to include them. DeepSeek stores and processes that data in China. Its terms don't set how long it keeps what it receives through its API or say whether it uses it to train its models: its general policy allows that use for its own services and lets you object by writing to privacy@deepseek.com. Since the request carries nothing that identifies you, that copy isn't linked to you.
 
-Video game data comes from external catalogs and sites (such as RAWG, Metacritic, HowLongToBeat and Wikidata), but that's information I _receive_: I never send your personal data to those services.
+Video game data comes from external catalogs and sites (such as RAWG, IGDB, Metacritic, HowLongToBeat and Wikidata), but that's information I _receive_: I never send your personal data to those services.
 
-Beyond those, there are no third parties. Fonts and icons are served from my own servers, so your browser doesn't connect to Google or any external CDN while you use Completr.
+Beyond those and the image servers described next, there are no third parties. Fonts and icons are served from my own servers, so your browser doesn't connect to Google or any external CDN for them. Game images (covers and backgrounds) are loaded directly from the RAWG and IGDB image servers: your browser connects to them to download the images and, as with any connection, they see your IP address and browser, but they don't receive any other data about you.
 
 ## Transfers outside Chile
 

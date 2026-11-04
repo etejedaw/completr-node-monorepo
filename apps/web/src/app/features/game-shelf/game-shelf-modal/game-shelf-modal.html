@@ -53,6 +53,8 @@
 		[results]="search.results()"
 		[status]="search.status()"
 		[onlineSearching]="search.forceSearching()"
+		[onlineSearchUnavailable]="search.onlineSearchUnavailable()"
+		[onlineSearchSource]="search.onlineSearchSource()"
 		[autofocus]="returnedToSearch()"
 		[(query)]="searchQuery"
 		(picked)="selectGame($event)"

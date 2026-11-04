@@ -10,9 +10,11 @@ import * as gamePopularityService from "../game-popularity/game-popularity.servi
 import * as gameScoresService from "../game-scores/game-scores.service";
 import * as gameTimesService from "../game-times/game-times.service";
 import {
-	EXTERNAL_DATA_SOURCES,
 	EXTERNAL_DATA_THROTTLE_SUFFIXES,
-	HLTB_ID_LOOKUP_PAUSED
+	HLTB_ID_LOOKUP_PAUSED,
+	IGDB_AUTH_ERROR,
+	IGDB_DISABLED,
+	REQUIRED_EXTERNAL_DATA_SOURCES
 } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import { type ExternalDataResult } from "../games/games-external-data.interface";
@@ -35,6 +37,7 @@ const EXTERNAL_DATA_STOP_SUFFIXES = [
 	...EXTERNAL_DATA_THROTTLE_SUFFIXES,
 	"_PARSE_ERROR"
 ];
+const EXTERNAL_DATA_STOP_CODES = [IGDB_AUTH_ERROR, IGDB_DISABLED];
 const MAX_CONSECUTIVE_TRANSIENT_FAILURES = 3;
 const HLTB_ID_LOOKUP_ERROR_PREFIX = "WIKIDATA_";
 const EXTERNAL_DATA_JOB_OPERATION = "populate_external_data";
@@ -181,7 +184,9 @@ async function runPopulateRawg(jobId: string, limit?: number) {
 }
 
 export async function startPopulateExternalData(limit?: number) {
-	gamesService.assertExternalDataSourcesAvailable(EXTERNAL_DATA_SOURCES);
+	gamesService.assertExternalDataSourcesAvailable(
+		REQUIRED_EXTERNAL_DATA_SOURCES
+	);
 
 	return startJob("populate_external_data", jobId =>
 		runPopulateExternalData(jobId, limit)
@@ -215,7 +220,9 @@ function emptyTally(): ExternalDataSourceTally {
 	return { updated: 0, notFound: 0, ambiguous: 0, noData: 0, failed: 0 };
 }
 
-function emptyExternalDataReport(): ExternalDataJobReport {
+function emptyExternalDataReport(
+	isIgdbTracked: boolean
+): ExternalDataJobReport {
 	return {
 		candidates: 0,
 		processed: 0,
@@ -223,6 +230,7 @@ function emptyExternalDataReport(): ExternalDataJobReport {
 		skippedRecentlyAttempted: 0,
 		metacritic: emptyTally(),
 		hltb: emptyTally(),
+		igdb: isIgdbTracked ? emptyTally() : null,
 		hltbIdLookupPausedReason: null,
 		hltbSkippedWithoutId: 0
 	};
@@ -240,11 +248,16 @@ function describeHltbIdLookupPause(report: ExternalDataJobReport) {
 			];
 }
 
+function describeIgdbUpdated(report: ExternalDataJobReport) {
+	return report.igdb ? `, IGDB scores updated: ${report.igdb.updated}` : "";
+}
+
 function describeExternalDataReport(report: ExternalDataJobReport) {
 	return [
-		`Candidates: ${report.candidates}, Processed: ${report.processed}, Metacritic scores updated: ${report.metacritic.updated}, HLTB durations updated: ${report.hltb.updated}, Skipped complete: ${report.skippedComplete}, Skipped recently attempted: ${report.skippedRecentlyAttempted}`,
+		`Candidates: ${report.candidates}, Processed: ${report.processed}, Metacritic scores updated: ${report.metacritic.updated}, HLTB durations updated: ${report.hltb.updated}${describeIgdbUpdated(report)}, Skipped complete: ${report.skippedComplete}, Skipped recently attempted: ${report.skippedRecentlyAttempted}`,
 		describeTally("Metacritic", report.metacritic),
 		describeTally("HLTB", report.hltb),
+		...(report.igdb ? [describeTally("IGDB", report.igdb)] : []),
 		...describeHltbIdLookupPause(report)
 	].join(". ");
 }
@@ -262,8 +275,9 @@ function describeFailureDetail(result: ExternalDataResult) {
 }
 
 function isStopFailure(errorCode: string) {
-	return EXTERNAL_DATA_STOP_SUFFIXES.some(suffix =>
-		errorCode.endsWith(suffix)
+	return (
+		EXTERNAL_DATA_STOP_CODES.includes(errorCode) ||
+		EXTERNAL_DATA_STOP_SUFFIXES.some(suffix => errorCode.endsWith(suffix))
 	);
 }
 
@@ -295,7 +309,8 @@ function tallyExternalDataResults(
 			continue;
 		}
 
-		report[result.source][TALLY_KEY_BY_STATUS[result.status]]++;
+		const tally = report[result.source];
+		if (tally) tally[TALLY_KEY_BY_STATUS[result.status]]++;
 		if (result.status !== "failed") {
 			streaks[result.source] = 0;
 			if (result.source === "hltb") streaks.wikidata = 0;
@@ -345,10 +360,13 @@ function warnIfHltbIdLookupJustPaused(
 }
 
 async function runPopulateExternalData(jobId: string, limit?: number) {
-	const report = emptyExternalDataReport();
+	const report = emptyExternalDataReport(
+		gamesService.isExternalDataSourceTracked("igdb")
+	);
 	const streaks: ExternalDataFailureStreaks = {
 		metacritic: 0,
 		hltb: 0,
+		igdb: 0,
 		wikidata: 0
 	};
 

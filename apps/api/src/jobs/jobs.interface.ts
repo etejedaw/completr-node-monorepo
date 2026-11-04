@@ -13,6 +13,7 @@ export interface ExternalDataJobReport {
 	skippedRecentlyAttempted: number;
 	metacritic: ExternalDataSourceTally;
 	hltb: ExternalDataSourceTally;
+	igdb: ExternalDataSourceTally | null;
 	hltbIdLookupPausedReason: string | null;
 	hltbSkippedWithoutId: number;
 }
@@ -20,5 +21,6 @@ export interface ExternalDataJobReport {
 export interface ExternalDataFailureStreaks {
 	metacritic: number;
 	hltb: number;
+	igdb: number;
 	wikidata: number;
 }

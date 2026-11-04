@@ -72,18 +72,90 @@ describe("GamesService", () => {
 			httpTesting
 				.expectOne(`${api}/games/search?query=a%26b%20c`)
 				.flush({ data: { games: [{ id: "g1" }] } });
-			expect(result).toEqual([{ id: "g1" }]);
+			expect(result).toEqual({
+				games: [{ id: "g1" }],
+				onlineSearchUnavailable: false,
+				onlineSearchSource: undefined
+			});
 		});
 
-		it("forces the RAWG lookup when asked", () => {
+		it("reports the online search as unavailable when the API says so", () => {
+			let result: unknown;
+
+			service.search("zelda").subscribe(r => (result = r));
+
+			httpTesting
+				.expectOne(`${api}/games/search?query=zelda`)
+				.flush({ data: { games: [], onlineSearchAvailable: false } });
+			expect(result).toEqual({
+				games: [],
+				onlineSearchUnavailable: true,
+				onlineSearchSource: undefined
+			});
+		});
+
+		it("reports the online search as available when a source answered with nothing", () => {
+			let result: unknown;
+
+			service.search("zelda").subscribe(r => (result = r));
+
+			httpTesting.expectOne(`${api}/games/search?query=zelda`).flush({
+				data: {
+					games: [],
+					onlineSearchAvailable: true,
+					onlineSearchSource: "rawg"
+				}
+			});
+			expect(result).toEqual({
+				games: [],
+				onlineSearchUnavailable: false,
+				onlineSearchSource: "rawg"
+			});
+		});
+
+		it.each(["rawg", "igdb"] as const)(
+			"keeps %s as the source that answered",
+			source => {
+				let result: { onlineSearchSource?: string } | undefined;
+
+				service.search("zelda").subscribe(r => (result = r));
+
+				httpTesting.expectOne(`${api}/games/search?query=zelda`).flush({
+					data: {
+						games: [{ id: "g1", justImported: true }],
+						onlineSearchAvailable: true,
+						onlineSearchSource: source
+					}
+				});
+				expect(result?.onlineSearchSource).toBe(source);
+			}
+		);
+
+		it("forces the online lookup when asked", () => {
 			service.search("zelda", true).subscribe();
 
 			httpTesting
-				.expectOne(`${api}/games/search?query=zelda&force_rawg=true`)
+				.expectOne(`${api}/games/search?query=zelda&force_online=true`)
 				.flush({ data: { games: [] } });
 		});
 
-		it("warns the user and rethrows when the forced RAWG search fails", () => {
+		it("answers 200 with both sources down as unavailable without a toast", () => {
+			let result: unknown;
+
+			service.search("zelda", true).subscribe(r => (result = r));
+
+			httpTesting
+				.expectOne(`${api}/games/search?query=zelda&force_online=true`)
+				.flush({ data: { games: [], onlineSearchAvailable: false } });
+			expect(result).toEqual({
+				games: [],
+				onlineSearchUnavailable: true,
+				onlineSearchSource: undefined
+			});
+			expect(toast.warning).not.toHaveBeenCalled();
+		});
+
+		it("warns the user and rethrows when the forced search fails for another reason", () => {
 			let failure: HttpErrorResponse | undefined;
 
 			service.search("zelda", true).subscribe({
@@ -91,18 +163,15 @@ describe("GamesService", () => {
 			});
 
 			httpTesting
-				.expectOne(`${api}/games/search?query=zelda&force_rawg=true`)
-				.flush(
-					{ type: "RAWG_REQUEST_ERROR" },
-					{ status: 502, statusText: "Bad Gateway" }
-				);
-			expect(failure?.status).toBe(502);
+				.expectOne(`${api}/games/search?query=zelda&force_online=true`)
+				.flush({}, { status: 500, statusText: "Server Error" });
+			expect(failure?.status).toBe(500);
 			expect(toast.warning).toHaveBeenCalledWith(
 				"Couldn't search online right now. Try again in a moment."
 			);
 		});
 
-		it("leaves the rate limit warning to the error interceptor", () => {
+		it("leaves our own rate limit warning to the error interceptor", () => {
 			let failure: HttpErrorResponse | undefined;
 
 			service.search("zelda", true).subscribe({
@@ -110,9 +179,9 @@ describe("GamesService", () => {
 			});
 
 			httpTesting
-				.expectOne(`${api}/games/search?query=zelda&force_rawg=true`)
+				.expectOne(`${api}/games/search?query=zelda&force_online=true`)
 				.flush(
-					{ type: "RAWG_RATE_LIMITED" },
+					{ type: "AUTH_RATE_LIMITED" },
 					{ status: 429, statusText: "Too Many Requests" }
 				);
 			expect(failure?.status).toBe(429);

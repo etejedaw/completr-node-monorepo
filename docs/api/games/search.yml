@@ -14,7 +14,7 @@ settings:
 docs: |-
     ## Search Games
 
-    Searches for games by title. Local results are ordered by relevance: exact title first, then titles starting with the term, then the rest, alphabetical within each group. First searches locally, then falls back to RAWG API if no local results found. If RAWG finds a match, the game is automatically created in the database with scores, times, genres and platforms.
+    Searches for games by title. Local results are ordered by relevance: exact title first, then titles starting with the term, then the rest, alphabetical within each group. First searches locally, then falls back to the online search if no local results are found. The online search is a chain of sources: RAWG first and, only when RAWG fails, IGDB. A game found online is created in the database with its platforms, genres and scores (RAWG also brings times; IGDB brings its user score) and linked to the source with a `GameExternal`.
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
@@ -24,8 +24,8 @@ docs: |-
     | Param | Type   | Required | Description                   |
     |-------|--------|----------|-------------------------------|
     | query | string | Yes      | Search term (1-200 chars). Local matching ignores case, accents and punctuation; every word must match the title, in any order; `%`, `_` and `\` are literal. A term without letters or digits finds nothing locally |
-    | force_rawg | bool | No     | `true` skips the local search and goes straight to RAWG, and a failure of the RAWG search is returned as an error (see Errors). Accepts `true` / `false` |
-    | local_only | bool | No     | `true` searches only the local catalog (max 10 results, no RAWG fallback). Accepts `true` / `false` |
+    | force_online | bool | No   | `true` skips the local search and goes straight to the online search. Accepts `true` / `false` |
+    | local_only | bool | No     | `true` searches only the local catalog (max 10 results, no online search). Accepts `true` / `false` |
 
     ### Response (200)
 
@@ -47,19 +47,17 @@ docs: |-
             "scores": [{ "source": "metacritic", "score": 95 }],
             "times": [{ "source": "rawg", "duration": 62 }]
           }
-        ]
+        ],
+        "onlineSearchAvailable": true,
+        "onlineSearchSource": "rawg"
       }
     }
     ```
 
-    Returns empty array if no results found locally or in RAWG.
+    Returns empty array if no results found locally or online.
 
-    Without `force_rawg`, a failure of the RAWG fallback (rate limit, 5xx, network) is logged and the response is still 200 with an empty `games` array. Failures resolving an individual RAWG result or the slug of the query are always tolerated and skipped.
+    `onlineSearchAvailable` is only present when the search went online (no local match, or `force_online=true`). It is `true` when a source answered, even with no games, and `false` when every source failed. `onlineSearchSource` (`rawg` or `igdb`) is only present when `onlineSearchAvailable` is `true` and says which source answered; every game imported in that response comes from it. Both are absent when the answer comes from the local catalog or with `local_only=true`.
 
-    ### Errors
+    A source fails when it is disabled or not configured, when its search fails (rate limit, 5xx, network, unreadable body), or when it listed results but every one of them failed to import. RAWG answering with no results is not a failure, so IGDB is not asked. Source failures are logged and never turned into an error response: when every source fails the response is still 200 with an empty `games` array and `onlineSearchAvailable: false`.
 
-    Only with `force_rawg=true`, when the RAWG search itself fails:
-
-    - 429 `RAWG_RATE_LIMITED` — RAWG rate limited the search
-    - 502 `RAWG_REQUEST_ERROR` — RAWG answered with a 5xx or the network to RAWG failed
-    - 502 `RAWG_PARSE_ERROR` — RAWG answered with an unreadable body
+    RAWG imports up to 3 results plus the exact slug of the query and skips additions. IGDB asks for 10 candidates, keeps main games, standalone expansions, remakes, remasters, expanded games and ports (no DLC, bundles, mods, episodes, seasons, forks, packs or updates) and imports the first 3. An IGDB result whose title matches a catalog game is linked to it instead of imported; results with the same title collapse into one game with one IGDB id.

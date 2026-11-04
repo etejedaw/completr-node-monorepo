@@ -19,7 +19,7 @@ settings:
 docs: |-
     ## Start Populate External Data
 
-    Background job that fills the missing Metacritic scores and HowLongToBeat Main Story durations of the catalog, using the same per-game flow as `POST /games/:id/external-data/refresh`. Only one `populate_external_data` job can be running or pending at a time; a second call returns the running job.
+    Background job that fills the missing Metacritic scores, HowLongToBeat Main Story durations and IGDB scores of the catalog, using the same per-game flow as `POST /games/:id/external-data/refresh`. Only one `populate_external_data` job can be running or pending at a time; a second call returns the running job.
 
     **Authentication:** Hidden route — admin only.
     **Rate Limit:** 50 requests per minute (user).
@@ -48,27 +48,30 @@ docs: |-
 
     ### Behavior while running
 
-    - Candidates: active games missing the `metacritic` score or the `hltb` time (either one). Each game is asked only for the missing sources that are not waiting after a recent attempt. External ids do not exclude anyone.
-    - Recent attempts: every `not_found`, `ambiguous`, `no_data` or `failed` result is remembered per game and source, and that source is skipped for 30 days (`not_found`, `ambiguous`) or 7 days (`no_data`, `failed`). Rate limits, blocks, parse errors, Wikidata failures and the HLTB id lookup pause are not remembered. A game whose missing sources are all waiting is not a candidate and is counted as skipped recently attempted.
+    - Candidates: active games missing the `metacritic` score, the `hltb` time or, when IGDB is registered, the `igdb` score (any of them). IGDB is optional: without it (for example, no IGDB credentials) the job runs with Metacritic and HLTB, never asks IGDB and leaves IGDB out of the result string. Each game is asked only for the missing sources that are not waiting after a recent attempt. External ids do not exclude anyone.
+    - Recent attempts: every `not_found`, `ambiguous`, `no_data` or `failed` result is remembered per game and source, and that source is skipped for 30 days (`not_found`, `ambiguous`) or 7 days (`no_data`, `failed`). Rate limits, blocks, parse errors, `IGDB_AUTH_ERROR`, `IGDB_DISABLED`, Wikidata failures and the HLTB id lookup pause are not remembered. A game whose missing sources are all waiting is not a candidate and is counted as skipped recently attempted.
     - Order: games never attempted first, then the oldest attempt first, ties by title. A stopped run is picked up by the next one where it left off.
     - Games are processed one at a time and each value is saved as soon as it is found; cancellation is checked before each game. A cancelled job stays `cancelled` and records its partial result.
     - `not_found`, `ambiguous` and `no_data` are counted and the job continues.
-    - A `*_RATE_LIMITED`, `*_BLOCKED` or `*_PARSE_ERROR` failure, or a database error, stops the job as `failed`. `*_TIMEOUT`, `*_REQUEST_ERROR` and unknown failures are counted and the job continues, unless the same source fails three times in a row.
+    - A `*_RATE_LIMITED`, `*_BLOCKED` or `*_PARSE_ERROR` failure, `IGDB_AUTH_ERROR` or `IGDB_DISABLED`, or a database error, stops the job as `failed`. `*_TIMEOUT`, `*_REQUEST_ERROR` and unknown failures are counted and the job continues, unless the same source fails three times in a row.
     - Wikidata failures (the HLTB id lookup) never stop the job. `WIKIDATA_RATE_LIMITED`, `WIKIDATA_BLOCKED`, `WIKIDATA_PARSE_ERROR`, or three Wikidata timeouts/request errors in a row, pause the HLTB id lookup for the rest of the run: games without a known HLTB id skip HLTB, games with one still read it, and Metacritic goes on. In the background, Wikidata's `Retry-After` is honored up to 10 minutes before giving up.
+    - IGDB requests are spaced at least 275 ms apart, below the 4 requests per second IGDB allows.
     - Values saved before a stop are kept.
 
     ### Result string
 
-    `Candidates: C, Processed: P, Metacritic scores updated: M, HLTB durations updated: H, Skipped complete: S, Skipped recently attempted: R. Metacritic not found: n, ambiguous: a, no data: d, failed: f. HLTB not found: n, ambiguous: a, no data: d, failed: f`
+    `Candidates: C, Processed: P, Metacritic scores updated: M, HLTB durations updated: H[, IGDB scores updated: I], Skipped complete: S, Skipped recently attempted: R. Metacritic not found: n, ambiguous: a, no data: d, failed: f. HLTB not found: n, ambiguous: a, no data: d, failed: f[. IGDB not found: n, ambiguous: a, no data: d, failed: f]`
+
+    The bracketed IGDB parts only appear when IGDB is registered.
 
     - Running: prefixed with `Running. ` and updated after each game.
     - Cancelled: prefixed with `Cancelled. `
     - HLTB id lookup paused: followed by `. HLTB ID lookup paused: <reason>, HLTB skipped without ID: N`.
-    - Failed: followed by `. Stopped: <reason>` (for example `METACRITIC_BLOCKED` or `HLTB_TIMEOUT (3 failures in a row)`).
+    - Failed: followed by `. Stopped: <reason>` (for example `METACRITIC_BLOCKED`, `IGDB_AUTH_ERROR` or `HLTB_TIMEOUT (3 failures in a row)`).
     - When the site answered with an HTTP status or a `Retry-After`, the reason includes them: `METACRITIC_RATE_LIMITED (HTTP 429, Retry-After 3600 s)`.
 
     ### Errors
 
     - 404 `AUTH_ROUTE_NOT_FOUND` — Caller is not admin.
     - 422 `COMMON_SCHEMA_INVALID` — `limit` is not a positive integer, or an unknown query param is sent.
-    - 503 `GAME_EXTERNAL_DATA_SOURCE_UNAVAILABLE` — A scraper is not registered on the server; the job is not started.
+    - 503 `GAME_EXTERNAL_DATA_SOURCE_UNAVAILABLE` — Metacritic or HLTB is not registered on the server; the job is not started. A missing IGDB never causes it.

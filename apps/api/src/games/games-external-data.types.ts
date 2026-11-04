@@ -1,3 +1,4 @@
+import { type IgdbGame } from "../igdb/igdb.interface";
 import {
 	type HltbSourceDetail,
 	type MetacriticSourceDetail
@@ -27,4 +28,8 @@ export type HltbLookup =
 
 export type HltbIdResolution =
 	| { status: "resolved"; hltbId: string; matchedBy: "rawg_slug" | "label" }
+	| { status: "not_found" | "ambiguous" };
+
+export type IgdbLookup =
+	| { status: "matched"; detail: IgdbGame; isNewMatch: boolean }
 	| { status: "not_found" | "ambiguous" };

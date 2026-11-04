@@ -190,10 +190,10 @@ void describe("GET /games/search without local_only", () => {
 		assert.equal(response.body.data.games[0].justImported, false);
 	});
 
-	void it("treats force_rawg=false as false and searches the local catalog", async () => {
+	void it("treats force_online=false as false and searches the local catalog", async () => {
 		const response = await searchGames({
 			query: "metroid",
-			force_rawg: "false"
+			force_online: "false"
 		});
 
 		assert.equal(response.status, 200);

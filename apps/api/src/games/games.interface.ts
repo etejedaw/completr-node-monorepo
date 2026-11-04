@@ -1,5 +1,7 @@
 import { type TimeSource } from "../game-times/game-time.model";
 import { type RegisterGameDto } from "./dtos/register-game.dto";
+import { type Game } from "./game.model";
+import { type OnlineSearchSource } from "./games.types";
 
 export interface GamesPagination {
 	limit?: number;
@@ -150,4 +152,20 @@ export interface InheritedParentAssets {
 	genreIds: string[];
 	scores: { source: string; score: number }[];
 	times: { source: TimeSource; duration: number }[];
+}
+
+export interface ResolvedOnlineGame {
+	game: Game;
+	justImported: boolean;
+}
+
+export interface OnlineSearchFound {
+	available: true;
+	source: OnlineSearchSource;
+	games: Game[];
+	importedIds: Set<string>;
+}
+
+export interface OnlineSearchUnavailable {
+	available: false;
 }

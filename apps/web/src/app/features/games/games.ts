@@ -4,7 +4,7 @@ import {
 	type HttpErrorResponse
 } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { catchError, map, throwError } from "rxjs";
+import { catchError, map, type Observable, throwError } from "rxjs";
 
 import { environment } from "../../../environments/environment";
 import {
@@ -24,6 +24,7 @@ import {
 	type GamesResponse,
 	type GamesSearchResponse,
 	type GenresResponse,
+	type OnlineGameSearchResult,
 	type PlatformsResponse,
 	type RawgDetail,
 	type SetCompilationItemsDto,
@@ -52,16 +53,24 @@ export class GamesService {
 		});
 	}
 
-	search(query: string, forceRawg = false) {
-		const params = `query=${encodeURIComponent(query)}${forceRawg ? "&force_rawg=true" : ""}`;
+	search(
+		query: string,
+		forceOnline = false
+	): Observable<OnlineGameSearchResult> {
+		const params = `query=${encodeURIComponent(query)}${forceOnline ? "&force_online=true" : ""}`;
 		return this.http
 			.get<GamesSearchResponse>(
 				`${environment.apiUrl}/games/search?${params}`
 			)
 			.pipe(
-				map(res => res.data.games),
+				map(res => ({
+					games: res.data.games,
+					onlineSearchUnavailable:
+						res.data.onlineSearchAvailable === false,
+					onlineSearchSource: res.data.onlineSearchSource
+				})),
 				catchError((error: HttpErrorResponse) => {
-					if (forceRawg && error.status !== RATE_LIMITED_STATUS)
+					if (forceOnline && error.status !== RATE_LIMITED_STATUS)
 						this.toast.warning(ONLINE_SEARCH_FAILED_MESSAGE);
 					return throwError(() => error);
 				})

@@ -23,7 +23,34 @@
 <ng-container
 	*ngTemplateOutlet="searchingRows; context: { $implicit: 'Searching online…' }"
 />
-} @default { @if (results().length === 0) {
+} @default { @if (results().length === 0 && onlineSearchUnavailable()) {
+<div
+	class="flex flex-col items-center text-center gap-2 px-6 py-10"
+	role="status"
+>
+	<span aria-hidden="true" class="material-icons text-3xl text-warning"
+		>cloud_off</span
+	>
+	<p class="m-0 text-sm font-semibold text-fg">{{ unavailableTitle }}</p>
+	<p class="m-0 text-[0.8125rem] text-fg-muted max-w-[20rem]">
+		{{ unavailableHint }}
+	</p>
+	<button
+		uiButton
+		variant="secondary"
+		size="sm"
+		type="button"
+		class="mt-2 min-h-[44px]"
+		[disabled]="onlineSearching()"
+		(click)="searchOnline.emit()"
+	>
+		<span aria-hidden="true" class="material-icons text-base">refresh</span>
+		{{ onlineSearching() ? "Searching online..." : "Try again" }}
+	</button>
+</div>
+} @else if (results().length === 0) { @if (onlineSearchSource() === 'igdb') {
+<app-online-source-note class="px-5 md:px-6 pt-1" />
+}
 <div
 	class="flex flex-col items-center text-center gap-2 px-6 py-10"
 	role="status"
@@ -52,7 +79,9 @@
 	</button>
 	}
 </div>
-} @else {
+} @else { @if (onlineSearchSource() === 'igdb') {
+<app-online-source-note class="px-5 md:px-6 pt-1 pb-2" />
+}
 <p class="sr-only" role="status">
 	{{ results().length }} {{ results().length === 1 ? "game" : "games" }} found
 </p>
@@ -79,14 +108,14 @@
 				} @if (game.justImported) {
 				<span
 					class="inline-flex items-center gap-1 px-1.5 py-px rounded-full bg-info/15 text-info text-[0.625rem] font-semibold uppercase tracking-[0.16em]"
-					title="Just imported from RAWG"
+					[attr.title]="'Just imported from ' + sourceLabel()"
 				>
 					<span
 						aria-hidden="true"
 						class="material-icons text-[0.75rem]"
 						>cloud_download</span
 					>
-					RAWG
+					{{ sourceLabel() }}
 				</span>
 				} @if (game.isDlc) {
 				<span

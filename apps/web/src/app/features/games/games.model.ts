@@ -1,4 +1,9 @@
-import { type Game, type Genre, type Platform } from "../../core/models";
+import {
+	type Game,
+	type Genre,
+	type OnlineSearchSource,
+	type Platform
+} from "../../core/models";
 import { type Appendable } from "../../core/utils/http-params";
 
 export interface GamesResponse {
@@ -6,7 +11,17 @@ export interface GamesResponse {
 }
 
 export interface GamesSearchResponse {
-	data: { games: Game[] };
+	data: {
+		games: Game[];
+		onlineSearchAvailable?: boolean;
+		onlineSearchSource?: OnlineSearchSource;
+	};
+}
+
+export interface OnlineGameSearchResult {
+	games: Game[];
+	onlineSearchUnavailable: boolean;
+	onlineSearchSource?: OnlineSearchSource;
 }
 
 export interface PlatformsResponse {
@@ -104,7 +119,7 @@ export interface GamesQuery extends Record<string, Appendable> {
 	detailed?: boolean;
 }
 
-export type ExternalDataSource = "metacritic" | "hltb";
+export type ExternalDataSource = "metacritic" | "hltb" | "igdb";
 
 export type ExternalDataRefreshStatus =
 	"updated" | "not_found" | "ambiguous" | "no_data" | "failed";

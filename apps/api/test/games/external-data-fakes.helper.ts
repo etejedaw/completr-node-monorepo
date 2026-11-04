@@ -10,12 +10,14 @@ import {
 	type MetacriticSourceDetail
 } from "../../src/games/games-external-data.interface";
 import { registerExternalDataSources } from "../../src/games/services/external-data-sources.service";
+import { type IgdbGame } from "../../src/igdb/igdb.interface";
 
 type FakeOutcome<T> = T | Error | Promise<T>;
 
 function providerServiceOf(code: string) {
 	if (code.startsWith("HLTB")) return "HLTB Provider";
 	if (code.startsWith("WIKIDATA")) return "Wikidata Provider";
+	if (code.startsWith("IGDB")) return "IGDB Provider";
 	return "Metacritic Provider";
 }
 
@@ -86,6 +88,50 @@ export function fakeHltb(
 	return { calls, source };
 }
 
+export function igdbGame(
+	overrides: Partial<IgdbGame> & { id: number; name: string }
+): IgdbGame {
+	return {
+		slug: overrides.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+		...overrides
+	};
+}
+
+export function igdbReleaseDate(year: number) {
+	return Date.UTC(year, 5, 15) / 1000;
+}
+
+export function fakeIgdb(respond: {
+	byId?: (id: number) => FakeOutcome<IgdbGame> | undefined;
+	bySlug?: (slug: string) => FakeOutcome<IgdbGame> | undefined;
+	search?: (query: string) => FakeOutcome<IgdbGame[]>;
+}) {
+	const calls: string[] = [];
+	const source = {
+		getGameById(id: number) {
+			calls.push(`id:${id}`);
+			return settle(respond.byId?.(id), "IGDB_NOT_FOUND");
+		},
+		getGameBySlug(slug: string) {
+			calls.push(`slug:${slug}`);
+			return settle(respond.bySlug?.(slug), "IGDB_NOT_FOUND");
+		},
+		searchGame(query: string) {
+			calls.push(`search:${query}`);
+			return settle(respond.search?.(query) ?? [], "IGDB_NOT_FOUND");
+		}
+	};
+	return { calls, source };
+}
+
+export function igdbGames(games: IgdbGame[]) {
+	return fakeIgdb({
+		byId: id => games.find(game => game.id === id),
+		bySlug: slug => games.find(game => game.slug === slug),
+		search: () => games
+	});
+}
+
 export function hltbCandidate(
 	overrides: Partial<HltbIdCandidate> & { hltbId: string }
 ): HltbIdCandidate {
@@ -134,11 +180,13 @@ export function registerFakes(fakes: {
 	metacritic?: ReturnType<typeof fakeMetacritic>;
 	hltb?: ReturnType<typeof fakeHltb>;
 	wikidata?: ReturnType<typeof fakeWikidata>;
+	igdb?: ReturnType<typeof fakeIgdb>;
 }) {
 	registerExternalDataSources({
 		metacritic: fakes.metacritic?.source,
 		hltb: fakes.hltb?.source,
-		hltbIdResolver: fakes.wikidata?.source
+		hltbIdResolver: fakes.wikidata?.source,
+		igdb: fakes.igdb?.source
 	});
 }
 

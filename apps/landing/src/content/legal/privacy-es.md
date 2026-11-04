@@ -1,7 +1,7 @@
 ---
 lang: es
-version: "2.2"
-updated: 2026-11-01
+version: "2.3"
+updated: 2026-11-04
 title: Política de privacidad
 summary: "La idea de fondo es simple: recojo lo mínimo para que la app funcione, no vendo tus datos ni los cedo con fines comerciales, y puedes borrarlos cuando quieras."
 highlights:
@@ -105,9 +105,9 @@ A nadie se los cedo con fines comerciales. Pero para que la app funcione tus dat
 - **Servicio de correo** (São Paulo, Brasil). Recibe el correo que dejas al pedir una invitación.
 - **DeepSeek** (China). Escribe el resumen con IA del Rewind. Solo recibe datos cuando generas un Rewind que incluye ese resumen, y solo los de ese año: tus juegos, con sus fechas, plataforma, géneros, horas y tus puntuaciones, y las estadísticas calculadas a partir de ellos. Tus notas escritas y tus partidas privadas solo van si activas sus interruptores. No recibe nada que te identifique: ni tu correo, ni tu nombre de usuario, ni tu nombre visible, ni el identificador de tu cuenta, solo tus partidas. La petición sale desde mis servidores, así que tampoco ve tu dirección IP. La única excepción es lo que tú mismo escribas en tus notas que pueda identificarte, y solo si eliges incluirlas. DeepSeek almacena y procesa esos datos en China. Sus condiciones no fijan cuánto tiempo conserva lo que recibe por su API ni aclaran si lo usa para entrenar sus modelos: su política general contempla ese uso para sus propios servicios y permite oponerse escribiendo a privacy@deepseek.com. Como la petición no lleva nada que te identifique, esa copia no queda asociada a ti.
 
-Los datos de los videojuegos provienen de catálogos y sitios externos (como RAWG, Metacritic, HowLongToBeat y Wikidata), pero esa es información que _recibo_: nunca envío tus datos personales a esos servicios.
+Los datos de los videojuegos provienen de catálogos y sitios externos (como RAWG, IGDB, Metacritic, HowLongToBeat y Wikidata), pero esa es información que _recibo_: nunca envío tus datos personales a esos servicios.
 
-Fuera de esos, no hay terceros. Las tipografías y los iconos se sirven desde mis propios servidores, así que tu navegador no se conecta a Google ni a ninguna CDN externa mientras navegas por Completr.
+Fuera de esos y de los servidores de imágenes que explico a continuación, no hay terceros. Las tipografías y los iconos se sirven desde mis propios servidores, así que tu navegador no se conecta a Google ni a ninguna CDN externa por ellos. Las imágenes de los juegos (portadas y fondos) se cargan directamente desde los servidores de imágenes de RAWG e IGDB: tu navegador se conecta a ellos para descargarlas y, como en cualquier conexión, ven tu dirección IP y tu navegador, pero no reciben ningún otro dato tuyo.
 
 ## Salida de tus datos fuera de Chile
 

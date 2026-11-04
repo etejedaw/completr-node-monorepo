@@ -77,7 +77,8 @@ describe("GameSearchStep", () => {
 					isDlc: true,
 					justImported: true
 				})
-			]
+			],
+			onlineSearchSource: "rawg"
 		});
 		const rows = root(fixture).querySelectorAll("li");
 
@@ -97,6 +98,145 @@ describe("GameSearchStep", () => {
 		expect(
 			root(fixture).querySelector('p.sr-only[role="status"]')?.textContent
 		).toContain("1 game found");
+	});
+
+	it("explains that the online search is unavailable instead of saying nothing was found", () => {
+		const fixture = render({ onlineSearchUnavailable: true });
+		const searchOnline = vi.fn();
+		fixture.componentInstance.searchOnline.subscribe(searchOnline);
+
+		const notice = root(fixture).querySelector('[role="status"]');
+		expect(notice?.textContent).toContain("Online search is unavailable");
+		expect(notice?.textContent).toContain(
+			"This game isn't in Completr yet and the online search (RAWG and IGDB) isn't responding right now. Try again in a few minutes."
+		);
+		expect(notice?.textContent).not.toContain("No games found");
+		button(fixture, /Try again/).click();
+
+		expect(searchOnline).toHaveBeenCalledOnce();
+	});
+
+	it("disables the retry while the online search is running", () => {
+		const fixture = render({
+			onlineSearchUnavailable: true,
+			onlineSearching: true
+		});
+
+		expect(button(fixture, /Searching online/).disabled).toBe(true);
+	});
+
+	it("keeps the usual empty state while the online search is available", () => {
+		const fixture = render({ onlineSearchUnavailable: false });
+
+		expect(root(fixture).textContent).toContain("No games found");
+		expect(root(fixture).textContent).not.toContain(
+			"Online search is unavailable"
+		);
+	});
+
+	it("shows no IGDB note when RAWG answered or nothing online was searched", () => {
+		const withRawg = render({
+			results: [game()],
+			onlineSearchSource: "rawg"
+		});
+		const withoutSource = render({ results: [game()] });
+
+		expect(root(withRawg).textContent).not.toContain("RAWG is down");
+		expect(root(withoutSource).textContent).not.toContain("RAWG is down");
+	});
+
+	it("notes above the results that RAWG is down when IGDB answered", () => {
+		const fixture = render({
+			results: [game({ justImported: true })],
+			onlineSearchSource: "igdb"
+		});
+
+		const note = Array.from(
+			root(fixture).querySelectorAll('p[role="status"]')
+		).find(p => p.textContent?.includes("RAWG is down"));
+		expect(note?.textContent).toContain(
+			"RAWG is down, showing results from IGDB"
+		);
+		const list = root(fixture).querySelector("ul");
+		expect(
+			(note as Node).compareDocumentPosition(list as Node) &
+				Node.DOCUMENT_POSITION_FOLLOWING
+		).toBeTruthy();
+	});
+
+	it("notes that RAWG is down above No games found when IGDB found nothing", () => {
+		const fixture = render({ onlineSearchSource: "igdb" });
+
+		const text = root(fixture).textContent ?? "";
+		expect(text).toContain("RAWG is down, showing results from IGDB");
+		expect(text).toContain("No games found");
+		expect(text.indexOf("RAWG is down")).toBeLessThan(
+			text.indexOf("No games found")
+		);
+		expect(text).not.toContain("Online search is unavailable");
+	});
+
+	it.each([
+		["rawg", "RAWG"],
+		["igdb", "IGDB"]
+	])("labels a just imported game after the %s source", (source, label) => {
+		const fixture = render({
+			results: [game({ justImported: true })],
+			onlineSearchSource: source
+		});
+
+		const badge = root(fixture).querySelector(
+			`[title="Just imported from ${label}"]`
+		);
+		expect(badge?.textContent).toContain(label);
+	});
+
+	it("stops showing the IGDB note once the source goes away", () => {
+		const fixture = render({
+			results: [game()],
+			onlineSearchSource: "igdb"
+		});
+		expect(root(fixture).textContent).toContain("RAWG is down");
+
+		fixture.componentRef.setInput("onlineSearchSource", undefined);
+		fixture.detectChanges();
+
+		expect(root(fixture).textContent).not.toContain("RAWG is down");
+	});
+
+	it("moves from the unavailable notice to the IGDB results after a retry", () => {
+		const fixture = render({ onlineSearchUnavailable: true });
+		expect(root(fixture).textContent).toContain(
+			"Online search is unavailable"
+		);
+
+		fixture.componentRef.setInput("onlineSearchUnavailable", false);
+		fixture.componentRef.setInput("onlineSearchSource", "igdb");
+		fixture.componentRef.setInput("results", [
+			game({ justImported: true })
+		]);
+		fixture.detectChanges();
+
+		expect(root(fixture).textContent).not.toContain(
+			"Online search is unavailable"
+		);
+		expect(root(fixture).textContent).toContain(
+			"RAWG is down, showing results from IGDB"
+		);
+		expect(root(fixture).textContent).toContain("IGDB");
+	});
+
+	it("emits searchOnline on every click of Try again so the owner can ignore repeats", () => {
+		const fixture = render({ onlineSearchUnavailable: true });
+		const searchOnline = vi.fn();
+		fixture.componentInstance.searchOnline.subscribe(searchOnline);
+
+		button(fixture, /Try again/).click();
+		fixture.componentRef.setInput("onlineSearching", true);
+		fixture.detectChanges();
+		button(fixture, /Searching online/).click();
+
+		expect(searchOnline).toHaveBeenCalledTimes(1);
 	});
 
 	it("emits picked with the selected game", () => {

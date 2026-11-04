@@ -4,6 +4,7 @@ import { PinoLogger } from "./common/logger/pino.logger";
 import { initDatabase } from "./database/init.database";
 import { registerExternalDataSources } from "./games/services/external-data-sources.service";
 import { HltbClient } from "./hltb/hltb.provider";
+import { IgdbClient } from "./igdb/igdb.provider";
 import * as jobsService from "./jobs/jobs.service";
 import { MetacriticClient } from "./metacritic/metacritic.provider";
 import { createApp } from "./server";
@@ -19,11 +20,29 @@ function warnIfRawgDisabled() {
 	);
 }
 
+function warnIfIgdbDisabled() {
+	if (apiKeysConfig.IGDB_CLIENT_ID && apiKeysConfig.IGDB_CLIENT_SECRET)
+		return;
+	logger.warn(
+		"startup",
+		"IGDB_CLIENT_ID or IGDB_CLIENT_SECRET not set: the IGDB integration is disabled"
+	);
+}
+
+function createIgdbSourceIfEnabled() {
+	const igdb = IgdbClient.create(
+		apiKeysConfig.IGDB_CLIENT_ID,
+		apiKeysConfig.IGDB_CLIENT_SECRET
+	);
+	return igdb.isEnabled ? igdb : undefined;
+}
+
 function registerScrapingProviders() {
 	registerExternalDataSources({
 		metacritic: MetacriticClient.create(),
 		hltb: HltbClient.create(),
-		hltbIdResolver: WikidataClient.create()
+		hltbIdResolver: WikidataClient.create(),
+		igdb: createIgdbSourceIfEnabled()
 	});
 }
 
@@ -39,6 +58,7 @@ async function bootstrap() {
 	await initDatabase();
 	await failJobsInterruptedByRestart();
 	warnIfRawgDisabled();
+	warnIfIgdbDisabled();
 	registerScrapingProviders();
 
 	const port = environmentConfig.PORT;

@@ -4,7 +4,8 @@ import { RouterLink } from "@angular/router";
 const DATA_SOURCES = [
 	{ name: "RAWG.io", url: "https://rawg.io" },
 	{ name: "HowLongToBeat", url: "https://howlongtobeat.com" },
-	{ name: "Metacritic", url: "https://www.metacritic.com" }
+	{ name: "Metacritic", url: "https://www.metacritic.com" },
+	{ name: "IGDB", url: "https://www.igdb.com" }
 ] as const;
 
 const FOOTER_LINK_CLASSES =
