@@ -16,6 +16,7 @@ import {
 	type Game,
 	type Genre,
 	type List,
+	type OnlineSearchSource,
 	type Platform
 } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
@@ -63,8 +64,13 @@ const platforms: Platform[] = [
 const latestGames = [game("a"), game("b"), game("c")];
 const onlineResult = (
 	games: Game[],
-	rawgUnavailable = false
-): OnlineGameSearchResult => ({ games, rawgUnavailable });
+	onlineSearchUnavailable = false,
+	onlineSearchSource?: OnlineSearchSource
+): OnlineGameSearchResult => ({
+	games,
+	onlineSearchUnavailable,
+	onlineSearchSource
+});
 
 describe("GamesBrowse", () => {
 	const isMobile = signal(false);
@@ -494,7 +500,7 @@ describe("GamesBrowse", () => {
 			);
 		});
 
-		it("falls back to RAWG when the catalog has no match and says so while waiting", async () => {
+		it("falls back to the online search when the catalog has no match and says so while waiting", async () => {
 			const online = new Subject<OnlineGameSearchResult>();
 			search.mockReturnValue(online);
 			const view = await renderBrowse();
@@ -502,11 +508,17 @@ describe("GamesBrowse", () => {
 			await typeSearch("ze");
 
 			expect(
-				await screen.findByText(/Not in Completr yet — searching RAWG/)
+				await screen.findByText(
+					/Not in Completr yet — searching online/
+				)
 			).toBeInTheDocument();
 			expect(search).toHaveBeenCalledWith("ze");
 			online.next(
-				onlineResult([game("imported", { justImported: true })])
+				onlineResult(
+					[game("imported", { justImported: true })],
+					false,
+					"rawg"
+				)
 			);
 			view.detectChanges();
 			expect(
@@ -527,14 +539,14 @@ describe("GamesBrowse", () => {
 				await screen.findByText("No games found")
 			).toBeInTheDocument();
 			expect(
-				screen.getByText(/search RAWG to import it/)
+				screen.getByText(/search online to import it/)
 			).toBeInTheDocument();
 			expect(
 				screen.queryByRole("button", { name: "Reset filters" })
 			).not.toBeInTheDocument();
 		});
 
-		it("searches RAWG on demand and replaces the results", async () => {
+		it("searches online on demand and replaces the results", async () => {
 			searchLocal.mockReturnValue(of([game("z1")]));
 			const online = new Subject<OnlineGameSearchResult>();
 			search.mockReturnValue(online);
@@ -543,30 +555,30 @@ describe("GamesBrowse", () => {
 			await screen.findByText("Game z1");
 
 			await userEvent.click(
-				screen.getByRole("button", { name: "Not here? Search RAWG" })
+				screen.getByRole("button", { name: "Not here? Search online" })
 			);
 
 			expect(search).toHaveBeenCalledWith("ze", true);
 			expect(
-				screen.getByRole("button", { name: "Searching RAWG..." })
+				screen.getByRole("button", { name: "Searching online..." })
 			).toBeDisabled();
 			online.next(onlineResult([game("rawg1")]));
 			view.detectChanges();
 			expect(screen.getByText("Game rawg1")).toBeInTheDocument();
 			expect(screen.queryByText("Game z1")).not.toBeInTheDocument();
 			expect(
-				screen.getByRole("button", { name: "Not here? Search RAWG" })
+				screen.getByRole("button", { name: "Not here? Search online" })
 			).toBeEnabled();
 		});
 
-		it("explains that RAWG is unavailable instead of an empty list and lets the user retry", async () => {
+		it("explains that the online search is unavailable instead of an empty list and lets the user retry", async () => {
 			search.mockReturnValue(of(onlineResult([], true)));
 			const view = await renderBrowse();
 
 			await typeSearch("zzz");
 
 			expect(
-				await screen.findByText("RAWG is unavailable")
+				await screen.findByText("Online search is unavailable")
 			).toBeInTheDocument();
 			expect(
 				screen.queryByText("No games found")
@@ -579,15 +591,145 @@ describe("GamesBrowse", () => {
 			expect(search).toHaveBeenLastCalledWith("zzz", true);
 			expect(await screen.findByText("Game rawg1")).toBeInTheDocument();
 			expect(
-				screen.queryByText("RAWG is unavailable")
+				screen.queryByText("Online search is unavailable")
 			).not.toBeInTheDocument();
+		});
+
+		it("shows the unavailable copy for both sources", async () => {
+			search.mockReturnValue(of(onlineResult([], true)));
+			await renderBrowse();
+
+			await typeSearch("zzz");
+
+			expect(
+				await screen.findByText("Online search is unavailable")
+			).toBeInTheDocument();
+			expect(
+				screen.getByText(
+					"This game isn't in Completr yet and the online search (RAWG and IGDB) isn't responding right now. Try again in a few minutes."
+				)
+			).toBeInTheDocument();
+		});
+
+		it("notes that RAWG is down above the grid and badges imports as IGDB", async () => {
+			search.mockReturnValue(
+				of(
+					onlineResult(
+						[game("imported", { justImported: true })],
+						false,
+						"igdb"
+					)
+				)
+			);
+			await renderBrowse();
+
+			await typeSearch("zzz");
+
+			expect(
+				await screen.findByText("Game imported")
+			).toBeInTheDocument();
+			expect(
+				screen.getByText("RAWG is down, showing results from IGDB")
+			).toBeInTheDocument();
+			expect(screen.getByText("New from IGDB")).toBeInTheDocument();
+			expect(screen.queryByText("New from RAWG")).not.toBeInTheDocument();
+		});
+
+		it("shows no IGDB note when RAWG answered", async () => {
+			search.mockReturnValue(
+				of(
+					onlineResult(
+						[game("imported", { justImported: true })],
+						false,
+						"rawg"
+					)
+				)
+			);
+			await renderBrowse();
+
+			await typeSearch("zzz");
+
+			await screen.findByText("Game imported");
+			expect(screen.queryByText(/RAWG is down/)).not.toBeInTheDocument();
+		});
+
+		it("moves from the unavailable notice to IGDB results when a retry succeeds through IGDB", async () => {
+			search.mockReturnValue(of(onlineResult([], true)));
+			const view = await renderBrowse();
+			await typeSearch("zzz");
+			await screen.findByText("Online search is unavailable");
+
+			search.mockReturnValue(
+				of(
+					onlineResult(
+						[game("igdb1", { justImported: true })],
+						false,
+						"igdb"
+					)
+				)
+			);
+			await userEvent.click(
+				screen.getByRole("button", { name: "Try again" })
+			);
+			view.detectChanges();
+
+			expect(await screen.findByText("Game igdb1")).toBeInTheDocument();
+			expect(
+				screen.queryByText("Online search is unavailable")
+			).not.toBeInTheDocument();
+			expect(
+				screen.getByText("RAWG is down, showing results from IGDB")
+			).toBeInTheDocument();
+			expect(screen.getByText("New from IGDB")).toBeInTheDocument();
+		});
+
+		it("asks once when Try again is double clicked", async () => {
+			search.mockReturnValue(of(onlineResult([], true)));
+			const view = await renderBrowse();
+			await typeSearch("zzz");
+			await screen.findByText("Online search is unavailable");
+			const retry = new Subject<OnlineGameSearchResult>();
+			search.mockClear().mockReturnValue(retry);
+
+			const button = screen.getByRole("button", { name: "Try again" });
+			await userEvent.dblClick(button);
+			view.detectChanges();
+
+			expect(search).toHaveBeenCalledTimes(1);
+			retry.next(onlineResult([game("igdb1")], false, "igdb"));
+			view.detectChanges();
+			expect(screen.getByText("Game igdb1")).toBeInTheDocument();
+		});
+
+		it("drops a late forced answer when the user searched something else meanwhile", async () => {
+			searchLocal.mockImplementation((term: string) =>
+				of(term === "zzzm" ? [game("mario")] : [])
+			);
+			search.mockReturnValue(of(onlineResult([], true)));
+			const view = await renderBrowse();
+			await typeSearch("zzz");
+			await screen.findByText("Online search is unavailable");
+			const late = new Subject<OnlineGameSearchResult>();
+			search.mockReturnValue(late);
+			await userEvent.click(
+				screen.getByRole("button", { name: "Try again" })
+			);
+
+			await typeSearch("m");
+			expect(await screen.findByText("Game mario")).toBeInTheDocument();
+			late.next(onlineResult([game("igdb1")], false, "igdb"));
+			view.detectChanges();
+
+			expect(screen.queryByText("Game igdb1")).not.toBeInTheDocument();
+			expect(screen.getByText("Game mario")).toBeInTheDocument();
+			expect(screen.queryByText(/RAWG is down/)).not.toBeInTheDocument();
 		});
 
 		it("keeps the notice while a retry fails again and re-enables the button", async () => {
 			search.mockReturnValue(of(onlineResult([], true)));
 			await renderBrowse();
 			await typeSearch("zzz");
-			await screen.findByText("RAWG is unavailable");
+			await screen.findByText("Online search is unavailable");
 
 			await userEvent.click(
 				screen.getByRole("button", { name: "Try again" })
@@ -596,7 +738,9 @@ describe("GamesBrowse", () => {
 				screen.getByRole("button", { name: "Try again" })
 			);
 
-			expect(screen.getByText("RAWG is unavailable")).toBeInTheDocument();
+			expect(
+				screen.getByText("Online search is unavailable")
+			).toBeInTheDocument();
 			expect(
 				screen.getByRole("button", { name: "Try again" })
 			).toBeEnabled();

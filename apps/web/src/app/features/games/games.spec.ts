@@ -74,66 +74,86 @@ describe("GamesService", () => {
 				.flush({ data: { games: [{ id: "g1" }] } });
 			expect(result).toEqual({
 				games: [{ id: "g1" }],
-				rawgUnavailable: false
+				onlineSearchUnavailable: false,
+				onlineSearchSource: undefined
 			});
 		});
 
-		it("reports RAWG as unavailable when the API says so", () => {
+		it("reports the online search as unavailable when the API says so", () => {
 			let result: unknown;
 
 			service.search("zelda").subscribe(r => (result = r));
 
 			httpTesting
 				.expectOne(`${api}/games/search?query=zelda`)
-				.flush({ data: { games: [], rawgAvailable: false } });
-			expect(result).toEqual({ games: [], rawgUnavailable: true });
+				.flush({ data: { games: [], onlineSearchAvailable: false } });
+			expect(result).toEqual({
+				games: [],
+				onlineSearchUnavailable: true,
+				onlineSearchSource: undefined
+			});
 		});
 
-		it("reports RAWG as available when it answered with nothing", () => {
+		it("reports the online search as available when a source answered with nothing", () => {
 			let result: unknown;
 
 			service.search("zelda").subscribe(r => (result = r));
 
-			httpTesting
-				.expectOne(`${api}/games/search?query=zelda`)
-				.flush({ data: { games: [], rawgAvailable: true } });
-			expect(result).toEqual({ games: [], rawgUnavailable: false });
+			httpTesting.expectOne(`${api}/games/search?query=zelda`).flush({
+				data: {
+					games: [],
+					onlineSearchAvailable: true,
+					onlineSearchSource: "rawg"
+				}
+			});
+			expect(result).toEqual({
+				games: [],
+				onlineSearchUnavailable: false,
+				onlineSearchSource: "rawg"
+			});
 		});
 
-		it("forces the RAWG lookup when asked", () => {
+		it.each(["rawg", "igdb"] as const)(
+			"keeps %s as the source that answered",
+			source => {
+				let result: { onlineSearchSource?: string } | undefined;
+
+				service.search("zelda").subscribe(r => (result = r));
+
+				httpTesting.expectOne(`${api}/games/search?query=zelda`).flush({
+					data: {
+						games: [{ id: "g1", justImported: true }],
+						onlineSearchAvailable: true,
+						onlineSearchSource: source
+					}
+				});
+				expect(result?.onlineSearchSource).toBe(source);
+			}
+		);
+
+		it("forces the online lookup when asked", () => {
 			service.search("zelda", true).subscribe();
 
 			httpTesting
-				.expectOne(`${api}/games/search?query=zelda&force_rawg=true`)
+				.expectOne(`${api}/games/search?query=zelda&force_online=true`)
 				.flush({ data: { games: [] } });
 		});
 
-		it.each([
-			["RAWG_REQUEST_ERROR", 502],
-			["RAWG_PARSE_ERROR", 502],
-			["RAWG_DISABLED", 503],
-			["RAWG_RATE_LIMITED", 429]
-		])(
-			"turns a forced search failing with %s into RAWG unavailable without a toast",
-			(type, status) => {
-				let result: unknown;
-				let failure: unknown;
+		it("answers 200 with both sources down as unavailable without a toast", () => {
+			let result: unknown;
 
-				service.search("zelda", true).subscribe({
-					next: r => (result = r),
-					error: error => (failure = error)
-				});
+			service.search("zelda", true).subscribe(r => (result = r));
 
-				httpTesting
-					.expectOne(
-						`${api}/games/search?query=zelda&force_rawg=true`
-					)
-					.flush({ type }, { status, statusText: "Error" });
-				expect(failure).toBeUndefined();
-				expect(result).toEqual({ games: [], rawgUnavailable: true });
-				expect(toast.warning).not.toHaveBeenCalled();
-			}
-		);
+			httpTesting
+				.expectOne(`${api}/games/search?query=zelda&force_online=true`)
+				.flush({ data: { games: [], onlineSearchAvailable: false } });
+			expect(result).toEqual({
+				games: [],
+				onlineSearchUnavailable: true,
+				onlineSearchSource: undefined
+			});
+			expect(toast.warning).not.toHaveBeenCalled();
+		});
 
 		it("warns the user and rethrows when the forced search fails for another reason", () => {
 			let failure: HttpErrorResponse | undefined;
@@ -143,7 +163,7 @@ describe("GamesService", () => {
 			});
 
 			httpTesting
-				.expectOne(`${api}/games/search?query=zelda&force_rawg=true`)
+				.expectOne(`${api}/games/search?query=zelda&force_online=true`)
 				.flush({}, { status: 500, statusText: "Server Error" });
 			expect(failure?.status).toBe(500);
 			expect(toast.warning).toHaveBeenCalledWith(
@@ -159,7 +179,7 @@ describe("GamesService", () => {
 			});
 
 			httpTesting
-				.expectOne(`${api}/games/search?query=zelda&force_rawg=true`)
+				.expectOne(`${api}/games/search?query=zelda&force_online=true`)
 				.flush(
 					{ type: "AUTH_RATE_LIMITED" },
 					{ status: 429, statusText: "Too Many Requests" }

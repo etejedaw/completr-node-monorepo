@@ -180,13 +180,6 @@ describe("errorInterceptor", () => {
 		expect(onError).toHaveBeenCalledTimes(1);
 	});
 
-	it("leaves a RAWG rate limit to the screen that explains it", () => {
-		const onError = failWith(429, { type: "RAWG_RATE_LIMITED" });
-
-		expect(toast.warning).not.toHaveBeenCalled();
-		expect(onError).toHaveBeenCalledTimes(1);
-	});
-
 	it("summarizes server validation issues on a 422", () => {
 		failWith(422, {
 			type: "COMMON_SCHEMA_INVALID",
