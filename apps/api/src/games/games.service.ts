@@ -289,7 +289,11 @@ export async function searchGames(query: string, forceRawg = false) {
 			});
 
 			if (localResults.length > 0) {
-				return { games: localResults, importedIds: new Set<string>() };
+				return {
+					games: localResults,
+					importedIds: new Set<string>(),
+					rawgAvailable: undefined
+				};
 			}
 		}
 	}
@@ -299,9 +303,17 @@ export async function searchGames(query: string, forceRawg = false) {
 	return result;
 }
 
-async function searchAndCreateFromRawg(query: string, forceRawg: boolean) {
+async function searchAndCreateFromRawg(
+	query: string,
+	forceRawg: boolean
+): Promise<{
+	games: Game[];
+	importedIds: Set<string>;
+	rawgAvailable: boolean;
+}> {
 	const importedIds = new Set<string>();
-	if (!rawg.isEnabled) return { games: [] as Game[], importedIds };
+	if (!rawg.isEnabled)
+		return { games: [], importedIds, rawgAvailable: false };
 
 	try {
 		const rawgResults = await rawg.searchGame(query, {
@@ -310,6 +322,7 @@ async function searchAndCreateFromRawg(query: string, forceRawg: boolean) {
 		});
 
 		const games: Game[] = [];
+		let failedDetails = 0;
 
 		for (const result of rawgResults) {
 			try {
@@ -320,6 +333,7 @@ async function searchAndCreateFromRawg(query: string, forceRawg: boolean) {
 						importedIds.add(resolved.game.id);
 				}
 			} catch (error) {
+				failedDetails++;
 				logger.warn(
 					"searchAndCreateFromRawg",
 					`Failed to resolve RAWG ID ${result.id}`,
@@ -335,7 +349,12 @@ async function searchAndCreateFromRawg(query: string, forceRawg: boolean) {
 				importedIds.add(slugResolved.game.id);
 		}
 
-		return { games, importedIds };
+		const everyDetailFailed = games.length === 0 && failedDetails > 0;
+		return {
+			games,
+			importedIds,
+			rawgAvailable: !everyDetailFailed
+		};
 	} catch (error) {
 		if (forceRawg) {
 			throw error instanceof ServiceError
@@ -343,7 +362,7 @@ async function searchAndCreateFromRawg(query: string, forceRawg: boolean) {
 				: rawgServiceError.requestError(error);
 		}
 		logger.warn("searchAndCreateFromRawg", "RAWG fallback failed", error);
-		return { games: [], importedIds };
+		return { games: [], importedIds, rawgAvailable: false };
 	}
 }
 
