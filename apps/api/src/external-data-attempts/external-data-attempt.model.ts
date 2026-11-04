@@ -2,7 +2,11 @@ import { DataTypes, Model, Sequelize } from "sequelize";
 
 import { sequelize } from "../database/sequelize.database";
 
-export const EXTERNAL_DATA_ATTEMPT_SOURCES = ["metacritic", "hltb"] as const;
+export const EXTERNAL_DATA_ATTEMPT_SOURCES = [
+	"metacritic",
+	"hltb",
+	"igdb"
+] as const;
 export type ExternalDataAttemptSource =
 	(typeof EXTERNAL_DATA_ATTEMPT_SOURCES)[number];
 
