@@ -8,6 +8,17 @@ export interface IgdbCover {
 	image_id: string;
 }
 
+export interface IgdbImage {
+	id: number;
+	image_id: string;
+	width?: number;
+	height?: number;
+}
+
+export interface IgdbArtwork extends IgdbImage {
+	image_type?: number;
+}
+
 export interface IgdbGameType {
 	id: number;
 	type: string;
@@ -27,6 +38,8 @@ export interface IgdbGame {
 	platforms?: IgdbNamedRef[];
 	genres?: IgdbNamedRef[];
 	themes?: IgdbNamedRef[];
+	artworks?: IgdbArtwork[];
+	screenshots?: IgdbImage[];
 }
 
 export interface IgdbSearchOptions {

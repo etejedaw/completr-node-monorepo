@@ -24,7 +24,16 @@ const GAME_FIELDS = [
 	"genres.id",
 	"genres.slug",
 	"themes.id",
-	"themes.slug"
+	"themes.slug",
+	"artworks.id",
+	"artworks.image_id",
+	"artworks.width",
+	"artworks.height",
+	"artworks.image_type",
+	"screenshots.id",
+	"screenshots.image_id",
+	"screenshots.width",
+	"screenshots.height"
 ].join(",");
 
 export abstract class IgdbClient {
