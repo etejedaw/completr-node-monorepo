@@ -90,6 +90,14 @@ Route → Middleware (auth, rate-limit, validate-schema)
 
 Ver [`context/errors.md`](./context/errors.md) para el detalle del sistema de errores.
 
+## Logs
+
+La API loguea con Pino (`common/logger/pino.config.ts`) y el destino depende de `NODE_ENV`:
+
+- `dev`: `pino-pretty` en la consola, nivel `debug`.
+- `test`: JSON en `<cwd>/logs/app.log`, sin rotación.
+- `prod`: JSON por dos destinos a la vez, mediante `pino.transport`. Uno es la salida estándar, que es lo que muestra el visor de logs de CapRover. El otro es `<cwd>/logs/` con `pino-roll`: un archivo nuevo cada día o al llegar a 10 MB (`app.1.log`, `app.2.log`, …), se guardan los 7 anteriores más el activo, y `current.log` apunta siempre al activo. En la imagen de la API el directorio es `/usr/app/logs`; para que los archivos sobrevivan a los deploys, ese directorio se monta como volumen desde la configuración de la app en CapRover.
+
 ## Integraciones externas
 
 Los servicios externos (RAWG, HLTB, Metacritic, Steam) viven como **providers** en `apps/api/src/<nombre>/`. Son adapters: encapsulan HTTP/scraping y exponen una interfaz limpia. No contienen lógica de negocio.
