@@ -66,10 +66,16 @@ import {
 	UiTable
 } from "../../../shared/ui";
 import { fieldErrorsFromResponse } from "../../../shared/utils/validation-errors";
+import { AdminAccountDeletionDialog } from "../admin-account-deletion-dialog/admin-account-deletion-dialog";
+import { AdminDataRequests } from "../admin-data-requests/admin-data-requests";
 import { AdminInvitations } from "../admin-invitations/admin-invitations";
 import { AdminPremiumAccess } from "../admin-premium-access/admin-premium-access";
 import { type AdminUser } from "../services/user-admin.model";
 import { UserAdminService } from "../services/user-admin.service";
+import {
+	canDeleteAccount,
+	injectAdminUserDataActions
+} from "./admin-user-data-actions";
 import { type CreateUserRequest } from "./admin-users.model";
 
 // Mirrors the API's RegisterSchema / PasswordPolicySchema, which rejects
@@ -157,7 +163,7 @@ const ROLE_OPTIONS: readonly PickerOption[] = [
 	}
 ];
 
-type UserRowAction = "edit" | "premium";
+type UserRowAction = "edit" | "premium" | "download-data" | "delete-account";
 
 const USER_ROLE_BADGE: RoleBadge = {
 	label: "User",
@@ -192,6 +198,8 @@ function editedSince(snapshot: FormSnapshot | null, current: FormSnapshot) {
 	imports: [
 		PageSearch,
 		ActionMenu,
+		AdminAccountDeletionDialog,
+		AdminDataRequests,
 		AdminInvitations,
 		AdminPremiumAccess,
 		DatePipe,
@@ -228,6 +236,12 @@ export class AdminUsers implements OnInit {
 	private readonly userAdminService = inject(UserAdminService);
 	private readonly injector = inject(Injector);
 	protected readonly invitationsPanel = viewChild.required(AdminInvitations);
+	private readonly dataRequestsPanel = viewChild.required(AdminDataRequests);
+	protected readonly dataActions = injectAdminUserDataActions({
+		accountDeleted: user => this.onAccountDeleted(user),
+		accountMissing: () => this.loadUsers()
+	});
+	protected readonly canDeleteAccount = canDeleteAccount;
 	private readonly searchChanges = new Subject<string>();
 	private listSubscription: Subscription | null = null;
 
@@ -254,6 +268,12 @@ export class AdminUsers implements OnInit {
 	protected readonly rowActions = computed(
 		() =>
 			new Map(this.users().map(user => [user.id, this.actionsFor(user)]))
+	);
+	protected readonly rowDataActions = computed(
+		() =>
+			new Map(
+				this.users().map(user => [user.id, this.dataActionItems(user)])
+			)
 	);
 
 	protected readonly showCreateModal = signal(false);
@@ -541,7 +561,47 @@ export class AdminUsers implements OnInit {
 			case "premium":
 				this.openPremiumAccess(user);
 				return;
+			case "download-data":
+				this.dataActions.downloadData(user);
+				return;
+			case "delete-account":
+				this.dataActions.askDeletion(user);
+				return;
 		}
+	}
+
+	private dataActionItems(user: AdminUser): ActionMenuItem[] {
+		const items: ActionMenuItem[] = [
+			{
+				id: "download-data",
+				label: "Download data",
+				icon: "download",
+				hint: "Everything stored for this account, as JSON",
+				busy: this.dataActions.downloadingUserId() === user.id,
+				separated: true
+			}
+		];
+		if (canDeleteAccount(user))
+			items.push({
+				id: "delete-account",
+				label: "Delete account",
+				icon: "delete_forever",
+				iconClass: "text-danger",
+				hint: "Permanent, can't be undone"
+			});
+		return items;
+	}
+
+	protected onAccountDeleted(user: AdminUser) {
+		this.users.update(list => list.filter(item => item.id !== user.id));
+		this.total.update(count => Math.max(count - 1, 0));
+		this.accountsTotal.update(count => Math.max(count - 1, 0));
+		this.dataRequestsPanel().reload();
+	}
+
+	protected reloadAfterRequestDeletion() {
+		if (this.search()) this.accountsTotal.update(count => Math.max(count - 1, 0));
+		this.loadUsers();
 	}
 
 	private actionsFor(user: AdminUser): ActionMenuItem[] {
@@ -560,7 +620,8 @@ export class AdminUsers implements OnInit {
 				label: "View profile",
 				icon: "account_circle",
 				link: { routerLink: ["/user", user.username] }
-			}
+			},
+			...this.dataActionItems(user)
 		];
 	}
 
