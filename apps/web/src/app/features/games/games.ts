@@ -10,6 +10,7 @@ import { environment } from "../../../environments/environment";
 import {
 	type BacklogStatus,
 	type Game,
+	type OnlineSearchSource,
 	type UserRole
 } from "../../core/models";
 import { ToastService } from "../../core/services/toast";
@@ -20,13 +21,13 @@ import {
 	type CreateGameDto,
 	type ExternalDataRefreshResponse,
 	type ExternalDataSource,
+	type ExternalGameDetail,
 	type GamesQuery,
 	type GamesResponse,
 	type GamesSearchResponse,
 	type GenresResponse,
 	type OnlineGameSearchResult,
 	type PlatformsResponse,
-	type RawgDetail,
 	type SetCompilationItemsDto,
 	type SplitGameDto,
 	type UpdateGameDto
@@ -178,12 +179,12 @@ export class GamesService {
 		);
 	}
 
-	rawgBySlug(slug: string) {
+	externalGameBySlug(source: OnlineSearchSource, slug: string) {
 		return this.http
 			.get<{
-				data: { game: RawgDetail };
+				data: { game: ExternalGameDetail };
 			}>(
-				`${environment.apiUrl}/game-external/rawg/${encodeURIComponent(slug)}`
+				`${environment.apiUrl}/game-external/${source}/${encodeURIComponent(slug)}`
 			)
 			.pipe(map(res => res.data.game));
 	}
