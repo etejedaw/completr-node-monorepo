@@ -4,7 +4,7 @@ import { sequelize } from "../database/sequelize.database";
 
 class AuditLog extends Model {
 	declare id: string;
-	declare userId: string;
+	declare userId: string | null;
 	declare action: string;
 	declare targetType: string;
 	declare targetId: string;
@@ -22,7 +22,7 @@ AuditLog.init(
 		},
 		userId: {
 			type: DataTypes.UUID,
-			allowNull: false
+			allowNull: true
 		},
 		action: {
 			type: DataTypes.STRING(50),

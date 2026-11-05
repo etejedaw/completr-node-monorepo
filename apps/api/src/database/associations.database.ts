@@ -145,6 +145,7 @@ function reviews() {
 }
 
 function auditLogs() {
+	User.hasMany(AuditLog, { foreignKey: "userId", onDelete: "SET NULL" });
 	AuditLog.belongsTo(User, { foreignKey: "userId" });
 }
 
