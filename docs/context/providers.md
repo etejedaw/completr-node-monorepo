@@ -239,7 +239,7 @@ Consecuencias:
 
 | Provider                   | Propósito                                                                                                                 |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `apps/api/src/rawg/`       | RAWG API: géneros, descripciones, covers, scores                                                                          |
+| `apps/api/src/rawg/`       | RAWG API: géneros, descripciones, covers, scores. Cada request se corta a los 5 s y es `RAWG_REQUEST_ERROR`               |
 | `apps/api/src/igdb/`       | IGDB API (con token de Twitch): búsqueda y detalle de juegos como fuente auxiliar de RAWG                                 |
 | `apps/api/src/hltb/`       | HowLongToBeat por scraping de la página de detalle: duraciones Main Story, Main + Extras y Completionist                  |
 | `apps/api/src/metacritic/` | Metacritic por scraping de la página de detalle: Metascore, User Score, plataformas y año                                 |
@@ -268,6 +268,7 @@ apps/api/src/igdb/
 - **Detalle:** `getGameById` y `getGameBySlug` usan `where id = <id>;` / `where slug = "<slug>";` con `limit 1`. IGDB responde 200 con un array; si viene vacío, es `IGDB_NOT_FOUND`. Un id que no es entero positivo o un slug en blanco son `IGDB_NOT_FOUND` sin hacer la request.
 - **Token:** `IgdbTokenClient` lo pide con `POST https://id.twitch.tv/oauth2/token` y `client_id`, `client_secret` y `grant_type=client_credentials` en el cuerpo (form), nunca en la URL. Lo guarda en memoria y lo renueva 5 minutos antes de `expires_in`. Las llamadas concurrentes comparten el mismo pedido en curso; si ese pedido falla, todas reciben el mismo error y la siguiente llamada vuelve a pedirlo. Twitch respondiendo 400, 401 o 403 es `IGDB_AUTH_ERROR`; otro status de error o un fallo de red, `IGDB_REQUEST_ERROR`; un cuerpo sin `access_token` o `expires_in` válidos, `IGDB_PARSE_ERROR`. El provider no pide token hasta su primera request.
 - **401 de IGDB:** se invalida el token (solo si sigue siendo el que falló, para que un 401 tardío no tire uno ya renovado), se pide otro y se reintenta una sola vez. Un segundo 401 es `IGDB_AUTH_ERROR`. Varios 401 concurrentes comparten una sola renovación.
+- **Timeout:** cada request a IGDB y cada pedido de token a Twitch se corta a los 5 s (`AbortSignal.timeout`), incluida la lectura del cuerpo, y es `IGDB_REQUEST_ERROR` con el mensaje "timed out after 5000 ms". El valor se puede cambiar por constructor (`IgdbProvider` y `IgdbTokenClient`) para los tests.
 - **Sin límite de frecuencia:** IGDB permite 4 requests por segundo, pero el provider no encola ni espera. Respetar ese límite queda a cargo de quien lo llama; si se pasa, IGDB responde 429 y el provider lanza `IGDB_RATE_LIMITED` sin reintentar.
 
 | Código                | Status | Cuándo                                                                      |
