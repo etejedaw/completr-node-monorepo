@@ -323,7 +323,7 @@ El throttle vive en memoria, así que cubre una sola instancia de la API. Con va
 
 | Código                 | Status | Cuándo                                               |
 | ---------------------- | ------ | ---------------------------------------------------- |
-| `<MOD>_NOT_FOUND`      | 404    | 404, página 404 de la app o id/slug inválido         |
+| `<MOD>_NOT_FOUND`      | 404    | 404 o 410, página 404 de la app o id/slug inválido   |
 | `<MOD>_PARSE_ERROR`    | 502    | La página no tiene la estructura esperada            |
 | `<MOD>_RATE_LIMITED`   | 429    | 429 persistente tras el reintento                    |
 | `<MOD>_BLOCKED`        | 502    | 403, CAPTCHA o challenge                             |
