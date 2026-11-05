@@ -138,6 +138,10 @@ export async function getRewindImage(
 	}
 }
 
+export function clearRewindImagesOf(username: string): void {
+	imageCache.deleteKeysStartingWith(`${username}:`);
+}
+
 export function clearRewindImageCache(): void {
 	imageCache.clear();
 }
