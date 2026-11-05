@@ -41,7 +41,11 @@ export async function deleteAccount<Result>(
 			user.email,
 			transaction
 		);
-		await usersService.destroyUser(user.id, transaction);
+		const destroyedUsers = await usersService.destroyUser(
+			user.id,
+			transaction
+		);
+		if (!destroyedUsers) throw usersServiceError.notFoundError();
 		return hookResult;
 	});
 

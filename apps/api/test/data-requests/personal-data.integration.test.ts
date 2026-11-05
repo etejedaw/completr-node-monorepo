@@ -304,23 +304,41 @@ void describe("DELETE /admin/users/:userId", () => {
 		assert.equal(response.body.type, "USER_DELETE_FORBIDDEN");
 	});
 
-	void it("refuses to delete an account that left audit history", async () => {
+	void it("deletes a moderator and keeps their audit history without author", async () => {
 		const admin = await createUserWithSession("admin");
-		const demotedAdmin = await createUser();
-		await AuditLog.create({
-			userId: demotedAdmin.id,
-			action: "user_edited",
-			targetType: "user",
-			targetId: admin.user.id
+		const moderator = await createUser({ role: "moderator" });
+		const moderatorEntry = await AuditLog.create({
+			userId: moderator.id,
+			action: "game_edited",
+			targetType: "game",
+			targetId: "00000000-0000-4000-8000-000000000001"
 		});
 
-		const response = await api()
-			.delete(`/admin/users/${demotedAdmin.id}`)
-			.set("Authorization", admin.authorization);
+		const [first, second] = await Promise.all([
+			api()
+				.delete(`/admin/users/${moderator.id}`)
+				.set("Authorization", admin.authorization),
+			api()
+				.delete(`/admin/users/${moderator.id}`)
+				.set("Authorization", admin.authorization)
+		]);
 
-		assert.equal(response.status, 409);
-		assert.equal(response.body.type, "USER_DELETE_FORBIDDEN");
-		assert.ok(await User.findByPk(demotedAdmin.id));
+		assert.deepEqual([first.status, second.status].sort(), [204, 404]);
+		assert.equal(await User.count({ where: { id: moderator.id } }), 0);
+		const kept = await AuditLog.findByPk(moderatorEntry.id);
+		assert.ok(kept);
+		assert.equal(kept.userId, null);
+
+		const audit = await api()
+			.get("/admin/audit")
+			.query({ action: "game_edited" })
+			.set("Authorization", admin.authorization)
+			.expect(200);
+		const listed = audit.body.data.logs.find(
+			(log: { id: string }) => log.id === moderatorEntry.id
+		);
+		assert.ok(listed);
+		assert.equal(listed.user, null);
 	});
 
 	void it("answers 404 USER_NOT_FOUND for an unknown user", async () => {
