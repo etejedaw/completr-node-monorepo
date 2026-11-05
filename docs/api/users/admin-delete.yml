@@ -1,0 +1,43 @@
+info:
+    name: Admin Delete User
+    type: http
+    seq: 18
+
+http:
+    method: DELETE
+    url: "{{BASE_URL}}/admin/users/{{USER_ID}}"
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Admin Delete User
+
+    Deletes an account for good, unlike `DELETE /users/me/deactivate`, which only deactivates it. In one transaction it deletes the user, every row that belongs to it (cascades from `Users`), the activities of other users that point to it and the invitation sent to its email. Its data requests are kept with `user` null. After the commit it drops the cached Rewind share images of the user. Admin accounts cannot be deleted, neither can the caller's own.
+
+    **Authentication:** Bearer token, admin only (other roles get 404).
+    **Rate Limit:** 300 requests per minute (user limiter).
+    **Audit:** `user_deleted` on target type `user`.
+
+    ### Path params
+
+    | Param  | Type | Description    |
+    |--------|------|----------------|
+    | userId | uuid | Id of the user |
+
+    ### Response (204)
+
+    No content.
+
+    ### Errors
+
+    | Status | Type                  | When                                        |
+    |--------|-----------------------|---------------------------------------------|
+    | 404    | AUTH_ROUTE_NOT_FOUND  | Caller is not an admin                      |
+    | 404    | USER_NOT_FOUND        | User does not exist                         |
+    | 409    | USER_DELETE_FORBIDDEN | Target is an admin account, or the caller   |
+    | 422    | COMMON_SCHEMA_INVALID | `userId` is not a UUID                      |

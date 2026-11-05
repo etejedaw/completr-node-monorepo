@@ -1,0 +1,89 @@
+info:
+    name: Download My Data
+    type: http
+    seq: 3
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/me/data-requests/:requestId/download"
+    params:
+        - name: requestId
+          value: 00000000-0000-0000-0000-000000000000
+          type: path
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Download My Data
+
+    Downloads the JSON file with all the user's personal data for a completed `export` request. The file is generated at the moment of the download, so it reflects the current data. Available for 7 days after the request was completed (`downloadableUntil`). No premium gating.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 300 requests per minute (user limiter).
+
+    ### Path params
+
+    | Param     | Type | Description            |
+    |-----------|------|------------------------|
+    | requestId | uuid | Id of an own data request |
+
+    ### Response (200)
+
+    Headers:
+
+    - `Content-Disposition: attachment; filename="completr-data-<username>-YYYY-MM-DD.json"` (date in UTC; exposed to the browser through CORS `Access-Control-Expose-Headers`)
+    - `Content-Type: application/json; charset=utf-8`
+
+    The body is the bare document, not wrapped in `data`. Keys are camelCase. Games are identified by `{ id, title, slug }`; the catalog itself is not included. The password hash, session tokens and one-time tokens are never included.
+
+    ```json
+    {
+      "meta": {
+        "generatedAt": "2026-11-05T15:00:00.000Z",
+        "formatVersion": "1.0",
+        "controller": { "name": "Esteban Tejeda", "service": "Completr", "contactEmail": "completr@etejeda.dev" },
+        "purposes": ["Operate the service and show you your own content."],
+        "legalBases": ["Account data and content: performance of the contract ..."],
+        "recipients": [{ "name": "DeepSeek", "location": "China", "purpose": "Writes the AI summary of a Rewind ..." }],
+        "retention": { "accountAndContent": "For as long as you keep your account ...", "serverLogs": "30 days, then deleted." },
+        "dataSource": "All the data in this file was provided by you while using Completr ..."
+      },
+      "account": { "id": "uuid", "username": "johndoe", "email": "johndoe@example.com", "name": "John", "bio": null, "avatarUrl": null, "role": "user", "theme": "refined-dark", "isActive": true, "createdAt": "...", "updatedAt": "..." },
+      "privacySettings": { "profileVisibility": "public", "backlogVisibility": "friends", "acceptFollowRequests": true },
+      "premium": { "status": { "active": false, "source": null, "expiresAt": null }, "grants": [] },
+      "backlog": [{ "id": "uuid", "game": { "id": "uuid", "title": "Hades", "slug": "hades" }, "compilationGame": null, "platform": "PC", "status": "completed", "notes": "...", "progress": [{ "id": "uuid", "note": "Reached Elysium", "createdAt": "..." }], "coopPartners": ["janedoe"] }],
+      "queue": [{ "position": 1, "backlogId": "uuid", "game": { "id": "uuid", "title": "Hades", "slug": "hades" }, "createdAt": "..." }],
+      "gameShelf": [],
+      "wishlist": [],
+      "favorites": [],
+      "lists": [{ "id": "uuid", "name": "Comfort games", "items": [{ "position": 1, "game": { "id": "uuid", "title": "Hades", "slug": "hades" }, "score": 4.5, "duration": 22 }] }],
+      "followedLists": [{ "listId": "uuid", "name": "Best of 2025", "owner": "janedoe", "isVisible": true, "followedAt": "..." }],
+      "savedViews": [],
+      "reviews": [],
+      "social": { "followers": [{ "username": "janedoe", "since": "..." }], "following": [], "followRequests": [{ "direction": "received", "username": "alex", "createdAt": "..." }] },
+      "activity": [{ "id": "uuid", "type": "backlog_completed", "game": { "id": "uuid", "title": "Hades", "slug": "hades" }, "list": null, "targetUsername": null, "metadata": null, "createdAt": "..." }],
+      "moodTags": { "tags": [{ "tag": "cozy", "description": "Rainy days", "createdAt": "..." }], "gameTags": [] },
+      "trackedFranchises": [],
+      "platinums": [],
+      "rewinds": [{ "year": 2025, "aiRecap": {}, "premiumStats": {} }],
+      "sessions": [{ "deviceInfo": "Firefox on macOS", "createdAt": "...", "lastUsedAt": "...", "expiresAt": "..." }],
+      "gameReports": [],
+      "dataRequests": [{ "id": "uuid", "type": "export", "status": "completed" }]
+    }
+    ```
+
+    ### Errors
+
+    | Status | Type                          | When                                                     |
+    |--------|-------------------------------|----------------------------------------------------------|
+    | 401    | AUTH_INVALID_TOKEN            | Invalid or expired token                                 |
+    | 404    | DATA_REQUEST_NOT_FOUND        | No request with that id, or it belongs to another user   |
+    | 409    | DATA_REQUEST_NOT_DOWNLOADABLE | The request is pending, rejected or a deletion           |
+    | 410    | DATA_REQUEST_EXPIRED          | More than 7 days since the export was completed          |
+    | 422    | AUTH_SCHEMA_INVALID           | Missing `Authorization` header                           |
+    | 422    | COMMON_SCHEMA_INVALID         | `requestId` is not a UUID                                |

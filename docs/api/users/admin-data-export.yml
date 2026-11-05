@@ -1,0 +1,42 @@
+info:
+    name: Admin Export User Data
+    type: http
+    seq: 19
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/admin/users/{{USER_ID}}/data-export"
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Admin Export User Data
+
+    Downloads the JSON file with all the personal data of a user, active or not. Same document and headers as `GET /users/me/data-requests/:requestId/download` (see the data requests folder), generated at the moment of the request.
+
+    **Authentication:** Bearer token, admin only (other roles get 404).
+    **Rate Limit:** 300 requests per minute (user limiter).
+    **Audit:** `user_data_exported` on target type `user`.
+
+    ### Path params
+
+    | Param  | Type | Description    |
+    |--------|------|----------------|
+    | userId | uuid | Id of the user |
+
+    ### Response (200)
+
+    `Content-Disposition: attachment; filename="completr-data-<username>-YYYY-MM-DD.json"`. The body is the bare document (`meta`, `account`, `privacySettings`, `premium`, `backlog`, ... `dataRequests`), not wrapped in `data`.
+
+    ### Errors
+
+    | Status | Type                  | When                   |
+    |--------|-----------------------|------------------------|
+    | 404    | AUTH_ROUTE_NOT_FOUND  | Caller is not an admin |
+    | 404    | USER_NOT_FOUND        | User does not exist    |
+    | 422    | COMMON_SCHEMA_INVALID | `userId` is not a UUID |

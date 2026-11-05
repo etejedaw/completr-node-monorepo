@@ -1,0 +1,52 @@
+info:
+    name: List My Data Requests
+    type: http
+    seq: 2
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/me/data-requests"
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## List My Data Requests
+
+    Lists every data request of the authenticated user, newest first (`requestedAt` descending).
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 300 requests per minute (user limiter).
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "requests": [
+          {
+            "id": "uuid",
+            "type": "export",
+            "status": "completed",
+            "requestedAt": "2026-11-01T15:00:00.000Z",
+            "resolvedAt": "2026-11-03T10:00:00.000Z",
+            "dueAt": "2026-12-01T15:00:00.000Z",
+            "daysRemaining": 26,
+            "downloadableUntil": "2026-11-10T10:00:00.000Z",
+            "resolutionNote": null
+          }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Type                | When                           |
+    |--------|---------------------|--------------------------------|
+    | 401    | AUTH_INVALID_TOKEN  | Invalid or expired token       |
+    | 422    | AUTH_SCHEMA_INVALID | Missing `Authorization` header |
