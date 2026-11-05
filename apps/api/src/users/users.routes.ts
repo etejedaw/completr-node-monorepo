@@ -85,6 +85,26 @@ router.patch(
 	usersAdminController.patchAdminUser
 );
 
+router.delete(
+	"/admin/users/:userId",
+	[
+		rateLimiterMiddleware(userLimiter),
+		hiddenRouteMiddleware(),
+		validateSchemaMiddleware(UserIdParamSchema, "params")
+	],
+	usersAdminController.deleteAdminUser
+);
+
+router.get(
+	"/admin/users/:userId/data-export",
+	[
+		rateLimiterMiddleware(userLimiter),
+		hiddenRouteMiddleware(),
+		validateSchemaMiddleware(UserIdParamSchema, "params")
+	],
+	usersAdminController.getAdminUserDataExport
+);
+
 router.get(
 	"/users/me",
 	[rateLimiterMiddleware(userLimiter), authMiddleware()],
