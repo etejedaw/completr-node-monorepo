@@ -85,9 +85,9 @@ void describe("igdbToGameMapper", () => {
 			]);
 		});
 
-		void it("keeps the raw user rating rounded to 2 decimals and no times", () => {
+		void it("keeps the raw user rating rounded to an integer and no times", () => {
 			assert.deepEqual(mapped.enrichment.scores, [
-				{ source: "igdb", score: 89.43 }
+				{ source: "igdb", score: 89 }
 			]);
 			assert.deepEqual(mapped.enrichment.times, []);
 		});
@@ -663,13 +663,13 @@ void describe("IGDB_SCORE_EXTRACTORS", () => {
 	void it("returns the raw rating on the 0 to 100 scale", () => {
 		assert.equal(mapScore(75), 75);
 		assert.equal(mapScore(100), 100);
-		assert.equal(mapScore(0.01), 0.01);
+		assert.equal(mapScore(0.5), 1);
 	});
 
-	void it("rounds to 2 decimals", () => {
-		assert.equal(mapScore(89.43176758204031), 89.43);
-		assert.equal(mapScore(89.435), 89.44);
-		assert.equal(mapScore(66.666666), 66.67);
+	void it("rounds to the nearest integer", () => {
+		assert.equal(mapScore(89.43176758204031), 89);
+		assert.equal(mapScore(89.5), 90);
+		assert.equal(mapScore(66.666666), 67);
 		assert.equal(mapScore(50.0000001), 50);
 	});
 
@@ -682,6 +682,7 @@ void describe("IGDB_SCORE_EXTRACTORS", () => {
 	});
 
 	void it("returns null for a rating that rounds down to zero", () => {
+		assert.equal(mapScore(0.4), null);
 		assert.equal(mapScore(0.004), null);
 		assert.equal(mapScore(Number.MIN_VALUE), null);
 	});
