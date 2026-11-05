@@ -1,8 +1,10 @@
+import { isTimeoutError } from "../common/utils/is-timeout-error.util";
 import * as igdbServiceError from "./errors/igdb.service-error";
 import { type IgdbGame, type IgdbSearchOptions } from "./igdb.interface";
 import { IgdbTokenClient } from "./igdb-token.client";
 
 const IGDB_GAMES_URL = "https://api.igdb.com/v4/games";
+const IGDB_REQUEST_TIMEOUT_MS = 5000;
 const DEFAULT_SEARCH_LIMIT = 10;
 const MAX_SEARCH_LIMIT = 500;
 const MAIN_GAME_TYPE_ID = 0;
@@ -63,7 +65,8 @@ export class IgdbProvider extends IgdbClient {
 		private readonly tokenClient = new IgdbTokenClient(
 			clientId,
 			clientSecret
-		)
+		),
+		private readonly requestTimeoutMs = IGDB_REQUEST_TIMEOUT_MS
 	) {
 		super();
 	}
@@ -138,9 +141,11 @@ export class IgdbProvider extends IgdbClient {
 					Authorization: `Bearer ${token}`,
 					Accept: "application/json"
 				},
-				body
+				body,
+				signal: AbortSignal.timeout(this.requestTimeoutMs)
 			});
 		} catch (error) {
+			if (isTimeoutError(error)) throw this.timeoutError();
 			const reason = error instanceof Error ? error.message : "unknown";
 			throw igdbServiceError.requestError(
 				`IGDB request failed before a response: ${reason}`
@@ -161,6 +166,7 @@ export class IgdbProvider extends IgdbClient {
 		try {
 			body = await response.json();
 		} catch (error) {
+			if (isTimeoutError(error)) throw this.timeoutError();
 			throw igdbServiceError.parseError(error);
 		}
 
@@ -169,6 +175,12 @@ export class IgdbProvider extends IgdbClient {
 				"IGDB response body is not an array"
 			);
 		return body as IgdbGame[];
+	}
+
+	private timeoutError() {
+		return igdbServiceError.requestError(
+			`IGDB request timed out after ${this.requestTimeoutMs} ms`
+		);
 	}
 }
 

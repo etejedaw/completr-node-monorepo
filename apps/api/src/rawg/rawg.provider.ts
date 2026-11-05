@@ -1,3 +1,4 @@
+import { isTimeoutError } from "../common/utils/is-timeout-error.util";
 import * as rawgServiceError from "./errors/rawg.service-error";
 import {
 	type RawgGameDetail,
@@ -5,6 +6,8 @@ import {
 	type RawgSearchFilters,
 	type RawgSearchResponse
 } from "./rawg.interface";
+
+const RAWG_REQUEST_TIMEOUT_MS = 5000;
 
 export abstract class RawgClient {
 	abstract readonly isEnabled: boolean;
@@ -29,7 +32,10 @@ export class RawgProvider extends RawgClient {
 
 	private readonly BASE_URL = "https://api.rawg.io/api";
 
-	constructor(private readonly apiKey: string) {
+	constructor(
+		private readonly apiKey: string,
+		private readonly requestTimeoutMs = RAWG_REQUEST_TIMEOUT_MS
+	) {
 		super();
 	}
 
@@ -76,8 +82,11 @@ export class RawgProvider extends RawgClient {
 
 	private async fetchRawg(url: URL): Promise<Response> {
 		try {
-			return await fetch(url.toString());
+			return await fetch(url.toString(), {
+				signal: AbortSignal.timeout(this.requestTimeoutMs)
+			});
 		} catch (error) {
+			if (isTimeoutError(error)) throw this.timeoutError();
 			const reason = error instanceof Error ? error.message : "unknown";
 			throw rawgServiceError.requestError(
 				`RAWG request failed before a response: ${reason}`
@@ -89,8 +98,15 @@ export class RawgProvider extends RawgClient {
 		try {
 			return (await response.json()) as T;
 		} catch (error) {
+			if (isTimeoutError(error)) throw this.timeoutError();
 			throw rawgServiceError.parseError(error);
 		}
+	}
+
+	private timeoutError() {
+		return rawgServiceError.requestError(
+			`RAWG request timed out after ${this.requestTimeoutMs} ms`
+		);
 	}
 
 	private handleErrors(response: Response): void {

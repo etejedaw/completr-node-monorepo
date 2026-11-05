@@ -1,9 +1,11 @@
+import { isTimeoutError } from "../common/utils/is-timeout-error.util";
 import * as igdbServiceError from "./errors/igdb.service-error";
 import { type IgdbTokenResponse } from "./igdb.interface";
 
 const TWITCH_TOKEN_URL = "https://id.twitch.tv/oauth2/token";
 const TOKEN_REFRESH_MARGIN_MS = 5 * 60 * 1000;
 const REJECTED_CREDENTIALS_STATUSES = new Set([400, 401, 403]);
+const TOKEN_REQUEST_TIMEOUT_MS = 5000;
 
 export class IgdbTokenClient {
 	private accessToken?: string;
@@ -13,7 +15,8 @@ export class IgdbTokenClient {
 	constructor(
 		private readonly clientId: string,
 		private readonly clientSecret: string,
-		private readonly now: () => number = () => Date.now()
+		private readonly now: () => number = () => Date.now(),
+		private readonly requestTimeoutMs = TOKEN_REQUEST_TIMEOUT_MS
 	) {}
 
 	getToken(): Promise<string> {
@@ -53,9 +56,14 @@ export class IgdbTokenClient {
 					client_id: this.clientId,
 					client_secret: this.clientSecret,
 					grant_type: "client_credentials"
-				})
+				}),
+				signal: AbortSignal.timeout(this.requestTimeoutMs)
 			});
 		} catch (error) {
+			if (isTimeoutError(error))
+				throw igdbServiceError.requestError(
+					`IGDB token request timed out after ${this.requestTimeoutMs} ms`
+				);
 			const reason = error instanceof Error ? error.message : "unknown";
 			throw igdbServiceError.requestError(
 				`IGDB token request failed before a response: ${reason}`
@@ -79,6 +87,10 @@ export class IgdbTokenClient {
 		try {
 			body = await response.json();
 		} catch (error) {
+			if (isTimeoutError(error))
+				throw igdbServiceError.requestError(
+					`IGDB token request timed out after ${this.requestTimeoutMs} ms`
+				);
 			throw igdbServiceError.parseError(error);
 		}
 
