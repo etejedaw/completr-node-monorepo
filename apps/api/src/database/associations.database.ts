@@ -9,6 +9,7 @@ import { Backlog } from "../backlog/backlog.model";
 import { BacklogProgress } from "../backlog-progress/backlog-progress.model";
 import { CompilationItem } from "../compilation-items/compilation-item.model";
 import { CoopRun } from "../coop-runs/coop-run.model";
+import { DataRequest } from "../data-requests/data-request.model";
 import { ExternalDataAttempt } from "../external-data-attempts/external-data-attempt.model";
 import { Favorite } from "../favorites/favorite.model";
 import { Franchise } from "../franchises/franchise.model";
@@ -78,6 +79,21 @@ export function setupAssociations() {
 	franchises();
 	rewinds();
 	premiumGrants();
+	dataRequests();
+}
+
+function dataRequests() {
+	User.hasMany(DataRequest, { foreignKey: "userId", onDelete: "SET NULL" });
+	DataRequest.belongsTo(User, { foreignKey: "userId" });
+	User.hasMany(DataRequest, {
+		foreignKey: "resolvedById",
+		as: "ResolvedDataRequests",
+		onDelete: "SET NULL"
+	});
+	DataRequest.belongsTo(User, {
+		foreignKey: "resolvedById",
+		as: "ResolvedBy"
+	});
 }
 
 function premiumGrants() {
@@ -123,6 +139,7 @@ function compilations() {
 }
 
 function reviews() {
+	User.hasMany(Review, { foreignKey: "userId", onDelete: "CASCADE" });
 	Review.belongsTo(User, { foreignKey: "userId" });
 	Review.belongsTo(Game, { foreignKey: "gameId" });
 }
@@ -167,7 +184,7 @@ function gameGenre() {
 }
 
 function gameShelf() {
-	User.hasMany(GameShelf, { foreignKey: "userId" });
+	User.hasMany(GameShelf, { foreignKey: "userId", onDelete: "CASCADE" });
 	GameShelf.belongsTo(User, { foreignKey: "userId" });
 
 	Game.hasMany(GameShelf, { foreignKey: "gameId", onDelete: "CASCADE" });
@@ -178,7 +195,7 @@ function gameShelf() {
 }
 
 function lists() {
-	User.hasMany(List, { foreignKey: "userId" });
+	User.hasMany(List, { foreignKey: "userId", onDelete: "CASCADE" });
 	List.belongsTo(User, { foreignKey: "userId" });
 }
 
@@ -194,12 +211,12 @@ function listFollowers() {
 	List.hasMany(ListFollower, { foreignKey: "listId" });
 	ListFollower.belongsTo(List, { foreignKey: "listId" });
 
-	User.hasMany(ListFollower, { foreignKey: "userId" });
+	User.hasMany(ListFollower, { foreignKey: "userId", onDelete: "CASCADE" });
 	ListFollower.belongsTo(User, { foreignKey: "userId" });
 }
 
 function backlog() {
-	User.hasMany(Backlog, { foreignKey: "userId" });
+	User.hasMany(Backlog, { foreignKey: "userId", onDelete: "CASCADE" });
 	Backlog.belongsTo(User, { foreignKey: "userId" });
 
 	Game.hasMany(Backlog, { foreignKey: "gameId", onDelete: "CASCADE" });
@@ -254,12 +271,12 @@ function userGameTags() {
 }
 
 function savedFilters() {
-	User.hasMany(SavedFilter, { foreignKey: "userId" });
+	User.hasMany(SavedFilter, { foreignKey: "userId", onDelete: "CASCADE" });
 	SavedFilter.belongsTo(User, { foreignKey: "userId" });
 }
 
 function queue() {
-	User.hasMany(Queue, { foreignKey: "userId" });
+	User.hasMany(Queue, { foreignKey: "userId", onDelete: "CASCADE" });
 	Queue.belongsTo(User, { foreignKey: "userId" });
 
 	Backlog.hasMany(Queue, { foreignKey: "backlogId", onDelete: "CASCADE" });
@@ -267,7 +284,7 @@ function queue() {
 }
 
 function wishlist() {
-	User.hasMany(Wishlist, { foreignKey: "userId" });
+	User.hasMany(Wishlist, { foreignKey: "userId", onDelete: "CASCADE" });
 	Wishlist.belongsTo(User, { foreignKey: "userId" });
 
 	Game.hasMany(Wishlist, { foreignKey: "gameId", onDelete: "CASCADE" });
@@ -278,7 +295,7 @@ function wishlist() {
 }
 
 function favorites() {
-	User.hasMany(Favorite, { foreignKey: "userId" });
+	User.hasMany(Favorite, { foreignKey: "userId", onDelete: "CASCADE" });
 	Favorite.belongsTo(User, { foreignKey: "userId" });
 
 	Game.hasMany(Favorite, { foreignKey: "gameId", onDelete: "CASCADE" });
@@ -316,7 +333,7 @@ function externalDataAttempts() {
 }
 
 function gameReports() {
-	User.hasMany(GameReport, { foreignKey: "userId" });
+	User.hasMany(GameReport, { foreignKey: "userId", onDelete: "CASCADE" });
 	GameReport.belongsTo(User, { foreignKey: "userId" });
 
 	Game.hasMany(GameReport, { foreignKey: "gameId", onDelete: "CASCADE" });
@@ -345,8 +362,16 @@ function userInvitations() {
 }
 
 function userFollowers() {
-	User.hasMany(UserFollower, { foreignKey: "followerId", as: "Following" });
-	User.hasMany(UserFollower, { foreignKey: "followingId", as: "Followers" });
+	User.hasMany(UserFollower, {
+		foreignKey: "followerId",
+		as: "Following",
+		onDelete: "CASCADE"
+	});
+	User.hasMany(UserFollower, {
+		foreignKey: "followingId",
+		as: "Followers",
+		onDelete: "CASCADE"
+	});
 	UserFollower.belongsTo(User, { foreignKey: "followerId", as: "Follower" });
 	UserFollower.belongsTo(User, {
 		foreignKey: "followingId",
@@ -366,7 +391,7 @@ function userFollowRequests() {
 }
 
 function activities() {
-	User.hasMany(Activity, { foreignKey: "userId" });
+	User.hasMany(Activity, { foreignKey: "userId", onDelete: "CASCADE" });
 	Activity.belongsTo(User, { foreignKey: "userId" });
 
 	Activity.hasOne(ActivityGame, {
@@ -390,7 +415,10 @@ function activities() {
 		onDelete: "CASCADE"
 	});
 	ActivityUser.belongsTo(Activity, { foreignKey: "activityId" });
-	User.hasMany(ActivityUser, { foreignKey: "targetUserId" });
+	User.hasMany(ActivityUser, {
+		foreignKey: "targetUserId",
+		onDelete: "CASCADE"
+	});
 	ActivityUser.belongsTo(User, {
 		foreignKey: "targetUserId",
 		as: "TargetUser"
