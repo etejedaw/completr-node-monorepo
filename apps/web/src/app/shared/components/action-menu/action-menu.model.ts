@@ -15,6 +15,7 @@ export interface ActionMenuItem {
 	iconClass?: string;
 	hint?: string;
 	premium?: boolean;
+	hidePremiumBadge?: boolean;
 	locked?: boolean;
 	disabled?: boolean;
 	busy?: boolean;
