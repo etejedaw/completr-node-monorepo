@@ -29,3 +29,10 @@ export function themeForbiddenError() {
 		raw: undefined
 	});
 }
+
+export function deleteForbiddenError(rawError?: unknown) {
+	return new ServiceError("USER_DELETE_FORBIDDEN", {
+		...BASE_OPTIONS,
+		raw: rawError
+	});
+}

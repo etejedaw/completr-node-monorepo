@@ -22,5 +22,8 @@ export function usersServiceToDomainMapper(
 	if (error.code === "USER_THEME_FORBIDDEN")
 		return userDomainError.userThemeForbidden(context);
 
+	if (error.code === "USER_DELETE_FORBIDDEN")
+		return userDomainError.userDeleteForbidden(context);
+
 	return userDomainError.userInternalError(context);
 }
