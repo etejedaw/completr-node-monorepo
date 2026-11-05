@@ -1,9 +1,9 @@
 ---
 lang: es
-version: "2.3"
-updated: 2026-11-04
+version: "2.4"
+updated: 2026-11-05
 title: Política de privacidad
-summary: "La idea de fondo es simple: recojo lo mínimo para que la app funcione, no vendo tus datos ni los cedo con fines comerciales, y puedes borrarlos cuando quieras."
+summary: "La idea de fondo es simple: recojo lo mínimo para que la app funcione, no vendo tus datos ni los cedo con fines comerciales, y puedes pedir una copia o el borrado de todo cuando quieras."
 highlights:
     - section: use
       icon: block
@@ -19,8 +19,8 @@ highlights:
       text: Una sola cookie estrictamente necesaria para mantener tu sesión.
     - section: rights
       icon: delete_outline
-      title: Tuyos para borrar
-      text: Edita tus datos y borra tu cuenta directamente desde la app.
+      title: Tuyos para llevar o borrar
+      text: Edita tus datos y pide una copia o el borrado de tu cuenta desde Settings → Your data.
 sections:
     - { id: overview, label: Resumen, icon: info_outline }
     - { id: data, label: Datos que recojo, icon: inventory_2 }
@@ -42,7 +42,7 @@ sections:
 
 Completr es un proyecto personal desarrollado y operado por **Esteban Tejeda**, responsable del tratamiento de los datos descritos aquí. Esta política aplica tanto a la página de inscripción (completr.app) como a la aplicación (web.completr.app).
 
-La idea de fondo es simple: recojo lo mínimo para que la app funcione, no vendo tus datos ni los cedo con fines comerciales, y puedes borrarlos cuando quieras.
+La idea de fondo es simple: recojo lo mínimo para que la app funcione, no vendo tus datos ni los cedo con fines comerciales, y puedes pedir una copia o el borrado de todo cuando quieras.
 
 Las personas cuyos datos trato son quienes piden una invitación y quienes crean una cuenta en la app. Todos los datos los entregas tú: no compro bases de datos ni obtengo tu información de terceros.
 
@@ -123,14 +123,16 @@ El único perfil es el Rewind, y solo existe si lo pides. Al generarlo, la app t
 
 ## Cuánto tiempo los conservo
 
-- **Tu cuenta y tu contenido:** mientras tú quieras. No hay un plazo máximo ni borrados automáticos por inactividad: tu backlog sigue ahí hasta que decidas darte de baja.
+- **Tu cuenta y tu contenido:** mientras tú quieras. No hay un plazo máximo ni borrados automáticos por inactividad: tu backlog sigue ahí hasta que pidas borrar tu cuenta.
+- **Copia de tus datos:** si pides una copia, el archivo queda disponible para descargar en Settings → Your data durante 7 días desde que apruebo la solicitud, y después se elimina.
+- **Registro de tus solicitudes:** guardo una constancia de cada solicitud de copia o de borrado, sin datos personales, solo como prueba de que la respondí.
 - **Correo de un pedido de invitación:** hasta que pidas eliminarlo, o como máximo 12 meses después de que se abra el registro.
 - **Tus Rewind:** se guardan con tu cuenta, resumen con IA incluido, hasta que la borras. Regenerar un Rewind reemplaza la versión anterior.
 - **Lo que recibe DeepSeek:** no controlo cuánto lo conserva. Sus condiciones no fijan un plazo y no puedo pedir que borre tus datos en particular, así que eliminar tu cuenta de Completr no borra esa copia.
 - **Registros técnicos del servidor:** 30 días, y después se eliminan.
 - **Analítica:** es agregada y anónima, así que no queda asociada a ti ni hay nada que borrar.
 
-Cuando borras tu cuenta, el borrado es inmediato y definitivo: no guardo copias de respaldo, así que no queda una versión tuya sobreviviendo en otro lado. La única excepción es lo que recibió DeepSeek al generar un resumen con IA, descrito arriba.
+Cuando apruebo el borrado de tu cuenta, es definitivo: elimino la cuenta y todo su contenido (backlog, listas, reseñas, seguidores, actividad, Rewind y el resto) y no guardo copias de respaldo, así que no queda una versión tuya sobreviviendo en otro lado. Lo único que permanece es el registro de la solicitud, sin datos personales. La otra excepción es lo que recibió DeepSeek al generar un resumen con IA, descrito arriba.
 
 ## Tus derechos
 
@@ -142,7 +144,13 @@ Sobre tus datos personales puedes ejercer estos derechos, sin costo y sin tener 
 - **Oposición.** Pedir que deje de tratarlos.
 - **Portabilidad.** Recibirlos en un formato que puedas llevarte.
 
-Puedes editar tus datos y borrar tu cuenta directamente desde la app. Para cualquier otra solicitud escríbeme a [completr@etejeda.dev](mailto:completr@etejeda.dev): te confirmo que recibí tu solicitud y te respondo por escrito dentro de 30 días corridos. Si necesito más tiempo puedo extender el plazo una sola vez por otros 30 días, avisándote antes.
+Puedes editar tus datos directamente desde la app. Para lo demás, usa Settings → Your data o escríbeme a [completr@etejeda.dev](mailto:completr@etejeda.dev):
+
+- **Copia de tus datos** (acceso y portabilidad). Es un archivo JSON estructurado con todo lo tuyo, que puedes llevarte a otro servicio. Una vez aprobada, la descargas desde la misma sección durante 7 días.
+- **Borrado de tu cuenta** (supresión). Es definitivo y no se puede deshacer.
+- **Rectificación u oposición.** Escríbeme al correo.
+
+Reviso cada solicitud personalmente y te respondo dentro de 30 días corridos. Si necesito más tiempo, puedo extender el plazo una sola vez por otros 30 días, avisándote antes. Cuando la resuelvo, te aviso por correo.
 
 Si no te respondo a tiempo o rechazo tu solicitud, puedes reclamar ante la Agencia de Protección de Datos Personales de Chile.
 

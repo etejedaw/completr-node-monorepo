@@ -1,9 +1,9 @@
 ---
 lang: en
-version: "2.3"
-updated: 2026-11-04
+version: "2.4"
+updated: 2026-11-05
 title: Privacy Policy
-summary: "The idea is simple: I collect the minimum needed for the app to work, I never sell your data or share it for commercial purposes, and you can delete it whenever you want."
+summary: "The idea is simple: I collect the minimum needed for the app to work, I never sell your data or share it for commercial purposes, and you can ask for a copy or for everything to be deleted whenever you want."
 highlights:
     - section: use
       icon: block
@@ -19,8 +19,8 @@ highlights:
       text: A single strictly necessary cookie keeps you signed in.
     - section: rights
       icon: delete_outline
-      title: Yours to delete
-      text: Edit your data and delete your account directly from the app.
+      title: Yours to take or delete
+      text: Edit your data and request a copy or the deletion of your account from Settings → Your data.
 sections:
     - { id: overview, label: Overview, icon: info_outline }
     - { id: data, label: Data collected, icon: inventory_2 }
@@ -42,7 +42,7 @@ sections:
 
 Completr is a personal project built and operated by **Esteban Tejeda**, who acts as the data controller for the data described here. This policy covers both the sign-up page (completr.app) and the application (web.completr.app).
 
-The idea is simple: I collect the minimum needed for the app to work, I never sell your data or share it for commercial purposes, and you can delete it whenever you want.
+The idea is simple: I collect the minimum needed for the app to work, I never sell your data or share it for commercial purposes, and you can ask for a copy or for everything to be deleted whenever you want.
 
 The people whose data I process are those who request an invitation and those who create an account in the app. You provide all of it yourself: I don't buy databases or get your information from third parties.
 
@@ -123,14 +123,16 @@ The only profile is the Rewind, and it exists only if you ask for it. When you g
 
 ## How long I keep it
 
-- **Your account and your content:** for as long as you want. There's no maximum period and no automatic deletion for inactivity: your backlog stays there until you decide to leave.
+- **Your account and your content:** for as long as you want. There's no maximum period and no automatic deletion for inactivity: your backlog stays there until you ask me to delete your account.
+- **Copy of your data:** if you request one, the file stays available to download in Settings → Your data for 7 days after I approve the request, then it's deleted.
+- **Record of your requests:** I keep a record of each copy or deletion request, with no personal data, only as proof that I answered it.
 - **Invitation request email:** until you ask me to delete it, or at most 12 months after registration opens.
 - **Your Rewinds:** stored with your account, AI summary included, until you delete the account. Regenerating a Rewind replaces the previous version.
 - **What DeepSeek receives:** I don't control how long it keeps it. Its terms set no period and I can't ask it to delete your data in particular, so deleting your Completr account doesn't remove that copy.
 - **Server logs:** 30 days, then they're deleted.
 - **Analytics:** aggregate and anonymous, so it isn't tied to you and there's nothing to delete.
 
-When you delete your account, the deletion is immediate and permanent: I don't keep backups, so no copy of you survives somewhere else. The only exception is what DeepSeek received when you generated an AI summary, described above.
+When I approve the deletion of your account, it's permanent: I delete the account and all its content (backlog, lists, reviews, followers, activity, Rewinds and the rest) and I don't keep backups, so no copy of you survives somewhere else. The only thing that remains is the record of the request, with no personal data. The other exception is what DeepSeek received when you generated an AI summary, described above.
 
 ## Your rights
 
@@ -142,7 +144,13 @@ You can exercise these rights over your personal data at no cost and without hav
 - **Objection.** Ask me to stop processing it.
 - **Portability.** Receive it in a format you can take with you.
 
-You can edit your data and delete your account directly from the app. For any other request, email me at [completr@etejeda.dev](mailto:completr@etejeda.dev): I'll confirm I received your request and reply in writing within 30 calendar days. If I need more time I can extend that period once, by another 30 days, letting you know beforehand.
+You can edit your data directly from the app. For everything else, use Settings → Your data or email me at [completr@etejeda.dev](mailto:completr@etejeda.dev):
+
+- **A copy of your data** (access and portability). It's a structured JSON file with everything of yours, which you can take to another service. Once approved, you download it from the same section for 7 days.
+- **Deleting your account** (erasure). It's permanent and can't be undone.
+- **Rectification or objection.** Email me.
+
+I review each request myself and reply within 30 calendar days. If I need more time, I can extend that period once, by another 30 days, letting you know beforehand. When I resolve it, I'll let you know by email.
 
 If I don't reply in time or I reject your request, you can file a complaint with Chile's Personal Data Protection Agency.
 
