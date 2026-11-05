@@ -58,6 +58,7 @@ export class ActionMenu {
 	readonly busy = input(false);
 	readonly count = input(0);
 	readonly active = input(false, { transform: booleanAttribute });
+	readonly premium = input(false, { transform: booleanAttribute });
 	readonly eyebrow = input<string | null>(null);
 	readonly subheading = input<string | null>(null);
 	readonly selected = output<string>();

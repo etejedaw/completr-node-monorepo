@@ -192,3 +192,14 @@ export async function removeSavedFilter(id: string, userId: string) {
 	await SavedFilter.destroy({ where: { id } });
 	return true;
 }
+
+export async function findSavedFiltersForDataExport(userId: string) {
+	return SavedFilter.findAll({
+		where: { userId },
+		order: [
+			["position", "ASC"],
+			["createdAt", "ASC"],
+			["id", "ASC"]
+		]
+	});
+}

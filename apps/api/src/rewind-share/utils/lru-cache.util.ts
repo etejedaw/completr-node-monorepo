@@ -25,6 +25,12 @@ export class LruCache<Value> {
 		this.entries.delete(key);
 	}
 
+	deleteKeysStartingWith(prefix: string): void {
+		for (const key of [...this.entries.keys()]) {
+			if (key.startsWith(prefix)) this.entries.delete(key);
+		}
+	}
+
 	clear(): void {
 		this.entries.clear();
 	}

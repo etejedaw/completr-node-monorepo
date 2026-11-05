@@ -13,7 +13,11 @@ const MailConfigSchema = z
 		SMTP_SECURE: z.stringbool().default(false),
 		SMTP_USER: optionalSetting,
 		SMTP_PASSWORD: optionalSetting,
-		MAIL_FROM: z.string().default("Completr <completr@email.etejeda.dev>")
+		MAIL_FROM: z.string().default("Completr <completr@email.etejeda.dev>"),
+		DATA_REQUESTS_NOTIFY_EMAIL: z.preprocess(
+			value => value || undefined,
+			z.email().default("completr@etejeda.dev")
+		)
 	})
 	.readonly();
 

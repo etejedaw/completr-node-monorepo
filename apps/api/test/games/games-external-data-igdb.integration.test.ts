@@ -140,7 +140,7 @@ void describe("POST /games/:id/external-data/refresh — IGDB lookup", () => {
 		);
 	});
 
-	void it("asks only for the stored id and stores the rating rounded to two decimals", async () => {
+	void it("asks only for the stored id and stores the rating rounded to an integer", async () => {
 		const game = await createCatalogGame("Hades", { code: "hades" });
 		await linkExternal(game.id, "igdb", "1113");
 		const igdb = igdbGames([hades()]);
@@ -150,7 +150,7 @@ void describe("POST /games/:id/external-data/refresh — IGDB lookup", () => {
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.results, [
-			{ source: "igdb", status: "updated", score: 92.35, errorCode: null }
+			{ source: "igdb", status: "updated", score: 92, errorCode: null }
 		]);
 		assert.deepEqual(igdb.calls, ["id:1113"]);
 		assert.deepEqual(
@@ -160,10 +160,10 @@ void describe("POST /games/:id/external-data/refresh — IGDB lookup", () => {
 					score.score
 				]
 			),
-			[["igdb", 92.35]]
+			[["igdb", 92]]
 		);
 		assert.deepEqual(await igdbState(game.id), {
-			score: 92.35,
+			score: 92,
 			externalId: "1113",
 			attempt: null
 		});
@@ -222,7 +222,7 @@ void describe("POST /games/:id/external-data/refresh — IGDB lookup", () => {
 		assert.equal(response.body.data.results[0].status, "updated");
 		assert.deepEqual(igdb.calls, ["slug:hades"]);
 		assert.deepEqual(await igdbState(game.id), {
-			score: 92.35,
+			score: 92,
 			externalId: "1113",
 			attempt: null
 		});
@@ -238,7 +238,7 @@ void describe("POST /games/:id/external-data/refresh — IGDB lookup", () => {
 
 		const response = await refresh(game.id, ["igdb"]);
 
-		assert.equal(response.body.data.results[0].score, 92.35);
+		assert.equal(response.body.data.results[0].score, 92);
 		assert.deepEqual(igdb.calls, ["slug:hades", "search:Hades"]);
 		assert.equal((await igdbState(game.id)).externalId, "1113");
 	});
@@ -497,7 +497,7 @@ void describe("POST /games/:id/external-data/refresh — IGDB failures", () => {
 		const second = await refresh(game.id, ["igdb"]);
 		assert.equal(second.body.data.results[0].status, "updated");
 		assert.deepEqual(await igdbState(game.id), {
-			score: 92.35,
+			score: 92,
 			externalId: "1113",
 			attempt: null
 		});
@@ -658,7 +658,7 @@ void describe("POST /admin/jobs/populate-external-data — IGDB", () => {
 				`slug:${notOnIgdb.code}`
 			].sort()
 		);
-		assert.equal((await igdbState(missingIgdb.id)).score, 92.35);
+		assert.equal((await igdbState(missingIgdb.id)).score, 92);
 		assert.equal((await igdbState(notOnIgdb.id)).attempt, "not_found");
 	});
 
@@ -814,7 +814,7 @@ void describe("import enrichment queue — IGDB", () => {
 		enqueueImportedGames([game.id, game.id]);
 
 		await eventually(async () =>
-			assert.equal((await igdbState(game.id)).score, 92.35)
+			assert.equal((await igdbState(game.id)).score, 92)
 		);
 		await whenImportEnrichmentIdle();
 	});
@@ -827,7 +827,7 @@ void describe("import enrichment queue — IGDB", () => {
 		enqueueImportedGames([game.id]);
 		await whenImportEnrichmentIdle();
 
-		assert.equal((await igdbState(game.id)).score, 92.35);
+		assert.equal((await igdbState(game.id)).score, 92);
 		assert.deepEqual(igdb.calls, ["slug:x", "search:Hades"]);
 	});
 

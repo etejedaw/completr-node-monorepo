@@ -47,6 +47,15 @@ export function userThemeForbidden(context?: Record<string, unknown>) {
 	);
 }
 
+export function userDeleteForbidden(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"USER_DELETE_FORBIDDEN",
+		"This account cannot be deleted",
+		context
+	);
+}
+
 export function userInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

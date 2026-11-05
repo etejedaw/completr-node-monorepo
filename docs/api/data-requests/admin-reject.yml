@@ -1,0 +1,78 @@
+info:
+    name: Admin Reject Data Request
+    type: http
+    seq: 6
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/data-requests/:requestId/reject"
+    params:
+        - name: requestId
+          value: 00000000-0000-0000-0000-000000000000
+          type: path
+    headers:
+        - name: Content-Type
+          value: application/json
+    body:
+        type: json
+        data: |-
+            {
+              "reason": "We could not verify that the request came from the account owner."
+            }
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Admin Reject Data Request
+
+    Resolves a pending request as `rejected` with a mandatory reason, stored in `resolutionNote`, and emails it to the user.
+
+    **Authentication:** Bearer token, admin only (other roles get 404).
+    **Rate Limit:** 300 requests per minute (user limiter).
+    **Audit:** `data_request_rejected` on target type `data_request`.
+
+    ### Path params
+
+    | Param     | Type | Description         |
+    |-----------|------|---------------------|
+    | requestId | uuid | Id of the request   |
+
+    ### Request Body
+
+    | Field  | Type   | Required | Description                               |
+    |--------|--------|----------|-------------------------------------------|
+    | reason | string | Yes      | 1-500 characters after trimming spaces    |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "request": {
+          "id": "uuid",
+          "type": "deletion",
+          "status": "rejected",
+          "requestedAt": "2026-11-01T15:00:00.000Z",
+          "resolvedAt": "2026-11-05T15:00:00.000Z",
+          "dueAt": "2026-12-01T15:00:00.000Z",
+          "daysRemaining": 26,
+          "downloadableUntil": null,
+          "resolutionNote": "We could not verify that the request came from the account owner."
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Type                     | When                                          |
+    |--------|--------------------------|-----------------------------------------------|
+    | 404    | AUTH_ROUTE_NOT_FOUND     | Caller is not an admin                        |
+    | 404    | DATA_REQUEST_NOT_FOUND   | No request with that id                       |
+    | 409    | DATA_REQUEST_NOT_PENDING | The request was already completed or rejected |
+    | 422    | COMMON_SCHEMA_INVALID    | `requestId` not a UUID, or `reason` missing, blank or over 500 characters |

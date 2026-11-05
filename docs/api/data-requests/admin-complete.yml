@@ -1,0 +1,67 @@
+info:
+    name: Admin Complete Data Request
+    type: http
+    seq: 5
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/data-requests/:requestId/complete"
+    params:
+        - name: requestId
+          value: 00000000-0000-0000-0000-000000000000
+          type: path
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Admin Complete Data Request
+
+    Resolves a pending request as `completed` and emails the user.
+
+    - `export`: opens the download for 7 days (`downloadableUntil`). The user downloads it with `GET /users/me/data-requests/:requestId/download`.
+    - `deletion`: emails the user first and then deletes the account for good, in the same transaction that marks the request completed (same effect as `DELETE /admin/users/:userId`). The request is kept with `user` null. If the account was already deleted, the request is only marked completed.
+
+    **Authentication:** Bearer token, admin only (other roles get 404).
+    **Rate Limit:** 300 requests per minute (user limiter).
+    **Audit:** `data_request_completed` on target type `data_request`; a deletion also records `user_deleted`.
+
+    ### Path params
+
+    | Param     | Type | Description         |
+    |-----------|------|---------------------|
+    | requestId | uuid | Id of the request   |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "request": {
+          "id": "uuid",
+          "type": "export",
+          "status": "completed",
+          "requestedAt": "2026-11-01T15:00:00.000Z",
+          "resolvedAt": "2026-11-05T15:00:00.000Z",
+          "dueAt": "2026-12-01T15:00:00.000Z",
+          "daysRemaining": 26,
+          "downloadableUntil": "2026-11-12T15:00:00.000Z",
+          "resolutionNote": null
+        }
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Type                     | When                                                       |
+    |--------|--------------------------|------------------------------------------------------------|
+    | 404    | AUTH_ROUTE_NOT_FOUND     | Caller is not an admin                                     |
+    | 404    | DATA_REQUEST_NOT_FOUND   | No request with that id                                    |
+    | 409    | DATA_REQUEST_NOT_PENDING | The request was already completed or rejected              |
+    | 409    | USER_DELETE_FORBIDDEN    | Deletion request of an admin account, or of the caller     |
+    | 422    | COMMON_SCHEMA_INVALID    | `requestId` is not a UUID                                  |

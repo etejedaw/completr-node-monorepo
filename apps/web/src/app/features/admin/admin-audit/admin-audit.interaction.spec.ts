@@ -246,11 +246,17 @@ describe("AdminAudit interaction", () => {
 		expect(within(third).getByText("01234567...")).toBeInTheDocument();
 	});
 
-	it("labels entries without an actor as Unknown", async () => {
+	it("labels entries whose author was deleted as Deleted user", async () => {
 		await renderLoaded();
 
-		const row = bodyRows()[16];
-		expect(within(row).getByText("Unknown")).toBeInTheDocument();
+		const deletedAuthorRow = bodyRows()[16];
+		const authorRow = bodyRows()[15];
+		expect(
+			within(deletedAuthorRow).getByText("Deleted user")
+		).toBeInTheDocument();
+		expect(within(deletedAuthorRow).queryByText(/admin16/)).toBeNull();
+		expect(within(authorRow).getByText("admin15")).toBeInTheDocument();
+		expect(within(authorRow).queryByText("Deleted user")).toBeNull();
 	});
 
 	it("shows the singular label for a single entry", async () => {

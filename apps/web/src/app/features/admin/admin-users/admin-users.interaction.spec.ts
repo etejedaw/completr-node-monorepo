@@ -19,7 +19,9 @@ import {
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
+import { ExportService } from "../../../core/services/export";
 import { ToastService } from "../../../core/services/toast";
+import { DATA_REQUEST_ERROR_MESSAGES } from "../../../core/utils/data-request-error-message";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { AdminUsers } from "./admin-users";
 
@@ -1940,7 +1942,7 @@ describe("Admin users interaction", () => {
 			return screen.findByRole("menu", { name: username });
 		}
 
-		it("offers edit, premium access and profile for each row", async () => {
+		it("offers edit, premium access, profile and the data actions for each row", async () => {
 			const user = userEvent.setup();
 			await renderUsers();
 			const menu = await openRowMenu(user, "bob");
@@ -1948,7 +1950,13 @@ describe("Admin users interaction", () => {
 				within(menu)
 					.getAllByRole("menuitem")
 					.map(item => item.getAttribute("aria-label"))
-			).toEqual(["Edit user", "Premium access", "View profile"]);
+			).toEqual([
+				"Edit user",
+				"Premium access",
+				"View profile",
+				"Download data",
+				"Delete account"
+			]);
 		});
 
 		it("opens the editor for that row and only once on a double click", async () => {
@@ -2610,6 +2618,127 @@ describe("Admin users interaction", () => {
 			expect(
 				screen.queryByText("Could not load the invitations.")
 			).not.toBeInTheDocument();
+		});
+	});
+
+	describe("account data actions", () => {
+		const DATA_REQUESTS_URL = `${api}/admin/data-requests`;
+
+		async function openDataMenu(user: User, username: string) {
+			await user.click(
+				screen.getByRole("button", {
+					name: `Data actions for ${username}`
+				})
+			);
+			return screen.findByRole("menu", { name: username });
+		}
+
+		async function openDeleteDialog(user: User, username = "bob") {
+			const menu = await openDataMenu(user, username);
+			await user.click(
+				within(menu).getByRole("menuitem", { name: "Delete account" })
+			);
+			return screen.findByRole("dialog", { name: `Delete ${username}?` });
+		}
+
+		it("offers to delete regular accounts but never admin accounts", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+
+			const adminMenu = await openDataMenu(user, "ada");
+			expect(
+				within(adminMenu)
+					.getAllByRole("menuitem")
+					.map(item => item.getAttribute("aria-label"))
+			).toEqual(["Download data"]);
+		});
+
+		it("downloads the data of a user from the row", async () => {
+			const user = userEvent.setup();
+			const saveFile = vi
+				.spyOn(ExportService.prototype, "saveFile")
+				.mockImplementation(() => undefined);
+			await renderUsers();
+
+			const menu = await openDataMenu(user, "bob");
+			await user.click(
+				within(menu).getByRole("menuitem", { name: "Download data" })
+			);
+			const [download] = pending("GET", `${USERS_URL}/u2/data-export`);
+			expect(download!.request.responseType).toBe("blob");
+			download!.flush(new Blob(["{}"]));
+
+			expect(saveFile).toHaveBeenCalledWith(
+				expect.any(Blob),
+				expect.stringMatching(/^completr-data-bob-\d{4}-\d{2}-\d{2}\.json$/)
+			);
+			saveFile.mockRestore();
+		});
+
+		it("deletes an account after typing its username and removes the row", async () => {
+			const user = userEvent.setup();
+			const view = await renderUsers();
+
+			const dialog = await openDeleteDialog(user);
+			expect(within(dialog).getByText(/can't be undone/)).toBeInTheDocument();
+			const confirm = within(dialog).getByRole("button", {
+				name: "Delete account"
+			});
+			expect(confirm).toBeDisabled();
+			await user.type(
+				within(dialog).getByLabelText("Type bob to confirm"),
+				"bob"
+			);
+			await user.click(confirm);
+
+			const [deletion] = pending("DELETE", `${USERS_URL}/u2`);
+			expect(deletion).toBeDefined();
+			deletion!.flush(null, { status: 204, statusText: "No Content" });
+			view.fixture.detectChanges();
+
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+			expect(toast.success).toHaveBeenCalledWith("Account bob deleted.");
+			expect(screen.queryAllByText("Bob Builder")).toHaveLength(0);
+			expect(
+				pending("GET", DATA_REQUESTS_URL).filter(req => !req.cancelled)
+			).toHaveLength(1);
+		});
+
+		it("cancelling the deletion sends nothing", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+
+			const dialog = await openDeleteDialog(user);
+			await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+			expect(pending("DELETE", `${USERS_URL}/u2`)).toHaveLength(0);
+		});
+
+		it("explains an account that no longer exists and reloads the list", async () => {
+			const user = userEvent.setup();
+			await renderUsers();
+
+			const dialog = await openDeleteDialog(user);
+			await user.type(
+				within(dialog).getByLabelText("Type bob to confirm"),
+				"bob"
+			);
+			await user.click(
+				within(dialog).getByRole("button", { name: "Delete account" })
+			);
+			fail(pending("DELETE", `${USERS_URL}/u2`)[0]!, 404, {
+				type: "USER_NOT_FOUND"
+			});
+
+			expect(toast.error).toHaveBeenCalledWith(
+				DATA_REQUEST_ERROR_MESSAGES["USER_NOT_FOUND"]
+			);
+			expect(listRequests()).toHaveLength(1);
 		});
 	});
 });

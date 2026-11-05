@@ -4,6 +4,7 @@ import { authErrorDomainNormalizer } from "../../auth/errors/auth.error-domain.n
 import { backlogErrorDomainNormalizer } from "../../backlog/errors/backlog.error-domain.normalizer";
 import { backlogProgressErrorDomainNormalizer } from "../../backlog-progress/errors/backlog-progress.error-domain.normalizer";
 import { coopRunsErrorDomainNormalizer } from "../../coop-runs/errors/coop-runs.error-domain.normalizer";
+import { dataRequestsErrorDomainNormalizer } from "../../data-requests/errors/data-requests.error-domain.normalizer";
 import { favoritesErrorDomainNormalizer } from "../../favorites/errors/favorites.error-domain.normalizer";
 import { franchisesErrorDomainNormalizer } from "../../franchises/errors/franchises.error-domain.normalizer";
 import { gameExternalErrorDomainNormalizer } from "../../game-external/errors/game-external.error-domain.normalizer";
@@ -179,6 +180,9 @@ function globalServiceErrorMapper(
 
 	if (error.serviceError.service === "Invitation Service")
 		return invitationsErrorDomainNormalizer(error, correlationId);
+
+	if (error.serviceError.service === "Data Requests Service")
+		return dataRequestsErrorDomainNormalizer(error, correlationId);
 
 	if (error.serviceError.service === "Mail Provider")
 		return mailErrorDomainNormalizer(error, correlationId);

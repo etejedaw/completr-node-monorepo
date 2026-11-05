@@ -1,0 +1,180 @@
+<section aria-labelledby="data-requests-heading" class="mb-10">
+	<div class="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+		<div class="flex items-baseline gap-2">
+			<h2 id="data-requests-heading" uiEyebrow class="m-0">
+				Data requests
+			</h2>
+			@if (!isLoading() && !loadFailed()) {
+			<span class="text-xs text-fg-muted tabular-nums">{{ total() }}</span>
+			}
+		</div>
+		<app-segmented-control
+			class="max-sm:basis-full max-sm:[&>div]:flex max-sm:[&>div]:w-full max-sm:[&_button]:flex-1"
+			label="Request status"
+			[options]="statusFilterOptions"
+			[value]="statusFilter()"
+			(valueChange)="setStatusFilter($event)"
+		/>
+	</div>
+
+	@if (isLoading()) {
+	<div
+		class="rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"
+		aria-busy="true"
+		aria-label="Loading data requests"
+	>
+		@for (i of skeletonRows; track i) {
+		<div class="flex items-center gap-3 px-4 py-3">
+			<ui-skeleton variant="rect" class="block size-9 shrink-0 rounded-md" />
+			<div class="flex-1 min-w-0 flex flex-col gap-2">
+				<ui-skeleton variant="text" class="block w-1/3" />
+				<ui-skeleton variant="text" class="block w-1/2" />
+			</div>
+		</div>
+		}
+	</div>
+	} @else if (loadFailed()) {
+	<ui-alert>
+		<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+			<span>Could not load the data requests.</span>
+			<button uiButton size="sm" variant="secondary" (click)="reload()">
+				Try again
+			</button>
+		</div>
+	</ui-alert>
+	} @else if (requests().length === 0) {
+	<p
+		class="m-0 rounded-card border border-dashed border-line px-4 py-5 text-sm text-fg-muted"
+	>
+		@if (statusFilter() === "pending") { No pending data requests. Every
+		request has been answered. } @else { No data requests here yet. }
+	</p>
+	} @else {
+	<ul
+		class="list-none m-0 p-0 rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"
+		aria-label="Data requests"
+	>
+		@for (request of requests(); track request.id) { @let type =
+		typeDisplay(request.type); @let busy = busyRequestId() === request.id;
+		@let owner = ownerName(request);
+		<li
+			class="flex flex-col sm:flex-row sm:items-center gap-x-4 gap-y-3 px-4 py-3 text-[0.8125rem]"
+			[attr.aria-label]="type.label + ' request from ' + owner"
+		>
+			<div class="flex min-w-0 flex-1 items-start gap-3">
+				<span
+					aria-hidden="true"
+					class="shrink-0 size-9 inline-flex items-center justify-center rounded-md bg-input-bg"
+					[class.text-danger]="request.type === 'deletion'"
+					[class.text-brand]="request.type === 'export'"
+				>
+					<span class="material-icons text-lg">{{ type.icon }}</span>
+				</span>
+				<div class="min-w-0 flex-1">
+					<div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+						@if (request.user; as user) {
+						<a
+							class="font-medium text-fg no-underline hover:text-brand hover:underline focus-visible:outline-2 focus-visible:outline-brand rounded-sm"
+							[routerLink]="['/user', user.username]"
+							>{{ user.username }}</a
+						>
+						} @else {
+						<span class="font-medium text-fg-muted italic"
+							>Deleted account</span
+						>
+						}
+						<span class="text-fg-secondary">{{ type.label }}</span>
+						@if (request.status === "pending") { @let due =
+						daysRemainingBadge(request.daysRemaining);
+						<ui-badge [tone]="due.tone" [icon]="due.icon"
+							>{{ due.label }}</ui-badge
+						>
+						} @else { @let status = statusBadge(request.status);
+						<ui-badge [tone]="status.tone" [icon]="status.icon"
+							>{{ status.label }}</ui-badge
+						>
+						}
+					</div>
+					@if (request.user; as user) {
+					<p class="m-0 mt-0.5 text-xs text-fg-secondary truncate">
+						{{ user.email }}
+					</p>
+					}
+					<p class="m-0 mt-0.5 text-xs text-fg-muted tabular-nums">
+						Requested {{ request.requestedAt | date: "mediumDate" }} ·
+						@if (request.resolvedAt) { Resolved {{ request.resolvedAt |
+						date: "mediumDate" }} } @else { Due {{ request.dueAt |
+						date: "mediumDate" }} }
+					</p>
+					@if (request.resolutionNote) {
+					<p class="m-0 mt-1 text-xs text-fg-secondary">
+						Reason: {{ request.resolutionNote }}
+					</p>
+					}
+				</div>
+			</div>
+
+			@if (request.status === "pending") {
+			<div class="flex flex-wrap items-center gap-2 sm:justify-end">
+				<button
+					uiButton
+					size="sm"
+					class="tap:min-h-[44px] max-sm:flex-1"
+					[variant]="request.type === 'deletion' ? 'danger' : 'secondary'"
+					[disabled]="busy"
+					[attr.aria-label]="'Complete ' + type.label.toLowerCase() + ' request from ' + owner"
+					(click)="complete(request)"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>{{ request.type === "deletion" ? "delete_forever" :
+						"task_alt" }}</span
+					>
+					{{ busy && !deletionToConfirm() ? "Completing…" : "Complete" }}
+				</button>
+				<button
+					uiButton
+					size="sm"
+					variant="ghost"
+					class="tap:min-h-[44px] max-sm:flex-1"
+					[disabled]="busy"
+					[attr.aria-label]="'Reject ' + type.label.toLowerCase() + ' request from ' + owner"
+					(click)="askRejection(request)"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>block</span
+					>
+					Reject
+				</button>
+			</div>
+			}
+		</li>
+		}
+	</ul>
+
+	<ui-pagination
+		[offset]="offset()"
+		[limit]="limit"
+		[total]="total()"
+		(offsetChange)="goToOffset($event)"
+	/>
+	}
+</section>
+
+@if (deletionToConfirm(); as request) { @if (request.user; as user) {
+<app-admin-account-deletion-dialog
+	heading="Complete account deletion?"
+	confirmLabel="Delete account"
+	[username]="user.username"
+	[description]="'Completing this request deletes ' + ownerName(request) + ' and emails them a confirmation first.'"
+	[busy]="busyRequestId() === request.id"
+	(confirmed)="confirmDeletion()"
+	(cancelled)="cancelDeletion()"
+/>
+} } @if (requestToReject(); as request) {
+<app-admin-data-request-reject-dialog
+	[subheading]="typeDisplay(request.type).label + ' request from ' + ownerName(request) + '. The reason is emailed to them.'"
+	[busy]="busyRequestId() === request.id"
+	(submitted)="reject($event)"
+	(cancelled)="cancelRejection()"
+/>
+}

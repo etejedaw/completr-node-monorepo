@@ -112,7 +112,11 @@
 			@for (log of logs(); track log.id) {
 			<tr>
 				<td class="font-medium text-fg">
-					{{ log.user?.username ?? 'Unknown' }}
+					@if (log.user; as author) { {{ author.username }} } @else {
+					<span class="italic font-normal text-fg-muted"
+						>{{ deletedAuthorLabel }}</span
+					>
+					}
 				</td>
 				<td class="whitespace-nowrap">
 					<ui-badge>{{ log.action }}</ui-badge>
@@ -159,10 +163,13 @@
 			>
 		</div>
 		<p class="m-0 text-sm text-fg-secondary">
-			<span class="font-medium text-fg"
-				>{{ log.user?.username ?? 'Unknown' }}</span
+			@if (log.user; as author) {
+			<span class="font-medium text-fg">{{ author.username }}</span>
+			} @else {
+			<span class="italic font-normal text-fg-muted"
+				>{{ deletedAuthorLabel }}</span
 			>
-			&middot;
+			} &middot;
 			<ui-badge class="mr-1">{{ log.targetType }}</ui-badge>
 			@if (log.target?.type === 'game' && log.target.code) {
 			<a

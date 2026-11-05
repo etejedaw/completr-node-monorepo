@@ -7,6 +7,7 @@ import { calculateRatio } from "../common/utils/calculate-ratio.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
+import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as listFollowersService from "../list-followers/list-followers.service";
 import { ListItem } from "../list-items/list-item.model";
 import * as listItemsService from "../list-items/list-items.service";
@@ -621,4 +622,22 @@ export async function removeList(id: string, user: RequestUser) {
 async function assertScoreSourceExists(scoreSource: string) {
 	if (!(await scoreSourcesService.existsByCode(scoreSource)))
 		throw listsServiceError.scoreSourceNotFoundError(scoreSource);
+}
+
+export async function findOwnListsForDataExport(userId: string) {
+	return List.findAll({
+		where: { userId },
+		include: [
+			{
+				model: ListItem,
+				include: [{ model: Game, attributes: GAME_REFERENCE_ATTRS }]
+			}
+		],
+		order: [
+			["createdAt", "ASC"],
+			["id", "ASC"],
+			[ListItem, "position", "ASC"],
+			[ListItem, "id", "ASC"]
+		]
+	});
 }

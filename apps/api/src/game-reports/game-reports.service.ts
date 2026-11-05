@@ -1,5 +1,7 @@
+import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { Game } from "../games/game.model";
+import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import { User } from "../users/user.model";
 import * as gameReportsServiceError from "./errors/game-reports.service-error";
@@ -46,4 +48,12 @@ export async function updateReportStatus(
 
 	await report.update({ status });
 	return report;
+}
+
+export async function findReportsForDataExport(userId: string) {
+	return GameReport.findAll({
+		where: { userId },
+		include: [{ model: Game, attributes: GAME_REFERENCE_ATTRS }],
+		order: CHRONOLOGICAL_ORDER
+	});
 }

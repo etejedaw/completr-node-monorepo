@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
@@ -164,4 +164,14 @@ export async function reactivateUser(id: string) {
 
 	await user.update({ isActive: true });
 	return user;
+}
+
+export async function destroyUser(id: string, transaction: Transaction) {
+	try {
+		return await User.destroy({ where: { id }, transaction });
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			foreignKey: usersServiceError.deleteForbiddenError
+		});
+	}
 }

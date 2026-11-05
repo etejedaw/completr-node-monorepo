@@ -26,6 +26,8 @@
 
 <app-admin-invitations />
 
+<app-admin-data-requests (accountDeleted)="reloadAfterRequestDeletion()" />
+
 <section aria-labelledby="users-heading">
 	<div class="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
 		<h2 id="users-heading" uiEyebrow class="m-0">All users</h2>
@@ -180,6 +182,17 @@
 									>edit</span
 								>
 							</button>
+							<app-action-menu
+								icon="more_vert"
+								variant="ghost"
+								[iconOnly]="true"
+								[label]="'Data actions for ' + user.username"
+								[heading]="user.username"
+								[items]="rowDataActions().get(user.id) ?? []"
+								[busy]="dataActions.downloadingUserId() === user.id"
+								(click)="$event.stopPropagation()"
+								(selected)="onRowAction(user, $event)"
+							/>
 						</div>
 					</td>
 				</tr>
@@ -543,4 +556,13 @@
 </ui-dialog>
 } @if (showPremiumAccess() && premiumAccessUser(); as user) {
 <app-admin-premium-access [user]="user" (closed)="closePremiumAccess()" />
+} @if (dataActions.accountToDelete(); as user) {
+<app-admin-account-deletion-dialog
+	[username]="user.username"
+	[heading]="'Delete ' + user.username + '?'"
+	[description]="user.email"
+	[busy]="dataActions.deletingAccount()"
+	(confirmed)="dataActions.confirmDeletion()"
+	(cancelled)="dataActions.cancelDeletion()"
+/>
 }

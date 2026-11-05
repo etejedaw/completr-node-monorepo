@@ -1,5 +1,6 @@
 import { literal, Op, type Transaction } from "sequelize";
 
+import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { Game } from "../games/game.model";
 import { List } from "../lists/list.model";
 import * as userFollowersService from "../user-followers/user-followers.service";
@@ -244,4 +245,26 @@ export async function existsByGameId(
 			transaction
 		})) !== null
 	);
+}
+
+export async function findActivitiesForDataExport(userId: string) {
+	return Activity.findAll({
+		where: { userId },
+		include: TARGET_INCLUDES,
+		order: CHRONOLOGICAL_ORDER
+	});
+}
+
+export async function deleteActivitiesTargetingUser(
+	targetUserId: string,
+	transaction: Transaction
+) {
+	const targetingActivities = await ActivityUser.findAll({
+		where: { targetUserId },
+		attributes: ["activityId"],
+		transaction
+	});
+	const activityIds = targetingActivities.map(target => target.activityId);
+	if (activityIds.length === 0) return 0;
+	return Activity.destroy({ where: { id: activityIds }, transaction });
 }

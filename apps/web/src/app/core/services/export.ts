@@ -3,12 +3,15 @@ import { DOCUMENT, inject, Injectable } from "@angular/core";
 import { map, type Observable } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type Appendable, buildHttpParams } from "../utils/http-params";
-import { type ExportResource } from "./export.model";
+import { buildHttpParams } from "../utils/http-params";
+import {
+	type AttachmentOptions,
+	type ExportFormat,
+	type ExportParams,
+	type ExportResource
+} from "./export.model";
 
-export type ExportFormat = "csv" | "json";
-
-export type ExportParams = Record<string, Appendable>;
+export type { ExportFormat, ExportParams } from "./export.model";
 
 const ACCEPT_BY_FORMAT: Record<ExportFormat, string> = {
 	csv: "text/csv",
@@ -30,8 +33,20 @@ export class ExportService {
 		format: ExportFormat,
 		params: ExportParams = {}
 	): Observable<void> {
+		return this.downloadAttachment(
+			exportUrl(resource),
+			fallbackFileName(resource, format),
+			{ format, params }
+		);
+	}
+
+	downloadAttachment(
+		url: string,
+		fallbackName: string,
+		{ format = "json", params = {} }: AttachmentOptions = {}
+	): Observable<void> {
 		return this.http
-			.get(exportUrl(resource), {
+			.get(url, {
 				observe: "response",
 				responseType: "blob",
 				headers: { Accept: ACCEPT_BY_FORMAT[format] },
@@ -41,7 +56,7 @@ export class ExportService {
 				map(response =>
 					this.saveFile(
 						response.body ?? new Blob([]),
-						fileNameFrom(response, resource, format)
+						fileNameFrom(response, fallbackName)
 					)
 				)
 			);
@@ -71,12 +86,11 @@ function exportUrl(resource: ExportResource): string {
 
 function fileNameFrom(
 	response: HttpResponse<Blob>,
-	resource: ExportResource,
-	format: ExportFormat
+	fallbackName: string
 ): string {
 	return (
 		fileNameFromDisposition(response.headers.get("Content-Disposition")) ??
-		fallbackFileName(resource, format)
+		fallbackName
 	);
 }
 
@@ -105,7 +119,7 @@ function fallbackFileName(
 	return `completr-${name}-${localIsoDate(new Date())}.${format}`;
 }
 
-function localIsoDate(date: Date): string {
+export function localIsoDate(date: Date): string {
 	const month = String(date.getMonth() + 1).padStart(2, "0");
 	const day = String(date.getDate()).padStart(2, "0");
 	return `${date.getFullYear()}-${month}-${day}`;

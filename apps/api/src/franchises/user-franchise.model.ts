@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
 import { sequelize } from "../database/sequelize.database";
+import { type Franchise } from "./franchise.model";
 
 class UserFranchise extends Model {
 	declare id: string;
@@ -8,6 +9,7 @@ class UserFranchise extends Model {
 	declare franchiseId: string;
 	declare createdAt: Date;
 	declare updatedAt: Date;
+	declare Franchise?: Pick<Franchise, "id" | "name" | "code">;
 }
 
 UserFranchise.init(

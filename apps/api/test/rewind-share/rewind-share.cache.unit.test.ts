@@ -46,6 +46,20 @@ void describe("LruCache", () => {
 		assert.equal(cache.get("a"), 2);
 		assert.equal(cache.size, 1);
 	});
+
+	void it("deletes only the keys that start with a prefix", () => {
+		const cache = new LruCache<number>(5);
+		cache.set("ana:2025:og", 1);
+		cache.set("ana:2026:story", 2);
+		cache.set("anabel:2025:og", 3);
+
+		cache.deleteKeysStartingWith("ana:");
+
+		assert.equal(cache.get("ana:2025:og"), undefined);
+		assert.equal(cache.get("ana:2026:story"), undefined);
+		assert.equal(cache.get("anabel:2025:og"), 3);
+		assert.equal(cache.size, 1);
+	});
 });
 
 void describe("getRewindImage", () => {

@@ -677,3 +677,13 @@ export async function addOwnRewindAiRecap(
 
 	return getOwnRewind(owner, year, premiumAccess);
 }
+
+export async function findRewindsForDataExport(userId: string) {
+	return RewindModel.findAll({
+		where: { userId },
+		order: [
+			["year", "ASC"],
+			["id", "ASC"]
+		]
+	});
+}

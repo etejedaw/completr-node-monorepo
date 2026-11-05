@@ -1,0 +1,69 @@
+info:
+    name: Create Data Request
+    type: http
+    seq: 1
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/users/me/data-requests"
+    headers:
+        - name: Content-Type
+          value: application/json
+    body:
+        type: json
+        data: |-
+            {
+              "type": "export"
+            }
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Create Data Request
+
+    Asks for a copy of all the user's personal data (`export`) or for the full deletion of the account (`deletion`). The request stays `pending` until an admin completes or rejects it, within 30 calendar days (`dueAt`). An email is sent to the address in `DATA_REQUESTS_NOTIFY_EMAIL`. Any role can ask, with no premium gating.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 300 requests per minute (user limiter).
+
+    ### Request Body
+
+    | Field | Type                     | Required | Description          |
+    |-------|--------------------------|----------|----------------------|
+    | type  | `export` \| `deletion`   | Yes      | What the user asks for |
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "request": {
+          "id": "uuid",
+          "type": "export",
+          "status": "pending",
+          "requestedAt": "2026-11-05T15:00:00.000Z",
+          "resolvedAt": null,
+          "dueAt": "2026-12-05T15:00:00.000Z",
+          "daysRemaining": 30,
+          "downloadableUntil": null,
+          "resolutionNote": null
+        }
+      }
+    }
+    ```
+
+    `dueAt` is `requestedAt` plus 30 days. `daysRemaining` is the whole number of calendar days until `dueAt` (negative once it has passed). `downloadableUntil` is `resolvedAt` plus 7 days, only for a completed export.
+
+    ### Errors
+
+    | Status | Type                          | When                                               |
+    |--------|-------------------------------|----------------------------------------------------|
+    | 401    | AUTH_INVALID_TOKEN            | Invalid or expired token                           |
+    | 409    | DATA_REQUEST_ALREADY_PENDING  | The user already has a pending request of that type |
+    | 422    | AUTH_SCHEMA_INVALID           | Missing `Authorization` header                     |
+    | 422    | COMMON_SCHEMA_INVALID         | `type` missing or unknown, or extra fields         |

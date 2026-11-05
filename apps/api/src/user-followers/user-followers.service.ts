@@ -1,5 +1,6 @@
 import { Op, type Order, type WhereOptions } from "sequelize";
 
+import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
@@ -199,4 +200,24 @@ export async function findFollowEdges(userId: string, otherIds: string[]) {
 		if (row.followingId === userId) edges.followerIds.add(row.followerId);
 	}
 	return edges;
+}
+
+export async function findFollowersForDataExport(userId: string) {
+	return UserFollower.findAll({
+		where: { followingId: userId },
+		include: [
+			{ model: User, as: "Follower", attributes: ["id", "username"] }
+		],
+		order: CHRONOLOGICAL_ORDER
+	});
+}
+
+export async function findFollowingForDataExport(userId: string) {
+	return UserFollower.findAll({
+		where: { followerId: userId },
+		include: [
+			{ model: User, as: "Following", attributes: ["id", "username"] }
+		],
+		order: CHRONOLOGICAL_ORDER
+	});
 }

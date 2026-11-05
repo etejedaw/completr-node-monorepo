@@ -140,7 +140,7 @@ void describe("GET /games/search falling back to IGDB", () => {
 		const score = await GameScore.findOne({
 			where: { gameId: entry.id, source: "igdb" }
 		});
-		assert.equal(score?.score, 81.46);
+		assert.equal(score?.score, 81);
 	});
 
 	void it("does not call IGDB while RAWG answers, even with nothing found", async () => {

@@ -1,5 +1,6 @@
 import { Op, QueryTypes, type Transaction } from "sequelize";
 
+import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
@@ -227,4 +228,12 @@ export async function findTrackedFranchises(
 		},
 		gameCount: gameCountByFranchise.get(franchise.id) ?? 0
 	}));
+}
+
+export async function findTrackedFranchisesForDataExport(userId: string) {
+	return UserFranchise.findAll({
+		where: { userId },
+		include: [{ model: Franchise, attributes: ["id", "name", "code"] }],
+		order: CHRONOLOGICAL_ORDER
+	});
 }

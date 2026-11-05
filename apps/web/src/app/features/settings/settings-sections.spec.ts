@@ -1,12 +1,13 @@
 import { SETTINGS_SECTIONS } from "./settings-sections";
 
 describe("SETTINGS_SECTIONS", () => {
-	it("lists profile, privacy, appearance and security in that order", () => {
+	it("lists profile, privacy, appearance, security and your data in that order", () => {
 		expect(SETTINGS_SECTIONS.map(section => section.path)).toEqual([
 			"profile",
 			"privacy",
 			"appearance",
-			"security"
+			"security",
+			"data"
 		]);
 	});
 

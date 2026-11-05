@@ -1,0 +1,81 @@
+info:
+    name: Admin List Data Requests
+    type: http
+    seq: 4
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/admin/data-requests?status=pending"
+    params:
+        - name: status
+          value: pending
+          type: query
+        - name: type
+          value: deletion
+          type: query
+          disabled: true
+        - name: limit
+          value: "50"
+          type: query
+          disabled: true
+        - name: offset
+          value: "0"
+          type: query
+          disabled: true
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Admin List Data Requests
+
+    Queue of personal data requests. Pending requests come first, ordered by `dueAt` ascending (most urgent first); the rest follow ordered by `requestedAt` descending.
+
+    **Authentication:** Bearer token, admin only (other roles get 404).
+    **Rate Limit:** 300 requests per minute (user limiter).
+
+    ### Query Params
+
+    | Param  | Type                                     | Required | Description            |
+    |--------|------------------------------------------|----------|------------------------|
+    | status | `pending` \| `completed` \| `rejected`   | No       | Filter by status       |
+    | type   | `export` \| `deletion`                   | No       | Filter by type         |
+    | limit  | integer 1-100                            | No       | Page size, default 50  |
+    | offset | integer ≥ 0                              | No       | Default 0              |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "requests": [
+          {
+            "id": "uuid",
+            "type": "deletion",
+            "status": "pending",
+            "requestedAt": "2026-10-12T15:00:00.000Z",
+            "resolvedAt": null,
+            "dueAt": "2026-11-11T15:00:00.000Z",
+            "daysRemaining": 6,
+            "downloadableUntil": null,
+            "resolutionNote": null,
+            "user": { "id": "uuid", "username": "johndoe", "email": "johndoe@example.com" }
+          }
+        ],
+        "total": 1
+      }
+    }
+    ```
+
+    `user` is `null` when the account no longer exists (the request is kept after the deletion).
+
+    ### Errors
+
+    | Status | Type                  | When                     |
+    |--------|-----------------------|--------------------------|
+    | 404    | AUTH_ROUTE_NOT_FOUND  | Caller is not an admin   |
+    | 422    | COMMON_SCHEMA_INVALID | Invalid query params     |

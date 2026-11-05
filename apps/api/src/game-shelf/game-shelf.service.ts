@@ -1,5 +1,6 @@
 import { Op, type Transaction } from "sequelize";
 
+import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
@@ -12,6 +13,7 @@ import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
+import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import { Platform } from "../platforms/platform.model";
 import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import { type RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
@@ -252,4 +254,15 @@ export async function existsByGameId(
 			transaction
 		})) !== null
 	);
+}
+
+export async function findGameShelfForDataExport(userId: string) {
+	return GameShelf.findAll({
+		where: { userId },
+		include: [
+			{ model: Game, attributes: GAME_REFERENCE_ATTRS },
+			{ model: Platform, attributes: ["id", "name"] }
+		],
+		order: CHRONOLOGICAL_ORDER
+	});
 }

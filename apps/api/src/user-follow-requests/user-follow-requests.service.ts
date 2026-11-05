@@ -1,3 +1,6 @@
+import { Op } from "sequelize";
+
+import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import * as userFollowersService from "../user-followers/user-followers.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
@@ -115,4 +118,15 @@ export async function hasOutgoingRequest(
 
 export async function deleteAllIncomingRequests(targetId: string) {
 	await UserFollowRequest.destroy({ where: { targetId } });
+}
+
+export async function findFollowRequestsForDataExport(userId: string) {
+	return UserFollowRequest.findAll({
+		where: { [Op.or]: [{ requesterId: userId }, { targetId: userId }] },
+		include: [
+			{ model: User, as: "Requester", attributes: ["id", "username"] },
+			{ model: User, as: "Target", attributes: ["id", "username"] }
+		],
+		order: CHRONOLOGICAL_ORDER
+	});
 }

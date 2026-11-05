@@ -185,6 +185,66 @@ describe("ActionMenu", () => {
 		).toHaveAttribute("aria-busy", "true");
 	});
 
+	it("paints the trigger gold only when it is marked premium", async () => {
+		const { rerender } = await render(ActionMenu, {
+			inputs: {
+				label: "Export",
+				heading: "Export My Games",
+				items: ITEMS,
+				premium: true
+			}
+		});
+		const trigger = () => screen.getByRole("button", { name: "Export" });
+
+		expect(trigger()).toHaveClass("!text-premium");
+		await rerender({
+			inputs: {
+				label: "Export",
+				heading: "Export My Games",
+				items: ITEMS,
+				premium: false
+			},
+			partialUpdate: true
+		});
+		expect(trigger()).not.toHaveClass("!text-premium");
+	});
+
+	it("keeps an unlocked premium item gold but drops its ribbon on request", async () => {
+		const user = userEvent.setup();
+		const unlockedJson: ActionMenuItem = {
+			id: "json",
+			label: "Download JSON",
+			icon: "data_object",
+			premium: true
+		};
+		await renderMenu({
+			items: [
+				unlockedJson,
+				{
+					...unlockedJson,
+					id: "json-plain",
+					label: "Plain JSON",
+					hidePremiumBadge: true
+				}
+			]
+		});
+
+		await user.click(
+			screen.getByRole("button", { name: "More list actions" })
+		);
+		const menu = await screen.findByRole("menu");
+		const withRibbon = within(menu).getByRole("menuitem", {
+			name: "Download JSON"
+		});
+		const withoutRibbon = within(menu).getByRole("menuitem", {
+			name: "Plain JSON"
+		});
+
+		expect(withRibbon).toHaveTextContent("workspace_premium");
+		expect(withoutRibbon).not.toHaveTextContent("workspace_premium");
+		expect(withoutRibbon).toHaveClass("!text-premium");
+	});
+
 	it("uses the ghost variant for the ⋮ of rows and cards", async () => {
 		await renderMenu({ icon: "more_vert", variant: "ghost" });
 

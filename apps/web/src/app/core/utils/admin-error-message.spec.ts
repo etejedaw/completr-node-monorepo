@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from "@angular/common/http";
 
 import { adminErrorMessage } from "./admin-error-message";
+import { DATA_REQUEST_ERROR_MESSAGES } from "./data-request-error-message";
 
 function apiError(status: number, body: object | null) {
 	return new HttpErrorResponse({ status, error: body });
@@ -158,5 +159,23 @@ describe("adminErrorMessage", () => {
 		expect(adminErrorMessage(apiError(0, null))).toBeNull();
 		expect(adminErrorMessage(new Error("boom"))).toBeNull();
 		expect(adminErrorMessage(undefined)).toBeNull();
+	});
+});
+
+describe("adminErrorMessage for data requests", () => {
+	it.each([
+		["DATA_REQUEST_ALREADY_PENDING", 409],
+		["DATA_REQUEST_NOT_FOUND", 404],
+		["DATA_REQUEST_NOT_DOWNLOADABLE", 409],
+		["DATA_REQUEST_EXPIRED", 410],
+		["DATA_REQUEST_NOT_PENDING", 409],
+		["USER_DELETE_FORBIDDEN", 409],
+		["USER_NOT_FOUND", 404]
+	])("explains %s", (type, status) => {
+		expect(
+			adminErrorMessage(
+				new HttpErrorResponse({ status, error: { type } })
+			)
+		).toBe(DATA_REQUEST_ERROR_MESSAGES[type]);
 	});
 });

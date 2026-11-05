@@ -20,6 +20,7 @@
 	[attr.aria-haspopup]="isMobile() ? 'dialog' : 'menu'"
 	[attr.aria-label]="accessibleName()"
 	[attr.aria-busy]="busy() || null"
+	[class.!text-premium]="premium()"
 	[title]="iconOnly() ? label() : ''"
 	(click)="openSheet()"
 >
@@ -115,7 +116,7 @@
 		[class.text-lg]="sheet"
 		>lock</span
 	>
-	} @else if (item.premium) {
+	} @else if (item.premium && !item.hidePremiumBadge) {
 	<span
 		aria-hidden="true"
 		class="material-icons text-premium"

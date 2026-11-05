@@ -9,9 +9,8 @@ import {
 } from "../../../core/services/export";
 import { type ExportResource } from "../../../core/services/export.model";
 import { ToastService } from "../../../core/services/toast";
+import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
 import { type ActionMenuItem } from "../action-menu/action-menu.model";
-
-const STATUSES_TOASTED_BY_INTERCEPTOR = new Set([402, 409, 422, 429]);
 
 export const EXPORT_ACTION_PREFIX = "export:";
 
@@ -70,7 +69,7 @@ export function injectExportDownload(source: ExportSource) {
 				next: () => setDownloading(format, false),
 				error: (error: HttpErrorResponse) => {
 					setDownloading(format, false);
-					if (!STATUSES_TOASTED_BY_INTERCEPTOR.has(error.status))
+					if (!isToastedByErrorInterceptor(error.status))
 						toast.error(
 							`Could not download ${source.label()}. Please try again.`
 						);
@@ -86,6 +85,7 @@ export function injectExportDownload(source: ExportSource) {
 
 	return {
 		isPremium: auth.isPremium,
+		canExportJson,
 		isBusy,
 		menuItems,
 		jsonGiftClaimed,

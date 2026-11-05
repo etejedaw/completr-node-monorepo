@@ -35,6 +35,12 @@ describeModuleErrors({
 			module: "User Module",
 			code: "USER_THEME_FORBIDDEN",
 			message: "This theme requires a premium account"
+		},
+		{
+			serviceCode: "USER_DELETE_FORBIDDEN",
+			module: "User Module",
+			code: "USER_DELETE_FORBIDDEN",
+			message: "This account cannot be deleted"
 		}
 	],
 	fallback: {
@@ -52,6 +58,7 @@ describeDomainToHttpMapper({
 		{ code: "USER_VALIDATION_ERROR", status: 400 },
 		{ code: "USER_PRIVATE", status: 403 },
 		{ code: "USER_THEME_FORBIDDEN", status: 403 },
-		{ code: "USER_ALREADY_EXISTS", status: 409 }
+		{ code: "USER_ALREADY_EXISTS", status: 409 },
+		{ code: "USER_DELETE_FORBIDDEN", status: 409 }
 	]
 });

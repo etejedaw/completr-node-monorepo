@@ -140,7 +140,7 @@ Un servicio externo que no tiene alternativas intercambiables sigue la forma sim
 ## Decisiones clave
 
 - **UUIDs en todas las PKs y FKs.** Nunca `id: number`.
-- **Soft delete con `isActive`** en Games y Users — no se borra físicamente.
+- **Soft delete con `isActive`** en Games y Users: dar de baja un juego o desactivar una cuenta no borra filas. La excepción es el borrado de cuenta que ejecuta un admin (`DELETE /admin/users/:userId` o al completar una solicitud de borrado de datos): es físico y definitivo, y lo resuelven las FKs `ON DELETE CASCADE` desde `Users` más una limpieza explícita de las actividades ajenas que apuntan a la cuenta. Ver [Borrado de cuenta](./invariants.md#borrado-de-cuenta).
 - **Slugs/codes auto-generados** desde el título con `slugify` para URLs amigables.
 - **Rate limiting diferenciado** por tipo de endpoint (auth, registro, público, usuario). Configurado en `common/config/rate-limiter.config.ts`.
 - **Variables de entorno** se cargan con `--env-file` (Node 22+) desde `apps/api/.env.dev.local` (opcional) o `apps/api/.env.prod.local`, no `dotenv`. Se exponen tipadas desde `common/config/`.
