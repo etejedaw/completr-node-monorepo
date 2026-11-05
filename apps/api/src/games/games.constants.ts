@@ -52,3 +52,5 @@ export const EXTERNAL_DATA_UNRECORDED_FAILURE_SUFFIXES = [
 ] as const;
 
 export const EXTERNAL_DATA_UNRECORDED_FAILURE_PREFIX = "WIKIDATA_";
+
+export const GAME_REFERENCE_ATTRS = ["id", "title", "code"];

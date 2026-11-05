@@ -1,5 +1,6 @@
 import { Op, QueryTypes, type Transaction } from "sequelize";
 
+import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { sequelize } from "../database/sequelize.database";
 import * as gamesService from "../games/games.service";
@@ -296,4 +297,19 @@ export async function existsByGameId(
 			transaction
 		})) !== null
 	);
+}
+
+export async function findGameTagsForDataExport(userId: string) {
+	return UserGameTag.findAll({
+		where: { userId },
+		attributes: ["gameId", "tag", "createdAt"],
+		order: CHRONOLOGICAL_ORDER
+	});
+}
+
+export async function findTagMetasForDataExport(userId: string) {
+	return MoodTagMeta.findAll({
+		where: { userId },
+		order: CHRONOLOGICAL_ORDER
+	});
 }

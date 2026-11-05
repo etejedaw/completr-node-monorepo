@@ -9,6 +9,7 @@ import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
+import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import * as favoritesServiceError from "./errors/favorites.service-error";
@@ -268,4 +269,15 @@ export async function existsByGameId(
 			transaction
 		})) !== null
 	);
+}
+
+export async function findFavoritesForDataExport(userId: string) {
+	return Favorite.findAll({
+		where: { userId },
+		include: [{ model: Game, attributes: GAME_REFERENCE_ATTRS }],
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
+	});
 }

@@ -1,5 +1,6 @@
 import { Op, type WhereOptions } from "sequelize";
 
+import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
@@ -167,4 +168,24 @@ export async function isUserFollowingList(listId: string, userId: string) {
 		where: { listId, userId }
 	});
 	return !!follower;
+}
+
+export async function findFollowedListsForDataExport(userId: string) {
+	return ListFollower.findAll({
+		where: { userId },
+		include: [
+			{
+				model: List,
+				attributes: ["id", "name"],
+				include: [
+					{
+						model: User,
+						attributes: ["id", "username"],
+						required: false
+					}
+				]
+			}
+		],
+		order: CHRONOLOGICAL_ORDER
+	});
 }

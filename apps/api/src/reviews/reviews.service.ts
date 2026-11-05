@@ -1,7 +1,9 @@
 import { col, fn, literal, Op, type Transaction } from "sequelize";
 
+import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { Game } from "../games/game.model";
+import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { User } from "../users/user.model";
@@ -185,4 +187,12 @@ export async function existsByGameId(
 			transaction
 		})) !== null
 	);
+}
+
+export async function findReviewsForDataExport(userId: string) {
+	return Review.findAll({
+		where: { userId },
+		include: [{ model: Game, attributes: GAME_REFERENCE_ATTRS }],
+		order: CHRONOLOGICAL_ORDER
+	});
 }

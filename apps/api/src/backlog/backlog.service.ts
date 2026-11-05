@@ -9,6 +9,7 @@ import {
 } from "sequelize";
 
 import * as backlogProgressService from "../backlog-progress/backlog-progress.service";
+import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
@@ -22,6 +23,7 @@ import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
 import * as gameShelfService from "../game-shelf/game-shelf.service";
 import { Game } from "../games/game.model";
+import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import { Platform } from "../platforms/platform.model";
@@ -1458,4 +1460,21 @@ export async function countRunsAddedByMonth(
 	const counts = Array.from({ length: MONTHS_IN_YEAR }, () => 0);
 	for (const row of rows) counts[row.month - 1] = row.count;
 	return counts;
+}
+
+export async function findBacklogForDataExport(userId: string) {
+	return Backlog.findAll({
+		where: { userId },
+		include: [
+			{ model: Game, attributes: GAME_REFERENCE_ATTRS },
+			{ model: Platform, attributes: ["id", "name"] },
+			{
+				model: Game,
+				as: "CompilationGame",
+				attributes: GAME_REFERENCE_ATTRS,
+				required: false
+			}
+		],
+		order: CHRONOLOGICAL_ORDER
+	});
 }

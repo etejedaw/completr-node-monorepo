@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
 import { sequelize } from "../database/sequelize.database";
+import { type Game } from "../games/game.model";
 
 export const REPORT_STATUSES = ["pending", "approved", "rejected"] as const;
 export type ReportStatus = (typeof REPORT_STATUSES)[number];
@@ -21,6 +22,7 @@ class GameReport extends Model {
 	declare category: ReportCategory;
 	declare createdAt: Date;
 	declare updatedAt: Date;
+	declare Game?: Pick<Game, "id" | "code" | "title">;
 }
 
 GameReport.init(

@@ -1,6 +1,7 @@
 import { Op, type Transaction } from "sequelize";
 
 import * as backlogService from "../backlog/backlog.service";
+import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { BacklogProgress } from "./backlog-progress.model";
 import * as backlogProgressServiceError from "./errors/backlog-progress.service-error";
 
@@ -78,4 +79,12 @@ export async function findLatestProgressForBacklogs(
 		}
 	}
 	return map;
+}
+
+export async function findProgressForBacklogs(backlogIds: readonly string[]) {
+	if (backlogIds.length === 0) return [];
+	return BacklogProgress.findAll({
+		where: { backlogId: { [Op.in]: [...backlogIds] } },
+		order: CHRONOLOGICAL_ORDER
+	});
 }

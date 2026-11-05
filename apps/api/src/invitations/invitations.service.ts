@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import { environmentConfig } from "../common/config/environment.config";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
@@ -90,4 +90,11 @@ export async function findUsableInvitation(rawToken: string) {
 			expiresAt: { [Op.gt]: new Date() }
 		}
 	});
+}
+
+export async function deleteInvitationsByEmail(
+	email: string,
+	transaction: Transaction
+) {
+	return UserInvitation.destroy({ where: { email }, transaction });
 }

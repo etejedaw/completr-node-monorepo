@@ -2,6 +2,7 @@ import { literal, Op, type Order, type Transaction } from "sequelize";
 
 import { Backlog } from "../backlog/backlog.model";
 import * as backlogService from "../backlog/backlog.service";
+import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
@@ -12,6 +13,7 @@ import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
+import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import { Platform } from "../platforms/platform.model";
 import * as platformsService from "../platforms/platforms.service";
@@ -268,4 +270,15 @@ export async function existsByGameId(
 			transaction
 		})) !== null
 	);
+}
+
+export async function findPlatinumsForDataExport(userId: string) {
+	return GamePlatinum.findAll({
+		where: { userId },
+		include: [
+			{ model: Game, attributes: GAME_REFERENCE_ATTRS },
+			{ model: Platform, attributes: ["id", "name"], required: false }
+		],
+		order: CHRONOLOGICAL_ORDER
+	});
 }

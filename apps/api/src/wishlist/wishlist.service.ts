@@ -8,6 +8,7 @@ import { buildPlatformFilterWhere } from "../common/utils/platform-filter-where.
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
+import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import { Platform } from "../platforms/platform.model";
 import * as platformsService from "../platforms/platforms.service";
@@ -214,4 +215,18 @@ export async function existsByGameId(
 			transaction
 		})) !== null
 	);
+}
+
+export async function findWishlistForDataExport(userId: string) {
+	return Wishlist.findAll({
+		where: { userId },
+		include: [
+			{ model: Game, attributes: GAME_REFERENCE_ATTRS },
+			{ model: Platform, attributes: ["id", "name"] }
+		],
+		order: [
+			["position", "ASC"],
+			["id", "ASC"]
+		]
+	});
 }
