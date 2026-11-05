@@ -15,6 +15,7 @@ import {
 	type Game,
 	type GameSummary,
 	type Genre,
+	type OnlineSearchSource,
 	type Platform
 } from "../../../core/models";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
@@ -50,7 +51,7 @@ import { GamesService } from "../games";
 import {
 	type CompilationItemInput,
 	type CreateGameDto,
-	type RawgDetail,
+	type ExternalGameDetail,
 	type UpdateGameDto
 } from "../games.model";
 import {
@@ -77,6 +78,24 @@ const HLTB_ID_ERROR =
 	"Enter the HowLongToBeat game ID (a whole number above 0) or paste its game page URL.";
 const METACRITIC_SLUG_ERROR =
 	"Use lowercase letters, numbers and hyphens (e.g. the-witcher-3-wild-hunt) or paste the Metacritic game URL.";
+
+const LOOKUP_SOURCES: SegmentedOption<OnlineSearchSource>[] = [
+	{ value: "rawg", label: "RAWG" },
+	{ value: "igdb", label: "IGDB" }
+];
+
+const LOOKUP_SOURCE_LABELS: Record<OnlineSearchSource, string> = {
+	rawg: "RAWG",
+	igdb: "IGDB"
+};
+
+const LOOKUP_SLUG_EXAMPLES: Record<OnlineSearchSource, string> = {
+	rawg: "resident-evil-4",
+	igdb: "hollow-knight"
+};
+
+const NOT_FOUND_STATUS = 404;
+const SERVICE_UNAVAILABLE_STATUS = 503;
 
 let nextCompilationRowId = 0;
 
@@ -131,6 +150,7 @@ export class AdminGameEditor implements OnInit {
 	protected readonly allFranchises = signal<Franchise[]>([]);
 	protected readonly selectedFranchiseId = signal<string>("");
 	protected readonly compilationRowModes = COMPILATION_ROW_MODES;
+	protected readonly lookupSources = LOOKUP_SOURCES;
 
 	protected readonly platformOptions = computed<ChipOption[]>(() =>
 		this.allPlatforms().map(platform => ({
@@ -155,7 +175,7 @@ export class AdminGameEditor implements OnInit {
 	]);
 
 	protected readonly model = signal({
-		rawgSlug: "",
+		lookupSlug: "",
 		title: "",
 		description: "",
 		releaseAt: "",
@@ -178,7 +198,9 @@ export class AdminGameEditor implements OnInit {
 				: null
 		);
 	});
-	protected readonly rawgSlug = computed(() => this.form.rawgSlug().value());
+	protected readonly lookupSlug = computed(() =>
+		this.form.lookupSlug().value()
+	);
 	protected readonly title = computed(() => this.form.title().value());
 	protected readonly description = computed(() =>
 		this.form.description().value()
@@ -231,11 +253,30 @@ export class AdminGameEditor implements OnInit {
 			this.normalizedMetacriticSlug() === null
 	);
 
-	protected readonly fetchingRawg = signal(false);
-	protected readonly rawgError = signal("");
-	protected readonly rawgId = signal<number | null>(null);
-	private rawgRequest: { slug: string; subscription: Subscription } | null =
-		null;
+	protected readonly lookupSource = signal<OnlineSearchSource>("rawg");
+	protected readonly lookupSourceLabel = computed(
+		() => LOOKUP_SOURCE_LABELS[this.lookupSource()]
+	);
+	protected readonly lookupSlugPlaceholder = computed(
+		() =>
+			`${this.lookupSourceLabel()} slug (e.g. ${LOOKUP_SLUG_EXAMPLES[this.lookupSource()]})`
+	);
+	protected readonly fetchingLookup = signal(false);
+	protected readonly lookupError = signal("");
+	protected readonly appliedLookup = signal<{
+		source: OnlineSearchSource;
+		externalId: string;
+	} | null>(null);
+	protected readonly appliedLookupLabel = computed(() => {
+		const applied = this.appliedLookup();
+		return applied ? LOOKUP_SOURCE_LABELS[applied.source] : "";
+	});
+	private fetchedCoverUrl: string | null = null;
+	private lookupRequest: {
+		source: OnlineSearchSource;
+		slug: string;
+		subscription: Subscription;
+	} | null = null;
 
 	protected readonly parentGame = signal<GameSummary | null>(null);
 	protected readonly parentCleared = signal(false);
@@ -380,36 +421,75 @@ export class AdminGameEditor implements OnInit {
 		this.parentFocus.set("search");
 	}
 
-	fetchRawg() {
-		const slug = this.rawgSlug().trim();
-		if (!slug || this.rawgRequest?.slug === slug) return;
-
-		this.rawgRequest?.subscription.unsubscribe();
-		this.fetchingRawg.set(true);
-		this.rawgError.set("");
-
-		const subscription = this.gamesService.rawgBySlug(slug).subscribe({
-			next: detail => {
-				this.rawgRequest = null;
-				this.applyRawgData(detail);
-			},
-			error: () => {
-				this.rawgRequest = null;
-				this.rawgError.set("Game not found on RAWG");
-				this.fetchingRawg.set(false);
-			}
-		});
-		this.rawgRequest = { slug, subscription };
+	setLookupSource(source: OnlineSearchSource) {
+		if (source === this.lookupSource()) return;
+		this.lookupSource.set(source);
+		this.cancelLookup();
+		this.lookupError.set("");
 	}
 
-	private applyRawgData(detail: RawgDetail) {
-		this.rawgId.set(detail.rawgId);
+	private cancelLookup() {
+		this.lookupRequest?.subscription.unsubscribe();
+		this.lookupRequest = null;
+		this.fetchingLookup.set(false);
+	}
+
+	fetchLookup() {
+		const source = this.lookupSource();
+		const slug = this.lookupSlug().trim();
+		if (!slug) return;
+		if (
+			this.lookupRequest?.source === source &&
+			this.lookupRequest.slug === slug
+		)
+			return;
+
+		this.lookupRequest?.subscription.unsubscribe();
+		this.fetchingLookup.set(true);
+		this.lookupError.set("");
+
+		const subscription = this.gamesService
+			.externalGameBySlug(source, slug)
+			.subscribe({
+				next: detail => {
+					this.lookupRequest = null;
+					this.applyLookupData(detail);
+				},
+				error: (err: { status?: number }) => {
+					this.lookupRequest = null;
+					this.lookupError.set(
+						this.lookupFailureMessage(source, err)
+					);
+					this.fetchingLookup.set(false);
+				}
+			});
+		this.lookupRequest = { source, slug, subscription };
+	}
+
+	private lookupFailureMessage(
+		source: OnlineSearchSource,
+		err: { status?: number }
+	) {
+		const label = LOOKUP_SOURCE_LABELS[source];
+		if (err.status === NOT_FOUND_STATUS)
+			return `Game not found on ${label}`;
+		if (err.status === SERVICE_UNAVAILABLE_STATUS)
+			return `${label} is not available right now`;
+		return `Couldn't reach ${label} right now. Try again in a moment.`;
+	}
+
+	private applyLookupData(detail: ExternalGameDetail) {
+		this.appliedLookup.set({
+			source: detail.source,
+			externalId: detail.externalId
+		});
+		if (detail.coverUrl) this.fetchedCoverUrl = detail.coverUrl;
 		this.model.update(m => ({
 			...m,
 			title: detail.title,
 			description: detail.description ?? "",
 			releaseAt: detail.releaseAt ?? "",
-			backgroundUrl: detail.coverUrl ?? ""
+			backgroundUrl: detail.backgroundUrl ?? ""
 		}));
 
 		if (detail.platforms.length > 0) {
@@ -422,7 +502,7 @@ export class AdminGameEditor implements OnInit {
 		this.mergeScores(detail.scores);
 		this.mergeTimes(detail.times);
 
-		this.fetchingRawg.set(false);
+		this.fetchingLookup.set(false);
 	}
 
 	private mergeScores(rawgScores: { source: string; score: number }[]) {
@@ -567,9 +647,8 @@ export class AdminGameEditor implements OnInit {
 
 	private externalIdsToSend() {
 		const externalIds: { source: string; externalId: string }[] = [];
-		const rawgId = this.rawgId();
-		if (rawgId)
-			externalIds.push({ source: "rawg", externalId: String(rawgId) });
+		const applied = this.appliedLookup();
+		if (applied) externalIds.push({ ...applied });
 		const manualIds: [ManualExternalSource, string | null][] = [
 			["hltb", this.normalizedHltbId()],
 			["metacritic", this.normalizedMetacriticSlug()]
@@ -622,6 +701,7 @@ export class AdminGameEditor implements OnInit {
 			title: this.title().trim(),
 			description: this.description() || undefined,
 			releaseAt: this.releaseAt() || undefined,
+			coverUrl: this.fetchedCoverUrl ?? undefined,
 			backgroundUrl: this.backgroundUrl() || undefined,
 			isDlc: this.isDlc(),
 			variant: variantValue || undefined,
@@ -666,6 +746,7 @@ export class AdminGameEditor implements OnInit {
 			title: this.title().trim(),
 			description: this.description() || undefined,
 			releaseAt: this.releaseAt() || undefined,
+			coverUrl: this.fetchedCoverUrl ?? undefined,
 			backgroundUrl: this.backgroundUrl() || undefined,
 			isDlc: this.isDlc(),
 			variant: variantTrim ? variantTrim : null,

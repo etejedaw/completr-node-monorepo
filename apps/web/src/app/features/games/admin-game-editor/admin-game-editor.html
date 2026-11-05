@@ -16,41 +16,48 @@
 
 	<app-filter-section
 		class="px-5 py-5 md:px-6 border-b border-line"
-		label="RAWG Lookup"
+		label="Lookup"
 	>
+		<app-segmented-control
+			class="mb-3"
+			label="Lookup source"
+			[options]="lookupSources"
+			[value]="lookupSource()"
+			(valueChange)="setLookupSource($event)"
+		/>
 		<div class="flex flex-col gap-2 sm:flex-row">
 			<input
 				uiInput
 				type="text"
 				class="sm:flex-1"
-				aria-label="RAWG slug"
-				placeholder="RAWG slug (e.g. resident-evil-4)"
-				[formField]="form.rawgSlug"
-				[attr.aria-invalid]="rawgError() ? true : null"
-				[attr.aria-describedby]="rawgError() ? 'editor-rawg-error' : null"
-				(keydown.enter)="fetchRawg()"
+				[attr.aria-label]="lookupSourceLabel() + ' slug'"
+				[attr.placeholder]="lookupSlugPlaceholder()"
+				[formField]="form.lookupSlug"
+				[attr.aria-invalid]="lookupError() ? true : null"
+				[attr.aria-describedby]="lookupError() ? 'editor-lookup-error' : null"
+				(keydown.enter)="fetchLookup()"
 			/>
 			<button
 				uiButton
 				variant="secondary"
 				type="button"
 				class="shrink-0"
-				(click)="fetchRawg()"
-				[disabled]="fetchingRawg() || !rawgSlug().trim()"
+				(click)="fetchLookup()"
+				[disabled]="fetchingLookup() || !lookupSlug().trim()"
 			>
 				<span aria-hidden="true" class="material-icons text-base"
 					>download</span
 				>
-				{{ fetchingRawg() ? 'Fetching...' : 'Fetch' }}
+				{{ fetchingLookup() ? 'Fetching...' : 'Fetch' }}
 			</button>
 		</div>
-		@if (rawgError()) {
-		<ui-field-error id="editor-rawg-error" announce
-			>{{ rawgError() }}</ui-field-error
+		@if (lookupError()) {
+		<ui-field-error id="editor-lookup-error" announce
+			>{{ lookupError() }}</ui-field-error
 		>
-		} @if (rawgId()) {
+		} @if (appliedLookup(); as applied) {
 		<ui-badge tone="info" icon="cloud_download" class="mt-2"
-			>RAWG ID: {{ rawgId() }}</ui-badge
+			>{{ appliedLookupLabel() }} ID: {{ applied.externalId }}</ui-badge
 		>
 		}
 	</app-filter-section>
