@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { type Game } from "../../src/games/game.model";
-import { type ResolvedOnlineGame } from "../../src/games/games.interface";
+import {
+	type OnlineSearchCooldown,
+	type ResolvedOnlineGame
+} from "../../src/games/games.interface";
 import {
 	type OnlineSearchOutcome,
 	type OnlineSearchSource
@@ -21,9 +24,10 @@ class ScriptedHandler extends OnlineSearchHandler {
 		protected readonly source: OnlineSearchSource,
 		private readonly respond: (
 			handler: ScriptedHandler
-		) => Promise<OnlineSearchOutcome>
+		) => Promise<OnlineSearchOutcome>,
+		cooldown?: OnlineSearchCooldown
 	) {
-		super();
+		super(cooldown);
 	}
 
 	protected searchSource(query: string): Promise<OnlineSearchOutcome> {
@@ -136,5 +140,109 @@ void describe("OnlineSearchHandler", () => {
 			["ok", "ok-too"]
 		);
 		assert.equal(failures, 1);
+	});
+
+	void describe("cooldown after a failure", () => {
+		const COOLDOWN_MS = 120_000;
+
+		function rawgFound(): OnlineSearchOutcome {
+			return {
+				available: true,
+				source: "rawg",
+				games: [],
+				importedIds: new Set()
+			};
+		}
+
+		function chainWithClock(responses: OnlineSearchOutcome[]) {
+			let clock = 1_000;
+			const rawg = new ScriptedHandler(
+				"rawg",
+				() =>
+					Promise.resolve(
+						responses.shift() ?? ONLINE_SEARCH_UNAVAILABLE
+					),
+				{ durationMs: COOLDOWN_MS, now: () => clock }
+			);
+			const igdb = new ScriptedHandler("igdb", handler =>
+				Promise.resolve(handler.foundFrom([]))
+			);
+			rawg.setNext(igdb);
+			return {
+				rawg,
+				igdb,
+				advance: (milliseconds: number) => {
+					clock += milliseconds;
+				}
+			};
+		}
+
+		void it("skips the failing source and goes straight to the next one while it cools down", async () => {
+			const { rawg, igdb, advance } = chainWithClock([]);
+
+			await rawg.handle("first");
+			advance(COOLDOWN_MS - 1);
+			const outcome = await rawg.handle("second");
+
+			assert.deepEqual(rawg.queries, ["first"]);
+			assert.deepEqual(igdb.queries, ["first", "second"]);
+			assert.equal(outcome.available && outcome.source, "igdb");
+		});
+
+		void it("asks the source again once the cooldown is over and forgets the failure if it answers", async () => {
+			const { rawg, igdb, advance } = chainWithClock([
+				ONLINE_SEARCH_UNAVAILABLE,
+				rawgFound(),
+				rawgFound()
+			]);
+
+			await rawg.handle("first");
+			advance(COOLDOWN_MS);
+			const recovered = await rawg.handle("second");
+			const afterRecovery = await rawg.handle("third");
+
+			assert.deepEqual(rawg.queries, ["first", "second", "third"]);
+			assert.deepEqual(igdb.queries, ["first"]);
+			assert.equal(recovered.available && recovered.source, "rawg");
+			assert.equal(
+				afterRecovery.available && afterRecovery.source,
+				"rawg"
+			);
+		});
+
+		void it("starts a new cooldown when the source fails again after the previous one", async () => {
+			const { rawg, advance } = chainWithClock([]);
+
+			await rawg.handle("first");
+			advance(COOLDOWN_MS);
+			await rawg.handle("second");
+			advance(COOLDOWN_MS - 1);
+			await rawg.handle("third");
+
+			assert.deepEqual(rawg.queries, ["first", "second"]);
+		});
+
+		void it("does not remember failures when the cooldown is zero", async () => {
+			const rawg = new ScriptedHandler("rawg", unavailable);
+			rawg.setNext(
+				new ScriptedHandler("igdb", handler =>
+					Promise.resolve(handler.foundFrom([]))
+				)
+			);
+
+			await rawg.handle("first");
+			await rawg.handle("second");
+
+			assert.deepEqual(rawg.queries, ["first", "second"]);
+		});
+
+		void it("lets every concurrent search that started before the failure try the source once", async () => {
+			const { rawg } = chainWithClock([]);
+
+			await Promise.all([rawg.handle("a"), rawg.handle("b")]);
+			await rawg.handle("c");
+
+			assert.deepEqual(rawg.queries, ["a", "b"]);
+		});
 	});
 });
