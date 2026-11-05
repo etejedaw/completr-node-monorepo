@@ -5,11 +5,13 @@ import {
 	validationSummary
 } from "../../shared/utils/validation-errors";
 import { type ScoreOutOfRangeBody } from "./admin-error-message.model";
+import { DATA_REQUEST_ERROR_MESSAGES } from "./data-request-error-message";
 
 const SCORE_PATH = /^scores?(\.|$)/;
 const DURATION_PATH = /^(times|duration)(\.|$)/;
 
 const ADMIN_ERROR_MESSAGES: Record<string, string> = {
+	...DATA_REQUEST_ERROR_MESSAGES,
 	GAME_SCORE_OUT_OF_RANGE:
 		"A score is above the maximum of its source. Scores go from 0 up to the scale of the source.",
 	GAME_IN_USE:
