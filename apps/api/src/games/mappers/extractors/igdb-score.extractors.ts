@@ -3,14 +3,10 @@ import { type SourceValueExtractor } from "../../games.interface";
 
 const IGDB_MAX_RATING = 100;
 
-function roundToTwoDecimals(value: number): number {
-	return Math.round(value * 100) / 100;
-}
-
 export function extractIgdbUserRating({ rating }: IgdbGame): number | null {
 	if (typeof rating !== "number" || !Number.isFinite(rating)) return null;
 	if (rating > IGDB_MAX_RATING) return null;
-	const rounded = roundToTwoDecimals(rating);
+	const rounded = Math.round(rating);
 	return rounded > 0 ? rounded : null;
 }
 
