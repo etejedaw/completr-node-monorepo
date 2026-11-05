@@ -42,6 +42,7 @@ const ACTION_OPTIONS = [
 ];
 
 const TARGET_TYPE_OPTIONS = ["game", "user", "invitation", "report", "job"];
+const DELETED_AUTHOR_LABEL = "Deleted user";
 
 const toPickerOptions = (
 	values: string[],
@@ -74,6 +75,7 @@ export class AdminAudit implements OnInit {
 	private readonly auditService = inject(AuditService);
 	private loadRequest?: Subscription;
 
+	protected readonly deletedAuthorLabel = DELETED_AUTHOR_LABEL;
 	protected readonly logs = signal<AuditLogEntry[]>([]);
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
