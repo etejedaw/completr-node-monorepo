@@ -403,6 +403,7 @@ Reglas:
 - `game_platinumed` exige además `canView` de `platinum` del autor, también en la consulta: con `platinumVisibility` en `friends` solo lo ven los seguidores mutuos y en `private` solo el autor. En la actividad reciente del perfil (`GET /users/:username`) se omite para quien no puede ver los platinos.
 - Los filtros `category` y `types` consultan `activity.feed-filters` en el resolvedor de acceso premium: un usuario sin acceso que los envía recibe 402 `ACTIVITY_FEED_FILTER_PREMIUM`. Con ambos, el resultado es la intersección.
 - Los eventos `backlog_*` solo se emiten cuando el status realmente cambia.
+- Borrar una cuenta borra sus actividades y también las de otros usuarios que la tienen como objetivo (`ActivityUsers.targetUserId`). Ver [Borrado de cuenta](#borrado-de-cuenta).
 
 ---
 
@@ -467,6 +468,42 @@ Endpoints: `POST /users/me/backlog/bulk`, `/users/me/queue/bulk`, `/users/me/fav
 - `POST /invitations/accept` crea la cuenta con el email de la invitación (no se puede cambiar), borra la invitación e inicia sesión igual que `/auth/register`. Un token desconocido, vencido, revocado o ya usado responde 404 `INVITATION_INVALID_TOKEN`.
 - `invitedById` apunta al admin que invitó, con `ON DELETE SET NULL`.
 - El link del correo apunta a `{WEB_APP_URL}/accept-invite?token=<token>`.
+
+---
+
+## Datos personales: solicitudes, export y borrado de cuenta
+
+Módulo `apps/api/src/data-requests/`. Implementa los derechos de acceso, portabilidad y supresión: el usuario pide una copia de sus datos o el borrado de su cuenta y un admin resuelve la solicitud.
+
+### Solicitudes (`DataRequests`)
+
+- Enums en `data-requests.constants.ts`: `type` (`enum_DataRequests_type`: `export`, `deletion`) y `status` (`enum_DataRequests_status`: `pending`, `completed`, `rejected`, default `pending`). Columnas: `userId` (FK a `Users`, `ON DELETE SET NULL`), `resolutionNote`, `requestedAt`, `resolvedAt`, `resolvedById` (admin que resolvió, FK a `Users`, `ON DELETE SET NULL`).
+- Una sola solicitud `pending` por usuario y tipo: índice único parcial `DataRequests_userId_type_pending_uidx` sobre `("userId", type) WHERE status = 'pending'`. Una segunda responde 409 `DATA_REQUEST_ALREADY_PENDING`; resuelta la anterior, se puede pedir otra. Índices de lectura: `("userId", type, status)` y `(status, "requestedAt")`.
+- Plazos derivados en el serializer, no guardados: `dueAt` = `requestedAt` + 30 días (`DATA_REQUEST_RESPONSE_DAYS`); `daysRemaining` = días corridos enteros hasta `dueAt`, redondeando hacia arriba y negativo si venció; `downloadableUntil` = `resolvedAt` + 7 días (`DATA_EXPORT_DOWNLOAD_DAYS`) solo en `export` + `completed`, si no `null`.
+- `POST /users/me/data-requests` (cualquier rol, sin gating premium) acepta solo `{ type }`; otro valor o un campo extra responde 422 `COMMON_SCHEMA_INVALID`. `GET /users/me/data-requests` lista las propias por `requestedAt` descendente.
+- `GET /users/me/data-requests/:requestId/download` genera el export en el momento. Una solicitud ajena o inexistente responde 404 `DATA_REQUEST_NOT_FOUND`; una `pending`, `rejected` o de tipo `deletion`, 409 `DATA_REQUEST_NOT_DOWNLOADABLE`; una pasada de `downloadableUntil`, 410 `DATA_REQUEST_EXPIRED`.
+- `GET /admin/data-requests` (solo admin) filtra por `status` y `type`, pagina con `limit` (1–100, default 50) y `offset`. Orden: primero las `pending` por `requestedAt` ascendente (equivale a `dueAt`), después el resto por `requestedAt` descendente, con `id` de desempate. Cada fila trae `user: { id, username, email }`, o `null` si la cuenta ya no existe.
+- Resolver (`POST /admin/data-requests/:requestId/complete` y `/reject`) solo pasa de `pending` a `completed` o `rejected` con un `UPDATE ... WHERE status = 'pending'`: una solicitud ya resuelta, también por una resolución concurrente, responde 409 `DATA_REQUEST_NOT_PENDING`. Una inexistente, 404 `DATA_REQUEST_NOT_FOUND`. `reject` exige `reason` de 1 a 500 caracteres tras recortar espacios (`REJECTION_REASON_MAX_LENGTH`), que se guarda en `resolutionNote`.
+- Completar un `deletion` borra la cuenta como `DELETE /admin/users/:userId` (abajo) en la misma transacción que marca la solicitud `completed`. Si la cuenta es admin o la del propio admin responde 409 `USER_DELETE_FORBIDDEN` y la solicitud sigue `pending`. Si la cuenta ya no existe (`userId` nulo), solo se marca `completed`.
+- Correos (`services/data-request-mail.service.ts`), siempre en inglés con la plantilla de marca: al crear una solicitud, aviso a `DATA_REQUESTS_NOTIFY_EMAIL` (default `completr@etejeda.dev`) con enlace a `{WEB_APP_URL}/admin/users`; al resolverla, correo al usuario con enlace a `{WEB_APP_URL}/settings/data` (en un rechazo incluye el motivo). En un borrado el correo se envía antes de borrar la cuenta. Sin SMTP configurado o si el envío falla, se registra un warning y la operación sigue: el correo nunca bloquea la solicitud.
+- Auditoría: `data_request_completed` y `data_request_rejected` sobre `data_request`.
+
+### Export completo
+
+- `buildPersonalDataExport()` (`services/personal-data-export.service.ts`) arma el documento con los `find*ForDataExport` de cada módulo dueño; el mismo documento lo descargan el usuario y el admin (`GET /admin/users/:userId/data-export`, cuentas activas o no, auditoría `user_data_exported` sobre `user`). Un usuario inexistente responde 404 `USER_NOT_FOUND`.
+- Respuesta: JSON desnudo, sin `data`, con `Content-Disposition: attachment; filename="completr-data-<username>-YYYY-MM-DD.json"` (fecha UTC).
+- Claves en camelCase. Bloque `meta` primero: `generatedAt`, `formatVersion` (`PERSONAL_DATA_EXPORT_FORMAT_VERSION`, hoy `1.0`), `controller` (responsable y contacto), `purposes`, `legalBases`, `recipients`, `retention` y `dataSource`, en `personal-data-export.constants.ts`.
+- Secciones: `account`, `privacySettings`, `premium` (estado y concesiones), `backlog` (con `progress` y `coopPartners` por username), `queue`, `gameShelf`, `wishlist`, `favorites`, `lists` (propias, con ítems), `followedLists`, `savedViews`, `reviews`, `social` (`followers`, `following` y `followRequests` por username), `activity` (solo la propia), `moodTags` (metas y etiquetas por juego), `trackedFranchises`, `platinums`, `rewinds` (con `aiRecap` y `premiumStats`), `sessions`, `gameReports` y `dataRequests`.
+- Un juego se identifica con `{ id, title, slug }` (`GAME_REFERENCE_ATTRS`); el catálogo no se vuelca.
+- Nunca incluye el hash de la contraseña, el token de las sesiones (`sessions` solo lleva `deviceInfo`, `createdAt`, `lastUsedAt` y `expiresAt`) ni tokens de un solo uso.
+
+### Borrado de cuenta
+
+- `DELETE /admin/users/:userId` (solo admin) responde 204. Borrado físico, distinto de `DELETE /users/me/deactivate`, que solo pone `isActive = false`. Una cuenta con rol `admin` o la del propio admin responde 409 `USER_DELETE_FORBIDDEN`; una inexistente, 404 `USER_NOT_FOUND`.
+- `deleteAccount()` (`users/users-deletion.service.ts`), en una transacción: borra las `Activities` de otros usuarios cuyo `ActivityUsers.targetUserId` es la cuenta (la cascada de `targetUserId` solo borraría la fila de `ActivityUsers` y dejaría la actividad sin objetivo), borra la `UserInvitations` de su email y borra el `User`. El resto lo hacen las FKs.
+- `ON DELETE CASCADE` desde `Users` en: `Backlogs`, `Queues`, `GameShelves`, `Wishlists`, `Favorites`, `Lists`, `ListFollowers`, `SavedFilters`, `GameReports`, `Reviews`, `UserFollowers` (`followerId` y `followingId`), `Activities`, `ActivityUsers.targetUserId`, `UserFollowRequests`, `RefreshTokens`, `PasswordResetTokens`, `UserGameTags`, `MoodTagMetas`, `UserFranchises`, `GamePlatinums`, `Rewinds` y `PremiumGrants`. Por cascada de segundo nivel caen `BacklogProgresses`, `ListItems`, los `ListFollowers` de terceros sobre sus listas y los objetivos de sus actividades. `SET NULL` en `DataRequests.userId` y `resolvedById`, y `UserInvitations.invitedById`: las solicitudes quedan como registro anónimo.
+- `AuditLogs.userId` no tiene `ON DELETE`: como solo los admins dejan auditoría y un admin no se puede borrar, no bloquea. Si una cuenta tuvo auditoría (por ejemplo, un admin degradado), el borrado falla con la FK y responde 409 `USER_DELETE_FORBIDDEN`.
+- Después del commit: borra de la caché de imágenes del Rewind (`clearRewindImagesOf`) las entradas de su username y registra `user_deleted` sobre `user`. Las sesiones del usuario dejan de valer porque su `User` ya no existe.
 
 ---
 

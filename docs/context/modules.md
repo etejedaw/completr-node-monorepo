@@ -184,3 +184,4 @@ Pero **solo para `include`, asociaciones y `order`**. Nunca para CRUD (`find*`, 
 10. Crear `<modulo>.routes.ts` con middlewares.
 11. Registrar el router en `apps/api/src/server.ts`.
 12. Documentar los endpoints en `docs/api/<modulo>/` (Bruno v3.1).
+13. Si el modelo guarda datos de un usuario (una FK a `Users` o contenido que escribe), su FK lleva `ON DELETE CASCADE` (o `SET NULL` si la fila debe sobrevivir anónima), para que el [borrado de cuenta](../invariants.md#borrado-de-cuenta) no falle, y el módulo expone un `find<Recurso>ForDataExport(userId)` que se suma a `collectPersonalData()` de `data-requests/services/personal-data-export.service.ts` y a su serializer, para que el export completo siga completo.
