@@ -13,6 +13,8 @@ import { interruptibleSleep } from "./utils/interruptible-sleep.util";
 import { isChallengePage } from "./utils/is-challenge-page.util";
 import { parseRetryAfter } from "./utils/parse-retry-after.util";
 
+const NOT_FOUND_STATUSES = new Set([404, 410]);
+
 const REQUEST_HEADERS = {
 	Accept: "text/html,application/xhtml+xml",
 	"Accept-Language": "en-US,en;q=0.8"
@@ -332,7 +334,7 @@ export class ScrapingHttpClient {
 		if (isChallengePage(response.headers, body) || status === 403)
 			return this.failure("BLOCKED", url, attempt, status, false);
 
-		if (status === 404)
+		if (NOT_FOUND_STATUSES.has(status))
 			return this.failure("NOT_FOUND", url, attempt, status, false);
 
 		if (status === 429 || status >= 500) {
