@@ -18,6 +18,7 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type Game } from "../../../core/models";
+import { type ExternalGameDetail } from "../games.model";
 import { AdminGameEditor } from "./admin-game-editor";
 
 interface ApiFailure {
@@ -94,11 +95,13 @@ const compilationGame = {
 	]
 } as unknown as Game;
 
-const rawgHades = {
-	rawgId: 3498,
+const rawgHades: ExternalGameDetail = {
+	source: "rawg",
+	externalId: "3498",
 	title: "Hades (RAWG)",
 	description: "From RAWG",
-	coverUrl: "https://img.example/hades.jpg",
+	coverUrl: null,
+	backgroundUrl: "https://img.example/hades-rawg-bg.jpg",
 	releaseAt: "2020-09-17",
 	platforms: ["pc"],
 	genres: ["action"],
@@ -106,13 +109,29 @@ const rawgHades = {
 	times: [{ source: "hltb", duration: 22 }]
 };
 
+const igdbHades: ExternalGameDetail = {
+	source: "igdb",
+	externalId: "113112",
+	title: "Hades (IGDB)",
+	description: "From IGDB",
+	coverUrl: "https://img.example/hades-igdb-cover.jpg",
+	backgroundUrl: "https://img.example/hades-igdb-art.jpg",
+	releaseAt: "2020-09-17",
+	platforms: ["pc"],
+	genres: ["action"],
+	scores: [{ source: "igdb", score: 91 }],
+	times: []
+};
+
+type LookupSource = ExternalGameDetail["source"];
+
 describe("AdminGameEditor interaction", () => {
 	let httpTesting: HttpTestingController;
 	let calls: Call[];
 	let failures: Record<string, ApiFailure>;
 	let holds: string[];
 	let held: { key: string; req: TestRequest }[];
-	let rawgCatalog: Record<string, typeof rawgHades>;
+	let lookupCatalog: Record<LookupSource, Record<string, ExternalGameDetail>>;
 	let searchLimit: number;
 	let compilationItemsResponse: unknown[];
 	let splitResponse: Game[];
@@ -146,9 +165,10 @@ describe("AdminGameEditor interaction", () => {
 			return req.flush({
 				data: { franchises, total: franchises.length }
 			});
-		if (method === "GET" && path.startsWith("/game-external/rawg/")) {
+		const lookupMatch = /^\/game-external\/(rawg|igdb)\//.exec(path);
+		if (method === "GET" && lookupMatch) {
 			const slug = decodeURIComponent(path.split("/").pop()!);
-			const detail = rawgCatalog[slug];
+			const detail = lookupCatalog[lookupMatch[1] as LookupSource][slug];
 			return detail
 				? req.flush({ data: { game: detail } })
 				: req.flush({}, { status: 404, statusText: "Not Found" });
@@ -287,6 +307,8 @@ describe("AdminGameEditor interaction", () => {
 
 	const titleInput = () => screen.getByLabelText("Title");
 	const rawgInput = () => screen.getByRole("textbox", { name: "RAWG slug" });
+	const igdbInput = () => screen.getByRole("textbox", { name: "IGDB slug" });
+	const sourceRadio = (name: string) => screen.getByRole("radio", { name });
 	const parentSearch = () =>
 		screen.getByRole("textbox", { name: "Search parent game" });
 	const dlcSwitch = () => screen.getByRole("switch", { name: "DLC" });
@@ -386,7 +408,10 @@ describe("AdminGameEditor interaction", () => {
 		failures = {};
 		holds = [];
 		held = [];
-		rawgCatalog = { hades: rawgHades };
+		lookupCatalog = {
+			rawg: { hades: rawgHades },
+			igdb: { "hades-2": igdbHades }
+		};
 		searchLimit = 8;
 		compilationItemsResponse = [];
 		splitResponse = [
@@ -413,7 +438,7 @@ describe("AdminGameEditor interaction", () => {
 		}
 	});
 
-	describe("RAWG lookup", () => {
+	describe("Lookup", () => {
 		it("fills the form from RAWG and sends the external id when the game is created", async () => {
 			await renderCreate();
 
@@ -433,6 +458,9 @@ describe("AdminGameEditor interaction", () => {
 			expect(button("PC")).toHaveAttribute("aria-pressed", "true");
 			expect(button("PS5")).toHaveAttribute("aria-pressed", "false");
 			expect(screen.getByLabelText("metacritic score")).toHaveValue(93);
+			expect(screen.getByLabelText(/^Background URL/)).toHaveValue(
+				"https://img.example/hades-rawg-bg.jpg"
+			);
 
 			await userEvent.click(button("Create Game"));
 			await untilVisible(() => expect(created).toHaveBeenCalledTimes(1));
@@ -441,6 +469,180 @@ describe("AdminGameEditor interaction", () => {
 				{ source: "rawg", externalId: "3498" }
 			]);
 			expect(post.body?.["platforms"]).toEqual(["pc"]);
+			expect(post.body?.["coverUrl"]).toBeUndefined();
+			expect(post.body?.["backgroundUrl"]).toBe(
+				"https://img.example/hades-rawg-bg.jpg"
+			);
+		});
+
+		it("defaults to RAWG and renames the field when the source changes", async () => {
+			await renderCreate();
+
+			expect(sourceRadio("RAWG")).toHaveAttribute("aria-checked", "true");
+			expect(sourceRadio("IGDB")).toHaveAttribute(
+				"aria-checked",
+				"false"
+			);
+			expect(rawgInput()).toHaveAttribute(
+				"placeholder",
+				"RAWG slug (e.g. resident-evil-4)"
+			);
+
+			await userEvent.click(sourceRadio("IGDB"));
+
+			expect(sourceRadio("IGDB")).toHaveAttribute("aria-checked", "true");
+			expect(sourceRadio("RAWG")).toHaveAttribute(
+				"aria-checked",
+				"false"
+			);
+			expect(igdbInput()).toHaveAttribute(
+				"placeholder",
+				"IGDB slug (e.g. hollow-knight)"
+			);
+			expect(
+				screen.getByRole("radiogroup", { name: "Lookup source" })
+			).toBeInTheDocument();
+		});
+
+		it("can be switched with the keyboard", async () => {
+			await renderCreate();
+
+			sourceRadio("IGDB").focus();
+			await userEvent.keyboard("{Enter}");
+
+			expect(sourceRadio("IGDB")).toHaveAttribute("aria-checked", "true");
+		});
+
+		it("fills cover, background, platforms and the igdb score from IGDB and sends them when the game is created", async () => {
+			await renderCreate();
+			await userEvent.click(sourceRadio("IGDB"));
+
+			await userEvent.type(igdbInput(), "hades-2");
+			await userEvent.click(button("Fetch"));
+			await untilVisible(() =>
+				expect(screen.getByText("IGDB ID: 113112")).toBeInTheDocument()
+			);
+
+			expect(titleInput()).toHaveValue("Hades (IGDB)");
+			expect(screen.getByLabelText(/^Background URL/)).toHaveValue(
+				"https://img.example/hades-igdb-art.jpg"
+			);
+			expect(button("PC")).toHaveAttribute("aria-pressed", "true");
+			expect(screen.getByLabelText("igdb score")).toHaveValue(91);
+			expect(calls.at(-1)?.path).toBe("/game-external/igdb/hades-2");
+
+			await userEvent.click(button("Create Game"));
+			await untilVisible(() => expect(created).toHaveBeenCalledTimes(1));
+			const [post] = callsTo("POST", "/games");
+			expect(post.body?.["externalIds"]).toEqual([
+				{ source: "igdb", externalId: "113112" }
+			]);
+			expect(post.body?.["coverUrl"]).toBe(
+				"https://img.example/hades-igdb-cover.jpg"
+			);
+			expect(post.body?.["backgroundUrl"]).toBe(
+				"https://img.example/hades-igdb-art.jpg"
+			);
+			expect(post.body?.["scores"]).toEqual([
+				{ source: "igdb", score: 91 }
+			]);
+		});
+
+		it("keeps what was applied and replaces the external id when a second fetch uses the other source", async () => {
+			await renderCreate();
+			await userEvent.type(rawgInput(), "hades{Enter}");
+			await untilVisible(() =>
+				expect(screen.getByText("RAWG ID: 3498")).toBeInTheDocument()
+			);
+
+			await userEvent.click(sourceRadio("IGDB"));
+
+			expect(screen.getByText("RAWG ID: 3498")).toBeInTheDocument();
+			expect(titleInput()).toHaveValue("Hades (RAWG)");
+
+			await replaceText(igdbInput(), "hades-2");
+			await userEvent.click(button("Fetch"));
+			await untilVisible(() =>
+				expect(screen.getByText("IGDB ID: 113112")).toBeInTheDocument()
+			);
+			expect(screen.queryByText("RAWG ID: 3498")).toBeNull();
+
+			await userEvent.click(button("Create Game"));
+			await untilVisible(() => expect(created).toHaveBeenCalledTimes(1));
+			expect(callsTo("POST", "/games")[0].body?.["externalIds"]).toEqual([
+				{ source: "igdb", externalId: "113112" }
+			]);
+		});
+
+		it("drops a response that arrives after the source was changed", async () => {
+			await renderCreate();
+			holds = ["GET /game-external/rawg/"];
+			await userEvent.type(rawgInput(), "hades{Enter}");
+			answerPending();
+			expect(button("Fetching...")).toBeDisabled();
+
+			await userEvent.click(sourceRadio("IGDB"));
+			expect(button("Fetch")).toBeEnabled();
+			releaseHeld("GET /game-external/rawg/hades");
+			await new Promise(resolve => setTimeout(resolve, 50));
+
+			expect(titleInput()).toHaveValue("");
+			expect(screen.queryByText("RAWG ID: 3498")).toBeNull();
+			expect(screen.queryByText("Fetching...")).toBeNull();
+		});
+
+		it("allows fetching the same slug again on the other source", async () => {
+			await renderCreate();
+			lookupCatalog.igdb["hades"] = igdbHades;
+			holds = ["GET /game-external/"];
+			await userEvent.type(rawgInput(), "hades{Enter}");
+			answerPending();
+			await userEvent.click(sourceRadio("IGDB"));
+			await userEvent.type(igdbInput(), "{Enter}{Enter}");
+			answerPending();
+
+			expect(heldKeys("GET /game-external/rawg/")).toHaveLength(1);
+			expect(heldKeys("GET /game-external/igdb/")).toHaveLength(1);
+			releaseHeld("GET /game-external/igdb/hades");
+			await untilVisible(() =>
+				expect(screen.getByText("IGDB ID: 113112")).toBeInTheDocument()
+			);
+		});
+
+		it("sends one request when Enter is pressed repeatedly on IGDB", async () => {
+			await renderCreate();
+			await userEvent.click(sourceRadio("IGDB"));
+			holds = ["GET /game-external/igdb/"];
+			await userEvent.type(igdbInput(), "hades-2{Enter}{Enter}");
+			await userEvent.tripleClick(button("Fetching..."));
+			answerPending();
+
+			expect(heldKeys("GET /game-external/igdb/")).toHaveLength(1);
+		});
+
+		it("keeps the cover from IGDB when a later RAWG fetch has none", async () => {
+			await renderCreate();
+			await userEvent.click(sourceRadio("IGDB"));
+			await userEvent.type(igdbInput(), "hades-2{Enter}");
+			await untilVisible(() =>
+				expect(screen.getByText("IGDB ID: 113112")).toBeInTheDocument()
+			);
+			await userEvent.click(sourceRadio("RAWG"));
+			await replaceText(rawgInput(), "hades");
+			await userEvent.click(button("Fetch"));
+			await untilVisible(() =>
+				expect(screen.getByText("RAWG ID: 3498")).toBeInTheDocument()
+			);
+
+			await userEvent.click(button("Create Game"));
+			await untilVisible(() => expect(created).toHaveBeenCalledTimes(1));
+			const [post] = callsTo("POST", "/games");
+			expect(post.body?.["coverUrl"]).toBe(
+				"https://img.example/hades-igdb-cover.jpg"
+			);
+			expect(post.body?.["externalIds"]).toEqual([
+				{ source: "rawg", externalId: "3498" }
+			]);
 		});
 
 		it("sends one request when Fetch is clicked three times in a row", async () => {
@@ -478,20 +680,31 @@ describe("AdminGameEditor interaction", () => {
 		});
 
 		it.each([
-			["a 404", 404],
-			["a 500", 500],
-			["a network error", 0]
+			["a 404", 404, "Game not found on RAWG"],
+			[
+				"a 429",
+				429,
+				"Couldn't reach RAWG right now. Try again in a moment."
+			],
+			[
+				"a 502",
+				502,
+				"Couldn't reach RAWG right now. Try again in a moment."
+			],
+			[
+				"a network error",
+				0,
+				"Couldn't reach RAWG right now. Try again in a moment."
+			]
 		])(
-			"shows the not-found message after %s and lets the admin correct the slug",
-			async (_label, status) => {
+			"explains %s and lets the admin correct the slug",
+			async (_label, status, message) => {
 				await renderCreate();
 				failures["GET /game-external/rawg/nope"] = { status };
 				await userEvent.type(rawgInput(), "nope");
 				await userEvent.click(button("Fetch"));
 				await untilVisible(() =>
-					expect(
-						screen.getByText("Game not found on RAWG")
-					).toBeInTheDocument()
+					expect(screen.getByText(message)).toBeInTheDocument()
 				);
 				expect(button("Fetch")).toBeEnabled();
 
@@ -503,13 +716,55 @@ describe("AdminGameEditor interaction", () => {
 						screen.getByText("RAWG ID: 3498")
 					).toBeInTheDocument()
 				);
-				expect(screen.queryByText("Game not found on RAWG")).toBeNull();
+				expect(screen.queryByText(message)).toBeNull();
 			}
 		);
 
+		it.each([
+			["rawg", "RAWG"],
+			["igdb", "IGDB"]
+		] as const)(
+			"says the %s source is not available after a 503",
+			async (source, label) => {
+				await renderCreate();
+				if (source === "igdb")
+					await userEvent.click(sourceRadio("IGDB"));
+				failures[`GET /game-external/${source}/down`] = { status: 503 };
+				await userEvent.type(
+					screen.getByRole("textbox", { name: `${label} slug` }),
+					"down{Enter}"
+				);
+
+				await untilVisible(() =>
+					expect(
+						screen.getByText(`${label} is not available right now`)
+					).toBeInTheDocument()
+				);
+				expect(
+					screen.queryByText(`Game not found on ${label}`)
+				).toBeNull();
+				expect(button("Fetch")).toBeEnabled();
+			}
+		);
+
+		it("shows the not-found message of IGDB after a 404 and clears it when the source changes", async () => {
+			await renderCreate();
+			await userEvent.click(sourceRadio("IGDB"));
+			await userEvent.type(igdbInput(), "nope{Enter}");
+			await untilVisible(() =>
+				expect(
+					screen.getByText("Game not found on IGDB")
+				).toBeInTheDocument()
+			);
+
+			await userEvent.click(sourceRadio("RAWG"));
+
+			expect(screen.queryByText("Game not found on IGDB")).toBeNull();
+		});
+
 		it("encodes unicode, emoji and spaces in the slug", async () => {
 			await renderCreate();
-			rawgCatalog["pokémon 💥/ö"] = rawgHades;
+			lookupCatalog.rawg["pokémon 💥/ö"] = rawgHades;
 
 			await pasteInto(rawgInput(), "pokémon 💥/ö");
 			await userEvent.click(button("Fetch"));
@@ -524,10 +779,14 @@ describe("AdminGameEditor interaction", () => {
 
 		it("keeps the data of the latest slug when an older RAWG response arrives after a newer one", async () => {
 			await renderCreate();
-			rawgCatalog["first"] = { ...rawgHades, rawgId: 1, title: "First" };
-			rawgCatalog["second"] = {
+			lookupCatalog.rawg["first"] = {
 				...rawgHades,
-				rawgId: 2,
+				externalId: "1",
+				title: "First"
+			};
+			lookupCatalog.rawg["second"] = {
+				...rawgHades,
+				externalId: "2",
 				title: "Second"
 			};
 			holds = ["GET /game-external/rawg/"];

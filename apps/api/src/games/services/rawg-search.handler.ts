@@ -1,6 +1,9 @@
 import { titleToSlug } from "../../common/utils/title-to-slug.util";
 import { type RawgClient } from "../../rawg/rawg.provider";
-import { type ResolvedOnlineGame } from "../games.interface";
+import {
+	type OnlineSearchCooldown,
+	type ResolvedOnlineGame
+} from "../games.interface";
 import { type OnlineSearchOutcome } from "../games.types";
 import { OnlineSearchHandler } from "./online-search.handler";
 
@@ -13,9 +16,10 @@ export class RawgSearchHandler extends OnlineSearchHandler {
 		private readonly rawg: RawgClient,
 		private readonly resolveResult: (
 			rawgId: number
-		) => Promise<ResolvedOnlineGame | null>
+		) => Promise<ResolvedOnlineGame | null>,
+		cooldown?: OnlineSearchCooldown
 	) {
-		super();
+		super(cooldown);
 	}
 
 	protected async searchSource(query: string): Promise<OnlineSearchOutcome> {

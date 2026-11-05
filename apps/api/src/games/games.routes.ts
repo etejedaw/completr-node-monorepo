@@ -15,7 +15,6 @@ import { GameSearchQuerySchema } from "./schemas/game-search-query.schema";
 import { GamesQuerySchema } from "./schemas/games-query.schema";
 import { LatestReviewedQuerySchema } from "./schemas/latest-reviewed-query.schema";
 import { MarkCompilationSchema } from "./schemas/mark-compilation.schema";
-import { RawgIdParamSchema } from "./schemas/rawg-id-params.schema";
 import { RefreshExternalDataSchema } from "./schemas/refresh-external-data.schema";
 import { RegisterGameSchema } from "./schemas/register-game.schema";
 import { SplitGameSchema } from "./schemas/split-game.schema";
@@ -57,26 +56,6 @@ router.get(
 		validateSchemaMiddleware(LatestReviewedQuerySchema, "query")
 	],
 	gamesController.getLatestReviewedGames
-);
-
-router.get(
-	"/games/rawg-lookup",
-	[
-		authMiddleware("moderator"),
-		rateLimiterMiddleware(userLimiter),
-		validateSchemaMiddleware(GameSearchQuerySchema, "query")
-	],
-	gamesController.getRawgLookup
-);
-
-router.get(
-	"/games/rawg-detail/:rawgId",
-	[
-		authMiddleware("moderator"),
-		rateLimiterMiddleware(userLimiter),
-		validateSchemaMiddleware(RawgIdParamSchema, "params")
-	],
-	gamesController.getRawgDetail
 );
 
 router.get(

@@ -29,7 +29,6 @@ import { type GameIdParam } from "./schemas/game-id-params.schema";
 import { type GameSearchQuery } from "./schemas/game-search-query.schema";
 import { type GamesQuery } from "./schemas/games-query.schema";
 import { type LatestReviewedQuery } from "./schemas/latest-reviewed-query.schema";
-import { type RawgIdParam } from "./schemas/rawg-id-params.schema";
 import * as gamesProfileService from "./services/games-profile.service";
 import { mapGamesQueryToOptions } from "./utils/games-query.adapter";
 
@@ -184,18 +183,6 @@ export async function postRefreshExternalData(
 		results: refreshed.results
 	};
 	return response.status(200).json({ data });
-}
-
-export async function getRawgLookup(request: Request, response: Response) {
-	const query = request.locals.query as GameSearchQuery;
-	const results = await gameService.rawgLookup(query.query);
-	return response.status(200).json({ data: { results } });
-}
-
-export async function getRawgDetail(request: Request, response: Response) {
-	const params = request.locals.params as RawgIdParam;
-	const detail = await gameService.rawgDetail(params.rawgId);
-	return response.status(200).json({ data: { game: detail } });
 }
 
 export async function putCompilationItems(

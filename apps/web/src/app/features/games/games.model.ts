@@ -32,11 +32,13 @@ export interface GenresResponse {
 	data: { genres: Genre[] };
 }
 
-export interface RawgDetail {
-	rawgId: number;
+export interface ExternalGameDetail {
+	source: OnlineSearchSource;
+	externalId: string;
 	title: string;
 	description: string | null;
 	coverUrl: string | null;
+	backgroundUrl: string | null;
 	releaseAt: string | null;
 	platforms: string[];
 	genres: string[];

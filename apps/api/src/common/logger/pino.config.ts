@@ -6,24 +6,31 @@ import pretty from "pino-pretty";
 
 import { environmentConfig } from "../config/environment.config";
 
-const filePath = createLogDirectory();
+const LOG_DIR_NAME = "logs";
+const LOG_FILE_BASENAME = "app";
+const LOG_FILE_EXTENSION = ".log";
+const STDOUT_FILE_DESCRIPTOR = 1;
+const LOG_ROTATION = {
+	frequency: "daily",
+	size: "10m",
+	limit: { count: 7 }
+} as const;
 
-export const pinoConfig = generatePinoConfig(filePath);
+const logDir = createLogDirectory();
+
+export const pinoConfig = generatePinoConfig(logDir);
 
 function createLogDirectory() {
-	const LOG_DIR_NAME = "logs";
-	const LOG_DIR_FILE = "app.log";
-
-	const logDir = path.join(process.cwd(), LOG_DIR_NAME);
-	if (!fs.existsSync(logDir)) fs.mkdirSync(logDir);
-
-	return path.join(logDir, LOG_DIR_FILE);
+	const dir = path.join(process.cwd(), LOG_DIR_NAME);
+	if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+	return dir;
 }
 
-function generatePinoConfig(logFilePath: string) {
+function generatePinoConfig(dir: string) {
 	const nodeEnv = environmentConfig.NODE_ENV;
 	if (nodeEnv === "dev") return devLogger();
-	return defaultLogger(logFilePath);
+	if (nodeEnv === "test") return testLogger(dir);
+	return productionLogger(dir);
 }
 
 function devLogger() {
@@ -37,13 +44,43 @@ function devLogger() {
 	);
 }
 
-function defaultLogger(logFilePath: string) {
+function testLogger(dir: string) {
 	return pino(
-		{
-			level: "info",
-			base: undefined,
-			timestamp: pino.stdTimeFunctions.isoTime
-		},
-		pino.destination(logFilePath)
+		jsonLoggerOptions(),
+		pino.destination(
+			path.join(dir, `${LOG_FILE_BASENAME}${LOG_FILE_EXTENSION}`)
+		)
 	);
+}
+
+function productionLogger(dir: string) {
+	return pino(
+		jsonLoggerOptions(),
+		pino.transport({
+			targets: [
+				{
+					target: "pino-roll",
+					options: {
+						file: path.join(dir, LOG_FILE_BASENAME),
+						extension: LOG_FILE_EXTENSION,
+						mkdir: true,
+						symlink: true,
+						...LOG_ROTATION
+					}
+				},
+				{
+					target: "pino/file",
+					options: { destination: STDOUT_FILE_DESCRIPTOR }
+				}
+			]
+		})
+	);
+}
+
+function jsonLoggerOptions(): pino.LoggerOptions {
+	return {
+		level: "info",
+		base: undefined,
+		timestamp: pino.stdTimeFunctions.isoTime
+	};
 }
