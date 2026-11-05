@@ -114,7 +114,7 @@ void describe("GET /game-external/igdb/:slug", () => {
 				releaseAt: "2017-02-24",
 				platforms: ["nintendo-switch", "nintendo-switch-2"],
 				genres: ["platformer", "indie"],
-				scores: [{ source: "igdb", score: 91.8 }],
+				scores: [{ source: "igdb", score: 92 }],
 				times: []
 			});
 			assert.deepEqual(igdb.calls, ["slug:hollow-knight"]);
