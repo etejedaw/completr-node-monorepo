@@ -1,0 +1,209 @@
+<div class="flex flex-col gap-6">
+	<app-settings-panel
+		heading="Your data"
+		headingId="data-requests-heading"
+		description="Ask for a copy of everything Completr stores about you, or for your account to be deleted. We answer every request within 30 days and email you when it's done."
+	>
+		<app-settings-row
+			label="Copy of your data"
+			labelId="data-export-label"
+			icon="download"
+			iconColor="text-brand"
+			hint="A JSON file with everything stored for your account: profile, library, lists, reviews and activity. Once it's ready, you can download it for 7 days."
+		>
+			<div class="flex flex-wrap items-center gap-3 md:justify-end">
+				@if (pendingExport(); as pending) {
+				<ui-badge tone="info" icon="schedule"
+					>Pending · due {{ pending.dueAt | date: "mediumDate" }}</ui-badge
+				>
+				}
+				<button
+					uiButton
+					variant="secondary"
+					[disabled]="isLoading() || !!pendingExport() || creatingType() === 'export'"
+					(click)="requestExport()"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>download</span
+					>
+					{{ creatingType() === "export" ? "Sending…" : "Request a copy of your data" }}
+				</button>
+			</div>
+		</app-settings-row>
+
+		<app-settings-row
+			label="Delete your account"
+			labelId="data-deletion-label"
+			icon="delete_forever"
+			iconColor="text-danger"
+			hint="Your account and everything in it are deleted for good. This can't be undone."
+		>
+			<div class="flex flex-wrap items-center gap-3 md:justify-end">
+				@if (pendingDeletion(); as pending) {
+				<ui-badge tone="info" icon="schedule"
+					>Pending · due {{ pending.dueAt | date: "mediumDate" }}</ui-badge
+				>
+				}
+				<button
+					uiButton
+					variant="danger"
+					[disabled]="isLoading() || !!pendingDeletion() || creatingType() === 'deletion'"
+					(click)="askDeletion()"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>delete_forever</span
+					>
+					Request account deletion
+				</button>
+			</div>
+		</app-settings-row>
+	</app-settings-panel>
+
+	<app-settings-panel
+		heading="Request history"
+		headingId="data-requests-history-heading"
+		description="Your requests, newest first."
+	>
+		@if (isLoading() && requests().length === 0) {
+		<div
+			class="flex flex-col gap-2 py-4"
+			aria-busy="true"
+			aria-label="Loading your requests"
+		>
+			@for (i of [0, 1]; track i) {
+			<ui-skeleton class="h-14 rounded-card" />
+			}
+		</div>
+		} @else if (loadFailed()) {
+		<ui-alert class="my-4">
+			<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+				<span>Could not load your requests.</span>
+				<button
+					uiButton
+					size="sm"
+					variant="secondary"
+					(click)="loadRequests()"
+				>
+					Try again
+				</button>
+			</div>
+		</ui-alert>
+		} @else if (requests().length === 0) {
+		<p class="m-0 py-6 text-sm text-fg-muted">
+			You haven't made any requests yet.
+		</p>
+		} @else {
+		<ul class="list-none m-0 p-0 divide-y divide-line" aria-label="Your requests">
+			@for (request of requests(); track request.id) { @let type =
+			typeDisplay(request.type); @let status = statusBadge(request.status);
+			<li class="flex flex-col sm:flex-row sm:items-center gap-3 py-3">
+				<div class="flex min-w-0 flex-1 items-start gap-3">
+					<span
+						aria-hidden="true"
+						class="shrink-0 w-10 h-10 inline-flex items-center justify-center rounded-card bg-input-bg"
+						[class.text-danger]="request.type === 'deletion'"
+						[class.text-brand]="request.type === 'export'"
+					>
+						<span class="material-icons text-xl">{{ type.icon }}</span>
+					</span>
+					<div class="min-w-0 flex-1">
+						<p
+							class="m-0 flex flex-wrap items-center gap-2 text-sm font-medium text-fg"
+						>
+							{{ type.label }}
+							<ui-badge [tone]="status.tone" [icon]="status.icon"
+								>{{ status.label }}</ui-badge
+							>
+						</p>
+						<p class="m-0 mt-0.5 text-xs text-fg-muted tabular-nums">
+							Requested {{ request.requestedAt | date: "mediumDate" }}
+							@if (request.status === "pending") { · Due {{
+							request.dueAt | date: "mediumDate" }} } @else if
+							(request.resolvedAt) { · Resolved {{ request.resolvedAt
+							| date: "mediumDate" }} }
+						</p>
+						@if (request.status === "rejected" &&
+						request.resolutionNote) {
+						<p class="m-0 mt-1 text-xs text-fg-secondary">
+							Reason: {{ request.resolutionNote }}
+						</p>
+						} @if (canDownload(request)) {
+						<p class="m-0 mt-1 text-xs text-fg-secondary">
+							Available until {{ request.downloadableUntil | date:
+							"medium" }}
+						</p>
+						} @else if (hasDownloadExpired(request)) {
+						<p class="m-0 mt-1 text-xs text-warning">
+							Download expired
+							@if (request.downloadableUntil) { on {{
+							request.downloadableUntil | date: "mediumDate" }} }.
+							Request a new copy to get a fresh file.
+						</p>
+						}
+					</div>
+				</div>
+				@if (canDownload(request)) {
+				<button
+					uiButton
+					variant="primary"
+					size="sm"
+					class="tap:min-h-[44px] self-start sm:self-center"
+					[attr.aria-label]="'Download your data from ' + (request.requestedAt | date: 'mediumDate')"
+					[disabled]="downloadingRequestId() === request.id"
+					(click)="download(request)"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>file_download</span
+					>
+					{{ downloadingRequestId() === request.id ? "Downloading…" :
+					"Download" }}
+				</button>
+				}
+			</li>
+			}
+		</ul>
+		}
+	</app-settings-panel>
+</div>
+
+@if (confirmingDeletion()) {
+<ui-dialog
+	eyebrow="Your data"
+	icon="delete_forever"
+	tone="danger"
+	size="sm"
+	heading="Request account deletion?"
+	[dismissible]="creatingType() !== 'deletion'"
+	(closed)="cancelDeletion()"
+>
+	<div class="flex flex-col gap-3 text-sm text-fg-secondary">
+		<p class="m-0">
+			We'll delete your account and everything in it: profile, library,
+			lists, reviews, follows and activity. We answer within 30 days and
+			email you before the account is gone.
+		</p>
+		<p class="m-0 font-medium text-danger">
+			Deletion is permanent and can't be undone. If you want to keep
+			anything, request a copy of your data first.
+		</p>
+	</div>
+	<ng-container dialogFooter>
+		<button
+			uiButton
+			variant="ghost"
+			[disabled]="creatingType() === 'deletion'"
+			(click)="cancelDeletion()"
+		>
+			Cancel
+		</button>
+		<button
+			uiButton
+			variant="danger"
+			[disabled]="creatingType() === 'deletion'"
+			(click)="confirmDeletion()"
+		>
+			{{ creatingType() === "deletion" ? "Sending…" : "Request deletion" }}
+		</button>
+	</ng-container>
+</ui-dialog>
+}

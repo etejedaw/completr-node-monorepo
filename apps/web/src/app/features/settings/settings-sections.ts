@@ -24,5 +24,11 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
 		label: "Security",
 		icon: "shield",
 		description: "Password and sessions"
+	},
+	{
+		path: "data",
+		label: "Your data",
+		icon: "folder_shared",
+		description: "Download or delete your data"
 	}
 ];

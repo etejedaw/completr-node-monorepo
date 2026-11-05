@@ -353,6 +353,13 @@ export const routes: Routes = [
 							import("./features/settings/settings-security/settings-security").then(
 								m => m.SettingsSecurity
 							)
+					},
+					{
+						path: "data",
+						loadComponent: () =>
+							import("./features/settings/settings-data/settings-data").then(
+								m => m.SettingsData
+							)
 					}
 				]
 			},
