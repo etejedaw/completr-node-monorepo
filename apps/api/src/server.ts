@@ -13,6 +13,7 @@ import { correlationIdMiddleware } from "./common/middlewares/correlation-id.mid
 import { errorHandlerMiddleware } from "./common/middlewares/error-handler.middleware";
 import { loggerMiddleware } from "./common/middlewares/logger.middleware";
 import coopRunsRouter from "./coop-runs/coop-runs.routes";
+import dataRequestsRouter from "./data-requests/data-requests.routes";
 import franchisesRouter from "./franchises/franchises.routes";
 import gameExternalRouter from "./game-external/game-external.routes";
 import gamePlatinumRouter from "./game-platinum/game-platinum.routes";
@@ -53,6 +54,7 @@ export function createApp() {
 	app.use(authRouter);
 	app.use(usersRoute);
 	app.use(invitationsRouter);
+	app.use(dataRequestsRouter);
 	app.use(gamesRouter);
 	app.use(platformRouter);
 	app.use(genreRouter);

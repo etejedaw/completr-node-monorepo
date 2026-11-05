@@ -5,6 +5,7 @@ import { authDomainToHttpMapper } from "../../auth/errors/auth.domain-to-http.ma
 import { backlogDomainToHttpMapper } from "../../backlog/errors/backlog.domain-to-http.mapper";
 import { backlogProgressDomainToHttpMapper } from "../../backlog-progress/errors/backlog-progress.domain-to-http.mapper";
 import { coopRunsDomainToHttpMapper } from "../../coop-runs/errors/coop-runs.domain-to-http.mapper";
+import { dataRequestsDomainToHttpMapper } from "../../data-requests/errors/data-requests.domain-to-http.mapper";
 import { favoritesDomainToHttpMapper } from "../../favorites/errors/favorites.domain-to-http.mapper";
 import { franchisesDomainToHttpMapper } from "../../franchises/errors/franchises.domain-to-http.mapper";
 import { gameExternalDomainToHttpMapper } from "../../game-external/errors/game-external.domain-to-http.mapper";
@@ -156,6 +157,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "Invitation Module")
 		return invitationsDomainToHttpMapper(error, request);
+
+	if (error.module === "Data Request Module")
+		return dataRequestsDomainToHttpMapper(error, request);
 
 	if (error.module === "Mail Provider")
 		return mailDomainToHttpMapper(error, request);
