@@ -51,19 +51,21 @@ void describe("ScrapingHttpClient requests", () => {
 		assert.equal(ScrapingHttpClient.shared(), ScrapingHttpClient.shared());
 	});
 
-	void it("404 fails as NOT_FOUND without retrying", async () => {
-		const clock = createFakeClock();
-		const { fetch, calls } = scriptedFetch(clock, [
-			htmlResponse("gone", 404)
-		]);
+	for (const status of [404, 410]) {
+		void it(`${status} fails as NOT_FOUND without retrying`, async () => {
+			const clock = createFakeClock();
+			const { fetch, calls } = scriptedFetch(clock, [
+				htmlResponse("gone", status)
+			]);
 
-		const error = await captureRejection(
-			buildClient(clock, fetch).getHtml(PAGE_A)
-		);
+			const error = await captureRejection(
+				buildClient(clock, fetch).getHtml(PAGE_A)
+			);
 
-		assertFailure(error, "NOT_FOUND");
-		assert.equal(calls.length, 1);
-	});
+			assertFailure(error, "NOT_FOUND");
+			assert.equal(calls.length, 1);
+		});
+	}
 
 	void it("403 fails as BLOCKED and is never retried", async () => {
 		const clock = createFakeClock();
