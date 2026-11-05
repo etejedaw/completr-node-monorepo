@@ -3,6 +3,7 @@ import { type Transaction } from "sequelize";
 import * as activityService from "../activity/activity.service";
 import * as backlogService from "../backlog/backlog.service";
 import { apiKeysConfig } from "../common/config/api-keys.config";
+import { environmentConfig } from "../common/config/environment.config";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { PinoLogger } from "../common/logger/pino.logger";
 import {
@@ -99,8 +100,15 @@ export {
 export { findShowcaseGames } from "./services/games-showcase.service";
 export { splitGame } from "./services/games-variant.service";
 
+const RAWG_UNAVAILABLE_COOLDOWN_MS = 2 * 60 * 1000;
 const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
-const onlineSearch = new RawgSearchHandler(rawg, resolveRawgResult);
+const onlineSearch = new RawgSearchHandler(rawg, resolveRawgResult, {
+	durationMs:
+		environmentConfig.NODE_ENV === "test"
+			? 0
+			: RAWG_UNAVAILABLE_COOLDOWN_MS,
+	now: () => Date.now()
+});
 onlineSearch.setNext(
 	new IgdbSearchHandler(getIgdbSource, getIgdbRequestPacer, resolveIgdbResult)
 );

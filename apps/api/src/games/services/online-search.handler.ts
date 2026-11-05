@@ -1,5 +1,6 @@
 import { PinoLogger } from "../../common/logger/pino.logger";
 import {
+	type OnlineSearchCooldown,
 	type OnlineSearchFound,
 	type ResolvedOnlineGame
 } from "../games.interface";
@@ -12,10 +13,20 @@ export const ONLINE_SEARCH_UNAVAILABLE: OnlineSearchOutcome = {
 	available: false
 };
 
+const NO_COOLDOWN: OnlineSearchCooldown = {
+	durationMs: 0,
+	now: () => Date.now()
+};
+
 export abstract class OnlineSearchHandler {
 	protected abstract readonly source: OnlineSearchSource;
 	protected readonly logger = new PinoLogger("OnlineSearch");
 	private next: OnlineSearchHandler | null = null;
+	private unavailableUntil = 0;
+
+	constructor(
+		private readonly cooldown: OnlineSearchCooldown = NO_COOLDOWN
+	) {}
 
 	setNext(handler: OnlineSearchHandler): OnlineSearchHandler {
 		this.next = handler;
@@ -23,9 +34,30 @@ export abstract class OnlineSearchHandler {
 	}
 
 	async handle(query: string): Promise<OnlineSearchOutcome> {
-		const outcome = await this.searchSource(query);
+		const outcome = await this.searchUnlessCoolingDown(query);
 		if (outcome.available || !this.next) return outcome;
 		return this.next.handle(query);
+	}
+
+	private async searchUnlessCoolingDown(
+		query: string
+	): Promise<OnlineSearchOutcome> {
+		if (this.cooldown.now() < this.unavailableUntil) {
+			this.logger.info(
+				`${this.source}Search`,
+				"skipped while cooling down",
+				{
+					until: new Date(this.unavailableUntil).toISOString()
+				}
+			);
+			return ONLINE_SEARCH_UNAVAILABLE;
+		}
+
+		const outcome = await this.searchSource(query);
+		this.unavailableUntil = outcome.available
+			? 0
+			: this.cooldown.now() + this.cooldown.durationMs;
+		return outcome;
 	}
 
 	protected abstract searchSource(

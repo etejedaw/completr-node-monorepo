@@ -154,6 +154,11 @@ export interface InheritedParentAssets {
 	times: { source: TimeSource; duration: number }[];
 }
 
+export interface OnlineSearchCooldown {
+	durationMs: number;
+	now(): number;
+}
+
 export interface ResolvedOnlineGame {
 	game: Game;
 	justImported: boolean;
