@@ -45,10 +45,12 @@ const unlinkedGame = {
 } as unknown as Game;
 
 const rawgHades = {
-	rawgId: 3498,
+	source: "rawg",
+	externalId: "3498",
 	title: "Hades",
 	description: "From RAWG",
 	coverUrl: null,
+	backgroundUrl: null,
 	releaseAt: "2020-09-17",
 	platforms: [],
 	genres: [],

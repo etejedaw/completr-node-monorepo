@@ -244,15 +244,33 @@ describe("GamesService", () => {
 			expect(result).toEqual({ id: "g1" });
 		});
 
-		it("fetches the RAWG detail by encoded slug", () => {
-			let result: unknown;
+		it.each(["rawg", "igdb"] as const)(
+			"fetches the %s detail by encoded slug",
+			source => {
+				let result: unknown;
 
-			service.rawgBySlug("half life/2").subscribe(r => (result = r));
+				service
+					.externalGameBySlug(source, "half life/2")
+					.subscribe(r => (result = r));
+
+				httpTesting
+					.expectOne(`${api}/game-external/${source}/half%20life%2F2`)
+					.flush({ data: { game: { source, externalId: "1" } } });
+				expect(result).toEqual({ source, externalId: "1" });
+			}
+		);
+
+		it("propagates a failure of the external source", () => {
+			let status: number | undefined;
+
+			service
+				.externalGameBySlug("igdb", "nope")
+				.subscribe({ error: err => (status = err.status) });
 
 			httpTesting
-				.expectOne(`${api}/game-external/rawg/half%20life%2F2`)
-				.flush({ data: { game: { rawgId: 1 } } });
-			expect(result).toEqual({ rawgId: 1 });
+				.expectOne(`${api}/game-external/igdb/nope`)
+				.flush({}, { status: 503, statusText: "Unavailable" });
+			expect(status).toBe(503);
 		});
 	});
 
