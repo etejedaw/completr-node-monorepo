@@ -158,7 +158,9 @@ describe("ExportActions", () => {
 		isPremium.set(true);
 		await renderActions();
 
-		expect(screen.getAllByRole("button")).toHaveLength(1);
+		expect(screen.getAllByRole("button")).toHaveLength(2);
+		expect(exportButton()).toBeInTheDocument();
+		expect(perkBadge()).toBeInTheDocument();
 		const menu = await openExportMenu(user);
 
 		expect(within(menu).getAllByRole("menuitem")).toHaveLength(2);
@@ -167,6 +169,52 @@ describe("ExportActions", () => {
 		);
 		expect(menuItem(menu, "JSON")).toHaveAccessibleDescription(
 			"Full data, for backups"
+		);
+	});
+
+	function perkBadge() {
+		return screen.queryByRole("button", {
+			name: "Premium perk: JSON export"
+		});
+	}
+
+	it("marks Export gold with a pressable ribbon beside it for premium users", async () => {
+		const user = userEvent.setup();
+		isPremium.set(true);
+		await renderActions();
+
+		expect(exportButton()).toHaveClass("!text-premium");
+		await user.click(perkBadge()!);
+		await user.click(perkBadge()!);
+
+		expect(toast.premium).toHaveBeenCalledTimes(2);
+		expect(toast.premium).toHaveBeenCalledWith(
+			"Premium perk",
+			"Download your full data as JSON, ready for backups."
+		);
+		expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+		expect(exportService.download).not.toHaveBeenCalled();
+	});
+
+	it("keeps JSON gold in the menu without a second ribbon", async () => {
+		const user = userEvent.setup();
+		isPremium.set(true);
+		await renderActions();
+
+		const json = menuItem(await openExportMenu(user), "JSON");
+
+		expect(json).toHaveClass("!text-premium");
+		expect(json).not.toHaveTextContent("workspace_premium");
+	});
+
+	it("leaves Export plain and without ribbon for free users", async () => {
+		const user = userEvent.setup();
+		await renderActions();
+
+		expect(exportButton()).not.toHaveClass("!text-premium");
+		expect(perkBadge()).not.toBeInTheDocument();
+		expect(menuItem(await openExportMenu(user), "JSON")).toHaveTextContent(
+			"lock"
 		);
 	});
 
@@ -308,6 +356,8 @@ describe("ExportActions", () => {
 		expect(
 			menuItem(await openExportMenu(user), "JSON")
 		).toHaveAccessibleDescription("Full data, for backups");
+		expect(exportButton()).toHaveClass("!text-premium");
+		expect(perkBadge()).toBeInTheDocument();
 	});
 
 	it("asks for the offers only once for a free user", async () => {
@@ -423,6 +473,8 @@ describe("ExportActions", () => {
 			expect(menuItem(menu, "JSON")).toHaveAccessibleDescription(
 				"Premium perk"
 			);
+			expect(perkBadge()).not.toBeInTheDocument();
+			expect(exportButton()).not.toHaveClass("!text-premium");
 		} finally {
 			vi.useRealTimers();
 		}
@@ -463,6 +515,8 @@ describe("ExportActions", () => {
 			expect(menuItem(menu, "JSON")).toHaveAccessibleDescription(
 				"Premium perk"
 			);
+			expect(perkBadge()).not.toBeInTheDocument();
+			expect(exportButton()).not.toHaveClass("!text-premium");
 		} finally {
 			vi.useRealTimers();
 		}

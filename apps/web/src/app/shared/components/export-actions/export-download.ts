@@ -85,6 +85,7 @@ export function injectExportDownload(source: ExportSource) {
 
 	return {
 		isPremium: auth.isPremium,
+		canExportJson,
 		isBusy,
 		menuItems,
 		jsonGiftClaimed,
