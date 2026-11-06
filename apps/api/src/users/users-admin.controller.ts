@@ -40,7 +40,7 @@ export async function getAdminUsers(request: Request, response: Response) {
 	const { rows, count } = await usersService.findAllUsers(
 		query.limit ?? 50,
 		query.offset ?? 0,
-		query.q
+		query.search
 	);
 
 	const data = {

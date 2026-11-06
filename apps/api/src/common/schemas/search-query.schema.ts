@@ -2,7 +2,7 @@ import z from "zod";
 
 export const SearchQuerySchema = z
 	.object({
-		query: z.string().min(1)
+		search: z.string().min(1)
 	})
 	.strict()
 	.readonly();

@@ -93,13 +93,13 @@ export async function deleteUser(request: Request, response: Response) {
 }
 
 export async function searchUsers(request: Request, response: Response) {
-	const { q, email, limit } = request.locals.query as UserSearchQuery;
+	const { search, email, limit } = request.locals.query as UserSearchQuery;
 
 	const currentUser = request.locals.user as RequestUser | undefined;
 
 	const users = email
 		? await usersService.findUserByExactEmail(email)
-		: await usersService.searchUsers(q!, limit);
+		: await usersService.searchUsers(search!, limit);
 	const cards = await userCardsService.buildUserCards(currentUser?.id, users);
 
 	const data = { users: cards.map(userCardSerializer) };

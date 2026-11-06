@@ -106,7 +106,7 @@ export async function searchGames(request: Request, response: Response) {
 	const query = request.locals.query as GameSearchQuery;
 
 	if (query.local_only) {
-		const games = await gameService.searchGamesLocal(query.query);
+		const games = await gameService.searchGamesLocal(query.search);
 		const data = {
 			games: games
 				.map(g => g.get({ plain: true }))
@@ -116,7 +116,7 @@ export async function searchGames(request: Request, response: Response) {
 	}
 
 	const { games, importedIds, onlineSearchAvailable, onlineSearchSource } =
-		await gameService.searchGames(query.query, query.force_online);
+		await gameService.searchGames(query.search, query.force_online);
 	const data = {
 		games: games
 			.map(g => g.get({ plain: true }))

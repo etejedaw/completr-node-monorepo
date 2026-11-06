@@ -2,7 +2,7 @@ import z from "zod";
 
 export const GameSearchQuerySchema = z
 	.object({
-		query: z.string().min(1).max(200),
+		search: z.string().min(1).max(200),
 		force_online: z.stringbool().optional(),
 		local_only: z.stringbool().optional()
 	})

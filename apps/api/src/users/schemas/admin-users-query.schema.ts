@@ -6,7 +6,7 @@ export const AdminUsersQuerySchema = z
 	.object({
 		limit: z.coerce.number().int().min(1).max(100).optional(),
 		offset: z.coerce.number().int().min(0).optional(),
-		q: z
+		search: z
 			.string()
 			.trim()
 			.max(ADMIN_USERS_QUERY_MAX_LENGTH)

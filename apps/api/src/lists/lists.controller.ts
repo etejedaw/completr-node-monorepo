@@ -127,10 +127,10 @@ export async function getOfficialLists(request: Request, response: Response) {
 }
 
 export async function searchLists(request: Request, response: Response) {
-	const { query } = request.locals.query as SearchQuery;
+	const { search } = request.locals.query as SearchQuery;
 	const user = request.locals.user as RequestUser;
 
-	const lists = await listsService.searchPublicLists(query, user.id);
+	const lists = await listsService.searchPublicLists(search, user.id);
 	const listsPlain = lists.map(list => list.get({ plain: true }));
 
 	const data = { lists: listsPlain.map(listSummarySerializer) };
