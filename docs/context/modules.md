@@ -1,6 +1,6 @@
 # Módulos
 
-Cada módulo de negocio en `apps/api/src/` sigue la misma estructura. Este archivo es la referencia para crear uno nuevo o modificar uno existente.
+Cada módulo de negocio en `apps/api/src/` sigue la misma estructura. Este archivo es la referencia para crear uno nuevo o modificar uno existente; las reglas de código que valen para todo el backend están en [`../architecture.md`](../architecture.md#cómo-se-escribe-el-código).
 
 ## Estructura de un módulo
 
@@ -36,6 +36,20 @@ apps/api/src/games/
     └── games.error-domain.normalizer.ts
 ```
 
+## Nombres de archivo
+
+| Archivo                                                                   | Qué es                                                             |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `<recurso>.model.ts`                                                      | Modelo Sequelize                                                   |
+| `<recurso>s.service.ts`, `.controller.ts`, `.routes.ts`, `.serializer.ts` | Plural si el módulo trabaja con una colección, singular si es uno  |
+| `<accion>-<recurso>.schema.ts`, `<recurso>-<parte>-params.schema.ts`      | Schema Zod (`register-game.schema.ts`, `game-id-params.schema.ts`) |
+| `<accion>-<recurso>.dto.ts`                                               | DTO de un body                                                     |
+| `<modulo>.service-error.ts`, `<modulo>.domain-error.ts`                   | Constructores de errores (ver [`errors.md`](./errors.md))          |
+| `<modulo>.<algo>.mapper.ts`, `<modulo>.<algo>.normalizer.ts`              | Mappers y normalizers                                              |
+| `<modulo>.interface.ts`, `<modulo>.types.ts`                              | Interfaces y alias `type` del módulo                               |
+| `<modulo>.constants.ts`                                                   | Constantes en tiempo de ejecución                                  |
+| `<nombre>.util.ts`, `<nombre>.helper.ts`                                  | Una función pura por archivo (`is-step-of-half.util.ts`)           |
+
 ## Regla de carpetas: 1 → raíz, 2+ → subcarpeta
 
 Si una categoría tiene **un solo archivo**, queda en la raíz del módulo. Si tiene **dos o más**, se mueve a su propia carpeta.
@@ -68,10 +82,19 @@ apps/api/src/genres/
 
 - Capa de aplicación. Habla con el `Model`.
 - Funciones nombradas (no clases) exportadas como `export async function findGameById(...)`.
-- **Lanza `ServiceError`** ante fallos técnicos o de negocio detectados aquí.
-- **Nunca lanza `DomainError`.**
-- Puede retornar `null` para "no encontrado" cuando el controller es quien decide si eso es error o no.
+- **Lanza `ServiceError`, nunca `DomainError`.** Puede retornar `null` para "no encontrado" cuando el controller es quien decide si eso es error o no.
 - **Para acceder a otro módulo, importa su `service`** (ver "Comunicación entre módulos" abajo).
+- Los `include` hacia modelos pesados (`Game` con `description` TEXT, `Backlog`, JSONB) declaran una whitelist de `attributes` en constantes `XXX_ATTRS` al inicio del módulo, derivadas de lo que consume el serializer y reutilizadas en cada `include`. Si dos serializers del módulo necesitan campos distintos, se unifica en un set que cubra ambos en vez de parametrizar el include. No hace falta cuando el modelo es la raíz de la query y el serializer usa casi todas sus columnas.
+
+```ts
+const BACKLOG_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
+const BACKLOG_PLATFORM_ATTRS = ["id", "abbreviation"];
+
+const backlogInclude = [
+	{ model: Game, attributes: BACKLOG_GAME_ATTRS },
+	{ model: Platform, attributes: BACKLOG_PLATFORM_ATTRS }
+];
+```
 
 ### `controller.ts`
 
@@ -85,7 +108,7 @@ apps/api/src/genres/
 ### `routes.ts`
 
 - Define los endpoints Express.
-- Cada ruta declara middlewares en este orden: `authMiddleware` → `rateLimiterMiddleware` → `validateSchemaMiddleware`.
+- Cada ruta declara sus middlewares en el orden del [flujo de un request](../architecture.md#flujo-de-un-request).
 - Exporta el `router` como default.
 
 ### `serializer.ts`
@@ -106,7 +129,7 @@ apps/api/src/genres/
 
 - Tipo del body de un request, inferido de su schema Zod: `export type RegisterGameDto = z.infer<typeof RegisterGameSchema>`.
 - Siempre con sufijo `Dto`, y solo para bodies: params, query y headers no llevan DTO.
-- Un archivo por DTO aunque sean triviales — permite evolucionarlos sin tocar el schema.
+- Un archivo por DTO aunque hoy sean solo un `z.infer`: así el DTO puede evolucionar (campos calculados, omitir campos internos) sin tocar el schema. No es redundancia, es una decisión de diseño.
 
 ### `schemas/`
 
@@ -119,20 +142,10 @@ apps/api/src/genres/
 
 Ver [`errors.md`](./errors.md) — sistema completo de errores.
 
-### `mappers/`
+### `mappers/`, `utils/` y `helpers/`
 
-- Conversiones entre representaciones que no son errores (ej: `rawg-to-game.mapper.ts` convierte respuesta del provider RAWG a forma del modelo `Game`).
-- Si hay solo uno, queda en la raíz del módulo.
-
-### `utils/` y `helpers/`
-
-- Funciones puras específicas del módulo que no encajan en service ni controller.
-- Una función por archivo: `is-step-of-half.util.ts`, `refresh-cookie.util.ts`.
-
-### `services/` (subcarpeta)
-
-- Solo si el módulo tiene **múltiples services**. Ejemplo: `auth/services/password.service.ts` + `auth/services/token.service.ts`.
-- Si hay un solo service, queda como `<modulo>.service.ts` en la raíz.
+- `mappers/`: conversiones entre representaciones que no son errores (`rawg-to-game.mapper.ts` convierte la respuesta de RAWG a la forma del modelo `Game`).
+- `utils/` y `helpers/`: funciones puras del módulo que no encajan en service ni controller, una por archivo.
 
 ## Comunicación entre módulos
 
@@ -152,7 +165,7 @@ import { List } from "../lists/list.model"; // ✗ no
 import { Backlog } from "../backlog/backlog.model"; // ✗ no
 ```
 
-**Por qué:** cada módulo es dueño de su modelo. Si otro módulo importa el modelo directamente, se rompe la encapsulación — el dueño ya no controla cómo se accede a sus datos, y refactorizar el schema implica modificar consumidores remotos.
+**Por qué:** cada módulo es dueño de su modelo. Si otro lo importa directamente, el dueño ya no controla cómo se accede a sus datos, y cambiar el schema obliga a modificar consumidores remotos.
 
 ### Excepción: tablas pivote
 
@@ -175,7 +188,7 @@ Pero **solo para `include`, asociaciones y `order`**. Nunca para CRUD (`find*`, 
 1. Crear la carpeta `apps/api/src/<nombre>/`.
 2. Crear `<recurso>.model.ts` con el modelo Sequelize (PK UUID, soft delete si aplica).
 3. Registrar el modelo en `apps/api/src/database/init.database.ts` y sus asociaciones en `apps/api/src/database/associations.database.ts`.
-4. Crear migración Sequelize en `apps/api/migrations/` con `npm run migrate:create -w apps/api -- <nombre>`. Cada FK lleva en la migración el mismo `ON DELETE` que declara su asociación.
+4. Crear la migración Sequelize en `apps/api/migrations/`. Cada FK lleva en la migración el mismo `ON DELETE` que declara su asociación.
 5. Crear `<modulo>.service.ts` con funciones que lancen `ServiceError`.
 6. Crear los errores del módulo en `errors/` siguiendo [`errors.md`](./errors.md).
 7. Registrar el normalizer y el mapper del módulo en `apps/api/src/common/errors/global-error-domain.normalizer.ts` y `global-error-http.normalizer.ts`.
@@ -184,4 +197,4 @@ Pero **solo para `include`, asociaciones y `order`**. Nunca para CRUD (`find*`, 
 10. Crear `<modulo>.routes.ts` con middlewares.
 11. Registrar el router en `apps/api/src/server.ts`.
 12. Documentar los endpoints en `docs/api/<modulo>/` (Bruno v3.1).
-13. Si el modelo guarda datos de un usuario (una FK a `Users` o contenido que escribe), su FK lleva `ON DELETE CASCADE` (o `SET NULL` si la fila debe sobrevivir anónima), para que el [borrado de cuenta](../invariants.md#borrado-de-cuenta) no falle, y el módulo expone un `find<Recurso>ForDataExport(userId)` que se suma a `collectPersonalData()` de `data-requests/services/personal-data-export.service.ts` y a su serializer, para que el export completo siga completo.
+13. Si el modelo guarda datos de un usuario, cumplir lo que exige el [borrado de cuenta](../invariants.md#borrado-de-cuenta) (FK con `ON DELETE CASCADE` o `SET NULL`) y exponer un `find<Recurso>ForDataExport(userId)` que se sume a `collectPersonalData()` de `data-requests/services/personal-data-export.service.ts` y a su serializer, para que el export de datos personales siga completo. Si además apunta a `Games`, sumarlo a la comprobación de uso del borrado físico de juegos (ver [`invariants.md`](../invariants.md#scores-y-duraciones)).
