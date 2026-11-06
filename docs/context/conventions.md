@@ -60,8 +60,6 @@ El hook de pre-commit aplica lint y formato a lo que está en stage y corre el t
 4. Si agregaste o cambiaste una regla que el código hace cumplir y cuyo porqué no se ve leyéndolo (privacidad, concurrencia, límites de un servicio externo, datos que no se borran) → actualizar [`../rules.md`](../rules.md) con la regla y su razón.
 5. Si cambiaste un tope por rol, un permiso o qué se ve en público → eso es una decisión de negocio: se documenta en la planificación de producto, fuera de `docs/`.
 
-Los pasos 4 y 5 no son opcionales: la documentación de este repo ya acumuló datos falsos porque nadie los ejecutaba.
-
 El changelog (`docs/changelogs/` y, si el usuario nota el cambio, la entrada pública de la landing) se escribe una vez al cerrar la tanda de trabajo, no por cada cambio. El proceso está en `.claude/skills/release-changelog/SKILL.md` (técnico) y `.claude/skills/release-changelog-public/SKILL.md` (público).
 
 ## Cuándo preguntar antes de actuar
