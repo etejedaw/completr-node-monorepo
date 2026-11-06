@@ -1,71 +1,49 @@
 # Landing
 
-Arquitectura y convenciones de `apps/landing`, el sitio público de Completr (`https://www.completr.app`). Es independiente de `apps/api` y `apps/web`: no llama a la API ni comparte código con el frontend. Las reglas de código comunes a todo el repo están en [`../architecture.md`](../architecture.md#cómo-se-escribe-el-código) y el flujo de trabajo en [`conventions.md`](./conventions.md).
-
-## Stack
-
-| Capa      | Tecnología                                                                                                                                                |
-| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Framework | Astro 7, salida estática (`output: "static"`)                                                                                                             |
-| Lenguaje  | TypeScript 6.0 (`astro/tsconfigs/strict`)                                                                                                                 |
-| Estilos   | Tailwind CSS 4 vía `@tailwindcss/vite`                                                                                                                    |
-| Fuentes   | Chakra Petch (títulos) y Manrope (texto), las mismas de la app; autoalojadas en `public/fonts/` (subconjunto latin) con su licencia OFL 1.1 (`*-OFL.txt`) |
-| Contenido | Content collections (`src/content.config.ts`)                                                                                                             |
-| SEO       | `@astrojs/sitemap`, `public/robots.txt`                                                                                                                   |
-| Servidor  | nginx en producción (`nginx.conf`), sin SSR                                                                                                               |
-| Lint      | `eslint-plugin-astro` + reglas comunes de la raíz                                                                                                         |
-| Formato   | `prettier-plugin-astro`, declarado en la raíz                                                                                                             |
+Estándares de una landing estática con Astro servida por nginx: estructura, contenido y build. Están escritos para servir tal cual en cualquier proyecto con el mismo stack. Lo que es propio de un producto concreto vive en el documento de reglas del repo.
 
 ## Estructura de carpetas
 
 ```
-apps/landing/
+landing/
 ├── astro.config.mjs        # site, sitemap y Tailwind
 ├── nginx.conf              # Headers de seguridad, CSP, caché, CORS de los .json públicos
 ├── public/                 # Estáticos servidos tal cual (fuentes, og.png, .well-known)
 └── src/
-    ├── assets/screenshots/ # Capturas de la app que optimiza astro:assets
-    ├── content.config.ts   # Schemas de las colecciones `releases` y `legal`
-    ├── content/releases/   # Una entrada .md por release pública
-    ├── content/legal/      # Política de privacidad en español e inglés
-    ├── components/         # Secciones de la página (Hero, Ratio, ProductTour, Changelog…)
-    ├── layouts/Layout.astro
-    ├── pages/              # Rutas: /, /changelog, /privacy, /gracias, 404, changelog.json, privacy.json
-    ├── providers/          # Llamadas a servicios externos en build (GitHub)
-    ├── utils/              # Helpers de build (armado de la política por secciones)
+    ├── assets/             # Imágenes que optimiza astro:assets
+    ├── content.config.ts   # Schemas de las colecciones
+    ├── content/            # Una colección por carpeta, una entrada .md por documento
+    ├── components/         # Secciones de la página
+    ├── layouts/
+    ├── pages/              # Rutas, incluidos los endpoints .json generados en el build
+    ├── providers/          # Llamadas a servicios externos en build
+    ├── utils/              # Helpers de build
     └── styles/global.css
 ```
 
-## Capturas de la app
+## Imágenes
 
-Las capturas que muestra la landing viven en `src/assets/screenshots/` como `.webp` (escritorio a 1440×900 y celular a 390×844, ambas con densidad alta) y se usan con `<Picture>` de `astro:assets`, que genera AVIF y WebP en varios anchos durante el build. El marco de ventana y de celular está en `DeviceFrames.astro`. Para cambiar una captura basta con reemplazar el archivo manteniendo el nombre; si se agrega una nueva, se importa en el componente que la usa. Las imágenes de `public/` no se optimizan, por eso las capturas no van ahí.
+Las imágenes que muestra la landing viven en `src/assets/` y se usan con `<Picture>` de `astro:assets`, que genera AVIF y WebP en varios anchos durante el build. Las capturas se guardan en `.webp` con densidad alta (escritorio a 1440×900 y celular a 390×844). Para cambiar una imagen basta con reemplazar el archivo manteniendo el nombre; si se agrega una nueva, se importa en el componente que la usa. Las imágenes de `public/` no se optimizan, por eso no van ahí.
 
-## Changelog público
+## Fuentes
 
-`src/content/releases/` es el changelog que ven los usuarios, en `/changelog` y en `/changelog.json`. Es distinto de `docs/changelogs/`, que es técnico y referencia commits. Cada entrada es un `.md` con frontmatter validado por el schema de `content.config.ts`; el nombre sigue `YYYY-MM-DD-NN-<slug>.md` y `order` desempata las entradas del mismo día.
+Las fuentes se autoalojan en `public/fonts/`, nunca se cargan de un servicio de terceros, y su licencia va junto a los archivos.
 
-`/changelog.json` se genera en el build (`src/pages/changelog.json.ts`) y nginx lo sirve con `Access-Control-Allow-Origin: *` para que otros orígenes puedan leerlo. La API lo reexpone en `GET /changelog` y `apps/web` lo muestra en la página "What's new". La API lo lee de `CHANGELOG_SOURCE_URL`: por defecto es `http://localhost:4321/changelog.json`, la landing en desarrollo, y en producción se configura con `https://www.completr.app/changelog.json`. La API guarda la respuesta en caché 5 minutos; reiníciala para ver al instante una entrada nueva. Si la landing no está corriendo, `GET /changelog` responde 503.
+## Contenido
 
-Por eso cada entrada mezcla dos idiomas: `tag`, `title` y `highlights` van en inglés, como la UI de la app; `landing.pitch` va en español, como la landing. Los `highlights` solo se ven en la app, y el `pitch` solo en la landing.
+El contenido editable (changelog, textos legales) vive en content collections, con un schema de Zod en `content.config.ts` que valida el frontmatter. El build falla si una entrada no cumple el schema.
 
-## Política de privacidad
-
-El texto de la política vive solo en la landing, en `src/content/legal/`: `privacy-es.md` y `privacy-en.md`, validados por la colección `legal` de `content.config.ts`. Cada archivo declara en el frontmatter la versión, la fecha, el resumen, las tarjetas de resumen (`highlights`) y la lista de secciones (`id`, etiqueta corta e ícono); el cuerpo tiene una sección por cada `##`, en el mismo orden que esa lista. `src/utils/privacy-policy.ts` une ambas cosas y el build falla si la cantidad de `##` no coincide con las secciones declaradas.
-
-La versión en español se publica en `/privacy`; la versión en inglés solo como `/privacy.json`, que nginx sirve con los mismos headers que `/changelog.json`. La API la reexpone en `GET /privacy` (variable `PRIVACY_SOURCE_URL`, por defecto `http://localhost:4321/privacy.json`; en producción `https://www.completr.app/privacy.json`) y `apps/web` la muestra en su página Privacy.
-
-Para cambiar la política se editan **los dos archivos a la vez**, con la misma `version`, la misma `updated` y los mismos `id` de sección en el mismo orden: los enlaces directos como `/privacy#cookies` apuntan a la misma sección en la landing y en la app. Igual que con el changelog, la API guarda la respuesta 5 minutos.
+- Cada entrada es un `.md`. Para las que se ordenan por fecha, el nombre sigue `YYYY-MM-DD-NN-<slug>.md` y un campo `order` desempata las del mismo día.
+- Un endpoint `.json` generado en el build (`src/pages/<nombre>.json.ts`) expone el contenido a otros orígenes, y nginx lo sirve con `Access-Control-Allow-Origin: *`.
+- Cuando un documento legal tiene secciones declaradas en el frontmatter y secciones en el cuerpo, un helper de `utils/` las une y el build falla si la cantidad no coincide.
+- Un documento publicado en varios idiomas se edita en todos los archivos a la vez, con la misma versión, la misma fecha y los mismos ids de sección en el mismo orden, para que los enlaces directos a una sección apunten al mismo lugar.
 
 ## Variables de entorno
 
 Todas se leen en el build: el sitio es estático y no hay runtime de Node en producción.
 
-| Variable                  | Uso                                                                                   |
-| ------------------------- | ------------------------------------------------------------------------------------- |
-| `PUBLIC_CONTACT_ENDPOINT` | Destino del formulario de la beta. Llega a la imagen como `ARG` del `Dockerfile`      |
-| `GITHUB_TOKEN`            | Opcional. Autentica las llamadas a la API de GitHub de `providers/github.ts` en build |
-
-Sin `GITHUB_TOKEN`, la API de GitHub responde sin autenticar (con límite de rate). Si falla, la sección de código abierto usa valores por defecto y el build no se rompe.
+- Las que llegan al cliente llevan el prefijo `PUBLIC_` y entran a la imagen como `ARG` del `Dockerfile`.
+- Los tokens de servicios externos (GitHub, por ejemplo) son opcionales: sin ellos la llamada va sin autenticar, con límite de rate. Si la llamada falla, la sección usa valores por defecto y el build no se rompe.
 
 ## CSP
 
@@ -73,4 +51,4 @@ Sin `GITHUB_TOKEN`, la API de GitHub responde sin autenticar (con límite de rat
 
 ## Dependencias
 
-`cookie` está declarado en `apps/landing/package.json` aunque el código no lo importa. El bundle de prerender de Astro lo resuelve desde `apps/landing`, y sin esa declaración npm deja en la raíz el `cookie@0.x` de Express, que no tiene los exports que Astro espera. Quitarlo rompe el build de la landing.
+Si el bundle de prerender de Astro resuelve un paquete que el código propio no importa y la raíz del monorepo tiene otra versión incompatible, el paquete se declara en el `package.json` de la landing. Quitarlo rompe el build.
