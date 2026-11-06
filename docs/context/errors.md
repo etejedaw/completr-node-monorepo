@@ -11,11 +11,13 @@ ServiceError → DomainError → HttpError
 
 Viven en `apps/api/src/common/errors/`.
 
-| Clase          | Qué expresa                                                                                                                                                                             | Quién la lanza o construye                                                           |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `ServiceError` | Fallo técnico o de negocio detectado en la capa de aplicación o en un provider (DB, constraint, no encontrado, timeout, rate limit). Lleva el `service` que la originó y el error crudo | `services` y `providers`                                                             |
-| `DomainError`  | Regla de negocio violada, en términos del dominio. Lleva el `module` y el `correlationId` en su `context`                                                                               | `controllers`, y los normalizers de cada módulo al convertir un `ServiceError`       |
-| `HttpError`    | Respuesta en formato Problem Details (RFC 7807) con su status                                                                                                                           | Los `domain-to-http.mapper.ts` de cada módulo; la serializa `errorHandlerMiddleware` |
+| Clase          | Qué expresa                                                                                                                                                                             |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ServiceError` | Fallo técnico o de negocio detectado en la capa de aplicación o en un provider (DB, constraint, no encontrado, timeout, rate limit). Lleva el `service` que la originó y el error crudo |
+| `DomainError`  | Regla de negocio violada, en términos del dominio. Lleva el `module` y el `correlationId` en su `context`                                                                               |
+| `HttpError`    | Respuesta en formato Problem Details (RFC 7807) con su status. La construyen los `domain-to-http.mapper.ts` de cada módulo y la serializa `errorHandlerMiddleware`                      |
+
+Quién lanza cada una está en las [reglas duras](#reglas-duras).
 
 ## Flujo completo
 
@@ -108,27 +110,11 @@ La versión sucia obliga a declarar `let` afuera, depende de que TS entienda el 
 
 Si el callback de la transacción tiene un try/catch con `rethrowSequelizeError`, el try debe envolver toda la sección crítica (creates + updates + queries finales), no solo una llamada aislada.
 
-### Fallback para `ForeignKeyConstraintError` sin mapear
+### Errores que no pasan por ningún módulo
 
-`globalErrorDomainNormalizer` convierte un `ForeignKeyConstraintError` que ningún módulo mapeó en un `DomainError` de `Common Module` (constructores en `apps/api/src/common/errors/common.domain-error.ts`):
-
-| Caso                                                   | Código                       | Status |
-| ------------------------------------------------------ | ---------------------------- | ------ |
-| Borrar o actualizar un padre que todavía tiene hijos   | `COMMON_RESOURCE_IN_USE`     | 409    |
-| Insertar o actualizar un hijo con un padre inexistente | `COMMON_REFERENCE_NOT_FOUND` | 422    |
-
-El fallback es una red de seguridad: un borrado que puede quedar bloqueado por una FK se sigue mapeando en su módulo con `foreignKey` a `<MODULO>_IN_USE`.
-
-### Errores al leer el body
-
-`express.json()` corre antes que cualquier ruta, así que sus errores llegan directo a `errorHandlerMiddleware` sin pasar por ningún módulo. `globalErrorDomainNormalizer` los reconoce por su `type` (`body-parser-error.mapper.ts`) y los convierte en un `DomainError` de `Common Module`, en todas las rutas y antes de la autenticación:
-
-| `type` de body-parser | Código                     | Status |
-| --------------------- | -------------------------- | ------ |
-| `entity.parse.failed` | `COMMON_INVALID_JSON`      | 400    |
-| `entity.too.large`    | `COMMON_PAYLOAD_TOO_LARGE` | 413    |
-
-Cualquier otro error sin mapear sigue siendo `INTERNAL_ERROR` (500). Un body bien formado que no cumple el schema de la ruta sigue respondiendo 422 `COMMON_SCHEMA_INVALID`.
+- **Un `ForeignKeyConstraintError` que ningún módulo mapeó** lo convierte `globalErrorDomainNormalizer` en un `DomainError` de `Common Module`. Es solo una red de seguridad: el mapeo correcto es el del módulo, con [`rethrowSequelizeError`](#patrón-rethrowsequelizeerror).
+- **Los errores de `express.json()`** (JSON inválido, cuerpo demasiado grande) llegan a `errorHandlerMiddleware` antes de cualquier ruta y de la autenticación, así que también los resuelve el normalizer global como errores de `Common Module`.
+- Cualquier otro error sin mapear responde `INTERNAL_ERROR` (500).
 
 ## Ejemplo completo
 
