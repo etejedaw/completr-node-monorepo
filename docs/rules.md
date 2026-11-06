@@ -1,4 +1,4 @@
-# Invariantes
+# Reglas
 
 Reglas que el sistema hace cumplir y cuyo porqué no se ve leyendo el código. Cada entrada dice la regla y la razón, y está pensada para quien va a escribir un endpoint, una tabla o un job nuevo y tiene que respetarla sin saber que existe.
 

@@ -57,7 +57,7 @@ El hook de pre-commit aplica lint y formato a lo que está en stage y corre el t
 1. Correr los tests de la app que tocaste. Si tocaste el contenido de la landing, hacer su build, que valida `src/content/` contra su schema.
 2. Si modificaste o agregaste un endpoint → actualizar `docs/api/` (Bruno v3.1, formato `.yml`).
 3. Si modificaste el schema de un modelo o una asociación → crear la migración Sequelize en `apps/api/migrations/`.
-4. Si agregaste o cambiaste una regla que el código hace cumplir y cuyo porqué no se ve leyéndolo (privacidad, concurrencia, límites de un servicio externo, datos que no se borran) → actualizar [`../invariants.md`](../invariants.md) con la regla y su razón.
+4. Si agregaste o cambiaste una regla que el código hace cumplir y cuyo porqué no se ve leyéndolo (privacidad, concurrencia, límites de un servicio externo, datos que no se borran) → actualizar [`../rules.md`](../rules.md) con la regla y su razón.
 5. Si cambiaste un tope por rol, un permiso o qué se ve en público → eso es una decisión de negocio: se documenta en la planificación de producto, fuera de `docs/`.
 
 Los pasos 4 y 5 no son opcionales: la documentación de este repo ya acumuló datos falsos porque nadie los ejecutaba.

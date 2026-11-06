@@ -1,6 +1,6 @@
 # Arquitectura
 
-Cómo está organizado el código y cómo se escribe. Las reglas de negocio están en [`invariants.md`](./invariants.md), el flujo de trabajo (ramas, commits, tests, post-edición) en [`context/conventions.md`](./context/conventions.md) y el detalle de cada subsistema en [`context/`](./context/). Lo que ya hacen cumplir ESLint y Prettier (formato, orden de imports, `any`, selectores de Angular) no se repite acá.
+Cómo está organizado el código y cómo se escribe. Las reglas que el código hace cumplir y cuyo porqué no se ve en él están en [`rules.md`](./rules.md), el flujo de trabajo (ramas, commits, tests, post-edición) en [`context/conventions.md`](./context/conventions.md) y el detalle de cada subsistema en [`context/`](./context/). Lo que ya hacen cumplir ESLint y Prettier (formato, orden de imports, `any`, selectores de Angular) no se repite acá.
 
 ## Estructura del repo
 
@@ -132,7 +132,7 @@ La API loguea con Pino (`common/logger/pino.config.ts`) y el destino depende de 
 ## Decisiones clave
 
 - **UUIDs en todas las PKs y FKs.** Nunca `id: number`. Cada modelo declara sus columnas FK con `DataTypes.UUID`: como no hay `sync()`, Sequelize nunca infiere el tipo desde la asociación, así que no hace falta repetirlo en `associations.database.ts`.
-- **Soft delete con `isActive`** en Games y Users: dar de baja un juego o desactivar una cuenta no borra filas. Las excepciones (borrado físico de un juego y de una cuenta) y lo que exigen están en [`invariants.md`](./invariants.md).
+- **Soft delete con `isActive`** en Games y Users: dar de baja un juego o desactivar una cuenta no borra filas. Las excepciones (borrado físico de un juego y de una cuenta) y lo que exigen están en [`rules.md`](./rules.md).
 - **Slugs/codes auto-generados** desde el título con `slugify` para URLs amigables.
 - **Variables de entorno** se cargan con `--env-file` (Node 22+) desde `apps/api/.env.dev.local` (opcional) o `apps/api/.env.prod.local`, no con `dotenv`. Se exponen tipadas desde `common/config/`.
 - **El esquema de la DB lo definen solo las migraciones**, no hay `sync()`. Cada FK declara su `ON DELETE` en la migración, igual al `onDelete` de su asociación en `associations.database.ts`.

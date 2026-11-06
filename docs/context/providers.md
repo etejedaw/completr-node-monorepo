@@ -293,7 +293,7 @@ apps/api/src/igdb/
 - **Token:** `IgdbTokenClient` lo pide a Twitch con las credenciales en el cuerpo, nunca en la URL, lo guarda en memoria y lo renueva antes de que venza. Las llamadas concurrentes comparten el mismo pedido en curso. El provider no pide token hasta su primera request.
 - **401 de IGDB:** se invalida el token (solo si sigue siendo el que falló, para que un 401 tardío no tire uno ya renovado), se pide otro y se reintenta una sola vez. Un segundo 401 es `IGDB_AUTH_ERROR`. Varios 401 concurrentes comparten una sola renovación.
 - **Timeout:** cada request a IGDB y a Twitch se corta a los 5 s, incluida la lectura del cuerpo, y cuenta como `IGDB_REQUEST_ERROR`.
-- **Sin límite de frecuencia:** el provider no encola ni espera; si se pasa del límite de IGDB, responde 429 y el provider lanza `IGDB_RATE_LIMITED` sin reintentar. Quien lo llama pasa por el turnero descrito en [`invariants.md`](../invariants.md#datos-externos).
+- **Sin límite de frecuencia:** el provider no encola ni espera; si se pasa del límite de IGDB, responde 429 y el provider lanza `IGDB_RATE_LIMITED` sin reintentar. Quien lo llama pasa por el turnero descrito en [`rules.md`](../rules.md#datos-externos).
 
 ## Providers de scraping: HLTB y Metacritic
 
