@@ -11,59 +11,11 @@ ServiceError → DomainError → HttpError
 
 Viven en `apps/api/src/common/errors/`.
 
-### `ServiceError`
-
-Errores técnicos o de negocio detectados en la capa de aplicación / infraestructura.
-
-```ts
-class ServiceError extends Error {
-    code: string;                  // ej: "GAME_NOT_FOUND"
-    serviceError: {
-        service: string;           // ej: "Games Service"
-        raw: unknown;              // el error original
-        externalError?: {...};     // datos del request HTTP si fue provider
-    }
-}
-```
-
-- **Lo lanzan:** `services` y `providers`.
-- **Razones típicas:** fallo de DB, unique constraint, validation, recurso no encontrado, timeout de provider externo, rate limit.
-
-### `DomainError`
-
-Errores de reglas de negocio expresados en términos del dominio.
-
-```ts
-class DomainError extends Error {
-	module: string; // ej: "Game Module"
-	code: string; // ej: "GAME_NOT_FOUND"
-	message: string; // mensaje legible
-	context?: Record<string, unknown> & { correlationId?: string };
-}
-```
-
-- **Lo lanzan:** `controllers` (directamente) y los `normalizers` de cada módulo (al convertir un `ServiceError` que llegó al middleware global).
-- **Razones típicas:** recurso no encontrado en el flujo del controller, acción no permitida, validación cruzada entre módulos.
-
-### `HttpError`
-
-Errores en formato HTTP listos para responder al cliente (siguiendo Problem Details, RFC 7807).
-
-```ts
-class HttpError extends Error {
-	type: string; // código del error (ej: "GAME_NOT_FOUND")
-	title: string;
-	status: number; // HTTP status
-	detail?: string;
-	instance: string; // request.originalUrl
-	timestamp: Date;
-	correlationId: string;
-	context?: Record<string, unknown>;
-}
-```
-
-- **Lo construyen:** los `domain-to-http.mapper.ts` de cada módulo.
-- **Lo serializa:** `errorHandlerMiddleware` como JSON.
+| Clase          | Qué expresa                                                                                                                                                                             | Quién la lanza o construye                                                           |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `ServiceError` | Fallo técnico o de negocio detectado en la capa de aplicación o en un provider (DB, constraint, no encontrado, timeout, rate limit). Lleva el `service` que la originó y el error crudo | `services` y `providers`                                                             |
+| `DomainError`  | Regla de negocio violada, en términos del dominio. Lleva el `module` y el `correlationId` en su `context`                                                                               | `controllers`, y los normalizers de cada módulo al convertir un `ServiceError`       |
+| `HttpError`    | Respuesta en formato Problem Details (RFC 7807) con su status                                                                                                                           | Los `domain-to-http.mapper.ts` de cada módulo; la serializa `errorHandlerMiddleware` |
 
 ## Flujo completo
 
@@ -178,152 +130,13 @@ El fallback es una red de seguridad: un borrado que puede quedar bloqueado por u
 
 Cualquier otro error sin mapear sigue siendo `INTERNAL_ERROR` (500). Un body bien formado que no cumple el schema de la ruta sigue respondiendo 422 `COMMON_SCHEMA_INVALID`.
 
-## Ejemplos concretos
+## Ejemplo completo
 
-### Service lanza ServiceError
-
-```ts
-// games/errors/games.service-error.ts
-import { ServiceError } from "../../common/errors/service-error";
-const BASE_OPTIONS = { service: "Games Service" };
-
-export function notFoundError() {
-	return new ServiceError("GAME_NOT_FOUND", {
-		...BASE_OPTIONS,
-		raw: undefined
-	});
-}
-```
-
-```ts
-// games/games.service.ts
-import * as gamesServiceError from "./errors/games.service-error";
-
-export async function findGameById(id: string) {
-	const game = await Game.findByPk(id);
-	if (!game) throw gamesServiceError.notFoundError();
-	return game;
-}
-```
-
-### Controller lanza DomainError
-
-```ts
-// games/errors/games.domain-error.ts
-export function gameNotFound(context?: Record<string, unknown>) {
-	return new DomainError(
-		"Game Module",
-		"GAME_NOT_FOUND",
-		"Game not found",
-		context
-	);
-}
-```
-
-```ts
-// games/games.controller.ts
-import * as gameDomainError from "./errors/games.domain-error";
-
-const game = await gameService.findGameByCode(code);
-if (!game) throw gameDomainError.gameNotFound();
-```
-
-### Mapper service-to-domain
-
-```ts
-// games/errors/games.service-to-domain.mapper.ts
-export function gamesServiceToDomainMapper(
-	error: unknown,
-	correlationId: string
-): DomainError {
-	if (!(error instanceof ServiceError)) throw error;
-	const context = { ...error.serviceError, correlationId };
-
-	if (error.code === "GAME_NOT_FOUND")
-		return gameDomainError.gameNotFound(context);
-	if (error.code === "GAME_UNIQUE_CONSTRAINT")
-		return gameDomainError.gameUniqueConstraint(context);
-	// ...
-	return gameDomainError.gameInternalError(context);
-}
-```
-
-### Mapper domain-to-http (status codes)
-
-```ts
-// games/errors/games.domain-to-http.mapper.ts
-export function gamesDomainToHttpMapper(error: DomainError, request: Request): HttpError {
-    const baseOptions = { type: error.code, title: error.message, instance: request.originalUrl, ... };
-
-    if (error.code === "GAME_NOT_FOUND") return new HttpError({ ...baseOptions, status: 404 });
-    if (error.code === "GAME_UNIQUE_CONSTRAINT") return new HttpError({ ...baseOptions, status: 409 });
-    if (error.code === "GAME_VALIDATION_ERROR") return new HttpError({ ...baseOptions, status: 400 });
-    if (error.code === "GAME_FORBIDDEN") return new HttpError({ ...baseOptions, status: 403 });
-    // ...
-    return new HttpError({ ...baseOptions, status: 500 });
-}
-```
-
-### Normalizer del módulo (entry desde el global)
-
-```ts
-// games/errors/games.error-domain.normalizer.ts
-export function gamesErrorDomainNormalizer(
-	error: unknown,
-	correlationId: string
-): DomainError {
-	if (error instanceof DomainError) return error;
-	if (error instanceof ServiceError)
-		return gamesServiceToDomainMapper(error, correlationId);
-
-	return new DomainError(
-		"COMMON",
-		"INTERNAL_ERROR",
-		"Unexpected internal error",
-		{
-			raw: error,
-			correlationId
-		}
-	);
-}
-```
-
-## Registro global
-
-Cuando agregas un módulo nuevo, hay que registrarlo en dos lugares:
-
-### `apps/api/src/common/errors/global-error-domain.normalizer.ts`
-
-```ts
-if (error.serviceError.service === "Games Service")
-	return gamesErrorDomainNormalizer(error, correlationId);
-```
-
-### `apps/api/src/common/errors/global-error-http.normalizer.ts`
-
-```ts
-if (error.module === "Game Module")
-	return gamesDomainToHttpMapper(error, request);
-```
-
-Si te saltas este paso, los errores del módulo caerán al fallback genérico (`status: 500`, `INTERNAL_ERROR`) y perderás el status code y el mensaje correcto.
+`apps/api/src/games/errors/` tiene los cinco archivos de un módulo, y su registro está en los dos normalizers globales de `common/errors/`. Un módulo nuevo copia esa forma. Si te saltas el registro global, los errores del módulo caen al fallback genérico (500, `INTERNAL_ERROR`) y se pierden el status y el mensaje.
 
 ## Response al cliente
 
-`errorHandlerMiddleware` responde así:
-
-```json
-{
-    "correlationId": "abc-123",
-    "type": "GAME_NOT_FOUND",
-    "title": "Game not found",
-    "status": 404,
-    "detail": "...",
-    "instance": "/games/super-mario-bros",
-    "timestamp": "2026-06-10T12:34:56.789Z",
-    "context": { ... }
-}
-```
+`errorHandlerMiddleware` responde con `correlationId`, `type` (el código), `title`, `status`, `detail`, `instance`, `timestamp` y `context`.
 
 El campo `context` solo se incluye fuera de `NODE_ENV=prod` para no filtrar detalles internos en producción.
 
