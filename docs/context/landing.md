@@ -1,6 +1,6 @@
 # Landing
 
-Arquitectura y convenciones de `apps/landing`, el sitio público de Completr (`https://www.completr.app`). Es independiente de `apps/api` y `apps/web`: no llama a la API ni comparte código con el frontend. Las reglas generales de estilo, commits y post-edición están en [`conventions.md`](./conventions.md) y aplican a todas las apps.
+Arquitectura y convenciones de `apps/landing`, el sitio público de Completr (`https://www.completr.app`). Es independiente de `apps/api` y `apps/web`: no llama a la API ni comparte código con el frontend. Las reglas de código comunes a todo el repo están en [`../architecture.md`](../architecture.md#cómo-se-escribe-el-código) y el flujo de trabajo en [`conventions.md`](./conventions.md).
 
 ## Stack
 
@@ -44,7 +44,7 @@ Las capturas que muestra la landing viven en `src/assets/screenshots/` como `.we
 
 `src/content/releases/` es el changelog que ven los usuarios, en `/changelog` y en `/changelog.json`. Es distinto de `docs/changelogs/`, que es técnico y referencia commits. Cada entrada es un `.md` con frontmatter validado por el schema de `content.config.ts`; el nombre sigue `YYYY-MM-DD-NN-<slug>.md` y `order` desempata las entradas del mismo día.
 
-`/changelog.json` se genera en el build (`src/pages/changelog.json.ts`) y nginx lo sirve con `Access-Control-Allow-Origin: *` para que otros orígenes puedan leerlo. La API lo reexpone en `GET /changelog` y `apps/web` lo muestra en la página "What's new". La API lo lee de `CHANGELOG_SOURCE_URL`: por defecto es `http://localhost:4321/changelog.json`, la landing de `npm run dev`, y en producción se configura con `https://www.completr.app/changelog.json`. La API guarda la respuesta en caché 5 minutos; reiníciala para ver al instante una entrada nueva. Si la landing no está corriendo, `GET /changelog` responde 503.
+`/changelog.json` se genera en el build (`src/pages/changelog.json.ts`) y nginx lo sirve con `Access-Control-Allow-Origin: *` para que otros orígenes puedan leerlo. La API lo reexpone en `GET /changelog` y `apps/web` lo muestra en la página "What's new". La API lo lee de `CHANGELOG_SOURCE_URL`: por defecto es `http://localhost:4321/changelog.json`, la landing en desarrollo, y en producción se configura con `https://www.completr.app/changelog.json`. La API guarda la respuesta en caché 5 minutos; reiníciala para ver al instante una entrada nueva. Si la landing no está corriendo, `GET /changelog` responde 503.
 
 Por eso cada entrada mezcla dos idiomas: `tag`, `title` y `highlights` van en inglés, como la UI de la app; `landing.pitch` va en español, como la landing. Los `highlights` solo se ven en la app, y el `pitch` solo en la landing.
 
@@ -73,14 +73,4 @@ Sin `GITHUB_TOKEN`, la API de GitHub responde sin autenticar (con límite de rat
 
 ## Dependencias
 
-`cookie` está declarado en `apps/landing/package.json` aunque el código no lo importa. El bundle de prerender de Astro lo resuelve desde `apps/landing`, y sin esa declaración npm deja en la raíz el `cookie@0.x` de Express, que no tiene los exports que Astro espera. Quitarlo rompe `npm run build -w apps/landing`.
-
-## Comandos
-
-| Comando                                | Qué hace                                                                            |
-| -------------------------------------- | ----------------------------------------------------------------------------------- |
-| `npm run dev:landing`                  | Servidor de desarrollo en `http://localhost:4321`. También lo levanta `npm run dev` |
-| `npm run build:landing`                | `astro check` + build estático en `apps/landing/dist`                               |
-| `npm run typecheck -w apps/landing`    | Solo `astro check`                                                                  |
-| `npm run preview -w apps/landing`      | Sirve el build local                                                                |
-| `npm run astro -w apps/landing -- ...` | CLI de Astro                                                                        |
+`cookie` está declarado en `apps/landing/package.json` aunque el código no lo importa. El bundle de prerender de Astro lo resuelve desde `apps/landing`, y sin esa declaración npm deja en la raíz el `cookie@0.x` de Express, que no tiene los exports que Astro espera. Quitarlo rompe el build de la landing.
