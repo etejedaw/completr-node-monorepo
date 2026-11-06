@@ -113,7 +113,7 @@ void describe("DELETE /users/me/deactivate", () => {
 		const viewer = await createUserWithSession();
 		const beforeSearch = await api()
 			.get("/users/search")
-			.query({ q: account.user.username })
+			.query({ search: account.user.username })
 			.set("Authorization", viewer.authorization);
 		assert.equal(beforeSearch.body.data.users.length, 1);
 
@@ -121,7 +121,7 @@ void describe("DELETE /users/me/deactivate", () => {
 
 		const byUsername = await api()
 			.get("/users/search")
-			.query({ q: account.user.username })
+			.query({ search: account.user.username })
 			.set("Authorization", viewer.authorization);
 		const byEmail = await api()
 			.get("/users/search")

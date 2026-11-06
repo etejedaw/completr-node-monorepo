@@ -188,7 +188,7 @@ void describe("GET /lists/search", () => {
 		});
 
 		const response = await getLists("/lists/search", {
-			query: "roguelike"
+			search: "roguelike"
 		});
 
 		assert.equal(response.status, 200);
@@ -197,7 +197,7 @@ void describe("GET /lists/search", () => {
 
 	void it("answers an empty list when nothing matches", async () => {
 		const response = await getLists("/lists/search", {
-			query: "no-such-list"
+			search: "no-such-list"
 		});
 
 		assert.equal(response.status, 200);
@@ -206,8 +206,8 @@ void describe("GET /lists/search", () => {
 
 	for (const [description, query] of [
 		["a missing query", {}],
-		["an empty query", { query: "" }],
-		["unknown parameters", { query: "rpg", page: 2 }]
+		["an empty query", { search: "" }],
+		["unknown parameters", { search: "rpg", page: 2 }]
 	] as const) {
 		void it(`rejects ${description} with 422 COMMON_SCHEMA_INVALID`, async () => {
 			const response = await getLists("/lists/search", query);
@@ -220,7 +220,7 @@ void describe("GET /lists/search", () => {
 	void it("rejects an invalid token with 401 AUTH_INVALID_TOKEN", async () => {
 		const response = await api()
 			.get("/lists/search")
-			.query({ query: "rpg" })
+			.query({ search: "rpg" })
 			.set("Authorization", "Bearer invalid");
 
 		assert.equal(response.status, 401);

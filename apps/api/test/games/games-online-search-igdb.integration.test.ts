@@ -106,7 +106,7 @@ void describe("GET /games/search falling back to IGDB", () => {
 		});
 		registerFakes({ igdb });
 
-		const response = await searchGames({ query: "lagoon racer" });
+		const response = await searchGames({ search: "lagoon racer" });
 
 		assert.equal(response.status, 200);
 		assert.equal(response.body.data.onlineSearchAvailable, true);
@@ -157,10 +157,10 @@ void describe("GET /games/search falling back to IGDB", () => {
 				details: [ELDEN_RING_DETAIL]
 			})
 		);
-		const found = await searchGames({ query: "elden ring" });
+		const found = await searchGames({ search: "elden ring" });
 		mock.restoreAll();
 		stubRawgFetch(rawgCatalogHandler({}));
-		const empty = await searchGames({ query: "nothing anywhere" });
+		const empty = await searchGames({ search: "nothing anywhere" });
 
 		assert.equal(found.body.data.onlineSearchSource, "rawg");
 		assert.deepEqual(titlesOf(found.body), ["Elden Ring"]);
@@ -195,7 +195,7 @@ void describe("GET /games/search falling back to IGDB", () => {
 			})
 		});
 
-		const response = await searchGames({ query: "broken detail rescue" });
+		const response = await searchGames({ search: "broken detail rescue" });
 
 		assert.equal(response.body.data.onlineSearchSource, "igdb");
 		assert.deepEqual(titlesOf(response.body), ["Broken Detail Rescue"]);
@@ -207,7 +207,7 @@ void describe("GET /games/search falling back to IGDB", () => {
 			igdb: fakeIgdb({ search: () => providerError("IGDB_RATE_LIMITED") })
 		});
 
-		const response = await searchGames({ query: "nobody answers" });
+		const response = await searchGames({ search: "nobody answers" });
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.games, []);
@@ -227,7 +227,7 @@ void describe("GET /games/search falling back to IGDB", () => {
 		});
 
 		const response = await searchGames({
-			query: "forced fallback",
+			search: "forced fallback",
 			force_online: "true"
 		});
 
@@ -280,7 +280,7 @@ void describe("GET /games/search falling back to IGDB", () => {
 			})
 		});
 
-		const response = await searchGames({ query: "saga" });
+		const response = await searchGames({ search: "saga" });
 
 		assert.deepEqual(titlesOf(response.body), [
 			"Saga Origins",
@@ -303,7 +303,7 @@ void describe("GET /games/search falling back to IGDB", () => {
 			})
 		});
 
-		const response = await searchGames({ query: "only dlc" });
+		const response = await searchGames({ search: "only dlc" });
 
 		assert.equal(response.body.data.onlineSearchAvailable, true);
 		assert.equal(response.body.data.onlineSearchSource, "igdb");
@@ -330,7 +330,7 @@ void describe("GET /games/search falling back to IGDB", () => {
 			})
 		});
 
-		const response = await searchGames({ query: "twin title" });
+		const response = await searchGames({ search: "twin title" });
 
 		assert.deepEqual(titlesOf(response.body), ["Twin Title"]);
 		const [game, ...duplicates] = await Game.findAll({
@@ -360,7 +360,7 @@ void describe("GET /games/search falling back to IGDB", () => {
 		});
 
 		const response = await searchGames({
-			query: "linked classic",
+			search: "linked classic",
 			force_online: "true"
 		});
 
@@ -379,9 +379,9 @@ void describe("GET /games/search falling back to IGDB", () => {
 		});
 		registerFakes({ igdb });
 
-		const first = await searchGames({ query: "second visit" });
+		const first = await searchGames({ search: "second visit" });
 		const second = await searchGames({
-			query: "second visit",
+			search: "second visit",
 			force_online: "true"
 		});
 
@@ -399,8 +399,8 @@ void describe("GET /games/search falling back to IGDB", () => {
 		});
 
 		const pending = [
-			searchGames({ query: "double click", force_online: "true" }),
-			searchGames({ query: "double click", force_online: "true" })
+			searchGames({ search: "double click", force_online: "true" }),
+			searchGames({ search: "double click", force_online: "true" })
 		];
 		gate.resolve([igdbResult({ id: 9601, name: "Double Click" })]);
 		const responses = await Promise.all(pending);
@@ -430,7 +430,7 @@ void describe("GET /games/search falling back to IGDB", () => {
 			})
 		});
 
-		const response = await searchGames({ query: "survivor" });
+		const response = await searchGames({ search: "survivor" });
 
 		assert.equal(response.body.data.onlineSearchSource, "igdb");
 		assert.ok(titlesOf(response.body).includes("Plain Survivor"));

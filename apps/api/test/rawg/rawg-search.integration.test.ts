@@ -63,7 +63,7 @@ void describe("GET /games/search with force_online=true", () => {
 		);
 
 		const response = await searchGames({
-			query: "elden ring",
+			search: "elden ring",
 			force_online: "true"
 		});
 
@@ -130,7 +130,7 @@ void describe("GET /games/search with force_online=true", () => {
 		);
 
 		const response = await searchGames({
-			query: "elden ring",
+			search: "elden ring",
 			force_online: "true"
 		});
 
@@ -164,7 +164,7 @@ void describe("GET /games/search with force_online=true", () => {
 		);
 
 		const response = await searchGames({
-			query: "hollow knight",
+			search: "hollow knight",
 			force_online: "true"
 		});
 
@@ -187,7 +187,7 @@ void describe("GET /games/search with force_online=true", () => {
 		const { rawgCalls } = stubRawgFetch(rawgCatalogHandler({}));
 
 		const response = await searchGames({
-			query: "shovel knight",
+			search: "shovel knight",
 			force_online: "false"
 		});
 
@@ -211,7 +211,7 @@ void describe("GET /games/search with force_online=true", () => {
 			const { rawgCalls } = stubRawgFetch(handler);
 
 			const response = await searchGames({
-				query: "elden ring",
+				search: "elden ring",
 				force_online: "true"
 			});
 
@@ -235,7 +235,7 @@ void describe("GET /games/search with force_online=true", () => {
 		});
 
 		const response = await searchGames({
-			query: "obscure prototype",
+			search: "obscure prototype",
 			force_online: "true"
 		});
 
@@ -258,7 +258,7 @@ void describe("GET /games/search falling back to RAWG", () => {
 			})
 		);
 
-		const response = await searchGames({ query: "obscure prototype" });
+		const response = await searchGames({ search: "obscure prototype" });
 
 		assert.equal(response.status, 200);
 		assert.equal(response.body.data.onlineSearchAvailable, true);
@@ -295,7 +295,7 @@ void describe("GET /games/search falling back to RAWG", () => {
 			})
 		);
 
-		const response = await searchGames({ query: "Slug Only Game" });
+		const response = await searchGames({ search: "Slug Only Game" });
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(
@@ -344,7 +344,7 @@ void describe("GET /games/search falling back to RAWG", () => {
 			})
 		);
 
-		const response = await searchGames({ query: "blasphemous" });
+		const response = await searchGames({ search: "blasphemous" });
 
 		assert.equal(response.status, 200);
 		assert.equal(response.body.data.onlineSearchAvailable, true);
@@ -359,7 +359,7 @@ void describe("GET /games/search falling back to RAWG", () => {
 	void it("returns no games when RAWG has nothing", async () => {
 		const { rawgCalls } = stubRawgFetch(rawgCatalogHandler({}));
 
-		const response = await searchGames({ query: "nothing at all" });
+		const response = await searchGames({ search: "nothing at all" });
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.games, []);
@@ -370,7 +370,7 @@ void describe("GET /games/search falling back to RAWG", () => {
 	void it("answers 200 with no games and RAWG not available when RAWG is down", async () => {
 		const { rawgCalls } = stubRawgFetch(rawgFailureHandler(503));
 
-		const response = await searchGames({ query: "unreachable game" });
+		const response = await searchGames({ search: "unreachable game" });
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.games, []);
@@ -381,7 +381,7 @@ void describe("GET /games/search falling back to RAWG", () => {
 	void it("answers 200 with no games and RAWG not available when RAWG rate limits the search", async () => {
 		stubRawgFetch(rawgFailureHandler(429));
 
-		const response = await searchGames({ query: "throttled game" });
+		const response = await searchGames({ search: "throttled game" });
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.games, []);
@@ -393,7 +393,7 @@ void describe("GET /games/search falling back to RAWG", () => {
 			throw new TypeError("fetch failed");
 		});
 
-		const response = await searchGames({ query: "offline game" });
+		const response = await searchGames({ search: "offline game" });
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.games, []);
@@ -409,7 +409,7 @@ void describe("GET /games/search falling back to RAWG", () => {
 				})
 		);
 
-		const response = await searchGames({ query: "garbled game" });
+		const response = await searchGames({ search: "garbled game" });
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.games, []);
@@ -434,7 +434,7 @@ void describe("GET /games/search falling back to RAWG", () => {
 			return jsonResponse({ detail: "Failure" }, 500);
 		});
 
-		const response = await searchGames({ query: "half broken" });
+		const response = await searchGames({ search: "half broken" });
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.games, []);
@@ -443,10 +443,10 @@ void describe("GET /games/search falling back to RAWG", () => {
 
 	void it("reports the status of each search on its own when RAWG recovers", async () => {
 		stubRawgFetch(rawgFailureHandler(503));
-		const whileDown = await searchGames({ query: "flaky game" });
+		const whileDown = await searchGames({ search: "flaky game" });
 		mock.restoreAll();
 		stubRawgFetch(rawgCatalogHandler({}));
-		const afterRecovery = await searchGames({ query: "flaky game" });
+		const afterRecovery = await searchGames({ search: "flaky game" });
 
 		assert.equal(whileDown.body.data.onlineSearchAvailable, false);
 		assert.equal(afterRecovery.body.data.onlineSearchAvailable, true);
@@ -465,7 +465,7 @@ void describe("GET /games/search with a local match", () => {
 			})
 		);
 
-		const response = await searchGames({ query: "celeste" });
+		const response = await searchGames({ search: "celeste" });
 
 		assert.equal(response.status, 200);
 		assert.equal(response.body.data.games.length, 1);
@@ -478,7 +478,7 @@ void describe("GET /games/search with a local match", () => {
 	void it("keeps answering from the catalog while RAWG is down", async () => {
 		const { rawgCalls } = stubRawgFetch(rawgFailureHandler(500));
 
-		const response = await searchGames({ query: "celeste" });
+		const response = await searchGames({ search: "celeste" });
 
 		assert.equal(response.status, 200);
 		assert.equal(response.body.data.games.length, 1);
@@ -501,7 +501,7 @@ void describe("GET /games/search with local_only=true", () => {
 		);
 
 		const response = await searchGames({
-			query: "local only unknown",
+			search: "local only unknown",
 			local_only: "true"
 		});
 
@@ -515,7 +515,7 @@ void describe("GET /games/search with local_only=true", () => {
 		const { rawgCalls } = stubRawgFetch(rawgCatalogHandler({}));
 
 		const response = await searchGames({
-			query: "local only unknown",
+			search: "local only unknown",
 			local_only: "true",
 			force_online: "true"
 		});
@@ -531,7 +531,7 @@ void describe("GET /games/search validation and access", () => {
 		const { rawgCalls } = stubRawgFetch(rawgCatalogHandler({}));
 
 		const response = await searchGames({
-			query: "zelda",
+			search: "zelda",
 			force_online: "maybe"
 		});
 
@@ -555,7 +555,7 @@ void describe("GET /games/search validation and access", () => {
 
 		const response = await api()
 			.get("/games/search")
-			.query({ query: "zelda", force_online: "true" });
+			.query({ search: "zelda", force_online: "true" });
 
 		assert.equal(response.status, 422);
 		assert.equal(response.body.type, "AUTH_SCHEMA_INVALID");

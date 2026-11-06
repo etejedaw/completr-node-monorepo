@@ -82,7 +82,7 @@ function withViewer(
 }
 
 function search(viewer: Account | undefined, q: string, limit: number) {
-	return withViewer(api().get("/users/search").query({ q, limit }), viewer);
+	return withViewer(api().get("/users/search").query({ search: q, limit }), viewer);
 }
 
 function discover(viewer: Account | undefined, limit: number) {

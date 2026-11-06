@@ -444,7 +444,7 @@ void describe("GET /lists/search visibility", () => {
 			const response = await getAs(
 				"/lists/search",
 				fixture.viewers[viewerKey].authorization,
-				{ query: SEARCH_TERM }
+				{ search: SEARCH_TERM }
 			);
 
 			assert.equal(response.status, 200);

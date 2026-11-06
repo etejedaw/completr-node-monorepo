@@ -80,7 +80,7 @@ async function profileListIds(viewer: Account, owner: Account) {
 async function searchListIds(viewer: Account, query: string) {
 	const response = await api()
 		.get("/lists/search")
-		.query({ query })
+		.query({ search: query })
 		.set("Authorization", viewer.authorization)
 		.expect(200);
 	return (response.body.data.lists as { id: string }[]).map(list => list.id);

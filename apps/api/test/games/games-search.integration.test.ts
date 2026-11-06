@@ -58,7 +58,7 @@ function titlesOf(body: { data: { games: { title: string }[] } }) {
 void describe("GET /games/search local results", () => {
 	void it("returns the matching game with its full serialization", async () => {
 		const response = await searchGames({
-			query: "super mario",
+			search: "super mario",
 			local_only: "true"
 		});
 
@@ -82,15 +82,15 @@ void describe("GET /games/search local results", () => {
 
 	void it("matches without caring about accents in the title or in the query", async () => {
 		const plainQuery = await searchGames({
-			query: "pokemon",
+			search: "pokemon",
 			local_only: "true"
 		});
 		const accentedQuery = await searchGames({
-			query: "Pokémon",
+			search: "Pokémon",
 			local_only: "true"
 		});
 		const accentedWords = await searchGames({
-			query: "edition rouge",
+			search: "edition rouge",
 			local_only: "true"
 		});
 
@@ -109,11 +109,11 @@ void describe("GET /games/search local results", () => {
 
 	void it("ignores case and punctuation and requires every token", async () => {
 		const punctuated = await searchGames({
-			query: "SUPER, mario: bros!",
+			search: "SUPER, mario: bros!",
 			local_only: "true"
 		});
 		const partial = await searchGames({
-			query: "super zelda",
+			search: "super zelda",
 			local_only: "true"
 		});
 
@@ -123,7 +123,7 @@ void describe("GET /games/search local results", () => {
 
 	void it("finds several games that share a token", async () => {
 		const response = await searchGames({
-			query: "super",
+			search: "super",
 			local_only: "true"
 		});
 
@@ -135,7 +135,7 @@ void describe("GET /games/search local results", () => {
 
 	void it("does not return inactive games", async () => {
 		const response = await searchGames({
-			query: "retired",
+			search: "retired",
 			local_only: "true"
 		});
 
@@ -145,7 +145,7 @@ void describe("GET /games/search local results", () => {
 
 	void it("returns nothing for a query made only of punctuation", async () => {
 		const response = await searchGames({
-			query: "!!! ???",
+			search: "!!! ???",
 			local_only: "true"
 		});
 
@@ -155,7 +155,7 @@ void describe("GET /games/search local results", () => {
 
 	void it("caps local results at ten games", async () => {
 		const response = await searchGames({
-			query: "crowded",
+			search: "crowded",
 			local_only: "true"
 		});
 
@@ -167,12 +167,12 @@ void describe("GET /games/search local results", () => {
 		const game = await createGame({ title: "Vanishing Quest" });
 
 		const before = await searchGames({
-			query: "vanishing",
+			search: "vanishing",
 			local_only: "true"
 		});
 		await game.update({ isActive: false });
 		const after = await searchGames({
-			query: "vanishing",
+			search: "vanishing",
 			local_only: "true"
 		});
 
@@ -183,7 +183,7 @@ void describe("GET /games/search local results", () => {
 
 void describe("GET /games/search without local_only", () => {
 	void it("answers with the local catalog when it has a match", async () => {
-		const response = await searchGames({ query: "metroid" });
+		const response = await searchGames({ search: "metroid" });
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(titlesOf(response.body), ["Super Metroid"]);
@@ -192,7 +192,7 @@ void describe("GET /games/search without local_only", () => {
 
 	void it("treats force_online=false as false and searches the local catalog", async () => {
 		const response = await searchGames({
-			query: "metroid",
+			search: "metroid",
 			force_online: "false"
 		});
 
@@ -205,9 +205,9 @@ void describe("GET /games/search validation and authentication", () => {
 	void it("rejects invalid query parameters with 422 COMMON_SCHEMA_INVALID", async () => {
 		const invalidQueries: Record<string, string>[] = [
 			{},
-			{ query: "" },
-			{ query: "x".repeat(201) },
-			{ query: "mario", unknown_filter: "1" }
+			{ search: "" },
+			{ search: "x".repeat(201) },
+			{ search: "mario", unknown_filter: "1" }
 		];
 
 		for (const query of invalidQueries) {
@@ -231,7 +231,7 @@ void describe("GET /games/search validation and authentication", () => {
 		for (const account of accounts) {
 			const response = await api()
 				.get("/games/search")
-				.query({ query: "metroid", local_only: "true" })
+				.query({ search: "metroid", local_only: "true" })
 				.set("Authorization", account.authorization);
 			assert.equal(response.status, 200);
 		}
@@ -240,7 +240,7 @@ void describe("GET /games/search validation and authentication", () => {
 	void it("rejects a missing Authorization header with 422 AUTH_SCHEMA_INVALID", async () => {
 		const response = await api()
 			.get("/games/search")
-			.query({ query: "mario" });
+			.query({ search: "mario" });
 
 		assert.equal(response.status, 422);
 		assert.equal(response.body.type, "AUTH_SCHEMA_INVALID");
@@ -249,7 +249,7 @@ void describe("GET /games/search validation and authentication", () => {
 	void it("rejects an invalid token with 401 AUTH_INVALID_TOKEN", async () => {
 		const response = await api()
 			.get("/games/search")
-			.query({ query: "mario" })
+			.query({ search: "mario" })
 			.set("Authorization", "Bearer expired.token.value");
 
 		assert.equal(response.status, 401);

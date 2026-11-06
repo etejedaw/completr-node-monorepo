@@ -346,7 +346,7 @@ void describe("GET /admin/users?q", () => {
 		const target = await createUser({ username: `zz${token}` });
 		await createUser();
 
-		const result = await listIds(admin.authorization, { q: `zz${token}` });
+		const result = await listIds(admin.authorization, { search: `zz${token}` });
 
 		assert.deepEqual(result.ids, [target.id]);
 		assert.equal(result.total, 1);
@@ -359,7 +359,7 @@ void describe("GET /admin/users?q", () => {
 		await target.update({ name: `Quillon ${token}` });
 
 		const result = await listIds(admin.authorization, {
-			q: `quillon ${token}`
+			search: `quillon ${token}`
 		});
 
 		assert.deepEqual(result.ids, [target.id]);
@@ -371,7 +371,7 @@ void describe("GET /admin/users?q", () => {
 		const target = await createUser({ email: `inbox${token}@mail.test` });
 
 		const result = await listIds(admin.authorization, {
-			q: `inbox${token}@mail`
+			search: `inbox${token}@mail`
 		});
 
 		assert.deepEqual(result.ids, [target.id]);
@@ -383,7 +383,7 @@ void describe("GET /admin/users?q", () => {
 		const target = await createUser({ username: `case_${token}` });
 
 		const result = await listIds(admin.authorization, {
-			q: `   CASE_${token.toUpperCase()}  `
+			search: `   CASE_${token.toUpperCase()}  `
 		});
 
 		assert.deepEqual(result.ids, [target.id]);
@@ -397,7 +397,7 @@ void describe("GET /admin/users?q", () => {
 			isActive: false
 		});
 
-		const result = await listIds(admin.authorization, { q: token });
+		const result = await listIds(admin.authorization, { search: token });
 
 		assert.deepEqual(result.ids, [inactive.id]);
 	});
@@ -407,14 +407,14 @@ void describe("GET /admin/users?q", () => {
 		const unfiltered = await listIds(admin.authorization, {});
 
 		for (const wildcard of ["%", "_", "%%", "\\", "_%_"]) {
-			const result = await listIds(admin.authorization, { q: wildcard });
+			const result = await listIds(admin.authorization, { search: wildcard });
 			assert.equal(result.total, unfiltered.total, `q=${wildcard}`);
 		}
 
 		const token = uniqueSuffix();
 		const target = await createUser({ username: `pct_${token}` });
 		const wrapped = await listIds(admin.authorization, {
-			q: `%${token}%`
+			search: `%${token}%`
 		});
 		assert.deepEqual(wrapped.ids, [target.id]);
 	});
@@ -423,7 +423,7 @@ void describe("GET /admin/users?q", () => {
 		const admin = await createUserWithSession("admin");
 
 		const result = await listIds(admin.authorization, {
-			q: `nobody${uniqueSuffix()}`
+			search: `nobody${uniqueSuffix()}`
 		});
 
 		assert.deepEqual(result.ids, []);
@@ -434,8 +434,8 @@ void describe("GET /admin/users?q", () => {
 		const admin = await createUserWithSession("admin");
 		const unfiltered = await listIds(admin.authorization, {});
 
-		const empty = await listIds(admin.authorization, { q: "" });
-		const blank = await listIds(admin.authorization, { q: "    " });
+		const empty = await listIds(admin.authorization, { search: "" });
+		const blank = await listIds(admin.authorization, { search: "    " });
 
 		assert.equal(empty.total, unfiltered.total);
 		assert.equal(blank.total, unfiltered.total);
@@ -447,7 +447,7 @@ void describe("GET /admin/users?q", () => {
 
 		const response = await api()
 			.get("/admin/users")
-			.query({ q: "a".repeat(101) })
+			.query({ search: "a".repeat(101) })
 			.set("Authorization", admin.authorization);
 
 		assert.equal(response.status, 422);
@@ -459,7 +459,7 @@ void describe("GET /admin/users?q", () => {
 
 		const response = await api()
 			.get("/admin/users")
-			.query({ q: "a".repeat(100) })
+			.query({ search: "a".repeat(100) })
 			.set("Authorization", admin.authorization);
 
 		assert.equal(response.status, 200);
@@ -477,11 +477,11 @@ void describe("GET /admin/users?q", () => {
 		await setCreatedAtMinutesFromNow(newest.id, 3);
 
 		const firstPage = await listIds(admin.authorization, {
-			q: token,
+			search: token,
 			limit: 2
 		});
 		const secondPage = await listIds(admin.authorization, {
-			q: token,
+			search: token,
 			limit: 2,
 			offset: 2
 		});

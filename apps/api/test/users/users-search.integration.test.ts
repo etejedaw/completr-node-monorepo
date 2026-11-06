@@ -104,7 +104,7 @@ void describe("GET /users/search", () => {
 		await createNamedAccount(`other_${tag}`, "Unrelated");
 
 		const response = await search(viewer, {
-			q: `FIND_${tag.toUpperCase()}`
+			search: `FIND_${tag.toUpperCase()}`
 		});
 
 		assert.equal(response.status, 200);
@@ -123,7 +123,7 @@ void describe("GET /users/search", () => {
 		);
 
 		const response = await search(viewer, {
-			q: `zelda speedrunner ${tag}`
+			search: `zelda speedrunner ${tag}`
 		});
 
 		assert.equal(response.status, 200);
@@ -136,7 +136,7 @@ void describe("GET /users/search", () => {
 	void it("answers an empty list when nobody matches", async () => {
 		const viewer = await createUserWithSession();
 
-		const response = await search(viewer, { q: `nomatch_${uniqueTag()}` });
+		const response = await search(viewer, { search: `nomatch_${uniqueTag()}` });
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data, { users: [] });
@@ -152,7 +152,7 @@ void describe("GET /users/search", () => {
 			);
 		}
 
-		const response = await search(viewer, { q: `cap_${tag}`, limit: 2 });
+		const response = await search(viewer, { search: `cap_${tag}`, limit: 2 });
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(usernamesOf(response), [
@@ -201,18 +201,18 @@ void describe("GET /users/search", () => {
 		assert.deepEqual(cardsOf(unknown), []);
 	});
 
-	void it("lets the email take precedence over q when both are sent", async () => {
+	void it("lets the email take precedence over search when both are sent", async () => {
 		const tag = uniqueTag();
 		const viewer = await createUserWithSession();
 		const byEmail = await createUser({
 			username: `prec_a_${tag}`,
 			email: `prec_${tag}@completr.test`
 		});
-		await createNamedAccount(`prec_b_${tag}`, "Matches q only");
+		await createNamedAccount(`prec_b_${tag}`, "Matches search only");
 
 		const response = await search(viewer, {
 			email: byEmail.email,
-			q: `prec_b_${tag}`
+			search: `prec_b_${tag}`
 		});
 
 		assert.deepEqual(
@@ -229,7 +229,7 @@ void describe("GET /users/search", () => {
 		await addBacklogEntry(caller.user.id, platform.id, "completed", false);
 		await addBacklogEntry(caller.user.id, platform.id, "playing", false);
 
-		const response = await search(caller, { q: `self_${tag}` });
+		const response = await search(caller, { search: `self_${tag}` });
 
 		const [card] = cardsOf(response);
 		assert.equal(response.status, 200);
@@ -255,7 +255,7 @@ void describe("GET /users/search", () => {
 		});
 		await follow(viewer, target);
 
-		const response = await search(viewer, { q: `pub_${tag}` });
+		const response = await search(viewer, { search: `pub_${tag}` });
 
 		const [card] = cardsOf(response);
 		assert.equal(card!.isSelf, false);
@@ -276,7 +276,7 @@ void describe("GET /users/search", () => {
 		await addBacklogEntry(target.user.id, platform.id, "completed", true);
 		await updateVisibility(target.user, { profileVisibility: "private" });
 
-		const response = await search(viewer, { q: `closed_${tag}` });
+		const response = await search(viewer, { search: `closed_${tag}` });
 
 		const [card] = cardsOf(response);
 		assert.equal(response.status, 200);
@@ -298,8 +298,8 @@ void describe("GET /users/search", () => {
 		await follow(mutual, target);
 		await follow(target, mutual);
 
-		const seenByOneWay = await search(oneWay, { q: `friends_${tag}` });
-		const seenByMutual = await search(mutual, { q: `friends_${tag}` });
+		const seenByOneWay = await search(oneWay, { search: `friends_${tag}` });
+		const seenByMutual = await search(mutual, { search: `friends_${tag}` });
 
 		assert.equal(cardsOf(seenByOneWay)[0]!.followerCount, null);
 		assert.equal(cardsOf(seenByOneWay)[0]!.isFollowing, true);
@@ -323,7 +323,7 @@ void describe("GET /users/search", () => {
 			favoriteVisibility: "private"
 		});
 
-		const response = await search(viewer, { q: `partial_${tag}` });
+		const response = await search(viewer, { search: `partial_${tag}` });
 
 		const [card] = cardsOf(response);
 		assert.equal(card!.followerCount, 0);
@@ -338,7 +338,7 @@ void describe("GET /users/search", () => {
 		await createUser({ username: `gone_${tag}`, isActive: false });
 		const active = await createUser({ username: `gone_${tag}_on` });
 
-		const response = await search(viewer, { q: `gone_${tag}` });
+		const response = await search(viewer, { search: `gone_${tag}` });
 
 		assert.deepEqual(
 			cardsOf(response).map(card => card.id),
@@ -346,17 +346,17 @@ void describe("GET /users/search", () => {
 		);
 	});
 
-	void it("treats percent and underscore in q as literal characters", async () => {
+	void it("treats percent and underscore in search as literal characters", async () => {
 		const viewer = await createUserWithSession();
 		await createUserWithSession();
 
-		const response = await search(viewer, { q: "%" });
+		const response = await search(viewer, { search: "%" });
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(cardsOf(response), []);
 	});
 
-	void it("rejects a request without q or email with 422 COMMON_SCHEMA_INVALID", async () => {
+	void it("rejects a request without search or email with 422 COMMON_SCHEMA_INVALID", async () => {
 		const viewer = await createUserWithSession();
 
 		const withoutTerms = await search(viewer, {});
@@ -368,15 +368,15 @@ void describe("GET /users/search", () => {
 		}
 	});
 
-	void it("rejects an empty q, an invalid email, an out of range limit and unknown params", async () => {
+	void it("rejects an empty search, an invalid email, an out of range limit and unknown params", async () => {
 		const viewer = await createUserWithSession();
 		const invalidQueries: SearchQuery[] = [
-			{ q: "" },
+			{ search: "" },
 			{ email: "not-an-email" },
-			{ q: "abc", limit: 0 },
-			{ q: "abc", limit: 51 },
-			{ q: "abc", limit: "many" },
-			{ q: "abc", offset: 1 }
+			{ search: "abc", limit: 0 },
+			{ search: "abc", limit: 51 },
+			{ search: "abc", limit: "many" },
+			{ search: "abc", offset: 1 }
 		];
 
 		for (const query of invalidQueries) {
@@ -387,7 +387,7 @@ void describe("GET /users/search", () => {
 	});
 
 	void it("rejects a request without a session with 422 AUTH_SCHEMA_INVALID", async () => {
-		const response = await search(undefined, { q: "abc" });
+		const response = await search(undefined, { search: "abc" });
 
 		assert.equal(response.status, 422);
 		assert.equal(response.body.type, "AUTH_SCHEMA_INVALID");
@@ -396,7 +396,7 @@ void describe("GET /users/search", () => {
 	void it("rejects an invalid token with 401 AUTH_INVALID_TOKEN", async () => {
 		const response = await api()
 			.get("/users/search")
-			.query({ q: "abc" })
+			.query({ search: "abc" })
 			.set("Authorization", bearer("not-a-token"));
 
 		assert.equal(response.status, 401);
@@ -525,7 +525,7 @@ void describe("GET /users/discover", () => {
 			{ limit: 0 },
 			{ limit: 51 },
 			{ limit: "many" },
-			{ q: "abc" }
+			{ search: "abc" }
 		];
 
 		for (const query of invalidQueries) {

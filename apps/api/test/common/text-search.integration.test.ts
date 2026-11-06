@@ -299,17 +299,17 @@ void describe("search rules on GET /games/search", () => {
 	}
 
 	void it("ranks exact title first, then prefix, then the rest", async () => {
-		const titles = await titlesFor({ query: "resident evil" });
+		const titles = await titlesFor({ search: "resident evil" });
 		assert.deepEqual(titles, ["Resident Evil", "Resident Evil 4"]);
 	});
 
 	void it("ranks by group before alphabetical order", async () => {
-		const titles = await titlesFor({ query: "evil" });
+		const titles = await titlesFor({ search: "evil" });
 		assert.deepEqual(titles.slice(0, 2).sort(), ["Evil", "Evil!"]);
 	});
 
 	void it("returns the exact title even with more matches than the limit", async () => {
-		const titles = await titlesFor({ query: "evil" });
+		const titles = await titlesFor({ search: "evil" });
 		assert.equal(titles.length, LOCAL_SEARCH_LIMIT);
 		assert.ok(titles.slice(0, 2).includes("Evil"));
 		assert.ok(!titles.includes("Alone Evil"));
@@ -323,43 +323,43 @@ void describe("search rules on GET /games/search", () => {
 	});
 
 	void it("puts the rest after the prefix group, alphabetically", async () => {
-		const titles = await titlesFor({ query: "evil resident" });
+		const titles = await titlesFor({ search: "evil resident" });
 		assert.deepEqual(titles, ["Resident Evil", "Resident Evil 4"]);
 	});
 
 	void it("ignores accents, case, punctuation and word order", async () => {
-		assert.deepEqual(await titlesFor({ query: "POKEMON rojo" }), [POKEMON]);
-		assert.deepEqual(await titlesFor({ query: "spiderman" }), [SPIDER_MAN]);
-		assert.deepEqual(await titlesFor({ query: "man-spider" }), [
+		assert.deepEqual(await titlesFor({ search: "POKEMON rojo" }), [POKEMON]);
+		assert.deepEqual(await titlesFor({ search: "spiderman" }), [SPIDER_MAN]);
+		assert.deepEqual(await titlesFor({ search: "man-spider" }), [
 			SPIDER_MAN
 		]);
 	});
 
 	void it("treats percent, underscore and backslash literally", async () => {
-		assert.deepEqual(await titlesFor({ query: "100% orange" }), [
+		assert.deepEqual(await titlesFor({ search: "100% orange" }), [
 			ORANGE_JUICE
 		]);
-		assert.deepEqual(await titlesFor({ query: "under_score" }), [
+		assert.deepEqual(await titlesFor({ search: "under_score" }), [
 			UNDERSCORE
 		]);
-		assert.deepEqual(await titlesFor({ query: "zzz%" }), []);
+		assert.deepEqual(await titlesFor({ search: "zzz%" }), []);
 	});
 
 	void it("returns nothing for a query without letters or digits", async () => {
-		assert.deepEqual(await titlesFor({ query: "%" }), []);
-		assert.deepEqual(await titlesFor({ query: "_" }), []);
-		assert.deepEqual(await titlesFor({ query: "\\" }), []);
+		assert.deepEqual(await titlesFor({ search: "%" }), []);
+		assert.deepEqual(await titlesFor({ search: "_" }), []);
+		assert.deepEqual(await titlesFor({ search: "\\" }), []);
 	});
 
 	void it("excludes inactive games", async () => {
-		const titles = await titlesFor({ query: "retired" });
+		const titles = await titlesFor({ search: "retired" });
 		assert.deepEqual(titles, []);
 	});
 });
 
 void describe("search rules on GET /games/search without local_only", () => {
 	void it("orders the local results by relevance", async () => {
-		const response = await authorized("/games/search", { query: "evil" });
+		const response = await authorized("/games/search", { search: "evil" });
 		assert.equal(response.status, 200);
 		const titles = (response.body.data.games as { title: string }[]).map(
 			game => game.title
@@ -401,7 +401,7 @@ void describe("search rules on GET /games", () => {
 
 void describe("search rules on GET /users/search", () => {
 	async function usernamesFor(q: string) {
-		const response = await authorized("/users/search", { q }, viewer);
+		const response = await authorized("/users/search", { search: q }, viewer);
 		assert.equal(response.status, 200);
 		return (response.body.data.users as { username: string }[])
 			.map(user => user.username)
@@ -483,7 +483,7 @@ for (const kind of ["followers", "following"]) {
 
 void describe("search rules on GET /lists/search", () => {
 	async function namesFor(query: string) {
-		const response = await authorized("/lists/search", { query }, owner);
+		const response = await authorized("/lists/search", { search: query }, owner);
 		assert.equal(response.status, 200);
 		return (response.body.data.lists as { name: string }[])
 			.map(nameOf)
