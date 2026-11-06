@@ -5,7 +5,7 @@ info:
 
 http:
     method: GET
-    url: "{{BASE_URL}}/admin/users?q=john&limit=50&offset=0"
+    url: "{{BASE_URL}}/admin/users?search=john&limit=50&offset=0"
 
 settings:
     encodeUrl: true
@@ -19,7 +19,7 @@ docs: |-
 
     Lists every account, active or not, from newest to oldest (`createdAt` descending, `id` as tiebreaker). Only accessible by admin; for anyone else the route does not exist.
 
-    `q` filters by `username`, `name` or `email` with the shared text search rules: ignoring case, accents and punctuation, every word must appear in one of the three fields, in any order, and `%`, `_` and `\` are never wildcards. `q` is trimmed; an empty `q`, or one without letters or digits, does not filter. `total` counts every account that matches the filter, without pagination.
+    `search` filters by `username`, `name` or `email` with the shared text search rules: ignoring case, accents and punctuation, every word must appear in one of the three fields, in any order, and `%`, `_` and `\` are never wildcards. `search` is trimmed; an empty `search`, or one without letters or digits, does not filter. `total` counts every account that matches the filter, without pagination.
 
     **Auth:** Bearer token (admin only).
 
@@ -27,7 +27,7 @@ docs: |-
 
     | Param  | Type    | Required | Description                                       |
     |--------|---------|----------|---------------------------------------------------|
-    | q      | string  | No       | Search on username, name and email, up to 100 characters after trimming |
+    | search      | string  | No       | Search on username, name and email, up to 100 characters after trimming |
     | limit  | integer | No       | 1-100, defaults to 50                              |
     | offset | integer | No       | From 0, defaults to 0                              |
 
@@ -58,4 +58,4 @@ docs: |-
     | Status | Code                  | Description                                             |
     |--------|-----------------------|---------------------------------------------------------|
     | 404    | AUTH_ROUTE_NOT_FOUND  | Caller is not an active admin, or the token is missing or invalid |
-    | 422    | COMMON_SCHEMA_INVALID | `limit` or `offset` out of range, or `q` longer than 100 characters |
+    | 422    | COMMON_SCHEMA_INVALID | `limit` or `offset` out of range, or `search` longer than 100 characters |
