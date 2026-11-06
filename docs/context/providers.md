@@ -19,7 +19,7 @@ Un provider **no** es:
 
 ## Estructura
 
-Cada provider vive en `apps/api/src/<nombre>/` al mismo nivel que un módulo de negocio. No tiene `model`, `controller` ni `routes`.
+Cada provider vive en `apps/api/src/<nombre>/` al mismo nivel que un módulo de negocio; no existe `apps/api/src/common/providers/`. No tiene `model`, `controller` ni `routes`. La única forma de anidar es la del provider con modelo inyectable, donde cada proveedor es un submódulo de su capacidad.
 
 Ejemplo — `apps/api/src/rawg/`:
 
@@ -101,7 +101,7 @@ export class RawgProvider {
 
 ## Errores
 
-El provider lanza `ServiceError` con `service: "<Nombre> Provider"` — distinto de `"<Nombre> Service"` para distinguir fallos externos de fallos internos.
+El provider lanza `ServiceError` con `service: "<Nombre> Provider"` (ver [`errors.md`](./errors.md#reglas-duras)). Si sus errores tienen que llegar al cliente con status propio, se registra en los normalizers globales de `common/errors/` como un módulo más.
 
 ```ts
 // apps/api/src/rawg/errors/rawg.service-error.ts
@@ -145,7 +145,11 @@ Errores típicos de un provider:
 - `<MOD>_TIMEOUT` — si manejas timeouts.
 - `<MOD>_BLOCKED` — 403, CAPTCHA o página de challenge (providers de scraping).
 - `<MOD>_UNAUTHORIZED` — 401 (key inválida o expirada).
-- `<MOD>_DISABLED` — el provider no tiene credencial configurada.
+- `<MOD>_DISABLED` — el provider no tiene credencial configurada (503).
+- `<MOD>_ABORTED` — quien llamó abortó la request con su `signal`.
+- `<MOD>_INTERNAL_ERROR` — código del provider sin mapeo propio (500).
+
+El status HTTP de cada código está en el `*.domain-to-http.mapper.ts` del provider.
 
 ## Cómo lo consume un módulo
 
@@ -235,6 +239,27 @@ Consecuencias:
 - **La disponibilidad se le pregunta a la instancia** (`rawg.isEnabled`), no a un flag por integración en el config. Un provider nuevo no agrega variables globales.
 - Si un flujo debe degradar en silencio, chequea `isEnabled` antes de llamar (ej: la búsqueda cae a catálogo local). Si debe fallar visible, no chequea nada: el provider deshabilitado lanza `<PROVIDER>_DISABLED` y el normalizer lo convierte en 503.
 
+## Provider con modelo inyectable
+
+Cuando una capacidad puede cumplirla más de un proveedor externo (IA con DeepSeek, OpenAI u otro), el provider no es el proveedor: es una clase propia de la capacidad que recibe por constructor la implementación concreta. Siguen esta forma `ia/` (`IaProvider` con `DeepseekModel`) y `mail/` (`MailProvider` con `NodemailerModel`, o `InMemoryMailModel` en tests).
+
+```
+apps/api/src/<capacidad>/
+├── <capacidad>.interface.ts    Tipos de request/response y la interfaz <Capacidad>Model
+├── <capacidad>.provider.ts     class <Capacidad>Provider { constructor(private readonly model: <Capacidad>Model) }
+│                               export const <capacidad>Provider = new <Capacidad>Provider(<Proveedor>Model.create(...))
+├── errors/                     Errores en 3 capas de la capacidad, no del proveedor
+└── <proveedor>/
+    └── <proveedor>.provider.ts <Proveedor>Model implements <Capacidad>Model, con static create y su variante Disabled
+```
+
+- **Un solo punto de entrada.** El resto de la API importa solo la instancia `<capacidad>Provider` de `<capacidad>/<capacidad>.provider`. Nadie crea su propia instancia ni importa el submódulo del proveedor: lo prohíbe la regla `no-restricted-imports` de `eslint.config.mjs`, que hay que ampliar con cada capacidad nueva. Los tests sí pueden importar los modelos internos.
+- **El contrato es la interfaz `<Capacidad>Model`**, escrita en términos de la capacidad (`generateText`, `isEnabled`), nunca en los del proveedor. Los tipos propios del proveedor quedan dentro de su submódulo.
+- **La clase de la capacidad hace lo común a todos los proveedores:** validar y normalizar la entrada, exponer si hay un modelo configurado y rechazar con el error de "no configurado" de la capacidad (por ejemplo `mailProvider.assertConfigured()`), en vez de que cada consumidor lo compruebe. El submódulo del proveedor solo habla con el servicio externo y traduce sus fallos a los errores de la capacidad.
+- **Cambiar de proveedor** es escribir otro submódulo que implemente la interfaz y cambiar la línea que crea la instancia. Los consumidores no se tocan.
+- **Configuración:** las keys van en `common/config/api-keys.config.ts` y los ajustes que cambian por entorno en el `*.config.ts` de la capacidad (por ejemplo `mail.config.ts`); `<capacidad>.provider.ts` los lee y se los pasa al modelo. Lo fijo del proveedor (modelo, timeout, URL base) es una constante de su clase, no una variable de entorno.
+- **Tests:** la clase de la capacidad se prueba con un modelo falso que implementa la interfaz; cada proveedor se prueba aparte con `fetch` (o su transporte) simulado.
+
 ## Providers implementados
 
 | Provider                   | Propósito                                                                                                                 |
@@ -263,25 +288,12 @@ apps/api/src/igdb/
 
 - **Credenciales:** `IGDB_CLIENT_ID` e `IGDB_CLIENT_SECRET`, ambas opcionales en `common/config/api-keys.config.ts`. `IgdbClient.create(clientId, clientSecret)` devuelve `DisabledIgdbProvider` si falta cualquiera de las dos; sus métodos devuelven una promesa rechazada con `IGDB_DISABLED`, sin lanzar de forma síncrona. Al arrancar, `app.ts` deja un warning si falta alguna.
 - **Métodos:** `searchGame(query, { limit?, mainGamesOnly? })`, `getGameById(id)` y `getGameBySlug(slug)`. Todos devuelven `IgdbGame` tal como lo manda IGDB, sin mapear: los campos ausentes quedan `undefined`.
-- **Request:** `POST https://api.igdb.com/v4/games` con headers `Client-ID`, `Authorization: Bearer <token>` y `Accept: application/json`, y un cuerpo Apicalypse que pide en un solo request `id`, `name`, `slug`, `summary`, `first_release_date`, `rating`, `rating_count`, `url`, `game_type.{id,type}`, `cover.{id,image_id}`, `platforms.{id,slug}`, `genres.{id,slug}`, `themes.{id,slug}`, `artworks.{id,image_id,width,height,image_type}` y `screenshots.{id,image_id,width,height}`.
-- **Búsqueda:** `search "<texto>"` con las comillas y las barras invertidas escapadas, así el texto nunca sale del literal. `limit` por defecto es 10; un valor que no es entero positivo vuelve al defecto y el máximo es 500 (el tope de IGDB). `mainGamesOnly` agrega `where game_type = 0;` (0 es `Main Game` en el endpoint `game_types`). Un texto en blanco devuelve `[]` sin llamar a la red.
-- **Detalle:** `getGameById` y `getGameBySlug` usan `where id = <id>;` / `where slug = "<slug>";` con `limit 1`. IGDB responde 200 con un array; si viene vacío, es `IGDB_NOT_FOUND`. Un id que no es entero positivo o un slug en blanco son `IGDB_NOT_FOUND` sin hacer la request.
-- **Token:** `IgdbTokenClient` lo pide con `POST https://id.twitch.tv/oauth2/token` y `client_id`, `client_secret` y `grant_type=client_credentials` en el cuerpo (form), nunca en la URL. Lo guarda en memoria y lo renueva 5 minutos antes de `expires_in`. Las llamadas concurrentes comparten el mismo pedido en curso; si ese pedido falla, todas reciben el mismo error y la siguiente llamada vuelve a pedirlo. Twitch respondiendo 400, 401 o 403 es `IGDB_AUTH_ERROR`; otro status de error o un fallo de red, `IGDB_REQUEST_ERROR`; un cuerpo sin `access_token` o `expires_in` válidos, `IGDB_PARSE_ERROR`. El provider no pide token hasta su primera request.
+- **Request:** `POST https://api.igdb.com/v4/games` con un cuerpo Apicalypse que pide en un solo request todos los campos que usan el mapper y el match (lista en `igdb.provider.ts`).
+- **Búsqueda:** el texto se escapa dentro del literal de `search`, así nunca sale de él ni agrega cláusulas a la consulta.
+- **Token:** `IgdbTokenClient` lo pide a Twitch con las credenciales en el cuerpo, nunca en la URL, lo guarda en memoria y lo renueva antes de que venza. Las llamadas concurrentes comparten el mismo pedido en curso. El provider no pide token hasta su primera request.
 - **401 de IGDB:** se invalida el token (solo si sigue siendo el que falló, para que un 401 tardío no tire uno ya renovado), se pide otro y se reintenta una sola vez. Un segundo 401 es `IGDB_AUTH_ERROR`. Varios 401 concurrentes comparten una sola renovación.
-- **Timeout:** cada request a IGDB y cada pedido de token a Twitch se corta a los 5 s (`AbortSignal.timeout`), incluida la lectura del cuerpo, y es `IGDB_REQUEST_ERROR` con el mensaje "timed out after 5000 ms". El valor se puede cambiar por constructor (`IgdbProvider` y `IgdbTokenClient`) para los tests.
-- **Sin límite de frecuencia:** IGDB permite 4 requests por segundo, pero el provider no encola ni espera. Respetar ese límite queda a cargo de quien lo llama; si se pasa, IGDB responde 429 y el provider lanza `IGDB_RATE_LIMITED` sin reintentar.
-
-| Código                | Status | Cuándo                                                                      |
-| --------------------- | ------ | --------------------------------------------------------------------------- |
-| `IGDB_DISABLED`       | 503    | Falta `IGDB_CLIENT_ID` o `IGDB_CLIENT_SECRET`                               |
-| `IGDB_NOT_FOUND`      | 404    | `getGameById` / `getGameBySlug` sin resultados, o id/slug inválido          |
-| `IGDB_RATE_LIMITED`   | 429    | IGDB respondió 429                                                          |
-| `IGDB_AUTH_ERROR`     | 502    | Twitch rechazó las credenciales, o IGDB respondió 401 después del reintento |
-| `IGDB_REQUEST_ERROR`  | 502    | IGDB o Twitch respondieron con otro status de error, o falló la red         |
-| `IGDB_PARSE_ERROR`    | 502    | Un 2xx que no es JSON válido, que no es un array o un token sin los campos  |
-| `IGDB_INTERNAL_ERROR` | 500    | Código de `IGDB Provider` sin mapeo propio                                  |
-
-Los errores llevan `service: "IGDB Provider"` y están registrados en los normalizers globales de `common/errors/`.
+- **Timeout:** cada request a IGDB y a Twitch se corta a los 5 s, incluida la lectura del cuerpo, y cuenta como `IGDB_REQUEST_ERROR`.
+- **Sin límite de frecuencia:** el provider no encola ni espera; si se pasa del límite de IGDB, responde 429 y el provider lanza `IGDB_RATE_LIMITED` sin reintentar. Quien lo llama pasa por el turnero descrito en [`invariants.md`](../invariants.md#datos-externos).
 
 ## Providers de scraping: HLTB y Metacritic
 
@@ -300,10 +312,7 @@ Cada instancia se obtiene con `HltbClient.create()` / `MetacriticClient.create()
 
 ### Qué se parsea
 
-- **HLTB:** el JSON de `<script id="__NEXT_DATA__">`, en `props.pageProps.game.data.game[0]`. `comp_main`, `comp_plus` y `comp_100` vienen en segundos y se devuelven en horas con 2 decimales (`mainStoryHours`, `mainExtrasHours`, `completionistHours`). El año sale de `release_world` y, si no es válido, de `release_na`, `release_eu` o `release_jp`. Si Next.js sirve su página `/404` o la lista de juegos viene vacía, es `HLTB_NOT_FOUND`.
-- **Metacritic:** primero el JSON-LD `VideoGame` del `<head>` (título, `datePublished`, `gamePlatform`, `url` canónica y `aggregateRating`, que es el Metascore). El User Score no está en el JSON-LD: se lee del `aria-label` de `[data-testid="global-score-value-wrapper"]` (`User score 9.1 out of 10`), el primero de la página, que es el del hero. Si el JSON-LD no trae rating, el Metascore sale del mismo tipo de etiqueta; si falta el JSON-LD, el título sale de `[data-testid="hero-title"]`. El `slug` devuelto es el de la URL canónica, por si el sitio redirigió a otro.
-
-Un dato ausente no es un error: una duración en 0, ausente o inválida, y un score `tbd`, ausente o fuera de rango (Metascore 0–100, User Score 0–10) se devuelven como `null`. `<MOD>_PARSE_ERROR` queda para cuando la página no tiene la estructura esperada (falta `__NEXT_DATA__`, JSON inválido, no hay título), que suele indicar un cambio del sitio. Las notas se devuelven crudas: normalizarlas o elegir una es regla de negocio del módulo que consume.
+HLTB se lee del JSON de `__NEXT_DATA__` y Metacritic del JSON-LD `VideoGame` del `<head>`, con selectores `data-testid` de respaldo (el User Score solo está en el HTML). Un dato ausente no es un error: una duración o un score ausente, `tbd` o fuera de rango se devuelve como `null`. `<MOD>_PARSE_ERROR` queda para cuando la página no tiene la estructura esperada, que suele indicar un cambio del sitio. Las notas se devuelven crudas: normalizarlas o elegir una es regla de negocio del módulo que consume.
 
 ### Cliente HTTP compartido (`apps/api/src/scraping/`)
 
@@ -311,54 +320,31 @@ Un dato ausente no es un error: una duración en 0, ausente o inválida, y un sc
 
 - **Cola por host:** una sola request a la vez por host; las llamadas concurrentes salen en orden de llegada. Hosts distintos no se esperan entre sí.
 - **Prioridad:** `options.priority` es `"background"` (por defecto) o `"interactive"`. Una interactiva pasa delante de todas las de fondo que esperan en la cola del host, pero no interrumpe la que está en curso y respeta el throttle. Entre interactivas se mantiene el orden de llegada. La usa el refresco individual de datos externos; el job y la cola de importación van en fondo.
-- **Cancelación:** `options.signal` es un `AbortSignal`. Abortado mientras espera en la cola (también durante la espera de un reintento), la request sale de la cola sin llegar a la red; abortado en vuelo, se aborta el `fetch`. En ambos casos se lanza `ABORTED`, que no se reintenta ni cuenta como fallo de red. Un abort en vuelo deja el throttle del host corriendo desde ese momento, porque la request pudo llegar al sitio. Un signal ya abortado rechaza sin encolar.
-- **Throttle:** entre dos requests al mismo host pasan al menos `minDelayMs` (5000) más un jitter aleatorio de 0 a `jitterMs` (2000), contados desde que terminó la anterior. Los reintentos también cuentan como requests. Son una precaución propia, no un límite publicado por los sitios.
-- **Timeout:** `timeoutMs` (15 s) por intento, con `AbortController`; cubre también la descarga del cuerpo.
-- **Reintentos:** `maxRetries` (1) ante 429, 5xx, fallo de red o timeout. La espera es la de `Retry-After` (en segundos o fecha HTTP) o, si no viene, `retryBaseDelayMs` (10 s) con backoff exponencial, y nunca menos que el throttle. Si `Retry-After` supera el tope no se reintenta antes de tiempo: se falla en el acto, y la siguiente request a ese host espera hasta ese tope. El tope depende de la prioridad: `maxRetryAfterMs` (60 s) para las interactivas y `backgroundMaxRetryAfterMs` para las de fondo, que por defecto también es 60 s. Mientras espera su reintento, la request vuelve a la cola y suelta el host: `Retry-After` y el backoff de un 429 frenan a todo el host (el sitio pidió bajar el ritmo), pero el backoff de un 5xx, fallo de red o timeout solo demora a esa request, así que una interactiva que llega mientras tanto sale en cuanto vence el throttle. La espera de la cola se despierta al llegar una request nueva o al abortarse una.
+- **Cancelación:** `options.signal` saca una request de la cola sin llegar a la red, o aborta el `fetch` si ya salió. Un abort en vuelo deja corriendo el throttle del host, porque la request pudo llegar al sitio.
+- **Throttle:** entre dos requests al mismo host pasan al menos 5 s más un jitter aleatorio, también entre reintentos. Es una precaución propia, no un límite publicado por los sitios.
+- **Reintentos:** uno solo, ante 429, 5xx, fallo de red o timeout, respetando `Retry-After`. Un `Retry-After` mayor que el tope no se espera: se falla en el acto y el host queda frenado hasta ese momento. El backoff de un 429 frena a todo el host (el sitio pidió bajar el ritmo); el de un 5xx o un fallo de red solo demora a esa request.
 - **Bloqueos:** un 403, el header `cf-mitigated: challenge` o una página de challenge o CAPTCHA reconocible (Cloudflare, DataDome, PerimeterX, reCAPTCHA, hCaptcha) es `BLOCKED` y nunca se reintenta. No se intenta sortear ningún bloqueo: ni proxies, ni navegadores automatizados, ni cambio de User-Agent.
 - **Identificación:** `User-Agent: CompletrBot/1.0 (+https://www.completr.app)`, sin hacerse pasar por un navegador.
-- **Inyectable:** el constructor acepta `fetch`, `sleep` (recibe un `AbortSignal` para despertarla antes de tiempo), `now` y `random` además de los valores anteriores, para probar colas, esperas y reintentos con un reloj simulado y sin red.
+- **Inyectable:** el constructor acepta `fetch`, `sleep`, `now` y `random`, para probar colas, esperas y reintentos con un reloj simulado y sin red.
 
 El throttle vive en memoria, así que cubre una sola instancia de la API. Con varias réplicas habría que moverlo a estado compartido.
 
-| Código                 | Status | Cuándo                                               |
-| ---------------------- | ------ | ---------------------------------------------------- |
-| `<MOD>_NOT_FOUND`      | 404    | 404 o 410, página 404 de la app o id/slug inválido   |
-| `<MOD>_PARSE_ERROR`    | 502    | La página no tiene la estructura esperada            |
-| `<MOD>_RATE_LIMITED`   | 429    | 429 persistente tras el reintento                    |
-| `<MOD>_BLOCKED`        | 502    | 403, CAPTCHA o challenge                             |
-| `<MOD>_TIMEOUT`        | 504    | Se agotó el timeout también en el reintento          |
-| `<MOD>_REQUEST_ERROR`  | 502    | 5xx persistente, otro status de error o fallo de red |
-| `<MOD>_ABORTED`        | 504    | Quien llamó abortó la request con su `signal`        |
-| `<MOD>_INTERNAL_ERROR` | 500    | Código del provider sin mapeo propio                 |
-
-`<MOD>` es `HLTB` (`service: "HLTB Provider"`) o `METACRITIC` (`service: "Metacritic Provider"`); ambos están registrados en los normalizers globales de `common/errors/`.
+Los errores son `HLTB_<kind>` y `METACRITIC_<kind>`, más `<MOD>_PARSE_ERROR` cuando la página no tiene la estructura esperada.
 
 ## Provider de Wikidata
 
 `apps/api/src/wikidata/` existe porque HLTB solo se lee por página de detalle y su buscador está prohibido por `robots.txt`: hace falta otra forma de conocer el id de un juego. Wikidata publica sus datos bajo CC0 y su servicio de consultas admite tráfico automatizado que se identifique con un User-Agent descriptivo. Tiene el slug de RAWG (P9968), el id de HowLongToBeat (P2816) y la fecha de publicación (P577), y en el catálogo `Game.code` funciona como slug de RAWG.
 
-- `WikidataClient.findHltbCandidates({ rawgSlug, title })` hace **una sola** request `GET https://query.wikidata.org/sparql?query=...` con `Accept: application/sparql-results+json`. La consulta une (`UNION`) los ítems con P9968 igual a `rawgSlug` y los que tienen exactamente `title` como etiqueta en inglés (`rdfs:label "<title>"@en`); en ambos casos exige P2816 y trae, opcionales, la etiqueta en inglés, el P9968 y el P577. Sin slug, solo busca por etiqueta; sin slug ni título, devuelve `[]` sin hacer la request.
-- Devuelve candidatos `{ hltbId, label, releaseYear, rawgSlug }`. Las filas que solo difieren en la fecha se unen y se queda el año más antiguo. Una fila sin P2816 numérico se descarta. Elegir entre candidatos es regla de negocio del módulo que consume (`games/utils/resolve-hltb-id.util.ts`).
-- El slug y el título se escapan como literales SPARQL (`escapeSparqlString`: `\`, `"`, saltos de línea, retorno de carro, tabulador, `\b` y `\f`), así que un título nunca puede salir del literal ni agregar patrones a la consulta.
+- `WikidataClient.findHltbCandidates({ rawgSlug, title })` hace **una sola** consulta SPARQL que une los ítems con ese slug de RAWG y los que tienen exactamente ese título como etiqueta en inglés. Elegir entre los candidatos es regla de negocio del módulo que consume (`games/utils/resolve-hltb-id.util.ts`).
+- El slug y el título se escapan como literales SPARQL (`escapeSparqlString`), así un título nunca puede salir del literal ni agregar patrones a la consulta.
 - `WikidataClient.create()` devuelve siempre la misma instancia, con un `ScrapingHttpClient` **propio** (no el compartido): mismo User-Agent de Completr, timeout y reintentos por defecto, pero un throttle de 1000 ms más un jitter de 0 a 500 ms, porque es una API pensada para consultas y no un sitio que se lee por scraping. Al ser otro host, no espera a la cola de HLTB ni de Metacritic. Sus requests de fondo aceptan un `Retry-After` de hasta 10 minutos (`backgroundMaxRetryAfterMs`): Wikidata a veces pide esperas de varios minutos (por ejemplo, 429 con `Retry-After: 120`) aunque se le hayan hecho pocas consultas, y con el tope de 60 s el job fallaba sin reintentar. Mientras dura esa espera, el host queda frenado también para el refresco individual, que vence por su plazo de 45 s. Las opciones se exportan como `WIKIDATA_HTTP_OPTIONS`.
 - Se cablea en `apps/api/src/app.ts` como `hltbIdResolver` del registro de fuentes externas.
 
-| Código                    | Status | Cuándo                                                         |
-| ------------------------- | ------ | -------------------------------------------------------------- |
-| `WIKIDATA_PARSE_ERROR`    | 502    | El cuerpo no es JSON o no trae `results.bindings`              |
-| `WIKIDATA_RATE_LIMITED`   | 429    | 429 persistente tras el reintento                              |
-| `WIKIDATA_BLOCKED`        | 502    | 403 o página de challenge                                      |
-| `WIKIDATA_TIMEOUT`        | 504    | Se agotó el timeout también en el reintento                    |
-| `WIKIDATA_REQUEST_ERROR`  | 502    | 404, 400, 5xx persistente, otro status de error o fallo de red |
-| `WIKIDATA_ABORTED`        | 504    | Quien llamó abortó la request con su `signal`                  |
-| `WIKIDATA_INTERNAL_ERROR` | 500    | Código del provider sin mapeo propio                           |
-
-No hay `WIKIDATA_NOT_FOUND`: una consulta sin resultados devuelve `[]`. Los errores llevan `service: "Wikidata Provider"` y están registrados en los normalizers globales de `common/errors/`.
+No hay `WIKIDATA_NOT_FOUND`: una consulta sin resultados devuelve `[]`.
 
 ## Módulo `ia` y su submódulo `deepseek`
 
-`apps/api/src/ia/` es la base de las features de IA. Es la excepción a "un provider por carpeta en `src/`": DeepSeek vive como submódulo interno, `apps/api/src/ia/deepseek/`, para que el proveedor pueda cambiarse sin tocar a los consumidores.
+`apps/api/src/ia/` es la base de las features de IA y sigue la forma del [provider con modelo inyectable](#provider-con-modelo-inyectable): DeepSeek vive como submódulo interno, `apps/api/src/ia/deepseek/`.
 
 ```
 apps/api/src/ia/
@@ -369,29 +355,14 @@ apps/api/src/ia/
     └── deepseek.provider.ts    DeepseekModel (create), DeepseekProvider y DisabledDeepseekProvider
 ```
 
-- **Contrato público:** el resto de la API solo importa `iaProvider` de `ia/ia.provider`. `iaProvider.generateText({ instructions, content, maxTokens?, temperature?, timeoutMs? })` devuelve `{ text, truncated }`; `truncated` es `true` si el modelo se cortó por el límite de tokens. `iaProvider.generateJson(schema, { ...lo mismo, schemaName })` recibe un schema de zod y devuelve el objeto ya validado: parsea el JSON, lo valida con `schema.safeParse` y, si el JSON está roto, no cumple el schema o vino truncado, lo vuelve a pedir hasta completar 3 intentos; si el último también falla, rechaza con `IA_INVALID_OUTPUT`. Cada reintento agrega a las instrucciones el motivo del rechazo anterior (por ejemplo, el campo que se pasó de largo), para que el modelo lo corrija en vez de repetir lo mismo. Los reintentos existen porque DeepSeek respeta la estructura, los campos obligatorios y los `enum`, pero no `maxLength`. Si el modelo parte la respuesta en varios objetos JSON seguidos (`parseJsonOutput`, en `ia/utils/parse-json-output.util.ts`), se unen en uno solo cuando no repiten claves. `iaProvider.isConfigured` dice si hay un modelo configurado, para que un consumidor pueda degradar en silencio.
-- **Modelo inyectado:** `IaProvider` recibe por constructor un `IaModel` (interfaz de `ia.interface.ts`: `isEnabled`, `generateText` y `generateJson`, que devuelve el texto crudo para que `IaProvider` lo valide). Hoy es `DeepseekModel.create(...)`; cambiar a otro proveedor (OpenAI u otro) es escribir otro submódulo que implemente `IaModel` y cambiar esa línea de `ia.provider.ts`, sin tocar a los consumidores.
+- **Contrato público:** `iaProvider.generateText({ instructions, content, maxTokens?, temperature?, timeoutMs? })` devuelve `{ text, truncated }`; `truncated` es `true` si el modelo se cortó por el límite de tokens. `iaProvider.generateJson(schema, { ...lo mismo, schemaName })` recibe un schema de zod y devuelve el objeto ya validado: parsea el JSON, lo valida con `schema.safeParse` y, si el JSON está roto, no cumple el schema o vino truncado, lo vuelve a pedir hasta completar 3 intentos; si el último también falla, rechaza con `IA_INVALID_OUTPUT`. Cada reintento agrega a las instrucciones el motivo del rechazo anterior (por ejemplo, el campo que se pasó de largo), para que el modelo lo corrija en vez de repetir lo mismo. Los reintentos existen porque DeepSeek respeta la estructura, los campos obligatorios y los `enum`, pero no `maxLength`. Si el modelo parte la respuesta en varios objetos JSON seguidos (`parseJsonOutput`, en `ia/utils/parse-json-output.util.ts`), se unen en uno solo cuando no repiten claves. `iaProvider.isConfigured` dice si hay un modelo configurado, para que un consumidor pueda degradar en silencio.
+- **Modelo inyectado:** el `generateJson` de `IaModel` devuelve el texto crudo, para que la validación y los reintentos vivan en `IaProvider` y no en cada proveedor.
 - **El proveedor está nombrado fuera del código:** la política de privacidad (`apps/landing/src/content/legal/privacy-en.md` y `privacy-es.md`, secciones "Where your data goes", "Transfers outside Chile" y "Automated decisions") dice qué proveedor escribe el resumen del Rewind, en qué país procesa y qué datos recibe, y el diálogo de generación (`rewind-generate-dialog.ts`, aviso del botón "Who writes the AI recap") lo nombra. Cambiar de proveedor o de país, o mandarle datos nuevos, exige actualizar ambas versiones de la política (con su `version` y `updated`) y ese aviso en el mismo cambio.
 - **Sin datos que identifiquen al usuario:** la política promete que el proveedor no recibe nada que identifique a la persona. El contenido que arma un consumidor (por ejemplo `build-rewind-recap-content.util.ts`) no lleva correo, nombre de usuario, nombre visible ni ids de cuenta o de partida, y la petición sale del servidor, nunca del navegador. Las notas del usuario solo viajan si él las incluye de forma explícita.
-- **Validación:** `IaProvider` rechaza con `IA_INVALID_INPUT` instrucciones o contenido en blanco, `maxTokens` y `timeoutMs` que no sean enteros positivos, `temperature` fuera de 0–2 y, en `generateJson`, un `schemaName` en blanco o que no cumpla `^[a-zA-Z0-9_-]{1,64}$`, antes de llamar a la red.
+- **Validación:** `IaProvider` rechaza con `IA_INVALID_INPUT` una petición inválida antes de llamar a la red.
 - **DeepSeek:** SDK oficial `openai` con `baseURL: "https://api.deepseek.com"` (DeepSeek es compatible con OpenAI). `generateText` usa `client.chat.completions.create` con el razonamiento desactivado (`thinking: { type: "disabled" }`, parámetro extra que el SDK reenvía tal cual) y `stream: false`; `truncated` es `finish_reason === "length"`. `generateJson` usa `client.responses.create` con `reasoning: { effort: "none" }`, `max_output_tokens` y `text.format` armado con `zodTextFormat` de `openai/helpers/zod` (`json_schema` estricto); `truncated` es `status === "incomplete"`. No usa `client.responses.parse`: ese helper valida dentro del SDK, parsea cada parte de texto por separado y deja `null` en una respuesta incompleta, y así no se distinguiría un JSON roto del modelo de un cuerpo HTTP roto.
 - **Timeout y reintentos:** el cliente se crea con `maxRetries: 0` y el timeout va por petición (`timeoutMs`, 30 s por defecto). Un reintento automático del SDK duplicaría la espera del usuario detrás de un timeout que ya es largo; los únicos reintentos son los de salida inválida de `generateJson`. El `fetch` del cliente se resuelve en cada llamada contra `globalThis.fetch`, y el constructor de `DeepseekProvider` acepta otro `fetch` para los tests.
-- **Variables:** solo `DEEPSEEK_API_KEY`, opcional (vacía o ausente = IA no configurada, la API arranca igual). Se lee en `common/config/api-keys.config.ts`, junto a las demás keys de servicios externos, y `ia.provider.ts` la pasa a `DeepseekModel.create`. El modelo (`deepseek-flash`) y el timeout por defecto (30 s) son constantes de `DeepseekProvider`; un consumidor puede pedir otro timeout por petición con `timeoutMs`.
-- **Errores:** todos con `service: "IA Provider"`, registrados en los normalizers globales de `common/errors/`.
-
-| Código                    | Status | Cuándo                                                                        |
-| ------------------------- | ------ | ----------------------------------------------------------------------------- |
-| `IA_NOT_CONFIGURED`       | 503    | `DEEPSEEK_API_KEY` ausente o vacía                                            |
-| `IA_INVALID_INPUT`        | 422    | La petición de generación no pasa la validación                               |
-| `IA_PROVIDER_UNAVAILABLE` | 502    | DeepSeek respondió con un status de error (401, 402, 429, 5xx) o la red falló |
-| `IA_TIMEOUT`              | 504    | Se agotó `timeoutMs`                                                          |
-| `IA_INVALID_RESPONSE`     | 502    | Cuerpo que no es JSON, sin `choices` / `output` o con texto vacío             |
-| `IA_INVALID_OUTPUT`       | 502    | `generateJson` recibió dos veces JSON roto, truncado o fuera del schema       |
-| `IA_INTERNAL_ERROR`       | 500    | Código de `IA Provider` sin mapeo propio                                      |
-
-### Regla de imports
-
-Ningún archivo fuera de `apps/api/src/ia/` (y `apps/api/test/ia/`) puede importar `ia/deepseek`. Lo hace cumplir la regla `no-restricted-imports` de `eslint.config.mjs`. Un consumidor importa siempre `ia/ia.provider`.
+- **Variables:** solo `DEEPSEEK_API_KEY`, opcional (vacía o ausente = IA no configurada, la API arranca igual).
 
 ## Extraer notas y duraciones de un provider
 
@@ -411,8 +382,4 @@ Para sumar un campo nuevo del provider se agrega una entrada al array; el mapper
 5. Agregar la variable de entorno al `.env.example` y al `*.config.ts` correspondiente, siempre opcional.
 6. Definir la clase base abstracta con `isEnabled`, los métodos del provider y su `static create`, y agregar la clase `Disabled<Nombre>Provider` con su error `<PROVIDER>_DISABLED`.
 7. **No hace falta** crear `controller`, `routes`, `model`, `serializer`, `dtos` ni `schemas` — el provider no expone HTTP propio.
-8. Si los errores del provider tienen que llegar al cliente con status code propio, registrar un normalizer del provider en `global-error-domain.normalizer.ts` (mismo patrón que un módulo de negocio). Si no, el service que lo consume captura y traduce.
-
-## Nota: ¿providers en `apps/api/src/` o en `apps/api/src/common/providers/`?
-
-Decidido: **un provider por carpeta directamente en `apps/api/src/`**, al mismo nivel que los módulos de negocio. No existe `apps/api/src/common/providers/`. La única forma de anidar es la del provider con modelo inyectable, donde cada proveedor es un submódulo de su capacidad (ver [`../architecture.md`](../architecture.md#provider-con-modelo-inyectable)).
+8. Si los errores del provider tienen que llegar al cliente con status code propio, registrarlo en los normalizers globales (mismo patrón que un módulo de negocio). Si no, el service que lo consume captura y traduce.
