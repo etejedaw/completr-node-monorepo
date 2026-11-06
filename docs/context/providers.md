@@ -9,7 +9,6 @@ Un provider:
 - Encapsula la comunicación con un sistema externo (APIs de terceros, sitios que se leen por scraping, pasarelas de pago, SMTP, modelos de IA).
 - Expone una interfaz limpia y tipada en términos del dominio del provider.
 - Maneja transporte: HTTP, parsing, timeouts, rate limits, errores de red.
-- Lanza `ServiceError` con `service: "<Nombre> Provider"` si algo falla.
 
 Un provider **no** es:
 
@@ -19,7 +18,7 @@ Un provider **no** es:
 
 ## Estructura
 
-Cada provider vive en `apps/api/src/<nombre>/` al mismo nivel que un módulo de negocio; no existe `apps/api/src/common/providers/`. No tiene `model`, `controller` ni `routes`. La única forma de anidar es la del provider con modelo inyectable, donde cada proveedor es un submódulo de su capacidad.
+Cada provider vive en `apps/api/src/<nombre>/` al mismo nivel que un módulo de negocio; no existe `apps/api/src/common/providers/`. La única forma de anidar es la del provider con modelo inyectable, donde cada proveedor es un submódulo de su capacidad.
 
 Ejemplo — `apps/api/src/acme/`:
 
@@ -39,65 +38,69 @@ Si los tipos del provider son extensos, pueden ir en `interfaces/<algo>.interfac
 
 ## La clase Provider
 
+El contrato es una **clase base abstracta** que declara `isEnabled` y los métodos del provider. De ella cuelgan la implementación real y la deshabilitada, y la elección entre ambas es un **método estático de la propia clase base**:
+
 ```ts
 // apps/api/src/acme/acme.provider.ts
-export class AcmeProvider {
+export abstract class AcmeClient {
+	abstract readonly isEnabled: boolean;
+
+	static create(apiKey?: string): AcmeClient {
+		return apiKey ? new AcmeProvider(apiKey) : new DisabledAcmeProvider();
+	}
+
+	abstract searchItems(query: string): Promise<AcmeSearchResult[]>;
+}
+
+export class AcmeProvider extends AcmeClient {
+	readonly isEnabled = true;
 	private readonly BASE_URL = "https://api.acme.example/v1";
 
-	constructor(private readonly apiKey: string) {}
+	constructor(private readonly apiKey: string) {
+		super();
+	}
 
-	async searchItems(
-		query: string,
-		filters: AcmeSearchFilters = {}
-	): Promise<AcmeSearchResult[]> {
+	async searchItems(query: string): Promise<AcmeSearchResult[]> {
 		const url = new URL(`${this.BASE_URL}/items`);
 		url.searchParams.set("key", this.apiKey);
 		url.searchParams.set("search", query);
-
 		const data = await this.request<AcmeSearchResponse>(url);
 		return data.results;
 	}
 
 	private async request<T>(url: URL): Promise<T> {
-		const response = await this.fetchAcme(url);
-		this.handleErrors(response);
-		return await this.parseBody<T>(response);
-	}
-
-	private async fetchAcme(url: URL): Promise<Response> {
+		let response: Response;
 		try {
-			return await fetch(url.toString());
+			response = await fetch(url.toString());
 		} catch (error) {
-			const reason = error instanceof Error ? error.message : "unknown";
-			throw acmeServiceError.requestError(
-				`ACME request failed before a response: ${reason}`
-			);
+			throw acmeServiceError.requestError(error);
 		}
-	}
-
-	private async parseBody<T>(response: Response): Promise<T> {
+		if (response.status === 429) throw acmeServiceError.rateLimitedError();
+		if (response.status === 404) throw acmeServiceError.notFoundError();
+		if (!response.ok) throw acmeServiceError.requestError(response.status);
 		try {
 			return (await response.json()) as T;
 		} catch (error) {
 			throw acmeServiceError.parseError(error);
 		}
 	}
+}
 
-	private handleErrors(response: Response): void {
-		if (response.status === 429) throw acmeServiceError.rateLimitedError();
-		if (response.status === 404) throw acmeServiceError.notFoundError();
-		if (!response.ok)
-			throw acmeServiceError.requestError(
-				`ACME API returned ${response.status}: ${response.statusText}`
-			);
+export class DisabledAcmeProvider extends AcmeClient {
+	readonly isEnabled = false;
+
+	searchItems(): Promise<AcmeSearchResult[]> {
+		return Promise.reject(acmeServiceError.disabledError());
 	}
 }
 ```
 
-- **Clase con constructor** que recibe credenciales/configuración. La instancia la crea el módulo que la consume, vía el método estático `create` de la clase base (ver "Providers opcionales").
-- **Métodos públicos** = la interfaz limpia. Nombres en términos del dominio del provider (`searchItems`, `getItemById`).
-- **Métodos privados** para parsing, manejo de errores, helpers internos. Ningún error crudo sale del provider: los fallos de red y los cuerpos ilegibles también se traducen a `ServiceError`.
-- **Sin lógica de negocio** — el provider no decide qué hacer con los datos, solo los entrega.
+- **El archivo exporta clases, no funciones sueltas**, y no instancia nada: sin estado global ni side effects al importar.
+- **`create` es el único lugar donde vive la decisión** "con credencial → real, sin credencial → deshabilitado". El módulo que consume crea su instancia con `AcmeClient.create(...)`.
+- **Métodos públicos** = la interfaz limpia, con nombres en términos del dominio del provider (`searchItems`, `getItemById`). **Métodos privados** para red, parsing y errores.
+- **Ningún error crudo sale del provider**: los fallos de red y los cuerpos ilegibles también se traducen a `ServiceError`.
+- **Sin lógica de negocio**: el provider no decide qué hacer con los datos, solo los entrega.
+- **La disponibilidad se le pregunta a la instancia** (`acme.isEnabled`), no a un flag por integración en el config. Si un flujo debe degradar en silencio, chequea `isEnabled` antes de llamar (por ejemplo, una búsqueda que cae a datos locales). Si debe fallar visible, no chequea nada: el provider deshabilitado rechaza con `<MOD>_DISABLED` y el normalizer lo convierte en 503. Los métodos deshabilitados devuelven una promesa rechazada, no lanzan de forma síncrona.
 
 ## Errores
 
@@ -107,34 +110,15 @@ El provider lanza `ServiceError` con `service: "<Nombre> Provider"` (ver [`error
 // apps/api/src/acme/errors/acme.service-error.ts
 const BASE_OPTIONS = { service: "ACME Provider" };
 
-export function notFoundError() {
-	return new ServiceError("ACME_NOT_FOUND", {
-		...BASE_OPTIONS,
-		raw: undefined
-	});
-}
-
-export function requestError(rawError: unknown) {
-	return new ServiceError("ACME_REQUEST_ERROR", {
-		...BASE_OPTIONS,
-		raw: rawError
-	});
-}
-
 export function rateLimitedError() {
 	return new ServiceError("ACME_RATE_LIMITED", {
 		...BASE_OPTIONS,
 		raw: undefined
 	});
 }
-
-export function parseError(rawError: unknown) {
-	return new ServiceError("ACME_PARSE_ERROR", {
-		...BASE_OPTIONS,
-		raw: rawError
-	});
-}
 ```
+
+Un constructor por código, todos con el mismo `BASE_OPTIONS`.
 
 Errores típicos de un provider:
 
@@ -170,7 +154,7 @@ export async function importItemFromAcme(acmeId: number) {
 
 Si el provider lanza un `ServiceError`, el service puede:
 
-- Dejarlo fluir → el middleware global lo convierte a `HttpError` (necesitarás registrar el provider en `global-error-domain.normalizer.ts` igual que un módulo).
+- Dejarlo fluir → el middleware global lo convierte a `HttpError`, si el provider está registrado (ver "Errores").
 - Capturarlo y traducirlo a un error del módulo (ej: `ACME_NOT_FOUND` → `<MODULO>_ACME_NOT_FOUND`).
 - Reintentarlo, loggearlo o degradar.
 
@@ -197,47 +181,6 @@ const ApiKeysConfigSchema = z
 Las credenciales de providers son **opcionales**: un provider sin key deshabilita su integración, no tumba el arranque. Agregar un provider nuevo es una línea más en el schema, reusando `optionalApiKey`.
 
 Las clases del provider reciben la credencial por constructor — **nunca leas `process.env` ni importes el config dentro del provider**. Quien lee el config es el módulo que instancia.
-
-## Providers opcionales
-
-El contrato es una **clase base abstracta** que declara `isEnabled` y los métodos del provider. De ella cuelgan la implementación real y la deshabilitada, y la elección entre ambas es un **método estático de la propia clase base**:
-
-```ts
-export abstract class AcmeClient {
-	abstract readonly isEnabled: boolean;
-
-	static create(apiKey?: string): AcmeClient {
-		return apiKey ? new AcmeProvider(apiKey) : new DisabledAcmeProvider();
-	}
-
-	abstract searchItems(
-		query: string,
-		filters?: AcmeSearchFilters
-	): Promise<AcmeSearchResult[]>;
-	// ...
-}
-
-export class AcmeProvider extends AcmeClient {
-	readonly isEnabled = true;
-	// ...
-}
-
-export class DisabledAcmeProvider extends AcmeClient {
-	readonly isEnabled = false;
-
-	searchItems(): Promise<AcmeSearchResult[]> {
-		return Promise.reject(acmeServiceError.disabledError());
-	}
-	// ...
-}
-```
-
-Consecuencias:
-
-- El archivo del provider **exporta clases, no funciones sueltas**, y no importa el config ni instancia nada. Sin estado global ni side effects al importar.
-- `create` es el único lugar donde vive la decisión "con key → real, sin key → deshabilitado". El consumidor sigue creando su instancia con `AcmeClient.create(...)`, como con cualquier provider.
-- **La disponibilidad se le pregunta a la instancia** (`acme.isEnabled`), no a un flag por integración en el config. Un provider nuevo no agrega variables globales.
-- Si un flujo debe degradar en silencio, chequea `isEnabled` antes de llamar (ej: una búsqueda que cae a datos locales). Si debe fallar visible, no chequea nada: el provider deshabilitado lanza `<PROVIDER>_DISABLED` y el normalizer lo convierte en 503.
 
 ## Provider con modelo inyectable
 
@@ -296,11 +239,7 @@ Qué campo de la respuesta de un provider se guarda, y bajo qué fuente, es regl
 
 ## Cómo crear un provider nuevo
 
-1. Crear `apps/api/src/<nombre>/`.
-2. Definir tipos en `<nombre>.interface.ts` (request, response, filtros).
-3. Implementar `<nombre>.provider.ts` con clase + constructor que reciba credenciales.
-4. Crear `errors/<nombre>.service-error.ts` con los códigos del provider y `service: "<Nombre> Provider"`.
-5. Agregar la variable de entorno al `.env.example` y al `*.config.ts` correspondiente, siempre opcional.
-6. Definir la clase base abstracta con `isEnabled`, los métodos del provider y su `static create`, y agregar la clase `Disabled<Nombre>Provider` con su error `<PROVIDER>_DISABLED`.
-7. **No hace falta** crear `controller`, `routes`, `model`, `serializer`, `dtos` ni `schemas` — el provider no expone HTTP propio.
-8. Si los errores del provider tienen que llegar al cliente con status code propio, registrarlo en los normalizers globales (mismo patrón que un módulo de negocio). Si no, el service que lo consume captura y traduce.
+1. Crear la carpeta con la estructura de "Estructura" y sus tipos en `<nombre>.interface.ts`.
+2. Escribir la clase base, la implementación y la deshabilitada como en "La clase Provider".
+3. Crear sus errores como en "Errores", incluido `<MOD>_DISABLED`.
+4. Agregar la credencial al `.env.example` y al `*.config.ts` correspondiente, como en "Configuración".
