@@ -6,7 +6,8 @@
 		"build": "ng build",
 		"postbuild": "node scripts/stamp-service-worker.mjs",
 		"watch": "ng build --watch --configuration development",
-		"test": "ng test"
+		"test": "ng test",
+		"typecheck": "ngc -p tsconfig.app.json --noEmit && ngc -p tsconfig.spec.json --noEmit"
 	},
 	"description": "Frontend for Completr, a game backlog tracker with ratio-based prioritization",
 	"author": "Esteban Tejeda <etejedaw@hotmail.com> (https://etejeda.dev)",
