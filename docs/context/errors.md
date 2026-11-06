@@ -62,7 +62,7 @@ errors/
 2. **Los controllers nunca lanzan `ServiceError`.** Solo `DomainError` para reglas de negocio que el controller mismo detecta.
 3. **Los providers lanzan `ServiceError` con `service: "<Nombre> Provider"`** — distinto a `"<Nombre> Service"` para diferenciar fallos externos de fallos internos.
 4. **El `service` y el `module` se usan como claves de routing en los normalizers globales.** Si los renombras, hay que actualizar `global-error-domain.normalizer.ts` y `global-error-http.normalizer.ts`.
-5. **Los códigos de error siguen el patrón `<MODULO>_<CAUSA>`** en `SCREAMING_SNAKE_CASE` (`GAME_NOT_FOUND`, `AUTH_INVALID_CREDENTIALS`, `RAWG_RATE_LIMITED`).
+5. **Los códigos de error siguen el patrón `<MODULO>_<CAUSA>`** en `SCREAMING_SNAKE_CASE` (`ORDER_NOT_FOUND`, `AUTH_INVALID_CREDENTIALS`, `PAYMENTS_RATE_LIMITED`).
 6. **El `correlationId` se propaga en el `context`** para trazabilidad en logs.
 7. **Cuando uses `rethrowSequelizeError`, todo el cuerpo crítico (incluido el `return`) va dentro del `try`.** La función está tipada `: never`, así que el código tras el catch solo correría en path feliz — declarar variables `let` afuera para llenarlas adentro y consumirlas después es confuso y propenso a bugs. Ver "Patrón `rethrowSequelizeError`" más abajo.
 
@@ -73,15 +73,15 @@ errors/
 ### CLEAN — todo dentro del try, return desde adentro
 
 ```ts
-export async function createBacklog(userId: string, dto: RegisterBacklogDto) {
+export async function createOrder(userId: string, dto: RegisterOrderDto) {
 	try {
-		const backlogEntry = await Backlog.create({ ...dto, userId });
-		await backlogEntry.reload({ include: backlogInclude });
-		return backlogEntry;
+		const order = await Order.create({ ...dto, userId });
+		await order.reload({ include: orderInclude });
+		return order;
 	} catch (error) {
 		rethrowSequelizeError(error, {
-			unique: backlogServiceError.uniqueConstraintError,
-			validation: backlogServiceError.validationError
+			unique: ordersServiceError.uniqueConstraintError,
+			validation: ordersServiceError.validationError
 		});
 	}
 }
@@ -90,15 +90,15 @@ export async function createBacklog(userId: string, dto: RegisterBacklogDto) {
 ### UGLY — evitar
 
 ```ts
-export async function createBacklog(userId: string, dto: RegisterBacklogDto) {
-	let backlogEntry: Backlog;
+export async function createOrder(userId: string, dto: RegisterOrderDto) {
+	let order: Order;
 	try {
-		backlogEntry = await Backlog.create({ ...dto, userId });
+		order = await Order.create({ ...dto, userId });
 	} catch (error) {
 		rethrowSequelizeError(error, { unique: ..., validation: ... });
 	}
-	await backlogEntry.reload({ include: backlogInclude }); // ← fuera del try
-	return backlogEntry;                                     // ← fuera del try
+	await order.reload({ include: orderInclude }); // ← fuera del try
+	return order;                                     // ← fuera del try
 }
 ```
 
@@ -132,7 +132,7 @@ Cualquier otro error sin mapear sigue siendo `INTERNAL_ERROR` (500). Un body bie
 
 ## Ejemplo completo
 
-`apps/api/src/games/errors/` tiene los cinco archivos de un módulo, y su registro está en los dos normalizers globales de `common/errors/`. Un módulo nuevo copia esa forma. Si te saltas el registro global, los errores del módulo caen al fallback genérico (500, `INTERNAL_ERROR`) y se pierden el status y el mensaje.
+Cualquier módulo existente tiene los cinco archivos de `errors/`, y su registro está en los dos normalizers globales de `common/errors/`. Un módulo nuevo copia esa forma. Si te saltas el registro global, los errores del módulo caen al fallback genérico (500, `INTERNAL_ERROR`) y se pierden el status y el mensaje.
 
 ## Response al cliente
 
