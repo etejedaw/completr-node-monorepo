@@ -1,85 +1,40 @@
-# Convenciones de código y trabajo
+# Flujo de trabajo
 
-Reglas de estilo, naming y workflow. Aplican a todo el repo.
-
-## Estilo de código
-
-- **TypeScript estricto.** No usar `any` salvo último recurso documentado.
-- **Tabs, no espacios** (lo enforce Prettier).
-- **Strings con comillas dobles** (Prettier).
-- **Imports relativos** entre módulos (`../games/games.service`).
-
-## Nombres de archivos
-
-- `<recurso>.model.ts` — modelo Sequelize.
-- `<recurso>s.service.ts` — service (plural si el módulo trabaja con colección, singular si es uno).
-- `<recurso>s.controller.ts` — controller.
-- `<recurso>s.routes.ts` — router Express.
-- `<recurso>s.serializer.ts` — serializer.
-- `<accion>-<recurso>.schema.ts` — schema Zod (ej: `register-game.schema.ts`, `game-id-params.schema.ts`).
-- `<accion>-<recurso>.dto.ts` — DTO (`z.infer<typeof Schema>`).
-- `<modulo>.service-error.ts`, `<modulo>.domain-error.ts` — constructores de errores.
-- `<modulo>.<algo>.mapper.ts` o `<modulo>.<algo>.normalizer.ts` — mappers/normalizers.
-- `<modulo>.interface.ts` y `<modulo>.types.ts` — las interfaces y los alias `type` del módulo, que no se declaran en ningún otro archivo. Regla y excepciones en [`modules.md`](./modules.md#modulointerfacets-y-modulotypests).
-
-Si una categoría tiene **1 archivo**, queda en la raíz del módulo. Si tiene **2+**, se mueve a su carpeta (`schemas/`, `dtos/`, `errors/`, etc.). Detalle en [`modules.md`](./modules.md).
-
-## Nombres en código
-
-- **Variables y funciones:** `camelCase`.
-- **Clases, tipos e interfaces:** `PascalCase` (sin prefijo `I`).
-- **Constantes globales:** `SCREAMING_SNAKE_CASE`.
-- **Funciones constructoras de errores:** `camelCase` descriptivo (`gameNotFound`, `uniqueConstraintError`).
-- **Códigos de error:** `SCREAMING_SNAKE_CASE` con prefijo del módulo (`GAME_NOT_FOUND`, `AUTH_INVALID_CREDENTIALS`).
-
-## DTOs
-
-Aunque hoy son solo `z.infer<typeof Schema>`, **se mantienen en archivos separados**. Permite que el DTO evolucione sin tocar el schema (campos calculados, omitir campos internos). No es redundancia, es decisión de diseño.
-
-```ts
-// register-game.dto.ts
-import type z from "zod";
-
-import { type RegisterGameSchema } from "../schemas/register-game.schema";
-
-export type RegisterGameDto = z.infer<typeof RegisterGameSchema>;
-```
-
-Los DTOs son solo para bodies y siempre llevan sufijo `Dto`. El tipo de params, query y headers se exporta desde su propio schema (`GameIdParam`, `GamesQuery`). En el controller, todo lo que se lee de `request.locals` se castea a uno de esos tipos, nunca a un objeto escrito a mano. Detalle en [`modules.md`](./modules.md#controllerts).
-
-## Comentarios
-
-**No se añaden comentarios.** El código tiene que ser autoexplicativo: nombres claros, funciones cortas, una responsabilidad por archivo. Si necesitas un comentario para entenderlo, antes intenta renombrar o partir la función.
-
-Solo se permiten comentarios cuando es **estrictamente necesario** — casos donde el código no puede explicarse a sí mismo:
-
-- Una regex no trivial (qué pretende matchear).
-- Un workaround para un bug específico de una librería o servicio externo.
-- Una restricción legal/externa que justifica una decisión que parece arbitraria.
-
-No comentar lo que el nombre ya dice. No dejar referencias a tareas, issues o PRs en el código — eso va en el commit message.
+Ramas, commits, tests, qué hacer después de editar y cuándo preguntar. Aplica a las tres apps. Cómo se escribe el código está en [`../architecture.md`](../architecture.md#cómo-se-escribe-el-código).
 
 ## Ramas
 
-- **Todo cambio de código se hace en `develop`.** Nunca editar ni commitear directo en `main`.
-- `main` solo recibe merges desde `develop` para pasar a productivo.
-- Antes de editar, verificar la rama con `git branch --show-current`; si es `main`, cambiar a `develop` (`git switch develop`) antes de tocar nada.
+- **Todo cambio de código se hace en `develop`.** Nunca editar ni commitear directo en `main`, que solo recibe merges desde `develop` para pasar a productivo. Antes de editar se verifica la rama con `git branch --show-current`.
 - **Historia lineal en `develop`.** Una rama de trabajo se integra con rebase sobre `develop` y avance rápido (`git merge --ff-only <rama>`), sin commits de merge. Solo el paso de `develop` a `main` es un merge.
-- **Trabajo en paralelo con worktrees.** Viven en `.worktree/<bloque>`, uno por bloque y con su propia rama. Están en `.gitignore` y ESLint los ignora. Cada bloque toca archivos distintos. Las ramas de los bloques se integran una a una con rebase en una rama de integración, y esa rama entra a `develop` de la misma forma.
+- **Trabajo en paralelo con worktrees.** Viven en `.worktree/<bloque>`, uno por bloque y con su propia rama (están en `.gitignore` y ESLint los ignora). Cada bloque toca archivos distintos. Las ramas de los bloques se integran una a una con rebase en una rama de integración, y esa rama entra a `develop` de la misma forma.
+
+## Scripts y CLIs antes que edición a mano
+
+Si existe un script del `package.json` o un CLI que hace la tarea, se usa ese en vez de escribir el resultado a mano. El script sabe lo que una edición manual olvida: el timestamp de una migración, la versión resuelta y el lockfile de una dependencia, los archivos y registros que genera un CLI.
+
+- Las dependencias se instalan con `npm install <pkg> -w apps/<app>` desde la raíz, nunca editando un `package.json` ni con `npm install` dentro de la carpeta de la app.
+- Las migraciones se crean con el script `migrate:create` de `apps/api`.
+- Lo que un CLI genera (componentes de Angular, configuración de una herramienta) se crea con ese CLI y después se ajusta.
+- Antes de escribir un comando propio, revisar los scripts del `package.json` de la raíz y de la app: si ya hay uno, se usa ese.
 
 ## Commits
 
-- **Conventional Commits** (`feat`, `fix`, `docs`, `chore`, `refactor`, `style`, `test`, `perf`, `build`, `ci`).
-- **Una sola línea**, sin body, sin footer.
+- **Conventional Commits** (`feat`, `fix`, `docs`, `chore`, `refactor`, `style`, `test`, `perf`, `build`, `ci`), en una sola línea, imperativo, minúsculas y sin punto final.
 - **Sin firma de IA en nada**: ni `Co-Authored-By` ni "Generated with" en commits, merges, migraciones o PRs.
-- **Imperativo, minúsculas, sin punto final.**
-- **Granulares** — un cambio lógico por commit. Si el working tree mezcla cosas, se separan agrupando por archivo (no por hunk).
+- **Granulares**: un cambio lógico por commit. Si el working tree mezcla cosas, se separan agrupando por archivo, no por hunk.
 
 Detalle del flujo en `.claude/skills/git-commit/SKILL.md`.
 
-## Tests de la API
+## Tests
 
-Viven en `apps/api/test/`, con la misma estructura modular que `src/`. Corren con `node:test` y TypeScript vía `-r ts-node/register`; los de integración usan `supertest` contra `createApp()` (de `src/server.ts`) sin levantar un puerto.
+- **No hay tests intermitentes.** Un test que falla en una corrida y pasa en otra es un bug, del código o del test. Se busca su causa (estado compartido entre tests, timers vivos tras destruir un servicio, elementos que quedan en el DOM, dos registros con el mismo `createdAt`, orden sin desempate por id) y se corrige; no se da por bueno porque pasa al repetirlo, aislado o en otra máquina. Un cambio que toque la suite se valida con 3 corridas seguidas sin fallos.
+- **Un bug encontrado por un test** se deja marcado (`{ todo: "..." }` en la API, `it.todo("...")` en la web) hasta que se corrija; no se arregla dentro del cambio que escribe los tests.
+
+Los tests del frontend están en [`frontend.md`](./frontend.md#tests).
+
+### Tests de la API
+
+Viven en `apps/api/test/`, con la misma estructura modular que `src/`. Corren con `node:test` y TypeScript vía `-r ts-node/register`; los de integración usan `supertest` contra `createApp()` sin levantar un puerto.
 
 | Archivo                                      | Qué es                                              |
 | -------------------------------------------- | --------------------------------------------------- |
@@ -88,73 +43,30 @@ Viven en `apps/api/test/`, con la misma estructura modular que `src/`. Corren co
 | `test/helpers/`                              | Cliente supertest, truncado, factories, login, mail |
 | `test/global-setup.mjs`                      | Aplica las migraciones a la DB de test              |
 
-Comandos desde la raíz: `npm run test:api` (unitarios e integración), `npm run test:unit -w apps/api`, `npm run test:integration -w apps/api`, `npm run test:web` y `npm test` (API y web). El `test` de `apps/api` es `test:unit && test:integration`. Los scripts fijan `NODE_ENV=test` y cargan `apps/api/.env.test.local` si existe. Los tests entran en `tsconfig.json` (los revisa `typecheck`) pero no en `tsconfig.build.json`, que es el que usa `build`.
+Los scripts de test fijan `NODE_ENV=test` y cargan `apps/api/.env.test.local` si existe. Los tests entran en `tsconfig.json` pero no en `tsconfig.build.json`.
 
-- **DB de test:** servicio `postgres-test` de `apps/api/docker-compose.yml` (DB `completr_test`), que levanta `npm run db`. Con `NODE_ENV=test` la API se conecta por defecto a `127.0.0.1:5433`, usuario `root`, clave `toor`; las variables `PG_*` lo sobreescriben. Si el puerto local es otro, ponlo en `apps/api/.env.test.local` (por ejemplo `PG_PORT=5435`); ese archivo no se commitea.
-- **Migraciones:** el global setup de `test:integration` corre `sequelize-cli db:migrate --env test` antes de cada corrida. `test:unit` no lo usa ni toca la DB. No hay `sync()`.
-- **Aislamiento:** cada archivo de test corre en su propio proceso y `useTestDatabase()` hace `TRUNCATE ... RESTART IDENTITY CASCADE` de todas las tablas salvo `SequelizeMeta` antes de empezar. Dentro de un archivo los datos se comparten, así que las factories generan usernames y emails únicos. Los de integración corren con `--test-concurrency=1` porque comparten DB. El truncado también vacía los catálogos sembrados por migración (por ejemplo `ScoreSources`): el test que los necesita los crea con las factories, pasando el seed a `useTestDatabase(seed)`; los `before` de nivel raíz corren en paralelo y no sirven para eso.
-- **Entorno `test`:** el rate limiter queda desactivado y el mail no sale por SMTP: `mailProvider` se construye con `InMemoryMailModel` (`mail/in-memory/`), cuyo `outbox` se inspecciona con `test/helpers/mail.helper.ts`.
-- **Bugs:** si un test revela un bug de `src/`, se deja marcado con `{ todo: "..." }` hasta que se corrija.
+- **DB de test:** servicio `postgres-test` de `apps/api/docker-compose.yml` (DB `completr_test`). Con `NODE_ENV=test` la API se conecta por defecto a `127.0.0.1:5433`, usuario `root`, clave `toor`; si el puerto local es otro, se pone en `apps/api/.env.test.local` (por ejemplo `PG_PORT=5435`), que no se commitea.
+- **Migraciones:** el global setup de `test:integration` corre `sequelize-cli db:migrate --env test` antes de cada corrida. `test:unit` no toca la DB.
+- **Aislamiento:** cada archivo de test corre en su propio proceso y `useTestDatabase()` trunca todas las tablas salvo `SequelizeMeta` antes de empezar. Dentro de un archivo los datos se comparten, así que las factories generan usernames y emails únicos. Los de integración corren con `--test-concurrency=1` porque comparten DB. El truncado también vacía los catálogos sembrados por migración (por ejemplo `ScoreSources`): el test que los necesita los crea pasando el seed a `useTestDatabase(seed)`, porque los `before` de nivel raíz corren en paralelo y no sirven para eso.
+- **Entorno `test`:** el rate limiter queda desactivado, el plazo de enfriamiento de RAWG es 0 y el mail no sale por SMTP: `mailProvider` usa `InMemoryMailModel`, cuyo `outbox` se inspecciona con `test/helpers/mail.helper.ts`.
 
 ## Post-edición obligatoria
 
-Después de cualquier cambio de código, desde la raíz del repo:
+El hook de pre-commit aplica lint y formato a lo que está en stage y corre el typecheck de las tres apps (en la web con `ngc --noEmit`, que revisa también las plantillas, y en la landing con `astro check`); si falla, el commit no se crea. Después de cualquier cambio de código:
 
-1. `npm run lint:fix`
-2. `npm run format`
-3. `npm run typecheck` si tocaste tipos o interfaces del backend o la landing (corre también `astro check`); `npm run test:api` si tocaste el backend; `npm run test:web` si tocaste el frontend; `npm run build:landing` si tocaste la landing, porque valida el contenido de `src/content/` contra su schema.
-4. Si modificaste o agregaste un endpoint → actualizar `docs/api/` (Bruno v3.1, formato `.yml`).
-5. Si modificaste el schema de un modelo o una asociación → crear migración Sequelize en `apps/api/migrations/`. Cada `onDelete` de `associations.database.ts` va también como `ON DELETE` en la FK de la migración.
-6. Si cambiaste un enum, un constraint, una validación o un auto-comportamiento → actualizar [`../invariants.md`](../invariants.md).
-7. Si cambiaste un tope por rol, un permiso o qué se ve en público → **eso es una decisión de negocio, no un invariante**: se documenta en la planificación de producto, fuera de `docs/`.
+1. Correr los tests de la app que tocaste. Si tocaste el contenido de la landing, hacer su build, que valida `src/content/` contra su schema.
+2. Si modificaste o agregaste un endpoint → actualizar `docs/api/` (Bruno v3.1, formato `.yml`).
+3. Si modificaste el schema de un modelo o una asociación → crear la migración Sequelize en `apps/api/migrations/`.
+4. Si agregaste o cambiaste una regla que el código hace cumplir y cuyo porqué no se ve leyéndolo (privacidad, concurrencia, límites de un servicio externo, datos que no se borran) → actualizar [`../invariants.md`](../invariants.md) con la regla y su razón.
+5. Si cambiaste un tope por rol, un permiso o qué se ve en público → eso es una decisión de negocio: se documenta en la planificación de producto, fuera de `docs/`.
 
-El changelog (`docs/changelogs/` y, si el usuario nota el cambio, la entrada pública de la landing) se escribe **una vez al cerrar la tanda de trabajo**, no por cada cambio. El proceso está en `.claude/skills/release-changelog/SKILL.md` (técnico) y `.claude/skills/release-changelog-public/SKILL.md` (público).
+Los pasos 4 y 5 no son opcionales: la documentación de este repo ya acumuló datos falsos porque nadie los ejecutaba.
 
-Los pasos 6 y 7 no son opcionales. La documentación de este repo acumuló tres datos falsos (un estado del enum faltante, el modelo de privacidad entero y el nombre de un campo de respuesta) precisamente porque nadie los ejecutaba.
-
-## Reglas de dominio aplicadas al código
-
-- **Toda lógica de cálculo vive en backend.** Ratio, estadísticas, derivados, agregaciones — todo se calcula en el serializer o el service. El frontend solo renderiza.
-- **`request.locals` es la única forma válida de leer datos validados** dentro del controller. `request.query` es inmutable en Express 5.
-- **Nunca se importan modelos entre módulos.** Para acceder a datos de otro módulo, se importa su `service`. Detalle en [`modules.md`](./modules.md).
-- **Excepción para tablas pivote** (`game-platform/`, `game-shelf/`, `list-items/`): pueden importar modelos para `include` de Sequelize, pero solo para asociaciones, no para CRUD.
-
-## Sequelize includes con `attributes`
-
-Los includes hacia modelos pesados (`Game` con `description` TEXT, `Backlog`, etc.) declaran whitelist de `attributes` en lugar de traer todo. Convención:
-
-1. Constantes `XXX_ATTRS` al inicio del módulo, derivadas de lo que el serializer consume.
-2. Reusarlas en cada `include`/`buildIncludes` del service.
-3. Si dos serializers de un mismo módulo necesitan campos distintos, unificar en un set "razonable" que cubra ambos — no parametrizar el include.
-
-```ts
-const BACKLOG_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
-const BACKLOG_PLATFORM_ATTRS = ["id", "abbreviation"];
-
-const backlogInclude = [
-	{ model: Game, attributes: BACKLOG_GAME_ATTRS },
-	{ model: Platform, attributes: BACKLOG_PLATFORM_ATTRS }
-];
-```
-
-**Cuándo aplicar:** módulos con tablas grandes o columnas pesadas (`Game.description`, JSONB, futuros covers en múltiples sizes). Para tablas chicas y estables (`Platform`, `Genre`) es opcional pero recomendado por consistencia.
-
-**Cuándo NO:** cuando el modelo es la raíz de la query (`Game.findOne(...)` sin include) y el serializer usa muchos campos — no vale la pena enumerar 15 columnas.
-
-## Filosofía Clean Code aplicada al repo
-
-- **No agregar features, refactors ni abstracciones más allá del task.** Tres líneas similares es mejor que una abstracción prematura.
-- **No agregar manejo de errores defensivo para casos que no pueden ocurrir.** Validar solo en bordes (input de usuario, APIs externas).
-- **No dejar implementaciones a medias.** Si no compila o no funciona, no se commitea.
-- **No agregar shims de retrocompatibilidad** cuando puedes cambiar el código.
-- **No renombrar variables a `_var` para silenciar warnings** — si no se usa, se elimina.
-- **Funciones cortas, una responsabilidad.** Si un service crece, se parte en `services/` (ver `auth/services/password.service.ts` + `token.service.ts`).
+El changelog (`docs/changelogs/` y, si el usuario nota el cambio, la entrada pública de la landing) se escribe una vez al cerrar la tanda de trabajo, no por cada cambio. El proceso está en `.claude/skills/release-changelog/SKILL.md` (técnico) y `.claude/skills/release-changelog-public/SKILL.md` (público).
 
 ## Cuándo preguntar antes de actuar
 
-Aunque el repo es de un solo developer, hay acciones que requieren confirmación explícita:
-
 - **Pedir que se lea, revise o prepare algo no autoriza a editar código.** Se resume, se propone y se espera la orden.
-- **Cambios en modelos / DB.** Nunca cambiar columnas, tipos o asociaciones sin preguntar primero (auto-restart propaga el cambio inmediatamente). Tampoco ejecutar migraciones ni modificar datos sin preguntar.
-- **Commits y pushes.** No commitear ni pushear automáticamente — esperar instrucción.
+- **Cambios en modelos o en la DB.** Nunca cambiar columnas, tipos o asociaciones sin preguntar primero (el auto-restart propaga el cambio de inmediato). Tampoco ejecutar migraciones ni modificar datos sin preguntar.
+- **Commits y pushes.** No se commitea ni se pushea sin instrucción.
 - **Operaciones destructivas** (borrar archivos, `git reset --hard`, `rm -rf`, drops de tablas).
