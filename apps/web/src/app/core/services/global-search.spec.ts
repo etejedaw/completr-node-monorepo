@@ -40,13 +40,13 @@ describe("GlobalSearchService", () => {
 		service.search("half life").subscribe(r => (result = r));
 
 		const users = httpTesting.expectOne(
-			`${environment.apiUrl}/users/search?q=half%20life`
+			`${environment.apiUrl}/users/search?search=half%20life`
 		);
 		const games = httpTesting.expectOne(
-			`${environment.apiUrl}/games/search?query=half%20life&local_only=true`
+			`${environment.apiUrl}/games/search?search=half%20life&local_only=true`
 		);
 		const lists = httpTesting.expectOne(
-			`${environment.apiUrl}/lists/search?query=half%20life`
+			`${environment.apiUrl}/lists/search?search=half%20life`
 		);
 		expect(users.request.method).toBe("GET");
 		users.flush({ data: { users: [{ id: "u1" }] } });
@@ -63,15 +63,15 @@ describe("GlobalSearchService", () => {
 		service.search("a&b=c").subscribe();
 
 		httpTesting
-			.expectOne(`${environment.apiUrl}/users/search?q=a%26b%3Dc`)
+			.expectOne(`${environment.apiUrl}/users/search?search=a%26b%3Dc`)
 			.flush({ data: { users: [] } });
 		httpTesting
 			.expectOne(
-				`${environment.apiUrl}/games/search?query=a%26b%3Dc&local_only=true`
+				`${environment.apiUrl}/games/search?search=a%26b%3Dc&local_only=true`
 			)
 			.flush({ data: { games: [] } });
 		httpTesting
-			.expectOne(`${environment.apiUrl}/lists/search?query=a%26b%3Dc`)
+			.expectOne(`${environment.apiUrl}/lists/search?search=a%26b%3Dc`)
 			.flush({ data: { lists: [] } });
 	});
 
@@ -81,7 +81,7 @@ describe("GlobalSearchService", () => {
 		service.search("zelda").subscribe({ error: onError });
 
 		httpTesting
-			.expectOne(`${environment.apiUrl}/users/search?q=zelda`)
+			.expectOne(`${environment.apiUrl}/users/search?search=zelda`)
 			.flush(null, { status: 500, statusText: "Server Error" });
 		httpTesting
 			.match(() => true)

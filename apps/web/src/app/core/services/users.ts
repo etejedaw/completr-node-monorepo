@@ -10,7 +10,7 @@ import { type UsersResponse } from "./users.model";
 export class UsersService {
 	private readonly http = inject(HttpClient);
 
-	search(opts: { q?: string; email?: string; limit?: number }) {
+	search(opts: { search?: string; email?: string; limit?: number }) {
 		const params = buildHttpParams(opts);
 		return this.http
 			.get<UsersResponse>(`${environment.apiUrl}/users/search`, {

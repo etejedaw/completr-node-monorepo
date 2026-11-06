@@ -83,7 +83,7 @@ export class UsersDiscover implements OnInit {
 					return EMAIL_PATTERN.test(trimmed)
 						? this.usersService.search({ email: trimmed })
 						: this.usersService.search({
-								q: trimmed,
+								search: trimmed,
 								limit: SEARCH_LIMIT
 							});
 				})

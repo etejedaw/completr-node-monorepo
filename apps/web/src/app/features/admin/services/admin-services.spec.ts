@@ -287,8 +287,8 @@ describe("admin services", () => {
 			const [withSearch, blank] = httpTesting.match(
 				r => r.url === `${api}/admin/users`
 			);
-			expect(withSearch!.request.params.get("q")).toBe("ada");
-			expect(blank!.request.params.has("q")).toBe(false);
+			expect(withSearch!.request.params.get("search")).toBe("ada");
+			expect(blank!.request.params.has("search")).toBe(false);
 			withSearch!.flush({ data: { users: [], total: 0 } });
 			blank!.flush({ data: { users: [], total: 0 } });
 		});
@@ -299,8 +299,8 @@ describe("admin services", () => {
 			const req = httpTesting.expectOne(
 				r => r.url === `${api}/admin/users`
 			);
-			expect(req.request.params.get("q")).toBe("100%_off");
-			expect(req.request.urlWithParams).toContain("q=100%25_off");
+			expect(req.request.params.get("search")).toBe("100%_off");
+			expect(req.request.urlWithParams).toContain("search=100%25_off");
 			req.flush({ data: { users: [], total: 0 } });
 		});
 

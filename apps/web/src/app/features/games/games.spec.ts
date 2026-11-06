@@ -70,7 +70,7 @@ describe("GamesService", () => {
 			service.search("a&b c").subscribe(r => (result = r));
 
 			httpTesting
-				.expectOne(`${api}/games/search?query=a%26b%20c`)
+				.expectOne(`${api}/games/search?search=a%26b%20c`)
 				.flush({ data: { games: [{ id: "g1" }] } });
 			expect(result).toEqual({
 				games: [{ id: "g1" }],
@@ -85,7 +85,7 @@ describe("GamesService", () => {
 			service.search("zelda").subscribe(r => (result = r));
 
 			httpTesting
-				.expectOne(`${api}/games/search?query=zelda`)
+				.expectOne(`${api}/games/search?search=zelda`)
 				.flush({ data: { games: [], onlineSearchAvailable: false } });
 			expect(result).toEqual({
 				games: [],
@@ -99,7 +99,7 @@ describe("GamesService", () => {
 
 			service.search("zelda").subscribe(r => (result = r));
 
-			httpTesting.expectOne(`${api}/games/search?query=zelda`).flush({
+			httpTesting.expectOne(`${api}/games/search?search=zelda`).flush({
 				data: {
 					games: [],
 					onlineSearchAvailable: true,
@@ -120,7 +120,7 @@ describe("GamesService", () => {
 
 				service.search("zelda").subscribe(r => (result = r));
 
-				httpTesting.expectOne(`${api}/games/search?query=zelda`).flush({
+				httpTesting.expectOne(`${api}/games/search?search=zelda`).flush({
 					data: {
 						games: [{ id: "g1", justImported: true }],
 						onlineSearchAvailable: true,
@@ -135,7 +135,7 @@ describe("GamesService", () => {
 			service.search("zelda", true).subscribe();
 
 			httpTesting
-				.expectOne(`${api}/games/search?query=zelda&force_online=true`)
+				.expectOne(`${api}/games/search?search=zelda&force_online=true`)
 				.flush({ data: { games: [] } });
 		});
 
@@ -145,7 +145,7 @@ describe("GamesService", () => {
 			service.search("zelda", true).subscribe(r => (result = r));
 
 			httpTesting
-				.expectOne(`${api}/games/search?query=zelda&force_online=true`)
+				.expectOne(`${api}/games/search?search=zelda&force_online=true`)
 				.flush({ data: { games: [], onlineSearchAvailable: false } });
 			expect(result).toEqual({
 				games: [],
@@ -163,7 +163,7 @@ describe("GamesService", () => {
 			});
 
 			httpTesting
-				.expectOne(`${api}/games/search?query=zelda&force_online=true`)
+				.expectOne(`${api}/games/search?search=zelda&force_online=true`)
 				.flush({}, { status: 500, statusText: "Server Error" });
 			expect(failure?.status).toBe(500);
 			expect(toast.warning).toHaveBeenCalledWith(
@@ -179,7 +179,7 @@ describe("GamesService", () => {
 			});
 
 			httpTesting
-				.expectOne(`${api}/games/search?query=zelda&force_online=true`)
+				.expectOne(`${api}/games/search?search=zelda&force_online=true`)
 				.flush(
 					{ type: "AUTH_RATE_LIMITED" },
 					{ status: 429, statusText: "Too Many Requests" }
@@ -192,7 +192,7 @@ describe("GamesService", () => {
 			service.search("zelda").subscribe({ error: () => undefined });
 
 			httpTesting
-				.expectOne(`${api}/games/search?query=zelda`)
+				.expectOne(`${api}/games/search?search=zelda`)
 				.flush({}, { status: 502, statusText: "Bad Gateway" });
 			expect(toast.warning).not.toHaveBeenCalled();
 		});
@@ -201,7 +201,7 @@ describe("GamesService", () => {
 			service.searchLocal("zelda").subscribe();
 
 			httpTesting
-				.expectOne(`${api}/games/search?query=zelda&local_only=true`)
+				.expectOne(`${api}/games/search?search=zelda&local_only=true`)
 				.flush({ data: { games: [] } });
 		});
 

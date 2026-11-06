@@ -18,21 +18,21 @@ export class GlobalSearchService {
 				.get<{
 					data: { users: UserResult[] };
 				}>(
-					`${environment.apiUrl}/users/search?q=${encodeURIComponent(query)}`
+					`${environment.apiUrl}/users/search?search=${encodeURIComponent(query)}`
 				)
 				.pipe(map(res => res.data.users)),
 			games: this.http
 				.get<{
 					data: { games: GameResult[] };
 				}>(
-					`${environment.apiUrl}/games/search?query=${encodeURIComponent(query)}&local_only=true`
+					`${environment.apiUrl}/games/search?search=${encodeURIComponent(query)}&local_only=true`
 				)
 				.pipe(map(res => res.data.games)),
 			lists: this.http
 				.get<{
 					data: { lists: ListResult[] };
 				}>(
-					`${environment.apiUrl}/lists/search?query=${encodeURIComponent(query)}`
+					`${environment.apiUrl}/lists/search?search=${encodeURIComponent(query)}`
 				)
 				.pipe(map(res => res.data.lists))
 		});

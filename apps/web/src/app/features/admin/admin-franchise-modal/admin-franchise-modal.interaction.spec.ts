@@ -180,7 +180,7 @@ describe("AdminFranchiseModal interaction", () => {
 			return create(body);
 		}
 		const searchMatch = url.match(
-			/\/games\/search\?query=([^&]+)&local_only=true$/
+			/\/games\/search\?search=([^&]+)&local_only=true$/
 		);
 		if (method === "GET" && searchMatch)
 			return search(decodeURIComponent(searchMatch[1]));

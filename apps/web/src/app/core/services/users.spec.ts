@@ -28,13 +28,13 @@ describe("UsersService", () => {
 		const users = [{ id: "u1", username: "ada" }];
 		let result: unknown;
 
-		service.search({ q: "ad", limit: 5 }).subscribe(r => (result = r));
+		service.search({ search: "ad", limit: 5 }).subscribe(r => (result = r));
 
 		const req = httpTesting.expectOne(
 			r => r.url === `${environment.apiUrl}/users/search`
 		);
 		expect(req.request.method).toBe("GET");
-		expect(req.request.params.get("q")).toBe("ad");
+		expect(req.request.params.get("search")).toBe("ad");
 		expect(req.request.params.get("limit")).toBe("5");
 		req.flush({ data: { users } });
 		expect(result).toEqual(users);

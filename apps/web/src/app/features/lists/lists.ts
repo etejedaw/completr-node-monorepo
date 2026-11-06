@@ -128,7 +128,7 @@ export class ListsService {
 		return this.http
 			.get<{
 				data: { lists: List[] };
-			}>(`${this.baseUrl}/search?query=${encodeURIComponent(query)}`)
+			}>(`${this.baseUrl}/search?search=${encodeURIComponent(query)}`)
 			.pipe(map(res => res.data.lists));
 	}
 

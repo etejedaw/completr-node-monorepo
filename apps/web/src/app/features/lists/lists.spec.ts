@@ -211,7 +211,7 @@ describe("ListsService", () => {
 		service.search("co op & more").subscribe(r => (result = r));
 
 		httpTesting
-			.expectOne(`${url}/search?query=co%20op%20%26%20more`)
+			.expectOne(`${url}/search?search=co%20op%20%26%20more`)
 			.flush({ data: { lists: [{ id: "l1" }] } });
 		expect(result).toEqual([{ id: "l1" }]);
 	});

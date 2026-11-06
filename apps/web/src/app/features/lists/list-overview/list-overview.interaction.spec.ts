@@ -152,7 +152,7 @@ describe("Lists interaction", () => {
 			return req.flush({ data: { list: created } });
 		}
 		if (method === "GET" && url.startsWith(`${api}/games/search`)) {
-			const query = new URL(url).searchParams.get("query")!.toLowerCase();
+			const query = new URL(url).searchParams.get("search")!.toLowerCase();
 			return req.flush({
 				data: {
 					games: catalog.filter(game =>

@@ -1769,7 +1769,7 @@ describe("Admin users interaction", () => {
 			typeQuickly("ada");
 
 			const request = await nextListRequest();
-			expect(request.request.params.get("q")).toBe("ada");
+			expect(request.request.params.get("search")).toBe("ada");
 			expect(request.request.params.get("offset")).toBe("0");
 			flushUsers(request, [ADA], 1);
 
@@ -1792,7 +1792,7 @@ describe("Admin users interaction", () => {
 			typeQuickly("bo");
 			const newer = await nextListRequest();
 			expect(older.cancelled).toBe(true);
-			expect(newer.request.params.get("q")).toBe("bo");
+			expect(newer.request.params.get("search")).toBe("bo");
 
 			flushUsers(newer, [BOB], 1);
 			await waitFor(() =>
@@ -1835,7 +1835,7 @@ describe("Admin users interaction", () => {
 			);
 
 			const request = await nextListRequest();
-			expect(request.request.params.has("q")).toBe(false);
+			expect(request.request.params.has("search")).toBe(false);
 			flushUsers(request);
 			await waitFor(() => expect(searchBox()).toHaveValue(""));
 			expect(
@@ -1873,7 +1873,7 @@ describe("Admin users interaction", () => {
 			await waitFor(() => {
 				seen.push(...listRequests());
 				const open = seen.filter(request => !request.cancelled);
-				expect(open.at(-1)?.request.params.get("q")).toBe("zzz");
+				expect(open.at(-1)?.request.params.get("search")).toBe("zzz");
 			});
 			flushUsers(
 				seen.filter(request => !request.cancelled).at(-1)!,
@@ -1897,7 +1897,7 @@ describe("Admin users interaction", () => {
 			await renderUsers();
 			typeQuickly("  %_<b>\\  ");
 			const request = await nextListRequest();
-			expect(request.request.params.get("q")).toBe("%_<b>\\");
+			expect(request.request.params.get("search")).toBe("%_<b>\\");
 			flushUsers(request, [], 0);
 			expect(
 				await screen.findByText(/No account matches “%_<b>\\”/)
@@ -1914,7 +1914,7 @@ describe("Admin users interaction", () => {
 				await screen.findByRole("button", { name: "Try again" })
 			);
 			const retry = await nextListRequest();
-			expect(retry.request.params.get("q")).toBe("ada");
+			expect(retry.request.params.get("search")).toBe("ada");
 			flushUsers(retry, [ADA], 1);
 			expect(
 				await screen.findByText("1 match for “ada”")

@@ -58,7 +58,7 @@ export class GamesService {
 		query: string,
 		forceOnline = false
 	): Observable<OnlineGameSearchResult> {
-		const params = `query=${encodeURIComponent(query)}${forceOnline ? "&force_online=true" : ""}`;
+		const params = `search=${encodeURIComponent(query)}${forceOnline ? "&force_online=true" : ""}`;
 		return this.http
 			.get<GamesSearchResponse>(
 				`${environment.apiUrl}/games/search?${params}`
@@ -79,7 +79,7 @@ export class GamesService {
 	}
 
 	searchLocal(query: string) {
-		const params = `query=${encodeURIComponent(query)}&local_only=true`;
+		const params = `search=${encodeURIComponent(query)}&local_only=true`;
 		return this.http
 			.get<GamesSearchResponse>(
 				`${environment.apiUrl}/games/search?${params}`

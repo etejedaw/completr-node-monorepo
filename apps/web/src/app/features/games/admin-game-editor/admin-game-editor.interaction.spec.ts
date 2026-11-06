@@ -174,7 +174,7 @@ describe("AdminGameEditor interaction", () => {
 				: req.flush({}, { status: 404, statusText: "Not Found" });
 		}
 		if (method === "GET" && path.startsWith("/games/search")) {
-			const query = new URL(url).searchParams.get("query")!.toLowerCase();
+			const query = new URL(url).searchParams.get("search")!.toLowerCase();
 			const games = catalog
 				.filter(game => game.title.toLowerCase().includes(query))
 				.slice(0, searchLimit);
@@ -1179,7 +1179,7 @@ describe("AdminGameEditor interaction", () => {
 			);
 
 			expect(searchCalls().map(call => call.path)).toEqual([
-				"/games/search?query=hades&local_only=true"
+				"/games/search?search=hades&local_only=true"
 			]);
 		});
 
@@ -1228,7 +1228,7 @@ describe("AdminGameEditor interaction", () => {
 		it("shows the empty state instead of breaking when the search fails", async () => {
 			await renderCreate();
 			await userEvent.click(dlcSwitch());
-			failures["GET /games/search?query=hades&local_only=true"] = {
+			failures["GET /games/search?search=hades&local_only=true"] = {
 				status: 500
 			};
 
@@ -2580,7 +2580,7 @@ describe("AdminGameEditor interaction", () => {
 			);
 
 			expect(searchCalls().at(-1)?.path).toBe(
-				"/games/search?query=ma&local_only=true"
+				"/games/search?search=ma&local_only=true"
 			);
 		});
 
@@ -2667,7 +2667,7 @@ describe("AdminGameEditor interaction", () => {
 			await userEvent.type(searchBox(dialog, 0), "ss");
 			await untilVisible(() =>
 				expect(
-					heldKeys("GET /games/search?query=mass&local_only=true")
+					heldKeys("GET /games/search?search=mass&local_only=true")
 				).toHaveLength(1)
 			);
 			releaseAll();
@@ -2730,14 +2730,14 @@ describe("AdminGameEditor interaction", () => {
 			answerPending();
 
 			expect(searchCalls().map(call => call.path)).toEqual([
-				"/games/search?query=mass&local_only=true"
+				"/games/search?search=mass&local_only=true"
 			]);
 		});
 
 		it("shows nothing and does not break when a search fails or has no results", async () => {
 			await renderEdit();
 			const dialog = await openCompilation("Mark as compilation");
-			failures["GET /games/search?query=zz&local_only=true"] = {
+			failures["GET /games/search?search=zz&local_only=true"] = {
 				status: 500
 			};
 			await userEvent.type(searchBox(dialog, 0), "zz");
@@ -2759,7 +2759,7 @@ describe("AdminGameEditor interaction", () => {
 			await untilVisible(() => expect(searchCalls()).toHaveLength(1));
 
 			expect(searchCalls()[0].path).toBe(
-				`/games/search?query=${encodeURIComponent("MASS ünï 💥")}&local_only=true`
+				`/games/search?search=${encodeURIComponent("MASS ünï 💥")}&local_only=true`
 			);
 		});
 
@@ -3363,8 +3363,8 @@ describe("AdminGameEditor interaction", () => {
 			await untilVisible(() =>
 				expect(heldKeys("GET /games/search")).toHaveLength(2)
 			);
-			releaseHeld("GET /games/search?query=mar&local_only=true");
-			releaseHeld("GET /games/search?query=ma&local_only=true");
+			releaseHeld("GET /games/search?search=mar&local_only=true");
+			releaseHeld("GET /games/search?search=ma&local_only=true");
 			const firstRow = searchBox(dialog, 0).closest(
 				"app-catalog-game-picker"
 			) as HTMLElement;

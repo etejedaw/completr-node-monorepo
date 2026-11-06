@@ -32,7 +32,7 @@ export class UserAdminService {
 	}
 
 	listUsers(limit = 50, offset = 0, q = "") {
-		const params = buildHttpParams({ limit, offset, q: q.trim() });
+		const params = buildHttpParams({ limit, offset, search: q.trim() });
 		return this.http
 			.get<{
 				data: { users: AdminUser[]; total: number };
