@@ -1,608 +1,98 @@
 # Invariantes
 
-Lo que el código hace cumplir, en forma atómica: enums, constraints, validaciones, códigos de error, nombres de eventos y comportamientos automáticos.
+Reglas que el sistema hace cumplir y cuyo porqué no se ve leyendo el código. Cada entrada dice la regla y la razón, y está pensada para quien va a escribir un endpoint, una tabla o un job nuevo y tiene que respetarla sin saber que existe.
 
-**Este archivo describe el mecanismo, no la decisión de producto detrás.** Acá está cómo se llama cada enum, qué constraint existe y qué código de respuesta devuelve la API al violar una regla. El porqué de cada regla —cuánto obtiene cada tier, qué significa cada estado para el usuario— es planificación de producto y no se documenta en este repo.
-
-Arquitectura en [`architecture.md`](./architecture.md), endpoints en [`api/`](./api/).
-
-Todo listado ordenado por un campo que puede repetirse (fechas, posición, nombre) desempata por `id` en la misma dirección, así que dos filas con el mismo valor salen siempre en el mismo orden y la paginación no repite ni salta filas.
+Lo que se entiende leyendo el código no va acá: nombres y valores de enums, columnas, rangos de un schema, el status de cada código de error, parámetros de un endpoint o el valor de un límite. La fuente es el código y, para el contrato HTTP, [`api/`](./api/). Las decisiones de producto (cuánto obtiene cada plan, qué significa cada estado para el usuario) son planificación de producto y no se documentan en este repo.
 
 ---
 
-## Roles
-
-Enum `User.role` en `apps/api/src/users/user-role.type.ts`: `user`, `premium`, `moderator`, `admin`. Default al registrarse: `user`.
-
-- `isPremiumRole()` de `apps/api/src/common/utils/is-premium-role.util.ts` acepta `premium`, `moderator` y `admin`. Los gates de funcionalidades consultan además el resolvedor de acceso premium, así que el rol permanente y una concesión temporal producen el mismo acceso sin cambiar `User.role`.
-- Qué puede hacer cada rol se hace cumplir en `authMiddleware(...)` de cada `*.routes.ts`: esa es la fuente autoritativa de permisos. Una concesión premium nunca concede permisos de moderación o administración.
-- `GET /admin/users` (solo admin) lista todas las cuentas, activas o no, por `createdAt` descendente con `id` de desempate: `limit` entero entre 1 y 100 (por defecto 50), `offset` desde 0 y `q` opcional, recortado y de hasta 100 caracteres, que busca en `username`, `name` y `email` con las [reglas de búsqueda de texto](#reglas-de-búsqueda-de-texto). Una `q` vacía o sin letras ni dígitos no filtra; `total` cuenta lo que cumple el filtro, sin paginar. Un `limit`, `offset` o `q` fuera de rango responde 422 `COMMON_SCHEMA_INVALID`.
-
----
-
-## Acceso premium y concesiones
-
-El catálogo vive en `apps/api/src/premium-access/premium-access.constants.ts`. `PREMIUM_FEATURES` contiene `lists.unlimited`, `saved-filters.unlimited`, `favorites.unlimited`, `wishlist.unlimited`, `queue.unlimited`, `game-shelf.unlimited`, `mood-tags.unlimited`, `activity.feed-filters`, `themes.premium`, `export.json` y `rewind.premium`. `FULL_PREMIUM_FEATURE = "*"` representa acceso completo temporal y no forma parte del catálogo individual. Añadir un código no habilita un gate: cada consumidor debe consultarlo explícitamente.
-
-- **Tabla `PremiumGrants`:** `id` UUID, `userId` UUID nullable con FK a `Users` y `ON DELETE CASCADE`, `feature` de texto, `expiresAt` con zona horaria nullable, `offerCode` de texto nullable y timestamps. `userId = null` identifica una concesión global.
-- Una concesión individual o global de una feature admite `expiresAt = null` y entonces no vence. `"*"` exige usuario y vencimiento; no puede ser global ni indefinida. Al crear o cambiar un vencimiento desde Admin, la fecha debe ser futura o responde 422 `PREMIUM_GRANT_INVALID_EXPIRATION`.
-- El índice único parcial `PremiumGrants_userId_offerCode_unique` sobre `("userId", "offerCode")`, cuando ambos son no nulos, impide activar dos veces una misma oferta por usuario. No hay unicidad general por usuario y feature.
-- Una concesión está vigente cuando `expiresAt` es `null` o estrictamente posterior al instante de evaluación; en el instante exacto ya está vencida. No hay borrado ni mutación de roles programada. Revocar actualiza `expiresAt` al instante actual, conserva la fila y es idempotente.
-- `resolvePremiumAccess(user, feature)` devuelve `{ allowed, source, expiresAt }`, con `source = role | full-grant | feature-grant | null`. Evalúa primero el rol premium, luego una concesión `"*"` propia y después una concesión propia o global de la feature. Los consumidores conservan sus errores 402, límites y estados frozen existentes.
-- `findFullPremiumUserIds(users)` resuelve en lote qué usuarios tienen premium completo por rol o por `"*"`. Las respuestas públicas que incluyen `hasPremium` lo calculan así: una concesión individual no activa ese booleano y nunca expone la feature regalada ni su vencimiento.
-- `GET /users/me` incluye `premiumAccess: { active, source, expiresAt }`; en esta respuesta `source` solo puede ser `role`, `full-grant` o `null`. El frontend usa `active` para premium efectivo y conserva `role` para autorización y distintivos de moderador/admin. Incluye también `premiumFeatures`: las features de `PREMIUM_FEATURES` a las que el usuario tiene acceso efectivo, en el orden del catálogo (todas con rol premium o un grant `*` vigente; si no, las de grants individuales o globales vigentes; `[]` sin acceso). Se resuelve con `resolvePremiumFeatures` en una sola consulta de grants, y el frontend la usa para el acceso por feature sin depender de `active`. Todas las respuestas con el usuario actual (`GET`/`PATCH /users/me`, registro, aceptar invitación y alta de usuario por un admin) llevan la misma forma.
-- Endpoints solo admin: `GET /admin/premium-features`, `GET` y `POST /admin/users/:userId/premium-grants`, `PATCH /admin/users/:userId/premium-grants/:grantId` y `POST .../:grantId/revoke`. Los cuerpos son estrictos; create acepta `feature` y `expiresAt`, update solo `expiresAt`. No permiten crear concesiones globales ni definir `offerCode`. Registran `premium_grant_created`, `premium_grant_updated` y `premium_grant_revoked`. Una concesión inexistente o de otro usuario responde 404 `PREMIUM_GRANT_NOT_FOUND`; un usuario inexistente, 404 `USER_NOT_FOUND`. Una concesión que ya no está activa (`expiresAt` no nulo y menor o igual a ahora, por vencida o revocada) es historial de solo lectura: cambiar su vencimiento o revocarla responde 409 `PREMIUM_GRANT_NOT_ACTIVE` sin tocar la fecha ni registrar auditoría; para devolver el acceso se crea una concesión nueva.
-- **Tabla `PremiumPromotions`:** `id` UUID, `code` único de 3 a 80 caracteres en kebab-case minúsculo, `feature`, `startsAt`, `endsAt` y timestamps. Define una promoción global canjeable, no una concesión: no otorga acceso por sí sola. La base exige `endsAt >= startsAt`; al crear o editar, el service exige además que el fin sea futuro y estrictamente posterior al inicio, o responde 422 `PREMIUM_PROMOTION_INVALID_DATES`. Un código repetido responde 409 `PREMIUM_PROMOTION_CODE_CONFLICT`.
-- Endpoints solo admin: `GET` y `POST /admin/premium-promotions`, `PATCH /admin/premium-promotions/:promotionId` y `POST .../:promotionId/revoke`. Create acepta `code`, `feature`, `startsAt` y `endsAt`; update exige al menos una fecha y no permite cambiar código ni feature. Las respuestas incluyen `claimCount`, la cantidad de usuarios que la canjearon (con grants vencidos incluidos). Una promoción inexistente responde 404 `PREMIUM_PROMOTION_NOT_FOUND`; editar una promoción que ya terminó o fue revocada responde 409 `PREMIUM_PROMOTION_ENDED`. Registran `premium_promotion_created`, `premium_promotion_updated` y `premium_promotion_revoked`.
-- Editar una promoción actualiza en la misma transacción `expiresAt` de los `PremiumGrants` con su `offerCode` que siguen vigentes; una concesión revocada individualmente queda revocada. Revocar fija `endsAt` y el vencimiento de las concesiones vigentes al instante actual; si aún no empezaba, también mueve `startsAt` a ese instante. Revocar una promoción ya terminada conserva su `endsAt` original y no cambia nada. Conserva todas las filas y es idempotente.
-- Las ofertas activables salen solo de las `PremiumPromotions`; no hay ofertas estáticas en código. Una prueba de un mes se crea como promoción desde Admin. El grant canjeado vence en el `endsAt` de la promoción, no N días después del canje. `GET /users/me/gift-offers` devuelve `code`, `feature`, `availableFrom` y `availableUntil` (strings ISO), `status` (`available`, `active`, `used`, `expired` o `not-eligible`), `expiresAt`, `canActivate` y `hasAccess`, ordenadas por `startsAt` y `code`. Una promoción que no empezó no se devuelve y canjearla responde 404; una terminada o revocada solo se devuelve a quien la canjeó, con estado `used`. Un grant existente del usuario para ese código manda sobre cualquier otra condición, aunque esté vencido o revocado; sin grant, una cuenta que ya tiene acceso a la feature queda `not-eligible`.
-- `POST /users/me/gift-offers/:offerCode/claim` exige body vacío y responde `{ data: { offer, created } }` con la oferta serializada (la misma forma del listado), no con el grant: 201 al crear o 200 al repetir, sin extender nada. Un grant previo vencido o revocado vuelve con estado `used`, nunca `active`. El índice único resuelve carreras concurrentes. Para una promoción, el canje lee la fila de `PremiumPromotions` dentro de la transacción con `FOR SHARE` (compatible entre canjes, exclusivo con el `FOR UPDATE` de editar y revocar) y comprueba `startsAt <= ahora < endsAt` con la hora posterior al bloqueo, de modo que un canje concurrente con una revocación falla o deja un grant con `expiresAt` ya vencido. Una oferta o código desconocido, o una promoción que aún no empezó (también si se detecta dentro de la transacción, para no revelar campañas programadas), responde 404 `GIFT_OFFER_NOT_FOUND`; una no disponible (terminó o fue revocada) o una cuenta que ya tiene acceso a su feature responde 409 `GIFT_OFFER_NOT_ELIGIBLE`.
-
----
-
-## Límites por usuario
-
-Los recursos con tope por rol son `lists`, `list-items`, `saved-filters`, `favorites`, `wishlist`, `queue`, `game-shelf` y `mood-tags`. Cada valor vive como constante en el service del módulo (`FREE_LIST_LIMIT`, `FREE_FAVORITE_LIMIT`, `FREE_WISHLIST_LIMIT`, `FREE_QUEUE_LIMIT`, `FREE_FILTER_LIMIT`, `FREE_SHELF_LIMIT`, `FREE_TAG_LIMIT`); no se replican acá para que no queden desfasados. El backlog no tiene tope.
-
-- En `mood-tags` el tope cuenta nombres de tag distintos (los asignados a juegos más los creados sin juego). Solo se bloquea introducir un nombre nuevo: asignar, renombrar o borrar tags existentes sigue permitido aunque el usuario esté sobre el tope.
-- Exceder el tope devuelve **`402`**, mapeado en el `domain-to-http.mapper.ts` de cada módulo.
-- `lists`, `list-items` y `saved-filters` implementan además el estado **frozen**: estando sobre el tope, create y update lanzan `frozenError()`; delete sigue permitido y lo existente se sigue sirviendo. Nada se borra automáticamente.
-- Los listados de `lists` y `saved-filters` devuelven un flag `frozen` en la respuesta para que el frontend lo refleje.
-
----
-
-## Backlog
-
-### Estados
-
-Enum `Backlog.status`: `not_started`, `playing`, `completed`, `abandoned`, `endless`. Default al crear: `not_started`.
-
-- `endless` se agrupa con `completed` y `abandoned` en los cálculos de progreso de franquicias y listas.
-- En filtros por actividad, `endless` se trata como activo junto a `playing`: `finishedAt` se coalesce a `CURRENT_DATE`.
-
-### Reglas
-
-- Cada vez que el usuario quiere, inicia o reinicia un juego se crea un **nuevo** `Backlog`. No se reutilizan.
-- El estado actual del usuario sobre un juego se deriva del backlog más reciente.
-- `playCount` se calcula contando los backlogs del usuario sobre el juego.
-- `userRating`: escala 0.5–5, paso de medio punto.
-- `score` y `duration`: requeridos y positivos al crear, con máximo 2 decimales (con más responde 422, no se redondea). `score` va en escala 0–5 (máximo 5, validado en el schema); las notas de fuentes en otra escala se normalizan antes de enviarse.
-- `realDuration`, `userRating`, `notes`, `startedAt`, `finishedAt`: nullable en update.
-- `notes` se excluye de respuestas públicas siempre.
-- Activity de cambio de status se emite solo cuando el status **realmente** cambia.
-
-### Compilations
-
-- `Backlog.compilationGameId` persiste el juego compilation al que pertenece la run.
-- Se valida que el link child sea consistente con el `CompilationItem` correspondiente.
-
-### Creación con extras
-
-- `POST /users/me/backlog` acepta los opcionales `addToQueue`, `addToShelf`, `moodTags`, `review` y `progressNote`, y escribe el backlog y todos los extras en una sola transacción: si falla cualquier paso, no se crea nada y la respuesta lleva el error del módulo que falló (por ejemplo, 402 `QUEUE_LIMIT_REACHED`, 402 `GAME_SHELF_LIMIT_REACHED`, 402 `MOOD_TAGS_LIMIT_REACHED` o 409 `QUEUE_BACKLOG_NOT_STARTED`).
-- `addToQueue` exige status `not_started`.
-- `addToShelf` se omite sin error si el usuario ya tiene el juego en la estantería en la misma plataforma.
-- `moodTags` reemplaza los tags del usuario para el juego; `[]` los borra.
-- `review` solo se acepta con status `completed`, `abandoned` o `endless` (si no, 422 `COMMON_SCHEMA_INVALID`) y se omite sin error si el usuario ya tiene review del juego.
-- Las activities (`backlog_added` y, si se crearon, `game_reviewed`, `queue_added` y `shelf_added`) se registran después del commit.
-
-### Auto-comportamientos al cambiar status
-
-- Pasar a `playing`, `completed`, `abandoned` o `endless` **elimina la entrada del queue** si existía.
-- La respuesta de update incluye `queueRemoved: true` cuando aplica.
-- `POST /users/me/backlog/bulk` admite `action=update` (`{ ids, changes }`, con `changes` limitado a `status`, `startedAt`, `finishedAt`, `userRating` e `isPublic`, validados igual que en `UpdateBacklogSchema` y con al menos un campo) y `action=delete` (`{ ids }`). Mismas reglas que el `PATCH` y el `DELETE` individuales; el `update` agrega `queueRemoved: string[]` con las runs que salieron de la queue y registra `backlog_<status>` solo por las runs cuyo status realmente cambió. Ver [Acciones masivas](#acciones-masivas).
-
----
-
-## Queue
-
-- Solo acepta backlogs en estado `not_started`. Cualquier otro estado se rechaza al añadir.
-- Auto-remove al cambiar el status del backlog asociado fuera de `not_started`.
-- Auto-remove al borrar el backlog asociado (`ON DELETE CASCADE` en `Queues.backlogId`).
-- Unique `(user_id, backlog_id)`.
-- `position` sin huecos ni duplicados: toda salida de la queue (cambio de status fuera de `not_started`, borrado del backlog) renumera las restantes 1..n en la misma transacción, y el alta usa `MAX(position) + 1`. Las operaciones sobre la queue de un usuario se serializan con un advisory lock transaccional (`pg_advisory_xact_lock`).
-- `PATCH /users/me/queue/:backlogId/position` con `{ position }` mueve una sola entrada a esa posición (base 1) de la queue completa y desplaza las demás, en una transacción bajo el advisory lock; no depende de lo que el cliente tenga cargado, así que no pierde entradas ocultas por búsqueda o paginación. Una posición mayor que el tamaño de la queue se ajusta a la última; `position` no entero, menor que 1 o basura responde 422 `COMMON_SCHEMA_INVALID`; un backlog que no está en la queue del usuario (incluido el de otro usuario) responde 404 `QUEUE_BACKLOG_NOT_FOUND`. Devuelve la queue completa, como `PUT`.
-- `PUT /users/me/queue` reemplaza la queue entera (borra y recrea): solo es válido cuando el cliente envía el orden completo. Los movimientos individuales usan el `PATCH`.
-- `POST /users/me/queue/bulk` con `{ backlogIds }` admite `action=add` y `action=remove`, bajo el advisory lock. `add` agrega al final en el orden recibido; una run ya en la queue va a `succeeded` sin duplicarse, una run ajena o inexistente a `skipped` con `QUEUE_BACKLOG_NOT_FOUND` y una que no está en `not_started` con `QUEUE_BACKLOG_NOT_STARTED`; registra `queue_added` solo por las runs agregadas. `remove` renumera las restantes 1..n; una run que no estaba en la queue va a `skipped` con `QUEUE_BACKLOG_NOT_FOUND`. Ver [Acciones masivas](#acciones-masivas).
-- `GET /users/:username/queue` omite `backlog.notes` y `backlog.moodTags`, y excluye las entradas cuyo backlog es privado (`isPublic = false`); el filtro va en la consulta, así que `total` y la paginación cuentan solo lo visible. `position` se numera sobre lo visible (`offset + índice + 1`) para no revelar huecos; en la DB no cambia. La queue propia (`GET /users/me/queue`) devuelve todo y con su `position` real.
-
----
-
-## Wishlist
-
-- Apunta a `Game`. No requiere backlog previo.
-- Trackea plataforma deseada por entry.
-- Unique `(user_id, game_id)`.
-- Emite activity `wishlist_added` al añadir.
-
----
-
-## Favorites
-
-- Apunta a `Game`. No requiere backlog.
-- Unique `(user_id, game_id)`.
-- `POST /users/me/favorites/bulk` con `{ gameIds }` admite `action=add` y `action=remove`, serializadas por usuario con un advisory lock transaccional (`favorites:<userId>`). `add` agrega al final de las posiciones en el orden recibido; un juego ya favorito va a `succeeded` sin duplicarse y uno inexistente a `skipped` con `FAVORITE_GAMES_NOT_FOUND`; registra `favorite_added` solo por los juegos agregados. `remove` renumera las posiciones restantes 1..n; un juego que no era favorito va a `skipped` con `FAVORITE_GAMES_NOT_FOUND`. Ver [Acciones masivas](#acciones-masivas).
-
----
-
-## Platinos
-
-- Tabla `GamePlatinums`, un platino por usuario y juego: unique `(userId, gameId)`. Es independiente de `GameShelf`: el platino sigue aunque el usuario ya no tenga el juego.
-- Campos opcionales: `backlogId` (la run donde se consiguió), `platformId`, `platinumedAt` (fecha) y `notes` (recortadas, hasta 500 caracteres; vacías se guardan como `null`).
-- FKs: `userId` y `gameId` con `ON DELETE CASCADE`; `backlogId` con `ON DELETE SET NULL`, así que borrar la run deja el platino sin run; `platformId` sin `ON DELETE` (una plataforma con platinos responde `PLATFORM_IN_USE` al borrarla).
-- `PUT /users/me/games/:gameId/platinum` crea (201) o reemplaza (200) el platino completo: un campo omitido queda en `null`. Si llega `backlogId` sin `platformId`, se usa la plataforma de la run.
-- `backlogId` de una run inexistente o de otro usuario responde 404 `GAME_PLATINUM_BACKLOG_NOT_FOUND`; de una run propia de otro juego, 422 `GAME_PLATINUM_BACKLOG_GAME_MISMATCH`. Un juego inexistente o inactivo responde 404 `GAME_PLATINUM_GAME_NOT_FOUND`, y una plataforma inexistente, 422 `GAME_PLATINUM_PLATFORM_NOT_FOUND`.
-- `DELETE /users/me/games/:gameId/platinum` responde 204, o 404 `GAME_PLATINUM_NOT_FOUND` si no hay platino. La activity ya registrada no se borra.
-- La activity `game_platinumed` se registra solo al crear el platino, no al actualizarlo.
-- `POST /users/me/platinums/bulk?action=delete` con `{ gameIds }` borra los platinos del usuario para esos juegos, igual que el `DELETE` individual; un juego sin platino propio va a `skipped` con `GAME_PLATINUM_NOT_FOUND`. Se registra antes de `/users/:username/platinums`. Ver [Acciones masivas](#acciones-masivas).
-- `GET /users/:username/platinums` lista los platinos de un usuario, paginado con `limit` (1 a 100), `offset` y `search` opcional sobre el título del juego con las [reglas de búsqueda de texto](#reglas-de-búsqueda-de-texto). Orden: `platinumedAt` descendente con los platinos sin fecha al final, luego `createdAt` descendente e `id` de desempate. Cada entrada lleva el juego (`id`, `code`, `title`, `backgroundUrl`, `isDlc`) y la plataforma (`id`, `name`, `abbreviation`, o `null`); `total` cuenta lo que cumple el filtro. Exige `canView` de `profile` y de `platinum` (403 `USER_PRIVATE` si no) y responde 404 `USER_NOT_FOUND` para un usuario inexistente. Para otros viewers omite `notes` y pone `backlogId` en `null` si la run es privada; el dueño lo recibe completo.
-- `GET /users/me/platinums` lista los platinos del usuario autenticado con la misma paginación, búsqueda, orden y forma que `GET /users/:username/platinums`, sin chequeos de visibilidad y siempre con `notes` y `backlogId`. Se registra antes de `/users/:username/platinums` para que `me` no se tome como username.
-- Cada run de `GET /users/me/backlog` y `GET /users/:username/backlog` lleva `platinum` (el mismo objeto para todas las runs del juego, o `null`), cargado con una sola consulta por request; la ficha (`GET /games/:code`) lleva `userPlatinum` del usuario autenticado. Las demás respuestas que reutilizan el serializer del backlog (perfil, highlights, completions, alta y edición de runs) no cargan el platino y omiten la clave.
-- En el backlog público el platino exige poder ver el backlog y la sección `platinum` del dueño. Sin acceso a `platinum`, cada run lleva `platinum: null` y `platinumed_only` se ignora, para no revelar qué juegos están platinados. Con acceso, para otros viewers omite `notes` y pone `backlogId` en `null` si la run del platino es privada.
-- El filtro `platinumed_only` del backlog (también en saved filters) deja las runs de los juegos platinados por el dueño, todas y no solo la del platino.
-
----
-
-## Listas y list-items
-
-- Pública o privada (`isPublic`).
-- `scoreSource` y `durationSource` se declaran a nivel lista.
-- Los `ListItem` **no permiten valores custom** de score/duration. Solo lo que provee la fuente declarada.
-- `score`/`duration` se copian desde `GameScore`/`GameTime` al añadir.
-- `ratio` por item: `score / duration`. `null` si la fuente no tiene el dato.
-- Scores normalizados redondeados a 2 decimales.
-- `realDuration` y `personalRatio` por item se calculan con sticky-best: se toma el mejor backlog del usuario sobre ese juego.
-- `position` sin huecos y reordenable: quitar un item renumera los restantes 1..n en la misma transacción, conservando el orden. `(list_id, position)` tiene un índice no único, así que la unicidad la mantiene el service y no la base.
-- Si el creador edita o refresca una lista, todos los seguidores ven los cambios.
-- **Visibilidad de una lista de otro usuario:** quien no es el dueño la ve solo si cumple las tres condiciones a la vez: `canView(viewer, owner, "profile")`, `canView(viewer, owner, "list")` y `List.isPublic`. El dueño ve siempre todas las suyas. El orden de precedencia es perfil, luego sección de listas, luego `isPublic`. Seguir una lista (`ListFollower`) no salta la regla para leerla. Las listas oficiales (de un admin) siguen la misma regla.
-- La regla vive en `visibleListsCondition(viewerId)` (SQL, para consultas) y en `canViewList(viewerId, owner, list)` (en memoria, cuando el dueño ya está cargado), ambas en `apps/api/src/users/helpers/visibility.helper.ts`. Los listados agregados (`GET /lists/recent`, `GET /lists/official`, `GET /lists/search`, `GET /games/:id/lists`, `GET /users/:username/following-lists`) filtran en la consulta, así que `limit`, `total` y la paginación cuentan solo lo visible.
-- Una lista que existe pero que quien pide no puede ver (por `listVisibility` o por `isPublic`) responde igual que una inexistente: 404 `LIST_NOT_FOUND`, para no revelar su existencia. Esto aplica a `GET /lists/:listId` y a `GET /users/:username/lists/:listId`; en el segundo, `USER_NOT_FOUND` queda solo para un usuario inexistente y `USER_PRIVATE` (403) para un perfil no visible.
-- `GET /lists/:listId/followers` aplica la misma regla: una lista que quien pide no puede ver responde 404 `LIST_FOLLOWER_LIST_NOT_FOUND`, indistinguible de una inexistente. `POST /lists/:listId/follow` sobre una lista pública que quien pide no puede ver responde también 404 `LIST_FOLLOWER_LIST_NOT_FOUND`; sobre una privada sigue respondiendo 403 `LIST_FOLLOWER_NOT_PUBLIC`.
-- `POST /lists/:listId/duplicate` sobre la lista pública de otro usuario que quien pide no puede ver responde 404 `LIST_NOT_FOUND`; sobre una privada ajena sigue respondiendo 403 `LIST_FORBIDDEN`.
-- `GET /users/:username/following-lists` y `GET /lists/following` excluyen las listas que quien pide no puede ver según la regla, incluso las que sigue él mismo. El listado público del perfil excluye además los follows con `ListFollower.isVisible = false`. Ambos filtros van en la consulta, así que `total` y la paginación cuentan solo lo visible.
-- `GET /users/:username/lists` exige `canView(..., "profile")` y `canView(..., "list")`; si alguna falla responde 403 `USER_PRIVATE`.
-- `GET /users/:username/lists` y `GET /users/:username/following-lists` paginan de forma opcional en la consulta: `limit` entero entre 1 y 100, `offset` desde 0 y `search` opcional de 1 a 100 caracteres sobre el nombre de la lista con las [reglas de búsqueda de texto](#reglas-de-búsqueda-de-texto) (un `search` sin letras ni dígitos no filtra). Sin `limit` devuelven la colección completa. `total` cuenta todo lo que cumple la visibilidad y el filtro, sin paginar, y un `offset` fuera de rango devuelve una página vacía con ese `total`. Orden: `createdAt` descendente con `id` descendente de desempate (de la lista en la primera, del follow en la segunda). Cualquier otro valor o parámetro desconocido responde 422 `COMMON_SCHEMA_INVALID`. `following-lists` exige solo `canView(..., "profile")`: la sección de listas del dueño del perfil no aplica.
-- Refrescar items reaplica score/duration desde la fuente declarada.
-- `PUT /games/:gameId/lists` fija en una sola transacción el conjunto de listas propias que contienen el juego: añade el juego (al final, congelando score y duración de la fuente de cada lista) a las que faltan y lo quita de las propias que sobran (renumerando posiciones). Una lista ajena responde 403 `LIST_ITEM_FORBIDDEN`, una inexistente o un juego inexistente 404, y un free sobre el límite de listas recibe 402 `LIST_ITEM_FROZEN` solo si hay que añadir a alguna lista (quitar sigue permitido). Si algo falla no se aplica ningún cambio.
-- `GET /lists/recent` y `GET /lists/official` aceptan `limit` entero entre 1 y 50 (por defecto 12); cualquier otro valor o parámetro desconocido responde 422 `COMMON_SCHEMA_INVALID`.
-
----
-
-## Saved filters
-
-- `isDefault`: solo una vista puede tenerlo en `true` por usuario. Setearla resetea las demás.
-- `showInBacklog`: bandera para mostrar la vista en el listado lateral del backlog.
-- Las vistas guardan filtros como JSONB; cualquier usuario puede construir la URL con query params equivalente y guardarla como bookmark del navegador.
-- `filters` se valida al crear y al editar con `BacklogQuerySchema` (el mismo de `GET /users/me/backlog`); un valor inválido responde 422 `COMMON_SCHEMA_INVALID`.
-- `GET /users/me/saved-filters/:filterId/stats` sobre un filtro que ya estaba guardado con filtros que hoy no pasan el schema responde 422 `SAVED_FILTER_VALIDATION_ERROR`.
-
----
-
-## Co-op
-
-- Etiquetar a un usuario que ya es miembro del run responde 422 `COOP_ALREADY_TAGGED`, con o sin `targetBacklogId`.
-- `GET /users/me/backlog/:backlogId/coop` solo lo puede leer el dueño del backlog o un miembro de su run; cualquier otro recibe 403 `COOP_FORBIDDEN`. Un `backlogId` inexistente responde 404 `COOP_BACKLOG_NOT_FOUND`.
-
----
-
-## Reviews
-
-- Una review por `(user, game)`.
-- Solo se cuentan en contadores las reviews con `content` no vacío. Las rating-only son visibles pero no suman al "reviews count".
-- Activity `game_reviewed` se emite tanto en create como en edit.
-- La review expone `playthroughDuration` derivada del último backlog completado del autor sobre el juego.
-
----
-
-## Scores y duraciones
-
-### Tres niveles
-
-- **`GameScore` + `GameTime` (catálogo global):** un registro por `(game_id, source)`. Tablas separadas para evitar nulls; cada una con UUID propio. `GameScore` guarda la nota cruda en la escala de su fuente; `GameTime` guarda horas. Las fuentes de duración son un enum fijo (`TIME_SOURCES`: hltb, rawg, completr).
-- **`GameShelf` (del usuario):** copia editable elegida por el usuario. Determina el ratio en su backlog.
-- **`ListItem` (congelado en lista):** copiado desde la fuente declarada por la lista al añadir el juego. No editable manualmente — solo vía refresh o cambio de fuente.
-
-`Game` no tiene `averageScore` ni `averagePlaytime`: los puntajes viven en `GameScore` y las duraciones en `GameTime`.
-
-### Catálogo de fuentes de score
-
-- Las fuentes de score son registros de `ScoreSources` (`code` único, `name`, `scale`, `priority`). No hay lista fija en el código: cualquier fuente creada con `POST /score-sources` se puede usar en `GameScore` y como `scoreSource` de una lista.
-- `GameScores.source` y `Lists.scoreSource` tienen FK a `ScoreSources.code` con `ON UPDATE CASCADE` y `ON DELETE RESTRICT`: no se puede borrar una fuente en uso.
-- Una fuente inexistente responde 422 (`GAME_SCORE_SOURCE_NOT_FOUND` en game-scores y games, `LIST_SCORE_SOURCE_NOT_FOUND` en lists).
-- `scale` es el máximo de la fuente. Normalizar a 0–5: `score / scale * 5`, redondeado a 2 decimales.
-- `priority` (menor gana, default 100) decide qué fuente manda cuando un juego tiene varias: orden canónico de `/games` y precarga del Critic Score en el modal del backlog.
-- `completr` es la fuente propia del sistema (`COMPLETR_SCORE_SOURCE`): la escribe solo el job `calculate-ratings`; la API de carga manual la rechaza.
-- La migración `change-score-sources-to-catalog` siembra completr (5), metacritic (100), opencritic (100) y rawg (5) sin pisar registros existentes.
-- La migración `add-igdb-score-source` siembra igdb (escala 100, priority 5) sin pisar un registro existente. Su `down` pasa a `completr` las listas que usaban `igdb` y borra los `GameScore` `igdb` antes de quitar la fuente.
-- Al importar desde RAWG, las notas de fuentes que no están en el catálogo se omiten con un warning en el log; el juego se importa igual.
-
-### Precarga al crear un backlog
-
-- Score: precarga la nota de la fuente con menor `priority` que tenga el juego, normalizada a 0–5.
-- Duration: precarga desde `GameTime.source = "hltb"` si existe.
-- El usuario puede sobrescribir antes de guardar.
-
-### Reemplazo en bloque
-
-- `PUT /games/:gameId/scores` y `PUT /games/:gameId/times` reemplazan en una transacción el conjunto completo de scores manuales o duraciones manuales (`hltb`, `rawg`) de un juego: upsert de lo enviado y borrado de lo que no viene. La fuente calculada `completr` nunca se envía ni se borra. Juego inexistente responde 404 `GAME_SCORE_GAME_NOT_FOUND` o `GAME_TIME_GAME_NOT_FOUND`; una fuente de score fuera del catálogo, 422 `GAME_SCORE_SOURCE_NOT_FOUND`. Si algo falla no se aplica nada.
-
-### Rangos válidos
-
-- `GameScore.score` va de 0 a la `scale` de su fuente, ambos inclusive. El mínimo lo valida el schema (negativo responde 422 `COMMON_SCHEMA_INVALID`); el máximo depende de la fuente y lo valida el service (por encima de la `scale` responde 422 `GAME_SCORE_OUT_OF_RANGE`). Aplica a `POST /game-scores`, `PATCH /game-scores/:gameId/:source` `PUT /games/:gameId/scores` y `POST /games` (con score 0 aceptado).
-- `GameTime.duration` es mayor que 0 (cero o negativo responde 422 `COMMON_SCHEMA_INVALID`). Aplica a `POST /game-times`, `PATCH /game-times/:gameId/:source` y `PUT /games/:gameId/times`.
-
-### Géneros y plataformas
-
-- El `code` de un género se genera del nombre con `slugify`. Un nombre que no produce slug (por ejemplo `!!!`) responde 400 `GENRE_VALIDATION_ERROR` al crear y al renombrar.
-- Renombrar un género a un nombre o code ya existente responde 409 `GENRE_UNIQUE_CONSTRAINT`.
-- Borrar un género o una plataforma inexistente responde 404 `GENRE_NOT_FOUND` / `PLATFORM_NOT_FOUND`.
-
-### Edición y borrado de juegos
-
-- `PATCH /games/:id` es atómico: el update del juego y el reemplazo de plataformas, géneros y external ids van en una sola transacción. Si un paso falla no se aplica ninguno.
-- `PATCH /games/:id` desvincula un DLC de su padre con `parentGameId: null`; si lo omite, el padre se conserva. Con `isDlc: false` el padre se limpia siempre, aunque el body repita `parentGameId`: un juego que no es DLC no tiene padre. Un juego no puede ser su propio padre (400 `GAME_VALIDATION_ERROR`) y un `parentGameId` inexistente responde 422 `COMMON_REFERENCE_NOT_FOUND`.
-- `POST /games/:id/split` guarda títulos y etiquetas recortados y responde 400 `GAME_SPLIT_INVALID` si dos títulos dan el mismo code, si un título no produce code, si una etiqueta queda vacía o si dos etiquetas coinciden sin distinguir mayúsculas ni espacios: la etiqueta es lo único que distingue a variantes que comparten external id.
-- Un external id repetido para el mismo juego y fuente responde 409 `GAME_EXTERNAL_ALREADY_EXISTS`; un external id inexistente, 404 `GAME_EXTERNAL_NOT_FOUND`.
-- `DELETE /games/:id` sin `hard` desactiva el juego (`isActive = false`) y no toca sus datos.
-- `DELETE /games/:id?hard=true` (solo admin) borra el juego y sus datos de catálogo (plataformas, géneros, scores, times, external ids, popularidad e items de compilation). Antes de borrar, dentro de una transacción, comprueba con consultas explícitas que ningún usuario lo referencia: backlog (también como `compilationGameId`, y por tanto su queue), game-shelf, list-items, favoritos, wishlist, reviews, coop runs, mood tags por juego, platinos y actividad; y que no tiene variantes ni DLCs (`parentGameId`). Si lo está responde 409 `GAME_IN_USE` y no se borra nada; el `ON DELETE` de las FKs no se usa como control. Los reports del juego no cuentan como uso y se borran con él.
-
-### Sagas
-
-- Una saga siempre tiene juegos: `POST /franchises` exige `gameIds` con al menos un id, y `PATCH /franchises/:id` acepta `gameIds` opcional pero nunca vacío (422 `COMMON_SCHEMA_INVALID`). `gameIds` es el conjunto final de juegos de la saga: la saga y los vínculos se aplican en una sola transacción: los juegos listados quedan con ese `franchiseId` y los que la saga tenía y no aparecen se desvinculan (`franchiseId = null`). Si algún id no existe responde 404 `FRANCHISE_GAMES_NOT_FOUND` y no se aplica nada. Sin `gameIds` los juegos no se tocan.
-- Crear, editar y borrar sagas requiere rol `moderator` o `admin`. Un usuario solo puede seguirlas (`POST` / `DELETE /franchises/:code/track`).
-- `GET /franchises` y `GET /franchises/:code` aceptan visitantes (auth opcional; un token inválido cuenta como visitante). Ninguna respuesta de sagas incluye progreso personal: el conteo es `gameCount`, los juegos activos de la saga.
-- `GET /users/:username/franchises` exige `canView` de `profile` y de `franchise` (403 `USER_PRIVATE`); la visibilidad del backlog no aplica.
-- `GET /franchises` incluye en cada saga `previewGames`: hasta 4 juegos activos ordenados por fecha de lanzamiento (desempate por id), e `isTracked` del visitante (`false` sin sesión).
-
-### Datos crudos
-
-- RAWG rating se almacena en escala 0–5; no se normaliza al persistir.
-- La normalización a escala 100 ocurre al calcular ratios.
-
-### Jobs de actualización masiva
-
-- Solo `admin` puede dispararlos.
-- `DELETE /admin/jobs/:jobId` valida que `jobId` sea un UUID: otro valor responde 422 `COMMON_SCHEMA_INVALID`.
-- Los jobs corren dentro del proceso de la API. Al arrancar, antes de escuchar (`failInterruptedJobs` en `jobs/jobs.service.ts`, llamado desde `app.ts`), todo job en `pending` o `running` pasa a `failed` con `result` `Interrupted: the API restarted before the job finished` y `completedAt`: un reinicio o un deploy a mitad de corrida lo mató, y sin esto quedaría activo para siempre y bloquearía nuevos jobs de su tipo, porque `startJob` devuelve el que ya está activo. Supone una sola instancia de la API: con varias, una que arranca marcaría como fallidos los jobs de otra.
-- `calculate-ratings` y `calculate-durations` exigen mínimo del **10% de usuarios** con dato para emitir score Completr.
-
-### Datos externos: Metacritic, HowLongToBeat, IGDB y Wikidata
-
-- Las fuentes externas son `EXTERNAL_DATA_SOURCES` (`metacritic`, `hltb`, `igdb`, en `games/games.constants.ts`): las dos primeras por scraping y `igdb` por su API. Que una fuente exista en `ScoreSources` o en `TIME_SOURCES` no implica que tenga provider. Las implementaciones se conectan con `registerExternalDataSources` (`games/services/external-data-sources.service.ts`); una fuente sin registrar da resultado `failed` con `errorCode` `SOURCE_UNAVAILABLE`.
-- A los sitios con scraping solo se les piden páginas de detalle, nunca búsquedas: Metacritic por slug y HowLongToBeat por id. Las que buscan son APIs de consultas: Wikidata, para descubrir el id de HowLongToBeat, e IGDB, por título.
-- `POST /games/:id/external-data/refresh` (moderador o admin) refresca las fuentes pedidas aunque ya tengan valor. `sources` es obligatorio, sin repetidos y con al menos un valor de `EXTERNAL_DATA_SOURCES` (otro caso: 422 `COMMON_SCHEMA_INVALID`). Juego inexistente o inactivo: 404 `GAME_NOT_FOUND`. Responde 200 con el juego recargado y un resultado por fuente en el orden pedido, también cuando alguna falla. Registra la auditoría `game_external_data_refreshed` sobre el juego.
-- **Plazo del refresco individual:** `POST /games/:id/external-data/refresh` pide a los providers con prioridad interactiva y tiene un plazo total de 45 s (`EXTERNAL_DATA_REFRESH_DEADLINE_MS` en `games/games.constants.ts`), por debajo del `proxy_read_timeout` de 60 s del nginx de producción y de los 100 s de Cloudflare, con margen para recargar el juego y serializar la respuesta. Sin plazo, un refresco que espera detrás del job o de la cola de importación y suma reintentos puede pasar de 60 s: el proxy corta la conexión y el cliente ve un error genérico mientras el servidor sigue trabajando. Al vencer, se aborta la request en curso y cada fuente no terminada queda `failed` con `errorCode` `EXTERNAL_DATA_DEADLINE_EXCEEDED`; el endpoint responde 200 con el juego recargado y los resultados que sí terminaron. Después del abort no se escribe nada: cada escritura (external id, score, time) comprueba antes el plazo, y la respuesta de un provider que llega tarde se descarta. El job `populate_external_data` y el enriquecimiento al importar usan la misma lógica sin plazo y en prioridad de fondo. El plazo y el temporizador se reemplazan con `registerExternalDataRefreshTimer` (`games/services/external-data-sources.service.ts`) para los tests.
-- Estado de cada resultado: `updated` (se obtuvo y guardó el dato), `not_found` (la fuente no conoce el juego o no hay id de HLTB), `ambiguous` (el match no es seguro), `no_data` (hubo match pero falta la métrica) o `failed` (la request o el parsing fallaron; `errorCode` lleva el código del provider, o `null` si el error no trae código). Un error del provider se clasifica por el sufijo de su código: `_NOT_FOUND` es `not_found`; cualquier otro, `failed`.
-- `not_found`, `ambiguous`, `no_data` y `failed` nunca borran ni pisan valores guardados. Una fuente puede actualizarse aunque la otra falle. No se tocan `GameShelf` ni `ListItem`.
-- **Metacritic, match:** con un `GameExternal` `metacritic` se pide ese slug y se confía en él, sin revisar título ni año. Sin él, el slug se deriva del título (minúsculas, sin acentos ni apóstrofes, `&` y todo lo no alfanumérico como `-`, guiones colapsados y recortados); con `variant` se prueba primero `título + variante` y después el título solo, como máximo dos requests. La primera página encontrada decide: si su título normalizado (minúsculas, sin acentos ni puntuación, espacios colapsados; los números romanos no se convierten) no coincide con el del candidato es `not_found`; si coincide pero ambos años se conocen y difieren en más de uno es `ambiguous`. Solo un match confirmado guarda el `GameExternal` (upsert), aunque la página no tenga puntuación.
-- **Metacritic, puntuación:** `max(metaScore, userScore × 10)` entre las disponibles, redondeado a entero, se guarda como `GameScore` `metacritic` (escala 100). Un valor fuera de su escala (0–100 y 0–10) cuenta como ausente. Sin ninguna, `no_data`.
-- **HowLongToBeat, id:** con un `GameExternal` `hltb` se pide ese id y no se consulta Wikidata. Sin él, el id lo resuelve el `hltbIdResolver` registrado (Wikidata) con una consulta por `Game.code` como slug de RAWG y por título exacto (`games/utils/resolve-hltb-id.util.ts`): si algún candidato coincide por slug y todos los que coinciden comparten el mismo id, se usa ese; si no, se filtran los candidatos cuya etiqueta normalizada (igual que el título de Metacritic) es la del juego y cuyo año, cuando ambos se conocen, está a uno o menos. Un id distinto se usa; más de uno es `ambiguous`; ninguno es `not_found`. En ambos casos sin llamar a HLTB. Con el id resuelto se pide la página; si se resolvió por etiqueta y el título normalizado de la página no coincide con el del juego es `ambiguous`. El `GameExternal` `hltb` se guarda (upsert) solo después de obtener y validar la página, también cuando el resultado es `no_data`. Un error de Wikidata es `failed` con su código `WIKIDATA_*`. Sin resolver registrado, un juego sin id es `not_found` sin llamar al provider.
-- **HowLongToBeat, duración:** se guarda solo Main Story como `GameTime` `hltb`, en horas; nulo, cero o negativo es `no_data` y nunca se sustituye por Main + Extras ni Completionist.
-- **IGDB, match:** con un `GameExternal` `igdb` se pide ese id y se confía en él, sin revisar título ni año; un id guardado que no son solo dígitos es `not_found` sin llamar a IGDB. Sin él, se prueba `Game.code` como slug de IGDB; si existe y su título normalizado (igual que el de Metacritic) y su año coinciden, es el match. Si no, se busca por el título del juego (hasta 10 resultados, `IGDB_SEARCH_LIMIT`) y se quedan los resultados con id entero positivo, el mismo título normalizado y, cuando ambos años se conocen, a uno o menos (el año sale de `first_release_date`, en UTC). Los repetidos con el mismo id cuentan como uno. Un resultado es el match; más de uno es `ambiguous`; ninguno es `not_found`. Un título que normalizado queda vacío es `not_found` sin llamar a IGDB. Solo un match confirmado guarda el `GameExternal` `igdb` (upsert, con el id numérico como texto), también cuando el resultado es `no_data`.
-- **IGDB, puntuación:** `rating` (nota de usuarios de IGDB, escala 0–100) redondeado al entero más cercano se guarda como `GameScore` `igdb` (escala 100; la fuente tiene que existir en `ScoreSources`). Ausente, no numérico, cero o menor, mayor que 100, o que redondeado queda en 0 es `no_data` y conserva el score anterior.
-- **IGDB, ritmo:** IGDB admite 4 requests por segundo. Todas sus requests, del refresco individual, del job y de la cola de importación, pasan por un mismo turnero en memoria que deja al menos 275 ms entre el inicio de una y el de la siguiente (`IGDB_MIN_REQUEST_INTERVAL_MS`); las concurrentes toman turnos consecutivos. La espera respeta el plazo del refresco individual: si vence esperando turno, la fuente queda `EXTERNAL_DATA_DEADLINE_EXCEEDED` sin llamar a IGDB. Como el throttle de los scrapers, cubre una sola instancia de la API. Los tests lo reemplazan con `registerIgdbRequestPacer`.
-- **Job `populate_external_data`** (`POST /admin/jobs/populate-external-data?limit=`, solo admin): `limit` opcional, entero positivo (otro valor o un parámetro desconocido: 422 `COMMON_SCHEMA_INVALID`). Metacritic y HLTB son obligatorias (`REQUIRED_EXTERNAL_DATA_SOURCES`): si alguna no está registrada responde 503 `GAME_EXTERNAL_DATA_SOURCE_UNAVAILABLE` y no crea el job. IGDB es opcional: sin fuente `igdb` registrada (por ejemplo, sin credenciales) el job corre igual con las otras dos, no la consulta y su informe no tiene las partes de IGDB. Candidatos: juegos activos sin score `metacritic`, sin time `hltb` o, si IGDB está registrada, sin score `igdb`; en cada uno se consultan solo las fuentes ausentes que no estén en espera (ver intentos recientes, abajo) y los external ids no excluyen a nadie. Un juego con todas sus fuentes ausentes en espera no es candidato y se cuenta aparte. Procesa primero los juegos sin ningún intento registrado en sus fuentes pendientes y después por el intento más antiguo, con el título como desempate; de a un juego, guardando cada valor apenas lo obtiene, y revisa la cancelación antes de cada uno; un job cancelado queda `cancelled` con su resultado parcial. Sigue ante `not_found`, `ambiguous` y `no_data`. Se detiene como `failed`, conservando lo guardado, ante un `failed` con código `_RATE_LIMITED`, `_BLOCKED` o `_PARSE_ERROR`, o con `IGDB_AUTH_ERROR` o `IGDB_DISABLED` (las credenciales de IGDB faltan o no sirven, así que fallaría con todos los juegos), ante un error de base de datos, o cuando una misma fuente acumula tres `failed` seguidos de otro tipo (`_TIMEOUT`, `_REQUEST_ERROR` o desconocido). Los errores de Wikidata cuentan como `failed` de la fuente `hltb`, pero no detienen el job ni suman a la racha de `hltb`: pausan la búsqueda de ids de HLTB por el resto de la corrida. La pausa llega con `WIKIDATA_RATE_LIMITED`, `WIKIDATA_BLOCKED` o `WIKIDATA_PARSE_ERROR`, o con tres `WIKIDATA_TIMEOUT` o `WIKIDATA_REQUEST_ERROR` seguidos (la racha se reinicia con cualquier resultado de `hltb` que no sea `failed`). Desde entonces, los juegos sin id de HLTB no consultan esa fuente (`refreshExternalDataForGame` con `resolveHltbId: false` devuelve `failed` con `HLTB_ID_LOOKUP_PAUSED`, que el job cuenta aparte y no como `failed`); los que ya tienen id siguen leyendo HLTB, y Metacritic sigue igual. Su `result` informa candidatos, procesados, scores de Metacritic, duraciones de HLTB y, si IGDB está registrada, scores de IGDB actualizados (`IGDB scores updated`), juegos omitidos por estar completos, juegos omitidos por intentos recientes (`Skipped recently attempted`), not found, ambiguous, no data y failed por fuente (Metacritic, HLTB e IGDB si está registrada, en ese orden), y el motivo de detención (`Stopped: <código>`). Si la búsqueda de ids se pausó, agrega `HLTB ID lookup paused: <motivo>, HLTB skipped without ID: <n>`. Cuando el sitio respondió un status HTTP o un `Retry-After`, el motivo los incluye: `WIKIDATA_RATE_LIMITED (HTTP 429, Retry-After 900 s)`. La detención y la pausa también quedan en el log como warning. Mientras corre, el `result` muestra ese mismo informe parcial con el prefijo `Running.`: se escribe al encontrar los candidatos y después de cada juego, solo si el job sigue en `running`, así que no pisa el de un job cancelado.
-- **Intentos recientes** (tabla `ExternalDataAttempts`, módulo `external-data-attempts/`): una fila por juego y fuente (índice único `("gameId", source)`, `ON DELETE CASCADE` desde `Games`) con `source` (`enum_ExternalDataAttempts_source`: `metacritic`, `hltb`, `igdb`), `status` (`enum_ExternalDataAttempts_status`: `not_found`, `ambiguous`, `no_data`, `failed`) y `attemptedAt`. `refreshExternalDataForGame` la actualiza tras cada fuente, así que la escriben el job, el refresco individual y el enriquecimiento al importar: `updated` borra la fila; `not_found`, `ambiguous`, `no_data` y `failed` la crean o pisan con la hora actual. No se registran los `failed` que no dependen del juego: códigos con sufijo `_RATE_LIMITED`, `_BLOCKED` o `_PARSE_ERROR`, los de Wikidata (`WIKIDATA_*`), `IGDB_AUTH_ERROR`, `IGDB_DISABLED`, `HLTB_ID_LOOKUP_PAUSED`, `EXTERNAL_DATA_DEADLINE_EXCEEDED` y `SOURCE_UNAVAILABLE`. El job salta una fuente mientras su intento esté en espera: 30 días para `not_found` y `ambiguous`, 7 para `no_data` y `failed` (`EXTERNAL_DATA_RETRY_COOLDOWN_MS` en `games/games.constants.ts`). El refresco individual no respeta la espera.
-- **Enriquecimiento al importar desde la búsqueda** (`games/services/games-import-enrichment.service.ts`): `GET /games/search` encola los juegos que acaba de importar desde RAWG (`justImported`) y responde sin esperar; los que ya existían, encontrados en local o ya vinculados a su id de RAWG, no se encolan. Un único procesador en memoria toma los juegos de a uno en orden de llegada, recarga el juego activo (inactivo o inexistente se salta) y consulta solo las fuentes ausentes, igual que `populate_external_data` (sin score `metacritic`, sin time `hltb` y, si IGDB está registrada, sin score `igdb`), y entre ellas solo las registradas; si no falta ninguna, no llama a nadie. Sin ninguna fuente registrada no encola nada. Un juego en cola o en proceso no se vuelve a encolar. La cola admite hasta 50 juegos pendientes (`IMPORT_ENRICHMENT_QUEUE_CAPACITY`); el exceso se descarta con un warning en el log. Un resultado `failed` con código `_RATE_LIMITED` o `_BLOCKED` (también los de Wikidata e `IGDB_RATE_LIMITED`) vacía la cola y la pausa 10 minutos (`IMPORT_ENRICHMENT_PAUSE_MS`), durante los cuales los juegos importados se ignoran con un warning; los demás fallos se registran en el log y la cola sigue con el siguiente. Ningún error del procesador llega a la búsqueda. No registra auditoría. Lo pendiente vive en memoria y se pierde al reiniciar la API; lo recupera el job `populate_external_data`.
-
-| Código                                  | Status | Cuándo                                                                   |
-| --------------------------------------- | ------ | ------------------------------------------------------------------------ |
-| `GAME_EXTERNAL_DATA_SOURCE_UNAVAILABLE` | 503    | Se inicia `populate_external_data` sin Metacritic o sin HLTB registradas |
-
----
-
-## Ratio
-
-Fórmulas y comportamiento en bordes.
-
-- `ratio = GameShelf.score / GameShelf.duration` — escala 0–100, 2 decimales, `null` si falta alguno.
-- `personalRatio = GameShelf.score / Backlog.realDuration` — desde el backlog completado con `realDuration`. Si hay varios, se elige el primero o el mejor.
-- En `ListItem`, el ratio es `null` cuando la fuente declarada por la lista no tiene score o duration para ese juego.
-- Las stats agregadas del backlog (`avgRatio`, `avgPersonalRatio` y el `value` de `bestPersonalRatio`) usan la misma escala 0–100 y 2 decimales que `ratio` y `personalRatio`. El multiplicador sale de `RATIO_SCORE_MULTIPLIER` en `calculate-ratio.util.ts`.
-- `highlights.month` del perfil expone `longestPlayed` (mayor `realDuration`), `bestPersonalRatio` (mayor `personalRatio` entre las completadas con `realDuration` mayor que 0 y `score`) y `highestRated` (mayor `userRating`). Cada uno es `null` si ninguna entrada del mes califica.
-
----
-
-## Rewind
-
-Resumen anual de un usuario. Las cifras base (totales, highlights, juegos terminados) se calculan al vuelo a partir de sus runs y platinos, con la privacidad de quien mira; lo que se guarda es la activación de cada año en la tabla `Rewinds`. Vive en `apps/api/src/rewind/`: las consultas en `rewind.service.ts` (pide las runs a `backlog.service`, los géneros a `game-genre.service` y los platinos a `game-platinum.service`) y los cálculos, sin base de datos, en `utils/`, con la fecha de hoy como parámetro. El resumen con IA y las estadísticas premium se calculan en `apps/api/src/rewind-recap/`.
-
-- **Tabla `Rewinds`:** una fila por usuario y año (índice único `("userId", year)`, `ON DELETE CASCADE` desde `Users`). Columnas: `language` (`enum_Rewinds_language`: `en`, `es`), `includesPrivateRuns` (default `false`), `includesNotes` (default `false`, migración `add-includesnotes-to-rewinds`), `generatedAt`, `regenerationsUsed` (default 0), `graceUsed` (default `false`), `aiRecap` (JSONB, nullable), `aiRecapStatus` (`enum_Rewinds_aiRecapStatus`: `none`, `pending`, `ready`, `failed`; default `none`), `aiRecapRequestedAt`, `premiumStats` (JSONB, nullable) y `premiumAccessKind` (`enum_Rewinds_premiumAccessKind`: `premium`, `gift`; nullable, migración `add-premiumaccesskind-to-rewinds`; las filas anteriores quedan en `null`).
-- **Activación:** un año abierto y con datos no lo ve nadie más que el dueño hasta que este lo genera con `POST /users/me/rewinds/:year`. Sin fila, el visitante no lo ve en `years` ni en `otherYears`, `spotlightYear` es `null` para él y el detalle le responde 404 `REWIND_NOT_FOUND`; el dueño lo ve en la lista con `isGenerated: false` y el detalle le responde 404 `REWIND_NOT_GENERATED`.
-- **Generar:** requiere sesión (cualquier rol) y `rewindGenerationLimiter` (5 cada 10 minutos, en `rewind/rewind-rate-limiter.config.ts`, compartido con `ai-recap`). Body estricto: `language` (`en` / `es`), `includePrivateRuns` (boolean), `includeNotes` (boolean) y `expectedGeneratedAt` (fecha ISO o `null`); otro valor o un campo extra responde 422 `COMMON_SCHEMA_INVALID`. El año tiene que estar abierto y tener datos para el dueño contando todas sus runs (públicas y privadas); si no, 404 `REWIND_NOT_FOUND`.
-- **Regeneraciones:** sin fila y `expectedGeneratedAt: null` crea la fila (201). Con fila, `expectedGeneratedAt` igual al `generatedAt` guardado regenera (200): del 1 al 7 de enero (UTC) de `year + 1` se gasta primero la gracia (`graceUsed`), que no consume la normal; si no, `regenerationsUsed` sube de 0 a 1 (`REWIND_REGENERATION_LIMIT = 1` en `rewind.constants.ts`). Sin regeneraciones, 409 `REWIND_REGENERATION_LIMIT`. Cada regeneración reemplaza `language`, `includesPrivateRuns`, `includesNotes` y `generatedAt`, que siempre avanza.
-- **Concurrencia:** el `expectedGeneratedAt` que no coincide (incluido `null` con fila, o no `null` sin fila) responde 409 `REWIND_GENERATION_CONFLICT` y no gasta nada. Los contadores se cambian con la fila bloqueada (`SELECT ... FOR UPDATE`) y la primera generación se apoya en el índice único, así que de dos POST simultáneos con el mismo `expectedGeneratedAt` gana exactamente uno. La IA nunca se llama dentro de la transacción.
-- **Resumen con IA y estadísticas premium:** solo si `resolvePremiumAccess(owner, "rewind.premium")` permite el acceso al generar, ya sea por rol, premium completo temporal o regalo específico. Al generar, la fila queda `pending` con `aiRecapRequestedAt`; después se calculan `premiumStats` y el resumen con las runs de origen: todas las del dueño con `includesPrivateRuns`, solo las públicas sin él (también para las runs agregadas por mes). Las runs agregadas por mes (`backlogService.countRunsAddedByMonth`, base de `backlogFlow`) dejan fuera las creadas el primer día de la biblioteca, el día de la entrada más antigua del usuario (UTC): ese día suele ser la importación inicial, que si no inflaría el gráfico con cientos de "agregados" de golpe. Los platinos de la entrada solo se incluyen con `includesPrivateRuns` o si `platinumVisibility` es `public`. Con `includesNotes`, la consulta de esas mismas runs trae también `notes` (sin `includesPrivateRuns`, solo las de las runs públicas); sin él, `notes` no se lee. Las notas solo llegan a la IA: no cambian las cifras en vivo ni las `premiumStats` y ninguna respuesta las devuelve. Éxito → `ready`; error → `failed` y se registra en el log solo el id, el año, el código del error y, si la salida no pasó la validación, los motivos de zod (rutas y límites, nunca el texto del modelo); la generación igual responde 201/200. El resultado se guarda solo si la fila sigue `pending` con el mismo `aiRecapRequestedAt`, así que una respuesta vieja de la IA no pisa una generación más nueva. Un dueño sin acceso no llama a la IA y conserva el `aiRecap` y las `premiumStats` previos: perder premium nunca borra datos.
-- **Acceso en respuestas:** `GET /users/:username/rewinds` y `GET /users/:username/rewinds/:year` incluyen `premiumAccess: { allowed, source, expiresAt }` calculado con `rewind.premium` solo cuando quien mira es el dueño; a cualquier otro (anónimo o con sesión) le llega `premiumAccess: null` y ni siquiera se resuelve, así nadie ve si el dueño está en una prueba ni hasta cuándo. El listado lo usa el diálogo de la primera generación y el detalle las acciones del dueño.
-- **Tipo de acceso guardado (`premiumAccessKind`):** dice con qué acceso se generó la parte premium guardada y es lo que usa el distintivo de las secciones premium, igual para todos los que miran. Se fija al escribir el `aiRecap` o las `premiumStats` (generar, regenerar con acceso o `POST .../ai-recap`, también cuando la IA falla pero las `premiumStats` se guardaron) con `resolveRewindPremiumAccessKind` (`utils/resolve-rewind-premium-access-kind.util.ts`): `gift` si el acceso vino de una concesión de la feature (`feature-grant`), `premium` si vino del rol o de una concesión `*`. Una regeneración sin acceso lo conserva si sigue habiendo contenido premium (`hasPremiumContent`) y lo pone en `null` si no. Como se guarda con el contenido, sigue correcto cuando el regalo vence; `null` no muestra distintivo. El contenido ya generado se sirve a visitantes autorizados aunque ellos no tengan premium y permanece visible cuando el dueño pierde el acceso. Ninguna migración siembra acceso a Rewind; las promociones se definen desde Admin y no cambian los límites de generación.
-- **Entrada de la IA** (`rewind-recap/utils/build-rewind-recap-content.util.ts`): una tabla de hasta 200 runs activas en el año (primero las cerradas en el año), con todo ya calculado: `franchise` (nombres de las sagas del juego unidos con `/`, o `null`; los da `franchises.service.findFranchisesByGameIds`), `realHours` (`realDuration`) y `estimatedHours` (`duration`, la estimación de HowLongToBeat), `paceVsEstimate` (`realHours / estimatedHours` con 2 decimales; `null` si falta alguna o no es mayor que 0), `ratingVsCritics`, `daysInBacklog` (días entre el `createdAt` de la run y `startedAt`; `null` sin `startedAt` o si la run se agregó después de empezarla, porque entonces `createdAt` no dice cuánto esperó: es historial cargado a posteriori) y `daysToFinish`. Con `includesNotes` se suma al final la columna `notes`: la nota con los espacios colapsados, recortada y cortada a 300 caracteres (sin partir emojis), o `null` si queda vacía; sin `includesNotes` la columna no existe. Además van `patterns` (`build-rewind-recap-patterns.util.ts`): agregados exactos por género y plataforma (con al menos 2 juegos), tramo de duración y trimestre, cierres del mismo día, abandonos en 7 días o menos, terminados más lentos y juegos empezados en años anteriores, cada grupo con sus títulos terminados y abandonados; `pace` (cuántas runs cerradas tienen ambas horas, la mediana de `paceVsEstimate` y cuántas quedaron por encima o por debajo de 1), `franchises` (sagas con 2 o más juegos distintos cerrados en el año, con título, estado y `finishedAt` en orden de cierre), `overlap` (runs cerradas con `startedAt` que se cruzan con otra run cerrada del año y las que se jugaron solas; los días cuentan como `[inicio, fin)` y una run de un solo día ocupa ese día, así que terminar una y empezar otra el mismo día no es solaparse) y `ratingHabits` (runs calificadas, la nota más usada, con empate a favor de la más alta, y cuántos 5). Los cierres del 1 de enero sin `startedAt` (historial importado) quedan fuera de `patterns` y se cuentan en `importedCloses`. Las comparaciones las calcula el código y la IA solo las interpreta; las reglas del texto viven en `rewind-recap.prompt.ts`.
-- **`POST /users/me/rewinds/:year/ai-recap`:** sin fila 404 `REWIND_NOT_GENERATED`; dueño no premium 402 `REWIND_AI_RECAP_PREMIUM_REQUIRED`; ya `ready` 409 `REWIND_AI_RECAP_EXISTS`; `pending` de hace menos de 2 minutos (`REWIND_AI_RECAP_PENDING_TIMEOUT_MS`) 409 `REWIND_AI_RECAP_IN_PROGRESS`. Si no, marca `pending` con la fila bloqueada y genera con el `language`, el `includesPrivateRuns` y el `includesNotes` guardados, reutilizando las `premiumStats` si ya existían; éxito 200, fallo `failed` y 503 `REWIND_AI_RECAP_FAILED`. No gasta regeneración.
-- **Detalle:** suma a las cifras en vivo `language` y `generatedAt` de la fila, `aiRecap` (solo con estado `ready`) y `premiumStats`, iguales para todos los que miran, free o premium. `ownerControls` va solo al dueño (`null` para el resto): `includesPrivateRuns` e `includesNotes` de la última generación, `regenerationsLeft = 1 - regenerationsUsed`, `graceEndsAt` (`"<year+1>-01-07"` dentro de la gracia sin usar, si no `null`), `canRegenerate = graceEndsAt !== null || regenerationsLeft > 0` y `aiRecapState` (`ready` con resumen, `failed` si falló o sigue `pending`, `available` sin resumen y con el dueño premium hoy, `unavailable` en el resto).
-- **Idioma:** las imágenes y la página de vista previa de `/share/rewind/:username/:year` salen en el `language` del Rewind; la caché de imágenes incluye el idioma en la clave. Las tres responden 404 si el año no está generado (la página, con el HTML genérico).
-
-- **Año abierto:** un año `Y` está abierto si es anterior al año actual, o si es el año actual y hoy es 1 de diciembre o después. Fechas en UTC (`rewind.constants.ts`: `REWIND_OPENING_MONTH = 12`).
-- **Año de registro:** solo existen los años desde el de `User.createdAt` (UTC) en adelante; los anteriores (historial importado) no aparecen en `years` ni en `otherYears` y su detalle responde 404 `REWIND_NOT_FOUND`, también para el dueño.
-- **`REWIND_TODAY`:** variable de entorno opcional (`YYYY-MM-DD`) que reemplaza "hoy" (a medianoche UTC) en todos los cálculos del Rewind; se ignora con `NODE_ENV=prod`.
-- **Año con datos:** al menos una run con `startedAt` en el año, o `completed` / `abandoned` con `finishedAt` en el año. Un año existe si está abierto, tiene datos para quien mira y cae entre 2000 y 2100.
-- **Ventana destacada:** del 1 de diciembre de `Y` al 31 de enero de `Y+1`, ambos incluidos, en UTC. `spotlightYear` es ese `Y` solo si el año está en la lista; `isSpotlight` es `true` mientras hoy esté en la ventana de su año.
-- **Quién ve qué:** el dueño ve el cálculo con todas sus runs; cualquier otro, solo con las runs `isPublic = true`, así que un año que solo tiene runs privadas no existe para él aunque esté generado. `includesPrivateRuns` solo cambia la entrada del resumen con IA y de las estadísticas premium, nunca las cifras en vivo. `totals.platinums` cuenta los platinos con `platinumedAt` en el año y es `null` si quien mira no puede ver la sección `platinum`. Las `notes` nunca se devuelven.
-- **Totales:** `finished`, `abandoned` y `started` cuentan juegos distintos (`gameId`); `hoursPlayed` suma `realDuration` de las runs `completed` y `abandoned` con `finishedAt` en el año, redondeado a 1 decimal (0 sin datos).
-- **Juegos terminados:** uno por juego, con su última run `completed` del año, por `finishedAt` ascendente e `id` de la run.
-- **Highlights:** `topRated` (mayor `userRating`; desempata `finishedAt` más reciente e `id`), `bestRatio` (mayor `calculateRatio(score, realDuration)` con `realDuration > 0`; mismo desempate), `longest` / `fastest` (`realDuration` > 0 o, si no, `duration` > 0 con `isEstimate: true`; desempata `finishedAt` más antiguo e `id`; `fastest` es `null` si sería el mismo juego que `longest`), `favoriteGenre` (más juegos terminados distintos; desempata el nombre), `topPlatform` (más runs terminadas; desempata el nombre) y `busiestMonth` (más juegos terminados; desempata el mes más temprano). Cada uno es `null` si no hay de dónde elegir.
-- **Campos nuevos:** `totals.finishRate` es `round(finished / (finished + abandoned) * 100)` o `null` si ambos son 0; `totals.averageRating` promedia el `userRating` de las runs terminadas con nota (1 decimal, `null` sin notas); `genresPlayed` y `platformsPlayed` cuentan géneros de los juegos terminados y plataformas de las runs terminadas. `firstFinished` / `lastFinished` son el primer y último elemento de `finishedGames`. `topGenres` / `topPlatforms` son hasta 3, con el criterio de `favoriteGenre` / `topPlatform` (que son su primer elemento). `longestStreak` es la racha más larga de meses consecutivos del año con algún juego terminado (por la última run de cada juego), desempata la más temprana y es `null` si es menor a 2 meses.
-- **Mezcla del año (`yearMix`):** cálculo en vivo con la última run de cada juego terminado del año (un juego rejugado cuenta una vez), igual para free y premium. `lengthMix` trae siempre los cuatro tramos en orden (`REWIND_LENGTH_RANGES` en `rewind.constants.ts`: `under-5`, `5-15`, `15-30`, `over-30`) con las horas de `resolveRunHours` (`realDuration` > 0 o, si no, `duration` > 0); cada tramo incluye su borde inferior (5 h exactas van a `5-15`, 30 h a `over-30`). `releaseDecades` cuenta por década del año de `Game.releaseAt` (`decade` = 1990, 2000...), de la más antigua a la más nueva y solo con las décadas que tienen juegos; un año de lanzamiento anterior a 1950 (`REWIND_MIN_RELEASE_YEAR`) o posterior al año del Rewind se trata como sin fecha. `gamesWithoutHours` y `gamesWithoutRelease` cuentan los juegos terminados que quedan fuera de cada gráfica. No se guarda en `Rewinds` ni cambia las imágenes para compartir.
-- **Persona:** la primera que se cumple: `trophy-hunter` (`platinums >= 3`, nunca con `platinums` `null`), `marathoner` (`finished >= 3` y promedio de horas por juego terminado `>= 30`), `short-and-sweet` (`finished >= 5` y promedio `<= 8`), `finisher` (`finished >= 10` y `finishRate >= 80`), `genre-explorer` (`genresPlayed >= 6`), `picky-player` (`abandoned > finished` y `abandoned >= 3`) y si no `steady-player`. El promedio usa las horas de `longest`/`fastest` (real o estimada) de la última run de cada juego y deja fuera los juegos sin horas; sin ninguno, no hay promedio. Umbrales en `rewind.constants.ts`.
-- **Portadas de la lista de años:** hasta 5 juegos terminados, primero los de mayor `userRating` y luego por `finishedAt` descendente.
-- `GET /users/:username/rewinds` y `GET /users/:username/rewinds/:year` exigen `canView` de `profile` y de `rewind` (403 `USER_PRIVATE`) y responden 404 `USER_NOT_FOUND` para un usuario inexistente o desactivado. `:year` solo acepta dígitos entre 2000 y 2100 (422 `COMMON_SCHEMA_INVALID`); un año cerrado, sin datos para quien mira o (para un visitante) no generado responde 404 `REWIND_NOT_FOUND`.
+## Reglas generales
+
+- **Todo orden desempata por `id`.** Un listado ordenado por un campo que puede repetirse (fecha, posición, nombre) agrega `id` en la misma dirección. Sin desempate, dos filas con el mismo valor cambian de orden entre consultas y la paginación repite o salta filas.
+- **La visibilidad se filtra en la consulta, no después.** Un listado que oculta filas que quien pide no puede ver lo hace en el `WHERE`, así que `limit`, `total` y la paginación cuentan solo lo visible. Filtrar en memoria dejaría páginas cortas y un `total` que revela cuántas filas ocultas hay.
+- **Lo que no se puede ver responde como lo que no existe.** Un recurso ajeno que quien pide no puede ver (una lista privada por la sección de perfil, una promoción que aún no empezó) responde el mismo 404 que uno inexistente. Un 403 confirmaría que existe.
+- **Las activities se registran después del commit y solo si algo cambió.** Así un rollback no deja en el feed algo que no pasó, y repetir una operación sin efecto (mismo status, juego ya favorito) no genera ruido.
+- **Perder premium nunca borra datos.** Sobre el tope del plan free, lo existente se sigue sirviendo y se puede borrar; solo se bloquea crear o editar (estado `frozen`). El contenido premium ya generado (Rewind) sigue visible.
+- **Los jobs, colas y throttles en memoria suponen una sola instancia de la API.** Con varias réplicas habría que mover ese estado a algo compartido: el turnero de IGDB, el throttle de los scrapers, la cola de enriquecimiento al importar y la recuperación de jobs al arrancar dejarían de ser correctos.
 
 ---
 
 ## Privacidad
 
-### Campos en `User`
-
-Once secciones independientes, cada una con un `VisibilityLevel` (`apps/api/src/users/constants/visibility.constants.ts`): `private`, `friends`, `public`.
-
-| Sección   | Campo                 |
-| --------- | --------------------- |
-| profile   | `profileVisibility`   |
-| queue     | `queueVisibility`     |
-| wishlist  | `wishlistVisibility`  |
-| favorite  | `favoriteVisibility`  |
-| feed      | `feedVisibility`      |
-| backlog   | `backlogVisibility`   |
-| shelf     | `shelfVisibility`     |
-| list      | `listVisibility`      |
-| platinum  | `platinumVisibility`  |
-| franchise | `franchiseVisibility` |
-| rewind    | `rewindVisibility`    |
-
-Todas arrancan en `public` para una cuenta nueva. `platinumVisibility` se agregó después que las demás: la migración `add-platinumvisibility-to-users` copió en cada cuenta existente su `backlogVisibility`, porque hasta entonces los platinos solo se veían a través del backlog. `franchiseVisibility` (las sagas que sigue el usuario) siguió el mismo camino con `add-franchisevisibility-to-users`: hasta entonces `GET /users/:username/franchises` exigía la sección `backlog`. `rewindVisibility` (el Rewind anual) llegó con `add-rewindvisibility-to-users`, que también copió `backlogVisibility` en cada cuenta existente.
-
-Más `acceptFollowRequests` (boolean).
-
-### Resolución
-
-Toda la lógica vive en `canView(viewerId, owner, section)` en `apps/api/src/users/helpers/visibility.helper.ts`, en este orden:
-
-1. Si el viewer es el owner → `true`. Self-view siempre permitida.
-2. Nivel `public` → `true`, incluso sin autenticar.
-3. Nivel `private` → `false`.
-4. Nivel `friends` → requiere viewer autenticado y `areMutualFollowers(viewerId, ownerId)`. **Amigo = seguimiento mutuo.**
-
-### Reglas
-
-- `profile` actúa como puerta de entrada: si `canView(..., "profile")` es `false`, el perfil se sirve como `buildRestrictedProfile()` y no se cargan las demás secciones.
-- Las secciones anidadas se chequean con `canView(profile) AND canView(section)`.
-- Las solicitudes de seguimiento solo se aceptan cuando `profileVisibility === "private" && acceptFollowRequests`.
-- `notes` del backlog nunca aparecen en respuestas públicas, sin importar `backlogVisibility`.
-- `email` nunca se serializa en respuestas públicas.
-- `GET /games/:id/friends-activity` y `GET /games/:id/players` aplican `canView` con SQL: una sección `friends` solo se sirve al amigo mutuo. En `friends-activity` entran los seguidos con perfil y backlog `public`, más los seguidos mutuos con `public` o `friends`; `players` solo incluye usuarios con perfil y backlog `public`.
-- Las cuentas desactivadas (`isActive = false`) no cuentan como conexiones: `GET /users/:username/followers` y `GET /users/:username/following` las omiten, `getFollowerCount` / `getFollowingCount` (y con ellos `followerCount` / `followingCount` del perfil y de las tarjetas) no las cuentan, y `GET /games/:id/friends-activity` y `GET /games/:id/players` no las devuelven.
-- `GET /users/search` busca `q` con las [reglas de búsqueda de texto](#reglas-de-búsqueda-de-texto) sobre `username` y `name`: sin acentos ni mayúsculas, por palabras en cualquier orden y de forma literal (`\`, `%` y `_` no son comodines). Una `q` sin letras ni dígitos devuelve lista vacía.
-- `GET /users/:username/followers` y `GET /users/:username/following` paginan en la consulta: `limit` entero entre 1 y 100 (por defecto 24), `offset` desde 0 (por defecto 0) y `search` opcional de 1 a 100 caracteres, que busca en `username` y `name` del usuario listado con las [reglas de búsqueda de texto](#reglas-de-búsqueda-de-texto) (un `search` sin letras ni dígitos no filtra). El orden es `createdAt` descendente con `id` de desempate, y `total` cuenta lo que cumple el filtro, sin cuentas desactivadas. Cualquier otro valor responde 422 `COMMON_SCHEMA_INVALID`.
-- **Listas seguidas en perfil:** una entry es visible solo cuando el perfil es visible, `ListFollower.isVisible` es `true` y la lista cumple la regla de visibilidad de listas (ver "Listas y list-items").
+- **`notes` del backlog y `email` nunca salen en una respuesta pública**, sea cual sea la visibilidad del dueño. Un endpoint nuevo que reutilice un serializer tiene que comprobarlo.
+- **No se revela lo que una sección oculta por un camino lateral.** Sin acceso a la sección `platinum`, el backlog público devuelve `platinum: null` en cada run e ignora el filtro `platinumed_only`, que si no diría qué juegos están platinados. La queue pública numera `position` sobre lo visible, para que los huecos no delaten runs privadas.
+- **Una sección de privacidad nueva hereda el nivel de la que hasta entonces la exponía.** `platinumVisibility`, `franchiseVisibility` y `rewindVisibility` se inicializaron en las cuentas existentes con su `backlogVisibility`, porque antes esos datos solo se veían a través del backlog. Arrancar en `public` habría publicado lo que el usuario tenía oculto.
+- **Nadie más que el dueño ve el origen de su premium.** Las respuestas públicas calculan `hasPremium` solo con premium completo (rol o concesión `*`): un regalo de una feature no lo activa, y ninguna respuesta pública expone la feature regalada ni su vencimiento. El `premiumAccess` del Rewind llega solo al dueño, así nadie ve si está en una prueba ni hasta cuándo.
 
 ---
 
-## Activity feed
+## Concurrencia
 
-Eventos registrados:
-
-- `backlog_not_started`, `backlog_playing`, `backlog_completed`, `backlog_abandoned`, `backlog_endless`.
-- `wishlist_added`, `shelf_added`.
-- `user_followed`, `user_followed_by`.
-- `list_created`, `list_followed`.
-- `game_reviewed`.
-- `game_platinumed`.
-
-Reglas:
-
-- El feed incluye actividades propias del usuario consultante.
-- Filtrado por visibilidad del autor de cada evento, en la consulta, así que `total` y la paginación solo cuentan lo visible: el feed exige `canView` de `profile` y de `feed`. Un autor con ambos en `public` se ve para quien lo sigue; con `friends` en cualquiera de los dos solo se ve si el seguimiento es mutuo; con `private` en cualquiera de los dos solo lo ve el propio autor.
-- Los eventos `user_followed` y `user_followed_by` nunca se devuelven en el feed.
-- `game_platinumed` exige además `canView` de `platinum` del autor, también en la consulta: con `platinumVisibility` en `friends` solo lo ven los seguidores mutuos y en `private` solo el autor. En la actividad reciente del perfil (`GET /users/:username`) se omite para quien no puede ver los platinos.
-- Los filtros `category` y `types` consultan `activity.feed-filters` en el resolvedor de acceso premium: un usuario sin acceso que los envía recibe 402 `ACTIVITY_FEED_FILTER_PREMIUM`. Con ambos, el resultado es la intersección.
-- Los eventos `backlog_*` solo se emiten cuando el status realmente cambia.
-- Borrar una cuenta borra sus actividades y también las de otros usuarios que la tienen como objetivo (`ActivityUsers.targetUserId`). Ver [Borrado de cuenta](#borrado-de-cuenta).
+- **Canjear una promoción frente a editarla o revocarla.** El canje lee la promoción con `FOR SHARE` (compatible entre canjes) y la edición y la revocación con `FOR UPDATE`. El canje comprueba las fechas con la hora posterior al bloqueo, así que uno concurrente con una revocación falla o deja un grant ya vencido, nunca uno vigente. El índice único por usuario y oferta resuelve dos canjes simultáneos del mismo usuario.
+- **Generar un Rewind.** El cliente manda el `generatedAt` que conoce (`expectedGeneratedAt`); si no coincide, responde 409 sin gastar nada. Los contadores se cambian con la fila bloqueada y la primera generación se apoya en el índice único, así que de dos POST simultáneos gana exactamente uno. La IA nunca se llama dentro de la transacción, para no retener el bloqueo durante una llamada de segundos.
+- **El resumen con IA solo se guarda si sigue siendo el pedido vigente**: la fila tiene que seguir `pending` con el mismo `aiRecapRequestedAt`. Una respuesta lenta de una generación anterior no pisa la de una más nueva.
+- **La queue se reordena por movimiento, no reenviando la lista.** `PATCH .../position` mueve una entrada dentro de la queue completa del servidor, porque el cliente puede tener entradas ocultas por búsqueda o paginación y perderlas. `PUT` reemplaza la queue entera y solo vale cuando el cliente envía el orden completo.
+- **Los jobs interrumpidos se marcan fallidos al arrancar.** Antes de escuchar, `failInterruptedJobs` pasa a `failed` todo job `pending` o `running`: un reinicio o un deploy lo mató, y si no quedaría activo para siempre y bloquearía nuevos jobs de su tipo, porque `startJob` devuelve el que ya está activo.
 
 ---
 
-## Export de colecciones
+## Grants y promociones premium
 
-Endpoints: `GET /users/me/backlog/export`, `/users/me/queue/export`, `/users/me/game-shelf/export`, `/users/me/wishlist/export`, `/users/me/favorites/export`, `/users/me/platinums/export` y `GET /lists/:listId/export`. Las columnas de cada recurso viven en su `*.export-row.mapper.ts` (`BACKLOG_EXPORT_COLUMNS`, `QUEUE_EXPORT_COLUMNS`, etc.) y están documentadas en [`api/`](./api/).
-
-- El formato se negocia por el header `Accept` con `req.accepts(["text/csv", "application/json"])` en `exportFormatNegotiationMiddleware`; no hay parámetro `format`. Sin `Accept`, con solo comodines o cuando gana `text/csv` → CSV; cuando gana `application/json` → JSON; si no se acepta ninguno → 406 `EXPORT_FORMAT_NOT_ACCEPTABLE` (`Common Module`). Toda respuesta lleva `Vary: Accept`.
-- JSON consulta `export.json` en el resolvedor de acceso premium: un usuario sin acceso recibe 402 `EXPORT_FORMAT_PREMIUM` (`Common Module`), lo verifica `exportFormatAccessMiddleware` sobre el formato negociado, antes de consultar.
-- Cada export acepta los mismos filtros, búsqueda y orden que su listado, sin paginación (`limit` y `offset` se ignoran); sin parámetros exporta la colección completa. Un valor inválido responde 422 `COMMON_SCHEMA_INVALID`. Se resuelve con una sola consulta por recurso.
-    - Backlog: `BacklogExportQuerySchema` (`BacklogQuerySchema` sin `limit`/`offset`), con `buildBacklogWhere` y el mismo orden que `GET /users/me/backlog` (por defecto `createdAt` descendente).
-    - Queue: `search` y `sort` (`manual` por defecto, `ratio`, `score`, `duration`) en `QueueExportQuerySchema`. `manual` es `position` ascendente; `ratio` y `score` van descendentes y `duration` ascendente, con los valores nulos al final y los empates por `position` (`sortQueueExport`).
-    - Game shelf, wishlist y platinos: `search` y `platform` (`ExportPlatformSearchQuerySchema`). `platform` es un UUID (solo esa plataforma) o `any` (solo filas sin plataforma, `buildPlatformFilterWhere`). Orden: título del juego en game shelf, `position` en wishlist y `platinumedAt` descendente (sin fecha al final) en platinos.
-    - Favorites: `search` (`ExportSearchQuerySchema`), orden por `position`.
-    - Listas: sin parámetros de filtro, orden por `position`.
-- `GET /lists/:listId/export` solo exporta listas propias: una lista ajena (aunque sea pública) o inexistente responde 404 `LIST_NOT_FOUND`.
-- Respuesta: `Content-Disposition: attachment; filename="completr-<recurso>-YYYY-MM-DD.<csv|json>"` con la fecha en UTC (`completr-list-<slug>-…` para listas, `completr-list-…` si el nombre no da slug). CORS expone `Content-Disposition` (`exposedHeaders` en `cors.config.ts`).
-- CSV (`serializeCsv()`): `text/csv; charset=utf-8`, BOM UTF-8, fila de cabecera, coma, `\r\n` al final de cada línea, escape RFC 4180. Un texto que empieza con `=`, `+`, `-`, `@`, tab o CR se prefija con `'`. `null` es un campo vacío. Un resultado vacío devuelve solo la cabecera.
-- JSON: `application/json; charset=utf-8`, un array desnudo (sin `data`) con las mismas claves que las columnas del CSV y tipos nativos; un resultado vacío devuelve `[]`.
+- **Revocar no borra.** Revocar pone `expiresAt` en el instante actual y conserva la fila. Una concesión vencida o revocada es historial de solo lectura: para devolver el acceso se crea una nueva, así el historial dice qué acceso tuvo el usuario y cuándo.
+- **Las ofertas canjeables salen solo de `PremiumPromotions`**, que se crean desde Admin. No hay ofertas fijas en código ni migraciones que siembren acceso: una prueba de un mes también es una promoción.
+- **El tipo de acceso del Rewind se guarda con el contenido.** `premiumAccessKind` (`gift` o `premium`) se fija al escribir el `aiRecap` o las `premiumStats`, porque el distintivo tiene que seguir siendo correcto cuando el regalo vence y el acceso del dueño ya no se puede resolver.
 
 ---
 
-## Acciones masivas
+## Scores y duraciones
 
-Endpoints: `POST /users/me/backlog/bulk`, `/users/me/queue/bulk`, `/users/me/favorites/bulk`, `/users/me/game-shelf/bulk` y `/users/me/platinums/bulk`. La operación va en el query param `action`; las acciones de cada recurso viven en su `*.constants.ts` (`BACKLOG_BULK_ACTIONS`, `QUEUE_BULK_ACTIONS`, `FAVORITES_BULK_ACTIONS`, `GAME_SHELF_BULK_ACTIONS`, `PLATINUMS_BULK_ACTIONS`).
-
-- El query se valida con `buildBulkActionQuerySchema(actions)` y el body con `validateBulkBodyMiddleware({ [action]: schema })`, que elige el schema de la acción y delega en `validateSchemaMiddleware`. Una `action` desconocida o ausente, un body que no corresponde a la acción, un campo extra, una lista vacía o con más de `BULK_MAX_IDS` (100, en `common/constants/bulk.constants.ts`) elementos o un valor que no es UUID responden 422 `COMMON_SCHEMA_INVALID`.
-- `BulkIdsSchema` deduplica los ids conservando el orden de la primera aparición; el tope de 100 se cuenta antes de deduplicar.
-- Cada lote corre en una sola transacción. Respuesta 200 con `{ data: { action, succeeded, skipped } }`: `succeeded` es la lista de ids procesados en el orden recibido y `skipped` una lista de `{ id, code }`. Los ids son del mismo tipo que el body (`backlogId` en queue, `gameId` en favoritos y platinos).
-- Un id que no existe o no es del usuario nunca hace fallar el lote: va a `skipped` con el código de no encontrado del módulo (`BACKLOG_NOT_FOUND`, `QUEUE_BACKLOG_NOT_FOUND`, `FAVORITE_GAMES_NOT_FOUND`, `GAME_SHELF_NOT_FOUND`, `GAME_PLATINUM_NOT_FOUND`). Una fila que no cumple una regla de negocio del endpoint individual va a `skipped` con el código que daría ese endpoint.
-- Topes free en `queue add` y `favorites add`: si las filas que de verdad se agregarían superan el tope, el lote responde 402 (`QUEUE_LIMIT_REACHED` o `FAVORITE_LIMIT_REACHED`) y no aplica nada. Las filas que ya estaban no cuentan.
-- Las activities se registran después del commit y solo por las filas que cambiaron de verdad.
+- **Tres copias del mismo dato, a propósito.** `GameScore` / `GameTime` son el catálogo global; `GameShelf` es la copia editable del usuario y decide el ratio de su backlog; `ListItem` congela el valor de la fuente declarada por la lista al agregar el juego. Así lo que ven los seguidores de una lista no cambia cuando cambia el catálogo, hasta que el dueño la refresca, y lo que el usuario ajusta en su estantería no altera el catálogo.
+- **Un fallo de una fuente externa nunca borra ni pisa un valor guardado.** `not_found`, `ambiguous`, `no_data` y `failed` dejan todo como estaba, y una fuente puede actualizarse aunque otra falle.
+- **El borrado físico de un juego comprueba el uso con consultas explícitas**, no con el `ON DELETE` de las FKs. Una tabla nueva con datos de usuario que apunte a `Games` tiene que sumarse a esa comprobación (`GAME_IN_USE`); si no, el juego se borra y la cascada se lleva sus filas.
+- **En un split, la etiqueta es lo único que distingue a las variantes** que comparten external id en la búsqueda, la ficha y el backlog. Por eso dos etiquetas iguales (sin distinguir mayúsculas ni espacios) o en blanco se rechazan: si no, un usuario podría registrar su run en la variante equivocada y afectar su ratio y el progreso de sus listas.
 
 ---
 
-## Auth y sesiones
+## Datos externos
 
-- Access token (JWT): TTL configurable, default 15 minutos.
-- Refresh token: TTL configurable, default 30 días. Almacenado como HttpOnly cookie y como hash en DB.
-- Rotación: cada refresh emite un access nuevo y reemplaza el refresh token.
-- Multi-dispositivo: cada refresh token guarda `deviceInfo`, `createdAt`, `lastUsedAt`.
-- Claim `sid` en el JWT trackea actividad por sesión.
-- Email y username únicos, lowercased.
-
-### Recuperación de contraseña
-
-- `POST /auth/forgot-password` responde siempre 204, exista o no la cuenta. El correo se envía en segundo plano, así que ni el status ni el tiempo de respuesta revelan si el email está registrado. Solo las cuentas activas (`isActive = true`) reciben el correo. Sin SMTP configurado responde 503 `MAIL_DISABLED`.
-- El token de reset son 32 bytes aleatorios en hex (64 caracteres). En `PasswordResetTokens` se guarda solo su hash SHA-256 (`tokenHash`, único).
-- TTL configurable con `PASSWORD_RESET_TOKEN_TTL_MINUTES`, default 60 minutos.
-- Un usuario tiene como máximo un token vigente: pedir otro borra los anteriores.
-- Enfriamiento por cuenta: si el token vigente se creó hace menos de `PASSWORD_RESET_COOLDOWN_MINUTES` (default 5), no se crea otro ni se envía correo, y la respuesta sigue siendo 204. La comprobación y la creación van en una transacción con un lock de PostgreSQL por usuario, así que pedidos concurrentes producen un solo token y un solo correo.
-- El token es de un solo uso: `POST /auth/reset-password` lo borra al consumirlo, junto con cualquier otro token del usuario, y revoca todas sus sesiones (refresh tokens). Un token desconocido, vencido o ya usado responde 400 `AUTH_INVALID_PASSWORD_RESET_TOKEN`.
-- El link del correo apunta a `{WEB_APP_URL}/reset-password?token=<token>`.
-
-### Invitaciones
-
-- Solo un admin invita (`POST /admin/invitations`). Un email que ya tiene cuenta, activa o no, responde 409 `INVITATION_EMAIL_REGISTERED`.
-- Una invitación pendiente por email (`UserInvitations.email` único): invitar de nuevo reemplaza la anterior y su link deja de funcionar. Así se reenvía.
-- Token igual que el de reset: 32 bytes en hex, solo se guarda el hash SHA-256 (`tokenHash`, único).
-- TTL configurable con `USER_INVITATION_TTL_DAYS`, default 7 días. Las vencidas siguen en el listado con `isExpired: true` hasta que se reenvían o revocan.
-- Si el correo no se puede enviar, la invitación se descarta y la respuesta es el error del provider (502 o 503).
-- `POST /invitations/accept` crea la cuenta con el email de la invitación (no se puede cambiar), borra la invitación e inicia sesión igual que `/auth/register`. Un token desconocido, vencido, revocado o ya usado responde 404 `INVITATION_INVALID_TOKEN`.
-- `invitedById` apunta al admin que invitó, con `ON DELETE SET NULL`.
-- El link del correo apunta a `{WEB_APP_URL}/accept-invite?token=<token>`.
+- **El refresco individual tiene un plazo de 45 s** (`EXTERNAL_DATA_REFRESH_DEADLINE_MS`), por debajo del `proxy_read_timeout` de 60 s del nginx de producción y de los 100 s de Cloudflare. Sin plazo, un refresco que espera detrás del job o de la cola y suma reintentos pasa de 60 s: el proxy corta y el cliente ve un error genérico mientras el servidor sigue trabajando. Al vencer, lo no terminado queda `EXTERNAL_DATA_DEADLINE_EXCEEDED`, la respuesta lleva lo que sí terminó y ninguna respuesta tardía se escribe.
+- **IGDB admite 4 requests por segundo.** Todas sus requests (refresco individual, job y cola de importación) pasan por un mismo turnero que deja al menos 275 ms entre una y otra. El provider no limita la frecuencia por sí mismo: quien lo llama tiene que pasar por el turnero.
+- **El job `populate_external_data` distingue fallos del juego de fallos de la fuente.** Ante `not_found`, `ambiguous` o `no_data` sigue con el siguiente. Ante un error que afectaría a todos los juegos (rate limit, bloqueo, una página que cambió de estructura, credenciales de IGDB que faltan o no sirven) se detiene, porque fallaría igual con todos los juegos que quedan. Un error de Wikidata no detiene el job: pausa la búsqueda de ids de HLTB por el resto de la corrida, y los juegos que ya tienen id siguen.
+- **Los intentos fallidos se recuerdan por juego y fuente** (`ExternalDataAttempts`) para que el job no vuelva a consultar enseguida un juego que la fuente no conoce. Solo se registran los resultados que dependen del juego: un rate limit, un bloqueo o un error de credenciales no dice nada del juego y no lo pone en espera. El refresco individual ignora la espera.
+- **El enriquecimiento al importar vive en memoria** y se pierde al reiniciar la API. No hace falta persistirlo: lo que quedó pendiente lo recupera el job `populate_external_data`.
 
 ---
 
-## Datos personales: solicitudes, export y borrado de cuenta
+## Rewind
 
-Módulo `apps/api/src/data-requests/`. Implementa los derechos de acceso, portabilidad y supresión: el usuario pide una copia de sus datos o el borrado de su cuenta y un admin resuelve la solicitud.
+- **Las cifras se calculan en vivo, con la privacidad de quien mira.** Lo que se guarda en `Rewinds` es la activación de cada año, el idioma y la parte premium. Por eso un año que solo tiene runs privadas no existe para un visitante aunque esté generado, e `includesPrivateRuns` cambia solo la entrada de la IA y de las estadísticas premium, nunca las cifras en vivo.
+- **Nadie más que el dueño ve un año hasta que este lo genera.** El dueño decide qué se publica y en qué idioma.
+- **Los datos importados no cuentan como actividad del año.** Los años anteriores al registro de la cuenta no existen (son historial importado). Las runs agregadas por mes excluyen el primer día de la biblioteca, que suele ser la importación inicial y llenaría el gráfico de "agregados" de golpe. En la entrada de la IA, `daysInBacklog` es `null` si la run se agregó después de empezarla, porque entonces `createdAt` no dice cuánto esperó, y los cierres del 1 de enero sin `startedAt` quedan fuera de los patrones.
+- **Las notas solo llegan a la IA.** Con `includesNotes`, la consulta trae `notes` para armar el prompt, pero no cambian las cifras ni las `premiumStats` y ninguna respuesta las devuelve. Si la IA falla, el log registra el id, el año, el código del error y los motivos de validación de zod, nunca el texto del modelo.
+- **La IA recibe cálculos, no datos crudos para que calcule.** Comparaciones, ritmos y patrones los calcula el código (`build-rewind-recap-content.util.ts`) y el modelo solo los interpreta; un cálculo nuevo se agrega ahí, no se le pide al prompt.
 
-### Solicitudes (`DataRequests`)
+---
 
-- Enums en `data-requests.constants.ts`: `type` (`enum_DataRequests_type`: `export`, `deletion`) y `status` (`enum_DataRequests_status`: `pending`, `completed`, `rejected`, default `pending`). Columnas: `userId` (FK a `Users`, `ON DELETE SET NULL`), `resolutionNote`, `requestedAt`, `resolvedAt`, `resolvedById` (admin que resolvió, FK a `Users`, `ON DELETE SET NULL`).
-- Una sola solicitud `pending` por usuario y tipo: índice único parcial `DataRequests_userId_type_pending_uidx` sobre `("userId", type) WHERE status = 'pending'`. Una segunda responde 409 `DATA_REQUEST_ALREADY_PENDING`; resuelta la anterior, se puede pedir otra. Índices de lectura: `("userId", type, status)` y `(status, "requestedAt")`.
-- Plazos derivados en el serializer, no guardados: `dueAt` = `requestedAt` + 30 días (`DATA_REQUEST_RESPONSE_DAYS`); `daysRemaining` = días corridos enteros hasta `dueAt`, redondeando hacia arriba y negativo si venció; `downloadableUntil` = `resolvedAt` + 7 días (`DATA_EXPORT_DOWNLOAD_DAYS`) solo en `export` + `completed`, si no `null`.
-- `POST /users/me/data-requests` (cualquier rol, sin gating premium) acepta solo `{ type }`; otro valor o un campo extra responde 422 `COMMON_SCHEMA_INVALID`. `GET /users/me/data-requests` lista las propias por `requestedAt` descendente.
-- `GET /users/me/data-requests/:requestId/download` genera el export en el momento. Una solicitud ajena o inexistente responde 404 `DATA_REQUEST_NOT_FOUND`; una `pending`, `rejected` o de tipo `deletion`, 409 `DATA_REQUEST_NOT_DOWNLOADABLE`; una pasada de `downloadableUntil`, 410 `DATA_REQUEST_EXPIRED`.
-- `GET /admin/data-requests` (solo admin) filtra por `status` y `type`, pagina con `limit` (1–100, default 50) y `offset`. Orden: primero las `pending` por `requestedAt` ascendente (equivale a `dueAt`), después el resto por `requestedAt` descendente, con `id` de desempate. Cada fila trae `user: { id, username, email }`, o `null` si la cuenta ya no existe.
-- Resolver (`POST /admin/data-requests/:requestId/complete` y `/reject`) solo pasa de `pending` a `completed` o `rejected` con un `UPDATE ... WHERE status = 'pending'`: una solicitud ya resuelta, también por una resolución concurrente, responde 409 `DATA_REQUEST_NOT_PENDING`. Una inexistente, 404 `DATA_REQUEST_NOT_FOUND`. `reject` exige `reason` de 1 a 500 caracteres tras recortar espacios (`REJECTION_REASON_MAX_LENGTH`), que se guarda en `resolutionNote`.
-- Completar un `deletion` borra la cuenta como `DELETE /admin/users/:userId` (abajo) en la misma transacción que marca la solicitud `completed`. Si la cuenta es admin o la del propio admin responde 409 `USER_DELETE_FORBIDDEN` y la solicitud sigue `pending`. Si la cuenta ya no existe (`userId` nulo), solo se marca `completed`.
-- Correos (`services/data-request-mail.service.ts`), siempre en inglés con la plantilla de marca: al crear una solicitud, aviso a `DATA_REQUESTS_NOTIFY_EMAIL` (default `completr@etejeda.dev`) con enlace a `{WEB_APP_URL}/admin/users`; al resolverla, correo al usuario con enlace a `{WEB_APP_URL}/settings/data` (en un rechazo incluye el motivo). En un borrado el correo se envía antes de borrar la cuenta. Sin SMTP configurado o si el envío falla, se registra un warning y la operación sigue: el correo nunca bloquea la solicitud.
-- Auditoría: `data_request_completed` y `data_request_rejected` sobre `data_request`.
+## Export y datos personales
 
-### Export completo
+- **CSV sin inyección de fórmulas.** Un texto que empieza con `=`, `+`, `-`, `@`, tab o CR se prefija con `'`: una hoja de cálculo lo ejecutaría como fórmula al abrir el archivo.
+- **El export de datos personales nunca incluye secretos**: ni el hash de la contraseña, ni el token de las sesiones, ni tokens de un solo uso. Un `find*ForDataExport` nuevo tiene que respetarlo.
+- **`POST /auth/forgot-password` no revela si una cuenta existe.** Responde siempre 204 y envía el correo en segundo plano, así que ni el status ni el tiempo de respuesta dicen si el email está registrado.
 
-- `buildPersonalDataExport()` (`services/personal-data-export.service.ts`) arma el documento con los `find*ForDataExport` de cada módulo dueño; el mismo documento lo descargan el usuario y el admin (`GET /admin/users/:userId/data-export`, cuentas activas o no, auditoría `user_data_exported` sobre `user`). Un usuario inexistente responde 404 `USER_NOT_FOUND`.
-- Respuesta: JSON desnudo, sin `data`, con `Content-Disposition: attachment; filename="completr-data-<username>-YYYY-MM-DD.json"` (fecha UTC).
-- Claves en camelCase. Bloque `meta` primero: `generatedAt`, `formatVersion` (`PERSONAL_DATA_EXPORT_FORMAT_VERSION`, hoy `1.0`), `controller` (responsable y contacto), `purposes`, `legalBases`, `recipients`, `retention` y `dataSource`, en `personal-data-export.constants.ts`.
-- Secciones: `account`, `privacySettings`, `premium` (estado y concesiones), `backlog` (con `progress` y `coopPartners` por username), `queue`, `gameShelf`, `wishlist`, `favorites`, `lists` (propias, con ítems), `followedLists`, `savedViews`, `reviews`, `social` (`followers`, `following` y `followRequests` por username), `activity` (solo la propia), `moodTags` (metas y etiquetas por juego), `trackedFranchises`, `platinums`, `rewinds` (con `aiRecap` y `premiumStats`), `sessions`, `gameReports` y `dataRequests`.
-- Un juego se identifica con `{ id, title, slug }` (`GAME_REFERENCE_ATTRS`); el catálogo no se vuelca.
-- Nunca incluye el hash de la contraseña, el token de las sesiones (`sessions` solo lleva `deviceInfo`, `createdAt`, `lastUsedAt` y `expiresAt`) ni tokens de un solo uso.
+---
 
-### Borrado de cuenta
+## Borrado de cuenta
 
-- `DELETE /admin/users/:userId` (solo admin) responde 204. Borrado físico, distinto de `DELETE /users/me/deactivate`, que solo pone `isActive = false`. Una cuenta con rol `admin` o la del propio admin responde 409 `USER_DELETE_FORBIDDEN`; una inexistente, 404 `USER_NOT_FOUND`, también cuando otro request la borró entre la búsqueda y el `DELETE` (dos borrados simultáneos: uno responde 204 y el otro 404, con una sola auditoría `user_deleted`).
-- `deleteAccount()` (`users/users-deletion.service.ts`), en una transacción: borra las `Activities` de otros usuarios cuyo `ActivityUsers.targetUserId` es la cuenta (la cascada de `targetUserId` solo borraría la fila de `ActivityUsers` y dejaría la actividad sin objetivo), borra la `UserInvitations` de su email y borra el `User`. El resto lo hacen las FKs.
-- `ON DELETE CASCADE` desde `Users` en: `Backlogs`, `Queues`, `GameShelves`, `Wishlists`, `Favorites`, `Lists`, `ListFollowers`, `SavedFilters`, `GameReports`, `Reviews`, `UserFollowers` (`followerId` y `followingId`), `Activities`, `ActivityUsers.targetUserId`, `UserFollowRequests`, `RefreshTokens`, `PasswordResetTokens`, `UserGameTags`, `MoodTagMetas`, `UserFranchises`, `GamePlatinums`, `Rewinds` y `PremiumGrants`. Por cascada de segundo nivel caen `BacklogProgresses`, `ListItems`, los `ListFollowers` de terceros sobre sus listas y los objetivos de sus actividades. `SET NULL` en `DataRequests.userId` y `resolvedById`, y `UserInvitations.invitedById`: las solicitudes quedan como registro anónimo.
-- `SET NULL` en `AuditLogs.userId` (columna nullable): la auditoría de un moderador borrado se conserva sin autor, y `GET /admin/audit` la devuelve con `user: null`. Como un admin no se puede borrar, solo los moderadores (o cuentas degradadas) dejan entradas sin autor.
-- Después del commit: borra de la caché de imágenes del Rewind (`clearRewindImagesOf`) las entradas de su username y registra `user_deleted` sobre `user`. Las sesiones del usuario dejan de valer porque su `User` ya no existe.
+Borrar una cuenta (desde Admin o al completar una solicitud de borrado de datos) es físico y definitivo, a diferencia de desactivarla.
+
+- **Toda tabla con datos de un usuario lleva `ON DELETE CASCADE` desde `Users`**, o `SET NULL` si la fila tiene que sobrevivir anónima. Sin `ON DELETE`, el borrado falla con `23503` y la API responde 500.
+- **Las actividades ajenas que apuntan a la cuenta se borran a mano.** La cascada de `ActivityUsers.targetUserId` solo borraría la fila intermedia y dejaría en el feed de otros una actividad sin objetivo, así que `deleteAccount()` las borra explícitamente en la misma transacción.
+- **Lo que es registro sobrevive sin autor.** `AuditLogs.userId`, `DataRequests.userId` y `resolvedById`, y `UserInvitations.invitedById` usan `SET NULL`: la auditoría y las solicitudes resueltas se conservan aunque la cuenta ya no exista. Una cuenta admin no se puede borrar, así que solo moderadores o cuentas degradadas dejan entradas sin autor.
 
 ---
 
 ## Rate limiting
 
-- Default: 300 requests/min por usuario autenticado.
-- `admin` y `moderator` están exentos.
-- Limites diferenciados por tipo de endpoint: público (más restrictivo), usuario (medio), auth (mínimo).
-- `authLimiter` (`POST /auth/login`, `/auth/refresh` y `PATCH /auth/password`): 5 por minuto; al superarlos, bloqueo de 15 minutos. `authLimiter` también cubre `POST /auth/reset-password`. `registerLimiter` (`/auth/register` y alta de usuarios desde Admin): 3 por minuto. `passwordResetLimiter` (`POST /auth/forgot-password`): 3 cada 15 minutos. `registerLimiter` también cubre `POST /admin/invitations` y `POST /invitations/accept`. Valores en `apps/api/src/common/config/rate-limiter.config.ts`.
-- La clave del límite es la IP del cliente, resuelta por `resolveClientIp` (`common/utils/client-ip.util.ts`). Primero se toma el peer: la cabecera `x-real-ip` si trae una IP válida o, si no, `request.ip` (la IP del socket; no hay `trust proxy`). Las IPv4 mapeadas (`::ffff:a.b.c.d`) se normalizan a IPv4. Si el peer está en los rangos de Cloudflare (`common/config/cloudflare-ip-ranges.config.ts`) y `cf-connecting-ip` trae una IP válida, la clave es `cf-connecting-ip`; en cualquier otro caso, el peer. Así quien se conecta directo al servidor, sin pasar por Cloudflare, no cambia de clave inventando `cf-connecting-ip`. `x-forwarded-for` no se usa.
-- `x-real-ip` es confiable porque la API solo se alcanza a través de un proxy que la pisa: el nginx de CapRover la escribe con `$remote_addr`, y el nginx de la web, que hace proxy de `/share/`, reenvía la que recibió de CapRover. Si la API se expone sin ese proxy, un cliente podría elegir su clave.
-- Los rangos de Cloudflare están copiados a mano desde https://www.cloudflare.com/ips-v4 y https://www.cloudflare.com/ips-v6 y no se actualizan solos. Si Cloudflare suma un rango, el tráfico que llegue desde él queda agrupado por la IP del edge hasta que se actualice el archivo.
-- `RATE_LIMIT_ENABLED` (default `true`) en `false` desactiva el rate limit. En `NODE_ENV=test` queda desactivado siempre.
-
----
-
-## Reglas de búsqueda de texto
-
-Toda búsqueda de texto de la API (el `search` de los listados paginados, `q` de `GET /users/search` y de `GET /admin/users`, `query` de `GET /lists/search` y `GET /games/search`) usa el mismo mecanismo, definido una sola vez en `apps/api/src/common/utils/text-search.util.ts`. Ningún service arma su propio `ILIKE`.
-
-- **Normalización.** La consulta y las columnas se comparan en minúsculas, sin acentos y solo con `a-z0-9`: el signo de puntuación y los espacios no cuentan. En SQL la columna pasa por `regexp_replace(lower(unaccent(columna)), '[^a-z0-9]', '', 'g')` (extensión `unaccent`); en TypeScript la consulta pasa por `tokenizeSearchQuery`. `pokemon` encuentra `Pokémon` y `spiderman` encuentra `Spider-Man`.
-- **Palabras.** La consulta se separa en palabras (cualquier carácter que no sea `a-z0-9` las divide) y el registro tiene que contener todas, en cualquier orden y sin tener que ser contiguas: `evil resident` encuentra `Resident Evil`. Cada palabra se busca como subcadena del texto normalizado.
-- **Literal.** `%`, `_` y `\` no son comodines: la normalización los descarta antes de armar el `LIKE`, así que nunca llegan al patrón.
-- **Varias columnas.** Cuando una búsqueda mira más de una columna (`username` y `name` de un usuario, `name` y `description` de un filtro guardado), cada palabra tiene que estar en al menos una de ellas; las palabras pueden repartirse entre columnas (`pepe garcia` encuentra al usuario `pepe99` con nombre `José García`). Las columnas de un modelo incluido se referencian por su alias (`Game.title`, `Backlog->Game.title`, `Follower.username`).
-- **Consulta vacía.** Si tras normalizar no queda ninguna palabra (`%`, `_`, `\`, solo signos), el listado paginado no filtra y devuelve todo lo que devolvería sin `search`. Los endpoints cuya función es buscar (`GET /users/search`, `GET /lists/search`, `GET /games/search`) devuelven lista vacía.
-- **Orden de relevancia.** `buildTextSearchRelevanceOrder` ordena por título normalizado igual a la consulta, luego por título que empieza con ella y luego el resto; dentro de cada grupo, `title` ascendente y `id` de desempate. Lo usan `GET /games/search` (local) y `searchGames`. Los listados con orden propio (backlog, favoritos, queue, etc.) lo conservan.
-- **Límite.** El orden se aplica antes del `limit`, así que con más coincidencias que el límite (10 en `local_only=true`) el título exacto entra igual.
-
-## Búsqueda de juegos
-
-- Sigue las [reglas de búsqueda de texto](#reglas-de-búsqueda-de-texto) sobre `Game.title`.
-- Sin match local (salvo `local_only=true`), o con `force_online=true`, la búsqueda va online por una cadena de fuentes (Chain of Responsibility en `games/services/online-search.handler.ts`): RAWG (`rawg-search.handler.ts`) y, solo si RAWG falla, IGDB (`igdb-search.handler.ts`). Una fuente falla si está deshabilitada o sin registrar, si su búsqueda falla (rate limit, 5xx, red, cuerpo ilegible) o si devolvió resultados y no se pudo importar ninguno. Que RAWG responda sin resultados no es un fallo y no se consulta IGDB.
-- RAWG importa hasta 3 resultados con detalle más el slug exacto de la consulta, y excluye DLCs. IGDB pide 10 candidatos, se queda con los `game_type` main game, standalone expansion, remake, remaster, expanded game y port (descarta DLC, bundle, mod, episode, season, fork, pack y update) e importa los 3 primeros con el mapper `igdb-to-game` (portada, fondo horizontal, plataformas, géneros y la nota `igdb`), guardando el `GameExternal` `igdb`.
-- Un resultado de IGDB ya vinculado por `GameExternal` devuelve ese juego. Si su título coincide con un juego del catálogo (mismo `code`), se vincula el id de IGDB a ese juego solo si todavía no tiene uno, y no se importa; por eso varios resultados con el mismo título (por ejemplo el original, el remake y el remaster) terminan en un solo juego con un solo id de IGDB.
-- Las requests a RAWG, a IGDB y al token de Twitch se cortan a los 5 s (también la lectura del cuerpo) y cuentan como fallo de la fuente (`RAWG_REQUEST_ERROR` / `IGDB_REQUEST_ERROR`).
-- Cuando la búsqueda en RAWG falla, la cadena recuerda el fallo 2 minutos (`RAWG_UNAVAILABLE_COOLDOWN_MS` en `games.service.ts`): durante ese tiempo las búsquedas online saltan RAWG y van directo a IGDB. Pasado el plazo se vuelve a probar RAWG; si responde, se olvida el fallo, y si falla otra vez, empieza otro plazo. Las búsquedas que ya estaban consultando RAWG cuando falló terminan su intento. En el entorno `test` el plazo es 0.
-- Los fallos de las fuentes se registran como warning y nunca llegan como error HTTP, tampoco con `force_online=true`: si fallan todas, la respuesta es 200 con lista vacía.
-- Cuando la búsqueda va online, la respuesta trae `onlineSearchAvailable`: `true` si alguna fuente respondió (aunque no encuentre nada) y `false` si fallaron todas. Con `true` trae también `onlineSearchSource` (`rawg` o `igdb`), la fuente de la que vienen todos los juegos importados en esa respuesta. Si la respuesta sale solo del catálogo local, no vienen ninguno de los dos.
-- `sort_by=random` disponible para discover.
-- `force_online` y `local_only` se parsean con `z.stringbool()`: `"true"` / `"false"` (y sus variantes) valen lo que dicen; cualquier otro valor responde 422 `COMMON_SCHEMA_INVALID`.
-- `GET /games` con `min_score` / `max_score` compara contra el score canónico normalizado a 0–5 (el de la fuente con menor `priority`), el mismo que usa `sort_by=score`; los juegos sin score quedan fuera del rango.
-- `GET /games/latest-reviewed` acepta `limit` entero entre 1 y 50 (por defecto 16); otro valor o un parámetro desconocido responde 422 `COMMON_SCHEMA_INVALID`. Los juegos inactivos se descartan antes de aplicar el `limit`.
-- `PATCH /games/:id` con un título cuyo slug ya usa otro juego responde 409 `GAME_UNIQUE_CONSTRAINT`. `DELETE /games/:id` (baja lógica) sobre un juego inexistente o ya inactivo responde 404 `GAME_NOT_FOUND` y no registra auditoría.
-- `GET /genres/:code/games` devuelve cada juego con todos sus géneros; el género pedido solo filtra qué juegos entran.
-- Sin RAWG ni IGDB configurados, la búsqueda devuelve solo catálogo local y, sin match local, `onlineSearchAvailable: false`.
-
-## Showcase de juegos
-
-- `GET /games/showcase` es público (sin token, `publicLimiter`) y solo expone datos de catálogo de cada juego: `id`, `code`, `title`, `backgroundUrl`, `releaseYear`, `genres` (nombres, orden alfabético), `score`, `hours` y `ratio`.
-- Toma un pool de hasta 80 juegos activos, no DLC y con `backgroundUrl`, ordenados por `GamePopularities.score` desc, `title` asc e `id` asc, y devuelve una muestra al azar de 21 de ese pool, en orden aleatorio.
-- `score`, `hours` y `ratio` usan las fuentes canónicas de `sort_by=ratio` (score de la fuente con menor `priority` normalizado a 0–5; duración `completr` → `hltb` → `rawg`). Son `null` cuando falta el dato; `ratio` es `null` si falta score o duración. No hay juego destacado en la respuesta: lo elige el cliente.
-- La muestra se cachea en memoria 30 minutos por proceso, así que cambia con cada refresco. Si el refresco falla y hay un resultado previo, se sirve ese.
-
-## Providers externos
-
-- Un provider externo expone `isEnabled` en su clase base.
-- Si falta su credencial, el `create` de la clase base devuelve la implementación deshabilitada: el backend arranca igual y cada método lanza `<PROVIDER>_DISABLED`.
-- RAWG: `RAWG_API_KEY` es opcional (vacía o ausente = deshabilitado). Sus métodos deshabilitados devuelven una promesa rechazada con `RAWG_DISABLED`, no lanzan de forma síncrona.
-- IGDB: `IGDB_CLIENT_ID` e `IGDB_CLIENT_SECRET` son opcionales (vacía o ausente cualquiera de las dos = deshabilitado). Sus métodos deshabilitados devuelven una promesa rechazada con `IGDB_DISABLED`, no lanzan de forma síncrona. El token de Twitch vive en memoria y se renueva solo; el provider no limita la frecuencia de requests (IGDB permite 4 por segundo), eso queda a cargo de quien lo llama.
-- Mail: `SMTP_HOST` es opcional (vacío o ausente = deshabilitado). Códigos: `MAIL_DISABLED` (503) y `MAIL_SEND_ERROR` (502).
-- IA: `DEEPSEEK_API_KEY` es opcional (vacía o ausente = IA no configurada). El modelo (`deepseek-flash`) y el timeout por defecto (30 s) son fijos en la clase de DeepSeek. Un consumidor consulta `iaProvider.isConfigured` de `ia/ia.provider` antes de llamar si quiere degradar en silencio; si no, `iaProvider.generateText` y `iaProvider.generateJson` rechazan con `IA_NOT_CONFIGURED`. `iaProvider.generateJson(schema, request)` pide salida JSON estructurada y la valida con el schema zod recibido; si la salida no es JSON o no cumple el schema, rechaza con `IA_INVALID_OUTPUT`.
-
-### Códigos de error de IA
-
-| Código                    | Status | Cuándo                                                                                                          |
-| ------------------------- | ------ | --------------------------------------------------------------------------------------------------------------- |
-| `IA_NOT_CONFIGURED`       | 503    | `DEEPSEEK_API_KEY` ausente o vacía                                                                              |
-| `IA_INVALID_INPUT`        | 422    | Instrucciones o contenido en blanco, `maxTokens` o `timeoutMs` no enteros positivos, `temperature` fuera de 0–2 |
-| `IA_PROVIDER_UNAVAILABLE` | 502    | DeepSeek respondió con un status de error (401, 402, 429, 5xx) o falló la red                                   |
-| `IA_TIMEOUT`              | 504    | Se agotó el timeout de la petición                                                                              |
-| `IA_INVALID_RESPONSE`     | 502    | Respuesta sin `choices`/output                                                                                  |
-| `IA_INVALID_OUTPUT`       | 502    | La salida de `generateJson` no es JSON o no cumple el schema                                                    |
-| `IA_INTERNAL_ERROR`       | 500    | Código de `IA Provider` sin mapeo propio                                                                        |
-
-### Códigos de error de RAWG
-
-| Código                | Status | Cuándo                                                              |
-| --------------------- | ------ | ------------------------------------------------------------------- |
-| `RAWG_DISABLED`       | 503    | `RAWG_API_KEY` ausente o vacía                                      |
-| `RAWG_NOT_FOUND`      | 404    | RAWG respondió 404                                                  |
-| `RAWG_RATE_LIMITED`   | 429    | RAWG respondió 429                                                  |
-| `RAWG_REQUEST_ERROR`  | 502    | RAWG respondió con otro status de error, o falló la red al llamarlo |
-| `RAWG_PARSE_ERROR`    | 502    | RAWG respondió 2xx con un cuerpo que no es JSON válido              |
-| `RAWG_INTERNAL_ERROR` | 500    | Código de `RAWG Provider` sin mapeo propio                          |
-
-### Códigos de error de IGDB
-
-| Código                | Status | Cuándo                                                                      |
-| --------------------- | ------ | --------------------------------------------------------------------------- |
-| `IGDB_DISABLED`       | 503    | `IGDB_CLIENT_ID` o `IGDB_CLIENT_SECRET` ausente o vacía                     |
-| `IGDB_NOT_FOUND`      | 404    | Búsqueda por id o slug sin resultados (array vacío), o id/slug inválido     |
-| `IGDB_RATE_LIMITED`   | 429    | IGDB respondió 429                                                          |
-| `IGDB_AUTH_ERROR`     | 502    | Twitch rechazó las credenciales, o IGDB respondió 401 después del reintento |
-| `IGDB_REQUEST_ERROR`  | 502    | IGDB o Twitch respondieron con otro status de error, o falló la red         |
-| `IGDB_PARSE_ERROR`    | 502    | IGDB o Twitch respondieron 2xx con un cuerpo que no tiene el shape esperado |
-| `IGDB_INTERNAL_ERROR` | 500    | Código de `IGDB Provider` sin mapeo propio                                  |
-
-Con RAWG deshabilitado: `GET /game-external/rawg/:slug` y `POST /admin/jobs/populate-rawg` responden 503; el resto del backend no se ve afectado. Con IGDB sin configurar, `GET /game-external/igdb/:slug` responde 503 `IGDB_DISABLED`.
-
-`GET /game-external/rawg/:slug` y `GET /game-external/igdb/:slug` (solo moderadores) consultan la fuente sin importar nada y responden el mismo shape: `source`, `externalId`, `title`, `description`, `coverUrl`, `backgroundUrl`, `releaseAt`, `platforms`, `genres`, `scores` (sin las fuentes que no están en el catálogo) y `times`. RAWG siempre manda `coverUrl` en `null` y su arte en `backgroundUrl`; IGDB no manda `times`.
-
-El job `populate_rawg` cuenta como no encontrado un juego al que RAWG responde 404 (`RAWG_NOT_FOUND`) y sigue con el siguiente. Cualquier otro fallo (429, 5xx, red, cuerpo ilegible o error al guardar) lo detiene de inmediato con status `failed` y un `result` con los juegos procesados, los no encontrados y el motivo.
+- **La clave del límite es la IP real del cliente**, resuelta por `resolveClientIp`. Primero toma el peer: `x-real-ip` si es válida o, si no, la IP del socket. Solo si ese peer está en los rangos de Cloudflare se confía en `cf-connecting-ip`; así quien se conecta directo al servidor no puede cambiar de clave inventando esa cabecera. `x-forwarded-for` no se usa.
+- **`x-real-ip` es confiable porque la API solo se alcanza a través de un proxy que la pisa**: el nginx de CapRover la escribe con `$remote_addr` y el nginx de la web, que hace proxy de `/share/`, reenvía la que recibió. Si la API se expone sin ese proxy, un cliente podría elegir su clave.
+- **Los rangos de Cloudflare están copiados a mano** en `cloudflare-ip-ranges.config.ts` desde https://www.cloudflare.com/ips-v4 y https://www.cloudflare.com/ips-v6, y no se actualizan solos. Si Cloudflare suma un rango, el tráfico que llegue desde él queda agrupado por la IP del edge hasta que se actualice el archivo.
