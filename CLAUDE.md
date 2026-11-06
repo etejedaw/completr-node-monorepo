@@ -6,13 +6,12 @@ Monorepo de Completr: backend (Node + Express + Sequelize + PostgreSQL) en `apps
 
 Los documentos del proyecto viven en AFFiNE, workspace `b48542ca-7422-4505-a933-3640ba923c2d`, carpeta `Completr`:
 
-| Doc                 | docId                   | Qué contiene                                                                |
-| ------------------- | ----------------------- | --------------------------------------------------------------------------- |
-| Context             | `JYN5z0t8Zy`            | Visión, cronología de fases, decisiones y supuestos                         |
-| Reglas de negocio   | `xruqTLlMPw`            | Estados del backlog, ratio, privacidad, semestres                           |
-| Premium             | `XraQg_c8i0`            | Roles y permisos, límites free vs. premium, gating                          |
-| Deuda técnica       | `3kQdzgm3Yb`            | Pendientes técnicos abiertos y qué falta para cerrarlos                     |
-| Trabajo por feature | `LVVa6VxU4ykwvbn-srApV` | Flujo de trabajo de cada ítem: propuestas, implementación, pruebas y commit |
+| Doc               | docId        | Qué contiene                                            |
+| ----------------- | ------------ | ------------------------------------------------------- |
+| Context           | `JYN5z0t8Zy` | Visión, cronología de fases, decisiones y supuestos     |
+| Reglas de negocio | `xruqTLlMPw` | Estados del backlog, ratio, privacidad, semestres       |
+| Premium           | `XraQg_c8i0` | Roles y permisos, límites free vs. premium, gating      |
+| Deuda técnica     | `3kQdzgm3Yb` | Pendientes técnicos abiertos y qué falta para cerrarlos |
 
 ### Roadmap (carpeta `Completr/Roadmap`)
 
@@ -39,7 +38,7 @@ Los documentos del proyecto viven en AFFiNE, workspace `b48542ca-7422-4505-a933-
 | fase-3  | `Po8jKhI6DJ` | Feedback de usuarios y beta testers de Fase 3                |
 | fase-4  | `r1oZgxGyv3` | Feedback de usuarios de Fase 4                               |
 
-Lee `Trabajo por feature` antes de empezar un ítem de una fase. Lee `Context` con `mcp__affine__export_doc_markdown` antes de empezar una fase nueva, al diseñar modelos o endpoints, o cuando la tarea toque decisiones de producto. Lee el doc de la fase que estés trabajando para saber el estado real de cada ítem; `Reglas de negocio` cuando toques estados, ratio o privacidad; `Premium` cuando toques gating o límites; `Feedback` cuando trabajes un FB-XXX. Para un fix puntual basta con el doc de la fase.
+Lee `Context` con `mcp__affine__export_doc_markdown` antes de empezar una fase nueva, al diseñar modelos o endpoints, o cuando la tarea toque decisiones de producto. Lee el doc de la fase que estés trabajando para saber el estado real de cada ítem; `Reglas de negocio` cuando toques estados, ratio o privacidad; `Premium` cuando toques gating o límites; `Feedback` cuando trabajes un FB-XXX. Para un fix puntual basta con el doc de la fase.
 
 **Si cambia una decisión de producto o de negocio, actualiza el doc en AFFiNE** — con `mcp__affine__update_block` sobre el bloque puntual, no reescribiendo el documento.
 
