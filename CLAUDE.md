@@ -62,7 +62,7 @@ npm workspaces. Cada app tiene su `package.json`; el lockfile, el tooling (ESLin
 | `.claude/skills/`      | Skills del proyecto                                               |
 | `captain-definition-*` | Deploy de cada app; el contexto de build de Docker es la raíz     |
 
-Comandos desde la raíz: `npm run dev` (API + web + landing), `dev:api`, `dev:web`, `dev:landing`, `db` / `db:down`, `build`, `typecheck`, `test` (API y web), `test:api`, `test:web`, `lint`, `lint:fix`, `format`, `migrate:dev`, `migrate:status:dev`, `migrate:prod`, `migrate:status:prod` (los `:dev` leen `apps/api/.env.dev.local` si existe; los `:prod`, `apps/api/.env.prod.local`). Cualquier otro script de una app: `npm run <script> -w apps/<app>`. Las dependencias se instalan con `npm install <pkg> -w apps/<app>`, nunca con `npm install` dentro de la carpeta de la app.
+Los scripts están en el `package.json` de la raíz y de cada app. Si un script o un CLI hace la tarea (instalar una dependencia, crear una migración), se usa ese y no se edita a mano: ver [`docs/context/conventions.md`](docs/context/conventions.md#scripts-y-clis-antes-que-edición-a-mano).
 
 ## Lo técnico vive en `docs/`
 
@@ -70,17 +70,17 @@ AFFiNE tiene el negocio y la planificación. Todo lo técnico vive en el repo, y
 
 | Archivo                       | Qué contiene                                                                    |
 | ----------------------------- | ------------------------------------------------------------------------------- |
-| `docs/architecture.md`        | Stack, capas, flujo de un request, decisiones de diseño                         |
-| `docs/invariants.md`          | Enums, constraints, validaciones, códigos de error, auto-comportamientos        |
-| `docs/context/modules.md`     | Anatomía de un módulo y comunicación entre módulos                              |
-| `docs/context/conventions.md` | Estilo, nombres, commits, post-edición obligatoria                              |
+| `docs/architecture.md`        | Estructura, capas, flujo de un request, reglas de código y decisiones de diseño |
+| `docs/invariants.md`          | Reglas que el código hace cumplir y cuyo porqué no se ve en él, con su razón    |
+| `docs/context/modules.md`     | Anatomía de un módulo, nombres de archivo y comunicación entre módulos          |
+| `docs/context/conventions.md` | Ramas, commits, tests, post-edición obligatoria, cuándo preguntar               |
 | `docs/context/errors.md`      | Sistema de errores en 3 capas (obligatorio si tocas errores)                    |
 | `docs/context/providers.md`   | Adapters de integraciones externas (obligatorio si tocas providers)             |
 | `docs/context/frontend.md`    | Stack, estructura y convenciones del frontend (obligatorio si tocas `apps/web`) |
 | `docs/context/landing.md`     | Stack, contenido y build de la landing (obligatorio si tocas `apps/landing`)    |
 | `docs/api/`                   | Colección Bruno con todos los endpoints                                         |
 
-**La frontera:** `docs/` describe el mecanismo (cómo se llama el enum, qué constraint existe, qué status devuelve la API). AFFiNE tiene la decisión (cuál es el límite de un free, qué significa cada estado, por qué existe el ratio). Un dato tiene un solo dueño: no lo dupliques en el otro lado.
+**La frontera:** `docs/` describe cómo está hecho el código y las reglas técnicas que no se ven en él, con su razón (por qué un 404 en vez de un 403, por qué un plazo de 45 s). AFFiNE tiene la decisión de producto (cuál es el límite de un free, qué significa cada estado, por qué existe el ratio). Lo que se lee en el código (enums, constraints, status) no se documenta en ninguno de los dos. Un dato tiene un solo dueño: no lo dupliques en el otro lado.
 
 **Este archivo es el único del repo que puede mencionar AFFiNE.** El repo es AGPLv3: quien lo forkee no debe encontrar referencias a un workspace privado al que no tiene acceso. `README.md`, `docs/` y `docs/changelogs/` se escriben autocontenidos — cuando una decisión vive fuera del repo, se dice "es planificación de producto y no se documenta acá", sin nombrar la herramienta ni el doc. Si el dato existe en el código (un `FREE_*_LIMIT`, un `authMiddleware`), apunta al código, que además no se desfasa.
 
