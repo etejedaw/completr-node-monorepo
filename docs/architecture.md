@@ -131,7 +131,7 @@ La API loguea con Pino (`common/logger/pino.config.ts`) y el destino depende de 
 
 ## Decisiones clave
 
-- **UUIDs en todas las PKs y FKs.** Nunca `id: number`.
+- **UUIDs en todas las PKs y FKs.** Nunca `id: number`. Cada modelo declara sus columnas FK con `DataTypes.UUID`: como no hay `sync()`, Sequelize nunca infiere el tipo desde la asociación, así que no hace falta repetirlo en `associations.database.ts`.
 - **Soft delete con `isActive`** en Games y Users: dar de baja un juego o desactivar una cuenta no borra filas. Las excepciones (borrado físico de un juego y de una cuenta) y lo que exigen están en [`invariants.md`](./invariants.md).
 - **Slugs/codes auto-generados** desde el título con `slugify` para URLs amigables.
 - **Variables de entorno** se cargan con `--env-file` (Node 22+) desde `apps/api/.env.dev.local` (opcional) o `apps/api/.env.prod.local`, no con `dotenv`. Se exponen tipadas desde `common/config/`.
