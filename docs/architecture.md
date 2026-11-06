@@ -102,7 +102,7 @@ Solo se permiten cuando el código no puede explicarse a sí mismo: una regex no
 
 ### Mecanismos compartidos que no se reimplementan
 
-- **Búsqueda de texto:** todo `search` / `q` / `query` pasa por `common/utils/text-search.util.ts` (normalización sin acentos ni signos, palabras en cualquier orden, orden por relevancia). Ningún service arma su propio `ILIKE`.
+- **Búsqueda de texto:** todo `search` pasa por `common/utils/text-search.util.ts` (normalización sin acentos ni signos, palabras en cualquier orden, orden por relevancia). Ningún service arma su propio `ILIKE`.
 - **Errores de Sequelize:** se traducen con `rethrowSequelizeError` (ver [`context/errors.md`](./context/errors.md#patrón-rethrowsequelizeerror)).
 - **Acciones masivas:** `buildBulkActionQuerySchema`, `validateBulkBodyMiddleware` y `BulkIdsSchema` en `common/`, con la respuesta `{ action, succeeded, skipped }`.
 - **Exportaciones:** `exportFormatNegotiationMiddleware`, `exportFormatAccessMiddleware` y `serializeCsv()`; las columnas de cada recurso, en su `*.export-row.mapper.ts`.
