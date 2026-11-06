@@ -6,13 +6,15 @@ Punto de entrada para entender cómo está organizado el código de Completr: ba
 
 ### Arquitectura general
 
-- [`architecture.md`](./architecture.md) — Cómo está organizado el código y cómo se escribe: estructura del monorepo, stack del backend, capas, flujo de un request, reglas de código y decisiones de diseño. **Empieza aquí si nunca has visto el proyecto.**
+- [`architecture.md`](./architecture.md) — Estándares portables del backend: estructura del monorepo, stack, capas, flujo de un request, reglas de escritura de código y decisiones de diseño. No depende de las features del proyecto. **Empieza aquí si nunca has visto el proyecto.**
 
 ### Reglas
 
-- [`rules.md`](./rules.md) — Reglas que el sistema hace cumplir y cuyo porqué no se ve leyendo el código (privacidad, concurrencia, servicios externos, borrado de cuenta), cada una con su razón. Lo que se lee en el código (enums, validaciones, status) no se duplica ahí.
+- [`rules.md`](./rules.md) — Todo lo propio de Completr que no se lee en el código: reglas con su razón (privacidad, concurrencia, datos externos, borrado de cuenta), infraestructura, integraciones concretas, mecanismos compartidos y el catálogo de la interfaz.
 
-### Contexto detallado (`context/`)
+### Estándares por subsistema (`context/`)
+
+Como `architecture.md`, son portables: sirven tal cual en otro proyecto con el mismo stack.
 
 - [`context/conventions.md`](./context/conventions.md) — Flujo de trabajo: ramas, commits, tests, qué hacer después de editar y cuándo preguntar.
 - [`context/modules.md`](./context/modules.md) — Anatomía de un módulo de negocio. Qué archivos lleva y cómo se nombran, cuándo se crean carpetas, cómo se conectan los módulos entre sí y por qué nunca se importa el `Model` de otro módulo directamente.
@@ -32,17 +34,17 @@ Esta carpeta describe **cómo funciona el código hoy**. La planificación de pr
 
 Cada dato tiene un solo dueño. Si ya existe en otro archivo, se enlaza, no se copia; y si se lee en el código, no se escribe en ningún lado.
 
-| Si vas a documentar…                                                              | Va en                                                             |
-| --------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Cómo se organiza o se escribe el código del backend (capas, nombres, comentarios) | `architecture.md`                                                 |
-| La anatomía de un módulo, el sistema de errores o un provider                     | `context/modules.md`, `context/errors.md`, `context/providers.md` |
-| Una convención del frontend o de la landing                                       | `context/frontend.md`, `context/landing.md`                       |
-| Ramas, commits, tests o qué hacer después de editar                               | `context/conventions.md`                                          |
-| Una regla que el código hace cumplir y cuyo porqué no se ve leyéndolo             | `rules.md`, con su razón                                          |
-| Un endpoint: request, response, auth y errores                                    | `api/`                                                            |
-| Lo que se entregó y por qué                                                       | `changelogs/`                                                     |
-| Una decisión de producto (límites de un plan, qué significa un estado, roadmap)   | No va en el repo: es planificación de producto                    |
-| Un enum, una columna, un rango de validación, un status o el valor de un límite   | En ningún documento: la fuente es el código                       |
+| Si vas a documentar…                                                                                                                      | Va en                                                             |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Un estándar de organización o escritura de código del backend (capas, nombres, comentarios)                                               | `architecture.md`                                                 |
+| La anatomía de un módulo, el sistema de errores o un provider                                                                             | `context/modules.md`, `context/errors.md`, `context/providers.md` |
+| Un estándar del frontend o de la landing                                                                                                  | `context/frontend.md`, `context/landing.md`                       |
+| Ramas, commits, tests o qué hacer después de editar                                                                                       | `context/conventions.md`                                          |
+| Algo propio del proyecto que no se lee en el código (una regla y su porqué, infraestructura, una integración, un componente del catálogo) | `rules.md`, con su razón                                          |
+| Un endpoint: request, response, auth y errores                                                                                            | `api/`                                                            |
+| Lo que se entregó y por qué                                                                                                               | `changelogs/`                                                     |
+| Una decisión de producto (límites de un plan, qué significa un estado, roadmap)                                                           | No va en el repo: es planificación de producto                    |
+| Un enum, una columna, un rango de validación, un status o el valor de un límite                                                           | En ningún documento: la fuente es el código                       |
 
 Lo que ya hacen cumplir ESLint, Prettier o el typecheck tampoco se documenta.
 
