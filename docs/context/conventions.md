@@ -36,19 +36,19 @@ Los tests del frontend están en [`frontend.md`](./frontend.md#tests).
 
 Viven en `apps/api/test/`, con la misma estructura modular que `src/`. Corren con `node:test` y TypeScript vía `-r ts-node/register`; los de integración usan `supertest` contra `createApp()` sin levantar un puerto.
 
-| Archivo                                      | Qué es                                              |
-| -------------------------------------------- | --------------------------------------------------- |
-| `test/<modulo>/<modulo>.integration.test.ts` | Integración HTTP contra la DB de test               |
-| `test/<modulo>/<archivo>.unit.test.ts`       | Unitarios, sin DB                                   |
-| `test/helpers/`                              | Cliente supertest, truncado, factories, login, mail |
-| `test/global-setup.mjs`                      | Aplica las migraciones a la DB de test              |
+| Archivo                                      | Qué es                                        |
+| -------------------------------------------- | --------------------------------------------- |
+| `test/<modulo>/<modulo>.integration.test.ts` | Integración HTTP contra la DB de test         |
+| `test/<modulo>/<archivo>.unit.test.ts`       | Unitarios, sin DB                             |
+| `test/helpers/`                              | Cliente supertest, truncado, factories, login |
+| `test/global-setup.mjs`                      | Aplica las migraciones a la DB de test        |
 
 Los scripts de test fijan `NODE_ENV=test` y cargan `apps/api/.env.test.local` si existe. Los tests entran en `tsconfig.json` pero no en `tsconfig.build.json`.
 
-- **DB de test:** servicio `postgres-test` de `apps/api/docker-compose.yml` (DB `completr_test`). Con `NODE_ENV=test` la API se conecta por defecto a `127.0.0.1:5433`, usuario `root`, clave `toor`; si el puerto local es otro, se pone en `apps/api/.env.test.local` (por ejemplo `PG_PORT=5435`), que no se commitea.
-- **Migraciones:** el global setup de `test:integration` corre `sequelize-cli db:migrate --env test` antes de cada corrida. `test:unit` no toca la DB.
-- **Aislamiento:** cada archivo de test corre en su propio proceso y `useTestDatabase()` trunca todas las tablas salvo `SequelizeMeta` antes de empezar. Dentro de un archivo los datos se comparten, así que las factories generan usernames y emails únicos. Los de integración corren con `--test-concurrency=1` porque comparten DB. El truncado también vacía los catálogos sembrados por migración (por ejemplo `ScoreSources`): el test que los necesita los crea pasando el seed a `useTestDatabase(seed)`, porque los `before` de nivel raíz corren en paralelo y no sirven para eso.
-- **Entorno `test`:** el rate limiter queda desactivado, el plazo de enfriamiento de RAWG es 0 y el mail no sale por SMTP: `mailProvider` usa `InMemoryMailModel`, cuyo `outbox` se inspecciona con `test/helpers/mail.helper.ts`.
+- **DB de test:** un servicio Postgres propio en el `docker-compose.yml` de desarrollo, en otro puerto que la DB de desarrollo, para que correr la suite no toque datos de trabajo. Los valores por defecto de conexión con `NODE_ENV=test` apuntan a ese servicio; un puerto local distinto va en `.env.test.local`, que no se commitea.
+- **Migraciones:** el global setup de los tests de integración aplica las migraciones antes de cada corrida. Los unitarios no tocan la DB.
+- **Aislamiento:** cada archivo de test corre en su propio proceso y trunca todas las tablas salvo `SequelizeMeta` antes de empezar. Dentro de un archivo los datos se comparten, así que las factories generan valores únicos (usernames, emails). Los de integración corren con `--test-concurrency=1` porque comparten DB. El truncado también vacía los catálogos sembrados por migración: el test que los necesita los crea con factories en el setup del archivo, porque los `before` de nivel raíz corren en paralelo y no sirven para eso.
+- **Entorno `test`:** el rate limiter queda desactivado, las esperas y enfriamientos de los providers se anulan y los servicios externos se reemplazan por modelos en memoria inspeccionables (por ejemplo, el correo va a un `outbox` en memoria, no a SMTP).
 
 ## Post-edición obligatoria
 
