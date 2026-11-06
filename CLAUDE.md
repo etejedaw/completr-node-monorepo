@@ -71,7 +71,7 @@ AFFiNE tiene el negocio y la planificación. Todo lo técnico vive en el repo, y
 | Archivo                       | Qué contiene                                                                    |
 | ----------------------------- | ------------------------------------------------------------------------------- |
 | `docs/architecture.md`        | Estructura, capas, flujo de un request, reglas de código y decisiones de diseño |
-| `docs/invariants.md`          | Reglas que el código hace cumplir y cuyo porqué no se ve en él, con su razón    |
+| `docs/rules.md`               | Reglas que el código hace cumplir y cuyo porqué no se ve en él, con su razón    |
 | `docs/context/modules.md`     | Anatomía de un módulo, nombres de archivo y comunicación entre módulos          |
 | `docs/context/conventions.md` | Ramas, commits, tests, post-edición obligatoria, cuándo preguntar               |
 | `docs/context/errors.md`      | Sistema de errores en 3 capas (obligatorio si tocas errores)                    |
