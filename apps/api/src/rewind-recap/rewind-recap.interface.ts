@@ -15,7 +15,13 @@ export interface RewindRecapInput {
 	genres: RewindGameGenre[];
 	franchises: RewindGameFranchise[];
 	coopPartners: RewindCoopPartner[];
+	reviews: RewindGameReview[];
 	previousYearTotals: RewindTotals | null;
+}
+
+export interface RewindGameReview {
+	gameId: string;
+	content: string;
 }
 
 export interface RewindCoopPartner {
@@ -119,6 +125,7 @@ export interface GameRowLookups {
 	genreNamesByGame: Map<string, string[]>;
 	franchiseNamesByGame: Map<string, string[]>;
 	coopAliasesByRun: Map<string, string[]>;
+	reviewsByGame: Map<string, string>;
 }
 
 export interface RecapLengthBucket {

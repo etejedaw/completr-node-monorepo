@@ -1,7 +1,7 @@
 ---
 lang: es
-version: "2.4"
-updated: 2026-11-05
+version: "2.5"
+updated: 2026-11-07
 title: Política de privacidad
 summary: "La idea de fondo es simple: recojo lo mínimo para que la app funcione, no vendo tus datos ni los cedo con fines comerciales, y puedes pedir una copia o el borrado de todo cuando quieras."
 highlights:
@@ -93,7 +93,7 @@ Cada sección de tu cuenta (perfil, My Games, My Shelf, Platinums, Sagas, Rewind
 Hay algunas excepciones, y van en sentidos opuestos:
 
 - **Las listas nacen privadas.** Cada lista que creas empieza siendo solo tuya; la publicas por separado cuando tú decides.
-- **El Rewind queda oculto hasta que lo generas.** Aunque su sección esté en Everyone, nadie ve el Rewind de un año hasta que lo creas desde tu perfil. Quien pueda verlo ve también su resumen con IA, que puede parafrasear tus notas si las incluiste, pero nunca las cita.
+- **El Rewind queda oculto hasta que lo generas.** Aunque su sección esté en Everyone, nadie ve el Rewind de un año hasta que lo creas desde tu perfil. Quien pueda verlo ve también su resumen con IA, que puede parafrasear tus reseñas, y tus notas si las incluiste, pero nunca las cita.
 - **Las reseñas no tienen control de visibilidad.** Si escribes una reseña o pones una nota a un juego, cualquier persona con cuenta en Completr puede verla en la ficha de ese juego, aunque el resto de tu perfil esté en privado. Si no quieres que algo se vea, no lo publiques como reseña.
 
 ## Por dónde pasan tus datos
@@ -103,7 +103,7 @@ A nadie se los cedo con fines comerciales. Pero para que la app funcione tus dat
 - **Cloudflare** (Estados Unidos). Todo lo que envías y recibes pasa por su red antes de llegar a mis servidores, así que técnicamente puede verlo.
 - **Mis servidores** (São Paulo, Brasil). Aquí corren la aplicación, la base de datos y la analítica. Los administro yo directamente.
 - **Servicio de correo** (São Paulo, Brasil). Recibe el correo que dejas al pedir una invitación.
-- **DeepSeek** (China). Escribe el resumen con IA del Rewind. Solo recibe datos cuando generas un Rewind que incluye ese resumen, y solo los de ese año: tus juegos, con sus fechas, plataforma, géneros, horas y tus puntuaciones, y las estadísticas calculadas a partir de ellos. Tus notas escritas y tus partidas privadas solo van si activas sus interruptores. No recibe nada que te identifique: ni tu correo, ni tu nombre de usuario, ni tu nombre visible, ni el identificador de tu cuenta, solo tus partidas. La petición sale desde mis servidores, así que tampoco ve tu dirección IP. La única excepción es lo que tú mismo escribas en tus notas que pueda identificarte, y solo si eliges incluirlas. DeepSeek almacena y procesa esos datos en China. Sus condiciones no fijan cuánto tiempo conserva lo que recibe por su API ni aclaran si lo usa para entrenar sus modelos: su política general contempla ese uso para sus propios servicios y permite oponerse escribiendo a privacy@deepseek.com. Como la petición no lleva nada que te identifique, esa copia no queda asociada a ti.
+- **DeepSeek** (China). Escribe el resumen con IA del Rewind. Solo recibe datos cuando generas un Rewind que incluye ese resumen, y solo los de ese año: tus juegos, con sus fechas, plataforma, géneros, horas, tus puntuaciones y las reseñas que publicaste de ellos, y las estadísticas calculadas a partir de ellos. Tus notas escritas y tus partidas privadas solo van si activas sus interruptores. No recibe nada que te identifique: ni tu correo, ni tu nombre de usuario, ni tu nombre visible, ni el identificador de tu cuenta, solo tus partidas. La petición sale desde mis servidores, así que tampoco ve tu dirección IP. La única excepción es lo que tú mismo escribas que pueda identificarte en tus reseñas, o en tus notas si eliges incluirlas. DeepSeek almacena y procesa esos datos en China. Sus condiciones no fijan cuánto tiempo conserva lo que recibe por su API ni aclaran si lo usa para entrenar sus modelos: su política general contempla ese uso para sus propios servicios y permite oponerse escribiendo a privacy@deepseek.com. Como la petición no lleva nada que te identifique, esa copia no queda asociada a ti.
 
 Los datos de los videojuegos provienen de catálogos y sitios externos (como RAWG, IGDB, Metacritic, HowLongToBeat y Wikidata), pero esa es información que _recibo_: nunca envío tus datos personales a esos servicios.
 

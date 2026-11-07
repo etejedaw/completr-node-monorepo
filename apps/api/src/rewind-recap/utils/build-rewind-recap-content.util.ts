@@ -43,7 +43,8 @@ export const REWIND_RECAP_GAME_COLUMNS = [
 	"ratingVsCritics",
 	"daysInBacklog",
 	"daysToFinish",
-	"coopWith"
+	"coopWith",
+	"review"
 ] as const;
 
 export const REWIND_RECAP_NOTES_COLUMN = "notes";
@@ -163,7 +164,8 @@ function toGameRow(
 		ratingVsCritics(run),
 		daysInBacklog(run),
 		daysToFinish(run),
-		lookups.coopAliasesByRun.get(run.id)?.join("/") ?? null
+		lookups.coopAliasesByRun.get(run.id)?.join("/") ?? null,
+		condenseRecapNote(lookups.reviewsByGame.get(run.gameId) ?? null)
 	];
 	return includesNotes ? [...row, condenseRecapNote(run.notes)] : row;
 }
@@ -240,7 +242,10 @@ export function buildRewindRecapContent(
 	const lookups: GameRowLookups = {
 		genreNamesByGame: groupGenreNamesByGame(input.genres),
 		franchiseNamesByGame: groupFranchiseNamesByGame(input.franchises),
-		coopAliasesByRun
+		coopAliasesByRun,
+		reviewsByGame: new Map(
+			input.reviews.map(review => [review.gameId, review.content])
+		)
 	};
 
 	return JSON.stringify({

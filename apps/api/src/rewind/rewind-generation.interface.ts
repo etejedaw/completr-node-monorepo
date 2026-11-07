@@ -1,4 +1,7 @@
-import { type RewindCoopPartner } from "../rewind-recap/rewind-recap.interface";
+import {
+	type RewindCoopPartner,
+	type RewindGameReview
+} from "../rewind-recap/rewind-recap.interface";
 import { type RewindPremiumAccessKind } from "./rewind.constants";
 import {
 	type Rewind,
@@ -29,6 +32,7 @@ export interface RecapSources {
 	yearGenres: RewindGameGenre[];
 	franchises: RewindGameFranchise[];
 	coopPartners: RewindCoopPartner[];
+	reviews: RewindGameReview[];
 	platinums: number | null;
 	premiumStats: RewindPremiumStats;
 }

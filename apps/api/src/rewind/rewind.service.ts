@@ -12,7 +12,11 @@ import * as gameGenreService from "../game-genre/game-genre.service";
 import * as gamePlatinumService from "../game-platinum/game-platinum.service";
 import { type PremiumAccess } from "../premium-access/premium-access.interface";
 import { resolvePremiumAccess } from "../premium-access/premium-access.service";
-import { type RewindCoopPartner } from "../rewind-recap/rewind-recap.interface";
+import * as reviewsService from "../reviews/reviews.service";
+import {
+	type RewindCoopPartner,
+	type RewindGameReview
+} from "../rewind-recap/rewind-recap.interface";
 import { generateRewindAiRecap } from "../rewind-recap/rewind-recap.service";
 import { buildRewindPremiumStats } from "../rewind-recap/utils/build-rewind-premium-stats.util";
 import { resolveSectionAccess } from "../users/helpers/visibility.helper";
@@ -449,6 +453,22 @@ async function findCoopPartners(
 	);
 }
 
+async function findWrittenReviews(
+	owner: User,
+	runs: RewindRun[]
+): Promise<RewindGameReview[]> {
+	const gameIds = [...new Set(runs.map(run => run.gameId))];
+	if (gameIds.length === 0) return [];
+	const reviewsByGame =
+		await reviewsService.findReviewContentByUserAndGameIds(
+			owner.id,
+			gameIds
+		);
+	return [...reviewsByGame.entries()].flatMap(([gameId, review]) =>
+		review.content?.trim() ? [{ gameId, content: review.content }] : []
+	);
+}
+
 async function gatherRecapSources(
 	owner: User,
 	record: RewindRecord,
@@ -461,16 +481,18 @@ async function gatherRecapSources(
 		findRuns(owner, publicOnly, record.includesNotes),
 		backlogService.countRunsAddedByMonth(owner.id, year, { publicOnly })
 	]);
-	const [genres, franchises, platinums, coopPartners] = await Promise.all([
-		gameGenreService.findGenresByGameIds(
-			listActiveGameIds(runs, [year, year - 1])
-		),
-		franchisesService.findFranchisesByGameIds(
-			listActiveGameIds(runs, [year])
-		),
-		publicPlatinumsFor(owner, record.includesPrivateRuns, year),
-		findCoopPartners(runs)
-	]);
+	const [genres, franchises, platinums, coopPartners, reviews] =
+		await Promise.all([
+			gameGenreService.findGenresByGameIds(
+				listActiveGameIds(runs, [year, year - 1])
+			),
+			franchisesService.findFranchisesByGameIds(
+				listActiveGameIds(runs, [year])
+			),
+			publicPlatinumsFor(owner, record.includesPrivateRuns, year),
+			findCoopPartners(runs),
+			findWrittenReviews(owner, runs)
+		]);
 	const yearGenres = filterGenresOfYear(genres, runs, year);
 	const premiumStats =
 		reusablePremiumStats ??
@@ -486,6 +508,7 @@ async function gatherRecapSources(
 		yearGenres,
 		franchises,
 		coopPartners,
+		reviews,
 		platinums,
 		premiumStats
 	};
@@ -524,6 +547,7 @@ async function writeAiRecap(
 		genres: sources.yearGenres,
 		franchises: sources.franchises,
 		coopPartners: sources.coopPartners,
+		reviews: sources.reviews,
 		previousYearTotals: await buildPreviousYearTotals(
 			owner,
 			record,
