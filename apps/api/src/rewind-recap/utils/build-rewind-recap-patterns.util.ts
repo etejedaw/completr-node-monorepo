@@ -171,13 +171,18 @@ function summarizeGroups(
 		);
 }
 
-function lengthBucketOf(run: RewindRun): string[] {
+export function lengthRangeOf(run: RewindRun): string | null {
 	const runHours = resolveRunHours(run);
-	if (runHours === null) return [];
+	if (runHours === null) return null;
 	const bucket = LENGTH_BUCKETS.find(
 		candidate => runHours.hours < candidate.maxHours
 	);
-	return bucket ? [bucket.name] : [];
+	return bucket?.name ?? null;
+}
+
+function lengthBucketOf(run: RewindRun): string[] {
+	const range = lengthRangeOf(run);
+	return range === null ? [] : [range];
 }
 
 function quarterOf(run: RewindRun): string[] {

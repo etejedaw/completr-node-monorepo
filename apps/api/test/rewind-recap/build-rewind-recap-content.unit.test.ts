@@ -94,6 +94,7 @@ void describe("buildRewindRecapContent", () => {
 				null,
 				42.5,
 				25,
+				"over 30 hours",
 				1.7,
 				4.5,
 				4.6,
@@ -646,6 +647,37 @@ void describe("buildRewindRecapContent", () => {
 
 		assert.deepEqual(column(readContent(input, TODAY), "review"), [
 			"r".repeat(300)
+		]);
+	});
+
+	void it("sends the length range of each game from real hours, then estimated hours", () => {
+		const input = buildRecapInput([
+			finishedRun("tiny", "2026-01-10", {
+				realDuration: 4.9,
+				duration: 40
+			}),
+			finishedRun("edge-five", "2026-01-11", { realDuration: 5 }),
+			finishedRun("medium", "2026-01-12", {
+				realDuration: 18.5,
+				duration: 12
+			}),
+			finishedRun("edge-thirty", "2026-01-13", { realDuration: 30 }),
+			finishedRun("estimated", "2026-01-14", { duration: 6 }),
+			finishedRun("zero-real", "2026-01-15", {
+				realDuration: 0,
+				duration: 2
+			}),
+			finishedRun("unknown", "2026-01-16")
+		]);
+
+		assert.deepEqual(column(readContent(input, TODAY), "lengthRange"), [
+			"under 5 hours",
+			"5 to 15 hours",
+			"15 to 30 hours",
+			"over 30 hours",
+			"5 to 15 hours",
+			"under 5 hours",
+			null
 		]);
 	});
 });

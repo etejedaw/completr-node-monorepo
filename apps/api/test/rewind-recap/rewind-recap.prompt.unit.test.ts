@@ -182,7 +182,15 @@ void describe("buildRewindRecapInstructions", () => {
 		);
 		assert.match(
 			instructions,
-			/Call a game short only under 5 hours and long only over 30 hours/
+			/Call a game short or long only from its "lengthRange"/
+		);
+		assert.match(
+			instructions,
+			/a game in "5 to 15 hours" or "15 to 30 hours" is neither short nor long/
+		);
+		assert.match(
+			instructions,
+			/Never decide the length from the hours yourself/
 		);
 	});
 

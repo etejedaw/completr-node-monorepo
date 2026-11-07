@@ -21,6 +21,7 @@ import {
 	daysInBacklog,
 	daysToFinish,
 	groupFranchiseNamesByGame,
+	lengthRangeOf,
 	paceVsEstimate,
 	ratingVsCritics
 } from "./build-rewind-recap-patterns.util";
@@ -37,6 +38,7 @@ export const REWIND_RECAP_GAME_COLUMNS = [
 	"franchise",
 	"realHours",
 	"estimatedHours",
+	"lengthRange",
 	"paceVsEstimate",
 	"userRating",
 	"criticScore",
@@ -158,6 +160,7 @@ function toGameRow(
 		lookups.franchiseNamesByGame.get(run.gameId)?.join("/") ?? null,
 		run.realDuration,
 		run.duration,
+		lengthRangeOf(run),
 		paceVsEstimate(run),
 		run.userRating,
 		run.score,
