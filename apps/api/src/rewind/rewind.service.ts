@@ -5,12 +5,14 @@ import { environmentConfig } from "../common/config/environment.config";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { ServiceError } from "../common/errors/service-error";
 import { PinoLogger } from "../common/logger/pino.logger";
+import * as coopRunsService from "../coop-runs/coop-runs.service";
 import { sequelize } from "../database/sequelize.database";
 import * as franchisesService from "../franchises/franchises.service";
 import * as gameGenreService from "../game-genre/game-genre.service";
 import * as gamePlatinumService from "../game-platinum/game-platinum.service";
 import { type PremiumAccess } from "../premium-access/premium-access.interface";
 import { resolvePremiumAccess } from "../premium-access/premium-access.service";
+import { type RewindCoopPartner } from "../rewind-recap/rewind-recap.interface";
 import { generateRewindAiRecap } from "../rewind-recap/rewind-recap.service";
 import { buildRewindPremiumStats } from "../rewind-recap/utils/build-rewind-premium-stats.util";
 import { resolveSectionAccess } from "../users/helpers/visibility.helper";
@@ -436,6 +438,17 @@ async function buildPreviousYearTotals(
 	}).totals;
 }
 
+async function findCoopPartners(
+	runs: RewindRun[]
+): Promise<RewindCoopPartner[]> {
+	const membersByRun = await coopRunsService.findMembersForManyBacklogs(
+		runs.map(run => run.id)
+	);
+	return [...membersByRun.entries()].flatMap(([runId, members]) =>
+		members.map(member => ({ runId, partnerId: member.userId }))
+	);
+}
+
 async function gatherRecapSources(
 	owner: User,
 	record: RewindRecord,
@@ -448,14 +461,15 @@ async function gatherRecapSources(
 		findRuns(owner, publicOnly, record.includesNotes),
 		backlogService.countRunsAddedByMonth(owner.id, year, { publicOnly })
 	]);
-	const [genres, franchises, platinums] = await Promise.all([
+	const [genres, franchises, platinums, coopPartners] = await Promise.all([
 		gameGenreService.findGenresByGameIds(
 			listActiveGameIds(runs, [year, year - 1])
 		),
 		franchisesService.findFranchisesByGameIds(
 			listActiveGameIds(runs, [year])
 		),
-		publicPlatinumsFor(owner, record.includesPrivateRuns, year)
+		publicPlatinumsFor(owner, record.includesPrivateRuns, year),
+		findCoopPartners(runs)
 	]);
 	const yearGenres = filterGenresOfYear(genres, runs, year);
 	const premiumStats =
@@ -471,6 +485,7 @@ async function gatherRecapSources(
 		genres,
 		yearGenres,
 		franchises,
+		coopPartners,
 		platinums,
 		premiumStats
 	};
@@ -508,6 +523,7 @@ async function writeAiRecap(
 		runs: sources.runs,
 		genres: sources.yearGenres,
 		franchises: sources.franchises,
+		coopPartners: sources.coopPartners,
 		previousYearTotals: await buildPreviousYearTotals(
 			owner,
 			record,

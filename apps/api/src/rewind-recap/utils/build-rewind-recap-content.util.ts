@@ -15,6 +15,7 @@ import {
 	type RewindRecapInput
 } from "../rewind-recap.interface";
 import { type GameRow } from "../rewind-recap.types";
+import { assignCoopAliases } from "./assign-coop-aliases.util";
 import {
 	buildRewindRecapPatterns,
 	daysInBacklog,
@@ -41,7 +42,8 @@ export const REWIND_RECAP_GAME_COLUMNS = [
 	"criticScore",
 	"ratingVsCritics",
 	"daysInBacklog",
-	"daysToFinish"
+	"daysToFinish",
+	"coopWith"
 ] as const;
 
 export const REWIND_RECAP_NOTES_COLUMN = "notes";
@@ -160,7 +162,8 @@ function toGameRow(
 		run.score,
 		ratingVsCritics(run),
 		daysInBacklog(run),
-		daysToFinish(run)
+		daysToFinish(run),
+		lookups.coopAliasesByRun.get(run.id)?.join("/") ?? null
 	];
 	return includesNotes ? [...row, condenseRecapNote(run.notes)] : row;
 }
@@ -230,9 +233,14 @@ export function buildRewindRecapContent(
 		isActiveInYear(run, input.year, todayDate)
 	);
 	const recapRuns = pickRecapRuns(activeRuns, input.year);
+	const coopAliasesByRun = assignCoopAliases(
+		[...activeRuns].sort(compareChronologically),
+		input.coopPartners
+	);
 	const lookups: GameRowLookups = {
 		genreNamesByGame: groupGenreNamesByGame(input.genres),
-		franchiseNamesByGame: groupFranchiseNamesByGame(input.franchises)
+		franchiseNamesByGame: groupFranchiseNamesByGame(input.franchises),
+		coopAliasesByRun
 	};
 
 	return JSON.stringify({
@@ -245,7 +253,8 @@ export function buildRewindRecapContent(
 			activeRuns,
 			input.genres,
 			input.year,
-			input.franchises
+			input.franchises,
+			coopAliasesByRun
 		),
 		games: {
 			columns: recapGameColumns(input.includesNotes),

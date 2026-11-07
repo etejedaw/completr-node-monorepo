@@ -99,7 +99,8 @@ void describe("buildRewindRecapContent", () => {
 				4.6,
 				-0.1,
 				31,
-				37
+				37,
+				null
 			]
 		]);
 		assert.doesNotMatch(serialized, /id-hades|img\.test|run-\d+/);
@@ -545,5 +546,51 @@ void describe("buildRewindRecapContent", () => {
 
 		const cutBeforeSpace = condenseRecapNote(`${"a".repeat(299)} b`);
 		assert.equal(cutBeforeSpace, "a".repeat(299));
+	});
+
+	void it("labels co-op partners without their ids and keeps the label across games", () => {
+		const partnerId = "9f0c1e2d-aaaa-4bbb-8ccc-000000000001";
+		const otherPartnerId = "9f0c1e2d-aaaa-4bbb-8ccc-000000000002";
+		const solo = finishedRun("hades", "2026-01-20", {
+			startedAt: "2026-01-02"
+		});
+		const firstCoop = finishedRun("it-takes-two", "2026-03-01", {
+			startedAt: "2026-02-01"
+		});
+		const secondCoop = finishedRun("portal-2", "2026-06-01", {
+			startedAt: "2026-05-01"
+		});
+		const input = buildRecapInput([secondCoop, solo, firstCoop], {
+			coopPartners: [
+				{ runId: secondCoop.id, partnerId: otherPartnerId },
+				{ runId: secondCoop.id, partnerId },
+				{ runId: firstCoop.id, partnerId }
+			]
+		});
+
+		const serialized = buildRewindRecapContent(input, TODAY);
+		const content = JSON.parse(serialized) as RecapContent & {
+			patterns: {
+				bySocial: { name: string; finishedTitles: string[] }[];
+				byPartner: { name: string; finishedTitles: string[] }[];
+			};
+		};
+
+		assert.deepEqual(column(content, "coopWith"), [null, "P1", "P1/P2"]);
+		assert.deepEqual(
+			content.patterns.bySocial.map(group => [
+				group.name,
+				group.finishedTitles
+			]),
+			[
+				["solo", ["HADES"]],
+				["co-op", ["PORTAL-2", "IT-TAKES-TWO"]]
+			]
+		);
+		assert.deepEqual(
+			content.patterns.byPartner.map(group => group.name),
+			["P1"]
+		);
+		assert.doesNotMatch(serialized, /9f0c1e2d|aaaa-4bbb/);
 	});
 });
