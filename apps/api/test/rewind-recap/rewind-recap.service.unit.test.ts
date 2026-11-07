@@ -126,4 +126,48 @@ void describe("generateRewindAiRecap", () => {
 		assert.ok(error instanceof ServiceError);
 		assert.equal(error.code, iaServiceError.notConfiguredError().code);
 	});
+
+	void it("fixes accented imperatives in every Spanish text and leaves English untouched", async () => {
+		const accented: RewindAiRecap = {
+			headline: " Pónte cómodo ",
+			summary: "Eres constante.\n\nPropónte algo nuevo.",
+			insights: [
+				{
+					kind: "genre-pattern",
+					title: "Deténte",
+					body: "Manténte así."
+				}
+			],
+			funFact: "Atrévete a mirar tus fechas.",
+			nextYearChallenge: "Propónte terminar dos shooters."
+		};
+		stubGenerateJson(async () => accented);
+		const run = finishedRun("stardew", "2026-04-01", { realDuration: 50 });
+
+		const spanish = await generateRewindAiRecap(
+			buildRecapInput([run], { language: "es" })
+		);
+		const english = await generateRewindAiRecap(
+			buildRecapInput([run], { language: "en" })
+		);
+
+		assert.deepEqual(spanish, {
+			headline: "Ponte cómodo",
+			summary: "Eres constante.\n\nProponte algo nuevo.",
+			insights: [
+				{
+					kind: "genre-pattern",
+					title: "Detente",
+					body: "Mantente así."
+				}
+			],
+			funFact: "Atrévete a mirar tus fechas.",
+			nextYearChallenge: "Proponte terminar dos shooters."
+		});
+		assert.equal(
+			english.nextYearChallenge,
+			"Propónte terminar dos shooters."
+		);
+		assert.equal(english.headline, "Pónte cómodo");
+	});
 });

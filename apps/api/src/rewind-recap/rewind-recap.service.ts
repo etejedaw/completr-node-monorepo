@@ -1,11 +1,13 @@
 import { environmentConfig } from "../common/config/environment.config";
 import { iaProvider } from "../ia/ia.provider";
+import { type RewindLanguage } from "../rewind/rewind.constants";
 import { type RewindAiRecap } from "../rewind/rewind.interface";
 import { resolveRewindToday } from "../rewind/utils/resolve-rewind-today.util";
 import { type RewindRecapInput } from "./rewind-recap.interface";
 import { buildRewindRecapInstructions } from "./rewind-recap.prompt";
 import { RewindAiRecapSchema } from "./schemas/rewind-ai-recap.schema";
 import { buildRewindRecapContent } from "./utils/build-rewind-recap-content.util";
+import { fixSpanishImperativeAccents } from "./utils/fix-spanish-imperative-accents.util";
 
 const REWIND_AI_RECAP_REQUEST = {
 	schemaName: "rewind_ai_recap",
@@ -20,17 +22,30 @@ function rewindTodayOverride(): string | undefined {
 		: environmentConfig.REWIND_TODAY;
 }
 
-function trimRecap(recap: RewindAiRecap): RewindAiRecap {
+function cleanText(language: RewindLanguage) {
+	return (text: string) => {
+		const trimmed = text.trim();
+		return language === "es"
+			? fixSpanishImperativeAccents(trimmed)
+			: trimmed;
+	};
+}
+
+function cleanRecap(
+	recap: RewindAiRecap,
+	language: RewindLanguage
+): RewindAiRecap {
+	const clean = cleanText(language);
 	return {
-		headline: recap.headline.trim(),
-		summary: recap.summary.trim(),
+		headline: clean(recap.headline),
+		summary: clean(recap.summary),
 		insights: recap.insights.map(insight => ({
 			kind: insight.kind,
-			title: insight.title.trim(),
-			body: insight.body.trim()
+			title: clean(insight.title),
+			body: clean(insight.body)
 		})),
-		funFact: recap.funFact.trim(),
-		nextYearChallenge: recap.nextYearChallenge.trim()
+		funFact: clean(recap.funFact),
+		nextYearChallenge: clean(recap.nextYearChallenge)
 	};
 }
 
@@ -43,5 +58,5 @@ export async function generateRewindAiRecap(
 		instructions: buildRewindRecapInstructions(input.language),
 		content: buildRewindRecapContent(input, today)
 	});
-	return trimRecap(recap);
+	return cleanRecap(recap, input.language);
 }

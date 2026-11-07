@@ -172,4 +172,29 @@ void describe("buildRewindRecapInstructions", () => {
 			/what that says about the year ahead/
 		);
 	});
+
+	void it("keeps motives tied to notes or reviews and lengths tied to the hours", () => {
+		const instructions = buildRewindRecapInstructions("es");
+
+		assert.match(
+			instructions,
+			/A motive for dropping or finishing a specific game comes only from that game's own note or review/
+		);
+		assert.match(
+			instructions,
+			/Call a game short only under 5 hours and long only over 30 hours/
+		);
+	});
+
+	void it("asks for natural group names instead of the word group", () => {
+		const instructions = buildRewindRecapInstructions("es");
+
+		assert.match(instructions, /Never call them a group/);
+		assert.match(
+			instructions,
+			/never "the Shooter group" or "el grupo de Shooter"/
+		);
+		assert.match(instructions, /name it naturally inside the sentence/);
+		assert.doesNotMatch(instructions, /use that group's exact name/);
+	});
 });
