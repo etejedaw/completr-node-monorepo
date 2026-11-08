@@ -149,8 +149,8 @@ export function formatGraceDate(isoDate: string): string {
 								<span>
 									Your AI recap is written by DeepSeek, an
 									external AI service. It receives this year's
-									games, ratings and stats, never your email
-									or username.
+									games, ratings, reviews and stats, never
+									your email or username.
 									<a
 										routerLink="/privacy"
 										fragment="sharing"

@@ -91,6 +91,8 @@ export function buildRecapInput(
 		runs,
 		genres: [],
 		franchises: [],
+		coopPartners: [],
+		reviews: [],
 		previousYearTotals: null,
 		...overrides
 	};

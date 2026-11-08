@@ -40,6 +40,8 @@ void describe("buildRewindRecapPatterns", () => {
 		assert.deepEqual(patterns.byPlatform, []);
 		assert.deepEqual(patterns.byLength, []);
 		assert.deepEqual(patterns.byQuarter, []);
+		assert.deepEqual(patterns.bySocial, []);
+		assert.deepEqual(patterns.byPartner, []);
 		assert.deepEqual(patterns.sameDayCloses, []);
 		assert.deepEqual(patterns.quickDrops, []);
 		assert.deepEqual(patterns.slowestFinishes, []);
@@ -548,5 +550,72 @@ void describe("buildRewindRecapPatterns ratingHabits", () => {
 
 		assert.equal(patterns.ratingHabits.mostUsedRating, 4.5);
 		assert.equal(patterns.ratingHabits.fives, 0);
+	});
+});
+
+void describe("buildRewindRecapPatterns co-op", () => {
+	void it("leaves the social split out when nothing closed was played in co-op", () => {
+		const coopStillPlaying = buildRun("overcooked", {
+			status: "playing",
+			startedAt: "2026-04-01"
+		});
+		const patterns = buildRewindRecapPatterns(
+			[finishedRun("hades", "2026-02-01"), coopStillPlaying],
+			[],
+			YEAR,
+			[],
+			new Map([[coopStillPlaying.id, ["P1"]]])
+		);
+
+		assert.deepEqual(patterns.bySocial, []);
+		assert.deepEqual(patterns.byPartner, []);
+	});
+
+	void it("splits closed games into solo and co-op and keeps partners with two or more games", () => {
+		const soloFinished = finishedRun("hades", "2026-02-01");
+		const soloDropped = abandonedRun("starfield", "2026-03-01");
+		const coopWithFirst = finishedRun("it-takes-two", "2026-04-01");
+		const coopWithBoth = finishedRun("portal-2", "2026-05-01");
+		const coopDropped = abandonedRun("deep-rock", "2026-06-01");
+		const importedCoop = finishedRun("borderlands", "2026-01-01");
+		const patterns = buildRewindRecapPatterns(
+			[
+				soloFinished,
+				soloDropped,
+				coopWithFirst,
+				coopWithBoth,
+				coopDropped,
+				importedCoop
+			],
+			[],
+			YEAR,
+			[],
+			new Map([
+				[coopWithFirst.id, ["P1"]],
+				[coopWithBoth.id, ["P1", "P2"]],
+				[coopDropped.id, ["P3"]],
+				[importedCoop.id, ["P2"]]
+			])
+		);
+
+		assert.deepEqual(
+			patterns.bySocial.map(group => ({
+				name: group.name,
+				finished: group.finishedTitles,
+				abandoned: group.abandonedTitles
+			})),
+			[
+				{ name: "solo", finished: ["HADES"], abandoned: ["STARFIELD"] },
+				{
+					name: "co-op",
+					finished: ["IT-TAKES-TWO", "PORTAL-2"],
+					abandoned: ["DEEP-ROCK"]
+				}
+			]
+		);
+		assert.deepEqual(
+			patterns.byPartner.map(group => [group.name, group.games]),
+			[["P1", 2]]
+		);
 	});
 });

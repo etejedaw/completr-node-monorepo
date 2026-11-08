@@ -32,6 +32,9 @@ const LENGTH_BUCKETS: RecapLengthBucket[] = [
 	{ name: "over 30 hours", maxHours: Number.POSITIVE_INFINITY }
 ];
 
+const SOLO_GROUP = "solo";
+const COOP_GROUP = "co-op";
+
 const QUARTER_NAMES = [
 	"January to March",
 	"April to June",
@@ -168,19 +171,40 @@ function summarizeGroups(
 		);
 }
 
-function lengthBucketOf(run: RewindRun): string[] {
+export function lengthRangeOf(run: RewindRun): string | null {
 	const runHours = resolveRunHours(run);
-	if (runHours === null) return [];
+	if (runHours === null) return null;
 	const bucket = LENGTH_BUCKETS.find(
 		candidate => runHours.hours < candidate.maxHours
 	);
-	return bucket ? [bucket.name] : [];
+	return bucket?.name ?? null;
+}
+
+function lengthBucketOf(run: RewindRun): string[] {
+	const range = lengthRangeOf(run);
+	return range === null ? [] : [range];
 }
 
 function quarterOf(run: RewindRun): string[] {
 	const month = Number(toDateOnly(run.finishedAt)?.slice(5, 7));
 	const name = QUARTER_NAMES[Math.floor((month - 1) / 3)];
 	return name ? [name] : [];
+}
+
+function summarizeSocial(
+	closed: RewindRun[],
+	coopAliasesByRun: Map<string, string[]>
+): RecapGroupStats[] {
+	if (!closed.some(run => coopAliasesByRun.has(run.id))) return [];
+	return orderedByName(
+		summarizeGroups(
+			groupBy(closed, run => [
+				coopAliasesByRun.has(run.id) ? COOP_GROUP : SOLO_GROUP
+			]),
+			1
+		),
+		[SOLO_GROUP, COOP_GROUP]
+	);
 }
 
 function orderedByName(
@@ -353,7 +377,8 @@ export function buildRewindRecapPatterns(
 	runs: RewindRun[],
 	genres: RewindGameGenre[],
 	year: number,
-	franchises: RewindGameFranchise[] = []
+	franchises: RewindGameFranchise[] = [],
+	coopAliasesByRun = new Map<string, string[]>()
 ): RewindRecapPatterns {
 	const closedInYear = runs.filter(run => isClosedInYear(run, year));
 	const closed = closedInYear.filter(run => !isImportedClose(run, year));
@@ -384,6 +409,11 @@ export function buildRewindRecapPatterns(
 		byQuarter: orderedByName(
 			summarizeGroups(groupBy(closed, quarterOf), 1),
 			QUARTER_NAMES
+		),
+		bySocial: summarizeSocial(closed, coopAliasesByRun),
+		byPartner: summarizeGroups(
+			groupBy(closed, run => coopAliasesByRun.get(run.id) ?? []),
+			MIN_GROUP_GAMES
 		),
 		sameDayCloses: findSameDayCloses(closed),
 		quickDrops: timed

@@ -14,7 +14,19 @@ export interface RewindRecapInput {
 	runs: RewindRun[];
 	genres: RewindGameGenre[];
 	franchises: RewindGameFranchise[];
+	coopPartners: RewindCoopPartner[];
+	reviews: RewindGameReview[];
 	previousYearTotals: RewindTotals | null;
+}
+
+export interface RewindGameReview {
+	gameId: string;
+	content: string;
+}
+
+export interface RewindCoopPartner {
+	runId: string;
+	partnerId: string;
 }
 
 export interface RewindPremiumStatsInput {
@@ -96,6 +108,8 @@ export interface RewindRecapPatterns {
 	byPlatform: RecapGroupStats[];
 	byLength: RecapGroupStats[];
 	byQuarter: RecapGroupStats[];
+	bySocial: RecapGroupStats[];
+	byPartner: RecapGroupStats[];
 	sameDayCloses: RecapSameDayClose[];
 	quickDrops: RecapTimedGame[];
 	slowestFinishes: RecapTimedGame[];
@@ -110,6 +124,8 @@ export interface RewindRecapPatterns {
 export interface GameRowLookups {
 	genreNamesByGame: Map<string, string[]>;
 	franchiseNamesByGame: Map<string, string[]>;
+	coopAliasesByRun: Map<string, string[]>;
+	reviewsByGame: Map<string, string>;
 }
 
 export interface RecapLengthBucket {

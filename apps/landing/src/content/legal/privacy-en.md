@@ -1,7 +1,7 @@
 ---
 lang: en
-version: "2.4"
-updated: 2026-11-05
+version: "2.5"
+updated: 2026-11-07
 title: Privacy Policy
 summary: "The idea is simple: I collect the minimum needed for the app to work, I never sell your data or share it for commercial purposes, and you can ask for a copy or for everything to be deleted whenever you want."
 highlights:
@@ -93,7 +93,7 @@ Each section of your account (profile, My Games, My Shelf, Platinums, Sagas, Rew
 There are a few exceptions, and they go in opposite directions:
 
 - **Lists start private.** Every list you create starts out as yours alone; you publish it separately when you decide to.
-- **A Rewind stays hidden until you generate it.** Even with its section set to Everyone, nobody sees a year's Rewind until you create it from your profile. Whoever can see it also sees its AI summary, which may paraphrase your notes if you included them but never quotes them.
+- **A Rewind stays hidden until you generate it.** Even with its section set to Everyone, nobody sees a year's Rewind until you create it from your profile. Whoever can see it also sees its AI summary, which may paraphrase your reviews, and your notes if you included them, but never quotes them.
 - **Reviews have no visibility control.** If you write a review or rate a game, anyone with a Completr account can see it on that game's page, even if the rest of your profile is private. If you don't want something to be seen, don't post it as a review.
 
 ## Where your data goes
@@ -103,7 +103,7 @@ I don't hand it to anyone for commercial purposes. But for the app to work, your
 - **Cloudflare** (United States). Everything you send and receive goes through its network before reaching my servers, so technically it can see it.
 - **My servers** (São Paulo, Brazil). The application, the database and the analytics run here. I manage them directly.
 - **Email service** (São Paulo, Brazil). It receives the email address you leave when you request an invitation.
-- **DeepSeek** (China). It writes the AI summary of the Rewind. It only receives data when you generate a Rewind that includes that summary, and only the data for that year: your games, with their dates, platform, genres, hours and your ratings, and the statistics calculated from them. Your notes and your private runs only go if you turn on their switches. It receives nothing that identifies you: no email, username, display name or account ID, only your runs. The request is sent from my servers, so it doesn't see your IP address either. The only exception is anything identifying you write yourself in your notes, and only if you choose to include them. DeepSeek stores and processes that data in China. Its terms don't set how long it keeps what it receives through its API or say whether it uses it to train its models: its general policy allows that use for its own services and lets you object by writing to privacy@deepseek.com. Since the request carries nothing that identifies you, that copy isn't linked to you.
+- **DeepSeek** (China). It writes the AI summary of the Rewind. It only receives data when you generate a Rewind that includes that summary, and only the data for that year: your games, with their dates, platform, genres, hours, your ratings and the reviews you published for them, and the statistics calculated from them. Your notes and your private runs only go if you turn on their switches. It receives nothing that identifies you: no email, username, display name or account ID, only your runs. The request is sent from my servers, so it doesn't see your IP address either. The only exception is anything identifying you write yourself in your reviews, or in your notes if you choose to include them. DeepSeek stores and processes that data in China. Its terms don't set how long it keeps what it receives through its API or say whether it uses it to train its models: its general policy allows that use for its own services and lets you object by writing to privacy@deepseek.com. Since the request carries nothing that identifies you, that copy isn't linked to you.
 
 Video game data comes from external catalogs and sites (such as RAWG, IGDB, Metacritic, HowLongToBeat and Wikidata), but that's information I _receive_: I never send your personal data to those services.
 

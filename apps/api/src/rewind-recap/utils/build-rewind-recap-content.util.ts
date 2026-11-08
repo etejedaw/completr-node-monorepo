@@ -15,11 +15,13 @@ import {
 	type RewindRecapInput
 } from "../rewind-recap.interface";
 import { type GameRow } from "../rewind-recap.types";
+import { assignCoopAliases } from "./assign-coop-aliases.util";
 import {
 	buildRewindRecapPatterns,
 	daysInBacklog,
 	daysToFinish,
 	groupFranchiseNamesByGame,
+	lengthRangeOf,
 	paceVsEstimate,
 	ratingVsCritics
 } from "./build-rewind-recap-patterns.util";
@@ -36,12 +38,15 @@ export const REWIND_RECAP_GAME_COLUMNS = [
 	"franchise",
 	"realHours",
 	"estimatedHours",
+	"lengthRange",
 	"paceVsEstimate",
 	"userRating",
 	"criticScore",
 	"ratingVsCritics",
 	"daysInBacklog",
-	"daysToFinish"
+	"daysToFinish",
+	"coopWith",
+	"review"
 ] as const;
 
 export const REWIND_RECAP_NOTES_COLUMN = "notes";
@@ -155,12 +160,15 @@ function toGameRow(
 		lookups.franchiseNamesByGame.get(run.gameId)?.join("/") ?? null,
 		run.realDuration,
 		run.duration,
+		lengthRangeOf(run),
 		paceVsEstimate(run),
 		run.userRating,
 		run.score,
 		ratingVsCritics(run),
 		daysInBacklog(run),
-		daysToFinish(run)
+		daysToFinish(run),
+		lookups.coopAliasesByRun.get(run.id)?.join("/") ?? null,
+		condenseRecapNote(lookups.reviewsByGame.get(run.gameId) ?? null)
 	];
 	return includesNotes ? [...row, condenseRecapNote(run.notes)] : row;
 }
@@ -230,9 +238,17 @@ export function buildRewindRecapContent(
 		isActiveInYear(run, input.year, todayDate)
 	);
 	const recapRuns = pickRecapRuns(activeRuns, input.year);
+	const coopAliasesByRun = assignCoopAliases(
+		[...activeRuns].sort(compareChronologically),
+		input.coopPartners
+	);
 	const lookups: GameRowLookups = {
 		genreNamesByGame: groupGenreNamesByGame(input.genres),
-		franchiseNamesByGame: groupFranchiseNamesByGame(input.franchises)
+		franchiseNamesByGame: groupFranchiseNamesByGame(input.franchises),
+		coopAliasesByRun,
+		reviewsByGame: new Map(
+			input.reviews.map(review => [review.gameId, review.content])
+		)
 	};
 
 	return JSON.stringify({
@@ -245,7 +261,8 @@ export function buildRewindRecapContent(
 			activeRuns,
 			input.genres,
 			input.year,
-			input.franchises
+			input.franchises,
+			coopAliasesByRun
 		),
 		games: {
 			columns: recapGameColumns(input.includesNotes),
