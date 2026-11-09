@@ -3,10 +3,13 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
-	input
+	input,
+	linkedSignal
 } from "@angular/core";
 
 import { CoverUrlPipe } from "../../pipes/cover-url";
+
+const coverUrl = new CoverUrlPipe();
 
 function hueFromText(text: string): number {
 	let hash = 0;
@@ -18,11 +21,11 @@ function hueFromText(text: string): number {
 
 @Component({
 	selector: "app-game-poster",
-	imports: [CoverUrlPipe],
 	template: `
-		@if (src()) {
+		@if (displayedUrl(); as url) {
 			<img
-				[src]="src() | coverUrl: width()"
+				[src]="url"
+				(error)="onImageError($event)"
 				[alt]="title()"
 				class="w-full h-full object-cover"
 				loading="lazy"
@@ -72,10 +75,42 @@ function hueFromText(text: string): number {
 export class GamePoster {
 	readonly src = input<string | null | undefined>(null);
 	readonly title = input.required<string>();
-	readonly width = input<200 | 420 | 640>(420);
+	readonly width = input<420 | 640>(420);
 	readonly compact = input(false);
 	readonly titleSize = input("0.8125rem");
 	readonly framed = input(false, { transform: booleanAttribute });
+
+	private readonly failedUrls = linkedSignal<
+		string | null | undefined,
+		readonly string[]
+	>({
+		source: this.src,
+		computation: () => []
+	});
+
+	protected readonly displayedUrl = computed(() => {
+		const original = this.src();
+		if (!original) {
+			return null;
+		}
+		const failed = this.failedUrls();
+		const candidates = [
+			coverUrl.transform(original, this.width()),
+			original
+		];
+		return candidates.find(url => !failed.includes(url)) ?? null;
+	});
+
+	protected onImageError(event: Event): void {
+		const failedUrl = (event.target as HTMLImageElement).getAttribute(
+			"src"
+		);
+		if (failedUrl) {
+			this.failedUrls.update(urls =>
+				urls.includes(failedUrl) ? urls : [...urls, failedUrl]
+			);
+		}
+	}
 
 	protected readonly fallbackBackground = computed(() => {
 		const hue = hueFromText(this.title());
