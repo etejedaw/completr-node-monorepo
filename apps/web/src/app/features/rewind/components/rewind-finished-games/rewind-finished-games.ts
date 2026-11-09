@@ -96,7 +96,7 @@ function groupByMonth(
 										class="aspect-[2/3] rounded-md ring-1 ring-line transition group-hover:ring-(--tone)"
 										[src]="game.coverUrl"
 										[title]="game.title"
-										[width]="200"
+										[width]="420"
 										titleSize="0.75rem"
 									/>
 									<span

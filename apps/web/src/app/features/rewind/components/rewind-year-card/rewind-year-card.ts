@@ -64,7 +64,7 @@ const CARD_COVER_COUNT = 3;
 								class="w-1/3 aspect-[2/3] rounded-md ring-1 ring-line transition-transform duration-300 ease-out motion-safe:group-hover:-translate-y-1"
 								[src]="cover.coverUrl"
 								[title]="cover.title"
-								[width]="200"
+								[width]="420"
 								[compact]="true"
 							/>
 						}
@@ -117,7 +117,7 @@ const CARD_COVER_COUNT = 3;
 								class="w-1/3 aspect-[2/3] rounded-md ring-1 ring-line"
 								[src]="cover.coverUrl"
 								[title]="cover.title"
-								[width]="200"
+								[width]="420"
 								[compact]="true"
 							/>
 						}

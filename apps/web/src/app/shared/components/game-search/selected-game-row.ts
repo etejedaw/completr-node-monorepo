@@ -22,7 +22,7 @@ import { type SelectedGame } from "./selected-game-row.model";
 			class="w-12 aspect-[2/3] shrink-0 rounded ring-1 ring-white/10"
 			[src]="current.backgroundUrl ?? null"
 			[title]="current.title"
-			[width]="200"
+			[width]="420"
 			[compact]="true"
 		/>
 		<div class="flex flex-col gap-0.5 min-w-0 flex-1">
