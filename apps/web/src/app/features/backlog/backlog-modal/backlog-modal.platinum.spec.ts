@@ -186,6 +186,7 @@ describe("BacklogModal platinum", () => {
 	});
 
 	afterEach(() => {
+		vi.useRealTimers();
 		vi.unstubAllGlobals();
 	});
 
@@ -214,6 +215,8 @@ describe("BacklogModal platinum", () => {
 	});
 
 	it("sends dates picked on an empty field as plain days", async () => {
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(new Date(2026, 2, 20, 12));
 		const entry = buildEntry("completed", null);
 		delete entry.finishedAt;
 		await renderEditModal(entry);
