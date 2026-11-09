@@ -87,10 +87,13 @@ describe("GameShelfModal", () => {
 	});
 
 	afterEach(() => {
+		vi.useRealTimers();
 		vi.unstubAllGlobals();
 	});
 
 	it("sends an acquired date picked on an empty field as a plain day when editing", async () => {
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(new Date(2026, 2, 20, 12));
 		await renderModal({ entry, preselectedGame: null });
 
 		await userEvent.click(screen.getByRole("button", { name: /^edit$/i }));
@@ -107,6 +110,8 @@ describe("GameShelfModal", () => {
 	});
 
 	it("sends an acquired date as a plain day when adding", async () => {
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(new Date(2026, 2, 20, 12));
 		await renderModal({ entry: null, preselectedGame: game });
 
 		await pickCalendarDate(

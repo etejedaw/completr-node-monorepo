@@ -112,6 +112,7 @@ describe("PlatinumDialog", () => {
 	});
 
 	afterEach(() => {
+		vi.useRealTimers();
 		vi.unstubAllGlobals();
 	});
 
@@ -138,6 +139,8 @@ describe("PlatinumDialog", () => {
 	});
 
 	it("saves the chosen run, its platform, the date and the notes", async () => {
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(new Date(2026, 2, 20, 12));
 		const user = userEvent.setup();
 		platinumService.save.mockReturnValue(of(SAVED));
 		const dialog = await renderDialog();
