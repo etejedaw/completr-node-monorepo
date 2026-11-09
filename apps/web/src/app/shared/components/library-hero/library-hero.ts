@@ -33,7 +33,7 @@ const MOSAIC_LENGTH = 14;
 						<app-game-poster
 							[src]="poster.src"
 							[title]="poster.title"
-							[width]="200"
+							[width]="420"
 							class="w-28 sm:w-36 aspect-[2/3] shrink-0 rounded-md"
 							[class.translate-y-10]="$odd"
 						/>

@@ -37,7 +37,7 @@ const DATE_FORMAT = new Intl.DateTimeFormat("en", {
 							<app-game-poster
 								[src]="game.backgroundUrl"
 								[title]="game.name"
-								[width]="200"
+								[width]="420"
 								[compact]="true"
 								framed
 								class="w-9 aspect-[2/3] rounded"

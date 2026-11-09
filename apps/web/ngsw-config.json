@@ -37,7 +37,7 @@
 	"dataGroups": [
 		{
 			"name": "rawg-images",
-			"urls": ["https://media.rawg.io/**"],
+			"urls": ["https://media.rawg.io/**", "https://api.rawg.io/media/**"],
 			"cacheConfig": {
 				"maxSize": 500,
 				"maxAge": "30d",

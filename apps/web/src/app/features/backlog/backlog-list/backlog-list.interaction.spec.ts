@@ -379,6 +379,7 @@ describe("BacklogList interaction", () => {
 	});
 
 	afterEach(() => {
+		vi.useRealTimers();
 		answerPending();
 		httpTesting.verify();
 		vi.unstubAllGlobals();
@@ -588,6 +589,8 @@ describe("BacklogList interaction", () => {
 	});
 
 	it("marks the run as platinumed after saving the Completed status", async () => {
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(new Date(2026, 2, 20, 12));
 		const user = userEvent.setup();
 		await renderBacklog();
 

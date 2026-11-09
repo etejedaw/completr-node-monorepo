@@ -251,6 +251,7 @@ describe("QueueView interaction", () => {
 	});
 
 	afterEach(() => {
+		vi.useRealTimers();
 		answerPending();
 		httpTesting.verify();
 		vi.unstubAllGlobals();
@@ -627,6 +628,8 @@ describe("QueueView interaction", () => {
 	});
 
 	it("starts playing the next game and takes it out of the queue", async () => {
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(new Date(2026, 9, 20, 12));
 		const user = userEvent.setup();
 		await renderQueue();
 

@@ -153,7 +153,7 @@ const FAN_STAGGER_MS = 60;
 									[style.z-index]="zIndex(i)"
 									[src]="cover.coverUrl"
 									[title]="cover.title"
-									[width]="200"
+									[width]="420"
 								/>
 							}
 						</div>
@@ -259,7 +259,7 @@ const FAN_STAGGER_MS = 60;
 										[style.z-index]="zIndex(i)"
 										[src]="cover.coverUrl"
 										[title]="cover.title"
-										[width]="200"
+										[width]="420"
 									/>
 								}
 							</div>

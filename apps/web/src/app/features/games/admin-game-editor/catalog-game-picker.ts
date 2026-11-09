@@ -77,7 +77,7 @@ const RESULT_STEP: Record<string, number> = { ArrowDown: 1, ArrowUp: -1 };
 								class="w-9 aspect-[2/3] shrink-0 rounded"
 								[src]="game.backgroundUrl"
 								[title]="game.title"
-								[width]="200"
+								[width]="420"
 								[compact]="true"
 							/>
 							<div class="flex flex-col gap-0.5 min-w-0 flex-1">

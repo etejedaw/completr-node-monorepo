@@ -28,12 +28,92 @@ describe("GamePoster", () => {
 		const element = render({
 			src: "https://media.rawg.io/media/games/a/hades.jpg",
 			title: "Hades",
-			width: 200
+			width: 420
 		});
 
 		expect(element.querySelector("img")?.src).toBe(
-			"https://media.rawg.io/media/resize/200/-/games/a/hades.jpg"
+			"https://media.rawg.io/media/resize/420/-/games/a/hades.jpg"
 		);
+	});
+
+	describe("when the image fails", () => {
+		const original = "https://media.rawg.io/media/games/a/hades.jpg";
+		const resized =
+			"https://media.rawg.io/media/resize/420/-/games/a/hades.jpg";
+
+		function mount(src: string) {
+			const fixture = TestBed.createComponent(GamePoster);
+			fixture.componentRef.setInput("src", src);
+			fixture.componentRef.setInput("title", "Hades");
+			fixture.detectChanges();
+			const element = fixture.nativeElement as HTMLElement;
+			return {
+				fixture,
+				element,
+				image: () => element.querySelector("img"),
+				placeholder: () => element.querySelector('[role="img"]'),
+				fail: () => {
+					element.querySelector("img")?.dispatchEvent(new Event("error"));
+					fixture.detectChanges();
+				}
+			};
+		}
+
+		it("switches to the original url on the first error", () => {
+			const view = mount(original);
+			expect(view.image()?.src).toBe(resized);
+
+			view.fail();
+
+			expect(view.image()?.src).toBe(original);
+			expect(view.placeholder()).toBeNull();
+		});
+
+		it("shows the placeholder when the original also fails", () => {
+			const view = mount(original);
+
+			view.fail();
+			view.fail();
+
+			expect(view.image()).toBeNull();
+			expect(view.placeholder()?.getAttribute("aria-label")).toBe("Hades");
+		});
+
+		it("goes straight to the placeholder for a non-RAWG src", () => {
+			const view = mount("https://example.com/hades.jpg");
+
+			view.fail();
+
+			expect(view.image()).toBeNull();
+			expect(view.placeholder()).not.toBeNull();
+		});
+
+		it("tries the resized url again when src changes after a failure", () => {
+			const view = mount(original);
+			view.fail();
+			view.fail();
+
+			view.fixture.componentRef.setInput(
+				"src",
+				"https://media.rawg.io/media/games/b/celeste.jpg"
+			);
+			view.fixture.detectChanges();
+
+			expect(view.image()?.src).toBe(
+				"https://media.rawg.io/media/resize/420/-/games/b/celeste.jpg"
+			);
+		});
+
+		it("ignores a repeated error event before the view updates", () => {
+			const view = mount(original);
+			const image = view.image() as HTMLImageElement;
+
+			image.dispatchEvent(new Event("error"));
+			image.dispatchEvent(new Event("error"));
+			view.fixture.detectChanges();
+
+			expect(view.image()?.src).toBe(original);
+		});
 	});
 
 	it.each([null, undefined, ""])(

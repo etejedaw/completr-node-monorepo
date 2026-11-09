@@ -103,7 +103,7 @@ function distributeInColumns(posters: ShowcasePoster[]): ShowcasePoster[][] {
 						<app-game-poster
 							[src]="poster.src"
 							[title]="poster.title"
-							[width]="200"
+							[width]="420"
 							framed
 							class="w-full shrink-0 aspect-[2/3] rounded-md shadow-xl shadow-black/60"
 							titleSize="0.875rem"
@@ -148,7 +148,7 @@ function distributeInColumns(posters: ShowcasePoster[]): ShowcasePoster[][] {
 					<app-game-poster
 						[src]="featured.src"
 						[title]="featured.title"
-						[width]="200"
+						[width]="420"
 						framed
 						class="w-14 aspect-[2/3] rounded"
 						[compact]="true"

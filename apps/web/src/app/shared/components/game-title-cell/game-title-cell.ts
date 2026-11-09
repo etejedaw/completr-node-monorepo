@@ -12,7 +12,7 @@ import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
 			<app-game-poster
 				[src]="coverUrl()"
 				[title]="title()"
-				[width]="200"
+				[width]="420"
 				[compact]="true"
 				class="w-9 aspect-[2/3] rounded shrink-0 ring-1 ring-white/10"
 			/>
