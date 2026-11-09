@@ -153,6 +153,7 @@ Lo transversal ya resuelto en `common/` o en un módulo dueño, que no se reimpl
 - **Al detectar un worker nuevo, `app.ts` lo activa y recarga la página.** Escucha `VERSION_READY` de `SwUpdate` y revisa si hay actualización cada 5 minutos y cada vez que la ventana recupera el foco.
 - **What's new (`GET /changelog`) y Privacy (`GET /privacy`) muestran contenido que vive en la landing y que la API reexpone** (ver [Landing](#landing)). Para cambiar esos textos no se toca `apps/web`.
 - **El login de la API tiene rate limit estricto (`authLimiter` en `apps/api/src/common/config/rate-limiter.config.ts`).** Los scripts de verificación visual inician sesión una sola vez y recorren los viewports en la misma sesión.
+- **Las portadas de RAWG se piden a 420 de ancho como mínimo (`CoverUrlPipe` acepta 420, 640 y 1280).** `media.rawg.io` solo tiene generados de antemano esos tres tamaños; cualquier otro puede redirigir con 307 a `api.rawg.io`, que lo genera al vuelo, es inestable y por eso también está en la CSP. `GamePoster` cae a la URL original si la imagen falla y, si tampoco carga, al degradado con el título.
 
 ### Producto en la interfaz
 
