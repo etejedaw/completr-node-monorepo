@@ -1,0 +1,272 @@
+---
+import type { GetStaticPaths, Page } from "astro";
+
+import Footer from "../../components/Footer.astro";
+import ReleaseCard from "../../components/ReleaseCard.astro";
+import SiteHeader from "../../components/SiteHeader.astro";
+import Layout from "../../layouts/Layout.astro";
+import {
+	getReleasesNewestFirst,
+	type Release,
+	RELEASES_PER_PAGE
+} from "../../utils/releases";
+
+export const getStaticPaths = (async ({ paginate }) => {
+	const releases = await getReleasesNewestFirst();
+	return paginate(releases, { pageSize: RELEASES_PER_PAGE });
+}) satisfies GetStaticPaths;
+
+interface Props {
+	page: Page<Release>;
+}
+
+const { page } = Astro.props;
+
+function withTrailingSlash(path: string): string {
+	return path.endsWith("/") ? path : `${path}/`;
+}
+
+const isFirstPage = page.currentPage === 1;
+const nextPageHref = page.url.next ? withTrailingSlash(page.url.next) : null;
+const remaining = page.total - page.end - 1;
+const pageTitle = isFirstPage
+	? "Novedades — Completr"
+	: `Novedades, página ${page.currentPage} de ${page.lastPage} — Completr`;
+---
+
+<Layout
+	title={pageTitle}
+	description="Todas las mejoras y funcionalidades que llegaron a Completr."
+>
+	<SiteHeader />
+	<main class="relative px-6 pt-16 pb-24 max-w-3xl mx-auto">
+		<div class="flex items-start gap-4 mb-10">
+			<span
+				class="flex items-center justify-center w-12 h-12 rounded-2xl text-white shrink-0"
+				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 10px 24px -8px var(--color-brand-glow);"
+			>
+				<span class="material-icons text-[1.5rem]" aria-hidden="true"
+					>campaign</span
+				>
+			</span>
+			<div>
+				<h1
+					class="font-[var(--font-display)] m-0 text-3xl md:text-4xl font-bold tracking-tight"
+				>
+					Novedades
+				</h1>
+				<p
+					class="text-[var(--color-fg-muted)] mt-2 text-sm leading-snug"
+				>
+					Todas las mejoras y funcionalidades que llegaron a Completr,
+					desde el primer commit hasta el último release.
+				</p>
+				{
+					!isFirstPage && (
+						<p class="m-0 mt-3 text-sm text-[var(--color-fg-secondary)]">
+							Página {page.currentPage} de {page.lastPage}.{" "}
+							<a
+								href="/changelog/"
+								class="text-[var(--color-brand)] underline underline-offset-2"
+							>
+								Ver las más recientes
+							</a>
+						</p>
+					)
+				}
+			</div>
+		</div>
+
+		<div data-release-list class="flex flex-col gap-4">
+			{page.data.map(release => <ReleaseCard release={release} />)}
+		</div>
+
+		{
+			nextPageHref && (
+				<div
+					data-release-more-wrap
+					class="mt-8 flex flex-col items-center gap-3"
+				>
+					<a
+						href={nextPageHref}
+						data-release-more
+						data-remaining={remaining}
+						class="group inline-flex items-center justify-center gap-2 min-h-[44px] px-5 rounded-xl border border-[var(--color-line-strong)] bg-[var(--color-surface)] text-[var(--color-fg)] font-semibold text-sm no-underline transition-colors hover:border-[var(--color-brand)] hover:bg-[var(--color-surface-raised)] aria-busy:cursor-progress aria-busy:opacity-70"
+					>
+						<span
+							data-release-more-icon
+							class="material-icons text-[1.125rem] text-[var(--color-fg-muted)] group-aria-busy:motion-safe:animate-spin"
+							aria-hidden="true"
+						>
+							expand_more
+						</span>
+						<span data-release-more-label>Ver más novedades</span>
+						<span
+							data-release-more-count
+							class="font-normal text-[var(--color-fg-muted)] tabular-nums"
+						>
+							({remaining})
+						</span>
+					</a>
+				</div>
+			)
+		}
+		<p
+			data-release-status
+			role="status"
+			class="m-0 mt-3 text-center text-sm text-[var(--color-fg-muted)]"
+		>
+		</p>
+
+		<aside
+			class="mt-16 rounded-3xl p-8 md:p-12 text-center overflow-hidden relative"
+			style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 30px 60px -25px var(--color-brand-glow);"
+		>
+			<div
+				class="absolute -top-24 -right-24 w-64 h-64 rounded-full blur-3xl opacity-30 pointer-events-none"
+				style="background: white;"
+				aria-hidden="true"
+			>
+			</div>
+			<h2
+				class="relative font-[var(--font-display)] m-0 mb-3 text-2xl md:text-4xl font-bold text-white tracking-tight"
+			>
+				¿Quieres ser parte de esto?
+			</h2>
+			<p
+				class="relative m-0 mb-7 text-sm md:text-base text-white/85 max-w-md mx-auto leading-relaxed"
+			>
+				Completr 1.0 ya salió. El acceso es por invitación: pide la
+				tuya.
+			</p>
+			<a
+				href="/#beta-signup"
+				class="relative inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-white text-[var(--color-brand-deep)] font-semibold text-base no-underline transition-transform hover:scale-[1.03] shadow-lg"
+			>
+				Pedir invitación
+				<span class="material-icons text-[1.125rem]" aria-hidden="true"
+					>arrow_forward</span
+				>
+			</a>
+		</aside>
+	</main>
+	<Footer />
+</Layout>
+
+<script>
+	const LOADING_LABEL = "Cargando…";
+
+	function isPlainLeftClick(event: MouseEvent): boolean {
+		return (
+			event.button === 0 &&
+			!event.metaKey &&
+			!event.ctrlKey &&
+			!event.shiftKey &&
+			!event.altKey
+		);
+	}
+
+	function describeAdded(amount: number): string {
+		if (amount === 0) return "";
+		return amount === 1
+			? "Se cargó 1 novedad más."
+			: `Se cargaron ${amount} novedades más.`;
+	}
+
+	async function fetchNextPage(href: string): Promise<Document> {
+		const response = await fetch(href, {
+			headers: { Accept: "text/html" }
+		});
+		if (!response.ok) throw new Error(`HTTP ${response.status}`);
+		return new DOMParser().parseFromString(
+			await response.text(),
+			"text/html"
+		);
+	}
+
+	function setupLoadMore() {
+		const list = document.querySelector<HTMLElement>("[data-release-list]");
+		const wrap = document.querySelector<HTMLElement>(
+			"[data-release-more-wrap]"
+		);
+		const button = document.querySelector<HTMLAnchorElement>(
+			"[data-release-more]"
+		);
+		const label = button?.querySelector<HTMLElement>(
+			"[data-release-more-label]"
+		);
+		const count = button?.querySelector<HTMLElement>(
+			"[data-release-more-count]"
+		);
+		const icon = button?.querySelector<HTMLElement>(
+			"[data-release-more-icon]"
+		);
+		const status = document.querySelector<HTMLElement>(
+			"[data-release-status]"
+		);
+		if (!list || !wrap || !button || !label || !count || !icon || !status)
+			return;
+
+		const idleLabel = label.textContent ?? "";
+		let loading = false;
+
+		function setBusy(busy: boolean) {
+			loading = busy;
+			if (!button || !label || !icon) return;
+			button.setAttribute("aria-busy", String(busy));
+			label.textContent = busy ? LOADING_LABEL : idleLabel;
+			icon.textContent = busy ? "autorenew" : "expand_more";
+		}
+
+		function appendNewReleases(source: Document): HTMLElement[] {
+			const incoming = source.querySelectorAll<HTMLElement>(
+				"[data-release-list] > [data-release]"
+			);
+			const added: HTMLElement[] = [];
+			incoming.forEach(article => {
+				if (article.id && document.getElementById(article.id)) return;
+				const adopted = document.adoptNode(article);
+				list?.append(adopted);
+				added.push(adopted);
+			});
+			return added;
+		}
+
+		button.addEventListener("click", async event => {
+			if (!isPlainLeftClick(event)) return;
+			event.preventDefault();
+			if (loading) return;
+
+			setBusy(true);
+			status.textContent = "";
+			try {
+				const nextDocument = await fetchNextPage(button.href);
+				const added = appendNewReleases(nextDocument);
+				const nextButton =
+					nextDocument.querySelector<HTMLAnchorElement>(
+						"[data-release-more]"
+					);
+
+				if (nextButton) {
+					button.href =
+						nextButton.getAttribute("href") ?? button.href;
+					count.textContent = `(${nextButton.dataset.remaining ?? ""})`;
+				} else {
+					wrap.remove();
+				}
+
+				status.classList.add("sr-only");
+				status.textContent = describeAdded(added.length);
+				added[0]?.focus({ preventScroll: true });
+			} catch {
+				status.classList.remove("sr-only");
+				status.textContent =
+					"No se pudieron cargar más novedades. Inténtalo de nuevo.";
+			} finally {
+				setBusy(false);
+			}
+		});
+	}
+
+	setupLoadMore();
+</script>
