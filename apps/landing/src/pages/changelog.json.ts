@@ -1,14 +1,9 @@
 import type { APIRoute } from "astro";
-import { getCollection } from "astro:content";
+
+import { getReleasesNewestFirst } from "../utils/releases";
 
 export const GET: APIRoute = async () => {
-	const entries = await getCollection("releases");
-
-	const sorted = [...entries].sort((a, b) => {
-		if (a.data.date !== b.data.date)
-			return a.data.date < b.data.date ? 1 : -1;
-		return b.data.order - a.data.order;
-	});
+	const sorted = await getReleasesNewestFirst();
 
 	const releases = sorted.map(entry => ({
 		date: entry.data.date,
