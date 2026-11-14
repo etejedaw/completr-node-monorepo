@@ -87,6 +87,12 @@ export class ListOverview implements OnInit {
 		return fromLists.length > 0 ? fromLists : this.libraryPosters();
 	});
 
+	protected readonly filterCount = computed(() => {
+		if (this.searchQuery().length >= 2)
+			return this.isSearching() ? null : this.searchResults().length;
+		return this.isLoading() ? null : this.total();
+	});
+
 	onOffsetChange(offset: number) {
 		this.offset.set(offset);
 		this.loadLists();

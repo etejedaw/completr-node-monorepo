@@ -67,6 +67,12 @@ export class UsersDiscover implements OnInit {
 		)
 	);
 
+	protected readonly filterCount = computed(() => {
+		if (this.searchQuery().trim().length >= 2)
+			return this.isSearching() ? null : this.searchResults().length;
+		return this.isLoadingDiscover() ? null : this.discoverUsers().length;
+	});
+
 	ngOnInit() {
 		this.loadDiscover();
 

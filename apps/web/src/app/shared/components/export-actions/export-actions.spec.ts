@@ -526,7 +526,6 @@ describe("ExportActions", () => {
 		async function renderQueue(inputs: Record<string, unknown>) {
 			return render(QueueBrowser, {
 				inputs: {
-					searchPlaceholder: "Search your queue...",
 					noMatchesScope: "Up Next",
 					entries: [],
 					queueIsEmpty: false,

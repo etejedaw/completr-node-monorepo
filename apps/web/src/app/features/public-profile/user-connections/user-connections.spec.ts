@@ -5,11 +5,9 @@ import {
 	type TestRequest
 } from "@angular/common/http/testing";
 import { type ComponentFixture, TestBed } from "@angular/core/testing";
-import { By } from "@angular/platform-browser";
 import { ActivatedRoute, provideRouter } from "@angular/router";
 
 import { environment } from "../../../../environments/environment";
-import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { type ConnectionKind, UserConnections } from "./user-connections";
 
 const api = environment.apiUrl;
@@ -109,30 +107,28 @@ describe("UserConnections", () => {
 		httpTesting.verify();
 	});
 
-	it("scopes the page search to the followers of the owner", async () => {
+	it("filters through the page search of the followers of the owner", async () => {
 		const fixture = setup("followers");
 		expectConnections("followers").flush(playersPage(3, 3));
 		flushProfile(3, 3);
 		await settle(fixture);
-
 		expect(
-			fixture.debugElement
-				.query(By.directive(PageSearch))
-				.componentInstance.scopeLabel()
-		).toBe("ada's followers");
+			element(fixture).querySelector(
+				'input[aria-label="Filter players by name or username"]'
+			)
+		).not.toBeNull();
 	});
 
-	it("scopes the page search to the following of the owner", async () => {
+	it("filters through the page search of the following of the owner", async () => {
 		const fixture = setup("following");
 		expectConnections("following").flush(playersPage(3, 3));
 		flushProfile(3, 3);
 		await settle(fixture);
-
 		expect(
-			fixture.debugElement
-				.query(By.directive(PageSearch))
-				.componentInstance.scopeLabel()
-		).toBe("ada's following");
+			element(fixture).querySelector(
+				'input[aria-label="Filter players by name or username"]'
+			)
+		).not.toBeNull();
 	});
 
 	it("requests only the followers on the followers screen", async () => {

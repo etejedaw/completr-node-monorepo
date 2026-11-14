@@ -61,9 +61,11 @@
 <app-library-toolbar>
 	<app-page-search
 		size="sm"
+		noun="list"
+		filterBy="list name"
+		[count]="total()"
+		[loading]="isLoading()"
 		class="flex-1 max-w-2xl"
-		[scopeLabel]="tab() === 'following' ? 'Followed lists' : username + '\'s lists'"
-		placeholder="Filter by list name..."
 		[value]="query()"
 		(valueChange)="onSearch($event)"
 	/>

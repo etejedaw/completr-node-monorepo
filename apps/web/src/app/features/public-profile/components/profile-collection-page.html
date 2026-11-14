@@ -81,9 +81,9 @@
 	<ng-template appLibraryPageToolbar>
 		<app-page-search
 			size="sm"
+			[noun]="noun()"
+			[count]="filterCount()"
 			class="flex-1 max-w-2xl"
-			[scopeLabel]="username() + '\'s ' + heading()"
-			[placeholder]="searchPlaceholder() ?? 'Filter by title...'"
 			[value]="query()"
 			(valueChange)="query.set($event)"
 		/>

@@ -11,14 +11,12 @@ import {
 	ChangeDetectionStrategy,
 	Component
 } from "@angular/core";
-import { type ComponentFixture, TestBed } from "@angular/core/testing";
-import { By } from "@angular/platform-browser";
+import { TestBed } from "@angular/core/testing";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type WishlistEntry } from "../../../core/models";
-import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
 import { WishlistView } from "./wishlist-view";
 
@@ -55,7 +53,6 @@ function wanted(
 
 describe("WishlistView interaction", () => {
 	let httpTesting: HttpTestingController;
-	let renderedFixture: ComponentFixture<unknown>;
 	let wishlist: WishlistEntry[];
 	let favoriteIds: string[];
 	const searches: (string | null)[] = [];
@@ -172,7 +169,6 @@ describe("WishlistView interaction", () => {
 			routes: []
 		});
 		TestBed.inject(ApplicationRef).components.push(fixture.componentRef);
-		renderedFixture = fixture;
 		httpTesting = TestBed.inject(HttpTestingController);
 		await untilVisible(() =>
 			expect(coverTitles()).toEqual(["Hades", "Celeste", "Tunic"])
@@ -222,12 +218,11 @@ describe("WishlistView interaction", () => {
 		);
 	}
 
-	it("filters through the page search scoped to Want to Get", async () => {
+	it("filters through the page search of Want to Get", async () => {
 		await renderWishlist();
-		const pageSearch = renderedFixture.debugElement.query(
-			By.directive(PageSearch)
-		);
-		expect(pageSearch.componentInstance.scopeLabel()).toBe("Want to Get");
+		expect(
+			screen.getByRole("textbox", { name: "Search Want to Get" })
+		).toBeInTheDocument();
 	});
 
 	it("exports the whole Want to Get as CSV when no filter is active", async () => {

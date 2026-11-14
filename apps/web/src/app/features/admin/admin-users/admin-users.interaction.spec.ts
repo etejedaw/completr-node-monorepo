@@ -7,7 +7,6 @@ import {
 	type TestRequest
 } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { By } from "@angular/platform-browser";
 import { Router } from "@angular/router";
 import {
 	fireEvent,
@@ -22,7 +21,6 @@ import { environment } from "../../../../environments/environment";
 import { ExportService } from "../../../core/services/export";
 import { ToastService } from "../../../core/services/toast";
 import { DATA_REQUEST_ERROR_MESSAGES } from "../../../core/utils/data-request-error-message";
-import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { AdminUsers } from "./admin-users";
 
 const api = environment.apiUrl;
@@ -252,14 +250,13 @@ describe("Admin users interaction", () => {
 	}
 
 	describe("listing and pagination", () => {
-		it("scopes the page search to Admin users", async () => {
-			const { fixture } = await renderUsers();
-
+		it("filters through the page search of Admin users", async () => {
+			await renderUsers();
 			expect(
-				fixture.debugElement
-					.query(By.directive(PageSearch))
-					.componentInstance.scopeLabel()
-			).toBe("Admin users");
+				screen.getByRole("textbox", {
+					name: "Filter users by name, username or email"
+				})
+			).toBeInTheDocument();
 		});
 
 		it("lists users with role, status and mobile rows", async () => {
@@ -1737,8 +1734,12 @@ describe("Admin users interaction", () => {
 	describe("search", () => {
 		function searchBox() {
 			return screen.getByRole("textbox", {
-				name: "Filter by name, username or email"
+				name: "Filter users by name, username or email"
 			});
+		}
+
+		function matchAnnouncement() {
+			return screen.getByTestId("match-summary");
 		}
 
 		function typeQuickly(text: string) {
@@ -1774,7 +1775,7 @@ describe("Admin users interaction", () => {
 			flushUsers(request, [ADA], 1);
 
 			await waitFor(() =>
-				expect(screen.getByRole("status")).toHaveTextContent(
+				expect(matchAnnouncement()).toHaveTextContent(
 					"1 match for “ada”"
 				)
 			);
@@ -1841,7 +1842,7 @@ describe("Admin users interaction", () => {
 			expect(
 				screen.getAllByText("ada@example.com").length
 			).toBeGreaterThan(0);
-			expect(screen.getByRole("status")).toBeEmptyDOMElement();
+			expect(matchAnnouncement()).toBeEmptyDOMElement();
 		});
 
 		it("clearing before the debounce fires never sends the half-typed search", async () => {
@@ -1925,7 +1926,7 @@ describe("Admin users interaction", () => {
 			await renderUsers([], [], 0);
 			expect(
 				screen.queryByRole("textbox", {
-					name: "Filter by name, username or email"
+					name: "Filter users by name, username or email"
 				})
 			).not.toBeInTheDocument();
 			expect(screen.getByText("No users found")).toBeInTheDocument();
@@ -2670,7 +2671,9 @@ describe("Admin users interaction", () => {
 
 			expect(saveFile).toHaveBeenCalledWith(
 				expect.any(Blob),
-				expect.stringMatching(/^completr-data-bob-\d{4}-\d{2}-\d{2}\.json$/)
+				expect.stringMatching(
+					/^completr-data-bob-\d{4}-\d{2}-\d{2}\.json$/
+				)
 			);
 			saveFile.mockRestore();
 		});
@@ -2680,7 +2683,9 @@ describe("Admin users interaction", () => {
 			const view = await renderUsers();
 
 			const dialog = await openDeleteDialog(user);
-			expect(within(dialog).getByText(/can't be undone/)).toBeInTheDocument();
+			expect(
+				within(dialog).getByText(/can't be undone/)
+			).toBeInTheDocument();
 			const confirm = within(dialog).getByRole("button", {
 				name: "Delete account"
 			});
@@ -2711,7 +2716,9 @@ describe("Admin users interaction", () => {
 			await renderUsers();
 
 			const dialog = await openDeleteDialog(user);
-			await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+			await user.click(
+				within(dialog).getByRole("button", { name: "Cancel" })
+			);
 
 			await waitFor(() =>
 				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()

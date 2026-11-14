@@ -1,14 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 
 import { signal } from "@angular/core";
-import { By } from "@angular/platform-browser";
 import { ActivatedRoute, provideRouter } from "@angular/router";
 import { render, screen, waitFor } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 import { of, Subject, throwError } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
-import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PublicLibraryService } from "../services/public-library.service";
 import { UserBacklog } from "./user-backlog";
 
@@ -78,15 +76,12 @@ describe("UserBacklog", () => {
 		});
 	}
 
-	it("scopes the page search to the owner games", async () => {
+	it("filters through the page search of the owner games", async () => {
 		getUserBacklog.mockReturnValue(of({ items: [], total: 0 }));
-		const { fixture } = await renderPage();
-
+		await renderPage();
 		expect(
-			fixture.debugElement
-				.query(By.directive(PageSearch))
-				.componentInstance.scopeLabel()
-		).toBe("ada's games");
+			screen.getByRole("textbox", { name: "Filter games by title" })
+		).toBeInTheDocument();
 	});
 
 	it("loads the first page of the public library, newest first", async () => {
@@ -214,7 +209,7 @@ describe("UserBacklog", () => {
 		getUserBacklog.mockReturnValue(of({ items: [], total: 0 }));
 
 		await user.type(
-			screen.getByRole("textbox", { name: "Filter by title" }),
+			screen.getByRole("textbox", { name: "Filter games by title" }),
 			"zelda"
 		);
 

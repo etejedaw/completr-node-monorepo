@@ -55,9 +55,10 @@
 		<div class="flex flex-wrap items-center gap-2">
 			<app-page-search
 				size="sm"
-				scopeLabel="My Games"
+				noun="game"
+				[count]="total()"
+				[loading]="isLoading()"
 				class="flex-1 min-w-[12rem]"
-				placeholder="Filter by title..."
 				ariaLabel="Search your library"
 				[value]="searchQuery()"
 				(valueChange)="onSearch($event)"

@@ -60,9 +60,11 @@
 <app-library-toolbar>
 	<app-page-search
 		size="sm"
+		noun="player"
+		filterBy="name or username"
+		[count]="total()"
+		[loading]="isLoading()"
 		class="flex-1 max-w-2xl"
-		[scopeLabel]="username + '\'s ' + kind"
-		placeholder="Filter by name or username..."
 		[value]="query()"
 		(valueChange)="onSearch($event)"
 	/>

@@ -11,14 +11,12 @@ import {
 	ChangeDetectionStrategy,
 	Component
 } from "@angular/core";
-import { type ComponentFixture, TestBed } from "@angular/core/testing";
-import { By } from "@angular/platform-browser";
+import { TestBed } from "@angular/core/testing";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type GameShelfEntry } from "../../../core/models";
-import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
 import { GameShelfList } from "./game-shelf-list";
 
@@ -52,7 +50,6 @@ function shelfEntry(id: string, gameId: string, title: string): GameShelfEntry {
 
 describe("GameShelfList bulk interaction", () => {
 	let httpTesting: HttpTestingController;
-	let renderedFixture: ComponentFixture<unknown>;
 	let shelf: GameShelfEntry[];
 	let favoriteIds: string[];
 	let skipIds: Set<string>;
@@ -158,7 +155,6 @@ describe("GameShelfList bulk interaction", () => {
 			routes: []
 		});
 		TestBed.inject(ApplicationRef).components.push(fixture.componentRef);
-		renderedFixture = fixture;
 		httpTesting = TestBed.inject(HttpTestingController);
 		await untilVisible(() =>
 			expect(rowCheckbox("Celeste")).toBeInTheDocument()
@@ -201,12 +197,11 @@ describe("GameShelfList bulk interaction", () => {
 		vi.unstubAllGlobals();
 	});
 
-	it("filters through the page search scoped to My Shelf", async () => {
+	it("filters through the page search of My Shelf", async () => {
 		await renderShelf();
-		const pageSearch = renderedFixture.debugElement.query(
-			By.directive(PageSearch)
-		);
-		expect(pageSearch.componentInstance.scopeLabel()).toBe("My Shelf");
+		expect(
+			screen.getByRole("textbox", { name: "Filter games by title" })
+		).toBeInTheDocument();
 	});
 
 	it("selects with ranges and the page, clears on Escape and when the page changes", async () => {

@@ -11,14 +11,12 @@ import {
 	ChangeDetectionStrategy,
 	Component
 } from "@angular/core";
-import { type ComponentFixture, TestBed } from "@angular/core/testing";
-import { By } from "@angular/platform-browser";
+import { TestBed } from "@angular/core/testing";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type BacklogEntry, type QueueEntry } from "../../../core/models";
-import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
 import { pickCalendarDate } from "../../../shared/ui/date-picker/ui-date-picker.testing";
 import { QueueView } from "./queue-view";
@@ -63,7 +61,6 @@ function libraryEntry(backlogId: string) {
 
 describe("QueueView interaction", () => {
 	let httpTesting: HttpTestingController;
-	let renderedFixture: ComponentFixture<unknown>;
 	let queuedIds: string[];
 	const reorders: string[][] = [];
 	const moves: { backlogId: string; position: unknown }[] = [];
@@ -218,7 +215,6 @@ describe("QueueView interaction", () => {
 			providers: [provideHttpClient(), provideHttpClientTesting()]
 		});
 		TestBed.inject(ApplicationRef).components.push(fixture.componentRef);
-		renderedFixture = fixture;
 		httpTesting = TestBed.inject(HttpTestingController);
 		await untilVisible(() => expect(queueOrder()).toEqual(expectedOrder));
 	}
@@ -228,7 +224,7 @@ describe("QueueView interaction", () => {
 		query: string
 	) {
 		await user.type(
-			screen.getByRole("textbox", { name: "Filter by title" }),
+			screen.getByRole("textbox", { name: "Filter games by title" }),
 			query
 		);
 	}
@@ -257,12 +253,11 @@ describe("QueueView interaction", () => {
 		vi.unstubAllGlobals();
 	});
 
-	it("filters through the page search scoped to Up Next", async () => {
+	it("filters through the page search of Up Next", async () => {
 		await renderQueue();
-		const pageSearch = renderedFixture.debugElement.query(
-			By.directive(PageSearch)
-		);
-		expect(pageSearch.componentInstance.scopeLabel()).toBe("Up Next");
+		expect(
+			screen.getByRole("textbox", { name: "Filter games by title" })
+		).toBeInTheDocument();
 	});
 
 	it("shows the next game first and the rest in order", async () => {

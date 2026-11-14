@@ -59,7 +59,6 @@ export class ProfileCollectionPage {
 	readonly iconColor = input("text-brand");
 	readonly noun = input("game");
 	readonly subtitleSuffix = input("");
-	readonly searchPlaceholder = input<string | null>(null);
 	readonly platforms = input<PlatformCount[]>([]);
 	readonly skeleton = input<LibraryPageSkeleton>("posters");
 	readonly posters = input<LibraryHeroPoster[]>([]);
@@ -84,6 +83,13 @@ export class ProfileCollectionPage {
 		if (this.itemCount() === 0) return "empty";
 		if (this.visibleCount() === 0) return "no-matches";
 		return "ready";
+	});
+
+	protected readonly filterCount = computed(() => {
+		if (this.isLoading()) return null;
+		return this.query().trim() || this.platform()
+			? this.visibleCount()
+			: this.total();
 	});
 
 	protected clearFilters() {

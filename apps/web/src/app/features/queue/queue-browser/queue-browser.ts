@@ -66,8 +66,6 @@ export class QueueBrowser {
 	readonly queueIsEmpty = input.required<boolean>();
 	readonly isLoading = input.required<boolean>();
 	readonly searchQuery = input.required<string>();
-	readonly scopeLabel = input("Up Next");
-	readonly searchPlaceholder = input.required<string>();
 	readonly noMatchesScope = input.required<string>();
 	readonly offset = input.required<number>();
 	readonly limit = input.required<number>();

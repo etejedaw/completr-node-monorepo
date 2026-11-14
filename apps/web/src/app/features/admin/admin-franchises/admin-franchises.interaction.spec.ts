@@ -8,7 +8,6 @@ import {
 	type TestRequest
 } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { By } from "@angular/platform-browser";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 import { Subject } from "rxjs";
@@ -16,7 +15,6 @@ import { Subject } from "rxjs";
 import { environment } from "../../../../environments/environment";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
-import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { AdminFranchises } from "./admin-franchises";
 
 type ResponseBody = Parameters<TestRequest["flush"]>[0];
@@ -137,6 +135,15 @@ describe("AdminFranchises interaction", () => {
 		return screen.getByRole("link", { name }).closest("li") as HTMLElement;
 	}
 
+	function matchAnnouncement() {
+		const field = screen.getByRole("textbox", {
+			name: "Search franchises"
+		});
+		return within(field.closest("ui-search-bar") as HTMLElement).getByRole(
+			"status"
+		);
+	}
+
 	function namesOnScreen() {
 		return screen
 			.queryAllByRole("link")
@@ -229,14 +236,11 @@ describe("AdminFranchises interaction", () => {
 	});
 
 	describe("listing", () => {
-		it("scopes the page search to Admin sagas", async () => {
-			const { fixture } = await renderLoaded();
-
+		it("filters through the page search of Admin sagas", async () => {
+			await renderLoaded();
 			expect(
-				fixture.debugElement
-					.query(By.directive(PageSearch))
-					.componentInstance.scopeLabel()
-			).toBe("Admin sagas");
+				screen.getByRole("textbox", { name: "Search franchises" })
+			).toBeInTheDocument();
 		});
 
 		it("shows a busy skeleton and then the first page of franchises", async () => {
@@ -331,9 +335,7 @@ describe("AdminFranchises interaction", () => {
 			expect(lastListRequest().get("search")).toBe("ZEL");
 			expect(lastListRequest().get("offset")).toBe("0");
 			expect(lastListRequest().get("limit")).toBe("50");
-			expect(screen.getByRole("status")).toHaveTextContent(
-				"1 match for “ZEL”"
-			);
+			expect(matchAnnouncement()).toHaveTextContent("1 saga");
 		});
 
 		it("follows a burst of fast typing, deleting and retyping with a single request", async () => {
@@ -529,9 +531,7 @@ describe("AdminFranchises interaction", () => {
 			await untilVisible(() => expect(namesOnScreen()).toHaveLength(50));
 			await user.type(searchBox(), "saga 0");
 			await untilVisible(() =>
-				expect(screen.getByRole("status")).toHaveTextContent(
-					"99 matches for “saga 0”"
-				)
+				expect(matchAnnouncement()).toHaveTextContent("99 sagas")
 			);
 			await user.click(screen.getByRole("button", { name: "Next page" }));
 			await untilVisible(() =>
@@ -675,9 +675,7 @@ describe("AdminFranchises interaction", () => {
 
 			await user.type(searchBox(), "zelda");
 			await untilVisible(() =>
-				expect(screen.getByRole("status")).toHaveTextContent(
-					"70 matches for “zelda”"
-				)
+				expect(matchAnnouncement()).toHaveTextContent("70 sagas")
 			);
 			await user.click(screen.getByRole("button", { name: "Next page" }));
 
@@ -697,9 +695,7 @@ describe("AdminFranchises interaction", () => {
 			await untilVisible(() => expect(namesOnScreen()).toHaveLength(50));
 			await user.type(searchBox(), "saga 0");
 			await untilVisible(() =>
-				expect(screen.getByRole("status")).toHaveTextContent(
-					"99 matches for “saga 0”"
-				)
+				expect(matchAnnouncement()).toHaveTextContent("99 sagas")
 			);
 			await user.click(screen.getByRole("button", { name: "Next page" }));
 			await untilVisible(() =>

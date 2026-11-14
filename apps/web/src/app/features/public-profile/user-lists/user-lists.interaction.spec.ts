@@ -8,7 +8,6 @@ import {
 } from "@angular/common/http/testing";
 import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { By } from "@angular/platform-browser";
 import { Router, RouterOutlet } from "@angular/router";
 import {
 	fireEvent,
@@ -20,7 +19,6 @@ import {
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
-import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { type PublicList } from "../services/public-lists.model";
 import { UserLists } from "./user-lists";
 
@@ -224,26 +222,18 @@ describe("User lists interaction", () => {
 		httpTesting.verify();
 	});
 
-	it("scopes the page search to ada's lists", async () => {
-		const { fixture } = await renderLoaded();
-
+	it("filters through the page search of ada's lists", async () => {
+		await renderLoaded();
 		expect(
-			fixture.debugElement
-				.query(By.directive(PageSearch))
-				.componentInstance.scopeLabel()
-		).toBe("ada's lists");
+			screen.getByRole("textbox", { name: "Filter lists by list name" })
+		).toBeInTheDocument();
 	});
 
-	it("scopes the page search to Followed lists", async () => {
-		const { fixture } = await renderLoaded(
-			`/user/${username}/lists?tab=following`
-		);
-
+	it("filters through the page search of Followed lists", async () => {
+		await renderLoaded(`/user/${username}/lists?tab=following`);
 		expect(
-			fixture.debugElement
-				.query(By.directive(PageSearch))
-				.componentInstance.scopeLabel()
-		).toBe("Followed lists");
+			screen.getByRole("textbox", { name: "Filter lists by list name" })
+		).toBeInTheDocument();
 	});
 
 	it("shows the first page of created lists with counts on both tabs", async () => {

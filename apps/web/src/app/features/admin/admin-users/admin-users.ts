@@ -600,7 +600,8 @@ export class AdminUsers implements OnInit {
 	}
 
 	protected reloadAfterRequestDeletion() {
-		if (this.search()) this.accountsTotal.update(count => Math.max(count - 1, 0));
+		if (this.search())
+			this.accountsTotal.update(count => Math.max(count - 1, 0));
 		this.loadUsers();
 	}
 
