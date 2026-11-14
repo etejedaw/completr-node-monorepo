@@ -170,11 +170,13 @@ Lo transversal ya resuelto en `common/` o en un módulo dueño, que no se reimpl
 - **Selección masiva solo en las tablas Hardcore propias (My Games, My Shelf, Platinums), solo con la casilla.** El clic en la fila sigue abriendo el editor. Los predicados de elegibilidad son funciones puras compartidas con la tabla y la tarjeta del Diary (`shared/utils/backlog-eligibility.ts`), no se reescriben por página.
 - **La ventana de Undo es una sola para toda la app (`UNDO_WINDOW_MS`, 5 segundos) y no se configura por pantalla.** Una ventana distinta por pantalla haría impredecible cuánto tiempo hay para deshacer.
 
-### Búsqueda contextual
+### Búsqueda
 
-- **En el shell autenticado hay una sola barra de búsqueda: la superior es a la vez la global y el filtro de la página.** Una página que filtra su lista monta `app-page-search` (con `scopeLabel`, el nombre de la sección tal como lo ve el usuario) en vez de `ui-search-bar`; la página sigue siendo dueña de su estado (señal, debounce, query params) y el componente solo reenvía. Dos buscadores a la vez confunden cuál filtra qué.
-- **`Layout` provee `PageSearchScope` (no es `root`): hay un alcance a la vez y gana el último registrado.** Fuera del `Layout` (visitante, specs con `TestBed`) `app-page-search` dibuja el `ui-search-bar` de siempre.
-- **Los buscadores dentro de un diálogo, una hoja o un paso de "agregar" usan `ui-search-bar`, no `app-page-search`.** No filtran la página. Las páginas sin lista que filtrar (Feed, ficha de un juego) tampoco montan `app-page-search`.
+- **La búsqueda global es una paleta, no un campo: en la barra superior hay un botón "Search Completr" (y el ícono de lupa en mobile) que abre `SearchPalette`, también con `/` desde cualquier lugar donde no se esté escribiendo.** Así cada página tiene un solo campo de texto visible, el de su lista, y no hay dos buscadores parecidos que confundan cuál filtra qué.
+- **La paleta busca primero en la biblioteca propia ("In your library") y después juegos, jugadores y listas.** Quien busca un juego suele buscar su run, aunque esté en otra página. Los chips (All, My library, Games, Players, Lists) acotan sin hacer otra petición, y la última opción abre Browse con el texto. En escritorio es un panel centrado; en mobile ocupa toda la pantalla.
+- **`SearchPalette` es el único overlay que no es `UiDialog`.** Necesita el campo arriba y sin encabezado, a pantalla completa en mobile, y los resultados se navegan con flechas desde el campo (`combobox` con `aria-activedescendant`), cosa que el diálogo con título y hoja inferior no cubre.
+- **Una página que filtra su lista monta `app-page-search` con `noun`, `filterBy` y `count`.** El campo dice qué filtra y cuántos elementos hay ("Filter 612 games by title") y, mientras se escribe, cuántos coinciden. `count` es el total que muestra la lista en ese momento (el de la API si pagina) y `loading` lo oculta mientras recarga, para no mostrar un número viejo. La página sigue siendo dueña de su estado (señal, debounce, query params).
+- **Los buscadores dentro de un diálogo, una hoja o un paso de "agregar", y el de Browse, usan `ui-search-bar`.** No filtran una lista de la página: buscan en el catálogo. Las páginas sin lista que filtrar (Feed, ficha de un juego) no montan buscador.
 
 ### Ubicación de controles en hero y barra
 
@@ -206,14 +208,14 @@ Lo transversal ya resuelto en `common/` o en un módulo dueño, que no se reimpl
 
 Antes de crear uno nuevo, se reutiliza uno de estos. Los inputs están en el código; acá va para qué sirve cada uno y su regla de uso.
 
-- **`UiDialog`, `UiBottomSheet`, `UiDrawer` (`shared/ui/`):** `UiDialog` es el único diálogo de la app (hoja inferior en mobile, modal en escritorio); no se usan `ngpDialog` ni overlays propios. `UiDrawer` es el cajón lateral de escritorio. Los tres comparten los tonos de `shared/ui/tone/ui-tone.ts`.
+- **`UiDialog`, `UiBottomSheet`, `UiDrawer` (`shared/ui/`):** `UiDialog` es el único diálogo de la app (hoja inferior en mobile, modal en escritorio); no se usan `ngpDialog` ni overlays propios, salvo `SearchPalette` (ver "Búsqueda"). `UiDrawer` es el cajón lateral de escritorio. Los tres comparten los tonos de `shared/ui/tone/ui-tone.ts`.
 - **`uiButton`, `uiIconButton`:** botones. Se usa una variante (`glass` sobre un héroe, `link` dentro de una frase, `premium` solo en acciones premium) en vez de pisar estilos con clases.
 - **`UiBadge`, `UiCountBadge`, `BacklogStatusBadge`:** insignias de estado, rol y contadores. No se arman pastillas a mano.
 - **`ChipGroup` / `button[appFilterChip]`:** chips de filtro; también los usan `PlatformFilter` y `BacklogStatusPills`. No se arman pastillas de filtro a mano.
 - **`OptionPicker`:** elegir una opción; menú en escritorio, hoja inferior en mobile.
 - **`BacklogStatusPicker`:** cambia el estado de una entrada del backlog. Maneja su propio apilamiento: las vistas no le ponen `z-*`.
 - **`ActionMenu`:** agrupa acciones (menú en escritorio, hoja en mobile), también el ⋮ por fila. Un ítem de navegación usa `link`, no `router.navigate` en `selected`.
-- **`UiSearchBar`, `app-page-search`:** búsqueda. Las vistas no le cambian alto ni tipografía, solo layout (ver "Búsqueda contextual").
+- **`UiSearchBar`, `app-page-search`, `SearchPalette`:** campo de búsqueda, filtro de la lista de una página y búsqueda global. Las vistas no les cambian alto ni tipografía, solo layout (ver "Búsqueda").
 - **`UiFiltersButton`, `FilterSection`, `RangeInputs`:** botón Filters de las barras, grupo de un panel de filtros y par mínimo / máximo.
 - **`UiTable`, `SelectionCell`, `BulkActionBar`:** tablas (Admin, Hardcore, My Shelf, Platinums), selección por casilla y barra de acciones masivas. No se pisan las cabeceras con `!`.
 - **`UiDatePicker`, `UiFieldLabel`, `UiFieldError`:** fechas, etiquetas y errores de formulario.
