@@ -2,66 +2,71 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
-	DestroyRef,
-	inject,
 	input,
-	linkedSignal,
 	output
 } from "@angular/core";
 
-import { PageSearchScope } from "../../../core/services/page-search-scope";
 import { UiSearchBar } from "../../ui";
 import { type UiSearchBarSize } from "../../ui/search-bar/ui-search-bar";
+
+const countFormat = new Intl.NumberFormat("en-US");
 
 @Component({
 	selector: "app-page-search",
 	imports: [UiSearchBar],
 	template: `
-		@if (!registered) {
-			<ui-search-bar
-				[size]="size()"
-				[placeholder]="placeholder()"
-				[ariaLabel]="ariaLabel()"
-				[value]="value()"
-				(valueChange)="valueChange.emit($event)"
-			/>
-		}
+		<ui-search-bar
+			icon="filter_list"
+			[size]="size()"
+			[placeholder]="placeholder()"
+			[ariaLabel]="accessibleName()"
+			[hint]="matches()"
+			[value]="value()"
+			(valueChange)="valueChange.emit($event)"
+		/>
 	`,
-	host: {
-		"[class.block]": "!registered",
-		"[class.hidden]": "registered"
-	},
+	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PageSearch {
-	private readonly scope = inject(PageSearchScope, { optional: true });
-
-	readonly scopeLabel = input.required<string>();
-	readonly placeholder = input("Search...");
+	readonly noun = input.required<string>();
+	readonly nounPlural = input<string | null>(null);
+	readonly filterBy = input("title");
+	readonly count = input<number | null>(null);
+	readonly loading = input(false);
 	readonly ariaLabel = input<string | null>(null);
 	readonly size = input<UiSearchBarSize>("md");
 	readonly value = input("");
 
 	readonly valueChange = output<string>();
 
-	private readonly currentValue = linkedSignal(() => this.value());
-	protected readonly registered = this.scope !== null;
+	private readonly knownCount = computed(() =>
+		this.loading() ? null : this.count()
+	);
 
-	constructor() {
-		if (!this.scope) return;
-		const unregister = this.scope.register({
-			label: this.scopeLabel,
-			placeholder: this.placeholder,
-			ariaLabel: computed(() => `Filter ${this.scopeLabel()}`),
-			value: this.currentValue.asReadonly(),
-			setValue: value => this.updateValue(value)
-		});
-		inject(DestroyRef).onDestroy(unregister);
-	}
+	private readonly plural = computed(
+		() => this.nounPlural() ?? `${this.noun()}s`
+	);
 
-	private updateValue(value: string) {
-		if (value === this.currentValue()) return;
-		this.currentValue.set(value);
-		this.valueChange.emit(value);
+	protected readonly placeholder = computed(() => {
+		const count = this.knownCount();
+		if (count === null)
+			return `Filter ${this.plural()} by ${this.filterBy()}`;
+		return `Filter ${this.describe(count)} by ${this.filterBy()}`;
+	});
+
+	protected readonly accessibleName = computed(
+		() =>
+			this.ariaLabel() ?? `Filter ${this.plural()} by ${this.filterBy()}`
+	);
+
+	protected readonly matches = computed(() => {
+		const count = this.knownCount();
+		return count === null ? "" : this.describe(count);
+	});
+
+	private describe(count: number) {
+		const noun = count === 1 ? this.noun() : this.plural();
+		return `${countFormat.format(count)} ${noun}`;
 	}
 }

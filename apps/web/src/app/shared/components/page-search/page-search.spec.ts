@@ -1,146 +1,118 @@
-import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 
-import { PageSearchScope } from "../../../core/services/page-search-scope";
 import { PageSearch } from "./page-search";
 
-@Component({
-	imports: [PageSearch],
-	template: `
-		@if (showGames()) {
-			<app-page-search
-				scopeLabel="My Games"
-				placeholder="Filter by title..."
-				[value]="gamesQuery()"
-				(valueChange)="
-					gamesChanges.push($event); gamesQuery.set($event)
-				"
-			/>
-		}
-		@if (showQueue()) {
-			<app-page-search
-				scopeLabel="Up Next"
-				[value]="queueQuery()"
-				(valueChange)="queueQuery.set($event)"
-			/>
-		}
-	`,
-	changeDetection: ChangeDetectionStrategy.OnPush
-})
-class Host {
-	readonly showGames = signal(true);
-	readonly showQueue = signal(false);
-	readonly gamesQuery = signal("");
-	readonly queueQuery = signal("");
-	readonly gamesChanges: string[] = [];
+function render(inputs: Record<string, unknown> = {}) {
+	const fixture = TestBed.createComponent(PageSearch);
+	fixture.componentRef.setInput("noun", "game");
+	for (const [name, value] of Object.entries(inputs))
+		fixture.componentRef.setInput(name, value);
+	fixture.detectChanges();
+	return fixture;
+}
+
+function field(fixture: ReturnType<typeof render>) {
+	return fixture.nativeElement.querySelector("input") as HTMLInputElement;
+}
+
+function status(fixture: ReturnType<typeof render>) {
+	return fixture.nativeElement.querySelector(
+		"[role=status]"
+	) as HTMLElement | null;
 }
 
 describe("PageSearch", () => {
-	describe("outside the layout", () => {
-		function render(inputs: Record<string, unknown> = {}) {
-			const fixture = TestBed.createComponent(PageSearch);
-			fixture.componentRef.setInput("scopeLabel", "My Games");
-			for (const [name, value] of Object.entries(inputs))
-				fixture.componentRef.setInput(name, value);
-			fixture.detectChanges();
-			return fixture;
-		}
+	it("says how many items it filters and by what", () => {
+		const fixture = render({ count: 1234, filterBy: "title" });
 
-		it("renders the page search bar with the given placeholder and value", () => {
-			const fixture = render({
-				placeholder: "Search your library...",
-				value: "hades"
-			});
-			const field = fixture.nativeElement.querySelector(
-				"input"
-			) as HTMLInputElement;
-
-			expect(field.placeholder).toBe("Search your library...");
-			expect(field.value).toBe("hades");
-		});
-
-		it("emits every change typed in the bar", () => {
-			const fixture = render();
-			const changes: string[] = [];
-			fixture.componentInstance.valueChange.subscribe(value =>
-				changes.push(value)
-			);
-			const field = fixture.nativeElement.querySelector(
-				"input"
-			) as HTMLInputElement;
-
-			field.value = "celeste";
-			field.dispatchEvent(new Event("input"));
-
-			expect(changes).toEqual(["celeste"]);
-		});
+		expect(field(fixture).placeholder).toBe("Filter 1,234 games by title");
+		expect(field(fixture).getAttribute("aria-label")).toBe(
+			"Filter games by title"
+		);
 	});
 
-	describe("inside the layout", () => {
-		let scope: PageSearchScope;
+	it("uses the singular noun for a single item", () => {
+		const fixture = render({ count: 1 });
 
-		function render() {
-			TestBed.configureTestingModule({ providers: [PageSearchScope] });
-			scope = TestBed.inject(PageSearchScope);
-			const fixture = TestBed.createComponent(Host);
-			fixture.detectChanges();
-			return fixture;
-		}
+		expect(field(fixture).placeholder).toBe("Filter 1 game by title");
+	});
 
-		it("registers its scope and draws no field of its own", () => {
-			const fixture = render();
-			const host = fixture.nativeElement.querySelector(
-				"app-page-search"
-			) as HTMLElement;
-
-			expect(fixture.nativeElement.querySelector("input")).toBeNull();
-			expect(host.classList.contains("hidden")).toBe(true);
-			expect(scope.active()?.label()).toBe("My Games");
-			expect(scope.active()?.placeholder()).toBe("Filter by title...");
-			expect(scope.active()?.ariaLabel()).toBe("Filter My Games");
+	it("uses the plural noun given for irregular plurals", () => {
+		const fixture = render({
+			noun: "entry",
+			nounPlural: "entries",
+			count: 3,
+			filterBy: "name"
 		});
 
-		it("forwards each new value once and ignores repeats", () => {
-			const fixture = render();
-			const active = scope.active();
+		expect(field(fixture).placeholder).toBe("Filter 3 entries by name");
+	});
 
-			active?.setValue("ha");
-			active?.setValue("ha");
-			active?.setValue("");
-			active?.setValue("");
-			fixture.detectChanges();
+	it("leaves the number out while the count is unknown", () => {
+		const fixture = render({ count: null });
 
-			expect(fixture.componentInstance.gamesChanges).toEqual(["ha", ""]);
-			expect(active?.value()).toBe("");
-		});
+		expect(field(fixture).placeholder).toBe("Filter games by title");
+	});
 
-		it("reflects the value the page sets on its own", () => {
-			const fixture = render();
+	it("hides a stale count while the page reloads its list", () => {
+		const fixture = render({ count: 40, loading: true, value: "zel" });
 
-			fixture.componentInstance.gamesQuery.set("celeste");
-			fixture.detectChanges();
+		expect(field(fixture).placeholder).toBe("Filter games by title");
+		expect(status(fixture)?.textContent?.trim()).toBe("");
 
-			expect(scope.active()?.value()).toBe("celeste");
-		});
+		fixture.componentRef.setInput("count", 2);
+		fixture.componentRef.setInput("loading", false);
+		fixture.detectChanges();
 
-		it("unregisters when the page goes away", () => {
-			const fixture = render();
+		expect(status(fixture)?.textContent?.trim()).toBe("2 games");
+	});
 
-			fixture.componentInstance.showGames.set(false);
-			fixture.detectChanges();
+	it("keeps the accessible name the page gives it", () => {
+		const fixture = render({ ariaLabel: "Search your library" });
 
-			expect(scope.active()).toBeNull();
-		});
+		expect(field(fixture).getAttribute("aria-label")).toBe(
+			"Search your library"
+		);
+	});
 
-		it("keeps the newest page scope when the older one is destroyed afterwards", () => {
-			const fixture = render();
+	it("shows the filter icon instead of the search icon", () => {
+		const fixture = render();
+		const icon = fixture.nativeElement.querySelector(
+			".material-icons"
+		) as HTMLElement;
 
-			fixture.componentInstance.showQueue.set(true);
-			fixture.detectChanges();
-			fixture.componentInstance.showGames.set(false);
-			fixture.detectChanges();
+		expect(icon.textContent?.trim()).toBe("filter_list");
+	});
 
-			expect(scope.active()?.label()).toBe("Up Next");
-		});
+	it("announces the matches only while there is text to filter by", () => {
+		const fixture = render({ count: 2 });
+
+		expect(status(fixture)?.textContent?.trim()).toBe("");
+
+		fixture.componentRef.setInput("value", "castle");
+		fixture.detectChanges();
+
+		expect(field(fixture).value).toBe("castle");
+		expect(status(fixture)?.textContent?.trim()).toBe("2 games");
+	});
+
+	it("emits every change the user types and clears", () => {
+		const fixture = render({ value: "hades" });
+		const changes: string[] = [];
+		fixture.componentInstance.valueChange.subscribe(value =>
+			changes.push(value)
+		);
+
+		const input = field(fixture);
+		input.value = "hades 2";
+		input.dispatchEvent(new Event("input"));
+		fixture.detectChanges();
+		(
+			fixture.nativeElement.querySelector(
+				"button[aria-label='Clear search']"
+			) as HTMLButtonElement
+		).click();
+
+		expect(changes).toEqual(["hades 2", ""]);
 	});
 });
