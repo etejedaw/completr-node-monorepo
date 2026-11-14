@@ -3,37 +3,60 @@ import { inject, Injectable } from "@angular/core";
 import { forkJoin, map, of } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type GameResult, type ListResult } from "./global-search.model";
+import { type BacklogEntry } from "../models";
+import {
+	type GameResult,
+	type ListResult,
+	type SearchResults
+} from "./global-search.model";
 import { type UserResult } from "./users.model";
+
+const LIBRARY_RESULTS_LIMIT = 10;
+
+const EMPTY_RESULTS: SearchResults = {
+	library: { entries: [], total: 0 },
+	users: [],
+	games: [],
+	lists: []
+};
 
 @Injectable({ providedIn: "root" })
 export class GlobalSearchService {
 	private readonly http = inject(HttpClient);
 
 	search(query: string) {
-		if (query.length < 2) return of({ users: [], games: [], lists: [] });
+		if (query.length < 2) return of(EMPTY_RESULTS);
 
+		const search = encodeURIComponent(query);
 		return forkJoin({
+			library: this.http
+				.get<{
+					data: { backlog: BacklogEntry[]; total: number };
+				}>(
+					`${environment.apiUrl}/users/me/backlog?search=${search}&limit=${LIBRARY_RESULTS_LIMIT}`
+				)
+				.pipe(
+					map(res => ({
+						entries: res.data.backlog,
+						total: res.data.total
+					}))
+				),
 			users: this.http
 				.get<{
 					data: { users: UserResult[] };
-				}>(
-					`${environment.apiUrl}/users/search?search=${encodeURIComponent(query)}`
-				)
+				}>(`${environment.apiUrl}/users/search?search=${search}`)
 				.pipe(map(res => res.data.users)),
 			games: this.http
 				.get<{
 					data: { games: GameResult[] };
 				}>(
-					`${environment.apiUrl}/games/search?search=${encodeURIComponent(query)}&local_only=true`
+					`${environment.apiUrl}/games/search?search=${search}&local_only=true`
 				)
 				.pipe(map(res => res.data.games)),
 			lists: this.http
 				.get<{
 					data: { lists: ListResult[] };
-				}>(
-					`${environment.apiUrl}/lists/search?search=${encodeURIComponent(query)}`
-				)
+				}>(`${environment.apiUrl}/lists/search?search=${search}`)
 				.pipe(map(res => res.data.lists))
 		});
 	}

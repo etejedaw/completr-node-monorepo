@@ -30,15 +30,23 @@ describe("GlobalSearchService", () => {
 
 		service.search("a").subscribe(r => (result = r));
 
-		expect(result).toEqual({ users: [], games: [], lists: [] });
+		expect(result).toEqual({
+			library: { entries: [], total: 0 },
+			users: [],
+			games: [],
+			lists: []
+		});
 		httpTesting.expectNone(() => true);
 	});
 
-	it("queries users, games and lists in parallel with the encoded query", () => {
+	it("queries your library, users, games and lists in parallel with the encoded query", () => {
 		let result: SearchResults | undefined;
 
 		service.search("half life").subscribe(r => (result = r));
 
+		const library = httpTesting.expectOne(
+			`${environment.apiUrl}/users/me/backlog?search=half%20life&limit=10`
+		);
 		const users = httpTesting.expectOne(
 			`${environment.apiUrl}/users/search?search=half%20life`
 		);
@@ -49,10 +57,13 @@ describe("GlobalSearchService", () => {
 			`${environment.apiUrl}/lists/search?search=half%20life`
 		);
 		expect(users.request.method).toBe("GET");
+		expect(library.request.method).toBe("GET");
+		library.flush({ data: { backlog: [{ id: "b1" }], total: 7 } });
 		users.flush({ data: { users: [{ id: "u1" }] } });
 		games.flush({ data: { games: [{ id: "g1" }] } });
 		lists.flush({ data: { lists: [{ id: "l1" }] } });
 		expect(result).toEqual({
+			library: { entries: [{ id: "b1" }], total: 7 },
 			users: [{ id: "u1" }],
 			games: [{ id: "g1" }],
 			lists: [{ id: "l1" }]
@@ -62,6 +73,11 @@ describe("GlobalSearchService", () => {
 	it("encodes reserved characters in the query", () => {
 		service.search("a&b=c").subscribe();
 
+		httpTesting
+			.expectOne(
+				`${environment.apiUrl}/users/me/backlog?search=a%26b%3Dc&limit=10`
+			)
+			.flush({ data: { backlog: [], total: 0 } });
 		httpTesting
 			.expectOne(`${environment.apiUrl}/users/search?search=a%26b%3Dc`)
 			.flush({ data: { users: [] } });
