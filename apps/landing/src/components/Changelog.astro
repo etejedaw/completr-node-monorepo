@@ -1,6 +1,8 @@
 ---
 import { getCollection } from "astro:content";
 
+import { version } from "../../../../package.json";
+
 const all = await getCollection("releases");
 
 const sorted = all.sort((a, b) => {
@@ -25,16 +27,7 @@ function weeksBetween(startIso: string, endIso: string): number {
 	return Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24 * 7)));
 }
 
-function daysSince(iso: string): number {
-	if (!iso) return 0;
-	const [y, m, d] = iso.split("-").map(Number);
-	const target = Date.UTC(y, m - 1, d);
-	const now = Date.now();
-	return Math.max(0, Math.floor((now - target) / (1000 * 60 * 60 * 24)));
-}
-
 const spanWeeks = weeksBetween(firstDate, lastDate);
-const daysSinceLast = daysSince(lastDate);
 
 function formatDate(iso: string): string {
 	const [year, month, day] = iso.split("-").map(Number);
@@ -63,21 +56,13 @@ function tintBg(tint: string): string {
 	}
 }
 
-const lastReleaseStat =
-	daysSinceLast === 0
-		? { value: "Hoy", label: "último release" }
-		: {
-				value: String(daysSinceLast),
-				label:
-					daysSinceLast === 1
-						? "día desde el último"
-						: "días desde el último"
-			};
+const [majorVersion, minorVersion] = version.split(".");
+const currentVersion = `v${majorVersion}.${minorVersion}`;
 
 const stats = [
 	{ value: String(totalReleases), label: "releases" },
 	{ value: String(spanWeeks), label: "semanas de desarrollo" },
-	lastReleaseStat
+	{ value: currentVersion, label: "versión actual" }
 ];
 ---
 
@@ -107,16 +92,17 @@ const stats = [
 						class="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-brand)]"
 					></span>
 				</span>
-				En desarrollo activo
+				Mantenido activamente
 			</span>
 			<h2
 				class="font-display mt-4 mb-4 text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance"
 			>
-				El cambio es <span class="text-gradient">constante</span>.
+				Crece con <span class="text-gradient">quienes lo usan</span>.
 			</h2>
 			<p class="m-0 text-[var(--color-fg-secondary)] leading-relaxed">
-				Cada semana entran funciones pedidas por los testers, ajustes de
-				UX y mejoras de rendimiento.
+				Completr llegó a la v1.0 escuchando a sus primeros testers. Las
+				ideas y los reportes de quienes lo usan son los que deciden qué
+				viene después.
 			</p>
 
 			<dl
