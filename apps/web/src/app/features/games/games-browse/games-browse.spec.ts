@@ -1,7 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 
 import { signal } from "@angular/core";
-import { By } from "@angular/platform-browser";
 import {
 	ActivatedRoute,
 	convertToParamMap,
@@ -21,7 +20,6 @@ import {
 } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { ViewportService } from "../../../core/services/viewport";
-import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ListsService } from "../../lists/lists";
 import { GamesService } from "../games";
 import { type OnlineGameSearchResult } from "../games.model";
@@ -211,14 +209,11 @@ describe("GamesBrowse", () => {
 	});
 
 	describe("discover", () => {
-		it("filters through the page search scoped to Browse", async () => {
-			const { fixture } = await renderBrowse();
-
+		it("filters through the page search of Browse", async () => {
+			await renderBrowse();
 			expect(
-				fixture.debugElement
-					.query(By.directive(PageSearch))
-					.componentInstance.scopeLabel()
-			).toBe("Browse");
+				screen.getByRole("textbox", { name: "Search the catalog" })
+			).toBeInTheDocument();
 		});
 
 		it("loads every shelf on init", async () => {

@@ -40,7 +40,6 @@ import { ListCard } from "../../../shared/components/list-card/list-card";
 import { OnlineSourceNote } from "../../../shared/components/online-source-note/online-source-note";
 import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
-import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shelf";
 import {
 	ONLINE_SEARCH_UNAVAILABLE_HINT,
@@ -53,6 +52,7 @@ import {
 	UiEmptyState,
 	UiFiltersButton,
 	UiPagination,
+	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
 import { ListsService } from "../../lists/lists";
@@ -81,7 +81,7 @@ const SORT_ICONS: Record<string, string> = {
 @Component({
 	selector: "app-games-browse",
 	imports: [
-		PageSearch,
+		UiSearchBar,
 		OptionPicker,
 		NgTemplateOutlet,
 		AdminGameEditor,
