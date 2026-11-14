@@ -151,13 +151,6 @@
 			[class]="scrolled() ? 'bg-canvas/80 backdrop-blur-xl border-line' : 'border-transparent'"
 		>
 			<div class="h-full flex items-center gap-3 px-[var(--page-pad-x)]">
-				@if (pageSearchScope.hasScope()) {
-				<app-global-search
-					class="md:hidden flex-1 min-w-0"
-					variant="compact"
-					(searchedEverywhere)="openMobileSearch($event)"
-				/>
-				} @else {
 				<a
 					routerLink="/feed"
 					class="md:hidden flex items-center gap-2 min-h-[44px] no-underline shrink-0"
@@ -165,31 +158,45 @@
 				>
 					<app-logo />
 				</a>
-				}
 
-				<app-global-search
-					class="hidden md:block flex-1 max-w-2xl"
-					variant="inline"
-				/>
+				<button
+					type="button"
+					class="hidden md:inline-flex flex-1 max-w-2xl items-center gap-2.5 h-[44px] pl-4 pr-1.5 rounded-full border border-line bg-surface/70 text-left text-fg-muted cursor-pointer transition hover:border-line-hover hover:text-fg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+					aria-haspopup="dialog"
+					aria-keyshortcuts="/"
+					[attr.aria-expanded]="searchOpen()"
+					(click)="openSearch()"
+				>
+					<span aria-hidden="true" class="material-icons !text-[22px]"
+						>search</span
+					>
+					<span class="flex-1 min-w-0 truncate text-[15px]"
+						>Search Completr</span
+					>
+					<kbd
+						aria-hidden="true"
+						class="hidden lg:inline-flex items-center justify-center min-w-5 h-5 px-1.5 mr-1.5 rounded border border-line bg-canvas/60 text-[0.6875rem] font-sans text-fg-muted"
+						>/</kbd
+					>
+				</button>
 
 				<div class="ml-auto flex items-center gap-1">
-					@if (!pageSearchScope.hasScope()) {
 					<button
 						uiIconButton
 						size="lg"
 						shape="circle"
 						type="button"
 						class="md:!hidden"
-						aria-label="Search"
+						aria-label="Search Completr"
 						aria-haspopup="dialog"
-						[attr.aria-expanded]="mobileSearchOpen()"
-						(click)="openMobileSearch()"
+						[attr.aria-expanded]="searchOpen()"
+						(click)="openSearch()"
 					>
 						<span aria-hidden="true" class="material-icons"
 							>search</span
 						>
 					</button>
-					} @if (onFeed()) {
+					@if (onFeed()) {
 					<a
 						uiIconButton
 						size="lg"
@@ -381,11 +388,8 @@
 		</button>
 	</div>
 </ui-bottom-sheet>
-} @if (mobileSearchOpen()) {
-<app-mobile-search-overlay
-	[initialQuery]="mobileSearchQuery()"
-	(closed)="mobileSearchOpen.set(false)"
-/>
+} @if (searchOpen()) {
+<app-search-palette (closed)="searchOpen.set(false)" />
 }
 
 <ng-template #sidebarSection let-section let-hideHeading="hideHeading">

@@ -22,7 +22,6 @@ import { filter } from "rxjs";
 
 import { AuthService } from "../core/services/auth";
 import { OnboardingService } from "../core/services/onboarding";
-import { PageSearchScope } from "../core/services/page-search-scope";
 import { avatarRing } from "../core/utils/premium";
 import { elevatedRoleBadge } from "../core/utils/role-badge";
 import { AppLogo } from "../shared/components/app-logo/app-logo";
@@ -38,10 +37,9 @@ import {
 	UiIconButton,
 	UiSeparator
 } from "../shared/ui";
-import { GlobalSearch } from "./global-search/global-search";
-import { MobileSearchOverlay } from "./mobile-search-overlay/mobile-search-overlay";
 import { NAV_ACTIVE_CLASSES, visibleNavSections } from "./nav-sections";
 import { type NavItem } from "./nav-sections.model";
+import { SearchPalette } from "./search-palette/search-palette";
 
 const SIDEBAR_COLLAPSED_KEY = "completr.sidebar.collapsed";
 const TABLET_QUERY = "(min-width: 768px) and (max-width: 1023px)";
@@ -101,14 +99,13 @@ function matchesRoute(url: string, route: string): boolean {
 		UiEyebrow,
 		UiIconButton,
 		AppLogo,
-		GlobalSearch,
-		MobileSearchOverlay,
+		SearchPalette,
 		ToastContainer,
 		OnboardingTour,
 		AttributionFooter
 	],
 	templateUrl: "./layout.html",
-	providers: [PageSearchScope],
+	host: { "(document:keydown)": "onDocumentKeydown($event)" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Layout implements OnInit {
@@ -116,7 +113,6 @@ export class Layout implements OnInit {
 	private readonly router = inject(Router);
 	private readonly destroyRef = inject(DestroyRef);
 	protected readonly onboarding = inject(OnboardingService);
-	protected readonly pageSearchScope = inject(PageSearchScope);
 
 	protected readonly user = this.auth.user;
 	protected readonly isPremium = this.auth.isPremium;
@@ -127,8 +123,7 @@ export class Layout implements OnInit {
 	);
 	protected readonly scrolled = signal(false);
 	protected readonly moreOpen = signal(false);
-	protected readonly mobileSearchOpen = signal(false);
-	protected readonly mobileSearchQuery = signal("");
+	protected readonly searchOpen = signal(false);
 	private readonly currentUrl = signal(this.router.url.split(/[?#]/)[0]);
 	protected readonly pendingUrl = signal<string | null>(null);
 	protected readonly navigating = signal(false);
@@ -199,7 +194,7 @@ export class Layout implements OnInit {
 			.subscribe(event => {
 				this.currentUrl.set(event.urlAfterRedirects.split(/[?#]/)[0]);
 				this.moreOpen.set(false);
-				this.mobileSearchOpen.set(false);
+				this.searchOpen.set(false);
 			});
 
 		this.watchTabletBreakpoint();
@@ -233,9 +228,20 @@ export class Layout implements OnInit {
 		this.router.navigate(["/help"]);
 	}
 
-	openMobileSearch(query = "") {
-		this.mobileSearchQuery.set(query);
-		this.mobileSearchOpen.set(true);
+	openSearch() {
+		this.searchOpen.set(true);
+	}
+
+	onDocumentKeydown(event: KeyboardEvent) {
+		if (event.key !== "/" || this.searchOpen()) return;
+		if (event.metaKey || event.ctrlKey || event.altKey) return;
+		const target = event.target as HTMLElement | null;
+		const typing =
+			target?.isContentEditable ||
+			["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName ?? "");
+		if (typing) return;
+		event.preventDefault();
+		this.openSearch();
 	}
 
 	toggleCollapsed() {
