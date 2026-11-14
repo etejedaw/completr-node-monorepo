@@ -7,9 +7,15 @@ import {
 } from "@angular/core";
 
 import { type ChipOption } from "./chip-group.model";
-import { FilterChip } from "./filter-chip";
+import { FilterChip, type FilterChipTouchTarget } from "./filter-chip";
 
 export type ChipGroupMode = "multiple" | "single";
+export type ChipGroupLayout = "wrap" | "scroll";
+
+const LAYOUT_CLASSES: Record<ChipGroupLayout, string> = {
+	wrap: "flex flex-wrap gap-2",
+	scroll: "flex gap-2 overflow-x-auto overscroll-x-contain [scrollbar-width:none] pointer-coarse:py-[8px]"
+};
 
 const ARROW_STEP: Record<string, number> = {
 	ArrowRight: 1,
@@ -23,13 +29,14 @@ const ARROW_STEP: Record<string, number> = {
 	imports: [FilterChip],
 	template: `
 		<div
-			class="flex flex-wrap gap-2"
+			[class]="layoutClass()"
 			[attr.role]="mode() === 'single' ? 'radiogroup' : 'group'"
 			[attr.aria-label]="label() || null"
 		>
 			@for (option of options(); track option.value; let index = $index) {
 				<button
 					appFilterChip
+					[touchTarget]="touchTarget()"
 					[selected]="isSelected(option.value)"
 					[attr.role]="mode() === 'single' ? 'radio' : null"
 					[attr.aria-checked]="
@@ -68,7 +75,13 @@ export class ChipGroup {
 	readonly mode = input<ChipGroupMode>("multiple");
 	readonly label = input("");
 	readonly allowEmpty = input(true);
+	readonly layout = input<ChipGroupLayout>("wrap");
+	readonly touchTarget = input<FilterChipTouchTarget>("grow");
 	readonly value = model<readonly string[]>([]);
+
+	protected readonly layoutClass = computed(
+		() => LAYOUT_CLASSES[this.layout()]
+	);
 
 	private readonly selectedSet = computed(() => new Set(this.value()));
 

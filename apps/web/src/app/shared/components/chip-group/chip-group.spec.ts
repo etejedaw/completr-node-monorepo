@@ -206,4 +206,30 @@ describe("ChipGroup", () => {
 			expect(fixture.componentInstance.value()).toEqual(["a"]);
 		});
 	});
+
+	describe("layout", () => {
+		function group(fixture: { nativeElement: unknown }) {
+			return (fixture.nativeElement as HTMLElement).querySelector(
+				"[role=group], [role=radiogroup]"
+			) as HTMLElement;
+		}
+
+		it("wraps the chips and grows them to the touch size by default", () => {
+			const fixture = render();
+
+			expect(group(fixture).className).toContain("flex-wrap");
+			expect(chip(fixture, "a").className).toContain("tap:min-h-[44px]");
+		});
+
+		it("keeps the chips in one scrollable row with an invisible touch area", () => {
+			const fixture = render({ layout: "scroll", touchTarget: "area" });
+
+			expect(group(fixture).className).toContain("overflow-x-auto");
+			expect(group(fixture).className).not.toContain("flex-wrap");
+			expect(chip(fixture, "a").className).toContain("tap-area");
+			expect(chip(fixture, "a").className).not.toContain(
+				"tap:min-h-[44px]"
+			);
+		});
+	});
 });
