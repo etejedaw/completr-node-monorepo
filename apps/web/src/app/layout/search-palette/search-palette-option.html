@@ -1,0 +1,77 @@
+@let current = item(); @switch (current.kind) { @case ("library") { @let entry =
+current.entry;
+<app-game-poster
+	[src]="entry.game.backgroundUrl"
+	[title]="entry.game.title"
+	[width]="420"
+	[compact]="true"
+	framed
+	class="w-7 aspect-[2/3] rounded shrink-0"
+/>
+<span class="flex-1 min-w-0 flex flex-col">
+	<span class="text-sm font-medium truncate"
+		><app-highlight-match [text]="entry.game.title" [query]="query()"
+	/></span>
+	<span class="text-xs text-fg-muted truncate"
+		>Your run · {{ entry.platform.abbreviation }}</span
+	>
+</span>
+<app-backlog-status-badge
+	class="shrink-0 max-sm:hidden"
+	[status]="entry.status"
+/>
+} @case ("game") { @let game = current.game;
+<app-game-poster
+	[src]="game.backgroundUrl"
+	[title]="game.title"
+	[width]="420"
+	[compact]="true"
+	framed
+	class="w-7 aspect-[2/3] rounded shrink-0"
+/>
+<span class="flex-1 min-w-0 text-sm font-medium truncate"
+	><app-highlight-match [text]="game.title" [query]="query()"
+/></span>
+} @case ("player") { @let user = current.user;
+<ui-avatar
+	[src]="user.avatarUrl"
+	[name]="user.username"
+	[ring]="avatarRing(user.role, user.hasPremium)"
+	class="w-8 h-8 text-xs shrink-0"
+/>
+<span class="flex-1 min-w-0 flex flex-col">
+	<span class="text-sm font-medium truncate"
+		>{{ user.name || user.username }}</span
+	>
+	<span class="text-xs text-fg-muted truncate"
+		>{{ "@" + user.username }}</span
+	>
+</span>
+@if (user.profileVisibility !== "public") {
+<span
+	class="material-icons text-sm text-fg-muted"
+	title="Private profile"
+	aria-label="Private profile"
+	>lock</span
+>
+} } @case ("list") { @let list = current.list;
+<span
+	aria-hidden="true"
+	class="w-8 h-8 rounded-md bg-nav-lists/15 text-nav-lists inline-flex items-center justify-center shrink-0"
+>
+	<span class="material-icons text-base">format_list_bulleted</span>
+</span>
+<span class="flex-1 min-w-0 text-sm font-medium truncate"
+	><app-highlight-match [text]="list.name" [query]="query()"
+/></span>
+} @default {
+<span
+	aria-hidden="true"
+	class="w-7 inline-flex justify-center shrink-0 material-icons text-lg"
+	[class]="actionIconClass()"
+	>{{ actionIcon() }}</span
+>
+<span class="flex-1 min-w-0 text-sm font-medium text-brand truncate"
+	>{{ actionLabel() }}</span
+>
+} }

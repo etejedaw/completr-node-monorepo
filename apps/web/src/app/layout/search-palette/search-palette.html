@@ -1,0 +1,163 @@
+<div
+	aria-hidden="true"
+	class="absolute inset-0 bg-black/60 backdrop-blur-sm motion-safe:animate-[uiSheetFade_200ms_ease-out] max-md:hidden"
+	(click)="close()"
+></div>
+<section
+	uiFocusTrap
+	class="relative flex flex-col w-full h-full min-h-0 overflow-hidden bg-canvas pt-[env(safe-area-inset-top)] motion-safe:animate-[uiFadeUp_180ms_ease-out] md:h-auto md:max-h-[min(36rem,76dvh)] md:w-[640px] md:max-w-full md:pt-0 md:rounded-2xl md:border md:border-line-hover md:bg-sidebar md:shadow-popover"
+	(escape)="onEscape($event)"
+>
+	<div
+		class="shrink-0 flex items-center gap-2.5 min-h-14 pl-4 pr-2 border-b border-line"
+	>
+		<span aria-hidden="true" class="material-icons !text-[22px] text-brand"
+			>search</span
+		>
+		<input
+			#input
+			type="text"
+			role="combobox"
+			aria-autocomplete="list"
+			aria-label="Search Completr"
+			autocomplete="off"
+			autocapitalize="off"
+			spellcheck="false"
+			enterkeyhint="search"
+			placeholder="Search games, players, lists..."
+			class="flex-1 min-w-0 h-14 bg-transparent border-0 outline-none text-fg text-[16px] md:text-[1.05rem] placeholder:text-fg-muted"
+			[attr.aria-expanded]="items().length > 0"
+			[attr.aria-controls]="listboxId"
+			[attr.aria-activedescendant]="activeId() ? 'search-palette-' + activeId() : null"
+			[value]="query()"
+			(input)="onInput($event)"
+			(keydown)="onKeydown($event)"
+		/>
+		@if (searching()) {
+		<span
+			aria-hidden="true"
+			class="material-icons text-base text-fg-muted animate-spin"
+			>autorenew</span
+		>
+		} @if (query()) {
+		<button
+			uiIconButton
+			shape="circle"
+			type="button"
+			aria-label="Clear search"
+			(click)="clear()"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>close</span
+			>
+		</button>
+		}
+		<kbd
+			class="hidden md:pointer-fine:inline-flex items-center justify-center h-6 px-2 mr-2 rounded border border-line bg-canvas/60 text-[0.6875rem] font-sans text-fg-muted"
+			>esc</kbd
+		>
+		<button
+			uiButton
+			variant="ghost"
+			type="button"
+			class="shrink-0 md:pointer-fine:!hidden"
+			(click)="close()"
+		>
+			Cancel
+		</button>
+	</div>
+
+	<app-chip-group
+		class="shrink-0 px-4 py-2.5 pointer-coarse:py-1 border-b border-line"
+		label="Search in"
+		mode="single"
+		layout="scroll"
+		touchTarget="area"
+		[allowEmpty]="false"
+		[options]="scopeOptions"
+		[value]="scopeValue()"
+		(valueChange)="selectScope($event)"
+	/>
+
+	<div
+		class="flex-1 min-h-0 overflow-y-auto overscroll-contain py-2"
+		(mousedown)="$event.preventDefault()"
+	>
+		<div role="listbox" aria-label="Search results" [id]="listboxId">
+			@for (section of sections(); track section.id) {
+			<div
+				role="group"
+				[attr.aria-label]="section.label"
+				[class.mt-1]="!section.heading"
+				[class.pt-1]="!section.heading"
+				[class.border-t]="!section.heading"
+				[class.border-line]="!section.heading"
+			>
+				@if (section.heading) {
+				<h3 uiEyebrow class="m-0 px-4 pt-2.5 pb-1">
+					{{ section.heading }}
+				</h3>
+				} @for (item of section.items; track item.id) {
+				<a
+					role="option"
+					tabindex="-1"
+					class="flex items-center gap-3 px-4 py-2 tap:min-h-[44px] no-underline text-fg transition-colors aria-selected:bg-surface-hover aria-selected:shadow-[inset_2px_0_0_var(--color-brand)]"
+					[id]="optionId(item)"
+					[attr.aria-selected]="activeId() === item.id"
+					[routerLink]="item.path"
+					[queryParams]="item.queryParams"
+					(mousemove)="activate(item)"
+					(click)="close()"
+				>
+					<app-search-palette-option
+						[item]="item"
+						[query]="trimmedQuery()"
+					/>
+				</a>
+				}
+			</div>
+			}
+		</div>
+
+		@if (!hasQuery()) {
+		<p class="m-0 px-4 py-8 text-sm text-fg-muted text-center text-pretty">
+			Find a run in your library, a game, a player or a list. Type at
+			least 2 characters.
+		</p>
+		} @else if (showsNoMatches()) {
+		<p
+			role="status"
+			class="m-0 px-4 py-6 text-sm text-fg-muted text-center text-pretty"
+		>
+			No matches for "{{ trimmedQuery() }}" here. Try another scope or the
+			full catalog.
+		</p>
+		}
+	</div>
+
+	<footer
+		class="hidden md:pointer-fine:flex shrink-0 items-center gap-4 px-4 py-2.5 border-t border-line text-xs text-fg-muted"
+	>
+		<span class="inline-flex items-center gap-1.5"
+			><kbd
+				class="inline-flex items-center justify-center min-w-5 h-5 px-1 rounded border border-line bg-canvas/60 font-sans"
+				>↑</kbd
+			><kbd
+				class="inline-flex items-center justify-center min-w-5 h-5 px-1 rounded border border-line bg-canvas/60 font-sans"
+				>↓</kbd
+			>Move</span
+		>
+		<span class="inline-flex items-center gap-1.5"
+			><kbd
+				class="inline-flex items-center justify-center min-w-5 h-5 px-1 rounded border border-line bg-canvas/60 font-sans"
+				>↵</kbd
+			>Open</span
+		>
+		<span class="inline-flex items-center gap-1.5"
+			><kbd
+				class="inline-flex items-center justify-center min-w-5 h-5 px-1 rounded border border-line bg-canvas/60 font-sans"
+				>esc</kbd
+			>Close</span
+		>
+	</footer>
+</section>
