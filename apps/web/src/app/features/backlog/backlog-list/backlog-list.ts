@@ -329,6 +329,7 @@ export class BacklogList implements OnInit {
 				this.eagerlyAppliedParams === params &&
 				(params.get("status") !== null ||
 					params.get("mood_tags") !== null ||
+					params.get("search") !== null ||
 					!hasDefault)
 			) {
 				return;
@@ -639,6 +640,15 @@ export class BacklogList implements OnInit {
 				this.applySavedFilterFromUrl(match);
 				return;
 			}
+		}
+
+		const searchParam = params.get("search")?.trim();
+		if (searchParam) {
+			this.resetFilterState();
+			this.searchQuery.set(searchParam);
+			this.offset.set(0);
+			this.loadBacklog();
+			return;
 		}
 
 		const statusParam = params.get("status");

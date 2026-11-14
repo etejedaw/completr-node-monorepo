@@ -11,14 +11,12 @@ import {
 	ChangeDetectionStrategy,
 	Component
 } from "@angular/core";
-import { type ComponentFixture, TestBed } from "@angular/core/testing";
-import { By } from "@angular/platform-browser";
+import { TestBed } from "@angular/core/testing";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type BacklogEntry, type Platform } from "../../../core/models";
-import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
 import { pickCalendarDate } from "../../../shared/ui/date-picker/ui-date-picker.testing";
 import { todayLocalDate } from "../../../shared/utils/local-date";
@@ -105,7 +103,6 @@ function initialLibrary(): BacklogEntry[] {
 
 describe("BacklogList interaction", () => {
 	let httpTesting: HttpTestingController;
-	let renderedFixture: ComponentFixture<unknown>;
 	let library: BacklogEntry[];
 	let savedViews: SavedFilter[];
 	const savedViewWrites: { method: string; url: string; body: unknown }[] =
@@ -331,7 +328,6 @@ describe("BacklogList interaction", () => {
 			routes: [{ path: "**", component: BacklogList }],
 			initialRoute
 		});
-		renderedFixture = result.fixture;
 		httpTesting = TestBed.inject(HttpTestingController);
 		await untilVisible(() =>
 			expect(visibleTitles()).toEqual([
@@ -385,12 +381,47 @@ describe("BacklogList interaction", () => {
 		vi.unstubAllGlobals();
 	});
 
-	it("filters through the page search scoped to My Games", async () => {
+	it("says how many games the filter covers and how many match while typing", async () => {
+		const user = userEvent.setup();
 		await renderBacklog();
-		const pageSearch = renderedFixture.debugElement.query(
-			By.directive(PageSearch)
+		expect(searchBox()).toHaveAttribute(
+			"placeholder",
+			"Filter 3 games by title"
 		);
-		expect(pageSearch.componentInstance.scopeLabel()).toBe("My Games");
+
+		await user.type(searchBox(), "hollow");
+
+		await untilVisible(() =>
+			expect(visibleTitles()).toEqual(["Hollow Knight"])
+		);
+		expect(
+			within(
+				searchBox().closest("ui-search-bar") as HTMLElement
+			).getByRole("status")
+		).toHaveTextContent("1 game");
+	});
+
+	it("opens with the title search of the link and leaves the default view aside", async () => {
+		savedViews = [
+			savedView({
+				id: "default",
+				isDefault: true,
+				filters: { status: "completed" }
+			})
+		];
+		await render(BacklogList, {
+			providers: [provideHttpClient(), provideHttpClientTesting()],
+			routes: [{ path: "**", component: BacklogList }],
+			initialRoute: "/?search=hollow"
+		});
+		httpTesting = TestBed.inject(HttpTestingController);
+
+		await untilVisible(() =>
+			expect(visibleTitles()).toEqual(["Hollow Knight"])
+		);
+		expect(searchBox()).toHaveValue("hollow");
+		expect(backlogQueries.at(-1)?.get("search")).toBe("hollow");
+		expect(backlogQueries.at(-1)?.get("status")).toBeNull();
 	});
 
 	it("exports exactly the filtered and sorted library", async () => {
