@@ -34,7 +34,7 @@ const INPUT_SIZE_CLASSES: Record<UiSearchBarSize, string> = {
 			<span
 				class="material-icons self-center text-xl text-fg-muted"
 				aria-hidden="true"
-				>search</span
+				>{{ icon() }}</span
 			>
 			<input
 				ngpInput
@@ -47,6 +47,13 @@ const INPUT_SIZE_CLASSES: Record<UiSearchBarSize, string> = {
 				(input)="onInput($event)"
 				(keydown.escape)="onEscape($event)"
 			/>
+			@if (hint() !== null) {
+				<span
+					role="status"
+					class="self-center shrink-0 whitespace-nowrap pr-2 text-xs text-fg-muted tabular-nums empty:hidden"
+					>{{ value() ? hint() : "" }}</span
+				>
+			}
 			@if (value()) {
 				<button
 					ngpSearchClear
@@ -68,6 +75,8 @@ export class UiSearchBar {
 	placeholder = input("Search...");
 	ariaLabel = input<string | null>(null);
 	size = input<UiSearchBarSize>("md");
+	icon = input("search");
+	hint = input<string | null>(null);
 
 	protected readonly accessibleName = computed(
 		() => this.ariaLabel() ?? this.placeholder().replace(/\.{3}$/, "")
