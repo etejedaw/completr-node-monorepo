@@ -32,34 +32,7 @@ const COLLECTION_OPTIONS: {
 @Component({
 	selector: "app-profile-collections",
 	imports: [GameCoverCard, PosterShelf, SegmentedControl],
-	template: `
-		@if (options().length > 0) {
-			<app-poster-shelf
-				[contained]="true"
-				heading="Collection"
-				eyebrow="Owned & wanted"
-				seeAllLabel="See all"
-				[seeAllLink]="['/user', username(), selectedRoute()]"
-			>
-				@if (options().length > 1) {
-					<app-segmented-control
-						shelfActions
-						class="mr-1"
-						label="Collection"
-						[options]="options()"
-						[(value)]="selected"
-					/>
-				}
-				@for (item of items(); track item.id) {
-					<app-game-cover-card
-						class="w-32 sm:w-40"
-						[game]="item.game"
-						[topLeftBadge]="item.badge"
-					/>
-				}
-			</app-poster-shelf>
-		}
-	`,
+	templateUrl: "./profile-collections.html",
 	host: { class: "block empty:hidden" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

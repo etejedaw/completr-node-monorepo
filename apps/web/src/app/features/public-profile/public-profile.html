@@ -22,98 +22,27 @@
 </div>
 } @else if (notFound()) {
 <app-profile-access-state reason="not_found" [username]="username()" />
-} @else if (isPrivate()) {
-<section
-	class="bleed bleed-top relative isolate overflow-hidden"
-	aria-label="Private profile"
+} @else if (loadFailed()) {
+<ui-plain-empty-state
+	icon="cloud_off"
+	title="Couldn't load this profile"
+	message="Check your connection and try again."
 >
-	<div
-		aria-hidden="true"
-		class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_0%,var(--color-brand-glow),transparent_60%)]"
-	></div>
-	<div
-		class="bleed-inner pt-[calc(var(--topbar-height)+5rem)] pb-16 flex flex-col items-center text-center"
-	>
-		<div class="relative mb-5">
-			<ui-avatar
-				[src]="profile()?.user?.avatarUrl"
-				[name]="profile()?.user?.username || username()"
-				[ring]="avatarRing(profile()?.user?.role, profile()?.user?.hasPremium)"
-				class="w-28 h-28 text-4xl ring-4 ring-canvas shadow-2xl shadow-black/60"
-			/>
-			<span
-				class="absolute -bottom-1 -right-1 flex items-center justify-center w-9 h-9 rounded-full bg-surface border border-line shadow-lg"
-			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-lg text-fg-muted"
-					>lock</span
-				>
-			</span>
-		</div>
-		<h1 class="m-0 font-display text-3xl font-bold tracking-tight">
-			{{ profile()?.user?.name || profile()?.user?.username || username()
-			}}
-		</h1>
-		<p class="m-0 mt-1 text-sm text-fg-muted">
-			{{ '@' + (profile()?.user?.username || username()) }}
-		</p>
-		@if (profile(); as p) {
-		<p class="m-0 mt-4 flex items-center gap-4 text-sm text-fg-muted">
-			<span
-				><strong class="text-fg tabular-nums"
-					>{{ p.followerCount }}</strong
-				>
-				followers</span
-			>
-			<span
-				><strong class="text-fg tabular-nums"
-					>{{ p.followingCount }}</strong
-				>
-				following</span
-			>
-		</p>
-		}
-		<p class="m-0 mt-6 mb-6 max-w-sm text-sm text-fg-secondary">
-			This profile is private. Follow them to see their games, lists and
-			activity.
-		</p>
-		@if (!isLoggedIn()) {
-		<a uiButton variant="primary" routerLink="/login">Sign in to follow</a>
-		} @else if (!isSelf() && profile(); as p) { @if (p.isFollowing ||
-		p.hasPendingRequest || p.acceptFollowRequests) {
-		<button
-			uiButton
-			[variant]="p.isFollowing || p.hasPendingRequest ? 'secondary' : 'primary'"
-			[disabled]="togglingFollow()"
-			(click)="onFollowButtonClick()"
-		>
-			<span aria-hidden="true" class="material-icons text-base"
-				>{{ p.isFollowing ? 'check' : p.hasPendingRequest ? 'schedule' :
-				'person_add' }}</span
-			>
-			{{ p.isFollowing ? 'Following' : p.hasPendingRequest ? 'Requested' :
-			'Request to follow' }}
-		</button>
-		} } @if (canManagePremium()) {
-		<button
-			uiButton
-			variant="secondary"
-			type="button"
-			class="mt-3"
-			title="Admin: manage premium grants"
-			(click)="openPremiumAccess()"
-		>
-			<span
-				aria-hidden="true"
-				class="material-icons text-base text-premium"
-				>workspace_premium</span
-			>
-			Premium access
-		</button>
-		}
-	</div>
-</section>
+	<button uiButton variant="secondary" type="button" (click)="retry()">
+		Try again
+	</button>
+</ui-plain-empty-state>
+} @else if (isPrivate() && profile(); as p) {
+<app-profile-private-state
+	[profile]="p"
+	[username]="username()"
+	[isLoggedIn]="isLoggedIn()"
+	[isSelf]="isSelf()"
+	[togglingFollow]="togglingFollow()"
+	[canManagePremium]="canManagePremium()"
+	(followToggled)="toggleFollow()"
+	(premiumAccessRequested)="openPremiumAccess()"
+/>
 } @else if (profile(); as p) {
 <app-profile-hero
 	[profile]="p"
@@ -121,9 +50,9 @@
 	[isSelf]="isSelf()"
 	[isLoggedIn]="isLoggedIn()"
 	[togglingFollow]="togglingFollow()"
-	(followToggled)="onFollowButtonClick()"
+	(followToggled)="toggleFollow()"
 	[canManagePremium]="canManagePremium()"
-	(shared)="shareProfile()"
+	(shared)="shareProfile(p.user)"
 	(premiumAccessRequested)="openPremiumAccess()"
 />
 
@@ -150,7 +79,7 @@
 <app-gift-offer-card
 	feature="rewind.premium"
 	class="mt-4 block empty:hidden"
-	(claimed)="loadRewinds(username())"
+	(claimed)="reloadRewinds()"
 />
 } } @if (visibility().favorites && (favoritesData()?.length ?? 0) > 0) {
 <section class="mt-10" aria-labelledby="favorites-heading">
@@ -216,8 +145,8 @@
 		[highestRated]="highlightsData()!.month.highestRated"
 		[canGoNext]="!isAtCurrentMonth()"
 		[loading]="isLoadingHighlightsMonth()"
-		(previousMonth)="goToPreviousMonth()"
-		(nextMonth)="goToNextMonth()"
+		(previousMonth)="changeHighlightsMonth(-1)"
+		(nextMonth)="changeHighlightsMonth(1)"
 	/>
 	@if (highlightsData()!.recent.length > 0) {
 	<app-poster-shelf
@@ -243,6 +172,7 @@
 		[username]="username()"
 		[years]="pastRewinds()"
 		[premiumAccess]="rewindYears()?.premiumAccess ?? null"
+		[period]="rewindYears()?.period ?? null"
 	/>
 	} @placeholder {
 	<div class="h-56"></div>
@@ -265,7 +195,7 @@
 	<div><ng-container *ngTemplateOutlet="shelfSkeleton" /></div>
 	} } @if (visibility().lists) {
 	<div
-		id="profile-lists"
+		[id]="listsSectionId"
 		class="scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
 	>
 		@defer (on viewport; prefetch on idle) {
@@ -287,7 +217,7 @@
 		/>
 		@if (showActivity()) {
 		<app-profile-activity
-			[activities]="p.recentActivity.slice(0, 15)"
+			[activities]="recentActivity().slice(0, 15)"
 			[deletable]="isSelf()"
 			(deleted)="deleteActivity($event)"
 		/>
@@ -301,31 +231,7 @@
 </div>
 
 @if (!isLoggedIn()) {
-<section
-	class="mt-16 relative isolate overflow-hidden rounded-card border border-line p-8 sm:p-10 text-center"
-	aria-labelledby="guest-cta-heading"
->
-	<div
-		aria-hidden="true"
-		class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_0%,var(--color-brand-glow),transparent_70%)]"
-	></div>
-	<h2
-		id="guest-cta-heading"
-		class="m-0 font-display text-2xl sm:text-3xl font-bold tracking-tight"
-	>
-		Build a library like {{ p.user.name || p.user.username }}'s
-	</h2>
-	<p class="m-0 mt-2 mb-6 text-sm text-fg-secondary">
-		Track every game, rank your backlog by score per hour, and follow
-		friends.
-	</p>
-	<div class="flex flex-wrap justify-center gap-2">
-		<a uiButton variant="primary" size="lg" [href]="betaSignupUrl"
-			>Join the closed beta</a
-		>
-		<a uiButton variant="ghost" size="lg" routerLink="/login">Sign in</a>
-	</div>
-</section>
+<app-profile-guest-cta [ownerName]="p.user.name || p.user.username" />
 } }
 
 <ng-template #shelfSkeleton>
@@ -342,38 +248,13 @@
 	</div>
 </ng-template>
 
-@if (showUnfollowConfirm()) {
-<ui-dialog
-	size="sm"
-	icon="person_remove"
-	tone="danger"
-	[heading]="'Unfollow @' + (profile()?.user?.username || username()) + '?'"
-	[dismissible]="!togglingFollow()"
-	(closed)="showUnfollowConfirm.set(false)"
->
-	<p class="text-sm text-fg-secondary m-0">
-		Their activity will stop appearing in your feed. You can follow them
-		again later.
-	</p>
-	<ng-container dialogFooter>
-		<button
-			uiButton
-			variant="ghost"
-			[disabled]="togglingFollow()"
-			(click)="showUnfollowConfirm.set(false)"
-		>
-			Cancel
-		</button>
-		<button
-			uiButton
-			variant="danger"
-			[disabled]="togglingFollow()"
-			(click)="confirmUnfollow()"
-		>
-			{{ togglingFollow() ? "Unfollowing..." : "Unfollow" }}
-		</button>
-	</ng-container>
-</ui-dialog>
+@if (unfollowTarget(); as target) {
+<app-unfollow-confirm-dialog
+	[username]="target.username"
+	[busy]="togglingFollow()"
+	(confirmed)="confirmUnfollow()"
+	(cancelled)="cancelUnfollow()"
+/>
 } @if (showPremiumAccess() && profile(); as p) {
 <app-admin-premium-access [user]="p.user" (closed)="closePremiumAccess()" />
 }

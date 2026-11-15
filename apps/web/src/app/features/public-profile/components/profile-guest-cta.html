@@ -1,0 +1,25 @@
+<section
+	class="mt-16 relative isolate overflow-hidden rounded-card border border-line p-8 sm:p-10 text-center"
+	aria-labelledby="guest-cta-heading"
+>
+	<div
+		aria-hidden="true"
+		class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_0%,var(--color-brand-glow),transparent_70%)]"
+	></div>
+	<h2
+		id="guest-cta-heading"
+		class="m-0 font-display text-2xl sm:text-3xl font-bold tracking-tight"
+	>
+		Build a library like {{ ownerName() }}'s
+	</h2>
+	<p class="m-0 mt-2 mb-6 text-sm text-fg-secondary">
+		Track every game, rank your backlog by score per hour, and follow
+		friends.
+	</p>
+	<div class="flex flex-wrap justify-center gap-2">
+		<a uiButton variant="primary" size="lg" [href]="betaSignupUrl"
+			>Join the closed beta</a
+		>
+		<a uiButton variant="ghost" size="lg" routerLink="/login">Sign in</a>
+	</div>
+</section>
