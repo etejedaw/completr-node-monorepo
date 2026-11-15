@@ -1,6 +1,10 @@
-import { literal, Op, type Order, type Transaction } from "sequelize";
+import {
+	type FindAndCountOptions,
+	type Includeable,
+	Op,
+	type Transaction
+} from "sequelize";
 
-import { Backlog } from "../backlog/backlog.model";
 import * as backlogService from "../backlog/backlog.service";
 import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
@@ -19,6 +23,10 @@ import { Platform } from "../platforms/platform.model";
 import * as platformsService from "../platforms/platforms.service";
 import { type UpsertGamePlatinumDto } from "./dtos/upsert-game-platinum.dto";
 import * as gamePlatinumServiceError from "./errors/game-platinum.service-error";
+import {
+	LATEST_PLATINUMS_FIRST,
+	PLATINUM_RUN_INCLUDE
+} from "./game-platinum.constants";
 import { type UpsertedGamePlatinum } from "./game-platinum.interface";
 import { GamePlatinum } from "./game-platinum.model";
 
@@ -149,12 +157,6 @@ export async function bulkDeletePlatinums(
 	};
 }
 
-const PLATINUM_RUN_INCLUDE = {
-	model: Backlog,
-	attributes: ["id", "isPublic"],
-	required: false
-};
-
 export async function findPlatinumByUserAndGame(
 	userId: string,
 	gameId: string
@@ -179,29 +181,20 @@ export async function findPlatinumsForGames(
 	return new Map(platinums.map(platinum => [platinum.gameId, platinum]));
 }
 
-const LATEST_PLATINUMS_FIRST: Order = [
-	literal('"GamePlatinum"."platinumedAt" DESC NULLS LAST'),
-	["createdAt", "DESC"],
-	["id", "ASC"]
-];
-
 export async function findPlatinumsByUserIdPaginated(
 	userId: string,
 	pagination: PaginatedSearchQuery = {}
 ) {
-	const gameInclude: Record<string, unknown> = {
-		model: Game,
-		attributes: ["id", "code", "title", "backgroundUrl", "isDlc"]
-	};
 	const titleWhere = pagination.search
 		? buildTextSearchWhere(pagination.search, ["Game.title"])
 		: null;
-	if (titleWhere) {
-		gameInclude.where = titleWhere;
-		gameInclude.required = true;
-	}
+	const gameInclude: Includeable = {
+		model: Game,
+		attributes: ["id", "code", "title", "backgroundUrl", "isDlc"],
+		...(titleWhere && { where: titleWhere, required: true })
+	};
 
-	const query: Record<string, unknown> = {
+	const query: FindAndCountOptions = {
 		where: { userId },
 		include: [
 			gameInclude,
@@ -212,10 +205,10 @@ export async function findPlatinumsByUserIdPaginated(
 			},
 			PLATINUM_RUN_INCLUDE
 		],
-		order: LATEST_PLATINUMS_FIRST
+		order: LATEST_PLATINUMS_FIRST,
+		...(pagination.limit && { limit: pagination.limit }),
+		...(pagination.offset && { offset: pagination.offset })
 	};
-	if (pagination.limit) query.limit = pagination.limit;
-	if (pagination.offset) query.offset = pagination.offset;
 
 	const { rows, count } = await GamePlatinum.findAndCountAll(query);
 	return { rows, total: count };
@@ -265,7 +258,7 @@ export async function existsByGameId(
 ) {
 	return (
 		(await GamePlatinum.findOne({
-			where: { gameId: gameId },
+			where: { gameId },
 			attributes: ["id"],
 			transaction
 		})) !== null
