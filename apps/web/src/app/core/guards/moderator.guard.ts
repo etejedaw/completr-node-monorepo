@@ -1,29 +1,5 @@
-import { inject } from "@angular/core";
-import { type CanActivateFn, Router } from "@angular/router";
-import { map } from "rxjs";
+import { roleGuard } from "./role-guard";
 
-import { AuthService } from "../services/auth";
-
-function isMod(role?: string) {
-	return role === "moderator" || role === "admin";
-}
-
-export const moderatorGuard: CanActivateFn = () => {
-	const auth = inject(AuthService);
-	const router = inject(Router);
-
-	const user = auth.user();
-	if (user) {
-		return isMod(user.role) || router.createUrlTree(["/403"]);
-	}
-
-	if (!auth.token()) return router.createUrlTree(["/403"]);
-
-	return auth
-		.loadUser()
-		.pipe(
-			map(() =>
-				isMod(auth.user()?.role) ? true : router.createUrlTree(["/403"])
-			)
-		);
-};
+export const moderatorGuard = roleGuard(
+	role => role === "moderator" || role === "admin"
+);
