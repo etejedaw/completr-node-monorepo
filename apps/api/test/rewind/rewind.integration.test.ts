@@ -295,6 +295,7 @@ void describe("GET /users/:username/rewinds", () => {
 		const response = await rewinds(quiet.user.username).expect(200);
 
 		assert.deepEqual(response.body.data, {
+			period: null,
 			spotlightYear: null,
 			years: [],
 			premiumAccess: null
@@ -657,6 +658,7 @@ void describe("rewind years and the sign-up date", () => {
 		const response = await rewinds(newcomer.user.username).expect(200);
 
 		assert.deepEqual(response.body.data, {
+			period: null,
 			spotlightYear: null,
 			years: [],
 			premiumAccess: null

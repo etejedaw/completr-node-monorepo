@@ -37,6 +37,18 @@ export const REWIND_PREMIUM_ACCESS_KINDS = ["premium", "gift"] as const;
 export type RewindPremiumAccessKind =
 	(typeof REWIND_PREMIUM_ACCESS_KINDS)[number];
 
+export const REWIND_PERIOD_STATUSES = ["scheduled", "open", "closed"] as const;
+
+export type RewindPeriodStatus = (typeof REWIND_PERIOD_STATUSES)[number];
+
+export const REWIND_GENERATION_BLOCKERS = [
+	"period-closed",
+	"requires-premium"
+] as const;
+
+export type RewindGenerationBlocker =
+	(typeof REWIND_GENERATION_BLOCKERS)[number];
+
 export const REWIND_INSIGHT_KINDS = [
 	"taste-vs-critics",
 	"genre-pattern",

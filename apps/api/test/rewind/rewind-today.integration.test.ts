@@ -90,6 +90,12 @@ void describe("REWIND_TODAY", () => {
 			.get(`/users/${newcomer.user.username}/rewinds`)
 			.expect(200);
 		assert.deepEqual(list.body.data, {
+			period: {
+				status: "open",
+				year: 2026,
+				opensAt: "2026-12-01",
+				closesAt: "2027-01-31"
+			},
 			spotlightYear: 2026,
 			years: [list.body.data.years[0]],
 			premiumAccess: null

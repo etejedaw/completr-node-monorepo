@@ -63,6 +63,20 @@ export function findLatestOpenedRewindEdition(
 	return findLatestEditionWhere({ opensAt: { [Op.lte]: toUtcDay(today) } });
 }
 
+export async function findNextRewindEdition(
+	today: Date
+): Promise<RewindEditionRecord | null> {
+	const edition = await RewindEdition.findOne({
+		attributes: REWIND_EDITION_ATTRS,
+		where: { opensAt: { [Op.gt]: toUtcDay(today) } },
+		order: [
+			["opensAt", "ASC"],
+			["id", "ASC"]
+		]
+	});
+	return edition ? toRewindEditionRecord(edition) : null;
+}
+
 export async function findRewindEditionByYear(
 	year: number
 ): Promise<RewindEditionRecord | null> {

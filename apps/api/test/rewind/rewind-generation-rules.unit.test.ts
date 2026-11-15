@@ -432,6 +432,7 @@ void describe("buildRewindOwnerControls", () => {
 				canRegenerate: false,
 				aiRecapState: "unavailable",
 				periodOpen: true,
+				periodStatus: "open",
 				closesAt: "2027-01-31",
 				frozenAt: null
 			}
@@ -465,6 +466,7 @@ void describe("buildRewindOwnerControls", () => {
 				canRegenerate: true,
 				aiRecapState: "available",
 				periodOpen: true,
+				periodStatus: "open",
 				closesAt: "2027-01-31",
 				frozenAt: null
 			}
@@ -485,6 +487,7 @@ void describe("buildRewindOwnerControls", () => {
 				canRegenerate: false,
 				aiRecapState: "unavailable",
 				periodOpen: false,
+				periodStatus: "closed",
 				closesAt: null,
 				frozenAt: "2027-02-01T00:05:00.000Z"
 			}

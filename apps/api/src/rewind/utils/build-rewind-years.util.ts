@@ -6,12 +6,15 @@ import { listLatestFinishedRuns } from "./list-latest-finished-runs.util";
 import { listVisibleRewindYears } from "./list-visible-rewind-years.util";
 import { pickCoverGames } from "./pick-cover-games.util";
 import { pickYearPersona } from "./pick-year-persona.util";
+import { resolveRewindGenerationBlocker } from "./resolve-rewind-generation-blocker.util";
+import { resolveRewindPeriod } from "./resolve-rewind-period.util";
 import { resolveSpotlightYear } from "./resolve-spotlight-year.util";
 
 function summarizeYear(
 	source: RewindYearsSource,
 	year: number
 ): RewindYearSummary {
+	const isGenerated = source.visibility.generatedYears.has(year);
 	const yearRuns = collectYearRuns(source.runs, year);
 	const latestFinishedRuns = listLatestFinishedRuns(yearRuns.finished);
 	const totals = calculateRewindTotals({
@@ -23,7 +26,15 @@ function summarizeYear(
 
 	return {
 		year,
-		isGenerated: source.visibility.generatedYears.has(year),
+		isGenerated,
+		generationBlockedBy:
+			source.generationAccess && !isGenerated
+				? resolveRewindGenerationBlocker(
+						year,
+						source.calendar,
+						source.generationAccess.accessKind
+					)
+				: null,
 		persona: pickYearPersona(totals, latestFinishedRuns),
 		finishedCount: totals.finished,
 		startedCount: totals.started,
@@ -43,6 +54,7 @@ export function buildRewindYears(
 	const spotlightYear = resolveSpotlightYear(source.calendar);
 
 	return {
+		period: resolveRewindPeriod(source.calendar),
 		spotlightYear:
 			spotlightYear !== null && years.includes(spotlightYear)
 				? spotlightYear

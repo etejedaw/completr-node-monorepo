@@ -10,6 +10,7 @@ function rewindYearSummarySerializer(
 	return {
 		year: summary.year,
 		isGenerated: summary.isGenerated,
+		generationBlockedBy: summary.generationBlockedBy,
 		persona: summary.persona,
 		finishedCount: summary.finishedCount,
 		startedCount: summary.startedCount,
@@ -21,6 +22,7 @@ function rewindYearSummarySerializer(
 export function rewindYearsSerializer(rewindYears: RewindYears): RewindYears {
 	return {
 		spotlightYear: rewindYears.spotlightYear,
+		period: rewindYears.period,
 		years: rewindYears.years.map(rewindYearSummarySerializer),
 		premiumAccess: rewindYears.premiumAccess
 	};

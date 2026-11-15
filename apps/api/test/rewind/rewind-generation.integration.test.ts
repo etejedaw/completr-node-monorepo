@@ -111,6 +111,12 @@ void describe("reading a Rewind before and after generating it", () => {
 				200
 			);
 			assert.deepEqual(list.body.data, {
+				period: {
+					status: "open",
+					year: 2026,
+					opensAt: "2026-12-01",
+					closesAt: "2027-01-31"
+				},
 				spotlightYear: null,
 				years: [],
 				premiumAccess: null
@@ -207,6 +213,7 @@ void describe("POST /users/me/rewinds/:year", () => {
 			canRegenerate: false,
 			aiRecapState: "unavailable",
 			periodOpen: true,
+			periodStatus: "open",
 			closesAt: "2027-01-31",
 			frozenAt: null
 		});

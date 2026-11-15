@@ -65,27 +65,30 @@ import { buildRewindYears } from "./utils/build-rewind-years.util";
 import { collectYearRuns } from "./utils/collect-year-runs.util";
 import { hasPremiumContent } from "./utils/has-premium-content.util";
 import { isAiRecapInProgress } from "./utils/is-ai-recap-in-progress.util";
-import { isRewindYearAllowed } from "./utils/is-rewind-year-allowed.util";
 import { listActiveGameIds } from "./utils/list-active-game-ids.util";
 import { listRewindYears } from "./utils/list-rewind-years.util";
 import { listVisibleRewindYears } from "./utils/list-visible-rewind-years.util";
 import { nextGeneratedAt } from "./utils/next-generated-at.util";
 import { planRewindGeneration } from "./utils/plan-rewind-generation.util";
 import { resolveCurrentRewindDay } from "./utils/resolve-current-rewind-day.util";
-import { resolveOpenRewindEdition } from "./utils/resolve-open-rewind-edition.util";
 import { resolveRewindAiBudget } from "./utils/resolve-rewind-ai-budget.util";
 import { resolveRewindAiUseChanges } from "./utils/resolve-rewind-ai-use-changes.util";
+import { resolveRewindGenerationBlocker } from "./utils/resolve-rewind-generation-blocker.util";
 import { resolveRewindPremiumAccessKind } from "./utils/resolve-rewind-premium-access-kind.util";
 
 const logger = new PinoLogger("Rewind Service");
 
 async function buildRewindCalendar(owner: User): Promise<RewindCalendar> {
 	const today = resolveCurrentRewindDay();
+	const [edition, upcomingEdition] = await Promise.all([
+		rewindEditionsService.findLatestOpenedRewindEdition(today),
+		rewindEditionsService.findNextRewindEdition(today)
+	]);
 	return {
 		today,
 		firstYear: owner.createdAt.getUTCFullYear(),
-		edition:
-			await rewindEditionsService.findLatestOpenedRewindEdition(today)
+		edition,
+		upcomingEdition
 	};
 }
 
@@ -233,7 +236,16 @@ export async function getRewindYearsForViewer(
 				])
 			),
 			calendar: context.calendar,
-			visibility
+			visibility,
+			generationAccess: context.isOwner
+				? {
+						accessKind: context.premiumAccess
+							? resolveRewindPremiumAccessKind(
+									context.premiumAccess
+								)
+							: null
+					}
+				: null
 		}),
 		premiumAccess: context.premiumAccess
 	};
@@ -310,9 +322,10 @@ function requireGenerationAllowed(
 	calendar: RewindCalendar,
 	accessKind: RewindPremiumAccessKind | null
 ): void {
-	const edition = resolveOpenRewindEdition(calendar);
-	if (!edition) throw rewindServiceError.periodClosedError();
-	if (!isRewindYearAllowed(year, edition, accessKind))
+	const blocker = resolveRewindGenerationBlocker(year, calendar, accessKind);
+	if (blocker === "period-closed")
+		throw rewindServiceError.periodClosedError();
+	if (blocker === "requires-premium")
 		throw rewindServiceError.yearRequiresPremiumError();
 }
 

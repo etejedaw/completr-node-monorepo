@@ -2,9 +2,11 @@ import { type PremiumAccess } from "../premium-access/premium-access.interface";
 import { type UserRole } from "../users/user-role.type";
 import {
 	type RewindAiRecapState,
+	type RewindGenerationBlocker,
 	type RewindInsightKind,
 	type RewindLanguage,
 	type RewindLengthRange,
+	type RewindPeriodStatus,
 	type RewindPersonaCode,
 	type RewindPremiumAccessKind
 } from "./rewind.constants";
@@ -22,9 +24,17 @@ export interface RewindFinishedGame extends RewindGameRef {
 	platformAbbreviation: string | null;
 }
 
+export interface RewindPeriod {
+	status: RewindPeriodStatus;
+	year: number;
+	opensAt: string;
+	closesAt: string;
+}
+
 export interface RewindYearSummary {
 	year: number;
 	isGenerated: boolean;
+	generationBlockedBy: RewindGenerationBlocker | null;
 	persona: RewindPersonaCode;
 	finishedCount: number;
 	startedCount: number;
@@ -34,6 +44,7 @@ export interface RewindYearSummary {
 
 export interface RewindYears {
 	spotlightYear: number | null;
+	period: RewindPeriod | null;
 	years: RewindYearSummary[];
 	premiumAccess: PremiumAccess | null;
 }
@@ -219,6 +230,7 @@ export interface RewindOwnerControls {
 	canRegenerate: boolean;
 	aiRecapState: RewindAiRecapState;
 	periodOpen: boolean;
+	periodStatus: RewindPeriodStatus;
 	closesAt: string | null;
 	frozenAt: string | null;
 }

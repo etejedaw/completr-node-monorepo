@@ -32,6 +32,7 @@ export interface RewindCalendar {
 	today: Date;
 	firstYear: number;
 	edition: RewindEditionRecord | null;
+	upcomingEdition: RewindEditionRecord | null;
 }
 
 export interface RewindGameGenre {

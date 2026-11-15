@@ -80,9 +80,10 @@ function standardEditionOpenedBy(today: Date): RewindEditionRecord {
 export function calendarOn(
 	today: Date,
 	firstYear = 2000,
-	edition: RewindEditionRecord | null = standardEditionOpenedBy(today)
+	edition: RewindEditionRecord | null = standardEditionOpenedBy(today),
+	upcomingEdition: RewindEditionRecord | null = null
 ): RewindCalendar {
-	return { today, firstYear, edition };
+	return { today, firstYear, edition, upcomingEdition };
 }
 
 export function ownerVisibility(
