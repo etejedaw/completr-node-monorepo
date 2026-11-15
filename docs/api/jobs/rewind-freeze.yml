@@ -1,0 +1,53 @@
+info:
+    name: Start Rewind Freeze
+    type: http
+    seq: 7
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/jobs/rewind-freeze"
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Start Rewind Freeze
+
+    Background job that freezes the Rewinds of closed editions. It runs the same function as the scheduler inside the API, which already runs it at startup and every 10 minutes; this endpoint launches it on demand.
+
+    An edition is closed from 00:00 UTC of the day after its `closesAt` (`REWIND_TODAY` is honored outside production). For the closed editions with `frozenAt` null, every Rewind with `frozenAt` null gets its snapshot (the owner view and the visitor view at that moment) and `frozenAt`, in batches, with the design of the latest closed edition. A Rewind whose AI recap is still in progress, or that keeps changing while its snapshot is being built, is left for the next run. When every Rewind is frozen, the editions get their `frozenAt`. If an edition is open today, the closed ones are only marked: the Rewinds without `frozenAt` belong to the open edition and stay live.
+
+    Freezing a Rewind is idempotent: the snapshot is built outside the transaction and written under the same row lock as the generation, only if the row did not change in the meantime (otherwise it is rebuilt). A Postgres advisory lock keeps two runs, or two processes, from working at the same time: the one that does not get it ends without touching anything.
+
+    **Authentication:** Hidden route — admin only.
+    **Rate Limit:** 50 requests per minute (user).
+
+    ### Response (202)
+
+    ```json
+    {
+      "data": {
+        "job": {
+          "id": "uuid",
+          "type": "rewind_freeze",
+          "status": "running"
+        }
+      }
+    }
+    ```
+
+    Poll `GET /admin/jobs` to follow progress. If a `rewind_freeze` job is already running, the same job is returned. The start is recorded in the audit log (`job_started`).
+
+    ### Behavior on completion
+
+    Result string format:
+    `Closed editions: 2026, Frozen editions: 2026, Rewinds frozen: N, Pending AI recap: N, Failed: N`
+
+    With no closed edition left, both lists say `none`. When another run holds the lock: `Skipped: another rewind freeze run holds the lock`. The job ends `failed` when a Rewind could not be frozen (the edition stays unmarked and the next run retries it) or with `Failed. Reason: <message>` if the run itself breaks.
+
+    ### Errors
+
+    | Status | Code                 | Description                                  |
+    |--------|----------------------|----------------------------------------------|
+    | 404    | AUTH_ROUTE_NOT_FOUND | Missing or invalid token, or the user is not an admin |

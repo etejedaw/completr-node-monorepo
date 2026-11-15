@@ -29,6 +29,8 @@ docs: |-
     |-------|---------|----------|-----------------------------------------------|
     | year  | integer | Yes      | Calendar year, digits only, from 2000 to 2100 |
 
+    Adding the recap to a frozen Rewind (a previous year, in a later edition) clears its snapshot and `frozenAt`: the Rewind is live again with the design of the open edition and is frozen again when that edition closes.
+
     The recap is marked `pending` under a row lock before calling the AI, so a double click gets 409 `REWIND_AI_RECAP_IN_PROGRESS`. A `pending` recap older than 2 minutes counts as failed and can be retried.
 
     ### Response (200)
