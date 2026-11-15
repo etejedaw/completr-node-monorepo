@@ -129,6 +129,16 @@
 			}
 		</div>
 	</div>
+	} @else if (loadFailed()) {
+	<ui-plain-empty-state
+		icon="cloud_off"
+		title="Couldn't load your feed"
+		message="Check your connection and try again."
+	>
+		<button uiButton variant="secondary" (click)="retry()">
+			Try again
+		</button>
+	</ui-plain-empty-state>
 	} @else if (activities().length === 0) {
 	<ui-plain-empty-state
 		icon="dynamic_feed"

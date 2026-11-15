@@ -1,12 +1,13 @@
+import { type HttpErrorResponse } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
 	inject,
 	linkedSignal,
-	type OnInit,
 	signal
 } from "@angular/core";
+import { rxResource, takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { RouterLink } from "@angular/router";
 
 import { AuthService } from "../../core/services/auth";
@@ -28,6 +29,7 @@ import {
 	UiPremiumBadge,
 	UiSkeleton
 } from "../../shared/ui";
+import { injectFollowRequestActions } from "../../shared/utils/inject-follow-request-actions";
 import { FeedService } from "./feed";
 import { type FeedActivity, type FeedCategory } from "./feed.model";
 import { FeedActivityItem } from "./feed-activity-item/feed-activity-item";
@@ -35,6 +37,8 @@ import { gamePosters } from "./feed-hero-posters";
 import { type ActivityDayGroup } from "./feed-page.model";
 
 const DAY_MS = 86_400_000;
+const ACTIVITY_NOT_FOUND_STATUS = 404;
+const FEED_PAGE_SIZE = 25;
 const WEEKDAY_FORMAT = new Intl.DateTimeFormat("en", { weekday: "long" });
 const DATE_FORMAT = new Intl.DateTimeFormat("en", {
 	month: "short",
@@ -77,6 +81,16 @@ function groupByDay(activities: FeedActivity[]): ActivityDayGroup[] {
 	return [...groups.values()];
 }
 
+function buildFilterParams(value: string): {
+	category?: FeedCategory;
+	types?: string;
+} {
+	if (value.startsWith("cat:"))
+		return { category: value.slice(4) as FeedCategory };
+	if (value.startsWith("type:")) return { types: value.slice(5) };
+	return {};
+}
+
 @Component({
 	selector: "app-feed-page",
 	imports: [
@@ -97,20 +111,45 @@ function groupByDay(activities: FeedActivity[]): ActivityDayGroup[] {
 	templateUrl: "./feed-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class FeedPage implements OnInit {
+export class FeedPage {
 	private readonly feedService = inject(FeedService);
 	private readonly authService = inject(AuthService);
 	private readonly toast = inject(ToastService);
 	private readonly followRequestsService = inject(FollowRequestsService);
+	private readonly followRequestActions = injectFollowRequestActions();
 
 	protected readonly avatarRing = avatarRing;
-	protected readonly currentUserId = this.authService.user;
-	protected readonly activities = signal<FeedActivity[]>([]);
-	protected readonly isLoading = signal(true);
-	protected readonly total = signal(0);
+	protected readonly currentUser = this.authService.user;
 	protected readonly offset = signal(0);
-	protected readonly limit = 25;
+	protected readonly limit = FEED_PAGE_SIZE;
 	protected readonly skeletonRows = [0, 1, 2, 3];
+	protected readonly filter = signal("");
+	private readonly removedIds = signal<ReadonlySet<string>>(new Set());
+
+	private readonly feed = rxResource({
+		params: () => ({ offset: this.offset(), filter: this.filter() }),
+		stream: ({ params }) =>
+			this.feedService.getFeed({
+				limit: FEED_PAGE_SIZE,
+				offset: params.offset,
+				...buildFilterParams(params.filter)
+			})
+	});
+
+	protected readonly isLoading = this.feed.isLoading;
+	protected readonly loadFailed = computed(
+		() => this.feed.status() === "error"
+	);
+	protected readonly activities = computed<FeedActivity[]>(() => {
+		if (!this.feed.hasValue()) return [];
+		const removed = this.removedIds();
+		return this.feed
+			.value()
+			.data.activities.filter(activity => !removed.has(activity.id));
+	});
+	protected readonly total = computed(() =>
+		this.feed.hasValue() ? this.feed.value().data.total : 0
+	);
 	protected readonly activityGroups = computed(() =>
 		groupByDay(this.activities())
 	);
@@ -129,7 +168,6 @@ export class FeedPage implements OnInit {
 			isLoading && previous?.value.length ? previous.value : posters
 	});
 
-	protected readonly filter = signal("");
 	protected readonly filterOptions: readonly PickerOption[] = [
 		{ value: "", label: "All activity", icon: "dynamic_feed" },
 		{ value: "cat:games", label: "Games", icon: "sports_esports" },
@@ -162,90 +200,70 @@ export class FeedPage implements OnInit {
 	];
 
 	protected readonly followRequests = this.followRequestsService.incoming;
-	protected readonly resolvingRequest = signal<string | null>(null);
+	protected readonly resolvingRequest = this.followRequestActions.resolvingId;
 
-	onOffsetChange(offset: number) {
-		this.offset.set(offset);
-		this.loadFeed();
+	constructor() {
+		this.followRequestsService
+			.list()
+			.pipe(takeUntilDestroyed())
+			.subscribe({ error: () => undefined });
 	}
 
-	setFilter(value: string) {
+	protected onOffsetChange(offset: number) {
+		this.offset.set(offset);
+	}
+
+	protected setFilter(value: string) {
 		if (value === this.filter()) return;
 		this.filter.set(value);
 		this.offset.set(0);
-		this.loadFeed();
 	}
 
-	private buildFilterParams(): { category?: FeedCategory; types?: string } {
-		const value = this.filter();
-		if (value.startsWith("cat:"))
-			return { category: value.slice(4) as FeedCategory };
-		if (value.startsWith("type:")) return { types: value.slice(5) };
-		return {};
+	protected retry() {
+		this.feed.reload();
 	}
 
-	ngOnInit() {
-		this.loadFeed();
-		this.followRequestsService.list().subscribe();
-	}
-
-	deleteActivity(id: string) {
-		const snapshot = this.activities();
-		if (!snapshot.some(activity => activity.id === id)) return;
-		this.activities.set(snapshot.filter(activity => activity.id !== id));
+	protected deleteActivity(id: string) {
+		if (this.removedIds().has(id)) return;
+		this.markRemoved(id);
 		this.toast.pending({
 			message: "Activity removed",
-			onCommit: () => this.feedService.deleteActivity(id).subscribe(),
-			onUndo: () => this.activities.set(snapshot)
+			onCommit: () => this.commitDelete(id),
+			onUndo: () => this.restore(id)
 		});
 	}
 
-	isOwnActivity(activity: FeedActivity): boolean {
-		return activity.user?.id === this.currentUserId()?.id;
+	protected isOwnActivity(activity: FeedActivity): boolean {
+		return activity.user?.id === this.currentUser()?.id;
 	}
 
-	acceptFollowRequest(requesterId: string) {
-		if (this.resolvingRequest()) return;
-		this.resolvingRequest.set(requesterId);
-		this.followRequestsService.accept(requesterId).subscribe({
-			next: () => {
-				this.resolvingRequest.set(null);
-				this.toast.success("Follow request accepted.");
-			},
-			error: () => {
-				this.resolvingRequest.set(null);
-				this.toast.warning("Could not accept request.");
+	protected acceptFollowRequest(requesterId: string) {
+		this.followRequestActions.accept(requesterId);
+	}
+
+	protected rejectFollowRequest(requesterId: string) {
+		this.followRequestActions.reject(requesterId);
+	}
+
+	private commitDelete(id: string) {
+		this.feedService.deleteActivity(id).subscribe({
+			error: (error: HttpErrorResponse) => {
+				if (error.status === ACTIVITY_NOT_FOUND_STATUS) return;
+				this.restore(id);
+				this.toast.warning("Could not remove that activity.");
 			}
 		});
 	}
 
-	rejectFollowRequest(requesterId: string) {
-		if (this.resolvingRequest()) return;
-		this.resolvingRequest.set(requesterId);
-		this.followRequestsService.reject(requesterId).subscribe({
-			next: () => this.resolvingRequest.set(null),
-			error: () => {
-				this.resolvingRequest.set(null);
-				this.toast.warning("Could not reject request.");
-			}
-		});
+	private markRemoved(id: string) {
+		this.removedIds.update(ids => new Set(ids).add(id));
 	}
 
-	private loadFeed() {
-		this.isLoading.set(true);
-		this.feedService
-			.getFeed({
-				limit: this.limit,
-				offset: this.offset(),
-				...this.buildFilterParams()
-			})
-			.subscribe({
-				next: res => {
-					this.activities.set(res.data.activities);
-					this.total.set(res.data.total);
-					this.isLoading.set(false);
-				},
-				error: () => this.isLoading.set(false)
-			});
+	private restore(id: string) {
+		this.removedIds.update(ids => {
+			const next = new Set(ids);
+			next.delete(id);
+			return next;
+		});
 	}
 }
