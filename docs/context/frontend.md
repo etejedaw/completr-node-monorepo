@@ -112,7 +112,7 @@ Los `<pantalla>.interaction.spec.ts` simulan lo que hace un usuario en una panta
 - **`@defer (on viewport)`**: en jsdom el disparador de viewport de Angular no llega a observar el placeholder aunque se stubee `IntersectionObserver`, así que un recorrido no puede depender de que un bloque diferido se renderice. Lo que el recorrido necesita ver se carga con una directiva de intersección propia (que sí usa el stub) o se prueba en el spec del componente.
 - **Reordenar**: el drag & drop de CDK no se simula; se usan los botones "Move up/down" y "Move to top", que son la alternativa accesible que exige la app.
 - **`Element.prototype.getAnimations`** (salida de los toasts) se define en `beforeEach` como `() => []` y se borra con `Reflect.deleteProperty` en `afterEach` cuando el spec no usa el entorno común.
-- **Fechas**: para elegir una fecha como un usuario se usa un helper de test del date picker. Un mensaje de error se busca con `selector: "ui-field-error span"`, porque el texto va en un `span` junto al ícono.
+- **Fechas**: para elegir una fecha o un rango como un usuario se usan los helpers de test del date picker (`pickCalendarDate`, `pickCalendarRange`). Un mensaje de error se busca con `selector: "ui-field-error span"`, porque el texto va en un `span` junto al ícono.
 
 ## Nombres
 
@@ -188,7 +188,7 @@ Los `<pantalla>.interaction.spec.ts` simulan lo que hace un usuario en una panta
 
 ### Fechas y errores de campo
 
-- **Fechas.** Se eligen con el date picker del design system, nunca con `<input type="date">` ni `type="datetime-local"`: el nativo muestra el formato y el calendario del sistema según el idioma y no sigue el tema. Los límites se llaman `minDate` / `maxDate` porque Angular no deja enlazar `min` / `max` junto a `[formField]` (NG8022). Un par From / To pasa cada extremo como límite del otro, así nunca queda From > To.
+- **Fechas.** Se eligen con el date picker del design system, nunca con `<input type="date">` ni `type="datetime-local"`: el nativo muestra el formato y el calendario del sistema según el idioma y no sigue el tema. Los límites se llaman `minDate` / `maxDate` porque Angular no deja enlazar `min` / `max` junto a `[formField]` (NG8022). Un par From / To pasa cada extremo como límite del otro, así nunca queda From > To. Cuando los dos extremos se eligen juntos (un periodo), se usa el date picker de rango del design system (`ui-date-range-picker`), que comparte con el de un día el panel de calendario y la apertura en popover o en hoja inferior: confirma con el segundo día, ordena los extremos y cerrar a mitad no cambia el valor.
 - La etiqueta de un date picker va afuera con `<label uiFieldLabel [for]>` apuntando a su `triggerId`, sin `uiFormField` ni `uiLabel`, que reescriben el `for` hacia un control de ng-primitives.
 - **Errores de campo.** Todo error bajo un campo es `UiFieldError`, enlazado por `aria-describedby`, con `aria-invalid` en el campo. No tiene rol por defecto para que el lector no lo anuncie dos veces; `announce` le pone `role="alert"` cuando el error llega con el foco en otro lado. Los errores de una acción que no pertenecen a un campo van como texto con `role="alert"`.
 - **Errores del servidor en formularios:** un error del servidor se oculta en cuanto el usuario cambia el valor que lo produjo, comparando contra una foto de los valores enviados, y reaparece si vuelve a ese valor.
