@@ -22,6 +22,7 @@ import {
 	generate,
 	mockAiRecap,
 	mockPremiumStats,
+	openRewindEdition2026,
 	readRewind,
 	readRewindYears,
 	regenerationOf,
@@ -86,6 +87,7 @@ useTestDatabase(async () => {
 		celeste: await createGame({ title: "Celeste" }),
 		secret: await createGame({ title: "Secret Game" })
 	};
+	await openRewindEdition2026();
 });
 
 afterEach(() => {

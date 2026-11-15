@@ -72,6 +72,8 @@ export function buildRecapRewind(overrides: Partial<Rewind> = {}): Rewind {
 		},
 		language: "en",
 		generatedAt: "2026-12-15T12:00:00.000Z",
+		design: "2026",
+		frozenAt: null,
 		aiRecap: null,
 		premiumStats: null,
 		ownerControls: null,

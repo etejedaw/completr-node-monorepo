@@ -29,6 +29,25 @@ describeModuleErrors({
 			module: "Rewind Module",
 			code: "USER_PRIVATE",
 			message: "This account is private"
+		},
+		{
+			serviceCode: "REWIND_PERIOD_CLOSED",
+			module: "Rewind Module",
+			code: "REWIND_PERIOD_CLOSED",
+			message: "The Rewind period is closed"
+		},
+		{
+			serviceCode: "REWIND_YEAR_REQUIRES_PREMIUM",
+			module: "Rewind Module",
+			code: "REWIND_YEAR_REQUIRES_PREMIUM",
+			message:
+				"Generating the Rewind of a previous year requires a premium account"
+		},
+		{
+			serviceCode: "REWIND_REGENERATION_LIMIT",
+			module: "Rewind Module",
+			code: "REWIND_REGENERATION_LIMIT",
+			message: "No regenerations left for this Rewind"
 		}
 	],
 	fallback: {
@@ -44,6 +63,9 @@ describeDomainToHttpMapper({
 	cases: [
 		{ code: "REWIND_NOT_FOUND", status: 404 },
 		{ code: "USER_NOT_FOUND", status: 404 },
-		{ code: "USER_PRIVATE", status: 403 }
+		{ code: "USER_PRIVATE", status: 403 },
+		{ code: "REWIND_PERIOD_CLOSED", status: 409 },
+		{ code: "REWIND_YEAR_REQUIRES_PREMIUM", status: 403 },
+		{ code: "REWIND_REGENERATION_LIMIT", status: 409 }
 	]
 });

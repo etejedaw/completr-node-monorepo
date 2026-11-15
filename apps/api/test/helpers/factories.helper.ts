@@ -12,6 +12,8 @@ import {
 import { Game } from "../../src/games/game.model";
 import { List } from "../../src/lists/list.model";
 import { Platform } from "../../src/platforms/platform.model";
+import { RewindEdition } from "../../src/rewind-editions/rewind-edition.model";
+import { type RewindEditionRecord } from "../../src/rewind-editions/rewind-editions.interface";
 import { SavedFilter } from "../../src/saved-filters/saved-filter.model";
 import { ScoreSource } from "../../src/score-sources/score-source.model";
 import { User } from "../../src/users/user.model";
@@ -186,4 +188,21 @@ export function createWishlistEntries(
 			position: index + 1
 		}))
 	);
+}
+
+export function createRewindEdition(
+	year: number,
+	overrides: Partial<RewindEditionRecord> = {}
+) {
+	return RewindEdition.create({
+		year,
+		opensAt: `${year}-12-01`,
+		closesAt: `${year + 1}-01-31`,
+		graceStartsAt: `${year + 1}-01-01`,
+		graceEndsAt: `${year + 1}-01-07`,
+		design: "2026",
+		premiumRegenerations: 0,
+		giftRegenerations: 0,
+		...overrides
+	});
 }

@@ -15,8 +15,21 @@ import { User } from "../../src/users/user.model";
 import { type UserRole } from "../../src/users/user-role.type";
 import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
+import { createRewindEdition } from "../helpers/factories.helper";
 
 export type Account = Awaited<ReturnType<typeof createUserWithSession>>;
+
+export const EDITION_QUOTA = 2;
+
+export function openRewindEdition2026(
+	overrides: Parameters<typeof createRewindEdition>[1] = {}
+) {
+	return createRewindEdition(2026, {
+		premiumRegenerations: EDITION_QUOTA,
+		giftRegenerations: EDITION_QUOTA,
+		...overrides
+	});
+}
 
 export const AI_RECAP: RewindAiRecap = {
 	headline: "A year of long nights",

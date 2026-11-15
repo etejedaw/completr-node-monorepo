@@ -16,6 +16,7 @@ import {
 	generate,
 	mockAiRecap,
 	mockPremiumStats,
+	openRewindEdition2026,
 	readRewind,
 	regenerationOf,
 	signUpOn
@@ -95,6 +96,7 @@ useTestDatabase(async () => {
 		secret: await createGame({ title: "Secret Game" }),
 		unplayed: await createGame({ title: "Unplayed" })
 	};
+	await openRewindEdition2026();
 });
 
 afterEach(() => {

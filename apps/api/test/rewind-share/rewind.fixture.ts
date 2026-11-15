@@ -101,6 +101,8 @@ export function buildRewind(overrides: Partial<Rewind> = {}): Rewind {
 		},
 		language: "en",
 		generatedAt: "2026-12-02T10:00:00.000Z",
+		design: "2026",
+		frozenAt: null,
 		aiRecap: null,
 		premiumStats: null,
 		premiumAccessKind: null,
