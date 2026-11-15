@@ -1,6 +1,7 @@
 import { Op, type Transaction } from "sequelize";
 
 import { environmentConfig } from "../common/config/environment.config";
+import { MS_PER_DAY } from "../common/constants/time.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import {
 	generateOneTimeToken,
@@ -12,7 +13,6 @@ import { buildInvitationEmail } from "./invitation-email.util";
 import { UserInvitation } from "./user-invitation.model";
 
 const ACCEPT_INVITATION_PATH = "/accept-invite";
-const DAYS_TO_MS = 24 * 60 * 60 * 1000;
 
 export async function inviteUser(email: string, invitedById: string) {
 	mailProvider.assertConfigured();
@@ -36,7 +36,7 @@ async function replaceInvitation(
 	invitedById: string
 ) {
 	const expiresAt = new Date(
-		Date.now() + environmentConfig.USER_INVITATION_TTL_DAYS * DAYS_TO_MS
+		Date.now() + environmentConfig.USER_INVITATION_TTL_DAYS * MS_PER_DAY
 	);
 
 	try {
@@ -97,4 +97,24 @@ export async function deleteInvitationsByEmail(
 	transaction: Transaction
 ) {
 	return UserInvitation.destroy({ where: { email }, transaction });
+}
+
+export async function acceptInvitation<Result>(
+	rawToken: string,
+	registerInvitee: (email: string) => Promise<Result>
+) {
+	const invitation = await findUsableInvitation(rawToken);
+	if (!invitation) throw invitationsServiceError.invalidTokenError();
+
+	const claimed = await UserInvitation.destroy({
+		where: { id: invitation.id }
+	});
+	if (claimed === 0) throw invitationsServiceError.invalidTokenError();
+
+	try {
+		return await registerInvitee(invitation.email);
+	} catch (error) {
+		await UserInvitation.create(invitation.get({ plain: true }));
+		throw error;
+	}
 }

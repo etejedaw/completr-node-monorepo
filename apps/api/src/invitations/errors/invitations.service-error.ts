@@ -15,3 +15,10 @@ export function validationError(rawError: unknown) {
 		raw: rawError
 	});
 }
+
+export function invalidTokenError() {
+	return new ServiceError("INVITATION_INVALID_TOKEN", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
