@@ -265,7 +265,7 @@ void describe("PATCH /users/me/saved-filters/:filterId", () => {
 		assert.deepEqual((await filter.reload()).filters, {});
 	});
 
-	void it("rejects editing another user's filter with 403 SAVED_FILTER_FORBIDDEN", async () => {
+	void it("rejects editing another user's filter with 404 SAVED_FILTER_NOT_FOUND", async () => {
 		const owner = await createUserWithSession();
 		const intruder = await createUserWithSession();
 		const filter = await createSavedFilter(owner.user.id, { name: "Mine" });
@@ -275,8 +275,8 @@ void describe("PATCH /users/me/saved-filters/:filterId", () => {
 			.set("Authorization", intruder.authorization)
 			.send({ name: "Hijacked" });
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "SAVED_FILTER_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "SAVED_FILTER_NOT_FOUND");
 		await filter.reload();
 		assert.equal(filter.name, "Mine");
 	});
@@ -458,7 +458,7 @@ void describe("GET /users/me/saved-filters/:filterId/stats", () => {
 		assert.equal(stats.bestPersonalRatio.value, 10);
 	});
 
-	void it("rejects another user's filter with 403 SAVED_FILTER_FORBIDDEN", async () => {
+	void it("rejects another user's filter with 404 SAVED_FILTER_NOT_FOUND", async () => {
 		const owner = await createUserWithSession();
 		const intruder = await createUserWithSession();
 		const filter = await createSavedFilter(owner.user.id);
@@ -467,8 +467,8 @@ void describe("GET /users/me/saved-filters/:filterId/stats", () => {
 			.get(`${FILTERS_PATH}/${filter.id}/stats`)
 			.set("Authorization", intruder.authorization);
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "SAVED_FILTER_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "SAVED_FILTER_NOT_FOUND");
 	});
 
 	void it("rejects stats of a filter whose stored filters are invalid with 422 SAVED_FILTER_VALIDATION_ERROR", async () => {
@@ -502,7 +502,7 @@ void describe("DELETE /users/me/saved-filters/:filterId", () => {
 		assert.equal(await SavedFilter.count({ where: { id: filter.id } }), 0);
 	});
 
-	void it("rejects deleting another user's filter with 403 SAVED_FILTER_FORBIDDEN", async () => {
+	void it("rejects deleting another user's filter with 404 SAVED_FILTER_NOT_FOUND", async () => {
 		const owner = await createUserWithSession();
 		const intruder = await createUserWithSession();
 		const filter = await createSavedFilter(owner.user.id);
@@ -511,8 +511,8 @@ void describe("DELETE /users/me/saved-filters/:filterId", () => {
 			.delete(`${FILTERS_PATH}/${filter.id}`)
 			.set("Authorization", intruder.authorization);
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "SAVED_FILTER_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "SAVED_FILTER_NOT_FOUND");
 		assert.equal(await SavedFilter.count({ where: { id: filter.id } }), 1);
 	});
 

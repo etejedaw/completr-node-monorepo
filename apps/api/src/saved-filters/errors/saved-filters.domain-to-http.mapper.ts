@@ -19,9 +19,6 @@ export function savedFiltersDomainToHttpMapper(
 	if (error.code === "SAVED_FILTER_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
-	if (error.code === "SAVED_FILTER_FORBIDDEN")
-		return new HttpError({ ...baseOptions, status: 403 });
-
 	if (error.code === "SAVED_FILTER_LIMIT_REACHED")
 		return new HttpError({ ...baseOptions, status: 402 });
 
