@@ -16,8 +16,8 @@ const router = Router();
 router.post(
 	"/games/:id/reports",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameIdParamSchema, "params"),
 		validateSchemaMiddleware(CreateReportSchema, "body")
 	],
@@ -26,15 +26,15 @@ router.post(
 
 router.get(
 	"/admin/game-reports",
-	[rateLimiterMiddleware(userLimiter), hiddenRouteMiddleware("moderator")],
+	[hiddenRouteMiddleware("moderator"), rateLimiterMiddleware(userLimiter)],
 	gameReportsController.getPendingReports
 );
 
 router.patch(
 	"/admin/game-reports/:reportId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		hiddenRouteMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ReportIdParamsSchema, "params"),
 		validateSchemaMiddleware(UpdateReportStatusSchema, "body")
 	],

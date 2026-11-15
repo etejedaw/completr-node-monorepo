@@ -17,15 +17,15 @@ const router = Router();
 
 router.get(
 	"/platforms",
-	[rateLimiterMiddleware(publicLimiter), authMiddleware()],
+	[authMiddleware(), rateLimiterMiddleware(publicLimiter)],
 	platformController.getAllPlatforms
 );
 
 router.get(
 	"/platforms/:code",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(PlatformCodeParamSchema, "params")
 	],
 	platformController.getPlatformByCode
@@ -34,8 +34,8 @@ router.get(
 router.post(
 	"/platforms",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(RegisterPlatformSchema, "body")
 	],
 	platformController.postPlatform
@@ -44,8 +44,8 @@ router.post(
 router.patch(
 	"/platforms/:platformId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(PlatformIdParamSchema, "params"),
 		validateSchemaMiddleware(UpdatePlatformSchema, "body")
 	],
@@ -55,8 +55,8 @@ router.patch(
 router.delete(
 	"/platforms/:platformId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(PlatformIdParamSchema, "params")
 	],
 	platformController.deletePlatform

@@ -16,8 +16,8 @@ const router = Router();
 router.post(
 	"/game-scores",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(RegisterGameScoreSchema, "body")
 	],
 	gameScoresController.postGameScore
@@ -26,8 +26,8 @@ router.post(
 router.patch(
 	"/game-scores/:gameId/:source",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameScoreIdParamsSchema, "params"),
 		validateSchemaMiddleware(UpdateGameScoreSchema, "body")
 	],
@@ -37,8 +37,8 @@ router.patch(
 router.put(
 	"/games/:gameId/scores",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameScoreParamsSchema, "params"),
 		validateSchemaMiddleware(ReplaceGameScoresSchema, "body")
 	],
@@ -48,8 +48,8 @@ router.put(
 router.get(
 	"/game-scores/:gameId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameScoreParamsSchema, "params")
 	],
 	gameScoresController.getGameScores

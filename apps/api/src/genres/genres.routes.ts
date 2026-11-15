@@ -18,15 +18,15 @@ const router = Router();
 
 router.get(
 	"/genres",
-	[rateLimiterMiddleware(publicLimiter), authMiddleware()],
+	[authMiddleware(), rateLimiterMiddleware(publicLimiter)],
 	genreController.getAllGenres
 );
 
 router.get(
 	"/genres/:code",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(GenreCodeParamsSchema, "params")
 	],
 	genreController.getGenreByCode
@@ -35,8 +35,8 @@ router.get(
 router.get(
 	"/genres/:code/games",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(GenreCodeParamsSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -46,8 +46,8 @@ router.get(
 router.post(
 	"/genres",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(RegisterGenreSchema, "body")
 	],
 	genreController.postGenre
@@ -56,8 +56,8 @@ router.post(
 router.patch(
 	"/genres/:genreId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GenreIdParamSchema, "params"),
 		validateSchemaMiddleware(UpdateGenreSchema, "body")
 	],
@@ -67,8 +67,8 @@ router.patch(
 router.delete(
 	"/genres/:genreId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GenreIdParamSchema, "params")
 	],
 	genreController.deleteGenre

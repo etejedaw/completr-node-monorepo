@@ -14,15 +14,15 @@ const router = Router();
 
 router.get(
 	"/score-sources",
-	[rateLimiterMiddleware(publicLimiter), authMiddleware()],
+	[authMiddleware(), rateLimiterMiddleware(publicLimiter)],
 	scoreSourcesController.getScoreSources
 );
 
 router.post(
 	"/score-sources",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("admin"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(RegisterScoreSourceSchema, "body")
 	],
 	scoreSourcesController.postScoreSource
