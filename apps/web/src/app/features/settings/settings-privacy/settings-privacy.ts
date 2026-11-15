@@ -66,9 +66,20 @@ const DEFAULT_DRAFT: PrivacyDraft = {
 const DRAFT_KEYS = Object.keys(DEFAULT_DRAFT) as (keyof PrivacyDraft)[];
 
 function draftFromUser(user: User): PrivacyDraft {
-	return Object.fromEntries(
-		DRAFT_KEYS.map(key => [key, user[key]])
-	) as unknown as PrivacyDraft;
+	return {
+		profileVisibility: user.profileVisibility,
+		backlogVisibility: user.backlogVisibility,
+		shelfVisibility: user.shelfVisibility,
+		listVisibility: user.listVisibility,
+		queueVisibility: user.queueVisibility,
+		wishlistVisibility: user.wishlistVisibility,
+		favoriteVisibility: user.favoriteVisibility,
+		feedVisibility: user.feedVisibility,
+		platinumVisibility: user.platinumVisibility,
+		franchiseVisibility: user.franchiseVisibility,
+		rewindVisibility: user.rewindVisibility,
+		acceptFollowRequests: user.acceptFollowRequests
+	};
 }
 
 @Component({
