@@ -139,7 +139,7 @@
 	role="alert"
 	icon="cloud_off"
 	title="Couldn't load the privacy policy"
-	hint="It's out of reach right now. Try again, or read it on the Completr website."
+	[hint]="sourceUnavailable() ? 'The policy source is temporarily unavailable. Try again in a few minutes, or read it on the Completr website.' : 'It is out of reach right now. Try again, or read it on the Completr website.'"
 >
 	<div class="flex flex-wrap justify-center gap-2">
 		<button

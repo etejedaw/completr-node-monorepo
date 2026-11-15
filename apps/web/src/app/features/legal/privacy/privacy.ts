@@ -10,6 +10,7 @@ import { RouterLink } from "@angular/router";
 
 import { environment } from "../../../../environments/environment";
 import { AuthService } from "../../../core/services/auth";
+import { isSourceUnavailable } from "../../../core/utils/problem-details";
 import {
 	FEEDBACK_EMAIL,
 	InfoPageLinks
@@ -55,6 +56,9 @@ export class Privacy {
 	protected readonly policy = httpResource<PrivacyPolicy>(
 		() => `${environment.apiUrl}/privacy`
 	);
+	protected readonly sourceUnavailable = computed(() =>
+		isSourceUnavailable(this.policy.error())
+	);
 	protected readonly sections = computed<readonly PageSection[]>(() =>
 		this.policy.hasValue()
 			? this.policy.value().sections.map(({ id, label, icon }) => ({
@@ -69,7 +73,7 @@ export class Privacy {
 	protected readonly landingPrivacyUrl = LANDING_PRIVACY_URL;
 	protected readonly skeletonSections = SKELETON_SECTIONS;
 	protected readonly bodyClass =
-		"mt-4 max-w-[68ch] flex flex-col gap-3 text-[1.0625rem] leading-relaxed text-fg-secondary [&_p]:m-0 [&_strong]:text-fg [&_strong]:font-semibold [&_ul]:m-0 [&_ul]:pl-5 [&_ul]:list-disc [&_ul]:flex [&_ul]:flex-col [&_ul]:gap-2 [&_a]:text-brand [&_a:hover]:underline";
+		"mt-4 max-w-[68ch] flex flex-col gap-3 text-lead leading-relaxed text-fg-secondary [&_p]:m-0 [&_strong]:text-fg [&_strong]:font-semibold [&_ul]:m-0 [&_ul]:pl-5 [&_ul]:list-disc [&_ul]:flex [&_ul]:flex-col [&_ul]:gap-2 [&_a]:text-brand [&_a:hover]:underline";
 
 	protected sectionNumber(index: number): string {
 		return (index + 1).toString().padStart(2, "0");
