@@ -32,6 +32,7 @@ import { queueDomainToHttpMapper } from "../../queue/errors/queue.domain-to-http
 import { rawgDomainToHttpMapper } from "../../rawg/errors/rawg.domain-to-http.mapper";
 import { reviewsDomainToHttpMapper } from "../../reviews/errors/reviews.domain-to-http.mapper";
 import { rewindDomainToHttpMapper } from "../../rewind/errors/rewind.domain-to-http.mapper";
+import { rewindEditionsDomainToHttpMapper } from "../../rewind-editions/errors/rewind-editions.domain-to-http.mapper";
 import { savedFiltersDomainToHttpMapper } from "../../saved-filters/errors/saved-filters.domain-to-http.mapper";
 import { scoreSourcesDomainToHttpMapper } from "../../score-sources/errors/score-sources.domain-to-http.mapper";
 import { userFollowRequestsDomainToHttpMapper } from "../../user-follow-requests/errors/user-follow-requests.domain-to-http.mapper";
@@ -118,6 +119,9 @@ export function globalErrorHttpNormalizer(
 
 	if (error.module === "Rewind Module")
 		return rewindDomainToHttpMapper(error, request);
+
+	if (error.module === "Rewind Editions Module")
+		return rewindEditionsDomainToHttpMapper(error, request);
 
 	if (error.module === "MoodTags Module")
 		return moodTagsDomainToHttpMapper(error, request);
