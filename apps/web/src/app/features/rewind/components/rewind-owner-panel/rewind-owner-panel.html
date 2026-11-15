@@ -35,20 +35,17 @@
 				}
 			</li>
 			@if (aiChip(); as ai) {
-			<li [class]="premiumChipClass">
+			<li [class]="statusChipClass">
 				@if (aiPremiumLabel(); as premiumLabel) {
-				<ui-premium-badge
-					size="sm"
-					interactive
-					[label]="premiumLabel"
-					[message]="copy.aiPerk"
-				/>
+				<span class="text-fg-secondary" data-access-label
+					>{{ premiumLabel }}</span
+				>
 				}
 				<strong class="font-bold tabular-nums">{{ ai.count }}</strong>
 				{{ ai.label }}
 			</li>
 			@if (ai.grace) {
-			<li [class]="premiumChipClass">
+			<li [class]="statusChipClass">
 				<span aria-hidden="true" class="material-icons text-base"
 					>event_available</span
 				>
@@ -144,7 +141,7 @@
 		<button
 			uiButton
 			type="button"
-			variant="premium"
+			variant="secondary"
 			class="tap:min-h-[44px] max-sm:!w-full shrink-0"
 			[disabled]="aiRecapPending()"
 			(click)="addAiRecap()"
@@ -162,7 +159,7 @@
 	>
 		<span
 			aria-hidden="true"
-			class="material-icons text-base text-premium motion-safe:animate-spin"
+			class="material-icons text-base text-brand motion-safe:animate-spin"
 			>autorenew</span
 		>
 		{{ copy.aiRecapPending }}

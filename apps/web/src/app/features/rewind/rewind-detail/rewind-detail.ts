@@ -162,7 +162,7 @@ export class RewindDetail {
 		onGenerated: rewind => this.replaceRewind(rewind)
 	});
 
-	replaceRewind(rewind: Rewind) {
+	protected replaceRewind(rewind: Rewind) {
 		const sameOwner =
 			rewind.user.username.toLowerCase() ===
 			this.username().toLowerCase();

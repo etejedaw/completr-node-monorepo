@@ -13,6 +13,7 @@ export interface RewindShareCopy {
 	downloadGames: string;
 	copyLink: string;
 	imageFailed: string;
+	downloadFailed: string;
 	tryAgain: string;
 	preparingImage: string;
 	shareFailed: string;

@@ -6,7 +6,6 @@ export const REWIND_OWNER_PANEL_COPY: RewindOwnerPanelCopy = {
 	onlyYouHint: "Only you see these controls.",
 	seasonOpen: "Open",
 	seasonUntil: date => `until ${date}`,
-	aiPerk: "Each AI generation writes a new AI recap and premium stats for this Rewind.",
 	aiGenerationsLabel: count =>
 		count === 1 ? "AI generation left" : "AI generations left",
 	aiGraceExtra: date => `+1 extra until ${date}`,

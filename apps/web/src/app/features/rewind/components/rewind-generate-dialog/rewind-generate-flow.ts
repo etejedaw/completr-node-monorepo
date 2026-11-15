@@ -31,8 +31,7 @@ export function injectRewindGenerateFlow(options: RewindGenerateFlowOptions) {
 	const rewindService = inject(RewindService);
 	const toast = inject(ToastService);
 	const router = inject(Router);
-	let hostDestroyed = false;
-	inject(DestroyRef).onDestroy(() => (hostDestroyed = true));
+	const destroyRef = inject(DestroyRef);
 
 	const isOpen = signal(false);
 	const isPending = signal(false);
@@ -43,7 +42,7 @@ export function injectRewindGenerateFlow(options: RewindGenerateFlowOptions) {
 
 	function notifyHost(rewind: Rewind) {
 		latestRewind.set(rewind);
-		if (!hostDestroyed) options.onGenerated(rewind);
+		if (!destroyRef.destroyed) options.onGenerated(rewind);
 	}
 
 	function announceInBackground(username: string, rewind: Rewind) {
@@ -78,7 +77,7 @@ export function injectRewindGenerateFlow(options: RewindGenerateFlowOptions) {
 				notifyHost(rewind);
 				if (!seenInDialog) {
 					announceInBackground(username, rewind);
-				} else if (!hostDestroyed) {
+				} else if (!destroyRef.destroyed) {
 					options.onFinishedInDialog?.(rewind);
 				}
 			},

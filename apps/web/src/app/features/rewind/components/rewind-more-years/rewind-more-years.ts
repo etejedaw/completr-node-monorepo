@@ -6,9 +6,12 @@ import {
 	input
 } from "@angular/core";
 import { rxResource } from "@angular/core/rxjs-interop";
-import { catchError, map, of } from "rxjs";
+import { catchError, of } from "rxjs";
 
-import { type RewindLanguage } from "../../../../core/models/rewind.model";
+import {
+	type RewindLanguage,
+	type RewindYears
+} from "../../../../core/models/rewind.model";
 import { ProfileSectionHeader } from "../../../public-profile/components/profile-section-header";
 import { RewindService } from "../../rewind";
 import { rewindCopy } from "../../rewind-copy";
@@ -34,6 +37,8 @@ import { RewindYearCard } from "../rewind-year-card/rewind-year-card";
 							<app-rewind-year-card
 								[username]="username()"
 								[summary]="summary"
+								[premiumAccess]="premiumAccess()"
+								[period]="period()"
 								[language]="language()"
 							/>
 						</li>
@@ -57,14 +62,23 @@ export class RewindMoreYears {
 	private readonly archive = rxResource({
 		params: () => this.username(),
 		stream: ({ params: username }) =>
-			this.rewindService.getYears(username).pipe(
-				map(result => result.years),
-				catchError(() => of([]))
-			)
+			this.rewindService
+				.getYears(username)
+				.pipe(catchError(() => of(null)))
 	});
 
+	private readonly archiveData = computed<RewindYears | null>(() =>
+		this.archive.hasValue() ? this.archive.value() : null
+	);
+
+	protected readonly premiumAccess = computed(
+		() => this.archiveData()?.premiumAccess ?? null
+	);
+	protected readonly period = computed(
+		() => this.archiveData()?.period ?? null
+	);
 	protected readonly years = computed(() =>
-		(this.archive.hasValue() ? this.archive.value() : []).filter(
+		(this.archiveData()?.years ?? []).filter(
 			summary => summary.year !== this.currentYear()
 		)
 	);

@@ -34,7 +34,7 @@
 		} @for (page of pages(); track page.key) {
 		<div uiTabPanel [value]="page.key" [class]="panelClass()">
 			<figure
-				class="relative m-0 mx-auto aspect-[9/16] max-w-full overflow-hidden rounded-card border border-line bg-surface shadow-[0_24px_60px_-24px_rgb(0_0_0/0.75)]"
+				class="relative m-0 mx-auto aspect-[9/16] max-w-full overflow-hidden rounded-card border border-line bg-surface shadow-popover"
 				[class]="previewHeightClass()"
 				[attr.aria-busy]="page.image.isLoading() || null"
 			>

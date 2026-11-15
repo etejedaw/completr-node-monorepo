@@ -203,6 +203,8 @@ export class RewindShareActions {
 				if (!pending.has(page.key)) continue;
 				const blob = page.image.blob();
 				if (blob) this.save(blob, page.fileName);
+				else if (page.image.hasError())
+					this.toast.error(this.copy.downloadFailed);
 				if (blob || page.image.hasError())
 					this.settleDownload(page.key);
 			}

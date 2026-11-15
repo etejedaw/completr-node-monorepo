@@ -124,7 +124,7 @@
 							[style.min-height.px]="3"
 						>
 							<span
-								class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap text-[0.6875rem] font-semibold tabular-nums"
+								class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap text-caption font-semibold tabular-nums"
 								[class]="column.isPeak ? 'text-fg' : 'text-fg-secondary'"
 								>{{ number(column.count) }}</span
 							>
@@ -138,7 +138,7 @@
 				>
 					@for (column of decadeColumns(); track column.decade) {
 					<span
-						class="min-w-0 max-w-14 flex-1 text-center text-[0.625rem] leading-tight sm:text-xs"
+						class="min-w-0 max-w-14 flex-1 text-center text-tiny leading-tight sm:text-xs"
 						[class]="column.isPeak ? 'font-semibold text-fg' : 'text-fg-muted'"
 						>{{ decadeLabel(column.decade) }}</span
 					>

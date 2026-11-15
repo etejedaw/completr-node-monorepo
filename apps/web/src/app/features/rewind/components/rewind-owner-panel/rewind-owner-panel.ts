@@ -15,13 +15,7 @@ import {
 	type RewindRegenerationBlock
 } from "../../../../core/models/rewind.model";
 import { GiftOfferCard } from "../../../../shared/components/gift-offer-card/gift-offer-card";
-import {
-	UiAlert,
-	UiBadge,
-	UiButton,
-	UiEyebrow,
-	UiPremiumBadge
-} from "../../../../shared/ui";
+import { UiAlert, UiBadge, UiButton, UiEyebrow } from "../../../../shared/ui";
 import { RewindService } from "../../rewind";
 import { rewindCopy } from "../../rewind-copy";
 import { formatRewindDay, formatRewindDayWithYear } from "../../rewind-dates";
@@ -53,9 +47,6 @@ const PANEL_LANGUAGE: RewindLanguage = "en";
 const STATUS_CHIP_CLASS =
 	"inline-flex h-9 max-w-full items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface/60 px-3.5 text-sm text-fg";
 
-const PREMIUM_CHIP_CLASS =
-	"inline-flex h-9 max-w-full items-center gap-1.5 whitespace-nowrap rounded-full border border-premium/40 bg-premium/10 px-3.5 text-sm text-premium";
-
 const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 	"exists",
 	"premium_required",
@@ -72,8 +63,7 @@ const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 		RewindGenerateDialog,
 		UiAlert,
 		UiBadge,
-		UiButton,
-		UiPremiumBadge
+		UiButton
 	],
 	templateUrl: "./rewind-owner-panel.html",
 	host: { class: "block empty:hidden" },
@@ -84,7 +74,7 @@ export class RewindOwnerPanel {
 	readonly rewindChange = output<Rewind>();
 
 	private readonly rewindService = inject(RewindService);
-	private hostDestroyed = false;
+	private readonly destroyRef = inject(DestroyRef);
 
 	protected readonly copy = REWIND_OWNER_PANEL_COPY;
 	protected readonly panelState = computed(() =>
@@ -120,7 +110,6 @@ export class RewindOwnerPanel {
 		};
 	});
 	protected readonly statusChipClass = STATUS_CHIP_CLASS;
-	protected readonly premiumChipClass = PREMIUM_CHIP_CLASS;
 	protected readonly aiPremiumLabel = computed(() => {
 		const kind = rewindPremiumAccessKindOf(this.rewind().premiumAccess);
 		return kind
@@ -165,10 +154,6 @@ export class RewindOwnerPanel {
 		onGenerated: rewind => this.publish(rewind)
 	});
 
-	constructor() {
-		inject(DestroyRef).onDestroy(() => (this.hostDestroyed = true));
-	}
-
 	protected addAiRecap() {
 		if (this.aiRecapPending()) return;
 		const { year, user } = this.rewind();
@@ -202,6 +187,6 @@ export class RewindOwnerPanel {
 	}
 
 	private publish(rewind: Rewind) {
-		if (!this.hostDestroyed) this.rewindChange.emit(rewind);
+		if (!this.destroyRef.destroyed) this.rewindChange.emit(rewind);
 	}
 }
