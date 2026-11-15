@@ -9,6 +9,7 @@ export interface GameShelfPagination extends Record<string, Appendable> {
 	limit?: number;
 	offset?: number;
 	search?: string;
+	game_id?: string;
 }
 
 export interface GameShelfSingleResponse {

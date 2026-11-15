@@ -385,12 +385,10 @@ export class GameDetail implements OnInit {
 			{ next: res => this.myRuns.set(res.data.backlog) }
 		);
 		this.loadQueuedRunIds(gameId);
-		this.watchStatus(this.gameShelfService.getMyShelf({ limit: 100 }), {
-			next: res =>
-				this.isInShelf.set(
-					res.data.gameShelf.some(s => s.game.id === gameId)
-				)
-		});
+		this.watchStatus(
+			this.gameShelfService.getMyShelf({ game_id: gameId, limit: 1 }),
+			{ next: res => this.isInShelf.set(res.data.gameShelf.length > 0) }
+		);
 	}
 
 	private loadQueuedRunIds(gameId: string) {
