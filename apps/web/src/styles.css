@@ -72,6 +72,16 @@
 	--color-nav-admin: var(--color-admin);
 	--color-nav-more: var(--color-fg-secondary);
 
+	--color-view-sky: #38bdf8;
+	--color-view-emerald: #34d399;
+	--color-view-rose: #fb7185;
+	--color-view-purple: #a78bfa;
+	--color-view-teal: #2dd4bf;
+	--color-view-slate: #94a3b8;
+
+	--color-scrim: rgb(0 0 0 / 0.6);
+	--color-scrim-strong: rgb(0 0 0 / 0.8);
+
 	--radius-card: 0.625rem;
 
 	--text-micro: 0.5625rem;
@@ -98,7 +108,7 @@
 }
 
 @utility ui-backdrop {
-	background-color: rgb(0 0 0 / 0.6);
+	background-color: var(--color-scrim);
 	backdrop-filter: blur(4px);
 	@media (prefers-reduced-motion: no-preference) {
 		animation: uiSheetFade 200ms ease-out;

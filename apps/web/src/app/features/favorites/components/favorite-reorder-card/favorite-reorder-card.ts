@@ -55,7 +55,7 @@ import {
 					cdkDragHandle
 					aria-hidden="true"
 					title="Drag to reorder"
-					class="absolute top-1 right-1 w-[32px] h-[32px] tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-black/60 text-on-image backdrop-blur-sm cursor-grab active:cursor-grabbing touch-none transition hover:bg-black/80"
+					class="absolute top-1 right-1 w-[32px] h-[32px] tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-scrim text-on-image backdrop-blur-sm cursor-grab active:cursor-grabbing touch-none transition hover:bg-scrim-strong"
 				>
 					<span class="material-icons text-lg">drag_indicator</span>
 				</span>
