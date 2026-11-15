@@ -137,7 +137,7 @@ class GeneratorHost {
 describe("RewindGenerateDialog", () => {
 	let httpTesting: HttpTestingController;
 	let toast: {
-		pending: ReturnType<typeof vi.fn>;
+		success: ReturnType<typeof vi.fn>;
 		error: ReturnType<typeof vi.fn>;
 	};
 
@@ -172,7 +172,7 @@ describe("RewindGenerateDialog", () => {
 
 	beforeEach(() => {
 		isPremium = signal(false);
-		toast = { pending: vi.fn(), error: vi.fn() };
+		toast = { success: vi.fn(), error: vi.fn() };
 		vi.spyOn(performance, "now").mockReturnValue(10_000);
 		vi.stubGlobal(
 			"matchMedia",
@@ -215,7 +215,7 @@ describe("RewindGenerateDialog", () => {
 		await waitFor(() => expect(dialogNamed()).toBeNull());
 		expect(host.generated).toEqual([rewind]);
 		expect(host.finishedInDialog).toEqual([rewind]);
-		expect(toast.pending).not.toHaveBeenCalled();
+		expect(toast.success).not.toHaveBeenCalled();
 	});
 
 	it("sends a single request on a double or triple click of Generate", async () => {
@@ -282,13 +282,11 @@ describe("RewindGenerateDialog", () => {
 		expect(host.generated).toEqual([rewind]);
 		expect(host.finishedInDialog).toEqual([]);
 		expect(navigate).not.toHaveBeenCalled();
-		expect(toast.pending).toHaveBeenCalledWith(
-			expect.objectContaining({
-				message: "Your 2026 Rewind is ready",
-				undoLabel: "View"
-			})
+		expect(toast.success).toHaveBeenCalledWith(
+			"Your 2026 Rewind is ready",
+			{ action: { label: "View", run: expect.any(Function) } }
 		);
-		toast.pending.mock.calls[0][0].onUndo();
+		toast.success.mock.calls[0][1].action.run();
 		expect(navigate).toHaveBeenCalledWith(["/user", "ada", "rewind", 2026]);
 	});
 
@@ -315,7 +313,7 @@ describe("RewindGenerateDialog", () => {
 		requests[0].flush({ data: rewindFixture() });
 		await waitFor(() => expect(dialogNamed()).toBeNull());
 		expect(host.finishedInDialog).toHaveLength(1);
-		expect(toast.pending).not.toHaveBeenCalled();
+		expect(toast.success).not.toHaveBeenCalled();
 	});
 
 	it("sends the last language picked after quick changes", async () => {
@@ -1020,7 +1018,7 @@ describe("RewindGenerateDialog", () => {
 		expect(toast.error).toHaveBeenCalledWith(
 			"Couldn't generate your 2026 Rewind. Try again."
 		);
-		expect(toast.pending).not.toHaveBeenCalled();
+		expect(toast.success).not.toHaveBeenCalled();
 	});
 
 	it("clears a previous error when the dialog is opened again", async () => {

@@ -226,7 +226,7 @@ describe("ProfileRewindSpotlight", () => {
 
 	describe("owner invitation before the Rewind is generated", () => {
 		let toast: {
-			pending: ReturnType<typeof vi.fn>;
+			success: ReturnType<typeof vi.fn>;
 			error: ReturnType<typeof vi.fn>;
 		};
 
@@ -274,7 +274,7 @@ describe("ProfileRewindSpotlight", () => {
 		}
 
 		beforeEach(() => {
-			toast = { pending: vi.fn(), error: vi.fn() };
+			toast = { success: vi.fn(), error: vi.fn() };
 			vi.spyOn(performance, "now").mockReturnValue(10_000);
 			vi.stubGlobal(
 				"matchMedia",
@@ -407,9 +407,10 @@ describe("ProfileRewindSpotlight", () => {
 			).toBeInTheDocument();
 			expect(screen.getByText("Genre Explorer")).toBeInTheDocument();
 			expect(navigate).not.toHaveBeenCalled();
-			expect(toast.pending).toHaveBeenCalledWith(
+			expect(toast.success).toHaveBeenCalledWith(
+				"Your 2026 Rewind is ready",
 				expect.objectContaining({
-					message: "Your 2026 Rewind is ready"
+					action: expect.objectContaining({ label: "View" })
 				})
 			);
 		});
