@@ -122,11 +122,13 @@ function franchises() {
 function compilations() {
 	Game.hasMany(CompilationItem, {
 		foreignKey: "parentGameId",
-		as: "CompilationItems"
+		as: "CompilationItems",
+		onDelete: "CASCADE"
 	});
 	Game.hasMany(CompilationItem, {
 		foreignKey: "childGameId",
-		as: "PartOfCompilations"
+		as: "PartOfCompilations",
+		onDelete: "CASCADE"
 	});
 	CompilationItem.belongsTo(Game, {
 		foreignKey: "parentGameId",
