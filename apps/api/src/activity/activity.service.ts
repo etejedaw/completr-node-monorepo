@@ -55,6 +55,20 @@ export function record(
 	);
 }
 
+export function recordManyForGames(
+	userId: string,
+	type: ActivityType,
+	gameIds: string[]
+) {
+	if (gameIds.length === 0) return;
+	persistManyForGames(userId, type, gameIds).catch(error =>
+		logger.warn("recordManyForGames", "failed", {
+			type,
+			error: error instanceof Error ? error.message : String(error)
+		})
+	);
+}
+
 async function createTarget(
 	activityId: string,
 	type: ActivityType,
@@ -92,6 +106,31 @@ async function persist(
 		if (targetId)
 			await createTarget(activity.id, type, targetId, transaction);
 		return activity;
+	});
+}
+
+async function persistManyForGames(
+	userId: string,
+	type: ActivityType,
+	gameIds: string[]
+) {
+	const startedAt = Date.now();
+	return sequelize.transaction(async transaction => {
+		const activities = await Activity.bulkCreate(
+			gameIds.map((_, index) => ({
+				userId,
+				type,
+				createdAt: new Date(startedAt + index)
+			})),
+			{ transaction }
+		);
+		await ActivityGame.bulkCreate(
+			activities.map((activity, index) => ({
+				activityId: activity.id,
+				gameId: gameIds[index]
+			})),
+			{ transaction }
+		);
 	});
 }
 

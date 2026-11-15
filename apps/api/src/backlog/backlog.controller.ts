@@ -246,13 +246,11 @@ async function respondBulkUpdate(
 
 	const newStatus = body.changes.status;
 	if (newStatus) {
-		for (const backlog of statusChanged) {
-			activityService.record(
-				user.id,
-				`backlog_${newStatus}`,
-				backlog.gameId
-			);
-		}
+		activityService.recordManyForGames(
+			user.id,
+			`backlog_${newStatus}`,
+			statusChanged.map(backlog => backlog.gameId)
+		);
 	}
 
 	const data = { action: "update", ...result };

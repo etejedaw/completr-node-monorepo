@@ -188,9 +188,11 @@ export async function postQueueBulk(request: Request, response: Response) {
 		user,
 		body.backlogIds
 	);
-	for (const backlog of added) {
-		activityService.record(user.id, "queue_added", backlog.gameId);
-	}
+	activityService.recordManyForGames(
+		user.id,
+		"queue_added",
+		added.map(backlog => backlog.gameId)
+	);
 
 	const data = { action: query.action, ...result };
 	return response.status(200).json({ data });

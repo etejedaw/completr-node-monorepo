@@ -31,11 +31,11 @@ export async function putFavorites(request: Request, response: Response) {
 	const entries = await favoritesService.replaceFavorites(user, body.gameIds);
 	const entriesPlain = entries.map(e => e.get({ plain: true }));
 
-	for (const gameId of body.gameIds) {
-		if (!currentIds.has(gameId)) {
-			activityService.record(user.id, "favorite_added", gameId);
-		}
-	}
+	activityService.recordManyForGames(
+		user.id,
+		"favorite_added",
+		body.gameIds.filter(gameId => !currentIds.has(gameId))
+	);
 
 	const tagsByGame = await moodTagsService.findTagsForGames(
 		user.id,
@@ -158,9 +158,7 @@ export async function postFavoritesBulk(request: Request, response: Response) {
 		user,
 		body.gameIds
 	);
-	for (const gameId of added) {
-		activityService.record(user.id, "favorite_added", gameId);
-	}
+	activityService.recordManyForGames(user.id, "favorite_added", added);
 
 	const data = { action: query.action, ...result };
 	return response.status(200).json({ data });
