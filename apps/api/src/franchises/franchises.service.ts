@@ -1,12 +1,12 @@
 import { Op, QueryTypes, type Transaction } from "sequelize";
 
+import * as backlogService from "../backlog/backlog.service";
 import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
 import { sequelize } from "../database/sequelize.database";
-import { Game } from "../games/game.model";
 import * as gamesService from "../games/games.service";
 import { type RegisterFranchiseDto } from "./dtos/register-franchise.dto";
 import { type UpdateFranchiseDto } from "./dtos/update-franchise.dto";
@@ -88,14 +88,15 @@ export async function findFranchiseByCode(code: string) {
 	return await Franchise.findOne({ where: { code } });
 }
 
-export async function findFranchiseById(id: string) {
+async function findFranchiseById(id: string) {
 	return await Franchise.findOne({ where: { id } });
 }
 
-export const FRANCHISE_PREVIEW_SIZE = 4;
+const FRANCHISE_PREVIEW_SIZE = 4;
 
-const FRANCHISE_PREVIEW_GAMES_INCLUDE = {
-	model: Game,
+function franchisePreviewGamesInclude() {
+	return {
+	...gamesService.gameInclude(),
 	separate: true,
 	limit: FRANCHISE_PREVIEW_SIZE,
 	where: { isActive: true },
@@ -104,7 +105,9 @@ const FRANCHISE_PREVIEW_GAMES_INCLUDE = {
 		["releaseAt", "ASC"],
 		["id", "ASC"]
 	] as [string, string][]
+
 };
+}
 
 export async function findAllFranchises(pagination: PaginatedSearchQuery = {}) {
 	const where = pagination.search
@@ -114,7 +117,7 @@ export async function findAllFranchises(pagination: PaginatedSearchQuery = {}) {
 
 	const query: Record<string, unknown> = {
 		where,
-		include: [FRANCHISE_PREVIEW_GAMES_INCLUDE],
+		include: [franchisePreviewGamesInclude()],
 		order: [
 			["name", "ASC"],
 			["id", "ASC"]
@@ -236,4 +239,15 @@ export async function findTrackedFranchisesForDataExport(userId: string) {
 		include: [{ model: Franchise, attributes: ["id", "name", "code"] }],
 		order: CHRONOLOGICAL_ORDER
 	});
+}
+
+export async function findBacklogStatusByGameId(
+	userId: string,
+	gameIds: string[]
+) {
+	const rows = await backlogService.findBacklogSummariesByUserAndGameIds(
+		userId,
+		gameIds
+	);
+	return new Map(rows.map(row => [row.gameId, row.status]));
 }
