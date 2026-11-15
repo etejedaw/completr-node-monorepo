@@ -3,14 +3,14 @@ import { describe, it } from "node:test";
 
 import { REWIND_INSIGHT_KINDS } from "../../src/rewind/rewind.constants";
 import {
+	REWIND_RECAP_GAME_COLUMNS,
+	REWIND_RECAP_NOTES_COLUMN
+} from "../../src/rewind-recap/rewind-recap.constants";
+import {
 	buildRewindRecapInstructions,
 	REWIND_INSIGHT_DEFINITIONS
 } from "../../src/rewind-recap/rewind-recap.prompt";
 import { REWIND_AI_RECAP_LIMITS } from "../../src/rewind-recap/schemas/rewind-ai-recap.schema";
-import {
-	REWIND_RECAP_GAME_COLUMNS,
-	REWIND_RECAP_NOTES_COLUMN
-} from "../../src/rewind-recap/utils/build-rewind-recap-content.util";
 
 void describe("buildRewindRecapInstructions", () => {
 	void it("asks for English output for en", () => {
