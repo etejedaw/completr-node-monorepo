@@ -943,6 +943,49 @@ describe("RewindOwnerPanel", () => {
 			expect(screen.getByRole("group", { name: "Premium" })).toBe(zone);
 		});
 
+		it("moves the private runs and notes chips into the premium zone with access, and keeps them in the top row without it", async () => {
+			const { fixture } = await renderPanel(
+				rewindFixture({
+					ownerControls: controls({
+						includesPrivateRuns: true,
+						includesNotes: true
+					})
+				})
+			);
+
+			const inZone = within(premiumZone() as HTMLElement);
+			expect(
+				inZone.getByText("Includes private runs")
+			).toBeInTheDocument();
+			expect(inZone.getByText("Uses your notes")).toBeInTheDocument();
+			expect(screen.getAllByText("Includes private runs")).toHaveLength(
+				1
+			);
+
+			fixture.componentRef.setInput(
+				"rewind",
+				rewindFixture({
+					premiumAccess: noAccess,
+					ownerControls: controls({
+						includesPrivateRuns: true,
+						includesNotes: true,
+						canRegenerate: false,
+						regenerationBlockedBy: "no-ai-access"
+					})
+				})
+			);
+			fixture.detectChanges();
+			http()
+				.match(giftOffersUrl)
+				.forEach(request => request.flush({ data: { offers: [] } }));
+
+			expect(premiumZone()).toBeNull();
+			expect(screen.getAllByText("Includes private runs")).toHaveLength(
+				1
+			);
+			expect(screen.getByText("Uses your notes")).toBeInTheDocument();
+		});
+
 		it("explains what an AI generation does every time the crown is pressed, even twice in a row", async () => {
 			await renderPanel(rewindFixture());
 			const toast = TestBed.inject(ToastService) as unknown as {

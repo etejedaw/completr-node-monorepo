@@ -1046,4 +1046,43 @@ describe("RewindGenerateDialog", () => {
 			within(dialog).getByRole("button", { name: "Generate" })
 		).toBeEnabled();
 	});
+	describe("premium zone", () => {
+		it("frames the AI recap options in gold with access, and survives a double click on the switches", async () => {
+			isPremium.set(true);
+			await renderHost();
+			const dialog = await openDialog();
+
+			const zone = within(dialog).getByRole("region", {
+				name: "AI recap"
+			});
+			expect(zone).toHaveAttribute("data-premium-zone");
+			expect(zone.className).toContain("border-premium/30");
+			const privateRuns = within(zone).getByRole("switch", {
+				name: "Include private runs"
+			});
+			const notes = within(zone).getByRole("switch", {
+				name: "Use my notes"
+			});
+			await userEvent.dblClick(privateRuns);
+			await userEvent.dblClick(notes);
+			expect(privateRuns).toHaveAttribute("aria-checked", "false");
+			expect(notes).toHaveAttribute("aria-checked", "false");
+			expect(
+				within(zone).queryByRole("radio", { name: "English" })
+			).toBeNull();
+		});
+
+		it("shows no premium zone or AI recap options without access", async () => {
+			await renderHost();
+			const dialog = await openDialog();
+
+			expect(dialog.querySelector("[data-premium-zone]")).toBeNull();
+			expect(
+				within(dialog).queryByRole("switch", {
+					name: "Include private runs"
+				})
+			).toBeNull();
+			expect(within(dialog).queryByText("AI recap")).toBeNull();
+		});
+	});
 });
