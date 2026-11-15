@@ -67,6 +67,7 @@
 	[limit]="limit"
 	[total]="total()"
 	(cleared)="onSearch('')"
+	(retried)="loadFavorites()"
 	(offsetChange)="onOffsetChange($event)"
 >
 	<ng-template appLibraryPageToolbar>

@@ -48,6 +48,7 @@ import {
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { UiButton, UiPremiumBadge } from "../../../shared/ui";
+import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { FavoriteReorderCard } from "../components/favorite-reorder-card/favorite-reorder-card";
 import { type FavoriteReorderAction } from "../components/favorite-reorder-card/favorite-reorder-card.model";
@@ -77,6 +78,7 @@ import { type FavoriteReorderAction } from "../components/favorite-reorder-card/
 })
 export class FavoritesView implements OnInit {
 	private readonly destroyRef = inject(DestroyRef);
+	private readonly favoritesLoader = injectLatestLoader();
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly toast = inject(ToastService);
 	private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -107,6 +109,7 @@ export class FavoritesView implements OnInit {
 	private readonly orderChanges = new Subject<string[]>();
 	protected readonly pageState = computed<LibraryPageState>(() => {
 		if (this.isLoading()) return "loading";
+		if (this.favoritesLoader.failed()) return "error";
 		if (this.entries().length > 0) return "ready";
 		return this.searchQuery().trim() ? "no-matches" : "empty";
 	});
@@ -255,21 +258,22 @@ export class FavoritesView implements OnInit {
 		}));
 	}
 
-	private loadFavorites() {
+	protected loadFavorites() {
 		this.isLoading.set(true);
-		this.favoritesService
-			.load({
+		this.favoritesLoader.load(
+			this.favoritesService.load({
 				limit: this.limit,
 				offset: this.offset(),
 				search: this.searchQuery().trim() || undefined
-			})
-			.subscribe({
+			}),
+			{
 				next: res => {
 					this.entries.set(res.data.favorites);
 					this.total.set(res.data.total ?? res.data.favorites.length);
 					this.isLoading.set(false);
 				},
 				error: () => this.isLoading.set(false)
-			});
+			}
+		);
 	}
 }
