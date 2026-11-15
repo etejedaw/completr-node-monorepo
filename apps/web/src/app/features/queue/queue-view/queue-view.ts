@@ -21,6 +21,7 @@ import {
 } from "rxjs";
 
 import { type QueueEntry } from "../../../core/models";
+import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
 import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
@@ -77,6 +78,7 @@ export class QueueView implements OnInit {
 	private readonly queueWrites = new Subject<QueueWrite>();
 	private pendingWrites = 0;
 
+	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly favoriteGameIds = this.favoritesService.favoriteIds;
 	protected readonly entries = signal<QueueEntry[]>([]);
 	protected readonly isLoading = signal(true);

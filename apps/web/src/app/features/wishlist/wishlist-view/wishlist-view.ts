@@ -11,6 +11,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
 import { type WishlistEntry } from "../../../core/models";
+import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { type ExportParams } from "../../../core/services/export";
 import { ToastService } from "../../../core/services/toast";
@@ -72,6 +73,7 @@ export class WishlistView implements OnInit {
 	private readonly toast = inject(ToastService);
 	private readonly favoriteToggle = injectToggleAction();
 
+	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly allEntries = signal<WishlistEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");

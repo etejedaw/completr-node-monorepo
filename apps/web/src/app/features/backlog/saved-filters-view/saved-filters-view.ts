@@ -113,6 +113,7 @@ export class SavedFiltersView implements OnInit {
 	protected readonly filters = signal<SavedFilter[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
+	protected readonly isPremium = this.authService.isPremium;
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;

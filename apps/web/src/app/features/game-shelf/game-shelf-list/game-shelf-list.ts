@@ -13,6 +13,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
 import { type BulkResult, type GameShelfEntry } from "../../../core/models";
+import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { type ExportParams } from "../../../core/services/export";
 import { BulkActionBar } from "../../../shared/components/bulk-action-bar/bulk-action-bar";
@@ -121,6 +122,7 @@ export class GameShelfList implements OnInit {
 	private readonly wishlistToggle = injectToggleAction();
 	private readonly favoriteToggle = injectToggleAction();
 	private readonly dialogs = inject(DialogService);
+	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly openBacklogQuickAdd = injectBacklogQuickAdd(() =>
 		this.loadShelf()
 	);

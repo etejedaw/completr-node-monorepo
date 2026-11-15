@@ -120,6 +120,7 @@ export class AdminPremiumAccess implements OnInit {
 			value: definition.feature,
 			label: this.featureLabel(definition.feature),
 			icon: "workspace_premium",
+			iconClass: "text-premium",
 			hint: definition.feature
 		}))
 	);

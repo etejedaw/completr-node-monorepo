@@ -114,14 +114,16 @@
 	<ng-container dialogFooter>
 		<button
 			uiButton
-			variant="secondary"
+			variant="premium"
 			type="button"
 			class="mr-auto"
 			[attr.title]="premiumAccessHint()"
 			[disabled]="isSaving() || hasPremiumRole()"
 			(click)="premiumAccessRequested.emit()"
 		>
-			<span aria-hidden="true" class="material-icons text-base"
+			<span
+				aria-hidden="true"
+				class="material-icons text-base text-premium"
 				>workspace_premium</span
 			>
 			Premium access

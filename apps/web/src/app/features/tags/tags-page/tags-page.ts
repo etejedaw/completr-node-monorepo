@@ -9,6 +9,7 @@ import {
 } from "@angular/core";
 import { Router } from "@angular/router";
 
+import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
 import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
@@ -69,6 +70,7 @@ export default class TagsPage implements OnInit {
 	private readonly toast = inject(ToastService);
 	private readonly router = inject(Router);
 
+	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly tags = signal<UserTag[]>([]);
 	protected readonly loading = signal(true);
 	protected readonly saving = signal<string | null>(null);

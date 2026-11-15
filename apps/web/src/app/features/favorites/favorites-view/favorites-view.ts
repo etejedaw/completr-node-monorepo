@@ -28,6 +28,7 @@ import {
 } from "rxjs";
 
 import { type FavoriteEntry } from "../../../core/models";
+import { AuthService } from "../../../core/services/auth";
 import { type ExportParams } from "../../../core/services/export";
 import { ToastService } from "../../../core/services/toast";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
@@ -80,6 +81,7 @@ export class FavoritesView implements OnInit {
 	private readonly toast = inject(ToastService);
 	private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 	private readonly injector = inject(Injector);
+	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly openBacklogQuickAdd = injectBacklogQuickAdd(() =>
 		this.loadFavorites()
 	);

@@ -7,7 +7,11 @@
 		heroSubtitle
 		class="m-0 mt-2 flex items-center gap-1.5 text-sm text-fg-secondary"
 	>
-		<span class="font-semibold text-fg tabular-nums">{{ total() }}</span>
+		<span
+			class="font-semibold text-fg tabular-nums"
+			[class.!text-premium]="isPremium()"
+			>{{ total() }}</span
+		>
 		saved {{ total() === 1 ? 'view' : 'views' }} of your library
 		<ui-premium-badge
 			*appPremiumOnly
@@ -64,7 +68,7 @@
 	/>
 </app-library-toolbar>
 } @if (frozen()) {
-<ui-alert tone="info" icon="lock" class="mb-6 max-w-2xl">
+<ui-alert tone="premium" icon="lock" class="mb-6 max-w-2xl">
 	Saved views are frozen. Delete views to go below the free limit (5) to
 	create or edit again.
 </ui-alert>
