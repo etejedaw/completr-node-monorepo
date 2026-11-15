@@ -11,8 +11,8 @@ import { UpdateRewindEditionSchema } from "./schemas/update-rewind-edition.schem
 
 const router = Router();
 const adminMiddleware = [
-	rateLimiterMiddleware(userLimiter),
-	hiddenRouteMiddleware()
+	hiddenRouteMiddleware(),
+	rateLimiterMiddleware(userLimiter)
 ];
 
 router.get(

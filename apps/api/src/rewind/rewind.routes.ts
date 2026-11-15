@@ -17,8 +17,8 @@ const router = Router();
 router.get(
 	"/users/:username/rewinds",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params")
 	],
 	rewindController.getUserRewinds
@@ -27,8 +27,8 @@ router.get(
 router.get(
 	"/users/:username/rewinds/:year",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(RewindYearParamsSchema, "params")
 	],
 	rewindController.getUserRewind

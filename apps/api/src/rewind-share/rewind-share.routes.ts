@@ -12,8 +12,8 @@ const router = Router();
 router.get(
 	"/share/rewind/:username/:year/story.png",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(RewindYearParamsSchema, "params")
 	],
 	rewindShareController.getRewindStoryImage
@@ -32,8 +32,8 @@ router.get(
 router.get(
 	"/share/rewind/:username/:year/og.png",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(RewindYearParamsSchema, "params")
 	],
 	rewindShareController.getRewindOgImage
