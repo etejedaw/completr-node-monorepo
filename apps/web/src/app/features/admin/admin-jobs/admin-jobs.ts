@@ -3,10 +3,12 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { type Subscription } from "rxjs";
 
 import { ToastService } from "../../../core/services/toast";
@@ -24,6 +26,9 @@ import {
 import { type JobEntry } from "../services/jobs.model";
 import { JobsService } from "../services/jobs.service";
 import { type JobAction, type JobStatusStyle } from "./admin-jobs.model";
+
+const POPULATE_RAWG_BATCH_SIZE = 2;
+const NOT_FOUND_STATUS = 404;
 
 const JOB_ACTIONS: JobAction[] = [
 	{ type: "populate_rawg", label: "Populate RAWG IDs", icon: "cloud_sync" },
@@ -70,6 +75,7 @@ const DEFAULT_JOB_STATUS_STYLE: JobStatusStyle = {
 export class AdminJobs implements OnInit {
 	private readonly jobsService = inject(JobsService);
 	private readonly toast = inject(ToastService);
+	private readonly destroyRef = inject(DestroyRef);
 	private loadRequest?: Subscription;
 
 	protected readonly jobs = signal<JobEntry[]>([]);
@@ -89,16 +95,21 @@ export class AdminJobs implements OnInit {
 	protected readonly skeletonRows = [1, 2, 3, 4];
 
 	ngOnInit() {
+		this.destroyRef.onDestroy(() => this.loadRequest?.unsubscribe());
 		this.loadJobs();
 	}
 
 	startJob(type: string) {
+		if (this.starting()) return;
 		this.starting.set(type);
-		const actions: Record<
-			string,
-			() => ReturnType<typeof this.jobsService.startPopulateRawg>
+		const actions: Partial<
+			Record<
+				string,
+				() => ReturnType<typeof this.jobsService.startPopulateRawg>
+			>
 		> = {
-			populate_rawg: () => this.jobsService.startPopulateRawg(2),
+			populate_rawg: () =>
+				this.jobsService.startPopulateRawg(POPULATE_RAWG_BATCH_SIZE),
 			populate_external_data: () =>
 				this.jobsService.startPopulateExternalData(),
 			calculate_ratings: () => this.jobsService.startCalculateRatings(),
@@ -107,32 +118,41 @@ export class AdminJobs implements OnInit {
 		};
 
 		const action = actions[type];
-		if (!action) return;
+		if (!action) {
+			this.starting.set("");
+			return;
+		}
 
-		action().subscribe({
-			next: () => {
-				this.starting.set("");
-				this.loadJobs();
-			},
-			error: () => this.starting.set("")
-		});
+		action()
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: () => {
+					this.starting.set("");
+					this.loadJobs();
+				},
+				error: () => this.starting.set("")
+			});
 	}
 
 	cancelJob(jobId: string) {
 		if (this.cancelling()) return;
 		this.cancelling.set(jobId);
-		this.jobsService.cancelJob(jobId).subscribe({
-			next: () => {
-				this.cancelling.set("");
-				this.loadJobs();
-			},
-			error: () => {
-				this.cancelling.set("");
-				this.toast.warning(
-					"Couldn't cancel the job. It may have already finished."
-				);
-			}
-		});
+		this.jobsService
+			.cancelJob(jobId)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: () => {
+					this.cancelling.set("");
+					this.loadJobs();
+				},
+				error: err => {
+					this.cancelling.set("");
+					this.toast.warning(
+						"Couldn't cancel the job. It may have already finished."
+					);
+					if (err.status === NOT_FOUND_STATUS) this.loadJobs();
+				}
+			});
 	}
 
 	refresh() {
