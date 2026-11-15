@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { moveInOrder } from "../../src/queue/move-in-order.util";
+import { moveInOrder } from "../../../src/queue/utils/move-in-order.util";
 
 const IDS = ["a", "b", "c", "d"];
 

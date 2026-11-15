@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { type Queue } from "../../src/queue/queue.model";
-import { sortQueueExport } from "../../src/queue/sort-queue-export.util";
+import { type Queue } from "../../../src/queue/queue.model";
+import { sortQueueExport } from "../../../src/queue/utils/sort-queue-export.util";
 
 function entry(
 	position: number,

@@ -1,7 +1,7 @@
-import { calculateRatio } from "../common/utils/calculate-ratio.util";
-import { type Queue } from "./queue.model";
-import { type QueueEntryComparator } from "./queue.types";
-import { type QueueExportQuery } from "./schemas/queue-export-query.schema";
+import { calculateRatio } from "../../common/utils/calculate-ratio.util";
+import { type Queue } from "../queue.model";
+import { type QueueEntryComparator } from "../queue.types";
+import { type QueueExportQuery } from "../schemas/queue-export-query.schema";
 
 function ratioOf(entry: Queue) {
 	return calculateRatio(entry.Backlog.score, entry.Backlog.duration);
