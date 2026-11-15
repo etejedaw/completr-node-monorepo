@@ -1,8 +1,6 @@
 <app-library-hero eyebrow="Library" heading="Tags" [posters]="heroPosters()">
 	<p heroSubtitle class="m-0 mt-2 max-w-xl text-sm text-fg-secondary">
-		<span
-			class="font-semibold text-fg tabular-nums"
-			[class.!text-premium]="isPremium()"
+		<span class="font-semibold text-fg tabular-nums"
 			>{{ tags().length }}</span
 		>
 		{{ tags().length === 1 ? 'tag' : 'tags' }}

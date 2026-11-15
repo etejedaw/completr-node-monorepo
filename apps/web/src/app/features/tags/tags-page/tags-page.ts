@@ -9,8 +9,8 @@ import {
 } from "@angular/core";
 import { Router } from "@angular/router";
 
-import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
+import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
@@ -33,7 +33,6 @@ import {
 	type UserTag
 } from "../../mood-tags/mood-tags.model";
 import { TagCreateDialog } from "../tag-create-dialog/tag-create-dialog";
-import { isCentrallyNotified } from "../tag-errors";
 import { TagRow } from "../tag-row/tag-row";
 import { type TagEdit } from "../tag-row/tag-row.model";
 
@@ -69,7 +68,6 @@ export default class TagsPage implements OnInit {
 	private readonly moodTagsService = inject(MoodTagsService);
 	private readonly toast = inject(ToastService);
 	private readonly router = inject(Router);
-	protected readonly isPremium = inject(AuthService).isPremium;
 
 	protected readonly tags = signal<UserTag[]>([]);
 	protected readonly loading = signal(true);
@@ -163,7 +161,7 @@ export default class TagsPage implements OnInit {
 			},
 			error: (err: HttpErrorResponse) => {
 				this.saving.set(null);
-				if (!isCentrallyNotified(err))
+				if (!isToastedByErrorInterceptor(err.status))
 					this.toast.error(err.error?.title ?? "Update failed");
 			}
 		});
@@ -193,7 +191,7 @@ export default class TagsPage implements OnInit {
 			error: (err: HttpErrorResponse) => {
 				this.saving.set(null);
 				this.pendingDelete.set(null);
-				if (!isCentrallyNotified(err))
+				if (!isToastedByErrorInterceptor(err.status))
 					this.toast.error(err.error?.title ?? "Delete failed");
 			}
 		});
