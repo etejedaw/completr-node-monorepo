@@ -1,26 +1,30 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import {
+	AVATAR_PRESET_COUNT,
+	AVATAR_PRESET_PATHS
+} from "../../../src/common/constants/avatar.constants";
 import { AvatarUrlSchema } from "../../../src/common/schemas/avatar-url.schema";
 import { UpdateUserSchema } from "../../../src/users/schemas/update-user.schema";
 
-const MAX_LENGTH = 255;
-
 void describe("AvatarUrlSchema", () => {
-	void it("accepts http(s) urls and preset avatar paths", () => {
-		for (const value of [
-			"https://img.example.test/a.png",
-			"http://img.example.test/a.png",
-			"/avatars/completr_profile_01.png",
-			"/avatars/completr_profile_15.png"
-		])
+	void it("accepts each of the preset avatars", () => {
+		assert.equal(AVATAR_PRESET_PATHS.length, AVATAR_PRESET_COUNT);
+		for (const value of AVATAR_PRESET_PATHS)
 			assert.equal(AvatarUrlSchema.safeParse(value).success, true, value);
 	});
 
 	void it("rejects junk input", () => {
-		const longUrl = `https://example.test/${"a".repeat(MAX_LENGTH)}`;
 		for (const value of [
 			"",
+			"https://img.example.test/a.png",
+			"http://img.example.test/a.png",
+			"/avatars/completr_profile_00.png",
+			"/avatars/completr_profile_16.png",
+			"/avatars/completr_profile_99.png",
+			"/AVATARS/COMPLETR_PROFILE_01.PNG",
+			" /avatars/completr_profile_01.png",
 			"nope",
 			"javascript:alert(1)",
 			"data:image/png;base64,AAAA",
@@ -33,7 +37,7 @@ void describe("AvatarUrlSchema", () => {
 			"/avatars/completr_profile_01.png?x=1",
 			"/other/completr_profile_01.png",
 			"//evil.test/avatars/completr_profile_01.png",
-			longUrl,
+			`https://example.test/${"a".repeat(300)}.png`,
 			null,
 			42
 		])
@@ -55,7 +59,12 @@ void describe("UpdateUserSchema avatarUrl", () => {
 	});
 
 	void it("rejects junk avatars", () => {
-		for (const avatarUrl of ["../x.png", "javascript:x", "a".repeat(256)])
+		for (const avatarUrl of [
+			"../x.png",
+			"javascript:x",
+			"a".repeat(256),
+			"https://img.example.test/a.png"
+		])
 			assert.equal(
 				UpdateUserSchema.safeParse({ avatarUrl }).success,
 				false,

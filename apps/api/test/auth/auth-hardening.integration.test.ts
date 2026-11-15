@@ -143,6 +143,33 @@ void describe("admin password changes follow the password policy", () => {
 		assert.equal(notAUrl.status, 422);
 	});
 
+	void it("only accepts the preset avatars, never an external image or a preset outside the list", async () => {
+		const account = await createUserWithSession();
+
+		for (const avatarUrl of [
+			"https://img.example.test/a.png",
+			"http://img.example.test/a.png",
+			"/avatars/completr_profile_00.png",
+			"/avatars/completr_profile_16.png"
+		]) {
+			const response = await api()
+				.patch("/users/me")
+				.set("Authorization", account.authorization)
+				.send({ avatarUrl });
+			assert.equal(response.status, 422, avatarUrl);
+		}
+
+		const lastPreset = await api()
+			.patch("/users/me")
+			.set("Authorization", account.authorization)
+			.send({ avatarUrl: "/avatars/completr_profile_15.png" });
+		assert.equal(lastPreset.status, 200);
+		assert.equal(
+			lastPreset.body.data.user.avatarUrl,
+			"/avatars/completr_profile_15.png"
+		);
+	});
+
 	void it("accepts a preset avatar path and lets the user clear it with null", async () => {
 		const account = await createUserWithSession();
 		const preset = "/avatars/completr_profile_04.png";
