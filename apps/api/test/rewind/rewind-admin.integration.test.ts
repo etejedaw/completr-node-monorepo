@@ -1,13 +1,14 @@
 import "./rewind-today-env.setup";
 
 import assert from "node:assert/strict";
-import { beforeEach, describe, it } from "node:test";
+import { afterEach, beforeEach, describe, it, mock } from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { QueryTypes } from "sequelize";
 
 import { AuditLog } from "../../src/audit/audit.model";
 import { sequelize } from "../../src/database/sequelize.database";
+import { PremiumGrant } from "../../src/premium-access/premium-grant.model";
 import { type RewindPremiumAccessKind } from "../../src/rewind/rewind.constants";
 import { Rewind } from "../../src/rewind/rewind.model";
 import { RewindEdition } from "../../src/rewind-editions/rewind-edition.model";
@@ -15,7 +16,24 @@ import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
 import { truncateAllTables, useTestDatabase } from "../helpers/database.helper";
 import { eventually } from "../helpers/eventually.helper";
-import { createRewindEdition, createUser } from "../helpers/factories.helper";
+import {
+	createGame,
+	createPlatform,
+	createRewindEdition,
+	createUser
+} from "../helpers/factories.helper";
+import {
+	addRun,
+	EDITION_QUOTA,
+	findRewindRow,
+	generate,
+	mockAiRecap,
+	mockPremiumStats,
+	openRewindEdition2026,
+	readRewind,
+	regenerationOf,
+	signUpOn
+} from "./rewind-generation.helper";
 
 useTestDatabase();
 
@@ -44,21 +62,52 @@ function auditEntry(action: string, targetId: string) {
 	});
 }
 
-async function storeRewindFor(
-	year: number,
-	accessKind: RewindPremiumAccessKind | null,
-	regenerationsLeft: number,
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+function grantFeature(
+	userId: string,
+	feature: "rewind.premium" | "*",
+	expiresAt = new Date(Date.now() + ONE_DAY_MS)
+) {
+	return PremiumGrant.create({ userId, feature, expiresAt });
+}
+
+async function createOwnerWith(
+	aiAccess: RewindPremiumAccessKind | null,
 	username?: string
 ) {
-	const user = await createUser(username ? { username } : {});
+	const user = await createUser({
+		...(username ? { username } : {}),
+		role: aiAccess === "premium" ? "premium" : "user"
+	});
+	if (aiAccess === "gift") await grantFeature(user.id, "rewind.premium");
+	return user;
+}
+
+function storeRewindOf(
+	userId: string,
+	year: number,
+	accessKind: RewindPremiumAccessKind | null,
+	regenerationsLeft: number
+) {
 	return Rewind.create({
-		userId: user.id,
+		userId,
 		year,
 		language: "en",
 		generatedAt: new Date("2026-12-02T10:00:00.000Z"),
 		premiumAccessKind: accessKind,
 		regenerationsLeft
 	});
+}
+
+async function storeRewindFor(
+	year: number,
+	accessKind: RewindPremiumAccessKind | null,
+	regenerationsLeft: number,
+	username?: string
+) {
+	const user = await createOwnerWith(accessKind, username);
+	return storeRewindOf(user.id, year, accessKind, regenerationsLeft);
 }
 
 function putEdition(admin: Admin, year: number | string, body: unknown) {
@@ -592,6 +641,7 @@ void describe("GET /admin/rewinds", () => {
 				year: 2026,
 				user: { id: premium.userId, username: "alice_p" },
 				accessKind: "premium",
+				aiAccess: "premium",
 				regenerationsLeft: 3,
 				graceUsed: false,
 				generatedAt: "2026-12-03T10:00:00.000Z",
@@ -602,11 +652,56 @@ void describe("GET /admin/rewinds", () => {
 				year: 2026,
 				user: { id: none.userId, username: "bob_n" },
 				accessKind: "none",
+				aiAccess: "none",
 				regenerationsLeft: 0,
 				graceUsed: true,
 				generatedAt: "2026-12-02T10:00:00.000Z",
 				frozenAt: "2027-02-01T00:00:00.000Z"
 			}
+		]);
+	});
+
+	void it("reports the current AI access of each owner, not the access stored with the rewind", async () => {
+		const admin = await createUserWithSession("admin");
+		const lostGift = await createOwnerWith(null, "lost_gift");
+		await storeRewindOf(lostGift.id, 2026, "gift", 1);
+		const expired = await createOwnerWith(null, "expired_gift");
+		await grantFeature(
+			expired.id,
+			"rewind.premium",
+			new Date(Date.now() - ONE_DAY_MS)
+		);
+		await storeRewindOf(expired.id, 2026, null, 0);
+		const gifted = await createOwnerWith("gift", "fresh_gift");
+		await storeRewindOf(gifted.id, 2026, null, 0);
+		await storeRewindOf(gifted.id, 2025, null, 0);
+		const fullGrant = await createOwnerWith(null, "full_grant");
+		await grantFeature(fullGrant.id, "*");
+		await storeRewindOf(fullGrant.id, 2026, "gift", 1);
+		const premiumRole = await createOwnerWith("premium", "premium_role");
+		await storeRewindOf(premiumRole.id, 2026, null, 0);
+
+		const response = await listRewinds(admin, "limit=100");
+
+		assert.equal(response.status, 200);
+		const accessByRow = response.body.data.rewinds
+			.map(
+				(row: {
+					year: number;
+					user: { username: string };
+					accessKind: string;
+					aiAccess: string;
+				}) =>
+					`${row.user.username}/${row.year}:${row.accessKind}->${row.aiAccess}`
+			)
+			.sort();
+		assert.deepEqual(accessByRow, [
+			"expired_gift/2026:none->none",
+			"fresh_gift/2025:none->gift",
+			"fresh_gift/2026:none->gift",
+			"full_grant/2026:gift->premium",
+			"lost_gift/2026:gift->none",
+			"premium_role/2026:none->premium"
 		]);
 	});
 
@@ -718,6 +813,7 @@ void describe("PATCH /admin/rewinds/:id", () => {
 			year: 2026,
 			user: { id: rewind.userId, username: "patch_me" },
 			accessKind: "gift",
+			aiAccess: "gift",
 			regenerationsLeft: 6,
 			graceUsed: false,
 			generatedAt: "2026-12-02T10:00:00.000Z",
@@ -778,6 +874,86 @@ void describe("PATCH /admin/rewinds/:id", () => {
 		assert.equal(response.body.type, "REWIND_NOT_FOUND");
 	});
 
+	void it("answers 409 REWIND_NO_AI_ACCESS to owners without access and changes nothing, even on a double submit", async () => {
+		const admin = await createUserWithSession("admin");
+		const lostPremium = await storeRewindFor(2026, null, 0);
+		await Rewind.update(
+			{ premiumAccessKind: "premium", regenerationsLeft: 2 },
+			{ where: { id: lostPremium.id } }
+		);
+		const expired = await createOwnerWith(null);
+		await grantFeature(
+			expired.id,
+			"rewind.premium",
+			new Date(Date.now() - ONE_DAY_MS)
+		);
+		const expiredRewind = await storeRewindOf(expired.id, 2026, null, 0);
+
+		const responses = await Promise.all([
+			patchRewind(admin, lostPremium.id, { regenerationsLeft: 5 }),
+			patchRewind(admin, lostPremium.id, { regenerationsLeft: 5 }),
+			patchRewind(admin, expiredRewind.id, { regenerationsLeft: 1 })
+		]);
+
+		for (const response of responses) {
+			assert.equal(response.status, 409);
+			assert.equal(response.body.type, "REWIND_NO_AI_ACCESS");
+		}
+		await lostPremium.reload();
+		assert.equal(lostPremium.regenerationsLeft, 2);
+		await expiredRewind.reload();
+		assert.equal(expiredRewind.regenerationsLeft, 0);
+		await delay(100);
+		assert.equal(
+			await AuditLog.count({ where: { action: "rewind_edited" } }),
+			0
+		);
+	});
+
+	void it("lets the admin give rolls to owners with a gift, a full grant or the premium role", async () => {
+		const admin = await createUserWithSession("admin");
+		const gift = await storeRewindFor(2026, null, 0);
+		await grantFeature(gift.userId, "rewind.premium");
+		const fullGrant = await storeRewindFor(2026, null, 0);
+		await grantFeature(fullGrant.userId, "*");
+		const premiumOwner = await createOwnerWith("premium");
+		const premium = await storeRewindOf(premiumOwner.id, 2026, null, 0);
+
+		const cases = [
+			{ rewind: gift, aiAccess: "gift" },
+			{ rewind: fullGrant, aiAccess: "premium" },
+			{ rewind: premium, aiAccess: "premium" }
+		];
+		for (const { rewind, aiAccess } of cases) {
+			const response = await patchRewind(admin, rewind.id, {
+				regenerationsLeft: 2
+			});
+			assert.equal(response.status, 200, aiAccess);
+			assert.equal(response.body.data.rewind.aiAccess, aiAccess);
+			assert.equal(response.body.data.rewind.accessKind, "none");
+			assert.equal(response.body.data.rewind.regenerationsLeft, 2);
+			await rewind.reload();
+			assert.equal(rewind.regenerationsLeft, 2);
+		}
+	});
+
+	void it("answers 409 when the owner loses the access between the listing and the save", async () => {
+		const admin = await createUserWithSession("admin");
+		const rewind = await storeRewindFor(2026, "gift", 1, "about_to_lose");
+		const listed = await listRewinds(admin, "year=2026");
+		assert.equal(listed.body.data.rewinds[0].aiAccess, "gift");
+
+		await PremiumGrant.destroy({ where: { userId: rewind.userId } });
+		const response = await patchRewind(admin, rewind.id, {
+			regenerationsLeft: 4
+		});
+
+		assert.equal(response.status, 409);
+		assert.equal(response.body.type, "REWIND_NO_AI_ACCESS");
+		await rewind.reload();
+		assert.equal(rewind.regenerationsLeft, 1);
+	});
+
 	void it("waits for a spend in progress on the same row instead of overwriting it", async () => {
 		const admin = await createUserWithSession("admin");
 		const rewind = await storeRewindFor(2026, "premium", 3);
@@ -835,6 +1011,116 @@ void describe("PATCH /admin/rewinds/:id", () => {
 		assert.ok(spend);
 		await rewind.reload();
 		assert.ok([4, 5].includes(rewind.regenerationsLeft));
+	});
+});
+
+void describe("admin rolls given before the first AI use", () => {
+	afterEach(() => {
+		mock.restoreAll();
+	});
+
+	async function freeRewindOwnerWithGift() {
+		const platform = await createPlatform();
+		const game = await createGame({ title: "Hades" });
+		await openRewindEdition2026();
+		const player = await signUpOn("2025-01-15T00:00:00.000Z");
+		await addRun(player, game, platform, { finishedAt: "2026-03-10" });
+		const first = await generate(player, 2026).expect(201);
+		await grantFeature(player.user.id, "rewind.premium");
+		const row = await findRewindRow(player, 2026);
+		assert.ok(row);
+		assert.equal(row.premiumAccessKind, null);
+		assert.equal(row.regenerationsLeft, 0);
+		mockPremiumStats();
+		mockAiRecap();
+		return {
+			player,
+			row,
+			regeneration: regenerationOf(first.body.data.generatedAt)
+		};
+	}
+
+	void it("adds the edition quota on top of them instead of replacing them", async () => {
+		const admin = await createUserWithSession("admin");
+		const { player, row, regeneration } = await freeRewindOwnerWithGift();
+
+		const patch = await patchRewind(admin, row.id, {
+			regenerationsLeft: 3
+		});
+		assert.equal(patch.status, 200);
+		assert.equal(patch.body.data.rewind.aiAccess, "gift");
+		const owned = await readRewind(
+			player.user.username,
+			2026,
+			player.authorization
+		).expect(200);
+		assert.equal(
+			owned.body.data.ownerControls.regenerationsLeft,
+			3 + EDITION_QUOTA
+		);
+
+		const regenerated = await generate(player, 2026, regeneration);
+
+		assert.equal(regenerated.status, 200);
+		assert.equal(
+			regenerated.body.data.ownerControls.regenerationsLeft,
+			3 + EDITION_QUOTA - 1
+		);
+		await row.reload();
+		assert.equal(row.premiumAccessKind, "gift");
+		assert.equal(row.regenerationsLeft, 3 + EDITION_QUOTA - 1);
+	});
+
+	void it("keeps the rolls of a patch that lands just before a concurrent first AI use", async () => {
+		const admin = await createUserWithSession("admin");
+		const { player, row, regeneration } = await freeRewindOwnerWithGift();
+		let patch: ReturnType<typeof patchRewind> | undefined;
+		let regenerated: ReturnType<typeof generate> | undefined;
+
+		await sequelize.transaction(async transaction => {
+			await Rewind.findByPk(row.id, {
+				lock: transaction.LOCK.UPDATE,
+				transaction
+			});
+			patch = patchRewind(admin, row.id, { regenerationsLeft: 3 });
+			await delay(250);
+			regenerated = generate(player, 2026, regeneration);
+			await delay(250);
+		});
+		assert.ok(patch && regenerated);
+		const [patched, generation] = await Promise.all([patch, regenerated]);
+
+		assert.equal(patched.status, 200);
+		assert.equal(generation.status, 200);
+		await row.reload();
+		assert.equal(row.premiumAccessKind, "gift");
+		assert.equal(row.regenerationsLeft, 3 + EDITION_QUOTA - 1);
+	});
+
+	void it("never loses the rolls when patches and double clicks race in any order", async () => {
+		const admin = await createUserWithSession("admin");
+		const { player, row, regeneration } = await freeRewindOwnerWithGift();
+
+		const [firstPatch, firstClick, secondClick, secondPatch] =
+			await Promise.all([
+				patchRewind(admin, row.id, { regenerationsLeft: 3 }),
+				generate(player, 2026, regeneration),
+				generate(player, 2026, regeneration),
+				patchRewind(admin, row.id, { regenerationsLeft: 3 })
+			]);
+
+		assert.equal(firstPatch.status, 200);
+		assert.equal(secondPatch.status, 200);
+		assert.deepEqual(
+			[firstClick.status, secondClick.status].sort(),
+			[200, 409]
+		);
+		await row.reload();
+		assert.equal(row.premiumAccessKind, "gift");
+		assert.ok(
+			[3, 3 + EDITION_QUOTA - 1].includes(row.regenerationsLeft),
+			`unexpected ${row.regenerationsLeft} rolls`
+		);
 	});
 });
 

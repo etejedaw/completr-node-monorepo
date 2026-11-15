@@ -315,6 +315,30 @@ void describe("resolveRewindAiBudget", () => {
 		assert.equal(budget.spend, null);
 	});
 
+	void it("adds the edition quota to the rolls an admin gave before the first use", () => {
+		const budget = resolveRewindAiBudget(
+			record({ regenerationsLeft: 2 }),
+			on(DECEMBER),
+			"premium"
+		);
+		assert.deepEqual(budget.assignment, {
+			premiumAccessKind: "premium",
+			regenerationsLeft: 3
+		});
+		assert.equal(budget.regenerationsLeft, 5);
+		assert.equal(budget.spend, "regeneration");
+	});
+
+	void it("never adds the quota again once the rewind used the AI", () => {
+		const budget = resolveRewindAiBudget(
+			premiumRecord({ regenerationsLeft: 2 }),
+			on(DECEMBER),
+			"premium"
+		);
+		assert.equal(budget.assignment, null);
+		assert.equal(budget.regenerationsLeft, 2);
+	});
+
 	void it("announces the grace only while it can be used", () => {
 		const graceOf = (today: Date, stored: RewindRecord) =>
 			resolveRewindAiBudget(stored, on(today), "gift").graceEndsAt;
@@ -336,6 +360,30 @@ void describe("resolveRewindAiUseChanges", () => {
 			premiumAccessKind: "premium",
 			regenerationsLeft: 2,
 			graceUsed: false
+		});
+	});
+
+	void it("keeps the rolls an admin gave before the first use on top of the quota", () => {
+		const stored = record({ regenerationsLeft: 4 });
+		const budget = resolveRewindAiBudget(stored, on(DECEMBER), "gift");
+		assert.deepEqual(resolveRewindAiUseChanges(stored, budget), {
+			premiumAccessKind: "gift",
+			regenerationsLeft: 4,
+			graceUsed: false
+		});
+	});
+
+	void it("keeps the admin rolls and the quota when the grace is spent", () => {
+		const stored = record({ regenerationsLeft: 2 });
+		const budget = resolveRewindAiBudget(
+			stored,
+			on(GRACE_FIRST_DAY),
+			"premium"
+		);
+		assert.deepEqual(resolveRewindAiUseChanges(stored, budget), {
+			premiumAccessKind: "premium",
+			regenerationsLeft: 5,
+			graceUsed: true
 		});
 	});
 
@@ -449,6 +497,20 @@ void describe("buildRewindOwnerControls", () => {
 		assert.equal(controls.regenerationsLeft, 3);
 		assert.equal(controls.canRegenerate, true);
 		assert.equal(controls.aiRecapState, "available");
+	});
+
+	void it("counts the admin rolls plus the pending quota before the first use", () => {
+		const stored = record({ regenerationsLeft: 2 });
+		assert.equal(
+			buildRewindOwnerControls(stored, on(DECEMBER), "gift")
+				.regenerationsLeft,
+			3
+		);
+		assert.equal(
+			buildRewindOwnerControls(stored, on(DECEMBER), null)
+				.regenerationsLeft,
+			2
+		);
 	});
 
 	void it("offers the grace with zero rolls and closes everything after the period", () => {
