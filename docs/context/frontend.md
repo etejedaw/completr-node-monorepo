@@ -120,6 +120,7 @@ Los `<pantalla>.interaction.spec.ts` simulan lo que hace un usuario en una panta
 - Clases, interfaces y tipos en `PascalCase`.
 - Los tipos compartidos entre features (el contrato con la API) viven en `core/models/`. El resto de las `interface` y de los `type` que describen un objeto (también una unión de objetos) van en un `<archivo>.model.ts` junto al archivo que los usa, nunca dentro de un componente, service, guard, directiva o util; las uniones de literales que esos tipos necesitan viajan con ellos. Se quedan donde están los tipos derivados de una constante o función (`(typeof X)[number]`, `ReturnType<typeof injectX>`), las firmas de función y los tipos locales de un spec.
 - Selectores con prefijo `app-` o `ui-` (lo valida ESLint). Los componentes de `shared/ui/` que extienden un elemento nativo usan selector de atributo (`<button uiButton>`).
+- Cada pieza de `shared/ui/` vive en su carpeta (`shared/ui/<nombre>/`) con archivo `ui-<nombre>.ts`, clase `Ui<Nombre>` y selector `ui-<nombre>` o `ui<Nombre>`, y se exporta desde `shared/ui/index.ts`. Dentro de `shared/ui/` las piezas se importan entre sí por ruta directa, no por el `index`, para no crear ciclos.
 - URLs en `kebab-case`.
 
 ## Diseño visual
@@ -143,6 +144,7 @@ Los `<pantalla>.interaction.spec.ts` simulan lo que hace un usuario en una panta
 - Los colores de estado o de rol que identifican algo (premium, administrador, progreso) son un token propio y distinto en cada tema, y no se reutilizan para otra cosa.
 - Sombras y `drop-shadow` son tokens (`--shadow-*`, `--drop-shadow-*` en `@theme`). Son negras con alfa y no varían por tema, así que los archivos de tema no las redefinen. Una sombra escrita con `shadow-[...]` que se usa en más de un sitio pasa a token.
 - Superficies y bordes: `canvas`, `sidebar`, `surface`, `surface-hover`, `input-bg`, `line` y `line-hover`. Un hover sobre una fila usa `hover:bg-surface-hover`. Nunca se usa blanco o negro con alfa (`bg-white/[0.03]`), porque no se adapta a los temas.
+- Sobre una imagen (héroes, portadas) el texto usa `on-image` (`text-on-image`, `bg-on-image/10`, `border-on-image/10`) y los velos y fondos de insignias usan `scrim`, `scrim-strong` y `scrim-badge`. Son los únicos blancos y negros con alfa permitidos, porque sobre una foto el tema no cambia el contraste; el backdrop de los overlays es la utilidad `ui-backdrop`, que usa `scrim`.
 - La raíz mide **14px** (`html { font-size: 14px }`), así que las clases en rem de Tailwind salen un 12,5% más chicas: `h-11` mide 38,5px y `gap-2` mide 7px. Los tamaños mínimos (44px táctiles, separaciones de 8px) se escriben en px: `min-h-[44px]`, `gap-[8px]`.
 
 ### Tipografía
@@ -150,6 +152,7 @@ Los `<pantalla>.interaction.spec.ts` simulan lo que hace un usuario en una panta
 - Una fuente de títulos y cifras destacadas (`font-display`) y otra para el texto (`font-sans`), servidas localmente (subconjuntos latin y latin-ext, `font-display: swap`). No se cargan fuentes de terceros.
 - Si la licencia es SIL Open Font License, su texto (`*-OFL.txt`) va junto a los archivos y debe acompañar a cualquier fuente que se agregue.
 - Columnas de datos con `tabular-nums`.
+- Los tamaños de texto fuera de la escala de Tailwind son tokens `--text-*` en `@theme` (`text-micro`, `text-tiny`, `text-caption`, `text-compact`, `text-lead`), sin `--line-height` propio para que se comporten igual que el valor arbitrario. Un `text-[...]` que aparece tres veces o más pasa a token.
 
 ### Shell
 
@@ -157,6 +160,7 @@ Los `<pantalla>.interaction.spec.ts` simulan lo que hace un usuario en una panta
 - El scroll vive en `main` (`.page-scroller`, contenedor de consultas `page`); cada página va dentro de `.page-shell`. No se pone `isolate` en `<main>`, porque rompe el apilamiento de las hojas inferiores.
 - Medidas del shell como variables CSS en `styles.css` (altura de topbar y tabbar, ancho máximo y padding de página). Las barras fijas se pegan con `top-[var(--topbar-height)]`.
 - Toda la configuración de los toasts vive en un solo objeto de configuración y hay un solo contenedor de toasts, montado en el shell. `ng-primitives/toast` se carga con `import()` dinámico para sacarlo del bundle inicial, así que no hay `provideToastConfig` en `app.config.ts`.
+- Un toast informativo puede llevar una acción (`toast.success(message, { action: { label, run } })`): se ve como botón, corre una sola vez aunque se pulse dos veces y cierra el toast. Es distinta del _Undo_ del toast pendiente, que no se usa para navegar ni para otra cosa que deshacer.
 
 ### Utilidades globales (`src/styles.css`)
 
@@ -202,7 +206,12 @@ Los `<pantalla>.interaction.spec.ts` simulan lo que hace un usuario en una panta
 - Reordenar siempre ofrece una alternativa al arrastre (flechas o "Move up/down"), y el arrastre solo empieza desde el asa (`cdkDragHandle`).
 - **Selección masiva** solo con la casilla: el clic en la fila sigue abriendo el editor. Los predicados de elegibilidad son funciones puras compartidas entre la tabla y la tarjeta, no se reescriben por página.
 - **Acciones destructivas:** las reversibles (quitar de una colección) usan un toast pendiente con _Undo_, con una ventana de deshacer única para toda la app que no se configura por pantalla. Las irreversibles y dejar de seguir a alguien piden confirmación con un diálogo de tono `danger`, nunca con una confirmación en línea.
-- **Errores que avisa el interceptor:** los errores que el interceptor global ya muestra como toast (topes del plan, conflictos, validación, rate limit) no se repiten en las pantallas: se consulta con un helper (`isToastedByErrorInterceptor(status)`).
+- **Errores que avisa el interceptor:** los errores que el interceptor global ya muestra como toast (topes del plan, conflictos, validación, rate limit) no se repiten en las pantallas: se consulta con un helper (`isToastedByErrorInterceptor(status)`). El resto se avisa con un helper compartido de fallos HTTP, nunca con una lista local de status.
+- **Un 404 de algo que ya no existe se trata como "no existe":** un recurso borrado en otra pestaña o ajeno (la API responde 404 en vez de 403) quita la fila, cierra el diálogo o muestra el estado vacío de la vista. Un 5xx o un fallo de red, en cambio, muestran un estado de error con reintento, nunca el vacío ni "no encontrado".
+- **Doble envío:** todo handler que envía algo empieza comprobando el flag de carga y sale si ya hay un envío en curso. El `[disabled]` del botón no basta, porque Enter dentro de un campo envía igual. Los toggles por fila (favorito, cola, deseados) usan un helper compartido que guarda las claves en vuelo.
+- **Respuestas desordenadas:** una carga que depende de un parámetro (ruta, juego, mes, filtro) cancela la anterior (`rxResource`, `switchMap` o una `Subscription` que se cancela al recargar), para que una respuesta lenta del valor viejo no pise la del nuevo. Toda suscripción manual lleva `takeUntilDestroyed`.
+- **Sesión:** el refresh del token solo cierra la sesión cuando la API lo rechaza con 401 o 403. Un 5xx, un 429 o un fallo de red propagan el error sin tocar los tokens. Con varias pestañas, el refresh se serializa entre ellas y, si otra ya guardó un token más nuevo, se usa ese en vez de cerrar la sesión.
+- **Almacenamiento:** `localStorage` se lee y escribe solo a través del service de almacenamiento, que tolera un almacenamiento bloqueado (modo privado, cookies de terceros) devolviendo `null` en vez de lanzar.
 - **Descargas:** todo archivo se baja con un único servicio de descargas, que pide el formato por el header `Accept`, toma el nombre de `Content-Disposition` y descarga con un `<a download>` temporal.
 
 ### Proceso de diseño y verificación
