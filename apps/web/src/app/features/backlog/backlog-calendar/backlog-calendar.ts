@@ -12,6 +12,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { forkJoin } from "rxjs";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
+import { FilterChip } from "../../../shared/components/chip-group/filter-chip";
 import { CalendarDayOverflow } from "../../../shared/components/month-calendar/calendar-day-overflow";
 import { CalendarEventChip } from "../../../shared/components/month-calendar/calendar-event-chip";
 import {
@@ -46,6 +47,7 @@ const MONTH_LIMIT = 100;
 		CalendarDayOverflow,
 		CalendarDayTemplate,
 		CalendarEventChip,
+		FilterChip,
 		MonthCalendar,
 		UiButton
 	],
@@ -208,7 +210,7 @@ export class BacklogCalendar {
 
 	protected readonly barClass = backlogStatusCalendarBarClass;
 
-	isStatusHidden(status: BacklogStatus): boolean {
+	protected isStatusHidden(status: BacklogStatus): boolean {
 		return this.hiddenStatuses().has(status);
 	}
 
@@ -225,7 +227,7 @@ export class BacklogCalendar {
 		if (entry) this.entryClick.emit(entry);
 	}
 
-	toggleStatus(status: BacklogStatus) {
+	protected toggleStatus(status: BacklogStatus) {
 		const next = new Set(this.hiddenStatuses());
 		if (next.has(status)) next.delete(status);
 		else next.add(status);
