@@ -24,7 +24,7 @@ docs: |-
 
     **Activation:** the owner sees every open year with data, each with `isGenerated`. Everyone else only sees the years the owner generated with `POST /users/me/rewinds/:year`.
 
-    The owner sees every run. Everyone else gets the summaries built from public runs only (`isPublic = true`), so a year that only has private runs is not listed for them. A frozen year (see `GET /users/:username/rewinds/:year`) is listed as it was at the close of its period: its summary (`persona`, counts, hours and `covers`) comes from the snapshot view of the viewer, so later runs or privacy changes do not move it, and a year that had no public runs at the close is not listed for visitors. Its `persona` follows the current access of the viewer to the platinums section, as for live years. The rest of the years are computed live. For non-self viewers the target's `rewind` section must be visible (`rewindVisibility`: `friends` only for mutual followers, `private` only for the owner) and so must the `profile` section (`profileVisibility`), unless the owner turned on `rewindIgnoresProfileVisibility` (`PATCH /users/me`): then only `rewindVisibility` counts and the profile stays restricted. The persona of a year that would need the platinums is replaced for viewers without access to both the profile and the platinums section.
+    The owner sees every run. Everyone else gets the summaries built from public runs only (`isPublic = true`), so a year that only has private runs is not listed for them. A frozen year (see `GET /users/:username/rewinds/:year`) is listed as it was at the close of its period: its summary (`persona`, counts, hours and `covers`) comes from the snapshot view of the viewer, so later runs or privacy changes do not move it, and a year that had no public runs at the close is not listed for visitors. Its `persona` follows the current access of the viewer to the platinums section, as for live years. The rest of the years are computed live. For non-self viewers the target's `rewind` section must be visible (`rewindVisibility`: `friends` only for mutual followers, `private` only for the owner) and so must the `profile` section (`profileVisibility`): the archive is not reachable when the profile is hidden, so the Rewind cannot be discovered by browsing (the detail of a year, reached by link, only follows `rewindVisibility`). The persona of a year that would need the platinums is replaced for viewers without access to both the profile and the platinums section.
 
     **Authentication:** optional (Bearer token). Required to see a Rewind whose privacy needs it.
     **Rate Limit:** 300 requests per minute (public).
@@ -93,6 +93,6 @@ docs: |-
 
     | Status | Code                  | Description                                     |
     |--------|-----------------------|-------------------------------------------------|
-    | 403    | USER_PRIVATE          | Rewind section not visible, or profile not visible without `rewindIgnoresProfileVisibility` |
+    | 403    | USER_PRIVATE          | Rewind section not visible, or profile not visible |
     | 404    | USER_NOT_FOUND        | No active user with that username               |
     | 422    | COMMON_SCHEMA_INVALID | `username` fails validation                     |

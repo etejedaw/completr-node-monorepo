@@ -61,10 +61,9 @@ docs: |-
     | platinumVisibility    | `private` \| `friends` \| `public`  | No       | Platinums visibility (page, profile section, backlog and feed)    |
     | franchiseVisibility   | `private` \| `friends` \| `public`  | No       | Visibility of the tracked sagas on the profile                    |
     | rewindVisibility      | `private` \| `friends` \| `public`  | No       | Visibility of the yearly Rewind (summary, detail and share image) |
-    | rewindIgnoresProfileVisibility | boolean                    | No       | Defaults to `false`. If `true`, `rewindVisibility` applies without requiring access to the profile: visitors who pass `rewindVisibility` see the Rewind detail, the year archive and the share page and images even if `profileVisibility` hides the profile. The profile and the other sections stay restricted, platinums inside the Rewind still need access to the profile and to `platinumVisibility`, and with `rewindVisibility: private` it has no effect |
     | acceptFollowRequests  | boolean                             | No       | If `false` on a `private` profile, the Follow button is hidden. Toggling from true to false deletes all pending requests. |
     | theme                 | string                              | No       | Theme id                                                          |
 
     ### Response (200)
 
-    Returns the updated `userMe` payload (all 11 visibility enums and `rewindIgnoresProfileVisibility` included).
+    Returns the updated `userMe` payload (all 11 visibility enums included).
