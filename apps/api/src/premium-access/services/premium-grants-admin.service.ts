@@ -1,3 +1,6 @@
+import { type Transaction } from "sequelize";
+
+import { sequelize } from "../../database/sequelize.database";
 import * as premiumAccessServiceError from "../errors/premium-access.service-error";
 import { FULL_PREMIUM_FEATURE } from "../premium-access.constants";
 import { type PremiumGrantExpirationInput } from "../premium-access.interface";
@@ -31,30 +34,46 @@ export async function updatePremiumGrantExpiration(
 	userId: string,
 	grantId: string,
 	input: UpdatePremiumGrantExpirationInput,
-	now = new Date()
+	now?: Date
 ) {
-	const grant = await findOwnedGrant(userId, grantId);
-	assertGrantIsActive(grant, now);
-	await grant.update({
-		expiresAt: resolveExpiration({ ...input, feature: grant.feature }, now)
+	return sequelize.transaction(async transaction => {
+		const grant = await lockOwnedGrant(userId, grantId, transaction);
+		const lockedAt = now ?? new Date();
+		assertGrantIsActive(grant, lockedAt);
+		return grant.update(
+			{
+				expiresAt: resolveExpiration(
+					{ ...input, feature: grant.feature },
+					lockedAt
+				)
+			},
+			{ transaction }
+		);
 	});
-	return grant;
 }
 
 export async function revokePremiumGrant(
 	userId: string,
 	grantId: string,
-	now = new Date()
+	now?: Date
 ) {
-	const grant = await findOwnedGrant(userId, grantId);
-	assertGrantIsActive(grant, now);
-	await grant.update({ expiresAt: now });
-	return grant;
+	return sequelize.transaction(async transaction => {
+		const grant = await lockOwnedGrant(userId, grantId, transaction);
+		const lockedAt = now ?? new Date();
+		assertGrantIsActive(grant, lockedAt);
+		return grant.update({ expiresAt: lockedAt }, { transaction });
+	});
 }
 
-async function findOwnedGrant(userId: string, grantId: string) {
+async function lockOwnedGrant(
+	userId: string,
+	grantId: string,
+	transaction: Transaction
+) {
 	const grant = await PremiumGrant.findOne({
-		where: { id: grantId, userId }
+		where: { id: grantId, userId },
+		lock: transaction.LOCK.UPDATE,
+		transaction
 	});
 	if (!grant) throw premiumAccessServiceError.premiumGrantNotFound();
 	return grant;
