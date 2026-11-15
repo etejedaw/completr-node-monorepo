@@ -12,6 +12,7 @@ RUN npm run build -w apps/landing
 
 FROM nginx:alpine AS runner
 COPY apps/landing/nginx.conf /etc/nginx/conf.d/default.conf
+COPY apps/landing/security-headers.conf /etc/nginx/security-headers.conf
 COPY --from=builder /usr/app/apps/landing/dist /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
