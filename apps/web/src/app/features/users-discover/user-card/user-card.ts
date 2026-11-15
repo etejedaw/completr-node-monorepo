@@ -11,8 +11,7 @@ import { type UserResult } from "../../../core/services/users.model";
 import { avatarRing } from "../../../core/utils/premium";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
 import { UiAvatar, UiBadge, UiButton, UiEyebrow } from "../../../shared/ui";
-
-export type FollowState = "none" | "following" | "requested";
+import { type FollowState } from "../../../shared/utils/inject-follow-actions.model";
 
 @Component({
 	selector: "app-user-card",
