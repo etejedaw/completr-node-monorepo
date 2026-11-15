@@ -56,6 +56,12 @@ router.post(
 	jobsController.postCleanupCoopRuns
 );
 
+router.post(
+	"/admin/jobs/rewind-freeze",
+	[rateLimiterMiddleware(userLimiter), hiddenRouteMiddleware()],
+	jobsController.postRewindFreeze
+);
+
 router.delete(
 	"/admin/jobs/:jobId",
 	[

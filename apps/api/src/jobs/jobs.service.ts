@@ -21,6 +21,8 @@ import { type ExternalDataResult } from "../games/games-external-data.interface"
 import * as rawgServiceError from "../rawg/errors/rawg.service-error";
 import { RawgClient } from "../rawg/rawg.provider";
 import * as reviewsService from "../reviews/reviews.service";
+import { type RewindFreezeReport } from "../rewind/rewind-freeze.interface";
+import * as rewindFreezeService from "../rewind/services/rewind-freeze.service";
 import * as usersService from "../users/users.service";
 import { Job } from "./job.model";
 import {
@@ -124,7 +126,7 @@ function isRawgNotFound(error: unknown) {
 	return error instanceof ServiceError && error.code === "RAWG_NOT_FOUND";
 }
 
-function describeFailure(error: unknown) {
+export function describeFailure(error: unknown) {
 	if (error instanceof ServiceError) {
 		const { raw } = error.serviceError;
 		return typeof raw === "string" ? `${error.code}: ${raw}` : error.code;
@@ -521,5 +523,30 @@ async function runCalculateDurations(jobId: string) {
 		);
 	} catch {
 		await failJob(jobId, `Failed after ${updated} updated`);
+	}
+}
+
+export async function startRewindFreeze() {
+	return startJob("rewind_freeze", runRewindFreeze);
+}
+
+function describeYears(years: number[]) {
+	return years.length > 0 ? years.join(", ") : "none";
+}
+
+export function describeRewindFreezeReport(report: RewindFreezeReport) {
+	if (!report.locked)
+		return "Skipped: another rewind freeze run holds the lock";
+	return `Closed editions: ${describeYears(report.closedEditions)}, Frozen editions: ${describeYears(report.frozenEditions)}, Rewinds frozen: ${report.frozen}, Pending AI recap: ${report.pending}, Failed: ${report.failed}`;
+}
+
+async function runRewindFreeze(jobId: string) {
+	try {
+		const report = await rewindFreezeService.freezeClosedRewindEditions();
+		const result = describeRewindFreezeReport(report);
+		if (report.failed > 0) await failJob(jobId, result);
+		else await completeJob(jobId, result);
+	} catch (error) {
+		await failJob(jobId, `Failed. Reason: ${describeFailure(error)}`);
 	}
 }

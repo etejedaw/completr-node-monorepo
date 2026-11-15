@@ -6,6 +6,7 @@ import { registerExternalDataSources } from "./games/services/external-data-sour
 import { HltbClient } from "./hltb/hltb.provider";
 import { IgdbClient } from "./igdb/igdb.provider";
 import * as jobsService from "./jobs/jobs.service";
+import { startRewindFreezeScheduler } from "./jobs/rewind-freeze.scheduler";
 import { MetacriticClient } from "./metacritic/metacritic.provider";
 import { createApp } from "./server";
 import { WikidataClient } from "./wikidata/wikidata.provider";
@@ -60,6 +61,7 @@ async function bootstrap() {
 	warnIfRawgDisabled();
 	warnIfIgdbDisabled();
 	registerScrapingProviders();
+	startRewindFreezeScheduler();
 
 	const port = environmentConfig.PORT;
 	createApp().listen(port, () =>
