@@ -1,5 +1,7 @@
 import * as activityService from "../activity/activity.service";
 import * as backlogService from "../backlog/backlog.service";
+import * as backlogProfileService from "../backlog/services/backlog-profile.service";
+import * as backlogStatsService from "../backlog/services/backlog-stats.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
@@ -187,7 +189,7 @@ async function loadBacklogStats(
 	canViewBacklog: boolean
 ): Promise<BacklogStatusCounts> {
 	if (!canViewBacklog) return EMPTY_BACKLOG_STATS;
-	return backlogService.countBacklogByStatus(userId, !isSelf);
+	return backlogStatsService.countBacklogByStatus(userId, !isSelf);
 }
 
 async function requireVisibleUser(
@@ -310,7 +312,7 @@ export async function getHighlightsForUsername(
 	]);
 	const isSelf = viewerId === user.id;
 
-	const highlights = await backlogService.findHighlightsByUserId(
+	const highlights = await backlogProfileService.findHighlightsByUserId(
 		user.id,
 		isSelf,
 		options
@@ -330,7 +332,7 @@ export async function getCompletionsForUsername(
 	const isSelf = viewerId === user.id;
 
 	const { rows, total } =
-		await backlogService.findCompletionsByUserIdPaginated(user.id, isSelf, {
+		await backlogProfileService.findCompletionsByUserIdPaginated(user.id, isSelf, {
 			limit: pagination.limit,
 			offset: pagination.offset
 		});
@@ -366,7 +368,7 @@ function loadComparisonEntries(
 		case "completed":
 		case "playing":
 		case "not_started":
-			return backlogService.findGameEntriesByStatus(
+			return backlogProfileService.findGameEntriesByStatus(
 				userId,
 				by,
 				publicOnly,

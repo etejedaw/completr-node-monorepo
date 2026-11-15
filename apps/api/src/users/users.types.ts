@@ -1,4 +1,4 @@
-import { type findHighlightsByUserId } from "../backlog/backlog.service";
+import { type findHighlightsByUserId } from "../backlog/services/backlog-profile.service";
 import { type VisibilitySection } from "./constants/visibility.constants";
 import {
 	type FullUserProfile,

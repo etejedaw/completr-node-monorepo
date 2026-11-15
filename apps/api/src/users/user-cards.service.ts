@@ -1,4 +1,4 @@
-import * as backlogService from "../backlog/backlog.service";
+import * as backlogStatsService from "../backlog/services/backlog-stats.service";
 import * as favoritesService from "../favorites/favorites.service";
 import { findFullPremiumUserIds } from "../premium-access/premium-access.service";
 import * as userFollowersService from "../user-followers/user-followers.service";
@@ -32,7 +32,7 @@ export async function buildUserCards(
 			userFollowersService.getFollowerCounts(
 				visibleUsers.map(user => user.id)
 			),
-			backlogService.countBacklogByStatusForUsers(backlogOwners),
+			backlogStatsService.countBacklogByStatusForUsers(backlogOwners),
 			favoritesService.findFeaturedFavoritesByUserIds(favoriteOwnerIds),
 			findFullPremiumUserIds(users)
 		]);

@@ -1,6 +1,7 @@
 import {
 	col,
 	fn,
+	type IncludeOptions,
 	literal,
 	Op,
 	type Order,
@@ -13,33 +14,22 @@ import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.con
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import {
-	calculateRatio,
-	RATIO_SCORE_MULTIPLIER
-} from "../common/utils/calculate-ratio.util";
 import { splitByPresence } from "../common/utils/split-by-presence.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
 import * as gameShelfService from "../game-shelf/game-shelf.service";
-import { Game } from "../games/game.model";
 import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
-import { Platform } from "../platforms/platform.model";
+import * as platformsService from "../platforms/platforms.service";
 import * as queueService from "../queue/queue.service";
 import * as reviewsService from "../reviews/reviews.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
-import { User } from "../users/user.model";
-import {
-	type BacklogHighlight,
-	type BacklogStats,
-	type BacklogSummary,
-	type CreatedBacklog,
-	type MonthlyCount,
-	type RatingBucket
-} from "./backlog.interface";
-import { Backlog, type BacklogStatus } from "./backlog.model";
+import * as usersService from "../users/users.service";
+import { BACKLOG_GAME_ATTRS, BACKLOG_PLATFORM_ATTRS, DEFAULT_BACKLOG_PAGE_SIZE, RANDOM_PLAYERS_DEFAULT_LIMIT } from "./backlog.constants";
+import { type BacklogSummary, type CreatedBacklog } from "./backlog.interface";
+import { Backlog } from "./backlog.model";
 import { type BacklogFields, type BacklogReview } from "./backlog.types";
 import { type BulkUpdateBacklogDto } from "./dtos/bulk-update-backlog.dto";
 import { type RegisterBacklogDto } from "./dtos/register-backlog.dto";
@@ -47,22 +37,9 @@ import { type UpdateBacklogDto } from "./dtos/update-backlog.dto";
 import * as backlogServiceError from "./errors/backlog.service-error";
 import { type BacklogExportQuery } from "./schemas/backlog-export-query.schema";
 import { type BacklogQuery } from "./schemas/backlog-query.schema";
+import { buildBacklogInclude } from "./utils/build-backlog-include.util";
 import { buildBacklogWhere } from "./utils/build-backlog-where.util";
 import { leavesQueue } from "./utils/leaves-queue.util";
-
-const BACKLOG_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
-const BACKLOG_PLATFORM_ATTRS = ["id", "name", "abbreviation"];
-
-const backlogInclude = [
-	{ model: Game, attributes: BACKLOG_GAME_ATTRS },
-	{ model: Platform, attributes: BACKLOG_PLATFORM_ATTRS },
-	{
-		model: Game,
-		as: "CompilationGame",
-		attributes: BACKLOG_GAME_ATTRS,
-		required: false
-	}
-];
 
 async function assertCompilationContext(
 	gameId: string,
@@ -90,7 +67,7 @@ async function insertBacklog(
 			{ ...backlogFields, userId },
 			{ transaction }
 		);
-		await backlogEntry.reload({ include: backlogInclude, transaction });
+		await backlogEntry.reload({ include: buildBacklogInclude(), transaction });
 		return backlogEntry;
 	} catch (error) {
 		rethrowSequelizeError(error, {
@@ -204,7 +181,7 @@ export async function createBacklog(
 export async function findBacklogById(id: string, transaction?: Transaction) {
 	return Backlog.findOne({
 		where: { id },
-		include: backlogInclude,
+		include: buildBacklogInclude(),
 		transaction
 	});
 }
@@ -334,7 +311,10 @@ export async function createNotStartedBacklog(
 
 const QUEUE_PLATFORM_ATTRS = ["id", "abbreviation"];
 
-export function buildQueueBacklogInclude(search?: string, publicOnly = false) {
+export function buildQueueBacklogInclude(
+	search?: string,
+	publicOnly = false
+): IncludeOptions[] {
 	const titleWhere = search
 		? buildTextSearchWhere(search, ["Backlog->Game.title"])
 		: null;
@@ -346,12 +326,12 @@ export function buildQueueBacklogInclude(search?: string, publicOnly = false) {
 				where: publicOnly ? { isPublic: true } : undefined,
 				include: [
 					{
-						model: Game,
+						...gamesService.gameInclude(),
 						required: true,
 						attributes: BACKLOG_GAME_ATTRS,
 						where: titleWhere
 					},
-					{ model: Platform, attributes: QUEUE_PLATFORM_ATTRS }
+					{ ...platformsService.platformInclude(), attributes: QUEUE_PLATFORM_ATTRS }
 				]
 			}
 		];
@@ -362,14 +342,16 @@ export function buildQueueBacklogInclude(search?: string, publicOnly = false) {
 			model: Backlog,
 			...(publicOnly && { required: true, where: { isPublic: true } }),
 			include: [
-				{ model: Game, attributes: BACKLOG_GAME_ATTRS },
-				{ model: Platform, attributes: QUEUE_PLATFORM_ATTRS }
+				{ ...gamesService.gameInclude(), attributes: BACKLOG_GAME_ATTRS },
+				{ ...platformsService.platformInclude(), attributes: QUEUE_PLATFORM_ATTRS }
 			]
 		}
 	];
 }
 
-export function buildQueueExportBacklogInclude(search?: string) {
+export function buildQueueExportBacklogInclude(
+	search?: string
+): IncludeOptions[] {
 	const titleWhere = search
 		? buildTextSearchWhere(search, ["Backlog->Game.title"])
 		: null;
@@ -380,11 +362,11 @@ export function buildQueueExportBacklogInclude(search?: string) {
 			required: titleWhere !== null,
 			include: [
 				{
-					model: Game,
+					...gamesService.gameInclude(),
 					attributes: ["id", "title"],
 					...(titleWhere && { required: true, where: titleWhere })
 				},
-				{ model: Platform, attributes: ["id", "name"] }
+				{ ...platformsService.platformInclude(), attributes: ["id", "name"] }
 			]
 		}
 	];
@@ -392,7 +374,7 @@ export function buildQueueExportBacklogInclude(search?: string) {
 
 function buildIncludes(filters: BacklogQuery) {
 	const gameInclude: Record<string, unknown> = {
-		model: Game,
+		...gamesService.gameInclude(),
 		attributes: BACKLOG_GAME_ATTRS
 	};
 	const titleWhere = filters.search
@@ -401,9 +383,9 @@ function buildIncludes(filters: BacklogQuery) {
 	if (titleWhere) gameInclude.where = titleWhere;
 	return [
 		gameInclude,
-		{ model: Platform, attributes: BACKLOG_PLATFORM_ATTRS },
+		{ ...platformsService.platformInclude(), attributes: BACKLOG_PLATFORM_ATTRS },
 		{
-			model: Game,
+			...gamesService.gameInclude(),
 			as: "CompilationGame",
 			attributes: BACKLOG_GAME_ATTRS,
 			required: false
@@ -426,7 +408,7 @@ function buildOrder(filters: BacklogQuery): Order {
 		"ASC" | "DESC";
 
 	if (sortBy === "title") {
-		return [[Game, "title", sortOrder]];
+		return [gamesService.gameTitleOrder(sortOrder)];
 	}
 	if (sortBy === "ratio") {
 		return [
@@ -448,352 +430,6 @@ function buildOrder(filters: BacklogQuery): Order {
 	return [[sortBy, sortOrder]];
 }
 
-export async function countBacklogByStatus(userId: string, publicOnly = false) {
-	const where: Record<string, unknown> = { userId };
-	if (publicOnly) where.isPublic = true;
-	const rows = (await Backlog.findAll({
-		where,
-		attributes: [
-			"status",
-			[sequelize.fn("COUNT", sequelize.col("id")), "count"]
-		],
-		group: ["status"],
-		raw: true
-	})) as unknown as { status: string; count: string }[];
-
-	const result = {
-		not_started: 0,
-		playing: 0,
-		completed: 0,
-		abandoned: 0,
-		endless: 0,
-		total: 0
-	};
-	for (const row of rows) {
-		const n = Number(row.count);
-		if (row.status in result) {
-			result[row.status as keyof typeof result] = n;
-		}
-		result.total += n;
-	}
-	return result;
-}
-
-export async function countBacklogByStatusForUsers(
-	owners: { userId: string; publicOnly: boolean }[]
-) {
-	const countsByUser = new Map(
-		owners.map(owner => [
-			owner.userId,
-			{
-				not_started: 0,
-				playing: 0,
-				completed: 0,
-				abandoned: 0,
-				endless: 0,
-				total: 0
-			}
-		])
-	);
-	if (owners.length === 0) return countsByUser;
-
-	const publicOnlyIds = owners
-		.filter(owner => owner.publicOnly)
-		.map(owner => owner.userId);
-	const unrestrictedIds = owners
-		.filter(owner => !owner.publicOnly)
-		.map(owner => owner.userId);
-	const ownerConditions: Record<string, unknown>[] = [];
-	if (publicOnlyIds.length > 0)
-		ownerConditions.push({
-			userId: { [Op.in]: publicOnlyIds },
-			isPublic: true
-		});
-	if (unrestrictedIds.length > 0)
-		ownerConditions.push({ userId: { [Op.in]: unrestrictedIds } });
-
-	const rows = (await Backlog.findAll({
-		where: { [Op.or]: ownerConditions },
-		attributes: [
-			"userId",
-			"status",
-			[sequelize.fn("COUNT", sequelize.col("id")), "count"]
-		],
-		group: ["userId", "status"],
-		raw: true
-	})) as unknown as { userId: string; status: string; count: string }[];
-
-	for (const row of rows) {
-		const counts = countsByUser.get(row.userId);
-		if (!counts) continue;
-		const n = Number(row.count);
-		if (row.status in counts) {
-			counts[row.status as keyof typeof counts] = n;
-		}
-		counts.total += n;
-	}
-	return countsByUser;
-}
-
-const RATING_STARS = [5, 4, 3, 2, 1];
-const COMPLETION_TREND_MONTHS = 12;
-
-const HIGHLIGHT_GAME_ATTRS = ["id", "code", "title", "backgroundUrl"];
-
-async function findHighlight(
-	baseWhere: Record<string, unknown>,
-	extraWhere: Record<string, unknown>,
-	order: Order
-): Promise<Backlog | null> {
-	return Backlog.findOne({
-		where: { ...baseWhere, ...extraWhere },
-		include: [{ model: Game, attributes: HIGHLIGHT_GAME_ATTRS }],
-		order
-	});
-}
-
-function toHighlight(
-	entry: Backlog | null,
-	value: number | null
-): BacklogHighlight | null {
-	if (!entry || value === null) return null;
-	return {
-		backlogId: entry.id,
-		game: {
-			id: entry.Game.id,
-			code: entry.Game.code,
-			title: entry.Game.title,
-			backgroundUrl: entry.Game.backgroundUrl ?? null
-		},
-		value
-	};
-}
-
-function toNumberOrNull(value: unknown): number | null {
-	if (value === null || value === undefined) return null;
-	const n = Number(value);
-	return Number.isFinite(n) ? n : null;
-}
-
-async function countRatingsByStars(
-	baseWhere: Record<string, unknown>
-): Promise<RatingBucket[]> {
-	const starsExpression = fn("LEAST", 5, fn("CEIL", col("userRating")));
-	const rows = (await Backlog.findAll({
-		where: { [Op.and]: [baseWhere, { userRating: { [Op.gt]: 0 } }] },
-		attributes: [
-			[starsExpression, "stars"],
-			[fn("COUNT", col("id")), "count"]
-		],
-		group: [starsExpression],
-		raw: true
-	})) as unknown as { stars: unknown; count: unknown }[];
-
-	const countByStars = new Map(
-		rows.map(row => [Number(row.stars), Number(row.count)])
-	);
-	return RATING_STARS.map(stars => ({
-		stars,
-		count: countByStars.get(stars) ?? 0
-	}));
-}
-
-function toMonthKey(date: Date): string {
-	return date.toISOString().slice(0, 7);
-}
-
-function toDateOnly(date: Date): string {
-	return date.toISOString().slice(0, 10);
-}
-
-function monthStartsEndingAt(lastMonth: Date, count: number): Date[] {
-	return Array.from(
-		{ length: count },
-		(_, index) =>
-			new Date(
-				Date.UTC(
-					lastMonth.getUTCFullYear(),
-					lastMonth.getUTCMonth() - (count - 1 - index),
-					1
-				)
-			)
-	);
-}
-
-async function findLatestCompletionDate(
-	completedWhere: Record<string, unknown>
-): Promise<Date | null> {
-	const row = (await Backlog.findOne({
-		where: completedWhere,
-		attributes: [[fn("MAX", col("finishedAt")), "latest"]],
-		raw: true
-	})) as unknown as { latest: string | null } | null;
-	return row?.latest ? new Date(`${row.latest}T00:00:00Z`) : null;
-}
-
-async function countCompletionsByMonth(
-	baseWhere: Record<string, unknown>
-): Promise<MonthlyCount[]> {
-	const completedWhere = {
-		[Op.and]: [
-			baseWhere,
-			{ status: "completed", finishedAt: { [Op.not]: null } }
-		]
-	};
-	const latest = await findLatestCompletionDate(completedWhere);
-	if (!latest) return [];
-
-	const months = monthStartsEndingAt(latest, COMPLETION_TREND_MONTHS);
-	const firstMonthStart = toDateOnly(months[0] ?? latest);
-	const monthExpression = fn("TO_CHAR", col("finishedAt"), "YYYY-MM");
-	const rows = (await Backlog.findAll({
-		where: {
-			[Op.and]: [
-				completedWhere,
-				{ finishedAt: { [Op.gte]: firstMonthStart } }
-			]
-		},
-		attributes: [
-			[monthExpression, "month"],
-			[fn("COUNT", col("id")), "count"]
-		],
-		group: [monthExpression],
-		raw: true
-	})) as unknown as { month: string; count: unknown }[];
-
-	const countByMonth = new Map(
-		rows.map(row => [row.month, Number(row.count)])
-	);
-	return months.map(start => {
-		const month = toMonthKey(start);
-		return { month, count: countByMonth.get(month) ?? 0 };
-	});
-}
-
-export async function computeBacklogStats(
-	userId: string,
-	filters: BacklogQuery
-): Promise<BacklogStats> {
-	const baseWhere = buildBacklogWhere({ userId }, filters);
-
-	const row = (await Backlog.findOne({
-		where: baseWhere,
-		attributes: [
-			[fn("COUNT", col("id")), "totalEntries"],
-			[
-				literal(`COUNT(*) FILTER (WHERE status = 'not_started')`),
-				"notStarted"
-			],
-			[literal(`COUNT(*) FILTER (WHERE status = 'playing')`), "playing"],
-			[
-				literal(`COUNT(*) FILTER (WHERE status = 'completed')`),
-				"completed"
-			],
-			[
-				literal(`COUNT(*) FILTER (WHERE status = 'abandoned')`),
-				"abandoned"
-			],
-			[literal(`COUNT(*) FILTER (WHERE status = 'endless')`), "endless"],
-			[fn("SUM", col("realDuration")), "totalRealHours"],
-			[fn("AVG", col("realDuration")), "avgRealDuration"],
-			[fn("AVG", col("duration")), "avgEstimatedDuration"],
-			[fn("AVG", col("score")), "avgScore"],
-			[fn("AVG", col("userRating")), "avgUserRating"],
-			[
-				literal(
-					`ROUND((AVG("Backlog"."score" / NULLIF("Backlog"."duration", 0)) * ${RATIO_SCORE_MULTIPLIER})::numeric, 2)`
-				),
-				"avgRatio"
-			],
-			[
-				literal(
-					`ROUND((AVG("Backlog"."score" / NULLIF("Backlog"."realDuration", 0)) * ${RATIO_SCORE_MULTIPLIER})::numeric, 2)`
-				),
-				"avgPersonalRatio"
-			],
-			[
-				literal(
-					`SUM("Backlog"."realDuration" - "Backlog"."duration") FILTER (WHERE status = 'completed')`
-				),
-				"estimatedVsRealDelta"
-			]
-		],
-		raw: true
-	})) as unknown as Record<string, unknown> | null;
-
-	const safe = row ?? {};
-	const totalEntries = Number(safe.totalEntries ?? 0);
-	const completed = Number(safe.completed ?? 0);
-	const abandoned = Number(safe.abandoned ?? 0);
-
-	const [
-		longestEntry,
-		bestRatioEntry,
-		highestRatedEntry,
-		ratingDistribution,
-		completionsByMonth
-	] = await Promise.all([
-		findHighlight(
-			baseWhere,
-			{ realDuration: { [Op.not]: null, [Op.gt]: 0 } },
-			[literal(`"Backlog"."realDuration" DESC`)]
-		),
-		findHighlight(
-			baseWhere,
-			{
-				realDuration: { [Op.not]: null, [Op.gt]: 0 },
-				score: { [Op.not]: null, [Op.gt]: 0 }
-			},
-			[
-				literal(
-					`("Backlog"."score" / NULLIF("Backlog"."realDuration", 0)) DESC NULLS LAST`
-				)
-			]
-		),
-		findHighlight(baseWhere, { userRating: { [Op.not]: null } }, [
-			literal(`"Backlog"."userRating" DESC`)
-		]),
-		countRatingsByStars(baseWhere),
-		countCompletionsByMonth(baseWhere)
-	]);
-
-	const bestPersonalRatioValue = bestRatioEntry
-		? calculateRatio(bestRatioEntry.score, bestRatioEntry.realDuration)
-		: null;
-
-	return {
-		totalEntries,
-		countByStatus: {
-			not_started: Number(safe.notStarted ?? 0),
-			playing: Number(safe.playing ?? 0),
-			completed,
-			abandoned,
-			endless: Number(safe.endless ?? 0)
-		},
-		totalRealHours: toNumberOrNull(safe.totalRealHours),
-		avgRealDuration: toNumberOrNull(safe.avgRealDuration),
-		avgEstimatedDuration: toNumberOrNull(safe.avgEstimatedDuration),
-		avgScore: toNumberOrNull(safe.avgScore),
-		avgUserRating: toNumberOrNull(safe.avgUserRating),
-		avgRatio: toNumberOrNull(safe.avgRatio),
-		avgPersonalRatio: toNumberOrNull(safe.avgPersonalRatio),
-		estimatedVsRealDelta: toNumberOrNull(safe.estimatedVsRealDelta),
-		completionRate: totalEntries > 0 ? completed / totalEntries : null,
-		abandonmentRate: totalEntries > 0 ? abandoned / totalEntries : null,
-		longestPlayed: toHighlight(
-			longestEntry,
-			longestEntry?.realDuration ?? null
-		),
-		bestPersonalRatio: toHighlight(bestRatioEntry, bestPersonalRatioValue),
-		highestRated: toHighlight(
-			highestRatedEntry,
-			highestRatedEntry?.userRating ?? null
-		),
-		ratingDistribution,
-		completionsByMonth
-	};
-}
-
 export async function findBacklogForExport(
 	userId: string,
 	filters: BacklogExportQuery = {}
@@ -805,264 +441,32 @@ export async function findBacklogForExport(
 	});
 }
 
+async function findBacklogPage(
+	baseWhere: Record<string, unknown>,
+	filters: BacklogQuery
+) {
+	const { rows, count } = await Backlog.findAndCountAll({
+		where: buildBacklogWhere(baseWhere, filters),
+		include: buildIncludes(filters),
+		order: buildOrder(filters),
+		limit: filters.limit ?? DEFAULT_BACKLOG_PAGE_SIZE,
+		offset: filters.offset ?? 0
+	});
+	return { rows, total: count };
+}
+
 export async function findBacklogByUserId(
 	userId: string,
 	filters: BacklogQuery = {}
 ) {
-	const query: Record<string, unknown> = {
-		where: buildBacklogWhere({ userId }, filters),
-		include: buildIncludes(filters),
-		order: buildOrder(filters),
-		limit: filters.limit ?? 100,
-		offset: filters.offset ?? 0
-	};
-
-	const { rows, count } = await Backlog.findAndCountAll(query);
-	return { rows, total: count };
-}
-
-export async function findFriendsActivityForGame(
-	followingIds: string[],
-	mutualIds: string[],
-	gameId: string
-) {
-	if (followingIds.length === 0) return [];
-
-	const rows = await Backlog.findAll({
-		where: { gameId, isPublic: true, userId: { [Op.in]: followingIds } },
-		include: [
-			{
-				model: User,
-				where: {
-					isActive: true,
-					[Op.or]: [
-						{
-							profileVisibility: "public",
-							backlogVisibility: "public"
-						},
-						{
-							id: { [Op.in]: mutualIds },
-							profileVisibility: {
-								[Op.in]: ["public", "friends"]
-							},
-							backlogVisibility: {
-								[Op.in]: ["public", "friends"]
-							}
-						}
-					]
-				},
-				attributes: USER_PUBLIC_ATTRS
-			}
-		],
-		order: [
-			["createdAt", "DESC"],
-			["id", "DESC"]
-		]
-	});
-
-	const seen = new Set<string>();
-	return rows.filter(row => {
-		if (seen.has(row.userId)) return false;
-		seen.add(row.userId);
-		return true;
-	});
-}
-
-export async function findRandomPlayersForGame(
-	gameId: string,
-	viewerId: string,
-	excludeUserIds: string[] = [],
-	limit = 10
-) {
-	const excluded = [...new Set([viewerId, ...excludeUserIds])];
-
-	const rows = await Backlog.findAll({
-		where: { gameId, isPublic: true, userId: { [Op.notIn]: excluded } },
-		include: [
-			{
-				model: User,
-				where: {
-					isActive: true,
-					profileVisibility: "public",
-					backlogVisibility: "public"
-				},
-				attributes: USER_PUBLIC_ATTRS
-			}
-		],
-		order: [
-			["createdAt", "DESC"],
-			["id", "DESC"]
-		]
-	});
-
-	const byUser = new Map<string, (typeof rows)[number]>();
-	for (const row of rows) {
-		if (!byUser.has(row.userId)) byUser.set(row.userId, row);
-	}
-
-	const unique = Array.from(byUser.values());
-	for (let i = unique.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i + 1));
-		const tmp = unique[i]!;
-		unique[i] = unique[j]!;
-		unique[j] = tmp;
-	}
-	return unique.slice(0, limit);
-}
-
-export async function findGameEntriesByStatus(
-	userId: string,
-	status: BacklogStatus,
-	publicOnly: boolean,
-	gameIds?: string[]
-) {
-	const where: Record<string, unknown> = { userId, status };
-	if (publicOnly) where.isPublic = true;
-	if (gameIds) where.gameId = { [Op.in]: gameIds };
-
-	return Backlog.findAll({
-		where,
-		attributes: ["gameId"],
-		include: [
-			{
-				model: Game,
-				attributes: ["id", "code", "title", "backgroundUrl"]
-			}
-		],
-		order: [
-			["createdAt", "DESC"],
-			["id", "DESC"]
-		]
-	});
-}
-
-export async function findHighlightsByUserId(
-	userId: string,
-	includePrivate: boolean,
-	options: { recentLimit?: number; year?: number; month?: number } = {}
-) {
-	const { recentLimit = 6 } = options;
-	const now = new Date();
-	const targetYear = options.year ?? now.getUTCFullYear();
-	const targetMonth =
-		options.month !== undefined ? options.month - 1 : now.getUTCMonth();
-	const monthStart = new Date(Date.UTC(targetYear, targetMonth, 1));
-	const monthEnd = new Date(
-		Date.UTC(targetYear, targetMonth + 1, 0, 23, 59, 59, 999)
-	);
-
-	const baseWhere: Record<string, unknown> = {
-		userId,
-		status: "completed",
-		finishedAt: { [Op.ne]: null }
-	};
-	if (!includePrivate) baseWhere.isPublic = true;
-
-	const recent = await Backlog.findAll({
-		where: baseWhere,
-		include: backlogInclude,
-		order: [
-			["finishedAt", "DESC"],
-			["id", "DESC"]
-		],
-		limit: recentLimit
-	});
-
-	const monthEntries = await Backlog.findAll({
-		where: {
-			...baseWhere,
-			finishedAt: { [Op.gte]: monthStart, [Op.lte]: monthEnd }
-		},
-		include: backlogInclude,
-		order: [
-			["finishedAt", "DESC"],
-			["id", "DESC"]
-		]
-	});
-
-	let longestPlayed: Backlog | null = null;
-	let bestPersonalRatio: Backlog | null = null;
-	let bestPersonalRatioValue = 0;
-	let highestRated: Backlog | null = null;
-	for (const entry of monthEntries) {
-		if (
-			entry.realDuration !== null &&
-			entry.realDuration !== undefined &&
-			(longestPlayed === null ||
-				(longestPlayed.realDuration ?? 0) < entry.realDuration)
-		) {
-			longestPlayed = entry;
-		}
-		const personalRatio = calculateRatio(entry.score, entry.realDuration);
-		if (personalRatio !== null && personalRatio > bestPersonalRatioValue) {
-			bestPersonalRatio = entry;
-			bestPersonalRatioValue = personalRatio;
-		}
-		if (
-			entry.userRating !== null &&
-			entry.userRating !== undefined &&
-			(highestRated === null ||
-				(highestRated.userRating ?? 0) < entry.userRating)
-		) {
-			highestRated = entry;
-		}
-	}
-
-	return {
-		recent,
-		month: {
-			startsAt: monthStart,
-			endsAt: monthEnd,
-			completedCount: monthEntries.length,
-			longestPlayed,
-			bestPersonalRatio,
-			highestRated
-		}
-	};
-}
-
-export async function findCompletionsByUserIdPaginated(
-	userId: string,
-	includePrivate: boolean,
-	options: { limit?: number; offset?: number } = {}
-) {
-	const { limit = 20, offset = 0 } = options;
-	const where: Record<string, unknown> = {
-		userId,
-		status: "completed",
-		finishedAt: { [Op.ne]: null }
-	};
-	if (!includePrivate) where.isPublic = true;
-
-	const { rows, count } = await Backlog.findAndCountAll({
-		where,
-		include: backlogInclude,
-		order: [
-			["finishedAt", "DESC"],
-			["id", "DESC"]
-		],
-		limit,
-		offset,
-		distinct: true
-	});
-
-	return { rows, total: count };
+	return findBacklogPage({ userId }, filters);
 }
 
 export async function findPublicBacklogByUserId(
 	userId: string,
 	filters: BacklogQuery = {}
 ) {
-	const query: Record<string, unknown> = {
-		where: buildBacklogWhere({ userId, isPublic: true }, filters),
-		include: buildIncludes(filters),
-		order: buildOrder(filters),
-		limit: filters.limit ?? 100,
-		offset: filters.offset ?? 0
-	};
-
-	const { rows, count } = await Backlog.findAndCountAll(query);
-	return { rows, total: count };
+	return findBacklogPage({ userId, isPublic: true }, filters);
 }
 
 export async function updateBacklog(
@@ -1070,28 +474,38 @@ export async function updateBacklog(
 	userId: string,
 	updateBacklog: UpdateBacklogDto
 ) {
-	const backlogEntry = await findBacklogById(id);
-	if (!backlogEntry) throw backlogServiceError.notFoundError();
-	if (backlogEntry.userId !== userId)
-		throw backlogServiceError.forbiddenError();
+	return sequelize.transaction(async transaction => {
+		await queueService.lockUserQueue(userId, transaction);
 
-	if (
-		updateBacklog.compilationGameId !== undefined &&
-		updateBacklog.compilationGameId !== null
-	) {
-		await assertCompilationContext(
-			backlogEntry.gameId,
-			updateBacklog.compilationGameId
-		);
-	}
+		const backlogEntry = await findBacklogById(id, transaction);
+		if (!backlogEntry || backlogEntry.userId !== userId)
+			throw backlogServiceError.notFoundError();
+		const previousStatus = backlogEntry.status;
 
-	await backlogEntry.update(updateBacklog);
+		if (
+			updateBacklog.compilationGameId !== undefined &&
+			updateBacklog.compilationGameId !== null
+		) {
+			await assertCompilationContext(
+				backlogEntry.gameId,
+				updateBacklog.compilationGameId
+			);
+		}
 
-	const queueRemoved = leavesQueue(updateBacklog.status)
-		? await queueService.removeByBacklogId(id, userId)
-		: false;
+		await backlogEntry.update(updateBacklog, { transaction });
 
-	return { backlog: backlogEntry, queueRemoved };
+		const queueRemoved = leavesQueue(updateBacklog.status)
+			? (
+					await queueService.removeByBacklogIds(
+						[id],
+						userId,
+						transaction
+					)
+				).length > 0
+			: false;
+
+		return { backlog: backlogEntry, queueRemoved, previousStatus };
+	});
 }
 
 export async function bulkUpdateBacklog(
@@ -1138,99 +552,18 @@ export async function bulkUpdateBacklog(
 	});
 }
 
-export async function findLatestCompletedDurations(
-	pairs: { userId: string; gameId: string }[]
-): Promise<Map<string, number>> {
-	if (pairs.length === 0) return new Map();
-
-	const userIds = Array.from(new Set(pairs.map(p => p.userId)));
-	const gameIds = Array.from(new Set(pairs.map(p => p.gameId)));
-
-	const rows = await sequelize.query<{
-		userId: string;
-		gameId: string;
-		realDuration: number;
-	}>(
-		`SELECT DISTINCT ON ("userId", "gameId") "userId", "gameId", "realDuration"
-		 FROM "Backlogs"
-		 WHERE "userId" IN (:userIds)
-		   AND "gameId" IN (:gameIds)
-		   AND status = 'completed'
-		   AND "realDuration" IS NOT NULL
-		 ORDER BY "userId", "gameId", "createdAt" DESC`,
-		{
-			replacements: { userIds, gameIds },
-			type: QueryTypes.SELECT
-		}
-	);
-
-	const map = new Map<string, number>();
-	for (const row of rows) {
-		map.set(`${row.userId}:${row.gameId}`, row.realDuration);
-	}
-	return map;
-}
-
-const REWIND_GAME_ATTRS = [
-	"id",
-	"code",
-	"title",
-	"coverUrl",
-	"backgroundUrl",
-	"releaseAt"
-];
-const REWIND_RUN_ATTRS = [
-	"id",
-	"gameId",
-	"status",
-	"startedAt",
-	"finishedAt",
-	"realDuration",
-	"duration",
-	"score",
-	"userRating",
-	"createdAt"
-];
-
-export async function findDatedRunsByUserId(
-	userId: string,
-	options: { publicOnly: boolean; includeNotes?: boolean }
-) {
-	return Backlog.findAll({
-		where: {
-			userId,
-			...(options.publicOnly && { isPublic: true }),
-			[Op.or]: [
-				{ startedAt: { [Op.ne]: null } },
-				{
-					status: ["completed", "abandoned"],
-					finishedAt: { [Op.ne]: null }
-				}
-			]
-		},
-		attributes: options.includeNotes
-			? [...REWIND_RUN_ATTRS, "notes"]
-			: REWIND_RUN_ATTRS,
-		include: [
-			{ model: Game, attributes: REWIND_GAME_ATTRS },
-			{ model: Platform, attributes: BACKLOG_PLATFORM_ATTRS }
-		],
-		order: [["id", "ASC"]]
-	});
-}
-
 export async function removeBacklog(id: string, userId: string) {
-	const backlogEntry = await Backlog.findOne({
-		where: { id },
-		attributes: ["id", "userId"]
-	});
-	if (!backlogEntry) throw backlogServiceError.notFoundError();
-	if (backlogEntry.userId !== userId)
-		throw backlogServiceError.forbiddenError();
+	await sequelize.transaction(async transaction => {
+		await queueService.lockUserQueue(userId, transaction);
+		const backlogEntry = await Backlog.findOne({
+			where: { id, userId },
+			attributes: ["id"],
+			transaction
+		});
+		if (!backlogEntry) throw backlogServiceError.notFoundError();
 
-	await sequelize.transaction(transaction =>
-		destroyOwnedBacklogs(userId, [id], transaction)
-	);
+		await destroyOwnedBacklogs(userId, [id], transaction);
+	});
 	return true;
 }
 
@@ -1269,144 +602,6 @@ export async function bulkDeleteBacklog(
 	});
 }
 
-const COOP_PEER_USER_INCLUDE = [
-	{
-		model: User,
-		attributes: ["id", "username", "name", "avatarUrl"]
-	}
-];
-
-export async function findCoopMembership(coopRunId: string, userId: string) {
-	return Backlog.findOne({ where: { coopRunId, userId } });
-}
-
-export async function findCoopBacklogForTarget(
-	filters: {
-		id: string;
-		userId: string;
-		gameId: string;
-		platformId: string | null;
-	},
-	transaction: Transaction
-) {
-	return Backlog.findOne({ where: filters, transaction });
-}
-
-export async function findOpenCoopCandidate(
-	userId: string,
-	gameId: string,
-	platformId: string | null,
-	transaction: Transaction
-) {
-	return Backlog.findOne({
-		where: {
-			userId,
-			gameId,
-			platformId,
-			status: { [Op.in]: ["playing", "not_started", "endless"] },
-			coopRunId: null
-		},
-		order: [
-			["createdAt", "DESC"],
-			["id", "DESC"]
-		],
-		transaction
-	});
-}
-
-export async function createCoopBacklog(
-	values: {
-		userId: string;
-		gameId: string;
-		platformId: string | null;
-		score: number | null;
-		duration: number | null;
-		coopRunId: string;
-	},
-	transaction: Transaction
-) {
-	return Backlog.create({ ...values, status: "playing" }, { transaction });
-}
-
-export async function findBacklogCandidatesForCoop(
-	userId: string,
-	gameId: string,
-	platformId: string | null
-) {
-	return Backlog.findAll({
-		where: { userId, gameId, platformId },
-		order: [
-			["createdAt", "DESC"],
-			["id", "DESC"]
-		],
-		attributes: [
-			"id",
-			"status",
-			"startedAt",
-			"finishedAt",
-			"realDuration",
-			"coopRunId"
-		]
-	});
-}
-
-export async function countBacklogsInCoopRun(coopRunId: string) {
-	return Backlog.count({ where: { coopRunId } });
-}
-
-export async function findAnyBacklogInCoopRun(coopRunId: string) {
-	return Backlog.findOne({ where: { coopRunId } });
-}
-
-export async function findBacklogInCoopRun(id: string, coopRunId: string) {
-	return Backlog.findOne({ where: { id, coopRunId } });
-}
-
-export async function findCoopPeersWithUser(
-	coopRunId: string,
-	excludedBacklogId: string
-) {
-	return Backlog.findAll({
-		where: { coopRunId, id: { [Op.ne]: excludedBacklogId } },
-		include: COOP_PEER_USER_INCLUDE
-	});
-}
-
-export async function findBacklogsInCoopRunsByIds(ids: string[]) {
-	return Backlog.findAll({
-		where: { id: { [Op.in]: ids }, coopRunId: { [Op.ne]: null } },
-		attributes: ["id", "coopRunId"]
-	});
-}
-
-export async function findBacklogsOfCoopRunsWithUser(coopRunIds: string[]) {
-	return Backlog.findAll({
-		where: { coopRunId: { [Op.in]: coopRunIds } },
-		include: COOP_PEER_USER_INCLUDE
-	});
-}
-
-export async function findCoopBacklogsOfUsersForGame(
-	gameId: string,
-	userIds: string[]
-) {
-	return Backlog.findAll({
-		where: {
-			gameId,
-			coopRunId: { [Op.ne]: null },
-			userId: { [Op.in]: userIds }
-		},
-		include: COOP_PEER_USER_INCLUDE
-	});
-}
-
-export async function clearCoopRunFromBacklogs(coopRunIds: string[]) {
-	await Backlog.update(
-		{ coopRunId: null },
-		{ where: { coopRunId: { [Op.in]: coopRunIds } } }
-	);
-}
-
 export async function existsByGameId(
 	gameId: string,
 	transaction?: Transaction
@@ -1433,43 +628,14 @@ export async function existsByCompilationGameId(
 	);
 }
 
-const MONTHS_IN_YEAR = 12;
-
-export async function countRunsAddedByMonth(
-	userId: string,
-	year: number,
-	visibility: { publicOnly: boolean }
-): Promise<number[]> {
-	const rows = await sequelize.query<{ month: number; count: number }>(
-		`SELECT EXTRACT(MONTH FROM "createdAt" AT TIME ZONE 'UTC')::int AS month,
-		        COUNT(*)::int AS count
-		 FROM "Backlogs"
-		 WHERE "userId" = :userId
-		   AND "createdAt" >= make_timestamptz(:year, 1, 1, 0, 0, 0, 'UTC')
-		   AND "createdAt" < make_timestamptz(:year + 1, 1, 1, 0, 0, 0, 'UTC')
-		   AND ("createdAt" AT TIME ZONE 'UTC')::date <> (
-		     SELECT MIN("createdAt" AT TIME ZONE 'UTC')::date
-		     FROM "Backlogs"
-		     WHERE "userId" = :userId
-		   )
-		   ${visibility.publicOnly ? `AND "isPublic" = true` : ""}
-		 GROUP BY month`,
-		{ replacements: { userId, year }, type: QueryTypes.SELECT }
-	);
-
-	const counts = Array.from({ length: MONTHS_IN_YEAR }, () => 0);
-	for (const row of rows) counts[row.month - 1] = row.count;
-	return counts;
-}
-
 export async function findBacklogForDataExport(userId: string) {
 	return Backlog.findAll({
 		where: { userId },
 		include: [
-			{ model: Game, attributes: GAME_REFERENCE_ATTRS },
-			{ model: Platform, attributes: ["id", "name"] },
+			{ ...gamesService.gameInclude(), attributes: GAME_REFERENCE_ATTRS },
+			{ ...platformsService.platformInclude(), attributes: ["id", "name"] },
 			{
-				model: Game,
+				...gamesService.gameInclude(),
 				as: "CompilationGame",
 				attributes: GAME_REFERENCE_ATTRS,
 				required: false
@@ -1477,4 +643,120 @@ export async function findBacklogForDataExport(userId: string) {
 		],
 		order: CHRONOLOGICAL_ORDER
 	});
+}
+
+export async function findFriendsActivityForGame(
+	followingIds: string[],
+	mutualIds: string[],
+	gameId: string
+) {
+	if (followingIds.length === 0) return [];
+
+	const rows = await Backlog.findAll({
+		where: { gameId, isPublic: true, userId: { [Op.in]: followingIds } },
+		include: [
+			{
+				...usersService.userInclude(),
+				where: {
+					isActive: true,
+					[Op.or]: [
+						{
+							profileVisibility: "public",
+							backlogVisibility: "public"
+						},
+						{
+							id: { [Op.in]: mutualIds },
+							profileVisibility: {
+								[Op.in]: ["public", "friends"]
+							},
+							backlogVisibility: {
+								[Op.in]: ["public", "friends"]
+							}
+						}
+					]
+				},
+				attributes: USER_PUBLIC_ATTRS
+			}
+		],
+		order: [
+			["createdAt", "DESC"],
+			["id", "DESC"]
+		]
+	});
+
+	const seen = new Set<string>();
+	return rows.filter(row => {
+		if (seen.has(row.userId)) return false;
+		seen.add(row.userId);
+		return true;
+	});
+}
+
+export async function findRandomPlayersForGame(
+	gameId: string,
+	viewerId: string,
+	excludeUserIds: string[] = [],
+	limit = RANDOM_PLAYERS_DEFAULT_LIMIT
+) {
+	const excluded = [...new Set([viewerId, ...excludeUserIds])];
+
+	const picked = await sequelize.query<{ id: string }>(
+		`SELECT "id" FROM (
+			SELECT DISTINCT ON (b."userId") b."id"
+			FROM "Backlogs" b
+			JOIN "Users" u ON u."id" = b."userId"
+			WHERE b."gameId" = :gameId
+			  AND b."isPublic" = true
+			  AND b."userId" NOT IN (:excluded)
+			  AND u."isActive" = true
+			  AND u."profileVisibility" = 'public'
+			  AND u."backlogVisibility" = 'public'
+			ORDER BY b."userId", b."createdAt" DESC, b."id" DESC
+		) AS latest
+		ORDER BY RANDOM()
+		LIMIT :limit`,
+		{
+			replacements: { gameId, excluded, limit },
+			type: QueryTypes.SELECT
+		}
+	);
+	if (picked.length === 0) return [];
+
+	return Backlog.findAll({
+		where: { id: picked.map(row => row.id) },
+		include: [{ ...usersService.userInclude(), attributes: USER_PUBLIC_ATTRS }]
+	});
+}
+
+export async function findLatestCompletedDurations(
+	pairs: { userId: string; gameId: string }[]
+): Promise<Map<string, number>> {
+	if (pairs.length === 0) return new Map();
+
+	const userIds = Array.from(new Set(pairs.map(p => p.userId)));
+	const gameIds = Array.from(new Set(pairs.map(p => p.gameId)));
+
+	const rows = await sequelize.query<{
+		userId: string;
+		gameId: string;
+		realDuration: number;
+	}>(
+		`SELECT DISTINCT ON ("userId", "gameId") "userId", "gameId", "realDuration"
+		 FROM "Backlogs"
+		 WHERE "userId" IN (:userIds)
+		   AND "gameId" IN (:gameIds)
+		   AND status = 'completed'
+		   AND "realDuration" IS NOT NULL
+		 ORDER BY "userId", "gameId", "createdAt" DESC`,
+		{
+			replacements: { userIds, gameIds },
+			type: QueryTypes.SELECT
+		}
+	);
+
+	const map = new Map<string, number>();
+	for (const row of rows) {
+		map.set(`${row.userId}:${row.gameId}`, row.realDuration);
+	}
+	return map;
 }

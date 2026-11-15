@@ -1,6 +1,6 @@
 import { Op, type Transaction } from "sequelize";
 
-import * as backlogService from "../backlog/backlog.service";
+import * as backlogRewindService from "../backlog/services/backlog-rewind.service";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { ServiceError } from "../common/errors/service-error";
 import { PinoLogger } from "../common/logger/pino.logger";
@@ -604,7 +604,7 @@ async function gatherRecapSources(
 	const { year } = record;
 	const [runs, addedByMonth] = await Promise.all([
 		findRuns(owner, publicOnly, record.includesNotes),
-		backlogService.countRunsAddedByMonth(owner.id, year, { publicOnly })
+		backlogRewindService.countRunsAddedByMonth(owner.id, year, { publicOnly })
 	]);
 	const [genres, franchises, platinums, coopPartners, reviews] =
 		await Promise.all([
