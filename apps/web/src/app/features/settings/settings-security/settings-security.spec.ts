@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 
-import { provideHttpClient } from "@angular/common/http";
+import { HttpClient, provideHttpClient } from "@angular/common/http";
 import {
 	HttpTestingController,
 	provideHttpClientTesting
@@ -58,7 +58,12 @@ describe("SettingsSecurity", () => {
 						sessionId,
 						getSessions,
 						revokeSession,
-						revokeOtherSessions
+						revokeOtherSessions,
+						changePassword: (password: string) =>
+							TestBed.inject(HttpClient).patch(
+								`${api}/auth/password`,
+								{ password }
+							)
 					}
 				},
 				{ provide: ToastService, useValue: toast }
@@ -247,6 +252,22 @@ describe("SettingsSecurity", () => {
 				screen.queryByText("Both passwords must match.")
 			).not.toBeInTheDocument();
 			expect(getSessions).toHaveBeenCalledWith({ limit: 10, offset: 0 });
+		});
+
+		it("sends one password request when the update button is double clicked", async () => {
+			const typist = userEvent.setup();
+			await renderSecurity();
+			await fillPasswords(typist, VALID_PASSWORD, VALID_PASSWORD);
+
+			await typist.dblClick(
+				screen.getByRole("button", { name: "Update password" })
+			);
+
+			const requests = TestBed.inject(HttpTestingController).match(
+				`${api}/auth/password`
+			);
+			expect(requests).toHaveLength(1);
+			requests[0].flush({});
 		});
 
 		it("warns and keeps the typed passwords when the API fails", async () => {
