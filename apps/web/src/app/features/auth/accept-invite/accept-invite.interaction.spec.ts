@@ -165,12 +165,12 @@ describe("Accept invite interaction", () => {
 		}
 	);
 
-	it("shows the invalid invitation page for any lookup error", async () => {
+	it("shows the invalid invitation page when the invitation does not exist", async () => {
 		await renderAcceptInvite();
 
 		httpTesting
 			.expectOne(`${api}/invitations/invite-token`)
-			.flush(null, { status: 500, statusText: "Server Error" });
+			.flush(null, { status: 404, statusText: "Not Found" });
 
 		expect(
 			await screen.findByRole("heading", {
@@ -178,6 +178,44 @@ describe("Accept invite interaction", () => {
 			})
 		).toBeInTheDocument();
 	});
+
+	it.each([500, 503, 429, 0])(
+		"offers a retry instead of calling the invitation invalid on a %i lookup error",
+		async status => {
+			const user = userEvent.setup();
+			await renderAcceptInvite();
+
+			const failed = httpTesting.expectOne(
+				`${api}/invitations/invite-token`
+			);
+			if (status === 0) failed.error(new ProgressEvent("error"));
+			else failed.flush(null, { status, statusText: "Error" });
+
+			expect(
+				await screen.findByRole("heading", {
+					name: "We couldn't check your invitation"
+				})
+			).toBeInTheDocument();
+			expect(
+				screen.queryByText("This invitation no longer works")
+			).not.toBeInTheDocument();
+
+			await user.dblClick(
+				screen.getByRole("button", { name: "Try again" })
+			);
+			const retries = httpTesting.match(
+				`${api}/invitations/invite-token`
+			);
+			expect(retries).toHaveLength(1);
+			retries[0].flush(
+				{ data: { invitation: { email: "ada@example.com" } } },
+				{ status: 200, statusText: "OK" }
+			);
+			expect(
+				await screen.findByText("ada@example.com")
+			).toBeInTheDocument();
+		}
+	);
 
 	it("validates every field and does not send an incomplete form", async () => {
 		const user = userEvent.setup();

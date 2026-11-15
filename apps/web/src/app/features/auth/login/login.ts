@@ -43,20 +43,20 @@ export class Login {
 	protected readonly error = signal("");
 	protected readonly showPassword = signal(false);
 
-	toggleShowPassword() {
+	protected toggleShowPassword() {
 		this.showPassword.update(v => !v);
 	}
 
 	protected readonly model = signal({ email: "", password: "" });
 
-	readonly form = form(this.model, path => {
+	protected readonly form = form(this.model, path => {
 		required(path.email);
 		required(path.password);
 	});
 
-	onSubmit(event: Event) {
+	protected onSubmit(event: Event) {
 		event.preventDefault();
-		if (this.form().invalid()) return;
+		if (this.isLoading() || this.form().invalid()) return;
 
 		this.isLoading.set(true);
 		this.error.set("");
@@ -86,9 +86,9 @@ export class Login {
 	}
 
 	private messageFor(err: { status?: number }): string {
-		if (err.status === 400 || err.status === 401 || err.status === 422) {
-			return "Invalid email or password.";
-		}
+		if (err.status === 401) return "Invalid email or password.";
+		if (err.status === 422) return "Enter your email and password.";
+		if (err.status === 429) return "";
 		return "Login failed. Please try again.";
 	}
 }
