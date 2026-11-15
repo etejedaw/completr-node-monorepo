@@ -8,7 +8,8 @@ export type HighlightKey =
 	| "longestStreak"
 	| "busiestMonth"
 	| "topGenres"
-	| "topPlatforms";
+	| "topPlatforms"
+	| "classic";
 
 export interface HighlightCell {
 	key: HighlightKey;

@@ -49,7 +49,8 @@ export const HIGHLIGHT_ORDER: HighlightKey[] = [
 	"longestStreak",
 	"busiestMonth",
 	"topGenres",
-	"topPlatforms"
+	"topPlatforms",
+	"classic"
 ];
 
 export const HIGHLIGHT_TONE: Record<HighlightKey, RewindTone> = {
@@ -62,7 +63,8 @@ export const HIGHLIGHT_TONE: Record<HighlightKey, RewindTone> = {
 	longestStreak: "shelf",
 	busiestMonth: "success",
 	topGenres: "queue",
-	topPlatforms: "platinum"
+	topPlatforms: "platinum",
+	classic: "sagas"
 };
 
 const REVEAL_STAGGER_MS = 60;
@@ -73,8 +75,10 @@ const NARROW_FULL = new Set<HighlightKey>([
 	"firstFinished",
 	"lastFinished",
 	"topGenres",
-	"topPlatforms"
+	"topPlatforms",
+	"classic"
 ]);
+const WIDE_STRETCH_FIRST = new Set<HighlightKey>(["topGenres", "topPlatforms"]);
 const TOP_RATED_TALL_MIN_NEIGHBOURS = 3;
 
 const NARROW_SPAN_CLASS: Record<number, string> = {
@@ -111,7 +115,8 @@ export function presentHighlightKeys(
 		longestStreak: highlights.longestStreak !== null,
 		busiestMonth: highlights.busiestMonth !== null,
 		topGenres: highlights.topGenres.length > 0,
-		topPlatforms: highlights.topPlatforms.length > 0
+		topPlatforms: highlights.topPlatforms.length > 0,
+		classic: highlights.classic !== null
 	};
 	return HIGHLIGHT_ORDER.filter(key => present[key]);
 }
@@ -142,6 +147,20 @@ function lastMatching(
 	return [...cells].reverse().find(predicate);
 }
 
+function wideFillerFor(
+	cells: HighlightCell[],
+	wideGap: number
+): HighlightCell | undefined {
+	const fitsGap = (cell: HighlightCell) =>
+		cell.wideRows === 1 && cell.wideColumns + wideGap <= WIDE_COLUMNS;
+	return (
+		lastMatching(
+			cells,
+			cell => WIDE_STRETCH_FIRST.has(cell.key) && fitsGap(cell)
+		) ?? lastMatching(cells, fitsGap)
+	);
+}
+
 function packIntoFullRows(cells: HighlightCell[]): HighlightCell[] {
 	if (cells.length === 0) return cells;
 	const [first, ...neighbours] = cells;
@@ -163,11 +182,7 @@ function packIntoFullRows(cells: HighlightCell[]): HighlightCell[] {
 		cells,
 		cell => cell.columns + narrowGap <= NARROW_COLUMNS
 	);
-	const wideFiller = lastMatching(
-		cells,
-		cell =>
-			cell.wideRows === 1 && cell.wideColumns + wideGap <= WIDE_COLUMNS
-	);
+	const wideFiller = wideFillerFor(cells, wideGap);
 	if (narrowFiller) narrowFiller.columns += narrowGap;
 	if (wideFiller) wideFiller.wideColumns += wideGap;
 	return cells;

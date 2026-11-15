@@ -43,6 +43,8 @@ export interface RewindHighlightsCopy {
 	gamesFinished: (count: number) => string;
 	topGenres: string;
 	platforms: string;
+	classic: string;
+	releasedIn: (year: number) => string;
 	games: (count: number) => string;
 	runs: (count: number) => string;
 }

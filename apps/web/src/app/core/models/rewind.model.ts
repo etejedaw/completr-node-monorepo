@@ -82,6 +82,10 @@ export interface RewindDurationGame extends RewindFinishedGame {
 	isEstimate: boolean;
 }
 
+export interface RewindClassicGame extends RewindFinishedGame {
+	releaseYear: number;
+}
+
 export interface RewindGenre {
 	code: string;
 	name: string;
@@ -129,6 +133,7 @@ export interface RewindHighlights {
 	topGenres: RewindGenre[];
 	topPlatforms: RewindPlatform[];
 	longestStreak: RewindStreak | null;
+	classic: RewindClassicGame | null;
 }
 
 export const REWIND_LENGTH_RANGES = [

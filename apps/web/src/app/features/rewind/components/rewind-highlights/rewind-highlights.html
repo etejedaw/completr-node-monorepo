@@ -376,5 +376,40 @@
 			}
 		</ol>
 	</li>
+	} @if (data.classic; as classic) { @let cell = view.classic!;
+	<li
+		appRewindReveal
+		class="min-w-0"
+		[class]="cell.classes"
+		[revealDelay]="cell.delayMs"
+		[style.--tone]="cell.tone"
+	>
+		<a
+			class="group flex h-full min-w-0 items-center gap-3 rounded-card p-4 sm:p-5 no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			[class]="tintClass"
+			[routerLink]="['/games', classic.code]"
+		>
+			<app-game-poster
+				aria-hidden="true"
+				class="w-12 sm:w-14 shrink-0 aspect-[2/3] -rotate-6 rounded-md ring-1 ring-line-hover sepia-[0.35] transition-[filter,rotate] duration-500 ease-out group-hover:sepia-0 motion-safe:group-hover:-rotate-2"
+				[src]="classic.coverUrl"
+				[title]="classic.title"
+				[width]="420"
+				[compact]="true"
+			/>
+			<span class="flex min-w-0 flex-col gap-1">
+				<span class="text-sm font-semibold" [class]="tintSecondaryClass"
+					>{{ text.classic }}</span
+				>
+				<span
+					class="line-clamp-2 font-display text-base sm:text-lg font-bold leading-tight text-fg group-hover:underline"
+					>{{ classic.title }}</span
+				>
+				<span class="text-sm tabular-nums" [class]="tintSecondaryClass"
+					>{{ text.releasedIn(classic.releaseYear) }}</span
+				>
+			</span>
+		</a>
+	</li>
 	}
 </ul>

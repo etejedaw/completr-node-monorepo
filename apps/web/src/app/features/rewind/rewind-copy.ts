@@ -98,6 +98,8 @@ const ENGLISH: RewindCopy = {
 			`${englishPlural(count, "game", "games")} finished`,
 		topGenres: "Top genres",
 		platforms: "Platforms",
+		classic: "The classic",
+		releasedIn: year => `Released in ${year}`,
 		games: count => englishPlural(count, "game", "games"),
 		runs: count => englishPlural(count, "run", "runs")
 	},
@@ -255,6 +257,8 @@ const SPANISH: RewindCopy = {
 				: `${spanishPlural(count, "juego", "juegos")} terminados`,
 		topGenres: "Géneros favoritos",
 		platforms: "Plataformas",
+		classic: "El más clásico",
+		releasedIn: year => `Lanzado en ${year}`,
 		games: count => spanishPlural(count, "juego", "juegos"),
 		runs: count => spanishPlural(count, "partida", "partidas")
 	},
