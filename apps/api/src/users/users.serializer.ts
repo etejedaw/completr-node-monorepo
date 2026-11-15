@@ -43,7 +43,6 @@ export function userMeSerializer(
 		bio: user.bio,
 		avatarUrl: user.avatarUrl,
 		...pickVisibilityLevels(user),
-		rewindIgnoresProfileVisibility: user.rewindIgnoresProfileVisibility,
 		acceptFollowRequests: user.acceptFollowRequests,
 		theme: user.theme,
 		createdAt: user.createdAt

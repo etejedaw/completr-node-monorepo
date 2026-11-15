@@ -82,7 +82,6 @@ function privacySection(user: User) {
 		platinumVisibility: user.platinumVisibility,
 		franchiseVisibility: user.franchiseVisibility,
 		rewindVisibility: user.rewindVisibility,
-		rewindIgnoresProfileVisibility: user.rewindIgnoresProfileVisibility,
 		acceptFollowRequests: user.acceptFollowRequests
 	};
 }

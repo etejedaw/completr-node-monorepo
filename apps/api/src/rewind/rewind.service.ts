@@ -26,6 +26,7 @@ import {
 	type RewindViewerContext,
 	type RewindYearVisibility
 } from "./rewind-record.interface";
+import { type RewindEntryPoint } from "./rewind-record.types";
 import { type RewindCalendar, type RewindRun } from "./rewind-run.interface";
 import { runRecap } from "./services/rewind-ai-recap.service";
 import { freezeRewind } from "./services/rewind-freeze.service";
@@ -144,11 +145,12 @@ async function loadRecords(owner: User, calendar: RewindCalendar) {
 async function buildViewerContext(
 	viewerId: string | undefined,
 	owner: User,
+	entryPoint: RewindEntryPoint,
 	providedPremiumAccess?: PremiumAccess
 ): Promise<RewindViewerContext> {
 	const access = resolveRewindViewerAccess(
 		await resolveSectionAccess(viewerId, owner),
-		owner
+		entryPoint
 	);
 	if (!access.rewind) throw rewindServiceError.userPrivateError();
 
@@ -231,7 +233,7 @@ export async function getRewindYearsForViewer(
 	username: string
 ): Promise<RewindYears> {
 	const owner = await requireRewindOwner(username);
-	const context = await buildViewerContext(viewerId, owner);
+	const context = await buildViewerContext(viewerId, owner, "archive");
 	const visibility = yearVisibility(context);
 	const liveYears = listVisibleRewindYears(
 		context.runs,
@@ -341,7 +343,7 @@ export async function getRewindForViewer(
 	year: number
 ): Promise<Rewind> {
 	const owner = await requireRewindOwner(username);
-	const context = await buildViewerContext(viewerId, owner);
+	const context = await buildViewerContext(viewerId, owner, "link");
 	return buildRewindForContext(context, year);
 }
 
@@ -350,7 +352,12 @@ async function getOwnRewind(
 	year: number,
 	premiumAccess: PremiumAccess
 ): Promise<Rewind> {
-	const context = await buildViewerContext(owner.id, owner, premiumAccess);
+	const context = await buildViewerContext(
+		owner.id,
+		owner,
+		"link",
+		premiumAccess
+	);
 	return buildRewindForContext(context, year);
 }
 

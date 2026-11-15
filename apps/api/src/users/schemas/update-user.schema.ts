@@ -23,7 +23,6 @@ export const UpdateUserSchema = z
 		platinumVisibility: visibility,
 		franchiseVisibility: visibility,
 		rewindVisibility: visibility,
-		rewindIgnoresProfileVisibility: z.boolean().optional(),
 		acceptFollowRequests: z.boolean().optional(),
 		theme: z.enum(THEME_IDS as [string, ...string[]]).optional()
 	})

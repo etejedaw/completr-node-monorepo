@@ -1,13 +1,12 @@
-import { type User } from "../../users/user.model";
 import { type SectionAccess } from "../../users/users.types";
 import { type RewindViewerAccess } from "../rewind-record.interface";
+import { type RewindEntryPoint } from "../rewind-record.types";
 
 export function resolveRewindViewerAccess(
 	sectionAccess: SectionAccess,
-	owner: Pick<User, "rewindIgnoresProfileVisibility">
+	entryPoint: RewindEntryPoint
 ): RewindViewerAccess {
-	const profileGate =
-		sectionAccess.profile || owner.rewindIgnoresProfileVisibility;
+	const profileGate = entryPoint === "link" || sectionAccess.profile;
 	return {
 		rewind: sectionAccess.rewind && profileGate,
 		platinum: sectionAccess.profile && sectionAccess.platinum
