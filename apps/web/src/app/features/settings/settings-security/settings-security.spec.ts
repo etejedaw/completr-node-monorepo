@@ -18,6 +18,7 @@ import { SettingsSecurity } from "./settings-security";
 
 const api = environment.apiUrl;
 const VALID_PASSWORD = "Abcdef1!";
+const CURRENT_PASSWORD = "Old-pass1!";
 
 function buildSession(id: string, deviceInfo: string | null): AuthSession {
 	return {
@@ -59,10 +60,13 @@ describe("SettingsSecurity", () => {
 						getSessions,
 						revokeSession,
 						revokeOtherSessions,
-						changePassword: (password: string) =>
+						changePassword: (
+							currentPassword: string,
+							password: string
+						) =>
 							TestBed.inject(HttpClient).patch(
 								`${api}/auth/password`,
-								{ password }
+								{ currentPassword, password }
 							)
 					}
 				},
@@ -95,8 +99,13 @@ describe("SettingsSecurity", () => {
 		async function fillPasswords(
 			typist: ReturnType<typeof userEvent.setup>,
 			newPassword: string,
-			confirmPassword: string
+			confirmPassword: string,
+			currentPassword = CURRENT_PASSWORD
 		) {
+			await typist.type(
+				screen.getByLabelText("Current password"),
+				currentPassword
+			);
 			await typist.type(
 				screen.getByLabelText("New password"),
 				newPassword
@@ -226,7 +235,10 @@ describe("SettingsSecurity", () => {
 			const httpTesting = TestBed.inject(HttpTestingController);
 			const req = httpTesting.expectOne(`${api}/auth/password`);
 			expect(req.request.method).toBe("PATCH");
-			expect(req.request.body).toEqual({ password: VALID_PASSWORD });
+			expect(req.request.body).toEqual({
+				currentPassword: CURRENT_PASSWORD,
+				password: VALID_PASSWORD
+			});
 			expect(
 				await screen.findByRole("button", { name: "Updating…" })
 			).toBeDisabled();
@@ -239,6 +251,7 @@ describe("SettingsSecurity", () => {
 			expect(toast.success).toHaveBeenCalledWith(
 				"Password updated. Your other devices were signed out."
 			);
+			expect(screen.getByLabelText("Current password")).toHaveValue("");
 			expect(screen.getByLabelText("New password")).toHaveValue("");
 			expect(screen.getByLabelText("Confirm password")).toHaveValue("");
 			expect(screen.getByLabelText("New password")).toHaveAttribute(
@@ -295,6 +308,118 @@ describe("SettingsSecurity", () => {
 			expect(
 				screen.getByRole("button", { name: "Update password" })
 			).toBeEnabled();
+		});
+		it("asks for the current password and does not call the API without it", async () => {
+			const typist = userEvent.setup();
+			await renderSecurity();
+			await typist.type(
+				screen.getByLabelText("New password"),
+				VALID_PASSWORD
+			);
+			await typist.type(
+				screen.getByLabelText("Confirm password"),
+				VALID_PASSWORD
+			);
+
+			await typist.click(
+				screen.getByRole("button", { name: "Update password" })
+			);
+
+			expect(
+				screen.getByText("Enter your current password.")
+			).toBeInTheDocument();
+			TestBed.inject(HttpTestingController).expectNone(
+				`${api}/auth/password`
+			);
+		});
+
+		it("hides the current password together with the new ones", async () => {
+			const typist = userEvent.setup();
+			await renderSecurity();
+			const current = screen.getByLabelText("Current password");
+
+			expect(current).toHaveAttribute("type", "password");
+			expect(current).toHaveAttribute("autocomplete", "current-password");
+
+			await typist.click(
+				screen.getByRole("button", { name: "Show passwords" })
+			);
+
+			expect(current).toHaveAttribute("type", "text");
+		});
+
+		it("marks a wrong current password on its field, keeps the form and skips the toast", async () => {
+			const typist = userEvent.setup();
+			await renderSecurity();
+			await fillPasswords(typist, VALID_PASSWORD, VALID_PASSWORD);
+
+			await typist.click(
+				screen.getByRole("button", { name: "Update password" })
+			);
+			TestBed.inject(HttpTestingController)
+				.expectOne(`${api}/auth/password`)
+				.flush(
+					{ type: "AUTH_INVALID_CURRENT_PASSWORD", status: 400 },
+					{ status: 400, statusText: "Bad Request" }
+				);
+
+			expect(
+				await screen.findByText("That's not your current password.")
+			).toBeInTheDocument();
+			expect(toast.warning).not.toHaveBeenCalled();
+			expect(toast.success).not.toHaveBeenCalled();
+			expect(screen.getByLabelText("Current password")).toHaveValue(
+				CURRENT_PASSWORD
+			);
+			expect(screen.getByLabelText("New password")).toHaveValue(
+				VALID_PASSWORD
+			);
+		});
+
+		it("does not resend a rejected current password and clears the error once it changes", async () => {
+			const typist = userEvent.setup();
+			await renderSecurity();
+			await fillPasswords(typist, VALID_PASSWORD, VALID_PASSWORD);
+			const httpTesting = TestBed.inject(HttpTestingController);
+			const updateButton = () =>
+				screen.getByRole("button", { name: "Update password" });
+
+			await typist.click(updateButton());
+			httpTesting
+				.expectOne(`${api}/auth/password`)
+				.flush(
+					{ type: "AUTH_INVALID_CURRENT_PASSWORD", status: 400 },
+					{ status: 400, statusText: "Bad Request" }
+				);
+			await screen.findByText("That's not your current password.");
+
+			await typist.dblClick(updateButton());
+			httpTesting.expectNone(`${api}/auth/password`);
+
+			const current = screen.getByLabelText("Current password");
+			await typist.type(current, "x");
+			expect(
+				screen.queryByText("That's not your current password.")
+			).not.toBeInTheDocument();
+
+			await typist.type(current, "{Backspace}");
+			expect(
+				screen.getByText("That's not your current password.")
+			).toBeInTheDocument();
+
+			await typist.clear(current);
+			await typist.type(current, "Right-pass1!");
+			await typist.click(updateButton());
+
+			const retry = httpTesting.expectOne(`${api}/auth/password`);
+			expect(retry.request.body).toEqual({
+				currentPassword: "Right-pass1!",
+				password: VALID_PASSWORD
+			});
+			retry.flush({});
+			expect(toast.success).toHaveBeenCalledWith(
+				"Password updated. Your other devices were signed out."
+			);
 		});
 	});
 

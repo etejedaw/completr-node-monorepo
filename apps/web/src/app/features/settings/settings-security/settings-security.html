@@ -10,6 +10,27 @@
 			(submit)="$event.preventDefault(); changePassword()"
 		>
 			<app-settings-row
+				label="Current password"
+				controlId="current-password"
+			>
+				<input
+					uiInput
+					id="current-password"
+					[type]="showPasswords() ? 'text' : 'password'"
+					autocomplete="current-password"
+					[formField]="passwordForm.currentPassword"
+					aria-describedby="current-password-error"
+				/>
+				@if (passwordForm.currentPassword().touched() &&
+				passwordForm.currentPassword().invalid()) {
+				<ui-field-error id="current-password-error"
+					>{{ passwordForm.currentPassword().errors()[0]?.message
+					}}</ui-field-error
+				>
+				}
+			</app-settings-row>
+
+			<app-settings-row
 				label="New password"
 				controlId="new-password"
 				hint="Use something you don't use anywhere else."

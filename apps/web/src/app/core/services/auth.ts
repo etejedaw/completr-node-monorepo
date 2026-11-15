@@ -169,8 +169,9 @@ export class AuthService {
 			.pipe(map(res => res.data));
 	}
 
-	changePassword(password: string) {
+	changePassword(currentPassword: string, password: string) {
 		return this.http.patch(`${environment.apiUrl}/auth/password`, {
+			currentPassword,
 			password
 		});
 	}
