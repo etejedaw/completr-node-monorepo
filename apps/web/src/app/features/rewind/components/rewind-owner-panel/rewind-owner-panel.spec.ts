@@ -492,7 +492,7 @@ describe("RewindOwnerPanel", () => {
 			).toBeNull();
 		});
 
-		it("keeps the AI generations neutral without AI access", async () => {
+		it("does not show the AI generations tile without AI access", async () => {
 			await renderPanel(
 				rewindFixture({
 					premiumAccess: noAccess,
@@ -510,6 +510,10 @@ describe("RewindOwnerPanel", () => {
 				screen.queryByRole("button", { name: "Premium" })
 			).toBeNull();
 			expect(screen.queryByRole("button", { name: "Gift" })).toBeNull();
+			expect(screen.queryByText("AI generations")).toBeNull();
+			expect(screen.queryByText(/AI generations?: /)).toBeNull();
+			expect(screen.getByText("Season")).toBeInTheDocument();
+			expect(screen.getByText("This version")).toBeInTheDocument();
 		});
 
 		it("hides Regenerate and the AI generations without AI access and shows the Rewind gift instead", async () => {
@@ -656,7 +660,7 @@ describe("RewindOwnerPanel", () => {
 			expect(await screen.findByText("Aún no abre")).toBeInTheDocument();
 		});
 
-		it("explains in the AI tile why there is no Regenerate without repeating it below", async () => {
+		it("does not tell a user without AI access what Premium would add", async () => {
 			await renderPanel(
 				rewindFixture({
 					premiumAccess: noAccess,
@@ -670,9 +674,7 @@ describe("RewindOwnerPanel", () => {
 				.expectOne(giftOffersUrl)
 				.flush({ data: { offers: [] } });
 
-			expect(
-				screen.getByText("With Premium or a gift")
-			).toBeInTheDocument();
+			expect(screen.queryByText(/Premium/)).toBeNull();
 			expect(
 				screen.queryByText(
 					"Regenerating needs Premium or a Rewind gift."
