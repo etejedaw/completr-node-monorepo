@@ -15,7 +15,13 @@ import {
 	type RewindRegenerationBlock
 } from "../../../../core/models/rewind.model";
 import { GiftOfferCard } from "../../../../shared/components/gift-offer-card/gift-offer-card";
-import { UiAlert, UiBadge, UiButton, UiEyebrow } from "../../../../shared/ui";
+import {
+	UiAlert,
+	UiBadge,
+	UiButton,
+	UiEyebrow,
+	UiPremiumBadge
+} from "../../../../shared/ui";
 import { RewindService } from "../../rewind";
 import { rewindCopy } from "../../rewind-copy";
 import { formatRewindDay, formatRewindDayWithYear } from "../../rewind-dates";
@@ -63,7 +69,8 @@ const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 		RewindGenerateDialog,
 		UiAlert,
 		UiBadge,
-		UiButton
+		UiButton,
+		UiPremiumBadge
 	],
 	templateUrl: "./rewind-owner-panel.html",
 	host: { class: "block empty:hidden" },

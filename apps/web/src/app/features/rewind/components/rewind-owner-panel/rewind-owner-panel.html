@@ -34,24 +34,6 @@
 				<span class="text-fg-secondary">&ngsp;{{ season.detail }}</span>
 				}
 			</li>
-			@if (aiChip(); as ai) {
-			<li [class]="statusChipClass">
-				@if (aiPremiumLabel(); as premiumLabel) {
-				<span class="text-fg-secondary" data-access-label
-					>{{ premiumLabel }}</span
-				>
-				}
-				<strong class="font-bold tabular-nums">{{ ai.count }}</strong>
-				{{ ai.label }}
-			</li>
-			@if (ai.grace) {
-			<li [class]="statusChipClass">
-				<span aria-hidden="true" class="material-icons text-base"
-					>event_available</span
-				>
-				{{ ai.grace }}
-			</li>
-			} }
 			<li [class]="statusChipClass">
 				<span
 					aria-hidden="true"
@@ -106,11 +88,77 @@
 		>
 		{{ message }}
 	</p>
-	} @if (controls.aiRecapState === "failed" && panelState() ===
-	"open-with-ai") {
+	} @if (aiChip(); as ai) {
 	<div
-		class="flex flex-col gap-3 border-t border-line pt-4 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between"
+		role="group"
+		[attr.aria-label]="aiPremiumLabel()"
+		class="flex flex-col gap-3 rounded-card border border-premium/30 bg-premium/5 p-3 sm:p-4"
+		data-premium-zone
 	>
+		<div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+			<div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+				@if (aiPremiumLabel(); as premiumLabel) {
+				<span class="inline-flex items-center gap-1.5 pr-1">
+					<ui-premium-badge
+						interactive
+						[label]="premiumLabel"
+						[message]="copy.aiPerk"
+					/>
+					<span
+						aria-hidden="true"
+						class="text-caption font-bold uppercase tracking-[0.16em] text-premium"
+						data-access-label
+						>{{ premiumLabel }}</span
+					>
+				</span>
+				}
+				<ul class="m-0 flex min-w-0 list-none flex-wrap gap-2 p-0">
+					<li [class]="statusChipClass">
+						<strong class="font-bold tabular-nums"
+							>{{ ai.count }}</strong
+						>
+						{{ ai.label }}
+					</li>
+					@if (ai.grace) {
+					<li [class]="statusChipClass">
+						<span
+							aria-hidden="true"
+							class="material-icons text-base text-fg-muted"
+							>event_available</span
+						>
+						{{ ai.grace }}
+					</li>
+					}
+				</ul>
+			</div>
+			@if (controls.aiRecapState === "failed") {
+			<button
+				uiButton
+				type="button"
+				variant="secondary"
+				class="tap:min-h-[44px] max-sm:!w-full shrink-0"
+				[disabled]="aiRecapPending()"
+				(click)="addAiRecap()"
+			>
+				{{ copy.retry }}
+			</button>
+			} @else if (controls.aiRecapState === "available") {
+			<button
+				uiButton
+				type="button"
+				variant="secondary"
+				class="tap:min-h-[44px] max-sm:!w-full shrink-0"
+				[disabled]="aiRecapPending()"
+				(click)="addAiRecap()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>auto_awesome</span
+				>
+				{{ copy.addAiRecap }}
+			</button>
+			}
+		</div>
+		@if (controls.aiRecapState === "failed") {
 		<p class="m-0 inline-flex items-center gap-1.5 text-sm text-fg">
 			<span
 				aria-hidden="true"
@@ -119,38 +167,11 @@
 			>
 			{{ copy.aiRecapFailed }}
 		</p>
-		<button
-			uiButton
-			type="button"
-			variant="secondary"
-			class="tap:min-h-[44px] max-sm:!w-full shrink-0"
-			[disabled]="aiRecapPending()"
-			(click)="addAiRecap()"
-		>
-			{{ copy.retry }}
-		</button>
-	</div>
-	} @else if (controls.aiRecapState === "available" && panelState() ===
-	"open-with-ai") {
-	<div
-		class="flex flex-col gap-3 border-t border-line pt-4 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between"
-	>
+		} @else if (controls.aiRecapState === "available") {
 		<p class="m-0 text-sm text-fg-secondary text-pretty">
 			{{ copy.addAiRecapHint }}
 		</p>
-		<button
-			uiButton
-			type="button"
-			variant="secondary"
-			class="tap:min-h-[44px] max-sm:!w-full shrink-0"
-			[disabled]="aiRecapPending()"
-			(click)="addAiRecap()"
-		>
-			<span aria-hidden="true" class="material-icons text-base"
-				>auto_awesome</span
-			>
-			{{ copy.addAiRecap }}
-		</button>
+		}
 	</div>
 	} @if (aiRecapPending()) {
 	<p
@@ -159,7 +180,7 @@
 	>
 		<span
 			aria-hidden="true"
-			class="material-icons text-base text-brand motion-safe:animate-spin"
+			class="material-icons text-base text-premium motion-safe:animate-spin"
 			>autorenew</span
 		>
 		{{ copy.aiRecapPending }}

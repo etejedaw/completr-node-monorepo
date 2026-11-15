@@ -9,6 +9,7 @@ export const REWIND_OWNER_PANEL_COPY: RewindOwnerPanelCopy = {
 	aiGenerationsLabel: count =>
 		count === 1 ? "AI generation left" : "AI generations left",
 	aiGraceExtra: date => `+1 extra until ${date}`,
+	aiPerk: "Each AI generation writes a new AI recap and premium stats for this Rewind.",
 	writtenIn: { en: "In English", es: "In Spanish" },
 	publicRunsOnly: "Public runs only",
 	regenerate: "Regenerate",

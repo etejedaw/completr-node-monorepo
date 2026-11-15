@@ -12,6 +12,7 @@ export interface RewindOwnerPanelCopy {
 	seasonUntil: (date: string) => string;
 	aiGenerationsLabel: (count: number) => string;
 	aiGraceExtra: (date: string) => string;
+	aiPerk: string;
 	writtenIn: Record<RewindLanguage, string>;
 	publicRunsOnly: string;
 	regenerate: string;
