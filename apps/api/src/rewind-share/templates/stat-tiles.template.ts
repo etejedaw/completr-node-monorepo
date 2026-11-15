@@ -2,11 +2,9 @@ import { type RewindTotals } from "../../rewind/rewind.interface";
 import { type ShareCopy } from "../rewind-share.interface";
 import { type StatTile } from "../rewind-share-template.interface";
 import { countLabel } from "../utils/count-label.util";
-import {
-	formatCount,
-	formatHours,
-	formatRating
-} from "../utils/format-count.util";
+import { formatCount } from "../utils/format-count.util";
+import { formatHours } from "../utils/format-hours.util";
+import { formatRating } from "../utils/format-rating.util";
 
 export function leadTile(totals: RewindTotals, copy: ShareCopy): StatTile {
 	const locale = copy.numberLocale;

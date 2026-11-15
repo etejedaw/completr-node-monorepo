@@ -58,7 +58,7 @@ function mosaicRows(
 	});
 }
 
-export function coversWithArt(covers: ShareCover[]): ShareCover[] {
+function coversWithArt(covers: ShareCover[]): ShareCover[] {
 	return covers.filter(cover => cover.dataUri);
 }
 

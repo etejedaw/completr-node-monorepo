@@ -1,50 +1,14 @@
 import { type Request, type Response } from "express";
 
-import { DomainError } from "../common/errors/domain-error";
-import { ServiceError } from "../common/errors/service-error";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import * as rewindDomainError from "../rewind/errors/rewind.domain-error";
 import * as rewindService from "../rewind/rewind.service";
 import { type RewindYearParams } from "../rewind/schemas/rewind-year-params.schema";
 import { type RewindImageFormat } from "./rewind-share.constants";
-import { type GuestRewindLookup } from "./rewind-share.interface";
 import * as rewindShareService from "./rewind-share.service";
 
 const VIEWER_CACHE_CONTROL = "private, max-age=300";
 const GUEST_CACHE_CONTROL = "public, max-age=3600";
-const MISSING_REWIND_CODES = new Set([
-	"REWIND_NOT_FOUND",
-	"REWIND_NOT_GENERATED"
-]);
-
-function isRewindUnavailable(
-	error: unknown
-): error is DomainError | ServiceError {
-	return error instanceof DomainError || error instanceof ServiceError;
-}
-
-async function findGuestRewind(
-	username: string,
-	year: number
-): Promise<GuestRewindLookup> {
-	try {
-		return {
-			rewind: await rewindService.getRewindForViewer(
-				undefined,
-				username,
-				year
-			),
-			status: 200
-		};
-	} catch (error) {
-		if (!isRewindUnavailable(error)) throw error;
-		return {
-			rewind: null,
-			status: MISSING_REWIND_CODES.has(error.code) ? 404 : 200
-		};
-	}
-}
-
 async function sendRewindImage(
 	request: Request,
 	response: Response,
@@ -90,7 +54,10 @@ export function getRewindOgImage(request: Request, response: Response) {
 export async function getRewindSharePage(request: Request, response: Response) {
 	const { username, year } = request.locals.params as RewindYearParams;
 
-	const { rewind, status } = await findGuestRewind(username, year);
+	const { rewind, status } = await rewindShareService.findGuestRewind(
+		username,
+		year
+	);
 	const html = rewindShareService.renderSharePage(username, year, rewind);
 
 	return response

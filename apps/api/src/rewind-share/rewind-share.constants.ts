@@ -26,5 +26,9 @@ export const COVER_FETCH_TIMEOUT_MS = 3000;
 export const COVER_MAX_BYTES = 5 * 1024 * 1024;
 export const COVER_FETCH_WIDTH = 420;
 export const SHARE_IMAGE_CACHE_SIZE = 100;
+export const MISSING_REWIND_CODES = new Set([
+	"REWIND_NOT_FOUND",
+	"REWIND_NOT_GENERATED"
+]);
 
 export type RewindImageFormat = keyof typeof SHARE_IMAGE_SIZES;

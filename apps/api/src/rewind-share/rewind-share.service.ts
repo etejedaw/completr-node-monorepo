@@ -2,13 +2,18 @@ import { Resvg } from "@resvg/resvg-js";
 import satori from "satori";
 
 import { environmentConfig } from "../common/config/environment.config";
+import { DomainError } from "../common/errors/domain-error";
+import { ServiceError } from "../common/errors/service-error";
 import { type Rewind, type RewindGameRef } from "../rewind/rewind.interface";
+import * as rewindService from "../rewind/rewind.service";
 import {
+	MISSING_REWIND_CODES,
 	type RewindImageFormat,
 	SHARE_IMAGE_CACHE_SIZE,
 	SHARE_IMAGE_SIZES
 } from "./rewind-share.constants";
 import {
+	type GuestRewindLookup,
 	type LoadedArtwork,
 	type LoadedCover,
 	type RenderedImage,
@@ -188,6 +193,34 @@ function sharePageMeta(
 		continueLink: copy.continueLink,
 		redirectUrl
 	};
+}
+
+function isRewindUnavailable(
+	error: unknown
+): error is DomainError | ServiceError {
+	return error instanceof DomainError || error instanceof ServiceError;
+}
+
+export async function findGuestRewind(
+	username: string,
+	year: number
+): Promise<GuestRewindLookup> {
+	try {
+		return {
+			rewind: await rewindService.getRewindForViewer(
+				undefined,
+				username,
+				year
+			),
+			status: 200
+		};
+	} catch (error) {
+		if (!isRewindUnavailable(error)) throw error;
+		return {
+			rewind: null,
+			status: MISSING_REWIND_CODES.has(error.code) ? 404 : 200
+		};
+	}
 }
 
 export function renderSharePage(
