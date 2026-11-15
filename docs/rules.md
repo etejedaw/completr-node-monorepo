@@ -284,7 +284,7 @@ Antes de crear uno nuevo, se reutiliza uno de estos. Los inputs están en el có
 
 ### Tests
 
-- **`errorInterceptor` guarda `isRefreshing` a nivel de módulo.** Todo test que dispare un 401 debe terminar el refresh (`next` + `complete`, o `error`) para no contaminar al siguiente.
+- **`errorInterceptor` guarda el refresh en curso a nivel de módulo, y ese refresh sobrevive a que se cancelen las peticiones que lo esperan.** Todo test que dispare un 401 debe terminar el refresh (`next`, `complete` o `error`) para no contaminar al siguiente; desuscribirse no basta.
 
 ---
 
@@ -296,4 +296,5 @@ Antes de crear uno nuevo, se reutiliza uno de estos. Los inputs están en el có
 - **`/changelog.json` y `/privacy.json` se sirven con `Access-Control-Allow-Origin: *`.** Otros orígenes (la web, la API) tienen que poder leerlos.
 - **La política de privacidad vive solo en la landing (`src/content/legal/`: `privacy-es.md` y `privacy-en.md`), y la web la muestra vía la API.** La versión en español se publica en `/privacy` y la inglesa solo como `/privacy.json`. La API la reexpone en `GET /privacy` (variable `PRIVACY_SOURCE_URL`, por defecto `http://localhost:4321/privacy.json`; en producción `https://www.completr.app/privacy.json`) con la misma caché de 5 minutos.
 - **La política se edita en los dos archivos a la vez, con la misma `version`, la misma `updated` y los mismos `id` de sección en el mismo orden.** Los enlaces directos como `/privacy#cookies` tienen que apuntar a la misma sección en la landing y en la app.
+- **`PUBLIC_CONTACT_ENDPOINT` es obligatoria en el build de la landing y su origen tiene que estar en `connect-src` de `security-headers.conf`.** El formulario de la beta hace `fetch` a ese endpoint, y la CSP se sirve desde un archivo fijo mientras el endpoint llega como `ARG` del `Dockerfile`: si cambia uno sin el otro, el navegador bloquea el envío y el formulario solo muestra un error genérico. `contact-endpoint-check.mjs` hace fallar `astro build` si la variable falta, no es una URL `https` o su origen no está en `connect-src`; `astro dev` no la exige. Un build local necesita la variable en el entorno o en `apps/landing/.env`.
 - **`cookie` está declarado en `apps/landing/package.json` aunque el código no lo importa.** El bundle de prerender de Astro lo resuelve desde `apps/landing`, y sin esa declaración npm deja en la raíz el `cookie@0.x` de Express, que no tiene los exports que Astro espera. Quitarlo rompe el build de la landing.
