@@ -38,6 +38,7 @@ import {
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { UiButton, UiPremiumBadge } from "../../../shared/ui";
 import { isNotFound } from "../../../shared/utils/http-failure";
+import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { WishlistService } from "../wishlist";
 import {
@@ -67,6 +68,7 @@ import {
 })
 export class WishlistView implements OnInit {
 	private readonly destroyRef = inject(DestroyRef);
+	private readonly wishlistLoader = injectLatestLoader();
 	private readonly wishlistService = inject(WishlistService);
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly dialogs = inject(DialogService);
@@ -96,6 +98,7 @@ export class WishlistView implements OnInit {
 	);
 	protected readonly pageState = computed<LibraryPageState>(() => {
 		if (this.isLoading()) return "loading";
+		if (this.wishlistLoader.failed()) return "error";
 		if (this.entries().length > 0) return "ready";
 		return this.searchQuery().trim() || this.selectedPlatform()
 			? "no-matches"
@@ -189,21 +192,22 @@ export class WishlistView implements OnInit {
 		});
 	}
 
-	private loadWishlist() {
+	protected loadWishlist() {
 		this.isLoading.set(true);
-		this.wishlistService
-			.load({
+		this.wishlistLoader.load(
+			this.wishlistService.load({
 				limit: this.limit,
 				offset: this.offset(),
 				search: this.searchQuery().trim() || undefined
-			})
-			.subscribe({
+			}),
+			{
 				next: res => {
 					this.allEntries.set(res.data.wishlist);
 					this.total.set(res.data.total ?? res.data.wishlist.length);
 					this.isLoading.set(false);
 				},
 				error: () => this.isLoading.set(false)
-			});
+			}
+		);
 	}
 }
