@@ -1,4 +1,4 @@
-import { Op, type Transaction } from "sequelize";
+import { type IncludeOptions, Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
@@ -209,4 +209,10 @@ export async function destroyUser(id: string, transaction: Transaction) {
 			foreignKey: usersServiceError.deleteForbiddenError
 		});
 	}
+}
+
+export function userInclude(
+	options: Omit<IncludeOptions, "model"> = {}
+): IncludeOptions {
+	return { model: User, ...options };
 }

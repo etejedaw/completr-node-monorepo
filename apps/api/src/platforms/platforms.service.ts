@@ -1,3 +1,5 @@
+import { type IncludeOptions } from "sequelize";
+
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
 import { type RegisterPlatformDto } from "./dtos/register-platform.dto";
@@ -75,4 +77,10 @@ export async function removePlatform(id: string) {
 			foreignKey: platformServiceError.inUseError
 		});
 	}
+}
+
+export function platformInclude(
+	options: Omit<IncludeOptions, "model"> = {}
+): IncludeOptions {
+	return { model: Platform, ...options };
 }

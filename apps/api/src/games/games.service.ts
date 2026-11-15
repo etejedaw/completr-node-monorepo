@@ -1,4 +1,8 @@
-import { type Transaction } from "sequelize";
+import {
+	type IncludeOptions,
+	type OrderItem,
+	type Transaction
+} from "sequelize";
 
 import * as activityService from "../activity/activity.service";
 import * as backlogService from "../backlog/backlog.service";
@@ -99,6 +103,16 @@ export {
 	assertRawgEnabled,
 	findRawgIdBySlug
 } from "./services/rawg-source.service";
+
+export function gameInclude(
+	options: Omit<IncludeOptions, "model"> = {}
+): IncludeOptions {
+	return { model: Game, ...options };
+}
+
+export function gameTitleOrder(direction: "ASC" | "DESC"): OrderItem {
+	return [Game, "title", direction];
+}
 
 const onlineSearch = new RawgSearchHandler(rawg, resolveRawgResult, {
 	durationMs:
