@@ -33,9 +33,9 @@ import { RewindGenerateDialog } from "../rewind-generate-dialog/rewind-generate-
 import { injectRewindGenerateFlow } from "../rewind-generate-dialog/rewind-generate-flow";
 import { REWIND_OWNER_PANEL_COPY } from "./rewind-owner-panel.copy";
 import {
-	type RewindOwnerAiTile,
+	type RewindOwnerAiChip,
 	type RewindOwnerPanelState,
-	type RewindOwnerSeasonTile
+	type RewindOwnerSeasonChip
 } from "./rewind-owner-panel.model";
 
 const REGENERATION_BLOCKS_SHOWN_ELSEWHERE: readonly RewindRegenerationBlock[] =
@@ -47,7 +47,11 @@ function rewindOwnerPanelState(rewind: Rewind): RewindOwnerPanelState {
 	return rewind.premiumAccess?.allowed ? "open-with-ai" : "open-without-ai";
 }
 
-const AI_TILE_EMPTY_VALUE = "\u2014";
+const STATUS_CHIP_CLASS =
+	"inline-flex h-9 max-w-full items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface/60 px-3.5 text-sm text-fg";
+
+const PREMIUM_CHIP_CLASS =
+	"inline-flex h-9 max-w-full items-center gap-1.5 whitespace-nowrap rounded-full border border-premium/40 bg-premium/10 px-3.5 text-sm text-premium";
 
 const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 	"exists",
@@ -88,7 +92,7 @@ export class RewindOwnerPanel {
 	private readonly frozenAt = computed(
 		() => this.rewind().ownerControls?.frozenAt ?? this.rewind().frozenAt
 	);
-	protected readonly seasonTile = computed<RewindOwnerSeasonTile>(() => {
+	protected readonly seasonChip = computed<RewindOwnerSeasonChip>(() => {
 		const copy = this.copy();
 		const { language } = this.rewind();
 		const state = this.panelState();
@@ -115,8 +119,8 @@ export class RewindOwnerPanel {
 			tone: "open"
 		};
 	});
-	protected readonly stripColumnClass =
-		"row-span-3 grid min-w-0 grid-rows-subgrid content-start items-start gap-y-1.5 border-t border-line pt-4 first:border-t-0 first:pt-0 sm:min-w-40 sm:border-t-0 sm:border-l sm:px-6 sm:pt-0 sm:first:border-l-0 sm:first:pl-0";
+	protected readonly statusChipClass = STATUS_CHIP_CLASS;
+	protected readonly premiumChipClass = PREMIUM_CHIP_CLASS;
 	protected readonly aiPremiumLabel = computed(() => {
 		const kind = rewindPremiumAccessKindOf(this.rewind().premiumAccess);
 		return kind
@@ -125,31 +129,20 @@ export class RewindOwnerPanel {
 				]
 			: null;
 	});
-	protected readonly aiTile = computed<RewindOwnerAiTile | null>(() => {
-		if (!this.rewind().premiumAccess?.allowed) return null;
+	protected readonly aiChip = computed<RewindOwnerAiChip | null>(() => {
+		if (this.panelState() !== "open-with-ai") return null;
+		const controls = this.rewind().ownerControls;
+		const count = controls?.regenerationsLeft ?? 0;
+		const graceEndsAt = controls?.graceEndsAt;
 		const copy = this.copy();
-		if (this.panelState() !== "open-with-ai")
-			return {
-				value: AI_TILE_EMPTY_VALUE,
-				detail: copy.aiOutsideSeason,
-				spokenSummary: [
-					`${copy.aiGenerations}: ${copy.aiOutsideSeason}`
-				]
-			};
-		const left = this.rewind().ownerControls?.regenerationsLeft ?? 0;
-		const graceEndsAt = this.rewind().ownerControls?.graceEndsAt;
-		const language = this.rewind().language;
 		return {
-			value: String(left),
-			detail: graceEndsAt
-				? copy.aiGraceExtra(formatRewindDay(graceEndsAt, language))
-				: copy.aiLeft(left),
-			spokenSummary: graceEndsAt
-				? [
-						copy.regenerationsLeft(left),
-						copy.graceUntil(formatRewindDay(graceEndsAt, language))
-					]
-				: [copy.regenerationsLeft(left)]
+			count,
+			label: copy.aiGenerationsLabel(count),
+			grace: graceEndsAt
+				? copy.aiGraceExtra(
+						formatRewindDay(graceEndsAt, this.rewind().language)
+					)
+				: null
 		};
 	});
 	protected readonly notice = computed(() => {

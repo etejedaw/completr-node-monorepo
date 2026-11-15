@@ -1,6 +1,6 @@
 @if (rewind().ownerControls; as controls) {
 <section
-	class="grid grid-cols-1 gap-4 rounded-card border border-line bg-surface p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-5"
+	class="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 sm:p-5"
 	aria-labelledby="rewind-owner-panel-heading"
 	[attr.lang]="rewind().language"
 >
@@ -14,29 +14,10 @@
 		<span class="sr-only">{{ copy().onlyYouHint }}</span>
 	</div>
 
-	@if (controls.canRegenerate) {
-	<button
-		uiButton
-		type="button"
-		variant="secondary"
-		class="order-last tap:min-h-[44px] max-sm:!w-full sm:order-none"
-		[attr.aria-busy]="generation.isPending()"
-		(click)="generation.open()"
-	>
-		<span aria-hidden="true" class="material-icons text-base">refresh</span>
-		{{ generation.isPending() ? copy().regenerating : copy().regenerate }}
-	</button>
-	}
-
-	<ul
-		class="m-0 grid list-none grid-cols-1 gap-y-4 p-0 sm:col-span-2 sm:grid-cols-none sm:grid-flow-col sm:auto-cols-max sm:gap-y-1.5"
-	>
-		@let season = seasonTile();
-		<li [class]="stripColumnClass">
-			<span uiEyebrow>{{ copy().season }}</span>
-			<span
-				class="inline-flex items-center gap-2 whitespace-nowrap font-display text-xl font-bold leading-none text-fg"
-			>
+	<div class="flex flex-col gap-3 sm:flex-row sm:items-start">
+		<ul class="m-0 flex min-w-0 flex-1 list-none flex-wrap gap-2 p-0">
+			@let season = seasonChip();
+			<li [class]="statusChipClass">
 				@if (season.tone === "open") {
 				<span
 					aria-hidden="true"
@@ -48,20 +29,15 @@
 					class="material-icons text-base text-fg-muted"
 					>lock</span
 				>
-				} {{ season.value }}
-			</span>
-			@if (season.detail) {
-			<span class="text-xs text-fg-secondary">{{ season.detail }}</span>
-			}
-		</li>
-
-		@if (aiTile(); as ai) { @let premiumLabel = aiPremiumLabel();
-		<li [class]="stripColumnClass">
-			<span class="flex items-center gap-2">
-				<span uiEyebrow [class.!text-premium]="premiumLabel"
-					>{{ copy().aiGenerations }}</span
-				>
-				@if (premiumLabel) {
+				}
+				<strong class="font-semibold">{{ season.value }}</strong>
+				@if (season.detail) {
+				<span class="text-fg-secondary">&ngsp;{{ season.detail }}</span>
+				}
+			</li>
+			@if (aiChip(); as ai) {
+			<li [class]="premiumChipClass">
+				@if (aiPremiumLabel(); as premiumLabel) {
 				<ui-premium-badge
 					size="sm"
 					interactive
@@ -69,80 +45,67 @@
 					[message]="copy().aiPerk"
 				/>
 				}
-			</span>
-			<span
-				aria-hidden="true"
-				class="font-display text-xl font-bold leading-none tabular-nums"
-				[class.text-premium]="premiumLabel"
-				[class.text-fg]="!premiumLabel"
-				>{{ ai.value }}</span
-			>
-			<span aria-hidden="true" class="text-xs text-fg-secondary"
-				>{{ ai.detail }}</span
-			>
-			@for (sentence of ai.spokenSummary; track sentence) {
-			<span class="sr-only">{{ sentence }}</span>
+				<strong class="font-bold tabular-nums">{{ ai.count }}</strong>
+				{{ ai.label }}
+			</li>
+			@if (ai.grace) {
+			<li [class]="premiumChipClass">
+				<span aria-hidden="true" class="material-icons text-base"
+					>event_available</span
+				>
+				{{ ai.grace }}
+			</li>
+			} }
+			<li [class]="statusChipClass">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-fg-muted"
+					>translate</span
+				>
+				{{ copy().writtenIn }}
+			</li>
+			<li [class]="statusChipClass">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-fg-muted"
+					>{{ controls.includesPrivateRuns ? "visibility" : "public"
+					}}</span
+				>
+				{{ controls.includesPrivateRuns ? copy().includesPrivateRuns :
+				copy().publicRunsOnly }}
+			</li>
+			@if (controls.includesNotes) {
+			<li [class]="statusChipClass">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-fg-muted"
+					>edit_note</span
+				>
+				{{ copy().usesNotes }}
+			</li>
 			}
-		</li>
-		}
+		</ul>
 
-		<li [class]="stripColumnClass">
-			<span uiEyebrow>{{ copy().thisVersion }}</span>
-			<span
-				class="row-span-2 flex flex-wrap content-start gap-x-3 gap-y-1"
+		@if (controls.canRegenerate) {
+		<button
+			uiButton
+			type="button"
+			variant="secondary"
+			class="shrink-0 tap:min-h-[44px] max-sm:!w-full"
+			[attr.aria-busy]="generation.isPending()"
+			(click)="generation.open()"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>refresh</span
 			>
-				<span
-					class="inline-flex items-center gap-1 whitespace-nowrap text-sm text-fg"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-base text-fg-muted"
-						>translate</span
-					>
-					{{ copy().writtenIn }}
-				</span>
-				@if (controls.includesPrivateRuns) {
-				<span
-					class="inline-flex items-center gap-1 whitespace-nowrap text-sm text-fg"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-base text-fg-muted"
-						>visibility</span
-					>
-					{{ copy().includesPrivateRuns }}
-				</span>
-				} @else {
-				<span
-					class="inline-flex items-center gap-1 whitespace-nowrap text-sm text-fg-secondary"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-base text-fg-muted"
-						>public</span
-					>
-					{{ copy().publicRunsOnly }}
-				</span>
-				} @if (controls.includesNotes) {
-				<span
-					class="inline-flex items-center gap-1 whitespace-nowrap text-sm text-fg"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-base text-fg-muted"
-						>edit_note</span
-					>
-					{{ copy().usesNotes }}
-				</span>
-				}
-			</span>
-		</li>
-	</ul>
+			{{ generation.isPending() ? copy().regenerating : copy().regenerate
+			}}
+		</button>
+		}
+	</div>
 
 	@if (notice(); as message) {
-	<p
-		class="m-0 inline-flex items-start gap-1.5 text-sm text-fg-secondary sm:col-span-2"
-	>
+	<p class="m-0 inline-flex items-start gap-1.5 text-sm text-fg-secondary">
 		<span aria-hidden="true" class="material-icons text-base text-fg-muted"
 			>info</span
 		>
@@ -197,7 +160,7 @@
 	} @if (aiRecapPending()) {
 	<p
 		role="status"
-		class="m-0 inline-flex items-center gap-2 text-sm text-fg-secondary sm:col-span-2"
+		class="m-0 inline-flex items-center gap-2 text-sm text-fg-secondary"
 	>
 		<span
 			aria-hidden="true"
@@ -207,9 +170,7 @@
 		{{ copy().aiRecapPending }}
 	</p>
 	} @else if (aiRecapErrorMessage(); as message) {
-	<ui-alert
-		class="sm:col-span-2"
-		[tone]="aiRecapError() === 'exists' ? 'info' : 'danger'"
+	<ui-alert [tone]="aiRecapError() === 'exists' ? 'info' : 'danger'"
 		>{{ message }}</ui-alert
 	>
 	}

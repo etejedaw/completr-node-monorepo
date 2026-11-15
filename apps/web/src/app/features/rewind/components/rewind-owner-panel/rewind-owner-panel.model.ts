@@ -5,21 +5,15 @@ export interface RewindOwnerPanelCopy {
 	eyebrow: string;
 	onlyYou: string;
 	onlyYouHint: string;
-	season: string;
 	seasonOpen: string;
 	seasonUntil: (date: string) => string;
-	aiGenerations: string;
 	aiPerk: string;
-	aiLeft: (count: number) => string;
+	aiGenerationsLabel: (count: number) => string;
 	aiGraceExtra: (date: string) => string;
-	aiOutsideSeason: string;
-	thisVersion: string;
 	writtenIn: string;
 	publicRunsOnly: string;
 	regenerate: string;
 	regenerating: string;
-	regenerationsLeft: (count: number) => string;
-	graceUntil: (date: string) => string;
 	closed: string;
 	notOpenYet: string;
 	closedHint: string;
@@ -41,14 +35,14 @@ export type RewindOwnerPanelState =
 
 export type RewindOwnerSeasonTone = "open" | "closed";
 
-export interface RewindOwnerSeasonTile {
+export interface RewindOwnerSeasonChip {
 	value: string;
 	detail: string | null;
 	tone: RewindOwnerSeasonTone;
 }
 
-export interface RewindOwnerAiTile {
-	value: string;
-	detail: string;
-	spokenSummary: readonly string[];
+export interface RewindOwnerAiChip {
+	count: number;
+	label: string;
+	grace: string | null;
 }

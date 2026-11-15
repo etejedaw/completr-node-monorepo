@@ -9,26 +9,16 @@ export const REWIND_OWNER_PANEL_COPY: Record<
 		eyebrow: "Your Rewind",
 		onlyYou: "Only you",
 		onlyYouHint: "Only you see these controls.",
-		season: "Season",
 		seasonOpen: "Open",
 		seasonUntil: date => `until ${date}`,
-		aiGenerations: "AI generations",
 		aiPerk: "Each AI generation writes a new AI recap and premium stats for this Rewind.",
-		aiLeft: () => "left",
+		aiGenerationsLabel: count =>
+			count === 1 ? "AI generation left" : "AI generations left",
 		aiGraceExtra: date => `+1 extra until ${date}`,
-		aiOutsideSeason: "Only during the season",
-		thisVersion: "This version",
 		writtenIn: "In English",
 		publicRunsOnly: "Public runs only",
 		regenerate: "Regenerate",
 		regenerating: "Rewinding…",
-		regenerationsLeft: count =>
-			count <= 0
-				? "No AI generations left"
-				: count === 1
-					? "1 AI generation left"
-					: `${count} AI generations left`,
-		graceUntil: date => `Extra AI generation available until ${date}`,
 		closed: "Closed",
 		notOpenYet: "Not open yet",
 		closedHint: "This Rewind can't be generated or regenerated anymore.",
@@ -73,27 +63,18 @@ export const REWIND_OWNER_PANEL_COPY: Record<
 		eyebrow: "Tu Rewind",
 		onlyYou: "Solo tú",
 		onlyYouHint: "Solo tú ves estos controles.",
-		season: "Temporada",
 		seasonOpen: "Abierta",
 		seasonUntil: date => `hasta el ${date}`,
-		aiGenerations: "Generaciones con IA",
 		aiPerk: "Cada generación con IA escribe un nuevo resumen con IA y estadísticas premium para este Rewind.",
-		aiLeft: count => (count === 1 ? "restante" : "restantes"),
+		aiGenerationsLabel: count =>
+			count === 1
+				? "generación con IA restante"
+				: "generaciones con IA restantes",
 		aiGraceExtra: date => `+1 extra hasta el ${date}`,
-		aiOutsideSeason: "Solo durante la temporada",
-		thisVersion: "Esta versión",
 		writtenIn: "En español",
 		publicRunsOnly: "Solo runs públicas",
 		regenerate: "Regenerar",
 		regenerating: "Rebobinando…",
-		regenerationsLeft: count =>
-			count <= 0
-				? "No te quedan generaciones con IA"
-				: count === 1
-					? "Te queda 1 generación con IA"
-					: `Te quedan ${count} generaciones con IA`,
-		graceUntil: date =>
-			`Generación con IA extra disponible hasta el ${date}`,
 		closed: "Cerrado",
 		notOpenYet: "Aún no abre",
 		closedHint: "Este Rewind ya no se puede generar ni regenerar.",
