@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 
 import { version } from "../../../../package.json";
+import { releaseTintStyle } from "../utils/release-tint";
 
 const all = await getCollection("releases");
 
@@ -39,23 +40,6 @@ function formatDate(iso: string): string {
 	}).format(date);
 }
 
-function tintBg(tint: string): string {
-	switch (tint) {
-		case "brand":
-			return "background: rgba(139, 92, 246, 0.15); color: var(--color-brand);";
-		case "purple":
-			return "background: rgba(168, 85, 247, 0.15); color: #a855f7;";
-		case "warning":
-			return "background: rgba(249, 115, 22, 0.15); color: #f97316;";
-		case "success":
-			return "background: rgba(34, 197, 94, 0.15); color: #22c55e;";
-		case "danger":
-			return "background: rgba(239, 68, 68, 0.15); color: #ef4444;";
-		default:
-			return "background: var(--color-surface); color: var(--color-fg-secondary);";
-	}
-}
-
 const [majorVersion, minorVersion] = version.split(".");
 const currentVersion = `v${majorVersion}.${minorVersion}`;
 
@@ -72,7 +56,7 @@ const stats = [
 >
 	<div
 		class="absolute inset-0 pointer-events-none"
-		style="background: radial-gradient(ellipse 60% 40% at 15% 0%, rgba(139, 92, 246, 0.12), transparent 70%);"
+		style="background: radial-gradient(ellipse 60% 40% at 15% 0%, color-mix(in srgb, var(--color-brand) 12%, transparent), transparent 70%);"
 		aria-hidden="true"
 	>
 	</div>
@@ -138,7 +122,7 @@ const stats = [
 					<li class="relative flex gap-5 pb-8 last:pb-0">
 						<span
 							class="relative z-10 flex items-center justify-center w-11 h-11 rounded-xl shrink-0 ring-4 ring-[var(--color-canvas)]"
-							style={tintBg(entry.data.tint)}
+							style={releaseTintStyle(entry.data.tint)}
 							aria-hidden="true"
 						>
 							<span class="material-icons text-[1.375rem]">
@@ -166,7 +150,7 @@ const stats = [
 								)}
 								<span
 									class="inline-block px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider"
-									style={tintBg(entry.data.tint)}
+									style={releaseTintStyle(entry.data.tint)}
 								>
 									{entry.data.tag}
 								</span>
