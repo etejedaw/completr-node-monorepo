@@ -11,9 +11,25 @@ import { type Subscription } from "rxjs";
 
 import { ToastService } from "../../../core/services/toast";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { UiButton, UiEmptyState, UiSkeleton } from "../../../shared/ui";
-import { type GameReport } from "../services/reports.model";
+import {
+	UiBadge,
+	UiButton,
+	UiEmptyState,
+	UiSkeleton
+} from "../../../shared/ui";
+import {
+	type GameReport,
+	type GameReportCategory
+} from "../services/reports.model";
 import { ReportsService } from "../services/reports.service";
+
+const NOT_FOUND_STATUS = 404;
+
+const CATEGORY_LABELS: Record<GameReportCategory, string> = {
+	general: "General",
+	missing_score: "Missing score",
+	missing_duration: "Missing duration"
+};
 
 @Component({
 	selector: "app-admin-reports",
@@ -21,6 +37,7 @@ import { ReportsService } from "../services/reports.service";
 		RouterLink,
 		DatePipe,
 		LibraryHero,
+		UiBadge,
 		UiButton,
 		UiEmptyState,
 		UiSkeleton
@@ -64,6 +81,10 @@ export class AdminReports implements OnInit {
 		this.loadReports();
 	}
 
+	protected categoryLabel(category: GameReportCategory) {
+		return CATEGORY_LABELS[category];
+	}
+
 	protected isBusy(reportId: string) {
 		return this.busyReportIds().has(reportId);
 	}
@@ -73,17 +94,22 @@ export class AdminReports implements OnInit {
 		this.setBusy(report.id, true);
 
 		this.reportsService.updateReportStatus(report.id, status).subscribe({
-			next: () => {
-				this.setBusy(report.id, false);
-				this.reports.update(list =>
-					list.filter(r => r.id !== report.id)
-				);
-			},
-			error: () => {
+			next: () => this.removeReport(report.id),
+			error: err => {
+				if (err.status === NOT_FOUND_STATUS) {
+					this.removeReport(report.id);
+					this.toast.warning("That report was already resolved.");
+					return;
+				}
 				this.setBusy(report.id, false);
 				this.toast.warning("Could not update the report.");
 			}
 		});
+	}
+
+	private removeReport(reportId: string) {
+		this.setBusy(reportId, false);
+		this.reports.update(list => list.filter(r => r.id !== reportId));
 	}
 
 	private setBusy(reportId: string, busy: boolean) {

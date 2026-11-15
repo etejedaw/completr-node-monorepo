@@ -86,8 +86,14 @@
 			>
 				{{ report.Game.title }}
 			</a>
-			<span class="text-xs text-fg-muted tabular-nums">
-				by {{ report.User.username }} &middot; {{ report.createdAt |
+			<span
+				class="inline-flex flex-wrap items-center gap-2 text-xs text-fg-muted tabular-nums"
+			>
+				@if (report.category) {
+				<ui-badge tone="neutral"
+					>{{ categoryLabel(report.category) }}</ui-badge
+				>
+				} by {{ report.User.username }} &middot; {{ report.createdAt |
 				date : "yyyy-MM-dd" }}
 			</span>
 		</div>
