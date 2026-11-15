@@ -1,5 +1,6 @@
 import { type Request, type Response } from "express";
 
+import * as commonDomainError from "../errors/common.domain-error";
 import {
 	type CachedBody,
 	type CachedJsonProxyOptions
@@ -45,7 +46,7 @@ export function createCachedJsonProxy({
 			return response.status(200).json(body);
 		} catch {
 			if (cache) return response.status(200).json(cache.body);
-			return response.status(503).json({ error: unavailableMessage });
+			throw commonDomainError.commonSourceUnavailable(unavailableMessage);
 		} finally {
 			inflight = null;
 		}
