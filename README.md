@@ -69,6 +69,8 @@ Para desarrollo local no hace falta `.env.dev.local`: los valores por defecto de
 
 Si quieres sobrescribir alguna, crea `apps/api/.env.dev.local` solo con esas variables. [`apps/api/.env.example`](./apps/api/.env.example) lista todas las keys como referencia; no lo copies tal cual, porque una key vacía no toma el valor por defecto.
 
+En producción (`NODE_ENV=prod`) no hay valores por defecto para los secretos y la API no arranca sin ellos: `ACCESS_TOKEN_SECRET` con al menos 32 caracteres, `COOKIE_SECURE=true` y un `PG_PASSWORD` propio, distinto del de desarrollo.
+
 Conviene definir tres cosas, todas opcionales:
 
 - `RAWG_API_KEY`, gratuita en https://rawg.io/apidocs. Sin ella, la API arranca y usa solo el catálogo local.
