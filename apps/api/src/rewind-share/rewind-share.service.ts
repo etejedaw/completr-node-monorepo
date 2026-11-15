@@ -2,7 +2,6 @@ import { Resvg } from "@resvg/resvg-js";
 import satori from "satori";
 
 import { environmentConfig } from "../common/config/environment.config";
-import { DomainError } from "../common/errors/domain-error";
 import { ServiceError } from "../common/errors/service-error";
 import { type Rewind, type RewindGameRef } from "../rewind/rewind.interface";
 import * as rewindService from "../rewind/rewind.service";
@@ -195,12 +194,6 @@ function sharePageMeta(
 	};
 }
 
-function isRewindUnavailable(
-	error: unknown
-): error is DomainError | ServiceError {
-	return error instanceof DomainError || error instanceof ServiceError;
-}
-
 export async function findGuestRewind(
 	username: string,
 	year: number
@@ -215,7 +208,7 @@ export async function findGuestRewind(
 			status: 200
 		};
 	} catch (error) {
-		if (!isRewindUnavailable(error)) throw error;
+		if (!(error instanceof ServiceError)) throw error;
 		return {
 			rewind: null,
 			status: MISSING_REWIND_CODES.has(error.code) ? 404 : 200
