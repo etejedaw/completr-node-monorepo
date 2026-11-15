@@ -43,6 +43,12 @@ docs: |-
     {
       "data": {
         "spotlightYear": 2026,
+        "period": {
+          "status": "open",
+          "year": 2026,
+          "opensAt": "2026-12-01",
+          "closesAt": "2027-01-31"
+        },
         "premiumAccess": {
           "allowed": true,
           "source": "feature-grant",
@@ -52,6 +58,7 @@ docs: |-
           {
             "year": 2026,
             "isGenerated": true,
+            "generationBlockedBy": null,
             "persona": "marathoner",
             "finishedCount": 18,
             "startedCount": 23,
@@ -72,8 +79,10 @@ docs: |-
     ```
 
     - `spotlightYear`: the year of the edition whose period (`opensAt` to `closesAt`, both included, UTC days) contains today, only if that year is in `years`; `null` otherwise, also when no edition is open. For visitors it is `null` until the owner generates that year.
+    - `period`: the Rewind period, the same for every viewer, computed with the server date (`REWIND_TODAY` outside production). `status` is `open` when an edition is open today (that edition), else `scheduled` (the next edition, even if an earlier one already closed), else `closed` (the last edition that closed). `null` when no edition exists. `year`, `opensAt` and `closesAt` (`YYYY-MM-DD`, UTC days) describe the edition it refers to.
     - `premiumAccess`: only for the owner, `null` for everyone else. The owner's current access to `rewind.premium`, with `allowed`, `source` (`role`, `full-grant`, `feature-grant` or null) and `expiresAt`. It lets the client configure the first generation before a Rewind row exists.
     - `isGenerated`: whether the owner generated the year. Always `true` for visitors, who never get ungenerated years.
+    - `generationBlockedBy`: why the owner cannot generate that year now. Only computed for the owner and for years not generated yet; `null` for generated years and for every visitor. `period-closed` when no edition is open today; `requires-premium` when an edition is open, the year is before the edition year and the owner has no full premium (a specific Rewind grant does not count); `null` when the year can be generated.
     - `persona`: the title of the year, computed with the same rules as `persona` in `GET /users/:username/rewinds/:year` and the same data the viewer gets there (platinums only count for viewers who can see them).
     - `finishedCount` / `startedCount`: distinct games finished (`completed` with `finishedAt` in the year) and started (`startedAt` in the year).
     - `hoursPlayed`: sum of `realDuration` of the `completed` and `abandoned` runs with `finishedAt` in the year, rounded to 1 decimal.

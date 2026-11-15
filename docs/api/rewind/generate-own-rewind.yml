@@ -87,6 +87,7 @@ docs: |-
           "canRegenerate": false,
           "aiRecapState": "unavailable",
           "periodOpen": true,
+          "periodStatus": "open",
           "closesAt": "2027-01-31",
           "frozenAt": null
         },
