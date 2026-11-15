@@ -51,6 +51,7 @@ export interface AdminRewind {
 	year: number;
 	user: { id: string; username: string };
 	accessKind: AdminRewindAccessKind;
+	aiAccess: AdminRewindAccessKind;
 	regenerationsLeft: number;
 	graceUsed: boolean;
 	generatedAt: string;

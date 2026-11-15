@@ -50,6 +50,7 @@ import {
 } from "./admin-rewind-table.model";
 
 const SEARCH_DEBOUNCE_MS = 300;
+const NO_AI_ACCESS_ERROR = "REWIND_NO_AI_ACCESS";
 const PAGE_SIZE = 50;
 
 const ACCESS_KIND_BADGES: Record<AdminRewindAccessKind, AccessKindBadge> = {
@@ -145,6 +146,10 @@ export class AdminRewindTable {
 		return ACCESS_KIND_BADGES[kind] ?? ACCESS_KIND_BADGES.none;
 	}
 
+	protected canEditRegenerations(rewind: AdminRewind) {
+		return rewind.aiAccess !== "none";
+	}
+
 	protected frozenLabel(rewind: AdminRewind) {
 		return rewind.frozenAt ? utcDateTimeLabel(rewind.frozenAt) : "Live";
 	}
@@ -181,7 +186,7 @@ export class AdminRewindTable {
 	}
 
 	protected startEdit(rewind: AdminRewind) {
-		if (this.savingId()) return;
+		if (this.savingId() || !this.canEditRegenerations(rewind)) return;
 		this.draft.set({
 			id: rewind.id,
 			value: String(rewind.regenerationsLeft),
@@ -266,11 +271,15 @@ export class AdminRewindTable {
 
 	private handleSaveError(failure: HttpErrorResponse, rewind: AdminRewind) {
 		if (failure.status === 404) {
-			this.draft.set(null);
-			this.pageError.set(
+			this.reloadAfterStaleSave(
 				`The Rewind of ${rewind.user.username} no longer exists.`
 			);
-			this.load();
+			return;
+		}
+		if (failure.error?.type === NO_AI_ACCESS_ERROR) {
+			this.reloadAfterStaleSave(
+				`${rewind.user.username} no longer has access to the AI, so their AI generations can't be changed.`
+			);
 			return;
 		}
 		const message =
@@ -283,6 +292,12 @@ export class AdminRewindTable {
 				? { ...draft, touched: true, serverError: message }
 				: draft
 		);
+	}
+
+	private reloadAfterStaleSave(message: string) {
+		this.draft.set(null);
+		this.pageError.set(message);
+		this.load();
 	}
 
 	private applySearch(search: string) {
