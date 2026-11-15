@@ -57,6 +57,7 @@ describe("User in common interaction", () => {
 				{
 					provide: ActivatedRoute,
 					useValue: {
+						paramMap: of({ get: () => "grace" }),
 						snapshot: {
 							paramMap: { get: () => "grace" },
 							queryParamMap: { get: () => null }
