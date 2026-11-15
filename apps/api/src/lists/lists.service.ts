@@ -10,7 +10,7 @@ import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import * as listFollowersService from "../list-followers/list-followers.service";
 import * as listItemsService from "../list-items/list-items.service";
-import { resolvePremiumAccess } from "../premium-access/premium-access.service";
+import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import { visibleListsCondition } from "../users/helpers/visibility.helper";
 import * as usersService from "../users/users.service";

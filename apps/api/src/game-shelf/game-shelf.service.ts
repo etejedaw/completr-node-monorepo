@@ -15,7 +15,7 @@ import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import { Platform } from "../platforms/platform.model";
-import { resolvePremiumAccess } from "../premium-access/premium-access.service";
+import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import { type RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import { type UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import * as gameShelfServiceError from "./errors/game-shelf.service-error";

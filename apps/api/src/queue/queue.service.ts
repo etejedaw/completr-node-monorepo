@@ -11,7 +11,7 @@ import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
 import * as gamesService from "../games/games.service";
 import * as platformsService from "../platforms/platforms.service";
-import { resolvePremiumAccess } from "../premium-access/premium-access.service";
+import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import * as queueServiceError from "./errors/queue.service-error";
 import { FREE_QUEUE_LIMIT, QUEUE_ORDER } from "./queue.constants";
 import { Queue } from "./queue.model";

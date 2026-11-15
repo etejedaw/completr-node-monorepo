@@ -1,6 +1,6 @@
 import { type NextFunction, type Request, type Response } from "express";
 
-import { resolvePremiumAccess } from "../../premium-access/premium-access.service";
+import { resolvePremiumAccess } from "../../premium-access/services/premium-access.service";
 import * as commonDomainError from "../errors/common.domain-error";
 import { type RequestUser } from "../interfaces/request-user.interface";
 import { type ExportFormat } from "../types/export-format.types";

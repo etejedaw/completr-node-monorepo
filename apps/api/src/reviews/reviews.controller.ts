@@ -4,7 +4,7 @@ import * as activityService from "../activity/activity.service";
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type GameIdParam } from "../games/schemas/game-id-params.schema";
-import { findFullPremiumUserIds } from "../premium-access/premium-access.service";
+import { findFullPremiumUserIds } from "../premium-access/services/premium-access.service";
 import { type CreateReviewDto } from "./dtos/create-review.dto";
 import { type UpdateReviewDto } from "./dtos/update-review.dto";
 import { reviewSerializer } from "./reviews.serializer";

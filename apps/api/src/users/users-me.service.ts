@@ -1,7 +1,7 @@
 import {
 	resolvePremiumFeatures,
 	resolvePremiumStatus
-} from "../premium-access/premium-access.service";
+} from "../premium-access/services/premium-access.service";
 import { type User } from "./user.model";
 import { userMeSerializer } from "./users.serializer";
 

@@ -5,10 +5,8 @@ import { userLimiter } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import * as giftOffersController from "./gift-offers.controller";
-import {
-	ClaimGiftOfferSchema,
-	GiftOfferParamsSchema
-} from "./schemas/gift-offer.schemas";
+import { ClaimGiftOfferSchema } from "./schemas/claim-gift-offer.schema";
+import { GiftOfferParamsSchema } from "./schemas/gift-offer-params.schema";
 
 const router = Router();
 const giftOfferMiddleware = [

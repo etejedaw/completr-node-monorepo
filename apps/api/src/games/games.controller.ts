@@ -6,7 +6,7 @@ import * as franchiseService from "../franchises/franchises.service";
 import { gamePlatinumSerializer } from "../game-platinum/game-platinum.serializer";
 import * as gamePlatinumService from "../game-platinum/game-platinum.service";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
-import { findFullPremiumUserIds } from "../premium-access/premium-access.service";
+import { findFullPremiumUserIds } from "../premium-access/services/premium-access.service";
 import { type MarkCompilationDto } from "./dtos/mark-compilation.dto";
 import { type RefreshExternalDataDto } from "./dtos/refresh-external-data.dto";
 import { type RegisterGameDto } from "./dtos/register-game.dto";

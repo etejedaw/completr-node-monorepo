@@ -4,7 +4,7 @@ import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.con
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { sequelize } from "../database/sequelize.database";
 import * as gamesService from "../games/games.service";
-import { resolvePremiumAccess } from "../premium-access/premium-access.service";
+import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import * as moodTagsServiceError from "./errors/mood-tags.service-error";
 import { MoodTagMeta } from "./mood-tag-meta.model";
 import {

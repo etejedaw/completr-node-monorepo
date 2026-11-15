@@ -2,7 +2,7 @@ import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { findFullPremiumUserIds } from "../premium-access/premium-access.service";
+import { findFullPremiumUserIds } from "../premium-access/services/premium-access.service";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
 import { type RequesterIdParam } from "./schemas/requester-id-params.schema";
 import { incomingFollowRequestSerializer } from "./user-follow-requests.serializer";

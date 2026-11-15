@@ -18,7 +18,7 @@ import * as gamesProfileService from "../games/services/games-profile.service";
 import { List } from "../lists/list.model";
 import { FREE_LIST_LIMIT } from "../lists/lists.constants";
 import * as listsService from "../lists/lists.service";
-import { resolvePremiumAccess } from "../premium-access/premium-access.service";
+import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import * as listItemsServiceError from "./errors/list-items.service-error";
 import { ListItem } from "./list-item.model";

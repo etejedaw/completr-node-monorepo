@@ -10,7 +10,7 @@ import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
 import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
-import { resolvePremiumAccess } from "../premium-access/premium-access.service";
+import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import * as favoritesServiceError from "./errors/favorites.service-error";
 import { Favorite } from "./favorite.model";
 import { FAVORITES_ORDER, FREE_FAVORITE_LIMIT } from "./favorites.constants";

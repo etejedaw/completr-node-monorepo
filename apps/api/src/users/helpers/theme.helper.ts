@@ -1,5 +1,5 @@
 import { type PremiumAccessUser } from "../../premium-access/premium-access.interface";
-import { resolvePremiumAccess } from "../../premium-access/premium-access.service";
+import { resolvePremiumAccess } from "../../premium-access/services/premium-access.service";
 import { THEME_CATALOG } from "../constants/theme.constants";
 import { type ThemeTier } from "../users.types";
 

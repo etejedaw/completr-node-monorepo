@@ -5,8 +5,8 @@ import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type CreatePremiumPromotionDto } from "./dtos/create-premium-promotion.dto";
 import { type UpdatePremiumPromotionDto } from "./dtos/update-premium-promotion.dto";
 import { premiumPromotionSerializer } from "./premium-access.serializer";
-import * as premiumPromotionsAdminService from "./premium-promotions-admin.service";
-import { type PremiumPromotionParams } from "./schemas/premium-promotion.schemas";
+import { type PremiumPromotionParams } from "./schemas/premium-promotion-params.schema";
+import * as premiumPromotionsAdminService from "./services/premium-promotions-admin.service";
 
 export async function getPremiumPromotions(
 	_request: Request,

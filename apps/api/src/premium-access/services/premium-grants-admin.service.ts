@@ -1,20 +1,8 @@
-import * as premiumAccessDomainError from "./errors/premium-access.domain-error";
-import * as premiumAccessServiceError from "./errors/premium-access.service-error";
-import {
-	FULL_PREMIUM_FEATURE,
-	type PremiumGrantFeature
-} from "./premium-access.constants";
-import { PremiumGrant } from "./premium-grant.model";
-
-export interface PremiumGrantExpirationInput {
-	feature: PremiumGrantFeature;
-	expiresAt: string | null;
-}
-
-export type UpdatePremiumGrantExpirationInput = Omit<
-	PremiumGrantExpirationInput,
-	"feature"
->;
+import * as premiumAccessServiceError from "../errors/premium-access.service-error";
+import { FULL_PREMIUM_FEATURE } from "../premium-access.constants";
+import { type PremiumGrantExpirationInput } from "../premium-access.interface";
+import { type UpdatePremiumGrantExpirationInput } from "../premium-access.types";
+import { PremiumGrant } from "../premium-grant.model";
 
 export async function createPremiumGrant(
 	userId: string,
@@ -68,7 +56,7 @@ async function findOwnedGrant(userId: string, grantId: string) {
 	const grant = await PremiumGrant.findOne({
 		where: { id: grantId, userId }
 	});
-	if (!grant) throw premiumAccessDomainError.premiumGrantNotFound();
+	if (!grant) throw premiumAccessServiceError.premiumGrantNotFound();
 	return grant;
 }
 
@@ -79,11 +67,11 @@ function assertGrantIsActive(grant: PremiumGrant, now: Date) {
 
 function resolveExpiration(input: PremiumGrantExpirationInput, now: Date) {
 	if (input.feature === FULL_PREMIUM_FEATURE && input.expiresAt === null)
-		throw premiumAccessDomainError.premiumGrantInvalidExpiration();
+		throw premiumAccessServiceError.premiumGrantInvalidExpiration();
 	if (input.expiresAt === null) return null;
 
 	const expiresAt = new Date(input.expiresAt);
 	if (expiresAt <= now)
-		throw premiumAccessDomainError.premiumGrantInvalidExpiration();
+		throw premiumAccessServiceError.premiumGrantInvalidExpiration();
 	return expiresAt;
 }

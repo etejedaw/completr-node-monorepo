@@ -1,13 +1,14 @@
 import { Op, type Transaction } from "sequelize";
 
-import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
-import { sequelize } from "../database/sequelize.database";
-import { type CreatePremiumPromotionDto } from "./dtos/create-premium-promotion.dto";
-import { type UpdatePremiumPromotionDto } from "./dtos/update-premium-promotion.dto";
-import * as premiumAccessServiceError from "./errors/premium-access.service-error";
-import { type PremiumPromotionWithClaims } from "./premium-access.interface";
-import { PremiumGrant } from "./premium-grant.model";
-import { PremiumPromotion } from "./premium-promotion.model";
+import { rethrowSequelizeError } from "../../common/errors/sequelize-error.mapper";
+import { sequelize } from "../../database/sequelize.database";
+import { type CreatePremiumPromotionDto } from "../dtos/create-premium-promotion.dto";
+import { type UpdatePremiumPromotionDto } from "../dtos/update-premium-promotion.dto";
+import * as premiumAccessServiceError from "../errors/premium-access.service-error";
+import { type PremiumPromotionWithClaims } from "../premium-access.interface";
+import { PremiumGrant } from "../premium-grant.model";
+import { PremiumPromotion } from "../premium-promotion.model";
+import { buildActiveGrantsCondition } from "../utils/build-active-grants-condition.util";
 
 export async function findPremiumPromotions(): Promise<
 	PremiumPromotionWithClaims[]
@@ -69,7 +70,7 @@ export async function updatePremiumPromotion(
 				{
 					where: {
 						offerCode: promotion.code,
-						...grantsActiveAfter(now)
+						...buildActiveGrantsCondition(now)
 					},
 					transaction
 				}
@@ -106,7 +107,7 @@ export async function revokePremiumPromotion(
 			{
 				where: {
 					offerCode: promotion.code,
-					...grantsActiveAfter(revokedAt)
+					...buildActiveGrantsCondition(revokedAt)
 				},
 				transaction
 			}
@@ -122,12 +123,6 @@ async function requirePromotion(promotionId: string, transaction: Transaction) {
 	});
 	if (!promotion) throw premiumAccessServiceError.premiumPromotionNotFound();
 	return promotion;
-}
-
-function grantsActiveAfter(instant: Date) {
-	return {
-		[Op.or]: [{ expiresAt: null }, { expiresAt: { [Op.gt]: instant } }]
-	};
 }
 
 async function withClaimCount(

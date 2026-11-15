@@ -1,18 +1,20 @@
 import { Op } from "sequelize";
 
-import { isPremiumRole } from "../common/utils/is-premium-role.util";
-import * as premiumAccessServiceError from "./errors/premium-access.service-error";
+import { isPremiumRole } from "../../common/utils/is-premium-role.util";
+import * as premiumAccessServiceError from "../errors/premium-access.service-error";
 import {
 	FULL_PREMIUM_FEATURE,
 	PREMIUM_FEATURES,
 	type PremiumFeature
-} from "./premium-access.constants";
+} from "../premium-access.constants";
 import {
 	type PremiumAccess,
-	type PremiumAccessUser
-} from "./premium-access.interface";
-import { type PremiumAccessSource } from "./premium-access.types";
-import { PremiumGrant } from "./premium-grant.model";
+	type PremiumAccessUser,
+	type PremiumStatus
+} from "../premium-access.interface";
+import { type PremiumAccessSource } from "../premium-access.types";
+import { PremiumGrant } from "../premium-grant.model";
+import { buildActiveGrantsCondition } from "../utils/build-active-grants-condition.util";
 
 const DENIED_ACCESS: PremiumAccess = {
 	allowed: false,
@@ -39,12 +41,7 @@ export async function resolvePremiumAccess(
 							{ userId: null, feature }
 						]
 					},
-					{
-						[Op.or]: [
-							{ expiresAt: null },
-							{ expiresAt: { [Op.gt]: now } }
-						]
-					}
+					buildActiveGrantsCondition(now)
 				]
 			}
 		});
@@ -81,7 +78,7 @@ export async function resolvePremiumAccess(
 export async function resolvePremiumStatus(
 	user: PremiumAccessUser,
 	now = new Date()
-) {
+): Promise<PremiumStatus> {
 	const access = await resolvePremiumAccess(user, FULL_PREMIUM_FEATURE, now);
 	return {
 		active: access.allowed,
@@ -105,12 +102,7 @@ export async function resolvePremiumFeatures(
 			where: {
 				[Op.and]: [
 					{ [Op.or]: [{ userId: user.id }, { userId: null }] },
-					{
-						[Op.or]: [
-							{ expiresAt: null },
-							{ expiresAt: { [Op.gt]: now } }
-						]
-					}
+					buildActiveGrantsCondition(now)
 				]
 			}
 		});
@@ -149,7 +141,7 @@ export async function findFullPremiumUserIds(
 			where: {
 				userId: { [Op.in]: grantedUserIds },
 				feature: FULL_PREMIUM_FEATURE,
-				expiresAt: { [Op.gt]: now }
+				...buildActiveGrantsCondition(now)
 			}
 		});
 		for (const grant of grants) {

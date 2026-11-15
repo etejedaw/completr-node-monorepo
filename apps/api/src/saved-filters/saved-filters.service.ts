@@ -6,7 +6,7 @@ import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
-import { resolvePremiumAccess } from "../premium-access/premium-access.service";
+import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import { type RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
 import { type UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
 import * as savedFilterServiceError from "./errors/saved-filters.service-error";

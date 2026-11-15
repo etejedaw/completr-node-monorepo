@@ -8,12 +8,12 @@ import {
 	FULL_PREMIUM_FEATURE,
 	PREMIUM_FEATURES
 } from "../../src/premium-access/premium-access.constants";
+import { PremiumGrant } from "../../src/premium-access/premium-grant.model";
 import {
 	resolvePremiumAccess,
 	resolvePremiumFeatures,
 	resolvePremiumStatus
-} from "../../src/premium-access/premium-access.service";
-import { PremiumGrant } from "../../src/premium-access/premium-grant.model";
+} from "../../src/premium-access/services/premium-access.service";
 import { asModel } from "../unit-helpers/as-model";
 import { buildRequestUser, stub } from "../unit-helpers/mocks";
 

@@ -10,7 +10,7 @@ import { sequelize } from "../database/sequelize.database";
 import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import * as platformsService from "../platforms/platforms.service";
-import { resolvePremiumAccess } from "../premium-access/premium-access.service";
+import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import * as wishlistServiceError from "./errors/wishlist.service-error";
 import { FREE_WISHLIST_LIMIT, WISHLIST_ORDER } from "./wishlist.constants";
 import { Wishlist } from "./wishlist.model";

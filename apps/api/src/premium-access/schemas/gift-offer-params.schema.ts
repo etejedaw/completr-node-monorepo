@@ -9,6 +9,4 @@ export const GiftOfferParamsSchema = z
 	})
 	.readonly();
 
-export const ClaimGiftOfferSchema = z.object({}).strict();
-
 export type GiftOfferParams = z.infer<typeof GiftOfferParamsSchema>;

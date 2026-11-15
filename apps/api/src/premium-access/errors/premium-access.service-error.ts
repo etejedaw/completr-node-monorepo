@@ -37,6 +37,34 @@ export function premiumGrantNotActive() {
 	});
 }
 
+export function premiumGrantNotFound() {
+	return new ServiceError("PREMIUM_GRANT_NOT_FOUND", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
+
+export function premiumGrantInvalidExpiration() {
+	return new ServiceError("PREMIUM_GRANT_INVALID_EXPIRATION", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
+
+export function giftOfferNotFound() {
+	return new ServiceError("GIFT_OFFER_NOT_FOUND", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
+
+export function giftOfferNotEligible() {
+	return new ServiceError("GIFT_OFFER_NOT_ELIGIBLE", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
+
 export function internalError(raw: unknown) {
 	return new ServiceError("PREMIUM_ACCESS_INTERNAL_ERROR", {
 		...BASE_OPTIONS,

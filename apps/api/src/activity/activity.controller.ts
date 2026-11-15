@@ -4,7 +4,7 @@ import { type RequestUser } from "../common/interfaces/request-user.interface";
 import {
 	findFullPremiumUserIds,
 	resolvePremiumAccess
-} from "../premium-access/premium-access.service";
+} from "../premium-access/services/premium-access.service";
 import { activitySerializer } from "./activity.serializer";
 import * as activityService from "./activity.service";
 import * as activityDomainError from "./errors/activity.domain-error";
