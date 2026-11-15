@@ -40,7 +40,7 @@ export function buildRewindYears(
 		source.calendar,
 		source.visibility
 	);
-	const spotlightYear = resolveSpotlightYear(source.calendar.today);
+	const spotlightYear = resolveSpotlightYear(source.calendar);
 
 	return {
 		spotlightYear:

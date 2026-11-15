@@ -28,6 +28,12 @@ export function rewindServiceToDomainMapper(
 	if (error.code === "REWIND_REGENERATION_LIMIT")
 		return rewindDomainError.rewindRegenerationLimit(context);
 
+	if (error.code === "REWIND_PERIOD_CLOSED")
+		return rewindDomainError.rewindPeriodClosed(context);
+
+	if (error.code === "REWIND_YEAR_REQUIRES_PREMIUM")
+		return rewindDomainError.rewindYearRequiresPremium(context);
+
 	if (error.code === "REWIND_AI_RECAP_PREMIUM_REQUIRED")
 		return rewindDomainError.rewindAiRecapPremiumRequired(context);
 

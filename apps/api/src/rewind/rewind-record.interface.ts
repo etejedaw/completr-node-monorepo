@@ -21,13 +21,14 @@ export interface RewindRecord {
 	includesPrivateRuns: boolean;
 	includesNotes: boolean;
 	generatedAt: Date;
-	regenerationsUsed: number;
+	regenerationsLeft: number;
 	graceUsed: boolean;
 	aiRecap: RewindAiRecap | null;
 	aiRecapStatus: RewindAiRecapStatus;
 	aiRecapRequestedAt: Date | null;
 	premiumStats: RewindPremiumStats | null;
 	premiumAccessKind: RewindPremiumAccessKind | null;
+	frozenAt: Date | null;
 }
 
 export interface RewindOwnerClock {

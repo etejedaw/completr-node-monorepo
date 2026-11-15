@@ -44,6 +44,20 @@ export function regenerationLimitError() {
 	});
 }
 
+export function periodClosedError() {
+	return new ServiceError("REWIND_PERIOD_CLOSED", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
+
+export function yearRequiresPremiumError() {
+	return new ServiceError("REWIND_YEAR_REQUIRES_PREMIUM", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
+
 export function aiRecapPremiumRequiredError() {
 	return new ServiceError("REWIND_AI_RECAP_PREMIUM_REQUIRED", {
 		...BASE_OPTIONS,

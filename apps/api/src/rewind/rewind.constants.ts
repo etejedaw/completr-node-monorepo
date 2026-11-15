@@ -1,5 +1,3 @@
-export const REWIND_OPENING_MONTH = 12;
-export const REWIND_SPOTLIGHT_LAST_MONTH = 1;
 export const REWIND_COVERS_LIMIT = 5;
 export const REWIND_MIN_YEAR = 2000;
 export const REWIND_MAX_YEAR = 2100;
@@ -14,8 +12,6 @@ export const FINISHER_MIN_FINISHED = 10;
 export const FINISHER_MIN_FINISH_RATE = 80;
 export const GENRE_EXPLORER_MIN_GENRES = 6;
 export const PICKY_PLAYER_MIN_ABANDONED = 3;
-export const REWIND_REGENERATION_LIMIT = 1;
-export const REWIND_GRACE_LAST_DAY = 7;
 export const REWIND_AI_RECAP_PENDING_TIMEOUT_MS = 2 * 60 * 1000;
 export const REWIND_MIN_RELEASE_YEAR = 1950;
 

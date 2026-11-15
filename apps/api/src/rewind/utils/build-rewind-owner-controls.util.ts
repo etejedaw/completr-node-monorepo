@@ -1,26 +1,27 @@
-import { REWIND_REGENERATION_LIMIT } from "../rewind.constants";
+import { type RewindPremiumAccessKind } from "../rewind.constants";
 import { type RewindOwnerControls } from "../rewind.interface";
 import { type RewindRecord } from "../rewind-record.interface";
+import { type RewindCalendar } from "../rewind-run.interface";
 import { resolveAiRecapState } from "./resolve-ai-recap-state.util";
-import { resolveGraceEndsAt } from "./resolve-grace-ends-at.util";
+import { resolveRewindAiBudget } from "./resolve-rewind-ai-budget.util";
 
 export function buildRewindOwnerControls(
 	record: RewindRecord,
-	today: Date,
-	ownerIsPremium: boolean
+	calendar: Pick<RewindCalendar, "today" | "edition">,
+	accessKind: RewindPremiumAccessKind | null
 ): RewindOwnerControls {
-	const regenerationsLeft = Math.max(
-		0,
-		REWIND_REGENERATION_LIMIT - record.regenerationsUsed
-	);
-	const graceEndsAt = resolveGraceEndsAt(record, today);
+	const budget = resolveRewindAiBudget(record, calendar, accessKind);
+	const canUseAi = budget.spend !== null;
 
 	return {
 		includesPrivateRuns: record.includesPrivateRuns,
 		includesNotes: record.includesNotes,
-		regenerationsLeft,
-		graceEndsAt,
-		canRegenerate: graceEndsAt !== null || regenerationsLeft > 0,
-		aiRecapState: resolveAiRecapState(record, ownerIsPremium)
+		regenerationsLeft: budget.regenerationsLeft,
+		graceEndsAt: budget.graceEndsAt,
+		canRegenerate: canUseAi,
+		aiRecapState: resolveAiRecapState(record, canUseAi),
+		periodOpen: budget.edition !== null,
+		closesAt: budget.edition?.closesAt ?? null,
+		frozenAt: record.frozenAt?.toISOString() ?? null
 	};
 }

@@ -13,6 +13,7 @@ import * as gamePlatinumService from "../game-platinum/game-platinum.service";
 import { type PremiumAccess } from "../premium-access/premium-access.interface";
 import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import * as reviewsService from "../reviews/reviews.service";
+import * as rewindEditionsService from "../rewind-editions/rewind-editions.service";
 import {
 	type RewindCoopPartner,
 	type RewindGameReview
@@ -26,6 +27,7 @@ import * as rewindServiceError from "./errors/rewind.service-error";
 import { type GenerateRewindDto } from "./generate-rewind.dto";
 import { backlogToRewindRun } from "./mappers/backlog-to-rewind-run.mapper";
 import { userToRewindOwner } from "./mappers/user-to-rewind-owner.mapper";
+import { type RewindPremiumAccessKind } from "./rewind.constants";
 import {
 	type Rewind,
 	type RewindAiRecap,
@@ -38,8 +40,15 @@ import {
 	type RecapContent,
 	type RecapRequest,
 	type RecapSources,
+	type RewindAiBudget,
+	type RewindAiRecapReservation,
+	type RewindGenerationReservation,
 	type RewindGenerationResult
 } from "./rewind-generation.interface";
+import {
+	type RewindAiSpend,
+	type SpendableRewindAiBudget
+} from "./rewind-generation.types";
 import {
 	type RewindRecord,
 	type RewindViewerContext,
@@ -57,11 +66,15 @@ import { buildRewindYears } from "./utils/build-rewind-years.util";
 import { collectYearRuns } from "./utils/collect-year-runs.util";
 import { hasPremiumContent } from "./utils/has-premium-content.util";
 import { isAiRecapInProgress } from "./utils/is-ai-recap-in-progress.util";
+import { isRewindYearAllowed } from "./utils/is-rewind-year-allowed.util";
 import { listActiveGameIds } from "./utils/list-active-game-ids.util";
 import { listRewindYears } from "./utils/list-rewind-years.util";
 import { listVisibleRewindYears } from "./utils/list-visible-rewind-years.util";
 import { nextGeneratedAt } from "./utils/next-generated-at.util";
 import { planRewindGeneration } from "./utils/plan-rewind-generation.util";
+import { resolveOpenRewindEdition } from "./utils/resolve-open-rewind-edition.util";
+import { resolveRewindAiBudget } from "./utils/resolve-rewind-ai-budget.util";
+import { resolveRewindAiUseChanges } from "./utils/resolve-rewind-ai-use-changes.util";
 import { resolveRewindPremiumAccessKind } from "./utils/resolve-rewind-premium-access-kind.util";
 import { resolveRewindToday } from "./utils/resolve-rewind-today.util";
 
@@ -73,10 +86,13 @@ function rewindTodayOverride(): string | undefined {
 		: environmentConfig.REWIND_TODAY;
 }
 
-function buildRewindCalendar(owner: User): RewindCalendar {
+async function buildRewindCalendar(owner: User): Promise<RewindCalendar> {
+	const today = resolveRewindToday(rewindTodayOverride(), new Date());
 	return {
-		today: resolveRewindToday(rewindTodayOverride(), new Date()),
-		firstYear: owner.createdAt.getUTCFullYear()
+		today,
+		firstYear: owner.createdAt.getUTCFullYear(),
+		edition:
+			await rewindEditionsService.findLatestOpenedRewindEdition(today)
 	};
 }
 
@@ -121,13 +137,14 @@ async function buildViewerContext(
 		throw rewindServiceError.userPrivateError();
 
 	const isOwner = viewerId === owner.id;
-	const [premiumAccess, runs, records] = await Promise.all([
+	const [premiumAccess, runs, records, calendar] = await Promise.all([
 		isOwner
 			? (providedPremiumAccess ??
 				resolvePremiumAccess(owner, "rewind.premium"))
 			: null,
 		findRuns(owner, !isOwner),
-		findRecordsByUserId(owner.id)
+		findRecordsByUserId(owner.id),
+		buildRewindCalendar(owner)
 	]);
 	return {
 		owner,
@@ -135,7 +152,7 @@ async function buildViewerContext(
 		premiumAccess,
 		isOwner,
 		runs,
-		calendar: buildRewindCalendar(owner),
+		calendar,
 		records
 	};
 }
@@ -172,9 +189,12 @@ function storedView(
 	return {
 		language: record.language,
 		generatedAt: record.generatedAt.toISOString(),
+		frozenAt: record.frozenAt?.toISOString() ?? null,
 		aiRecap: record.aiRecapStatus === "ready" ? record.aiRecap : null,
 		premiumStats: record.premiumStats,
-		premiumAccessKind: record.premiumAccessKind,
+		premiumAccessKind: hasPremiumContent(record)
+			? record.premiumAccessKind
+			: null,
 		ownerControls
 	};
 }
@@ -183,8 +203,10 @@ function ownerControlsFor(context: RewindViewerContext, record: RewindRecord) {
 	if (!context.isOwner) return null;
 	return buildRewindOwnerControls(
 		record,
-		context.calendar.today,
-		context.premiumAccess?.allowed === true
+		context.calendar,
+		context.premiumAccess
+			? resolveRewindPremiumAccessKind(context.premiumAccess)
+			: null
 	);
 }
 
@@ -280,12 +302,25 @@ async function getOwnRewind(
 	return buildRewindForContext(context, year);
 }
 
-async function requireOpenYearWithData(owner: User, year: number) {
+async function requireYearWithData(
+	owner: User,
+	year: number,
+	calendar: RewindCalendar
+): Promise<void> {
 	const runs = await findRuns(owner, false);
-	const calendar = buildRewindCalendar(owner);
 	if (!listRewindYears(runs, calendar).includes(year))
 		throw rewindServiceError.notFoundError();
-	return calendar;
+}
+
+function requireGenerationAllowed(
+	year: number,
+	calendar: RewindCalendar,
+	accessKind: RewindPremiumAccessKind | null
+): void {
+	const edition = resolveOpenRewindEdition(calendar);
+	if (!edition) throw rewindServiceError.periodClosedError();
+	if (!isRewindYearAllowed(year, edition, accessKind))
+		throw rewindServiceError.yearRequiresPremiumError();
 }
 
 function lockRecord(userId: string, year: number, transaction: Transaction) {
@@ -296,11 +331,17 @@ function lockRecord(userId: string, year: number, transaction: Transaction) {
 	});
 }
 
+function pendingRecapFields(budget: RewindAiBudget, now: Date) {
+	return budget.spend
+		? { aiRecapStatus: "pending" as const, aiRecapRequestedAt: now }
+		: {};
+}
+
 async function createRecord(
 	owner: User,
 	year: number,
 	dto: GenerateRewindDto,
-	premiumAccess: PremiumAccess,
+	budget: RewindAiBudget,
 	transaction: Transaction
 ): Promise<RewindModel> {
 	const now = new Date();
@@ -313,8 +354,11 @@ async function createRecord(
 				includesPrivateRuns: dto.includePrivateRuns,
 				includesNotes: dto.includeNotes,
 				generatedAt: now,
-				aiRecapStatus: premiumAccess.allowed ? "pending" : "none",
-				aiRecapRequestedAt: premiumAccess.allowed ? now : null
+				...resolveRewindAiUseChanges(
+					{ graceUsed: false, premiumAccessKind: null },
+					budget
+				),
+				...pendingRecapFields(budget, now)
 			},
 			{ transaction }
 		);
@@ -328,8 +372,7 @@ async function createRecord(
 async function regenerateRecord(
 	record: RewindModel,
 	dto: GenerateRewindDto,
-	premiumAccess: PremiumAccess,
-	spendsGrace: boolean,
+	budget: RewindAiBudget,
 	transaction: Transaction
 ): Promise<RewindModel> {
 	const now = nextGeneratedAt(record.generatedAt, new Date());
@@ -339,15 +382,8 @@ async function regenerateRecord(
 			includesPrivateRuns: dto.includePrivateRuns,
 			includesNotes: dto.includeNotes,
 			generatedAt: now,
-			...(spendsGrace
-				? { graceUsed: true }
-				: { regenerationsUsed: record.regenerationsUsed + 1 }),
-			...(premiumAccess.allowed && {
-				aiRecapStatus: "pending",
-				aiRecapRequestedAt: now
-			}),
-			...(!premiumAccess.allowed &&
-				!hasPremiumContent(record) && { premiumAccessKind: null })
+			...resolveRewindAiUseChanges(record, budget),
+			...pendingRecapFields(budget, now)
 		},
 		{ transaction }
 	);
@@ -358,18 +394,22 @@ async function reserveGeneration(
 	year: number,
 	dto: GenerateRewindDto,
 	calendar: RewindCalendar,
-	premiumAccess: PremiumAccess
-): Promise<{ record: RewindModel; created: boolean }> {
+	accessKind: RewindPremiumAccessKind | null
+): Promise<RewindGenerationReservation> {
 	return sequelize.transaction(async transaction => {
 		const record = await lockRecord(owner.id, year, transaction);
 		const plan = planRewindGeneration({
+			year,
 			record,
 			expectedGeneratedAt: dto.expectedGeneratedAt,
-			today: calendar.today
+			calendar,
+			accessKind
 		});
 
 		if (plan.kind === "conflict")
 			throw rewindServiceError.generationConflictError();
+		if (plan.kind === "premium-required")
+			throw rewindServiceError.aiRecapPremiumRequiredError();
 		if (plan.kind === "limit-reached")
 			throw rewindServiceError.regenerationLimitError();
 		if (plan.kind === "create" || !record) {
@@ -378,21 +418,22 @@ async function reserveGeneration(
 					owner,
 					year,
 					dto,
-					premiumAccess,
+					plan.budget,
 					transaction
 				),
-				created: true
+				created: true,
+				spend: plan.budget.spend
 			};
 		}
 		return {
 			record: await regenerateRecord(
 				record,
 				dto,
-				premiumAccess,
-				plan.spendsGrace,
+				plan.budget,
 				transaction
 			),
-			created: false
+			created: false,
+			spend: plan.budget.spend
 		};
 	});
 }
@@ -590,10 +631,7 @@ async function finishRecap(
 		{
 			aiRecapStatus: succeeded ? "ready" : "failed",
 			...(content.aiRecap && { aiRecap: content.aiRecap }),
-			...(content.premiumStats && { premiumStats: content.premiumStats }),
-			...((content.aiRecap ?? content.premiumStats) && {
-				premiumAccessKind: request.premiumAccessKind
-			})
+			...(content.premiumStats && { premiumStats: content.premiumStats })
 		},
 		{
 			where: {
@@ -605,17 +643,27 @@ async function finishRecap(
 	);
 }
 
+async function refundAiSpend(request: RecapRequest): Promise<void> {
+	const where = { id: request.recordId };
+	if (request.spend === "grace") {
+		await RewindModel.update({ graceUsed: false }, { where });
+		return;
+	}
+	await RewindModel.increment("regenerationsLeft", { by: 1, where });
+}
+
 async function runRecap(
 	owner: User,
 	record: RewindModel,
 	calendar: RewindCalendar,
 	reusablePremiumStats: RewindPremiumStats | null,
-	premiumAccess: PremiumAccess
+	premiumAccess: PremiumAccess,
+	spend: RewindAiSpend
 ): Promise<boolean> {
 	const request: RecapRequest = {
 		recordId: record.id,
 		requestedAt: record.aiRecapRequestedAt ?? new Date(),
-		premiumAccessKind: resolveRewindPremiumAccessKind(premiumAccess)
+		spend
 	};
 	let premiumStats: RewindPremiumStats | null = null;
 	try {
@@ -643,8 +691,21 @@ async function runRecap(
 			failures: errorFailures(error)
 		});
 		await finishRecap(request, { aiRecap: null, premiumStats }, false);
+		await refundAiSpend(request);
 		return false;
 	}
+}
+
+async function resolveOwnerAccess(owner: User) {
+	const [calendar, premiumAccess] = await Promise.all([
+		buildRewindCalendar(owner),
+		resolvePremiumAccess(owner, "rewind.premium")
+	]);
+	return {
+		calendar,
+		premiumAccess,
+		accessKind: resolveRewindPremiumAccessKind(premiumAccess)
+	};
 }
 
 export async function generateOwnRewind(
@@ -653,20 +714,20 @@ export async function generateOwnRewind(
 	dto: GenerateRewindDto
 ): Promise<RewindGenerationResult> {
 	const owner = await requireSignedInOwner(ownerId);
-	const [calendar, premiumAccess] = await Promise.all([
-		requireOpenYearWithData(owner, year),
-		resolvePremiumAccess(owner, "rewind.premium")
-	]);
-	const { record, created } = await reserveGeneration(
+	const { calendar, premiumAccess, accessKind } =
+		await resolveOwnerAccess(owner);
+	await requireYearWithData(owner, year, calendar);
+	requireGenerationAllowed(year, calendar, accessKind);
+
+	const { record, created, spend } = await reserveGeneration(
 		owner,
 		year,
 		dto,
 		calendar,
-		premiumAccess
+		accessKind
 	);
-
-	if (record.aiRecapStatus === "pending" && premiumAccess.allowed)
-		await runRecap(owner, record, calendar, null, premiumAccess);
+	if (spend)
+		await runRecap(owner, record, calendar, null, premiumAccess, spend);
 
 	return {
 		rewind: await getOwnRewind(owner, year, premiumAccess),
@@ -674,26 +735,49 @@ export async function generateOwnRewind(
 	};
 }
 
+function requireAiRecapAllowed(
+	record: RewindModel,
+	calendar: RewindCalendar,
+	accessKind: RewindPremiumAccessKind | null,
+	now: Date
+): SpendableRewindAiBudget {
+	requireGenerationAllowed(record.year, calendar, accessKind);
+	if (accessKind === null)
+		throw rewindServiceError.aiRecapPremiumRequiredError();
+	if (record.aiRecapStatus === "ready" && record.aiRecap)
+		throw rewindServiceError.aiRecapExistsError();
+	if (isAiRecapInProgress(record, now))
+		throw rewindServiceError.aiRecapInProgressError();
+
+	const budget = resolveRewindAiBudget(record, calendar, accessKind);
+	const { spend } = budget;
+	if (!spend) throw rewindServiceError.regenerationLimitError();
+	return { ...budget, spend };
+}
+
 async function reserveAiRecap(
 	owner: User,
 	year: number,
-	premiumAccess: PremiumAccess
-): Promise<RewindModel> {
+	calendar: RewindCalendar,
+	accessKind: RewindPremiumAccessKind | null
+): Promise<RewindAiRecapReservation> {
 	return sequelize.transaction(async transaction => {
 		const record = await lockRecord(owner.id, year, transaction);
-		const now = new Date();
 		if (!record) throw rewindServiceError.notGeneratedError();
-		if (!premiumAccess.allowed)
-			throw rewindServiceError.aiRecapPremiumRequiredError();
-		if (record.aiRecapStatus === "ready" && record.aiRecap)
-			throw rewindServiceError.aiRecapExistsError();
-		if (isAiRecapInProgress(record, now))
-			throw rewindServiceError.aiRecapInProgressError();
+		const now = new Date();
+		const budget = requireAiRecapAllowed(record, calendar, accessKind, now);
 
-		return record.update(
-			{ aiRecapStatus: "pending", aiRecapRequestedAt: now },
-			{ transaction }
-		);
+		return {
+			record: await record.update(
+				{
+					aiRecapStatus: "pending",
+					aiRecapRequestedAt: now,
+					...resolveRewindAiUseChanges(record, budget)
+				},
+				{ transaction }
+			),
+			spend: budget.spend
+		};
 	});
 }
 
@@ -702,16 +786,22 @@ export async function addOwnRewindAiRecap(
 	year: number
 ): Promise<Rewind> {
 	const owner = await requireSignedInOwner(ownerId);
-	const premiumAccess = await resolvePremiumAccess(owner, "rewind.premium");
-	const calendar = buildRewindCalendar(owner);
-	const record = await reserveAiRecap(owner, year, premiumAccess);
+	const { calendar, premiumAccess, accessKind } =
+		await resolveOwnerAccess(owner);
+	const { record, spend } = await reserveAiRecap(
+		owner,
+		year,
+		calendar,
+		accessKind
+	);
 
 	const succeeded = await runRecap(
 		owner,
 		record,
 		calendar,
 		record.premiumStats,
-		premiumAccess
+		premiumAccess,
+		spend
 	);
 	if (!succeeded) throw rewindServiceError.aiRecapFailedError();
 

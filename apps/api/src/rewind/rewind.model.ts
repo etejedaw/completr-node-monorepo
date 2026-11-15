@@ -9,7 +9,8 @@ import {
 } from "./rewind.constants";
 import {
 	type RewindAiRecap,
-	type RewindPremiumStats
+	type RewindPremiumStats,
+	type RewindSnapshot
 } from "./rewind.interface";
 
 export const REWIND_AI_RECAP_STATUSES = [
@@ -28,13 +29,15 @@ class Rewind extends Model {
 	declare includesPrivateRuns: boolean;
 	declare includesNotes: boolean;
 	declare generatedAt: Date;
-	declare regenerationsUsed: number;
+	declare regenerationsLeft: number;
 	declare graceUsed: boolean;
 	declare aiRecap: RewindAiRecap | null;
 	declare aiRecapStatus: RewindAiRecapStatus;
 	declare aiRecapRequestedAt: Date | null;
 	declare premiumStats: RewindPremiumStats | null;
 	declare premiumAccessKind: RewindPremiumAccessKind | null;
+	declare snapshot: RewindSnapshot | null;
+	declare frozenAt: Date | null;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 }
@@ -73,10 +76,11 @@ Rewind.init(
 			type: DataTypes.DATE,
 			allowNull: false
 		},
-		regenerationsUsed: {
+		regenerationsLeft: {
 			type: DataTypes.INTEGER,
 			allowNull: false,
-			defaultValue: 0
+			defaultValue: 0,
+			validate: { min: 0 }
 		},
 		graceUsed: {
 			type: DataTypes.BOOLEAN,
@@ -102,6 +106,14 @@ Rewind.init(
 		},
 		premiumAccessKind: {
 			type: DataTypes.ENUM(...REWIND_PREMIUM_ACCESS_KINDS),
+			allowNull: true
+		},
+		snapshot: {
+			type: DataTypes.JSONB,
+			allowNull: true
+		},
+		frozenAt: {
+			type: DataTypes.DATE,
 			allowNull: true
 		}
 	},

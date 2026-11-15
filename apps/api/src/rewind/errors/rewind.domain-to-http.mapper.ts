@@ -34,6 +34,12 @@ export function rewindDomainToHttpMapper(
 	if (error.code === "REWIND_REGENERATION_LIMIT")
 		return new HttpError({ ...baseOptions, status: 409 });
 
+	if (error.code === "REWIND_PERIOD_CLOSED")
+		return new HttpError({ ...baseOptions, status: 409 });
+
+	if (error.code === "REWIND_YEAR_REQUIRES_PREMIUM")
+		return new HttpError({ ...baseOptions, status: 403 });
+
 	if (error.code === "REWIND_AI_RECAP_PREMIUM_REQUIRED")
 		return new HttpError({ ...baseOptions, status: 402 });
 

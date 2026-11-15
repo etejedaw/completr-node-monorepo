@@ -137,11 +137,40 @@ export interface Rewind {
 	yearMix: RewindYearMix;
 	language: RewindLanguage;
 	generatedAt: string;
+	design: string;
+	frozenAt: string | null;
 	aiRecap: RewindAiRecap | null;
 	premiumStats: RewindPremiumStats | null;
 	premiumAccessKind: RewindPremiumAccessKind | null;
 	ownerControls: RewindOwnerControls | null;
 	premiumAccess: PremiumAccess | null;
+}
+
+export interface RewindViewGame extends RewindFinishedGame {
+	platformName: string | null;
+	genres: string[];
+}
+
+export interface RewindViewOptions {
+	includesPrivateRuns: boolean;
+	includesNotes: boolean;
+}
+
+export interface RewindView extends Omit<
+	Rewind,
+	"finishedGames" | "ownerControls" | "premiumAccess"
+> {
+	finishedGames: RewindViewGame[];
+	previousYearTotals: RewindTotals | null;
+	options: RewindViewOptions;
+}
+
+export interface RewindSnapshot {
+	schemaVersion: 1;
+	design: string;
+	frozenAt: string;
+	owner: RewindView;
+	public: RewindView;
 }
 
 export interface RewindInsight {
@@ -189,6 +218,9 @@ export interface RewindOwnerControls {
 	graceEndsAt: string | null;
 	canRegenerate: boolean;
 	aiRecapState: RewindAiRecapState;
+	periodOpen: boolean;
+	closesAt: string | null;
+	frozenAt: string | null;
 }
 
 export interface GenerateRewindRequest {

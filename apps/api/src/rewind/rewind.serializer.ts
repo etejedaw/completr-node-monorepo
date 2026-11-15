@@ -39,6 +39,8 @@ export function rewindSerializer(rewind: Rewind): Rewind {
 		yearMix: rewind.yearMix,
 		language: rewind.language,
 		generatedAt: rewind.generatedAt,
+		design: rewind.design,
+		frozenAt: rewind.frozenAt,
 		aiRecap: rewind.aiRecap,
 		premiumStats: rewind.premiumStats,
 		premiumAccessKind: rewind.premiumAccessKind,

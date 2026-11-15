@@ -1,7 +1,9 @@
-import { REWIND_REGENERATION_LIMIT } from "../rewind.constants";
 import { type RewindGenerationAttempt } from "../rewind-generation.interface";
-import { type RewindGenerationPlan } from "../rewind-generation.types";
-import { isRewindGraceWindow } from "./is-rewind-grace-window.util";
+import {
+	type RewindAiBudgetRecord,
+	type RewindGenerationPlan
+} from "../rewind-generation.types";
+import { resolveRewindAiBudget } from "./resolve-rewind-ai-budget.util";
 
 function matchesGeneratedAt(expected: string | null, generatedAt: Date) {
 	return (
@@ -10,24 +12,41 @@ function matchesGeneratedAt(expected: string | null, generatedAt: Date) {
 	);
 }
 
+function blankRecord(year: number): RewindAiBudgetRecord {
+	return {
+		year,
+		graceUsed: false,
+		regenerationsLeft: 0,
+		premiumAccessKind: null
+	};
+}
+
 export function planRewindGeneration({
+	year,
 	record,
 	expectedGeneratedAt,
-	today
+	calendar,
+	accessKind
 }: RewindGenerationAttempt): RewindGenerationPlan {
 	if (!record)
 		return expectedGeneratedAt === null
-			? { kind: "create" }
+			? {
+					kind: "create",
+					budget: resolveRewindAiBudget(
+						blankRecord(year),
+						calendar,
+						accessKind
+					)
+				}
 			: { kind: "conflict" };
 
 	if (!matchesGeneratedAt(expectedGeneratedAt, record.generatedAt))
 		return { kind: "conflict" };
 
-	if (!record.graceUsed && isRewindGraceWindow(record.year, today))
-		return { kind: "regenerate", spendsGrace: true };
+	if (accessKind === null) return { kind: "premium-required" };
 
-	if (record.regenerationsUsed < REWIND_REGENERATION_LIMIT)
-		return { kind: "regenerate", spendsGrace: false };
+	const budget = resolveRewindAiBudget(record, calendar, accessKind);
+	if (budget.spend === null) return { kind: "limit-reached" };
 
-	return { kind: "limit-reached" };
+	return { kind: "regenerate", budget };
 }

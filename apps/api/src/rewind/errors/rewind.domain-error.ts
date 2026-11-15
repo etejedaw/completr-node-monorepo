@@ -56,6 +56,24 @@ export function rewindRegenerationLimit(context?: Record<string, unknown>) {
 	);
 }
 
+export function rewindPeriodClosed(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"REWIND_PERIOD_CLOSED",
+		"The Rewind period is closed",
+		context
+	);
+}
+
+export function rewindYearRequiresPremium(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"REWIND_YEAR_REQUIRES_PREMIUM",
+		"Generating the Rewind of a previous year requires a premium account",
+		context
+	);
+}
+
 export function rewindAiRecapPremiumRequired(
 	context?: Record<string, unknown>
 ) {

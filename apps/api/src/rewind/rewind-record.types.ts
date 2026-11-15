@@ -4,6 +4,7 @@ export type RewindStoredView = Pick<
 	Rewind,
 	| "language"
 	| "generatedAt"
+	| "frozenAt"
 	| "aiRecap"
 	| "premiumStats"
 	| "premiumAccessKind"
