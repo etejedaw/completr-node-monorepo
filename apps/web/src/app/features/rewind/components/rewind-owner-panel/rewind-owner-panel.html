@@ -42,25 +42,11 @@
 				>
 				{{ copy.writtenIn[rewind().language] }}
 			</li>
-			<li [class]="statusChipClass">
-				<span
-					aria-hidden="true"
-					class="material-icons text-base text-fg-muted"
-					>{{ controls.includesPrivateRuns ? "visibility" : "public"
-					}}</span
-				>
-				{{ controls.includesPrivateRuns ? copy.includesPrivateRuns :
-				copy.publicRunsOnly }}
-			</li>
-			@if (controls.includesNotes) {
-			<li [class]="statusChipClass">
-				<span
-					aria-hidden="true"
-					class="material-icons text-base text-fg-muted"
-					>edit_note</span
-				>
-				{{ copy.usesNotes }}
-			</li>
+			@if (!aiChip()) {
+			<ng-container
+				[ngTemplateOutlet]="aiInputChips"
+				[ngTemplateOutletContext]="{ $implicit: controls }"
+			/>
 			}
 		</ul>
 
@@ -131,6 +117,10 @@
 						{{ ai.grace }}
 					</li>
 					}
+					<ng-container
+						[ngTemplateOutlet]="aiInputChips"
+						[ngTemplateOutletContext]="{ $implicit: controls }"
+					/>
 				</ul>
 			</div>
 			@if (controls.aiRecapState === "failed") {
@@ -228,3 +218,20 @@
 	(closed)="generation.close()"
 />
 }
+<ng-template #aiInputChips let-controls>
+	<li [class]="statusChipClass">
+		<span aria-hidden="true" class="material-icons text-base text-fg-muted"
+			>{{ controls.includesPrivateRuns ? "visibility" : "public" }}</span
+		>
+		{{ controls.includesPrivateRuns ? copy.includesPrivateRuns :
+		copy.publicRunsOnly }}
+	</li>
+	@if (controls.includesNotes) {
+	<li [class]="statusChipClass">
+		<span aria-hidden="true" class="material-icons text-base text-fg-muted"
+			>edit_note</span
+		>
+		{{ copy.usesNotes }}
+	</li>
+	}
+</ng-template>

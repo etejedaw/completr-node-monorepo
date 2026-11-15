@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -65,6 +66,7 @@ const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 	selector: "app-rewind-owner-panel",
 	imports: [
 		GiftOfferCard,
+		NgTemplateOutlet,
 		UiEyebrow,
 		RewindGenerateDialog,
 		UiAlert,
