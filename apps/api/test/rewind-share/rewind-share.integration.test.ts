@@ -8,7 +8,6 @@ import {
 	clearRewindImageCache,
 	rewindImageCacheSize
 } from "../../src/rewind-share/rewind-share.service";
-import * as userDomainError from "../../src/users/errors/users.domain-error";
 import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
 import { useTestDatabase } from "../helpers/database.helper";
@@ -143,7 +142,7 @@ void describe("Rewind share images", () => {
 
 			void it("answers 404 USER_NOT_FOUND for a user that does not exist", async () => {
 				stubRewind(() =>
-					Promise.reject(userDomainError.userNotFound())
+					Promise.reject(rewindServiceError.userNotFoundError())
 				);
 
 				const response = await api()
@@ -154,7 +153,9 @@ void describe("Rewind share images", () => {
 			});
 
 			void it("answers 403 USER_PRIVATE when the viewer cannot see the Rewind", async () => {
-				stubRewind(() => Promise.reject(userDomainError.userPrivate()));
+				stubRewind(() =>
+					Promise.reject(rewindServiceError.userPrivateError())
+				);
 
 				const response = await api()
 					.get(`/share/rewind/hidden/2026/${format.path}`)
@@ -309,8 +310,8 @@ void describe("GET /share/rewind/:username/:year", () => {
 
 	void it("answers the generic page when the Rewind is private or missing", async () => {
 		for (const error of [
-			userDomainError.userPrivate(),
-			userDomainError.userNotFound()
+			rewindServiceError.userPrivateError(),
+			rewindServiceError.userNotFoundError()
 		]) {
 			stubRewind(() => Promise.reject(error));
 
@@ -346,7 +347,9 @@ void describe("GET /share/rewind/:username/:year", () => {
 	});
 
 	void it("does not let a hostile username break out of the HTML", async () => {
-		stubRewind(() => Promise.reject(userDomainError.userNotFound()));
+		stubRewind(() =>
+			Promise.reject(rewindServiceError.userNotFoundError())
+		);
 
 		const response = await api()
 			.get(
