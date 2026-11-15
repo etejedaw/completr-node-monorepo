@@ -4,67 +4,43 @@ import {
 	CdkDropList,
 	moveItemInArray
 } from "@angular/cdk/drag-drop";
+import { HttpErrorResponse } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
 import { toObservable } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
-import {
-	debounceTime,
-	distinctUntilChanged,
-	filter,
-	forkJoin,
-	of,
-	Subject,
-	switchMap,
-	take
-} from "rxjs";
+import { filter, forkJoin, type Subscription, take } from "rxjs";
 
-import {
-	type Game,
-	type List,
-	type ListItem,
-	type OnlineSearchSource
-} from "../../../core/models";
+import { type Game, type List, type ListItem } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
+import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
 import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
 import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { injectExportDownload } from "../../../shared/components/export-actions/export-download";
-import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GiftOfferCard } from "../../../shared/components/gift-offer-card/gift-offer-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { type LibraryHeroBackLink } from "../../../shared/components/library-hero/library-hero.model";
 import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
-import { OnlineSourceNote } from "../../../shared/components/online-source-note/online-source-note";
 import { ProgressMeter } from "../../../shared/components/progress-meter/progress-meter";
-import {
-	ONLINE_SEARCH_UNAVAILABLE_HINT,
-	ONLINE_SEARCH_UNAVAILABLE_TITLE,
-	onlineSourceLabel
-} from "../../../shared/constants/online-search";
-import {
-	UiButton,
-	UiEmptyState,
-	UiSearchBar,
-	UiSkeleton
-} from "../../../shared/ui";
+import { UiButton, UiEmptyState, UiSkeleton } from "../../../shared/ui";
+import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { PendingRemovals } from "../../../shared/utils/pending-removals";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
-import { catalogOnlyResult } from "../../games/game-search";
-import { GamesService } from "../../games/games";
-import { type OnlineGameSearchResult } from "../../games/games.model";
 import {
 	DuplicateListModal,
 	type DuplicateListModalResult
 } from "../duplicate-list-modal/duplicate-list-modal";
 import { type DuplicateListModalData } from "../duplicate-list-modal/duplicate-list-modal.model";
+import { ListAddGame } from "../list-add-game/list-add-game";
 import {
 	ListItemRow,
 	type ListItemRowMode
@@ -90,14 +66,12 @@ const LIST_ACTIONS: ActionMenuItem[] = [
 		RouterLink,
 		CdkDropList,
 		CdkDrag,
-		GamePoster,
 		LibraryHero,
+		ListAddGame,
 		ListItemRow,
-		OnlineSourceNote,
 		ProgressMeter,
 		UiButton,
 		UiEmptyState,
-		UiSearchBar,
 		UiSkeleton
 	],
 	templateUrl: "./list-detail.html",
@@ -107,14 +81,14 @@ export class ListDetail implements OnInit {
 	private readonly route = inject(ActivatedRoute);
 	private readonly router = inject(Router);
 	private readonly listsService = inject(ListsService);
-	private readonly gamesService = inject(GamesService);
 	private readonly authService = inject(AuthService);
 	private readonly dialogs = inject(DialogService);
 	protected readonly openBacklogQuickAdd = injectBacklogQuickAdd(() =>
 		this.loadList()
 	);
 	private readonly toast = inject(ToastService);
-	private readonly searchSubject = new Subject<string>();
+	private readonly listWrite = injectToggleAction();
+	private readonly destroyRef = inject(DestroyRef);
 	private readonly pendingRemovals = new PendingRemovals<ListItem>(
 		item => item.game.id
 	);
@@ -124,18 +98,9 @@ export class ListDetail implements OnInit {
 		() => this.list()?.userId === this.authService.user()?.id
 	);
 	protected readonly isLoading = signal(true);
+	protected readonly loadFailed = signal(false);
 	protected readonly refreshing = signal(false);
 	protected readonly showAddSearch = signal(false);
-	protected readonly searchQuery = signal("");
-	protected readonly searchResults = signal<Game[]>([]);
-	protected readonly isSearching = signal(false);
-	protected readonly isSearchingOnline = signal(false);
-	protected readonly onlineSearchUnavailable = signal(false);
-	protected readonly onlineSearchSource = signal<
-		OnlineSearchSource | undefined
-	>(undefined);
-	protected readonly unavailableTitle = ONLINE_SEARCH_UNAVAILABLE_TITLE;
-	protected readonly unavailableHint = ONLINE_SEARCH_UNAVAILABLE_HINT;
 	protected readonly togglingFollow = signal(false);
 	protected readonly exporter = injectExportDownload({
 		resource: () => ({ listId: this.listId }),
@@ -155,7 +120,6 @@ export class ListDetail implements OnInit {
 		() => this.refreshing() || this.exporter.isBusy()
 	);
 	protected readonly skeletonRange = [0, 1, 2, 3, 4];
-	protected readonly searchSkeletonRows = [0, 1, 2];
 	protected readonly heroPosters = computed(() =>
 		(this.list()?.items ?? []).map(item => ({
 			src: item.game.backgroundUrl,
@@ -178,6 +142,7 @@ export class ListDetail implements OnInit {
 	});
 
 	private listId = "";
+	private loadSubscription: Subscription | null = null;
 	private static readonly COMPARE_PARAM = "compare";
 
 	protected readonly fromUsername = signal<string | null>(null);
@@ -235,69 +200,28 @@ export class ListDetail implements OnInit {
 				"1"
 		);
 		if (this.listId) this.loadListOnceViewerIsKnown();
-
-		this.searchSubject
-			.pipe(
-				debounceTime(400),
-				distinctUntilChanged(),
-				switchMap(query => {
-					this.onlineSearchUnavailable.set(false);
-					this.onlineSearchSource.set(undefined);
-					if (query.length < 2) {
-						this.isSearching.set(false);
-						this.isSearchingOnline.set(false);
-						return of(catalogOnlyResult([]));
-					}
-					this.isSearching.set(true);
-					this.isSearchingOnline.set(false);
-					return this.gamesService.searchLocal(query).pipe(
-						switchMap(localResults => {
-							if (localResults.length > 0) {
-								return of(catalogOnlyResult(localResults));
-							}
-							this.isSearching.set(false);
-							this.isSearchingOnline.set(true);
-							return this.gamesService.search(query);
-						})
-					);
-				})
-			)
-			.subscribe(result => {
-				this.searchResults.set(result.games);
-				this.applyOnlineState(result);
-				this.isSearching.set(false);
-				this.isSearchingOnline.set(false);
-			});
 	}
 
-	protected sourceLabel(): string {
-		return onlineSourceLabel(this.onlineSearchSource());
-	}
-
-	private applyOnlineState(result: OnlineGameSearchResult) {
-		this.onlineSearchUnavailable.set(result.onlineSearchUnavailable);
-		this.onlineSearchSource.set(result.onlineSearchSource);
-	}
-
-	onSearch(query: string) {
-		this.searchQuery.set(query);
-		if (query.length >= 2) this.isSearching.set(true);
-		this.searchSubject.next(query);
-	}
-
-	addGame(game: Game) {
+	protected addGame(game: Game) {
 		const current = this.serverOrder(this.visibleItems());
 		if (current.includes(game.id)) return;
-		this.listsService
-			.replaceItems(this.listId, [...current, game.id])
-			.subscribe(() => this.loadList());
+		this.listWrite.run({
+			key: `add:${game.id}`,
+			request: this.listsService.replaceItems(this.listId, [
+				...current,
+				game.id
+			]),
+			failureMessage: "Could not add the game.",
+			onSuccess: () => this.loadList(),
+			onMissing: () => this.markListMissing()
+		});
 	}
 
-	isGameInList(gameId: string): boolean {
-		return this.list()?.items?.some(i => i.game.id === gameId) ?? false;
-	}
+	protected readonly listedGameIds = computed(
+		() => new Set((this.list()?.items ?? []).map(item => item.game.id))
+	);
 
-	removeItem(item: ListItem) {
+	protected removeItem(item: ListItem) {
 		const current = this.list();
 		if (!current) return;
 		this.showItems(this.pendingRemovals.hide(item, current.items));
@@ -312,9 +236,12 @@ export class ListDetail implements OnInit {
 					)
 					.subscribe({
 						next: () => this.loadList(),
-						error: () => {
-							this.loadList();
-							this.toast.error("Could not remove the game.");
+						error: (error: unknown) => {
+							this.reportWriteFailure(
+								error,
+								"Could not remove the game."
+							);
+							if (!this.isMissing(error)) this.loadList();
 						}
 					});
 			},
@@ -354,28 +281,28 @@ export class ListDetail implements OnInit {
 			.map(item => item.game.id);
 	}
 
-	runListAction(id: string) {
+	protected runListAction(id: string) {
 		if (this.exporter.runMenuAction(id)) return;
 		if (id === "refresh") this.refreshScores();
 		else if (id === "duplicate") this.openDuplicate();
 		else this.openEdit();
 	}
 
-	moveUp(index: number) {
+	protected moveUp(index: number) {
 		const items = [...(this.list()?.items ?? [])];
 		if (index === 0) return;
 		[items[index - 1], items[index]] = [items[index], items[index - 1]];
 		this.replaceWithOrder(items);
 	}
 
-	moveDown(index: number) {
+	protected moveDown(index: number) {
 		const items = [...(this.list()?.items ?? [])];
 		if (index >= items.length - 1) return;
 		[items[index], items[index + 1]] = [items[index + 1], items[index]];
 		this.replaceWithOrder(items);
 	}
 
-	onDrop(event: CdkDragDrop<ListItem[]>) {
+	protected onDrop(event: CdkDragDrop<ListItem[]>) {
 		if (!this.isOwner()) return;
 		if (event.previousIndex === event.currentIndex) return;
 		const list = this.list();
@@ -385,7 +312,7 @@ export class ListDetail implements OnInit {
 		this.replaceWithOrder(items);
 	}
 
-	openEdit() {
+	private openEdit() {
 		const ref = this.dialogs.open<ListModalData, ListModalResult>(
 			ListModal,
 			{
@@ -399,7 +326,7 @@ export class ListDetail implements OnInit {
 		});
 	}
 
-	openDuplicate() {
+	protected openDuplicate() {
 		const l = this.list();
 		if (!l) return;
 		const ref = this.dialogs.open<
@@ -413,18 +340,21 @@ export class ListDetail implements OnInit {
 		});
 	}
 
-	refreshScores() {
+	private refreshScores() {
 		this.refreshing.set(true);
 		this.listsService.refreshScores(this.listId).subscribe({
 			next: () => {
 				this.refreshing.set(false);
 				this.loadList();
 			},
-			error: () => this.refreshing.set(false)
+			error: (error: unknown) => {
+				this.refreshing.set(false);
+				this.reportWriteFailure(error, "Could not refresh the scores.");
+			}
 		});
 	}
 
-	toggleFollow() {
+	protected toggleFollow() {
 		const l = this.list();
 		if (!l || this.togglingFollow()) return;
 
@@ -438,7 +368,13 @@ export class ListDetail implements OnInit {
 				this.togglingFollow.set(false);
 				this.loadList();
 			},
-			error: () => this.togglingFollow.set(false)
+			error: (error: unknown) => {
+				this.togglingFollow.set(false);
+				this.reportWriteFailure(
+					error,
+					"Could not update your follow. Try again."
+				);
+			}
 		});
 	}
 
@@ -454,9 +390,11 @@ export class ListDetail implements OnInit {
 	private loadList() {
 		const from = this.fromUsername();
 		const isComparing = from !== null && this.compareMode();
+		this.loadSubscription?.unsubscribe();
+		this.loadFailed.set(false);
 
 		if (isComparing && this.canCompare()) {
-			forkJoin({
+			this.loadSubscription = forkJoin({
 				fromList: this.listsService.getByIdForUser(from, this.listId),
 				viewerList: this.listsService.getById(this.listId)
 			}).subscribe({
@@ -468,7 +406,7 @@ export class ListDetail implements OnInit {
 					this.viewerListProgress.set(viewerList.progress ?? null);
 					this.isLoading.set(false);
 				},
-				error: () => this.isLoading.set(false)
+				error: (error: unknown) => this.handleLoadFailure(error)
 			});
 			return;
 		}
@@ -478,13 +416,53 @@ export class ListDetail implements OnInit {
 		const request$ = from
 			? this.listsService.getByIdForUser(from, this.listId)
 			: this.listsService.getById(this.listId);
-		request$.subscribe({
+		this.loadSubscription = request$.subscribe({
 			next: list => {
 				this.showList(list);
 				this.isLoading.set(false);
 			},
-			error: () => this.isLoading.set(false)
+			error: (error: unknown) => this.handleLoadFailure(error)
 		});
+	}
+
+	protected retryLoad() {
+		this.isLoading.set(true);
+		this.loadList();
+	}
+
+	private isMissing(error: unknown) {
+		return error instanceof HttpErrorResponse && error.status === 404;
+	}
+
+	private markListMissing() {
+		this.list.set(null);
+		this.isLoading.set(false);
+	}
+
+	private handleLoadFailure(error: unknown) {
+		this.isLoading.set(false);
+		if (this.isMissing(error)) {
+			this.list.set(null);
+			return;
+		}
+		if (this.list()) {
+			this.reportWriteFailure(error, "Could not refresh the list.");
+			return;
+		}
+		this.loadFailed.set(true);
+	}
+
+	private reportWriteFailure(error: unknown, message: string) {
+		if (this.isMissing(error)) {
+			this.markListMissing();
+			return;
+		}
+		if (
+			error instanceof HttpErrorResponse &&
+			isToastedByErrorInterceptor(error.status)
+		)
+			return;
+		this.toast.error(message);
 	}
 
 	private buildProgressMap(items: ListItem[]) {
@@ -562,7 +540,10 @@ export class ListDetail implements OnInit {
 		const gameIds = this.serverOrder(items);
 		this.listsService.replaceItems(this.listId, gameIds).subscribe({
 			next: () => this.loadList(),
-			error: () => this.list.set(current)
+			error: (error: unknown) => {
+				this.list.set(current);
+				this.reportWriteFailure(error, "Could not reorder the list.");
+			}
 		});
 	}
 }
