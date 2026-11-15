@@ -1,10 +1,6 @@
 <app-library-hero eyebrow="Library" heading="Lists" [posters]="heroPosters()">
 	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
-		<span
-			class="font-semibold text-fg tabular-nums"
-			[class.!text-premium]="isPremium()"
-			>{{ total() }}</span
-		>
+		<span class="font-semibold text-fg tabular-nums">{{ total() }}</span>
 		{{ total() === 1 ? 'list' : 'lists' }} of yours
 		<ui-premium-badge
 			*appPremiumOnly
@@ -66,7 +62,7 @@
 	}
 </section>
 } @if (frozen()) {
-<ui-alert tone="premium" icon="lock" class="mb-6 max-w-2xl">
+<ui-alert tone="info" icon="lock" class="mb-6 max-w-2xl">
 	Lists are frozen. Delete lists to go below the free limit (5) to create new
 	ones.
 </ui-alert>
