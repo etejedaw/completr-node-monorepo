@@ -1,6 +1,7 @@
-import { Op, QueryTypes, type Transaction } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import { PinoLogger } from "../../common/logger/pino.logger";
+import { describeFailure } from "../../common/utils/describe-failure.util";
 import { sequelize } from "../../database/sequelize.database";
 import * as gameGenreService from "../../game-genre/game-genre.service";
 import * as gamePlatinumService from "../../game-platinum/game-platinum.service";
@@ -13,7 +14,6 @@ import { userToRewindOwner } from "../mappers/user-to-rewind-owner.mapper";
 import {
 	REWIND_FREEZE_ATTEMPTS,
 	REWIND_FREEZE_BATCH_SIZE,
-	REWIND_FREEZE_LOCK_KEY,
 	REWIND_SNAPSHOT_SCHEMA_VERSION
 } from "../rewind.constants";
 import { type RewindSnapshot, type RewindView } from "../rewind.interface";
@@ -31,6 +31,7 @@ import { buildRewindView } from "../utils/build-rewind-view.util";
 import { isAiRecapInProgress } from "../utils/is-ai-recap-in-progress.util";
 import { listActiveGameIds } from "../utils/list-active-game-ids.util";
 import { resolveCurrentRewindDay } from "../utils/resolve-current-rewind-day.util";
+import { runWithRewindFreezeLock } from "../utils/run-with-rewind-freeze-lock.util";
 import { findRewindRuns } from "./rewind-runs.service";
 
 const logger = new PinoLogger("Rewind Freeze");
@@ -56,7 +57,7 @@ async function buildViewFor(
 	record: RewindModel,
 	runs: RewindRun[],
 	context: RewindSnapshotContext,
-	isOwnerView: boolean
+	scope: { includeUngenerated: boolean; requireListedYear: boolean }
 ): Promise<RewindView | null> {
 	const genres = await gameGenreService.findGenresByGameIds(
 		listActiveGameIds(runs, [record.year, record.year - 1])
@@ -71,12 +72,38 @@ async function buildViewFor(
 		calendar: context.calendar,
 		visibility: {
 			generatedYears: context.generatedYears,
-			includeUngenerated: isOwnerView,
+			includeUngenerated: scope.includeUngenerated,
 			frozenYearListing: new Map()
 		},
 		design: context.design,
 		frozenAt: context.frozenAt,
-		requireListedYear: !isOwnerView
+		requireListedYear: scope.requireListedYear
+	});
+}
+
+async function buildOwnerView(
+	owner: User,
+	record: RewindModel,
+	runs: RewindRun[],
+	context: RewindSnapshotContext
+): Promise<RewindView> {
+	const view = await buildViewFor(owner, record, runs, context, {
+		includeUngenerated: true,
+		requireListedYear: false
+	});
+	if (!view) throw rewindServiceError.notFoundError();
+	return view;
+}
+
+function buildPublicView(
+	owner: User,
+	record: RewindModel,
+	runs: RewindRun[],
+	context: RewindSnapshotContext
+): Promise<RewindView | null> {
+	return buildViewFor(owner, record, runs, context, {
+		includeUngenerated: false,
+		requireListedYear: true
 	});
 }
 
@@ -119,15 +146,15 @@ export async function buildRewindSnapshot(
 		frozenAt: frozenAt.toISOString()
 	};
 	const [ownerView, publicView] = await Promise.all([
-		buildViewFor(owner, record, ownerRuns, context, true),
-		buildViewFor(owner, record, publicRuns, context, false)
+		buildOwnerView(owner, record, ownerRuns, context),
+		buildPublicView(owner, record, publicRuns, context)
 	]);
 
 	return {
 		schemaVersion: REWIND_SNAPSHOT_SCHEMA_VERSION,
 		design: context.design,
 		frozenAt: context.frozenAt,
-		owner: ownerView!,
+		owner: ownerView,
 		public: publicView
 	};
 }
@@ -185,18 +212,6 @@ export async function freezeRewind(
 	return { kind: "pending", record: latest };
 }
 
-async function acquireFreezeLock(transaction: Transaction): Promise<boolean> {
-	const [row] = await sequelize.query<{ locked: boolean }>(
-		"SELECT pg_try_advisory_xact_lock(hashtext(:key)) AS locked",
-		{
-			replacements: { key: REWIND_FREEZE_LOCK_KEY },
-			type: QueryTypes.SELECT,
-			transaction
-		}
-	);
-	return row?.locked === true;
-}
-
 async function findClosedEditions(
 	today: Date
 ): Promise<ClosedRewindEditions | null> {
@@ -224,16 +239,17 @@ async function findUnfrozenRewindIds(after: string | null): Promise<string[]> {
 
 async function freezeSafely(
 	recordId: string,
-	edition: RewindEditionRecord
+	edition: RewindEditionRecord,
+	now: Date
 ): Promise<RewindFreezeOutcomeKind | "failed"> {
 	try {
-		const outcome = await freezeRewind(recordId, edition);
+		const outcome = await freezeRewind(recordId, edition, now);
 		return outcome.kind;
 	} catch (error) {
 		logger.error("freezeRewind", "failed", {
 			rewindId: recordId,
 			year: edition.year,
-			error: error instanceof Error ? error.message : String(error)
+			error: describeFailure(error)
 		});
 		return "failed";
 	}
@@ -250,14 +266,18 @@ function addToTally(
 }
 
 async function freezeLiveRewinds(
-	edition: RewindEditionRecord
+	edition: RewindEditionRecord,
+	now: Date
 ): Promise<RewindFreezeTally> {
 	let tally = EMPTY_TALLY;
 	let cursor: string | null = null;
 	let batch = await findUnfrozenRewindIds(cursor);
 	while (batch.length > 0) {
 		for (const recordId of batch)
-			tally = addToTally(tally, await freezeSafely(recordId, edition));
+			tally = addToTally(
+				tally,
+				await freezeSafely(recordId, edition, now)
+			);
 		cursor = batch.at(-1) ?? null;
 		batch = await findUnfrozenRewindIds(cursor);
 	}
@@ -266,19 +286,17 @@ async function freezeLiveRewinds(
 
 async function freezeEditions(
 	closed: ClosedRewindEditions,
-	today: Date
+	now: Date
 ): Promise<RewindFreezeReport> {
-	const openEdition =
-		await rewindEditionsService.findCurrentRewindEdition(today);
+	const openEdition = await rewindEditionsService.findCurrentRewindEdition(
+		resolveCurrentRewindDay(now)
+	);
 	const tally = openEdition
 		? EMPTY_TALLY
-		: await freezeLiveRewinds(closed.latest);
+		: await freezeLiveRewinds(closed.latest, now);
 	const settled = tally.pending === 0 && tally.failed === 0;
 	if (settled)
-		await rewindEditionsService.markRewindEditionsFrozen(
-			closed.years,
-			new Date()
-		);
+		await rewindEditionsService.markRewindEditionsFrozen(closed.years, now);
 	return {
 		locked: true,
 		closedEditions: closed.years,
@@ -287,27 +305,26 @@ async function freezeEditions(
 	};
 }
 
-export function freezeClosedRewindEditions(
+const NOT_LOCKED_REPORT: RewindFreezeReport = {
+	locked: false,
+	closedEditions: [],
+	frozenEditions: [],
+	...EMPTY_TALLY
+};
+
+const NOTHING_CLOSED_REPORT: RewindFreezeReport = {
+	...NOT_LOCKED_REPORT,
+	locked: true
+};
+
+async function freezeWhileLocked(now: Date): Promise<RewindFreezeReport> {
+	const closed = await findClosedEditions(resolveCurrentRewindDay(now));
+	return closed ? freezeEditions(closed, now) : NOTHING_CLOSED_REPORT;
+}
+
+export async function freezeClosedRewindEditions(
 	now: Date = new Date()
 ): Promise<RewindFreezeReport> {
-	return sequelize.transaction(async transaction => {
-		if (!(await acquireFreezeLock(transaction)))
-			return {
-				locked: false,
-				closedEditions: [],
-				frozenEditions: [],
-				...EMPTY_TALLY
-			};
-
-		const today = resolveCurrentRewindDay(now);
-		const closed = await findClosedEditions(today);
-		if (!closed)
-			return {
-				locked: true,
-				closedEditions: [],
-				frozenEditions: [],
-				...EMPTY_TALLY
-			};
-		return freezeEditions(closed, today);
-	});
+	const report = await runWithRewindFreezeLock(() => freezeWhileLocked(now));
+	return report ?? NOT_LOCKED_REPORT;
 }

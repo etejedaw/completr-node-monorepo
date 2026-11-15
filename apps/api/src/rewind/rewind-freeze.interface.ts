@@ -63,3 +63,10 @@ export interface ClosedRewindEditions {
 	years: number[];
 	latest: RewindEditionRecord;
 }
+
+export interface AdvisoryLockConnection {
+	query(
+		text: string,
+		values: string[]
+	): Promise<{ rows: { locked?: boolean }[] }>;
+}
