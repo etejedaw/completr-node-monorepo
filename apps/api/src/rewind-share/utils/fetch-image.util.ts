@@ -25,12 +25,31 @@ function imageMimeType(bytes: Buffer): string | null {
 	return null;
 }
 
-function isHttpUrl(url: string): boolean {
+function isHttpsUrl(url: string): boolean {
 	try {
-		const { protocol } = new URL(url);
-		return protocol === "https:" || protocol === "http:";
+		return new URL(url).protocol === "https:";
 	} catch {
 		return false;
+	}
+}
+
+async function readBodyWithinLimit(
+	response: Response,
+	maxBytes: number
+): Promise<Buffer | null> {
+	if (!response.body) return null;
+	const reader = response.body.getReader();
+	const chunks: Uint8Array[] = [];
+	let received = 0;
+	for (;;) {
+		const { done, value } = await reader.read();
+		if (done) return Buffer.concat(chunks);
+		received += value.length;
+		if (received > maxBytes) {
+			await reader.cancel();
+			return null;
+		}
+		chunks.push(value);
 	}
 }
 
@@ -44,15 +63,14 @@ async function downloadImage(
 	if (!response.ok) return null;
 	if (Number(response.headers.get("content-length")) > COVER_MAX_BYTES)
 		return null;
-	const bytes = Buffer.from(await response.arrayBuffer());
-	return bytes.length > COVER_MAX_BYTES ? null : bytes;
+	return readBodyWithinLimit(response, COVER_MAX_BYTES);
 }
 
 export async function fetchImageDataUri(
 	url: string | null,
 	width = COVER_FETCH_WIDTH
 ): Promise<string | null> {
-	if (!url || !isHttpUrl(url)) return null;
+	if (!url || !isHttpsUrl(url)) return null;
 	try {
 		const bytes = await downloadImage(url, width);
 		if (!bytes) return null;
