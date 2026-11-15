@@ -46,6 +46,22 @@ export interface ExternalGameDetail {
 	times: { source: string; duration: number }[];
 }
 
+export interface GameScoreEntry {
+	id: string;
+	gameId: string;
+	source: string;
+	score: number;
+	updatedAt: string;
+}
+
+export interface GameTimeEntry {
+	id: string;
+	gameId: string;
+	source: string;
+	duration: number;
+	updatedAt: string;
+}
+
 export interface CreateGameDto {
 	title: string;
 	description?: string;
