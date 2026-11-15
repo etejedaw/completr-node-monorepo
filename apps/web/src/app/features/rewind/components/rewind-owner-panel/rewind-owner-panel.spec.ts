@@ -24,6 +24,20 @@ const api = environment.apiUrl;
 const aiRecapUrl = `${api}/users/me/rewinds/2026/ai-recap`;
 const rewindUrl = `${api}/users/ada/rewinds/2026`;
 
+function chipText(element: Element) {
+	const copy = element.cloneNode(true) as Element;
+	copy.querySelectorAll("[aria-hidden='true'], button").forEach(hidden =>
+		hidden.remove()
+	);
+	return copy.textContent?.replace(/\s+/g, " ").trim();
+}
+
+function chip(text: string) {
+	return screen.queryByText(
+		(_, element) => element?.tagName === "LI" && chipText(element) === text
+	);
+}
+
 function controls(
 	overrides: Partial<RewindOwnerControls> = {}
 ): RewindOwnerControls {
@@ -123,10 +137,8 @@ describe("RewindOwnerPanel", () => {
 			})
 		);
 
-		expect(screen.getByText("1 AI generation left")).toBeInTheDocument();
-		expect(
-			screen.getByText("Extra AI generation available until Jan 7")
-		).toBeInTheDocument();
+		expect(chip("1 AI generation left")).toBeInTheDocument();
+		expect(screen.getByText("+1 extra until Jan 7")).toBeInTheDocument();
 		expect(
 			screen.getByRole("button", { name: "Regenerate" })
 		).toBeInTheDocument();
@@ -147,13 +159,9 @@ describe("RewindOwnerPanel", () => {
 		);
 
 		expect(screen.getByRole("region")).toHaveAttribute("lang", "es");
+		expect(chip("0 generaciones con IA restantes")).toBeInTheDocument();
 		expect(
-			screen.getByText("No te quedan generaciones con IA")
-		).toBeInTheDocument();
-		expect(
-			screen.getByText(
-				"Generación con IA extra disponible hasta el 7 de enero"
-			)
+			screen.getByText("+1 extra hasta el 7 de enero")
 		).toBeInTheDocument();
 		expect(screen.getByText("En español")).toBeInTheDocument();
 		expect(screen.getByText("Incluye runs privadas")).toBeInTheDocument();
@@ -201,7 +209,7 @@ describe("RewindOwnerPanel", () => {
 			})
 		);
 
-		expect(screen.getByText("No AI generations left")).toBeInTheDocument();
+		expect(chip("0 AI generations left")).toBeInTheDocument();
 		expect(screen.queryByRole("button", { name: "Regenerate" })).toBeNull();
 	});
 
@@ -512,8 +520,8 @@ describe("RewindOwnerPanel", () => {
 			expect(screen.queryByRole("button", { name: "Gift" })).toBeNull();
 			expect(screen.queryByText("AI generations")).toBeNull();
 			expect(screen.queryByText(/AI generations?: /)).toBeNull();
-			expect(screen.getByText("Season")).toBeInTheDocument();
-			expect(screen.getByText("This version")).toBeInTheDocument();
+			expect(chip("Open until Jan 31")).toBeInTheDocument();
+			expect(chip("In English")).toBeInTheDocument();
 		});
 
 		it("hides Regenerate and the AI generations without AI access and shows the Rewind gift instead", async () => {
@@ -554,13 +562,9 @@ describe("RewindOwnerPanel", () => {
 				})
 			);
 
+			expect(chip("3 generaciones con IA restantes")).toBeInTheDocument();
 			expect(
-				screen.getByText("Te quedan 3 generaciones con IA")
-			).toBeInTheDocument();
-			expect(
-				screen.getByText(
-					"Generación con IA extra disponible hasta el 7 de enero"
-				)
+				screen.getByText("+1 extra hasta el 7 de enero")
 			).toBeInTheDocument();
 			expect(screen.getByText("Abierta")).toBeInTheDocument();
 			expect(
@@ -696,9 +700,7 @@ describe("RewindOwnerPanel", () => {
 				})
 			);
 
-			expect(
-				screen.getByText("No AI generations left")
-			).toBeInTheDocument();
+			expect(chip("0 AI generations left")).toBeInTheDocument();
 			expect(
 				screen.queryByText(
 					"You've used every AI generation for this Rewind."
