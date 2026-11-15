@@ -1,11 +1,11 @@
 import z from "zod";
 
-export const ADMIN_USERS_QUERY_MAX_LENGTH = 100;
+import { PaginationQuerySchema } from "../../common/schemas/pagination-query.schema";
 
-export const AdminUsersQuerySchema = z
-	.object({
-		limit: z.coerce.number().int().min(1).max(100).optional(),
-		offset: z.coerce.number().int().min(0).optional(),
+const ADMIN_USERS_QUERY_MAX_LENGTH = 100;
+
+export const AdminUsersQuerySchema = PaginationQuerySchema.unwrap()
+	.extend({
 		search: z
 			.string()
 			.trim()

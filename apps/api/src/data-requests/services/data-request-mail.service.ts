@@ -1,6 +1,7 @@
 import { environmentConfig } from "../../common/config/environment.config";
 import { mailConfig } from "../../common/config/mail.config";
 import { PinoLogger } from "../../common/logger/pino.logger";
+import { toUtcDay } from "../../common/utils/to-utc-day.util";
 import { type MailContent } from "../../mail/mail.interface";
 import { mailProvider } from "../../mail/mail.provider";
 import {
@@ -20,10 +21,6 @@ const USER_REQUESTS_PATH = "/settings/data";
 
 const logger = new PinoLogger("Data Requests Mail");
 
-function toIsoDate(date: Date) {
-	return date.toISOString().slice(0, 10);
-}
-
 function webAppUrl(path: string) {
 	return new URL(path, environmentConfig.WEB_APP_URL).toString();
 }
@@ -38,16 +35,16 @@ function emailDetails(
 		type: request.type,
 		status: request.status,
 		username,
-		requestedDate: toIsoDate(request.requestedAt),
-		dueDate: toIsoDate(dataRequestDueAt(request.requestedAt)),
+		requestedDate: toUtcDay(request.requestedAt),
+		dueDate: toUtcDay(dataRequestDueAt(request.requestedAt)),
 		downloadableUntilDate: downloadableUntil
-			? toIsoDate(downloadableUntil)
+			? toUtcDay(downloadableUntil)
 			: null,
 		resolutionNote: request.resolutionNote
 	};
 }
 
-async function sendWithoutBlocking(to: string, content: MailContent) {
+async function sendIgnoringFailures(to: string, content: MailContent) {
 	if (!mailProvider.isConfigured) {
 		logger.warn("send", "skipped", { reason: "mail not configured" });
 		return;
@@ -65,7 +62,7 @@ export async function notifyAdminOfNewRequest(
 	request: DataRequestSnapshot,
 	requester: DataRequestRecipient
 ) {
-	await sendWithoutBlocking(
+	await sendIgnoringFailures(
 		mailConfig.DATA_REQUESTS_NOTIFY_EMAIL,
 		buildDataRequestReceivedEmail(
 			emailDetails(request, requester.username),
@@ -79,7 +76,7 @@ export async function notifyRequesterOfResolution(
 	request: DataRequestSnapshot,
 	requester: DataRequestRecipient
 ) {
-	await sendWithoutBlocking(
+	await sendIgnoringFailures(
 		requester.email,
 		buildDataRequestResolvedEmail(
 			emailDetails(request, requester.username),

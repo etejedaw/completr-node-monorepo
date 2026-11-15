@@ -1,11 +1,8 @@
-import z from "zod";
+import type z from "zod";
 
-export const UserListsQuerySchema = z
-	.object({
-		limit: z.coerce.number().int().min(1).max(100).optional(),
-		offset: z.coerce.number().int().min(0).optional(),
-		search: z.string().min(1).max(100).optional()
-	})
+import { PaginatedSearchQuerySchema } from "../../common/schemas/paginated-search-query.schema";
+
+export const UserListsQuerySchema = PaginatedSearchQuerySchema.unwrap()
 	.strict()
 	.readonly();
 

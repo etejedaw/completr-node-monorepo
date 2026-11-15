@@ -1,7 +1,7 @@
 import { type NextFunction, type Request, type Response } from "express";
 import { ZodError, type ZodType } from "zod";
 
-import { DomainError } from "../errors/domain-error";
+import * as commonDomainError from "../errors/common.domain-error";
 import { type RequestKey } from "../types/request-key.types";
 
 export function validateSchemaMiddleware(
@@ -20,10 +20,7 @@ export function validateSchemaMiddleware(
 					code: issue.code,
 					message: issue.message
 				}));
-				throw new DomainError(
-					"Common Module",
-					"COMMON_SCHEMA_INVALID",
-					"Invalid request schema",
+				throw commonDomainError.commonSchemaInvalid(
 					{ error: JSON.parse(error.message) },
 					issues
 				);

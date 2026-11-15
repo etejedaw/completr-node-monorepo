@@ -1,15 +1,14 @@
 import z from "zod";
 
+import { PaginationQuerySchema } from "../../common/schemas/pagination-query.schema";
 import { ACTIVITY_TYPES } from "../activity.model";
 
-export const FEED_CATEGORIES = ["games", "lists", "social"] as const;
+const FEED_CATEGORIES = ["games", "lists", "social"] as const;
 
 export type FeedCategory = (typeof FEED_CATEGORIES)[number];
 
-export const FeedQuerySchema = z
-	.object({
-		limit: z.coerce.number().int().min(1).max(100).optional(),
-		offset: z.coerce.number().int().min(0).optional(),
+export const FeedQuerySchema = PaginationQuerySchema.unwrap()
+	.extend({
 		category: z.enum(FEED_CATEGORIES).optional(),
 		types: z
 			.string()

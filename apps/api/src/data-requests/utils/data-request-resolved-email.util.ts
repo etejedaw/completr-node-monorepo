@@ -1,3 +1,4 @@
+import { mailConfig } from "../../common/config/mail.config";
 import { renderBrandedEmail } from "../../mail/branded-email.template";
 import { type BrandedEmail, type MailContent } from "../../mail/mail.interface";
 import { type DataRequestEmailDetails } from "../data-requests.interface";
@@ -20,8 +21,7 @@ function completedExportEmail(
 			`The download is available until ${details.downloadableUntilDate}.`,
 			"The file is generated when you download it, so it reflects your data at that moment."
 		],
-		footnote:
-			"Didn't ask for this? Change your password and write to completr@etejeda.dev."
+		footnote: `Didn't ask for this? Change your password and write to ${mailConfig.SUPPORT_EMAIL}.`
 	};
 }
 
@@ -63,7 +63,7 @@ function rejectedEmail(
 		],
 		action: { label: "Review your requests", url: actionUrl },
 		notes: [
-			"You can reply to completr@etejeda.dev if you disagree.",
+			`You can reply to ${mailConfig.SUPPORT_EMAIL} if you disagree.`,
 			"You can also file a complaint with the Chilean Personal Data Protection Agency."
 		],
 		footnote: "You receive this email because you made a data request."

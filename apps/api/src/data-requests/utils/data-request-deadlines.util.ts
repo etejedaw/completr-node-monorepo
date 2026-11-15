@@ -1,12 +1,11 @@
+import { MS_PER_DAY } from "../../common/constants/time.constants";
 import {
 	DATA_EXPORT_DOWNLOAD_DAYS,
 	DATA_REQUEST_RESPONSE_DAYS
 } from "../data-requests.constants";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
 function addDays(date: Date, days: number) {
-	return new Date(date.getTime() + days * DAY_MS);
+	return new Date(date.getTime() + days * MS_PER_DAY);
 }
 
 export function dataRequestDueAt(requestedAt: Date) {
@@ -14,7 +13,7 @@ export function dataRequestDueAt(requestedAt: Date) {
 }
 
 export function daysUntil(deadline: Date, now = new Date()) {
-	return Math.ceil((deadline.getTime() - now.getTime()) / DAY_MS) || 0;
+	return Math.ceil((deadline.getTime() - now.getTime()) / MS_PER_DAY) || 0;
 }
 
 export function exportDownloadableUntil(request: {

@@ -1,5 +1,7 @@
 import z from "zod";
 
+const DEFAULT_SUPPORT_EMAIL = "completr@etejeda.dev";
+
 const optionalSetting = z
 	.string()
 	.trim()
@@ -14,9 +16,13 @@ const MailConfigSchema = z
 		SMTP_USER: optionalSetting,
 		SMTP_PASSWORD: optionalSetting,
 		MAIL_FROM: z.string().default("Completr <completr@email.etejeda.dev>"),
+		SUPPORT_EMAIL: z.preprocess(
+			value => value || undefined,
+			z.email().default(DEFAULT_SUPPORT_EMAIL)
+		),
 		DATA_REQUESTS_NOTIFY_EMAIL: z.preprocess(
 			value => value || undefined,
-			z.email().default("completr@etejeda.dev")
+			z.email().default(DEFAULT_SUPPORT_EMAIL)
 		)
 	})
 	.readonly();

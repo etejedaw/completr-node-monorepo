@@ -1,9 +1,11 @@
+import { mailConfig } from "../common/config/mail.config";
+
 export const PERSONAL_DATA_EXPORT_FORMAT_VERSION = "1.0";
 
 export const PERSONAL_DATA_EXPORT_CONTROLLER = {
 	name: "Esteban Tejeda",
 	service: "Completr",
-	contactEmail: "completr@etejeda.dev"
+	contactEmail: mailConfig.SUPPORT_EMAIL
 } as const;
 
 export const PERSONAL_DATA_EXPORT_PURPOSES = [
