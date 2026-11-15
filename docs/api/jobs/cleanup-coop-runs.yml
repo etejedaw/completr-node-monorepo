@@ -1,0 +1,42 @@
+info:
+    name: Start Cleanup Coop Runs
+    type: http
+    seq: 9
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/jobs/cleanup-coop-runs"
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Start Cleanup Coop Runs
+
+    Background job that removes orphan co-op runs (runs whose partner entries no longer exist).
+    Only one `cleanup_coop_runs` job can be running at a time: if one is active, its data is returned and no new job starts.
+
+    **Authentication:** Hidden route — admin/moderator only.
+    **Rate Limit:** 50 requests per minute (user).
+
+    ### Response (202)
+
+    ```json
+    {
+      "data": {
+        "job": {
+          "id": "uuid",
+          "type": "cleanup_coop_runs",
+          "status": "running"
+        }
+      }
+    }
+    ```
+
+    Poll `GET /admin/jobs` to follow progress.
+
+    ### Behavior on completion
+
+    Result string format:
+    `Removed N orphan coop runs`

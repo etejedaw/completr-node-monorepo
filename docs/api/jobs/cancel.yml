@@ -36,5 +36,5 @@ docs: |-
 
     ### Errors
 
-    - 404 — Job not found or not in `running` state
+    - 404 `JOB_NOT_FOUND` — Job not found or not in `running` state (Problem Details body)
     - 422 `COMMON_SCHEMA_INVALID` — `jobId` is not a valid UUID
