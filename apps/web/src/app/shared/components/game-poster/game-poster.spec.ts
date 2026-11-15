@@ -53,7 +53,9 @@ describe("GamePoster", () => {
 				image: () => element.querySelector("img"),
 				placeholder: () => element.querySelector('[role="img"]'),
 				fail: () => {
-					element.querySelector("img")?.dispatchEvent(new Event("error"));
+					element
+						.querySelector("img")
+						?.dispatchEvent(new Event("error"));
 					fixture.detectChanges();
 				}
 			};
@@ -76,7 +78,9 @@ describe("GamePoster", () => {
 			view.fail();
 
 			expect(view.image()).toBeNull();
-			expect(view.placeholder()?.getAttribute("aria-label")).toBe("Hades");
+			expect(view.placeholder()?.getAttribute("aria-label")).toBe(
+				"Hades"
+			);
 		});
 
 		it("goes straight to the placeholder for a non-RAWG src", () => {

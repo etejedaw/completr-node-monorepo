@@ -10,7 +10,7 @@ import {
 	template: `
 		<button
 			type="button"
-			class="-mx-px h-[18px] w-[calc(100%+2px)] flex items-center gap-1 px-1.5 border-0 text-[0.6875rem] font-medium leading-none truncate cursor-pointer transition hover:brightness-110"
+			class="-mx-px h-[18px] w-[calc(100%+2px)] flex items-center gap-1 px-1.5 border-0 text-caption font-medium leading-none truncate cursor-pointer transition hover:brightness-110"
 			[class]="toneClass()"
 			[class.rounded-l]="roundLeft()"
 			[class.rounded-r]="roundRight()"

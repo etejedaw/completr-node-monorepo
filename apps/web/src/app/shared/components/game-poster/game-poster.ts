@@ -50,14 +50,14 @@ function hueFromText(text: string): number {
 				></div>
 				<span
 					aria-hidden="true"
-					class="material-icons absolute top-[12%] left-1/2 -translate-x-1/2 text-white/25"
+					class="material-icons absolute top-[12%] left-1/2 -translate-x-1/2 text-on-image/25"
 					[style.font-size]="compact() ? '1.25rem' : '2.5rem'"
 					>sports_esports</span
 				>
 				@if (!compact()) {
 					<span
 						aria-hidden="true"
-						class="relative px-2 pb-2 font-display font-bold leading-[1.05] text-white/90 line-clamp-3 drop-shadow"
+						class="relative px-2 pb-2 font-display font-bold leading-[1.05] text-on-image/90 line-clamp-3 drop-shadow"
 						[style.font-size]="titleSize()"
 						>{{ title() }}</span
 					>

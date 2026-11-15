@@ -22,7 +22,7 @@ import { UiButton } from "../../ui";
 	template: `
 		@if (confirming()) {
 			<span
-				class="text-[0.8125rem] text-danger max-md:basis-full"
+				class="text-compact text-danger max-md:basis-full"
 				role="status"
 				>{{ question() }}</span
 			>

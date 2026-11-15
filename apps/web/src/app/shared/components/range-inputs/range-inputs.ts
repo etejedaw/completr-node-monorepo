@@ -20,7 +20,7 @@ function toNullableNumber(raw: string): number | null {
 	template: `
 		<div class="grid grid-cols-2 gap-3">
 			<label class="flex flex-col gap-1 min-w-0">
-				<span class="text-[0.6875rem] text-fg-muted">
+				<span class="text-caption text-fg-muted">
 					<span class="sr-only">{{ label() }}, </span>{{ minLabel() }}
 				</span>
 				<input
@@ -36,7 +36,7 @@ function toNullableNumber(raw: string): number | null {
 				/>
 			</label>
 			<label class="flex flex-col gap-1 min-w-0">
-				<span class="text-[0.6875rem] text-fg-muted">
+				<span class="text-caption text-fg-muted">
 					<span class="sr-only">{{ label() }}, </span>{{ maxLabel() }}
 				</span>
 				<input

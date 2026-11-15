@@ -18,7 +18,7 @@ const HOVER_CLASSES: Record<CalendarDayOverflowTone, string> = {
 	template: `
 		<button
 			type="button"
-			class="px-1.5 text-[0.625rem] font-medium text-fg-muted leading-none bg-transparent border-0 cursor-pointer"
+			class="px-1.5 text-tiny font-medium text-fg-muted leading-none bg-transparent border-0 cursor-pointer"
 			[class]="hoverClass()"
 			(click)="pressed.emit()"
 		>

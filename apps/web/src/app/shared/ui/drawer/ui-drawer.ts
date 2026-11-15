@@ -26,7 +26,7 @@ let nextDrawerId = 0;
 		<div class="fixed inset-0 z-[1000] flex justify-end">
 			<div
 				aria-hidden="true"
-				class="absolute inset-0 bg-black/60 backdrop-blur-sm motion-safe:animate-[uiSheetFade_200ms_ease-out]"
+				class="absolute inset-0 ui-backdrop"
 				(click)="closed.emit()"
 			></div>
 			<section
@@ -35,7 +35,7 @@ let nextDrawerId = 0;
 				aria-modal="true"
 				[attr.aria-labelledby]="titleId"
 				[attr.aria-describedby]="subheading() ? subtitleId : null"
-				class="relative flex flex-col w-full sm:w-[420px] h-dvh outline-none bg-sidebar border-l border-line shadow-[0_0_60px_-12px_rgba(0,0,0,0.7)] pb-[env(safe-area-inset-bottom)] motion-safe:animate-[uiDrawerIn_260ms_cubic-bezier(0.16,1,0.3,1)]"
+				class="relative flex flex-col w-full sm:w-[420px] h-dvh outline-none bg-sidebar border-l border-line shadow-drawer pb-[env(safe-area-inset-bottom)] motion-safe:animate-[uiDrawerIn_260ms_cubic-bezier(0.16,1,0.3,1)]"
 				(escape)="onEscape($event)"
 			>
 				<header

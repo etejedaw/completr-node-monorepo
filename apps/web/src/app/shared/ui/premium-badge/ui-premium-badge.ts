@@ -42,7 +42,7 @@ export class UiPremiumBadge {
 	message = input("");
 	interactive = input(false, { transform: booleanAttribute });
 
-	onPress(event: Event) {
+	protected onPress(event: Event) {
 		event.stopPropagation();
 		this.toast.premium("Premium perk", this.message() || this.label());
 	}

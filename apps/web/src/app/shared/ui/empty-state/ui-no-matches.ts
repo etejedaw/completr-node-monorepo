@@ -17,7 +17,12 @@ import { UiEmptyState } from "./ui-empty-state";
 			title="No matches found"
 			[hint]="hint()"
 		>
-			<button uiButton variant="secondary" (click)="cleared.emit()">
+			<button
+				uiButton
+				type="button"
+				variant="secondary"
+				(click)="cleared.emit()"
+			>
 				{{ clearLabel() }}
 			</button>
 		</ui-empty-state>

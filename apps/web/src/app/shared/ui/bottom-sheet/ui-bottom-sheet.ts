@@ -30,7 +30,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 	template: `
 		<button
 			type="button"
-			class="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm cursor-default border-0 motion-safe:animate-[uiSheetFade_200ms_ease-out]"
+			class="fixed inset-0 z-[1000] ui-backdrop cursor-default border-0"
 			[attr.aria-label]="'Close ' + heading()"
 			(click)="onBackdropClick()"
 		></button>

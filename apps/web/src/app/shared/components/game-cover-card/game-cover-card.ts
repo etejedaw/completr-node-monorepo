@@ -30,7 +30,7 @@ import {
 	template: `
 		<div class="flex flex-col gap-1.5 text-inherit group">
 			<div
-				class="relative rounded-lg overflow-hidden bg-surface ring-1 ring-white/10 shadow-lg shadow-black/40 transition duration-200 group-hover:-translate-y-1 group-hover:ring-brand/60"
+				class="relative rounded-lg overflow-hidden bg-surface ring-1 ring-on-image/10 shadow-card transition duration-200 group-hover:-translate-y-1 group-hover:ring-brand/60"
 			>
 				@if (clickable()) {
 					<button
@@ -72,7 +72,7 @@ import {
 								[class]="
 									action.active
 										? action.overlayActiveClass
-										: 'bg-black/60 text-white'
+										: 'bg-black/60 text-on-image'
 								"
 								[class.opacity-0]="!action.alwaysVisible"
 								[class.group-hover:opacity-100]="
@@ -133,7 +133,7 @@ import {
 				>{{ game().title }}</a
 			>
 			@if (subtitle()) {
-				<span class="text-[0.625rem] text-fg-muted truncate">{{
+				<span class="text-tiny text-fg-muted truncate">{{
 					subtitle()
 				}}</span>
 			}
@@ -149,7 +149,7 @@ import {
 			/>
 			@if (topLeftBadge()) {
 				<span
-					class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-black/70 backdrop-blur-sm"
+					class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-caption font-bold text-on-image bg-black/70 backdrop-blur-sm"
 				>
 					{{ topLeftBadge() }}
 				</span>
@@ -163,13 +163,13 @@ import {
 				>
 					@if (ratio() !== null && ratio() !== undefined) {
 						<span
-							class="px-2 py-0.5 rounded-md text-xs font-display font-bold tabular-nums text-white bg-brand-solid/90 shadow-md shadow-black/40 backdrop-blur-sm"
+							class="px-2 py-0.5 rounded-md text-xs font-display font-bold tabular-nums text-on-image bg-brand-solid/90 shadow-card backdrop-blur-sm"
 							>{{ ratio() }}</span
 						>
 					}
 					@if (duration() !== null && duration() !== undefined) {
 						<span
-							class="px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold text-white bg-black/70 backdrop-blur-sm"
+							class="px-2 py-0.5 rounded-full text-caption font-semibold text-on-image bg-black/70 backdrop-blur-sm"
 							>{{ duration() }}h</span
 						>
 					}
@@ -177,7 +177,7 @@ import {
 			}
 			@if (acquiredAt()) {
 				<span
-					class="absolute bottom-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold text-white bg-black/70 backdrop-blur-sm"
+					class="absolute bottom-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-caption font-semibold text-on-image bg-black/70 backdrop-blur-sm"
 				>
 					<span
 						aria-hidden="true"
@@ -242,7 +242,7 @@ export class GameCoverCard {
 				active: wanted,
 				pressed: wanted,
 				alwaysVisible: false,
-				overlayActiveClass: "bg-nav-wishlist text-white",
+				overlayActiveClass: "bg-nav-wishlist text-on-image",
 				barActiveClass: "text-nav-wishlist"
 			});
 		}
@@ -257,7 +257,7 @@ export class GameCoverCard {
 				active: inBacklog,
 				pressed: null,
 				alwaysVisible: false,
-				overlayActiveClass: "bg-success text-white",
+				overlayActiveClass: "bg-success text-on-image",
 				barActiveClass: "text-success"
 			});
 		}

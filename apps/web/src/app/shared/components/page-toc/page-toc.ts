@@ -43,7 +43,7 @@ import { type PageSection } from "./page-toc.model";
 								(click)="selected.emit(section.id)"
 							>
 								<span
-									class="w-5 text-[0.6875rem] tabular-nums"
+									class="w-5 text-caption tabular-nums"
 									[class.text-brand]="section.id === active()"
 									>{{ pad(i + 1) }}</span
 								>

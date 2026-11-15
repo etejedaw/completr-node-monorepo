@@ -35,7 +35,7 @@ const TONE_ICONS: Record<UiAlertTone, string> = {
 		<div class="min-w-0 flex-1 leading-5"><ng-content /></div>
 	`,
 	host: {
-		class: "flex items-start gap-2 rounded-card border px-3 py-2 text-[0.8125rem]",
+		class: "flex items-start gap-2 rounded-card border px-3 py-2 text-compact",
 		"[class]": "toneClass()",
 		"[attr.role]": "resolvedRole()"
 	},

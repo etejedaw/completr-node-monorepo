@@ -17,7 +17,7 @@ const COLLAGE_SIZE = 4;
 	imports: [RouterLink, GamePoster, UiProgress],
 	template: `
 		<a
-			class="group relative isolate block aspect-[16/10] rounded-card overflow-hidden bg-surface ring-1 ring-white/10 shadow-lg shadow-black/40 no-underline transition duration-200 hover:-translate-y-1 hover:ring-brand/60 focus-visible:ring-brand"
+			class="group relative isolate block aspect-[16/10] rounded-card overflow-hidden bg-surface ring-1 ring-on-image/10 shadow-card no-underline transition duration-200 hover:-translate-y-1 hover:ring-brand/60 focus-visible:ring-brand"
 			[routerLink]="['/lists', list().id]"
 			[queryParams]="linkQueryParams()"
 		>
@@ -48,7 +48,7 @@ const COLLAGE_SIZE = 4;
 			<div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
 				@if (list().isOfficial) {
 					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.16em] bg-canvas/70 backdrop-blur-md text-brand-hover"
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-tiny font-bold uppercase tracking-[0.16em] bg-canvas/70 backdrop-blur-md text-brand-hover"
 					>
 						<span
 							aria-hidden="true"
@@ -60,7 +60,7 @@ const COLLAGE_SIZE = 4;
 				}
 				@if (progress()?.percent === 100) {
 					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.16em] bg-canvas/70 backdrop-blur-md text-success"
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-tiny font-bold uppercase tracking-[0.16em] bg-canvas/70 backdrop-blur-md text-success"
 					>
 						<span
 							aria-hidden="true"
@@ -72,7 +72,7 @@ const COLLAGE_SIZE = 4;
 				}
 				@if (showVisibility() && list().isPublic !== undefined) {
 					<span
-						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-[0.16em] bg-canvas/70 backdrop-blur-md text-fg"
+						class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-tiny font-bold uppercase tracking-[0.16em] bg-canvas/70 backdrop-blur-md text-fg"
 					>
 						<span
 							aria-hidden="true"
@@ -85,26 +85,26 @@ const COLLAGE_SIZE = 4;
 			</div>
 			<span
 				aria-hidden="true"
-				class="absolute top-3 right-3 w-8 h-8 inline-flex items-center justify-center rounded-full bg-canvas/70 text-white backdrop-blur-md opacity-0 -translate-x-1 transition duration-200 group-hover:opacity-100 group-hover:translate-x-0 group-focus-visible:opacity-100"
+				class="absolute top-3 right-3 w-8 h-8 inline-flex items-center justify-center rounded-full bg-canvas/70 text-on-image backdrop-blur-md opacity-0 -translate-x-1 transition duration-200 group-hover:opacity-100 group-hover:translate-x-0 group-focus-visible:opacity-100"
 			>
 				<span class="material-icons text-lg">arrow_forward</span>
 			</span>
 
 			<div class="absolute inset-x-0 bottom-0 p-4">
 				<h3
-					class="m-0 font-display text-lg font-bold text-white leading-tight line-clamp-1 drop-shadow-cover"
+					class="m-0 font-display text-lg font-bold text-on-image leading-tight line-clamp-1 drop-shadow-cover"
 				>
 					{{ list().name }}
 				</h3>
 				@if (list().description) {
 					<p
-						class="m-0 mt-1 text-xs text-white/75 line-clamp-2 leading-snug"
+						class="m-0 mt-1 text-xs text-on-image/75 line-clamp-2 leading-snug"
 					>
 						{{ list().description }}
 					</p>
 				}
 				@if (list().owner && !list().isOfficial) {
-					<p class="m-0 mt-1.5 text-[0.6875rem] text-white/60">
+					<p class="m-0 mt-1.5 text-caption text-on-image/60">
 						by &#64;{{ list().owner!.username }}
 					</p>
 				}
@@ -118,7 +118,7 @@ const COLLAGE_SIZE = 4;
 							indicatorClass="bg-gradient-to-r from-brand to-success"
 						/>
 						<span
-							class="shrink-0 text-[0.6875rem] font-semibold text-white/80 tabular-nums"
+							class="shrink-0 text-caption font-semibold text-on-image/80 tabular-nums"
 							>{{ listProgress.completed }}/{{
 								listProgress.total
 							}}

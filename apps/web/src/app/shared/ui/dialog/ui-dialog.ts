@@ -46,7 +46,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 		>
 			<div
 				aria-hidden="true"
-				class="absolute inset-0 bg-black/60 backdrop-blur-sm motion-safe:animate-[uiSheetFade_200ms_ease-out]"
+				class="absolute inset-0 ui-backdrop"
 				[style.opacity]="backdropOpacity()"
 				(pointerdown)="onBackdropPressed()"
 				(click)="onBackdropClick()"
@@ -57,7 +57,7 @@ const BACKDROP_OPENING_GRACE_MS = 400;
 				aria-modal="true"
 				[attr.aria-labelledby]="titleId"
 				[attr.aria-describedby]="subheading() ? subtitleId : null"
-				class="relative flex flex-col w-full max-h-[92dvh] outline-none bg-sidebar border-t border-line rounded-t-2xl shadow-sheet pb-[env(safe-area-inset-bottom)] motion-safe:max-md:animate-[uiSheetUp_280ms_cubic-bezier(0.16,1,0.3,1)] md:max-h-[min(88dvh,60rem)] md:pb-0 md:border md:rounded-2xl md:shadow-[0_24px_70px_-16px_rgba(0,0,0,0.75)] motion-safe:md:animate-[uiDialogIn_220ms_cubic-bezier(0.16,1,0.3,1)]"
+				class="relative flex flex-col w-full max-h-[92dvh] outline-none bg-sidebar border-t border-line rounded-t-2xl shadow-sheet pb-[env(safe-area-inset-bottom)] motion-safe:max-md:animate-[uiSheetUp_280ms_cubic-bezier(0.16,1,0.3,1)] md:max-h-[min(88dvh,60rem)] md:pb-0 md:border md:rounded-2xl md:shadow-dialog motion-safe:md:animate-[uiDialogIn_220ms_cubic-bezier(0.16,1,0.3,1)]"
 				[class]="widthClass()"
 				[class.transition-transform]="!dragging()"
 				[class.duration-200]="!dragging()"

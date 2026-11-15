@@ -17,9 +17,7 @@ import { UiEyebrow } from "../../ui";
 				<ng-content />
 			</div>
 			@if (hint()) {
-				<p
-					class="m-0 mt-1.5 text-[0.6875rem] text-fg-muted text-pretty"
-				>
+				<p class="m-0 mt-1.5 text-caption text-fg-muted text-pretty">
 					{{ hint() }}
 				</p>
 			}
