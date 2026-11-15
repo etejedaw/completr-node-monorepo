@@ -2,14 +2,15 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
 import { type WishlistEntry } from "../../../core/models";
-import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { type ExportParams } from "../../../core/services/export";
 import { ToastService } from "../../../core/services/toast";
@@ -34,6 +35,8 @@ import {
 } from "../../../shared/components/platform-filter/platform-filter";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { UiButton, UiPremiumBadge } from "../../../shared/ui";
+import { isNotFound } from "../../../shared/utils/http-failure";
+import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { FavoritesService } from "../../favorites/favorites";
 import { WishlistService } from "../wishlist";
 import {
@@ -62,12 +65,13 @@ import {
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WishlistView implements OnInit {
+	private readonly destroyRef = inject(DestroyRef);
 	private readonly wishlistService = inject(WishlistService);
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly dialogs = inject(DialogService);
 	private readonly toast = inject(ToastService);
+	private readonly favoriteToggle = injectToggleAction();
 
-	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly allEntries = signal<WishlistEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
@@ -106,7 +110,11 @@ export class WishlistView implements OnInit {
 
 	ngOnInit() {
 		this.searchSubject
-			.pipe(debounceTime(300), distinctUntilChanged())
+			.pipe(
+				debounceTime(300),
+				distinctUntilChanged(),
+				takeUntilDestroyed(this.destroyRef)
+			)
 			.subscribe(() => {
 				this.offset.set(0);
 				this.loadWishlist();
@@ -115,15 +123,19 @@ export class WishlistView implements OnInit {
 		this.loadWishlist();
 	}
 
-	isFavorite(gameId: string): boolean {
+	protected isFavorite(gameId: string): boolean {
 		return this.favoritesService.isFavorite(gameId);
 	}
 
-	toggleFavorite(gameId: string) {
-		this.favoritesService.toggle(gameId).subscribe();
+	protected toggleFavorite(gameId: string) {
+		this.favoriteToggle.run({
+			key: gameId,
+			request: this.favoritesService.toggle(gameId),
+			failureMessage: "Couldn't update your favorites. Try again."
+		});
 	}
 
-	onSearch(query: string) {
+	protected onSearch(query: string) {
 		this.searchQuery.set(query);
 		if (!query.trim()) {
 			this.offset.set(0);
@@ -133,17 +145,17 @@ export class WishlistView implements OnInit {
 		this.searchSubject.next(query);
 	}
 
-	clearSearchAndFilter() {
+	protected clearSearchAndFilter() {
 		this.selectedPlatform.set("");
 		this.onSearch("");
 	}
 
-	onOffsetChange(offset: number) {
+	protected onOffsetChange(offset: number) {
 		this.offset.set(offset);
 		this.loadWishlist();
 	}
 
-	remove(entry: WishlistEntry) {
+	protected remove(entry: WishlistEntry) {
 		const snapshot = this.allEntries();
 		const previousTotal = this.total();
 		this.allEntries.set(snapshot.filter(e => e.id !== entry.id));
@@ -152,7 +164,8 @@ export class WishlistView implements OnInit {
 			message: `Removed ${entry.game.title} from Want to Get`,
 			onCommit: () =>
 				this.wishlistService.remove(entry.game.id).subscribe({
-					error: () => {
+					error: (error: unknown) => {
+						if (isNotFound(error)) return;
 						this.allEntries.set(snapshot);
 						this.total.set(previousTotal);
 						this.toast.error("Could not remove the game.");
@@ -165,7 +178,7 @@ export class WishlistView implements OnInit {
 		});
 	}
 
-	openAddModal() {
+	protected openAddModal() {
 		const ref = this.dialogs.open<void, WishlistAddModalResult>(
 			WishlistAddModal
 		);

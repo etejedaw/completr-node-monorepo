@@ -218,16 +218,13 @@ describe("WishlistService", () => {
 		expect(onNext).toHaveBeenCalledWith(undefined);
 	});
 
-	it("replaces the whole wishlist with the given ids", () => {
-		loadWishlist("g1");
+	it("renumbers the remaining positions after removing a game", () => {
+		loadWishlist("g1", "g2", "g3");
 
-		service.replaceWishlist(["g2", "g3"]).subscribe();
+		service.remove("g1").subscribe();
+		httpTesting.expectOne(`${url}/g1`).flush(null);
 
-		const req = httpTesting.expectOne(url);
-		expect(req.request.method).toBe("PUT");
-		expect(req.request.body).toEqual({ gameIds: ["g2", "g3"] });
-		req.flush({ data: { wishlist: [entry("g2"), entry("g3")] } });
-		expect(service.isInWishlist("g1")).toBe(false);
-		expect(service.isInWishlist("g3")).toBe(true);
+		expect(service.wishlist().map(e => e.position)).toEqual([1, 2]);
+		expect(service.wishlist().map(e => e.game.id)).toEqual(["g2", "g3"]);
 	});
 });
