@@ -9,7 +9,7 @@ import {
 import { signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
-import { render, screen, waitFor, within } from "@testing-library/angular";
+import { render, screen, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 import { of } from "rxjs";
 
@@ -17,7 +17,6 @@ import { environment } from "../../../../environments/environment";
 import { type User } from "../../../core/models/user.model";
 import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
-import { REWIND_PROFILE_BYPASS } from "./privacy-options";
 import { SettingsPrivacy } from "./settings-privacy";
 
 const api = environment.apiUrl;
@@ -37,11 +36,10 @@ const privateProfileUser = {
 	platinumVisibility: "public",
 	franchiseVisibility: "private",
 	rewindVisibility: "public",
-	rewindIgnoresProfileVisibility: false,
 	acceptFollowRequests: true
 } as unknown as User;
 
-describe("SettingsPrivacy: Rewind even if the profile is private", () => {
+describe("SettingsPrivacy: Rewind under a private profile", () => {
 	let httpTesting: HttpTestingController;
 	const user = signal<User | null>(null);
 	const loadUser = vi.fn();
@@ -80,12 +78,6 @@ describe("SettingsPrivacy: Rewind even if the profile is private", () => {
 		return patch;
 	}
 
-	function bypassSwitch() {
-		return screen.getByRole("switch", {
-			name: REWIND_PROFILE_BYPASS.label
-		});
-	}
-
 	function rewindLevel(name: RegExp) {
 		return within(
 			screen.getByRole("radiogroup", { name: "Rewind visibility" })
@@ -104,67 +96,27 @@ describe("SettingsPrivacy: Rewind even if the profile is private", () => {
 		httpTesting.verify();
 	});
 
-	it("shows the switch right after the Rewind row, off by default", async () => {
+	it("has no switch to show the Rewind past a private profile", async () => {
 		await renderPrivacy();
 
-		const rewindRow = screen
-			.getByRole("radiogroup", { name: "Rewind visibility" })
-			.closest("app-settings-row")!;
-		const bypassRow = bypassSwitch().closest("app-settings-row")!;
-
-		expect(rewindRow.nextElementSibling).toBe(bypassRow);
-		expect(bypassSwitch()).toHaveAttribute("aria-checked", "false");
-		expect(bypassSwitch()).toBeEnabled();
-		expect(bypassSwitch()).not.toHaveAttribute("aria-describedby");
+		expect(
+			screen.queryByRole("switch", { name: /rewind/i })
+		).not.toBeInTheDocument();
+		expect(
+			screen.queryByText(/even if my profile is private/i)
+		).not.toBeInTheDocument();
 	});
 
-	it("saves the switch with the rest of the privacy draft", async () => {
-		const interaction = userEvent.setup();
-		await renderPrivacy();
-
-		await interaction.click(bypassSwitch());
-		await interaction.click(
-			screen.getByRole("button", { name: /save changes/i })
-		);
-		takePatch().flush({
-			data: {
-				user: {
-					...privateProfileUser,
-					rewindIgnoresProfileVisibility: true
-				}
-			}
-		});
-		answerFollowRequests();
-
-		expect(patchBodies[0]).toMatchObject({
-			rewindIgnoresProfileVisibility: true,
-			rewindVisibility: "public",
-			profileVisibility: "private"
-		});
-		await waitFor(() =>
-			expect(
-				screen.queryByText("Unsaved changes")
-			).not.toBeInTheDocument()
-		);
-		expect(toast.success).toHaveBeenCalledWith("Privacy settings updated.");
-	});
-
-	it("lifts the profile cap only for the Rewind while the switch is on", async () => {
-		const interaction = userEvent.setup();
+	it("lifts the profile cap only for the Rewind", async () => {
 		await renderPrivacy({ queueVisibility: "public" });
 
 		const alert = screen
 			.getByText(/Your profile is set to/)
 			.closest("ui-alert")!;
-		expect(alert).toHaveTextContent("so no section can be seen");
+		expect(alert).toHaveTextContent("so no section except your Rewind");
 		const rewindRow = screen
 			.getByRole("radiogroup", { name: "Rewind visibility" })
 			.closest("app-settings-row")!;
-		expect(rewindRow).toHaveTextContent("Effectively Only you");
-
-		await interaction.click(bypassSwitch());
-
-		expect(alert).toHaveTextContent("so no section except your Rewind");
 		expect(rewindRow).not.toHaveTextContent("Effectively");
 		const queueRow = screen
 			.getByRole("radiogroup", { name: "Up Next visibility" })
@@ -172,103 +124,39 @@ describe("SettingsPrivacy: Rewind even if the profile is private", () => {
 		expect(queueRow).toHaveTextContent("Effectively Only you");
 	});
 
-	it("disables the switch with an explanation while the Rewind is Only you", async () => {
+	it("follows the level picked for the Rewind even if it is changed several times", async () => {
 		const interaction = userEvent.setup();
-		await renderPrivacy({ rewindIgnoresProfileVisibility: true });
-
-		await interaction.click(rewindLevel(/only you/i));
-
-		const explanation = screen.getByText(
-			REWIND_PROFILE_BYPASS.unavailableHint
-		);
-		expect(bypassSwitch()).toBeDisabled();
-		expect(bypassSwitch()).toHaveAttribute(
-			"aria-describedby",
-			explanation.closest("p")!.id
-		);
-		expect(
-			screen.getByText(/Your profile is set to/).closest("ui-alert")
-		).toHaveTextContent("so no section can be seen");
-
-		await interaction.click(bypassSwitch());
-		await interaction.dblClick(bypassSwitch());
-		expect(bypassSwitch()).toHaveAttribute("aria-checked", "true");
+		await renderPrivacy();
+		const rewindRow = screen
+			.getByRole("radiogroup", { name: "Rewind visibility" })
+			.closest("app-settings-row")!;
 
 		await interaction.click(rewindLevel(/friends/i));
-		expect(bypassSwitch()).toBeEnabled();
-		expect(
-			screen.queryByText(REWIND_PROFILE_BYPASS.unavailableHint)
-		).not.toBeInTheDocument();
-		expect(bypassSwitch()).toHaveAttribute("aria-checked", "true");
-	});
-
-	it("ends in the state of the last press when the switch is hammered", async () => {
-		const interaction = userEvent.setup();
-		await renderPrivacy();
-
-		await interaction.dblClick(bypassSwitch());
-		expect(bypassSwitch()).toHaveAttribute("aria-checked", "false");
-		expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
-
-		await interaction.tripleClick(bypassSwitch());
-		bypassSwitch().focus();
-		await interaction.keyboard(" {Enter} ");
-
-		expect(bypassSwitch()).toHaveAttribute("aria-checked", "false");
-		expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
-	});
-
-	it("restores the saved value when the change is discarded mid-way", async () => {
-		const interaction = userEvent.setup();
-		await renderPrivacy({ rewindIgnoresProfileVisibility: true });
-
-		await interaction.click(bypassSwitch());
 		await interaction.click(rewindLevel(/only you/i));
-		await interaction.click(
-			screen.getByRole("button", { name: /discard/i })
-		);
+		await interaction.dblClick(rewindLevel(/everyone/i));
 
-		expect(bypassSwitch()).toHaveAttribute("aria-checked", "true");
-		expect(bypassSwitch()).toBeEnabled();
-		expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
+		expect(rewindRow).not.toHaveTextContent("Effectively");
+		expect(rewindLevel(/everyone/i)).toBeChecked();
 	});
 
-	it("sends a single PATCH when Save is pressed twice and keeps the draft if it fails", async () => {
+	it("saves the privacy draft without the removed field", async () => {
 		const interaction = userEvent.setup();
 		await renderPrivacy();
 
-		await interaction.click(bypassSwitch());
-		await interaction.dblClick(
+		await interaction.click(rewindLevel(/friends/i));
+		await interaction.click(
 			screen.getByRole("button", { name: /save changes/i })
 		);
-		takePatch().flush(null, { status: 500, statusText: "Server Error" });
-
-		await screen.findByRole("button", { name: /save changes/i });
-		expect(patchBodies).toHaveLength(1);
-		expect(toast.warning).toHaveBeenCalledWith(
-			"Could not update privacy settings."
-		);
-		expect(bypassSwitch()).toHaveAttribute("aria-checked", "true");
-		expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
-	});
-
-	it("keeps the saved switch when a preset is chosen and the user goes back to Custom", async () => {
-		const interaction = userEvent.setup();
-		await renderPrivacy({ rewindIgnoresProfileVisibility: true });
-		const presets = screen.getByRole("radiogroup", {
-			name: "Privacy level"
+		takePatch().flush({
+			data: {
+				user: { ...privateProfileUser, rewindVisibility: "friends" }
+			}
 		});
+		answerFollowRequests();
 
-		await interaction.click(
-			within(presets).getByRole("radio", { name: /everyone/i })
+		expect(patchBodies[0]).toMatchObject({ rewindVisibility: "friends" });
+		expect(patchBodies[0]).not.toHaveProperty(
+			"rewindIgnoresProfileVisibility"
 		);
-		expect(
-			screen.queryByRole("switch", { name: REWIND_PROFILE_BYPASS.label })
-		).not.toBeInTheDocument();
-		await interaction.click(
-			within(presets).getByRole("radio", { name: /custom/i })
-		);
-
-		expect(bypassSwitch()).toHaveAttribute("aria-checked", "true");
 	});
 });

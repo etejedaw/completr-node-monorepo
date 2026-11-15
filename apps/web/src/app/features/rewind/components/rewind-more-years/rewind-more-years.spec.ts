@@ -73,6 +73,32 @@ describe("RewindMoreYears", () => {
 		).not.toBeInTheDocument();
 	});
 
+	it.each([403, 404])(
+		"hides the section without error when the archive answers %s",
+		async status => {
+			const getYears = vi.fn(() =>
+				throwError(() =>
+					Object.assign(new Error("closed"), {
+						status,
+						error: { type: "USER_PRIVATE" }
+					})
+				)
+			);
+
+			const { container } = await renderMoreYears(getYears);
+
+			expect(getYears).toHaveBeenCalledTimes(1);
+			expect(
+				screen.queryByRole("heading", { name: "More Rewinds" })
+			).not.toBeInTheDocument();
+			expect(screen.queryByRole("list")).not.toBeInTheDocument();
+			expect(
+				container.querySelector("app-rewind-more-years")?.textContent ??
+					container.textContent
+			).toBe("");
+		}
+	);
+
 	it("lets the owner generate a previous year because the card knows the access", async () => {
 		await renderMoreYears(() =>
 			of({

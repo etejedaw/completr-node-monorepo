@@ -35,7 +35,6 @@ const publicUser = {
 	platinumVisibility: "public",
 	franchiseVisibility: "public",
 	rewindVisibility: "public",
-	rewindIgnoresProfileVisibility: false,
 	acceptFollowRequests: true
 } as unknown as User;
 
@@ -236,7 +235,6 @@ describe("SettingsPrivacy", () => {
 			platinumVisibility: "friends",
 			franchiseVisibility: "friends",
 			rewindVisibility: "friends",
-			rewindIgnoresProfileVisibility: false,
 			acceptFollowRequests: true
 		});
 		patch.flush({ data: { user: publicUser } });

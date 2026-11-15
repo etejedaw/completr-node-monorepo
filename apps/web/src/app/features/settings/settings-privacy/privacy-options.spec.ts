@@ -4,7 +4,6 @@ import {
 	effectiveVisibility,
 	PRIVACY_PRESETS,
 	PRIVACY_SECTION_GROUPS,
-	rewindBypassesProfile,
 	SECTION_KEYS,
 	VISIBILITY_OPTIONS,
 	visibilityLabel
@@ -177,26 +176,15 @@ describe("privacy options", () => {
 		): PrivacyDraft => ({
 			...allAt("public"),
 			profileVisibility: "private",
-			rewindIgnoresProfileVisibility: false,
 			acceptFollowRequests: true,
 			...overrides
 		});
 
-		it("caps the Rewind by the profile while the switch is off", () => {
-			expect(
-				effectiveSectionVisibility(privateProfile(), "rewindVisibility")
-			).toBe("private");
-		});
-
-		it.each(["public", "friends"] as const)(
-			"lets a %s Rewind keep its own level once the switch is on",
+		it.each(["public", "friends", "private"] as const)(
+			"lets a %s Rewind keep its own level under a private profile",
 			level => {
-				const draft = privateProfile({
-					rewindVisibility: level,
-					rewindIgnoresProfileVisibility: true
-				});
+				const draft = privateProfile({ rewindVisibility: level });
 
-				expect(rewindBypassesProfile(draft)).toBe(true);
 				expect(
 					effectiveSectionVisibility(draft, "rewindVisibility")
 				).toBe(level);
@@ -204,28 +192,15 @@ describe("privacy options", () => {
 		);
 
 		it("keeps every other section capped by the profile", () => {
-			const draft = privateProfile({
-				rewindIgnoresProfileVisibility: true
-			});
-
 			expect(
-				effectiveSectionVisibility(draft, "platinumVisibility")
+				effectiveSectionVisibility(
+					privateProfile(),
+					"platinumVisibility"
+				)
 			).toBe("private");
-			expect(effectiveSectionVisibility(draft, "queueVisibility")).toBe(
-				"private"
-			);
-		});
-
-		it("does nothing for a Rewind set to Only you", () => {
-			const draft = privateProfile({
-				rewindVisibility: "private",
-				rewindIgnoresProfileVisibility: true
-			});
-
-			expect(rewindBypassesProfile(draft)).toBe(false);
-			expect(effectiveSectionVisibility(draft, "rewindVisibility")).toBe(
-				"private"
-			);
+			expect(
+				effectiveSectionVisibility(privateProfile(), "queueVisibility")
+			).toBe("private");
 		});
 	});
 });
