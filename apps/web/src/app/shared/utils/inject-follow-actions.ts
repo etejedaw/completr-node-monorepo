@@ -1,9 +1,11 @@
 import { inject, signal } from "@angular/core";
 
 import { ToastService } from "../../core/services/toast";
-import { type UserResult } from "../../core/services/users.model";
-import { PublicSocialService } from "../public-profile/services/public-social.service";
-import { type FollowState } from "./user-card/user-card";
+import { PublicSocialService } from "../../features/public-profile/services/public-social.service";
+import {
+	type FollowState,
+	type FollowSubject
+} from "./inject-follow-actions.model";
 
 export function injectFollowActions() {
 	const socialService = inject(PublicSocialService);
@@ -12,7 +14,7 @@ export function injectFollowActions() {
 	const followOverrides = signal<Record<string, FollowState>>({});
 	const followerDeltas = signal<Record<string, number>>({});
 	const busyIds = signal<Set<string>>(new Set());
-	const unfollowTarget = signal<UserResult | null>(null);
+	const unfollowTarget = signal<FollowSubject | null>(null);
 
 	const setFollowState = (userId: string, state: FollowState) =>
 		followOverrides.update(overrides => ({
@@ -34,10 +36,15 @@ export function injectFollowActions() {
 			return next;
 		});
 
-	const followStateOf = (user: UserResult): FollowState =>
-		followOverrides()[user.id] ?? (user.isFollowing ? "following" : "none");
+	const followStateOf = (user: FollowSubject): FollowState =>
+		followOverrides()[user.id] ??
+		(user.isFollowing
+			? "following"
+			: user.hasPendingRequest
+				? "requested"
+				: "none");
 
-	const withLiveCounts = (user: UserResult): UserResult => {
+	const withLiveCounts = (user: FollowSubject): FollowSubject => {
 		const delta = followerDeltas()[user.id] ?? 0;
 		if (
 			!delta ||
@@ -48,9 +55,10 @@ export function injectFollowActions() {
 		return { ...user, followerCount: user.followerCount + delta };
 	};
 
-	const isBusy = (user: UserResult) => busyIds().has(user.id);
+	const isBusy = (user: FollowSubject) => busyIds().has(user.id);
 
-	const follow = (user: UserResult) => {
+	const follow = (user: FollowSubject) => {
+		if (isBusy(user)) return;
 		setBusy(user.id, true);
 		socialService.follow(user.username).subscribe({
 			next: result => {
@@ -66,14 +74,20 @@ export function injectFollowActions() {
 		});
 	};
 
-	const cancelRequest = (user: UserResult) => {
+	const cancelRequest = (user: FollowSubject) => {
+		if (isBusy(user)) return;
 		setBusy(user.id, true);
 		socialService.cancelFollowRequest(user.username).subscribe({
 			next: () => {
 				setFollowState(user.id, "none");
 				setBusy(user.id, false);
 			},
-			error: () => setBusy(user.id, false)
+			error: () => {
+				setBusy(user.id, false);
+				toast.error(
+					`Could not cancel your request to @${user.username}.`
+				);
+			}
 		});
 	};
 
@@ -97,7 +111,8 @@ export function injectFollowActions() {
 		});
 	};
 
-	const toggleFollow = (user: UserResult) => {
+	const toggleFollow = (user: FollowSubject) => {
+		if (isBusy(user)) return;
 		const state = followStateOf(user);
 		if (state === "following") unfollowTarget.set(user);
 		else if (state === "requested") cancelRequest(user);
