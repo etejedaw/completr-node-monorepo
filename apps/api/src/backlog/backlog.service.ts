@@ -26,6 +26,7 @@ import * as platformsService from "../platforms/platforms.service";
 import * as queueService from "../queue/queue.service";
 import * as reviewsService from "../reviews/reviews.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
+import { sectionVisibleToViewerSql } from "../users/helpers/visibility.helper";
 import * as usersService from "../users/services/users.service";
 import { BACKLOG_GAME_ATTRS, BACKLOG_PLATFORM_ATTRS, DEFAULT_BACKLOG_PAGE_SIZE, RANDOM_PLAYERS_DEFAULT_LIMIT } from "./backlog.constants";
 import { type BacklogSummary, type CreatedBacklog } from "./backlog.interface";
@@ -729,9 +730,13 @@ export async function findRandomPlayersForGame(
 }
 
 export async function findLatestCompletedDurations(
-	pairs: { userId: string; gameId: string }[]
+	pairs: { userId: string; gameId: string }[],
+	options: { visibleTo?: string } = {}
 ): Promise<Map<string, number>> {
 	if (pairs.length === 0) return new Map();
+	const visibilityFilter = "visibleTo" in options
+		? `AND ${sectionVisibleToViewerSql("backlog", options.visibleTo, '"Backlogs"."userId"')}`
+		: "";
 
 	const userIds = Array.from(new Set(pairs.map(p => p.userId)));
 	const gameIds = Array.from(new Set(pairs.map(p => p.gameId)));
@@ -747,6 +752,7 @@ export async function findLatestCompletedDurations(
 		   AND "gameId" IN (:gameIds)
 		   AND status = 'completed'
 		   AND "realDuration" IS NOT NULL
+		   ${visibilityFilter}
 		 ORDER BY "userId", "gameId", "createdAt" DESC`,
 		{
 			replacements: { userIds, gameIds },
