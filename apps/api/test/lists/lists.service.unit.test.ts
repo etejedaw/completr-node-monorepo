@@ -32,6 +32,7 @@ function errorCode(error: unknown) {
 
 beforeEach(() => {
 	stubPremiumAccess();
+	stub(sequelize, "query", async () => []);
 });
 
 function stubScoreSource(exists: boolean) {
@@ -139,14 +140,14 @@ void describe("listsService.duplicateList", () => {
 		assert.equal(errorCode(error), "LIST_NOT_FOUND");
 	});
 
-	void it("fails with LIST_FORBIDDEN when copying someone else's private list", async () => {
+	void it("fails with LIST_NOT_FOUND when copying someone else's private list", async () => {
 		stubSource({ isPublic: false });
 
 		const error = await captureRejection(
 			listsService.duplicateList(FREE_USER, "src-1", { name: "Copy" })
 		);
 
-		assert.equal(errorCode(error), "LIST_FORBIDDEN");
+		assert.equal(errorCode(error), "LIST_NOT_FOUND");
 	});
 
 	void it("fails with LIST_NOT_FOUND when the owner hides a public source from the viewer", async () => {
@@ -286,14 +287,14 @@ void describe("listsService.updateList", () => {
 		assert.equal(errorCode(error), "LIST_NOT_FOUND");
 	});
 
-	void it("fails with LIST_FORBIDDEN for someone else's list", async () => {
+	void it("fails with LIST_NOT_FOUND for someone else's list", async () => {
 		const update = stubOwnedList("owner");
 
 		const error = await captureRejection(
 			listsService.updateList("l-1", FREE_USER, { name: "x" })
 		);
 
-		assert.equal(errorCode(error), "LIST_FORBIDDEN");
+		assert.equal(errorCode(error), "LIST_NOT_FOUND");
 		assert.equal(update.mock.callCount(), 0);
 	});
 
@@ -352,7 +353,7 @@ void describe("listsService.removeList", () => {
 		mock.restoreAll();
 	});
 
-	void it("fails with LIST_NOT_FOUND and LIST_FORBIDDEN", async () => {
+	void it("fails with LIST_NOT_FOUND for a missing and for someone else's list", async () => {
 		stub(List, "findOne", async () => null);
 		const missing = await captureRejection(
 			listsService.removeList("l-1", FREE_USER)
@@ -365,7 +366,7 @@ void describe("listsService.removeList", () => {
 		);
 
 		assert.equal(errorCode(missing), "LIST_NOT_FOUND");
-		assert.equal(errorCode(forbidden), "LIST_FORBIDDEN");
+		assert.equal(errorCode(forbidden), "LIST_NOT_FOUND");
 	});
 
 	void it("deletes the list of its owner even when the account is frozen", async () => {

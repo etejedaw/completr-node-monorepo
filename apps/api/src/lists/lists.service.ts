@@ -1,4 +1,4 @@
-import { Op, QueryTypes } from "sequelize";
+import { Op, QueryTypes, type Transaction } from "sequelize";
 
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
@@ -6,25 +6,26 @@ import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-qu
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
-import { Game } from "../games/game.model";
 import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
+import * as gamesService from "../games/games.service";
 import * as listFollowersService from "../list-followers/list-followers.service";
-import { ListItem } from "../list-items/list-item.model";
 import * as listItemsService from "../list-items/list-items.service";
 import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import { visibleListsCondition } from "../users/helpers/visibility.helper";
-import { User } from "../users/user.model";
+import * as usersService from "../users/users.service";
 import { type DuplicateListDto } from "./dtos/duplicate-list.dto";
 import { type RegisterListDto } from "./dtos/register-list.dto";
 import { type UpdateListDto } from "./dtos/update-list.dto";
 import * as listsServiceError from "./errors/lists.service-error";
 import { List } from "./list.model";
+import {
+	FINISHED_STATUSES,
+	FREE_LIST_LIMIT,
+	LIST_ORDER_NEWEST_FIRST,
+	LIST_PREVIEW_SIZE
+} from "./lists.constants";
 import { type BacklogSummary, type ListProgress } from "./lists.interface";
-
-const FREE_LIST_LIMIT = 5;
-export const LIST_PREVIEW_SIZE = 4;
-const FINISHED_STATUSES = ["completed", "abandoned", "endless"];
 
 async function hasPremiumAccess(userId: string, role: string) {
 	return resolvePremiumAccess({ id: userId, role }, "lists.unlimited");
@@ -37,21 +38,38 @@ async function areFrozen(userId: string, role: string) {
 	return count > FREE_LIST_LIMIT;
 }
 
+async function lockUserLists(userId: string, transaction: Transaction) {
+	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
+		replacements: { lockKey: `lists:${userId}` },
+		transaction
+	});
+}
+
+async function assertWithinListLimit(
+	user: RequestUser,
+	unlimited: boolean,
+	transaction: Transaction
+) {
+	if (unlimited) return;
+	const count = await List.count({ where: { userId: user.id }, transaction });
+	if (count >= FREE_LIST_LIMIT) throw listsServiceError.limitReachedError();
+}
+
 export async function createList(
 	user: RequestUser,
 	registerList: RegisterListDto
 ) {
-	const premiumAccess = await hasPremiumAccess(user.id, user.role);
-	if (!premiumAccess.allowed) {
-		const count = await List.count({ where: { userId: user.id } });
-		if (count >= FREE_LIST_LIMIT)
-			throw listsServiceError.limitReachedError();
-	}
-	await assertScoreSourceExists(registerList.scoreSource);
+	const { allowed: unlimited } = await hasPremiumAccess(user.id, user.role);
 
-	return List.create({
-		...registerList,
-		userId: user.id
+	return sequelize.transaction(async transaction => {
+		await lockUserLists(user.id, transaction);
+		await assertWithinListLimit(user, unlimited, transaction);
+		await assertScoreSourceExists(registerList.scoreSource, transaction);
+
+		return List.create(
+			{ ...registerList, userId: user.id },
+			{ transaction }
+		);
 	});
 }
 
@@ -64,7 +82,7 @@ export async function duplicateList(
 		where: { id: listId },
 		include: [
 			{
-				model: ListItem,
+				...listItemsService.listItemInclude(),
 				separate: true,
 				order: [
 					["position", "ASC"],
@@ -75,20 +93,17 @@ export async function duplicateList(
 	});
 	if (!source) throw listsServiceError.notFoundError();
 	if (!source.isPublic && source.userId !== user.id)
-		throw listsServiceError.forbiddenError();
+		throw listsServiceError.notFoundError();
 	if (!(await isListVisibleToViewer(source.id, user.id)))
 		throw listsServiceError.notFoundError();
 
-	const premiumAccess = await hasPremiumAccess(user.id, user.role);
-	if (!premiumAccess.allowed) {
-		const count = await List.count({ where: { userId: user.id } });
-		if (count >= FREE_LIST_LIMIT)
-			throw listsServiceError.limitReachedError();
-	}
-
 	const items = source.ListItems ?? [];
+	const { allowed: unlimited } = await hasPremiumAccess(user.id, user.role);
 
 	return sequelize.transaction(async transaction => {
+		await lockUserLists(user.id, transaction);
+		await assertWithinListLimit(user, unlimited, transaction);
+
 		const list = await List.create(
 			{
 				userId: user.id,
@@ -122,33 +137,44 @@ export async function findListBasicById(id: string) {
 	return List.findOne({ where: { id } });
 }
 
-const LIST_DETAIL_INCLUDE = [
+const LIST_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
+const LIST_OWNER_ATTRS = ["id", "username", "role"];
+const LIST_ITEMS_ORDER: [string, string][] = [
+	["position", "ASC"],
+	["id", "ASC"]
+];
+
+function listPreviewItemsInclude() {
+	return {
+	...listItemsService.listItemInclude(),
+	separate: true,
+	limit: LIST_PREVIEW_SIZE,
+	order: LIST_ITEMS_ORDER,
+	include: [{ ...gamesService.gameInclude(), attributes: LIST_GAME_ATTRS }]
+	};
+}
+
+function listDetailInclude() {
+	return [
 	{
-		model: User,
-		attributes: ["id", "username", "role"]
+		...usersService.userInclude(),
+		attributes: LIST_OWNER_ATTRS
 	},
 	{
-		model: ListItem,
-		include: [
-			{
-				model: Game,
-				attributes: ["id", "code", "title", "backgroundUrl", "isDlc"]
-			}
-		],
+		...listItemsService.listItemInclude(),
+		include: [{ ...gamesService.gameInclude(), attributes: LIST_GAME_ATTRS }],
 		separate: true,
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		] as [string, string][]
+		order: LIST_ITEMS_ORDER
 	}
-];
+	];
+}
 
 export async function findListsByIds(ids: string[]) {
 	return List.findAll({ where: { id: { [Op.in]: ids } } });
 }
 
 export async function findListById(id: string) {
-	return List.findOne({ where: { id }, include: LIST_DETAIL_INCLUDE });
+	return List.findOne({ where: { id }, include: listDetailInclude() });
 }
 
 export async function findOwnListForExport(id: string, userId: string) {
@@ -157,7 +183,7 @@ export async function findOwnListForExport(id: string, userId: string) {
 		attributes: ["id", "name"],
 		include: [
 			{
-				model: ListItem,
+				...listItemsService.listItemInclude(),
 				attributes: [
 					"id",
 					"position",
@@ -165,12 +191,12 @@ export async function findOwnListForExport(id: string, userId: string) {
 					"duration",
 					"createdAt"
 				],
-				include: [{ model: Game, attributes: ["id", "title"] }]
+				include: [{ ...gamesService.gameInclude(), attributes: ["id", "title"] }]
 			}
 		],
 		order: [
-			[ListItem, "position", "ASC"],
-			[ListItem, "id", "ASC"]
+			listItemsService.listItemOrder("position", "ASC"),
+			listItemsService.listItemOrder("id", "ASC")
 		]
 	});
 }
@@ -181,7 +207,7 @@ export async function findVisibleListById(
 ) {
 	return List.findOne({
 		where: { id, [Op.and]: [visibleListsCondition(viewerId)] },
-		include: LIST_DETAIL_INCLUDE
+		include: listDetailInclude()
 	});
 }
 
@@ -305,35 +331,12 @@ export async function findListsByUserId(
 		where: listsOfUserWhere(user.id, pagination.search),
 		include: [
 			{
-				model: User,
-				attributes: ["id", "username", "role"]
+				...usersService.userInclude(),
+				attributes: LIST_OWNER_ATTRS
 			},
-			{
-				model: ListItem,
-				separate: true,
-				limit: LIST_PREVIEW_SIZE,
-				order: [
-					["position", "ASC"],
-					["id", "ASC"]
-				] as [string, string][],
-				include: [
-					{
-						model: Game,
-						attributes: [
-							"id",
-							"code",
-							"title",
-							"backgroundUrl",
-							"isDlc"
-						]
-					}
-				]
-			}
+			listPreviewItemsInclude()
 		],
-		order: [
-			["createdAt", "DESC"],
-			["id", "DESC"]
-		]
+		order: LIST_ORDER_NEWEST_FIRST
 	};
 	if (pagination.limit) query.limit = pagination.limit;
 	if (pagination.offset) query.offset = pagination.offset;
@@ -354,32 +357,9 @@ export async function findPublicListsByUserId(
 			isPublic: true
 		},
 		include: [
-			{
-				model: ListItem,
-				separate: true,
-				limit: LIST_PREVIEW_SIZE,
-				order: [
-					["position", "ASC"],
-					["id", "ASC"]
-				] as [string, string][],
-				include: [
-					{
-						model: Game,
-						attributes: [
-							"id",
-							"code",
-							"title",
-							"backgroundUrl",
-							"isDlc"
-						]
-					}
-				]
-			}
+			listPreviewItemsInclude()
 		],
-		order: [
-			["createdAt", "DESC"],
-			["id", "DESC"]
-		]
+		order: LIST_ORDER_NEWEST_FIRST
 	};
 	if (pagination.limit) query.limit = pagination.limit;
 	if (pagination.offset) query.offset = pagination.offset;
@@ -402,37 +382,16 @@ export async function findPublicListsByGameId(
 		where: { isPublic: true, [Op.and]: [visibleListsCondition(viewerId)] },
 		include: [
 			{
-				model: ListItem,
+				...listItemsService.listItemInclude(),
 				where: { gameId },
 				attributes: []
 			},
 			{
-				model: User,
-				attributes: ["id", "username", "role"]
+				...usersService.userInclude(),
+				attributes: LIST_OWNER_ATTRS
 			}
 		],
-		order: [
-			["createdAt", "DESC"],
-			["id", "DESC"]
-		]
-	});
-}
-
-export async function findUserListsByGameId(gameId: string, userId: string) {
-	return List.findAll({
-		where: { userId },
-		attributes: ["id", "name", "isPublic"],
-		include: [
-			{
-				model: ListItem,
-				where: { gameId },
-				attributes: []
-			}
-		],
-		order: [
-			["createdAt", "DESC"],
-			["id", "DESC"]
-		]
+		order: LIST_ORDER_NEWEST_FIRST
 	});
 }
 
@@ -444,10 +403,7 @@ export async function findUserListsWithGameFlag(
 		List.findAll({
 			where: { userId },
 			attributes: ["id", "name", "isPublic"],
-			order: [
-				["createdAt", "DESC"],
-				["id", "DESC"]
-			]
+			order: LIST_ORDER_NEWEST_FIRST
 		}),
 		listItemsService.findListIdsContainingGameOwnedBy(gameId, userId)
 	]);
@@ -470,37 +426,14 @@ export async function findRecentUserLists(
 		where: { isPublic: true, [Op.and]: [visibleListsCondition(viewerId)] },
 		include: [
 			{
-				model: User,
+				...usersService.userInclude(),
 				where: { role: { [Op.ne]: "admin" } },
-				attributes: ["id", "username", "role"]
+				attributes: LIST_OWNER_ATTRS
 			},
-			{
-				model: ListItem,
-				separate: true,
-				limit: LIST_PREVIEW_SIZE,
-				order: [
-					["position", "ASC"],
-					["id", "ASC"]
-				] as [string, string][],
-				include: [
-					{
-						model: Game,
-						attributes: [
-							"id",
-							"code",
-							"title",
-							"backgroundUrl",
-							"isDlc"
-						]
-					}
-				]
-			}
+			listPreviewItemsInclude()
 		],
 		limit,
-		order: [
-			["createdAt", "DESC"],
-			["id", "DESC"]
-		]
+		order: LIST_ORDER_NEWEST_FIRST
 	});
 }
 
@@ -512,37 +445,14 @@ export async function findOfficialLists(
 		where: { isPublic: true, [Op.and]: [visibleListsCondition(viewerId)] },
 		include: [
 			{
-				model: User,
+				...usersService.userInclude(),
 				where: { role: "admin" },
-				attributes: ["id", "username", "role"]
+				attributes: LIST_OWNER_ATTRS
 			},
-			{
-				model: ListItem,
-				separate: true,
-				limit: LIST_PREVIEW_SIZE,
-				order: [
-					["position", "ASC"],
-					["id", "ASC"]
-				] as [string, string][],
-				include: [
-					{
-						model: Game,
-						attributes: [
-							"id",
-							"code",
-							"title",
-							"backgroundUrl",
-							"isDlc"
-						]
-					}
-				]
-			}
+			listPreviewItemsInclude()
 		],
 		limit,
-		order: [
-			["createdAt", "DESC"],
-			["id", "DESC"]
-		]
+		order: LIST_ORDER_NEWEST_FIRST
 	});
 }
 
@@ -560,30 +470,10 @@ export async function searchPublicLists(
 		},
 		include: [
 			{
-				model: User,
-				attributes: ["id", "username", "role"]
+				...usersService.userInclude(),
+				attributes: LIST_OWNER_ATTRS
 			},
-			{
-				model: ListItem,
-				separate: true,
-				limit: LIST_PREVIEW_SIZE,
-				order: [
-					["position", "ASC"],
-					["id", "ASC"]
-				] as [string, string][],
-				include: [
-					{
-						model: Game,
-						attributes: [
-							"id",
-							"code",
-							"title",
-							"backgroundUrl",
-							"isDlc"
-						]
-					}
-				]
-			}
+			listPreviewItemsInclude()
 		],
 		limit,
 		order: [
@@ -599,8 +489,8 @@ export async function updateList(
 	updateList: UpdateListDto
 ) {
 	const list = await findListById(id);
-	if (!list) throw listsServiceError.notFoundError();
-	if (list.userId !== user.id) throw listsServiceError.forbiddenError();
+	if (!list || list.userId !== user.id)
+		throw listsServiceError.notFoundError();
 
 	const frozen = await areFrozen(user.id, user.role);
 	if (frozen) throw listsServiceError.frozenError();
@@ -612,15 +502,18 @@ export async function updateList(
 
 export async function removeList(id: string, user: RequestUser) {
 	const list = await List.findOne({ where: { id } });
-	if (!list) throw listsServiceError.notFoundError();
-	if (list.userId !== user.id) throw listsServiceError.forbiddenError();
+	if (!list || list.userId !== user.id)
+		throw listsServiceError.notFoundError();
 
 	await List.destroy({ where: { id } });
 	return true;
 }
 
-async function assertScoreSourceExists(scoreSource: string) {
-	if (!(await scoreSourcesService.existsByCode(scoreSource)))
+async function assertScoreSourceExists(
+	scoreSource: string,
+	transaction?: Transaction
+) {
+	if (!(await scoreSourcesService.existsByCode(scoreSource, transaction)))
 		throw listsServiceError.scoreSourceNotFoundError(scoreSource);
 }
 
@@ -629,15 +522,15 @@ export async function findOwnListsForDataExport(userId: string) {
 		where: { userId },
 		include: [
 			{
-				model: ListItem,
-				include: [{ model: Game, attributes: GAME_REFERENCE_ATTRS }]
+				...listItemsService.listItemInclude(),
+				include: [{ ...gamesService.gameInclude(), attributes: GAME_REFERENCE_ATTRS }]
 			}
 		],
 		order: [
 			["createdAt", "ASC"],
 			["id", "ASC"],
-			[ListItem, "position", "ASC"],
-			[ListItem, "id", "ASC"]
+			listItemsService.listItemOrder("position", "ASC"),
+			listItemsService.listItemOrder("id", "ASC")
 		]
 	});
 }

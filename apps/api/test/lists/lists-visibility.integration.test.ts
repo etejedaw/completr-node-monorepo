@@ -481,7 +481,7 @@ void describe("POST /lists/:listId/duplicate visibility", () => {
 		assert.equal(response.body.type, "LIST_NOT_FOUND");
 	});
 
-	void it("keeps answering 403 LIST_FORBIDDEN for a private list of another user", async () => {
+	void it("answers 404 LIST_NOT_FOUND for a private list of another user", async () => {
 		const ownerCase = ownerCaseOf("public", "public");
 
 		const response = await duplicate(
@@ -489,7 +489,7 @@ void describe("POST /lists/:listId/duplicate visibility", () => {
 			fixture.viewers.mutual.authorization
 		);
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "LIST_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "LIST_NOT_FOUND");
 	});
 });

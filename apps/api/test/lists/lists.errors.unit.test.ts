@@ -19,12 +19,6 @@ describeModuleErrors({
 			message: "List not found"
 		},
 		{
-			serviceCode: "LIST_FORBIDDEN",
-			module: "List Module",
-			code: "LIST_FORBIDDEN",
-			message: "You do not have permission to modify this list"
-		},
-		{
 			serviceCode: "LIST_UNIQUE_CONSTRAINT",
 			module: "List Module",
 			code: "LIST_UNIQUE_CONSTRAINT",
@@ -69,7 +63,6 @@ describeDomainToHttpMapper({
 	mapper: listsDomainToHttpMapper,
 	cases: [
 		{ code: "LIST_NOT_FOUND", status: 404 },
-		{ code: "LIST_FORBIDDEN", status: 403 },
 		{ code: "LIST_UNIQUE_CONSTRAINT", status: 409 },
 		{ code: "LIST_VALIDATION_ERROR", status: 400 },
 		{ code: "LIST_LIMIT_REACHED", status: 402 },

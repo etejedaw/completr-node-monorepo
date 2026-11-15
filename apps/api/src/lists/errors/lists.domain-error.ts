@@ -11,15 +11,6 @@ export function listNotFound(context?: Record<string, unknown>) {
 	);
 }
 
-export function listForbidden(context?: Record<string, unknown>) {
-	return new DomainError(
-		MODULE_NAME,
-		"LIST_FORBIDDEN",
-		"You do not have permission to modify this list",
-		context
-	);
-}
-
 export function listValidation(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,
