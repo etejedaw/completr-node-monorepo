@@ -16,8 +16,8 @@ import { UpdatePremiumPromotionSchema } from "./schemas/update-premium-promotion
 
 const router = Router();
 const adminMiddleware = [
-	rateLimiterMiddleware(userLimiter),
-	hiddenRouteMiddleware()
+	hiddenRouteMiddleware(),
+	rateLimiterMiddleware(userLimiter)
 ];
 
 router.get(

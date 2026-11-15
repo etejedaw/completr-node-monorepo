@@ -10,8 +10,8 @@ import { GiftOfferParamsSchema } from "./schemas/gift-offer-params.schema";
 
 const router = Router();
 const giftOfferMiddleware = [
-	rateLimiterMiddleware(userLimiter),
-	authMiddleware()
+	authMiddleware(),
+	rateLimiterMiddleware(userLimiter)
 ];
 
 router.get(
