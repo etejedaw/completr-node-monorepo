@@ -3,11 +3,7 @@
 		heroSubtitle
 		class="m-0 mt-2 flex items-center gap-1.5 text-sm text-fg-secondary"
 	>
-		<span
-			class="font-semibold text-fg tabular-nums"
-			[class.!text-premium]="isPremium()"
-			>{{ total() }}</span
-		>
+		<span class="font-semibold text-fg tabular-nums">{{ total() }}</span>
 		{{ total() === 1 ? 'game' : 'games' }} in your queue
 		<ui-premium-badge
 			*appPremiumOnly
