@@ -19,7 +19,7 @@ import {
 import { Rewind } from "../../src/rewind/rewind.model";
 import * as rewindFreezeService from "../../src/rewind/services/rewind-freeze.service";
 import { RewindEdition } from "../../src/rewind-editions/rewind-edition.model";
-import * as rewindEditionsService from "../../src/rewind-editions/rewind-editions.service";
+import * as rewindEditionsService from "../../src/rewind-editions/services/rewind-editions.service";
 import { useTestDatabase } from "../helpers/database.helper";
 import { eventually } from "../helpers/eventually.helper";
 import {

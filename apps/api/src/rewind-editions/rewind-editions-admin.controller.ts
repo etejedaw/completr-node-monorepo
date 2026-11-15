@@ -7,8 +7,8 @@ import { type CreateRewindEditionDto } from "./dtos/create-rewind-edition.dto";
 import { type UpdateRewindEditionDto } from "./dtos/update-rewind-edition.dto";
 import { REWIND_DESIGNS } from "./rewind-editions.constants";
 import { rewindEditionAdminSerializer } from "./rewind-editions-admin.serializer";
-import * as rewindEditionsAdminService from "./rewind-editions-admin.service";
 import { type RewindEditionYearParam } from "./schemas/rewind-edition-year-params.schema";
+import * as rewindEditionsAdminService from "./services/rewind-editions-admin.service";
 
 export async function getRewindEditions(_request: Request, response: Response) {
 	const editions =

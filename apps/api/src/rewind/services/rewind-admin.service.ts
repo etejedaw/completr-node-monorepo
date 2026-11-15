@@ -1,19 +1,19 @@
 import { Op } from "sequelize";
 
-import { sequelize } from "../database/sequelize.database";
-import { type PremiumAccessUser } from "../premium-access/premium-access.interface";
-import { resolvePremiumAccess } from "../premium-access/premium-access.service";
-import { type User } from "../users/user.model";
-import * as usersService from "../users/users.service";
-import * as rewindServiceError from "./errors/rewind.service-error";
+import { sequelize } from "../../database/sequelize.database";
+import { type PremiumAccessUser } from "../../premium-access/premium-access.interface";
+import { resolvePremiumAccess } from "../../premium-access/services/premium-access.service";
+import { type User } from "../../users/user.model";
+import * as usersService from "../../users/users.service";
+import * as rewindServiceError from "../errors/rewind.service-error";
 import {
 	DEFAULT_ADMIN_REWINDS_PAGE_SIZE,
 	type RewindPremiumAccessKind
-} from "./rewind.constants";
-import { Rewind } from "./rewind.model";
-import { type AdminRewindItem } from "./rewind-admin.interface";
-import { type AdminRewindsQuery } from "./schemas/admin-rewinds-query.schema";
-import { resolveRewindPremiumAccessKind } from "./utils/resolve-rewind-premium-access-kind.util";
+} from "../rewind.constants";
+import { Rewind } from "../rewind.model";
+import { type AdminRewindItem } from "../rewind-admin.interface";
+import { type AdminRewindsQuery } from "../schemas/admin-rewinds-query.schema";
+import { resolveRewindPremiumAccessKind } from "../utils/resolve-rewind-premium-access-kind.util";
 
 async function findOwnersById(userIds: string[]): Promise<Map<string, User>> {
 	const users = await usersService.findUsersByIds([...new Set(userIds)]);

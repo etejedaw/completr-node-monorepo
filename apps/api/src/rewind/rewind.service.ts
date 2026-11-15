@@ -1,24 +1,11 @@
-import { Op, type Transaction } from "sequelize";
+import { Op, QueryTypes, type Transaction } from "sequelize";
 
-import * as backlogRewindService from "../backlog/services/backlog-rewind.service";
-import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
-import { ServiceError } from "../common/errors/service-error";
-import { PinoLogger } from "../common/logger/pino.logger";
-import * as coopRunsService from "../coop-runs/coop-runs.service";
 import { sequelize } from "../database/sequelize.database";
-import * as franchisesService from "../franchises/franchises.service";
 import * as gameGenreService from "../game-genre/game-genre.service";
 import * as gamePlatinumService from "../game-platinum/game-platinum.service";
 import { type PremiumAccess } from "../premium-access/premium-access.interface";
-import { resolvePremiumAccess } from "../premium-access/premium-access.service";
-import * as reviewsService from "../reviews/reviews.service";
-import * as rewindEditionsService from "../rewind-editions/rewind-editions.service";
-import {
-	type RewindCoopPartner,
-	type RewindGameReview
-} from "../rewind-recap/rewind-recap.interface";
-import { generateRewindAiRecap } from "../rewind-recap/rewind-recap.service";
-import { buildRewindPremiumStats } from "../rewind-recap/utils/build-rewind-premium-stats.util";
+import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
+import * as rewindEditionsService from "../rewind-editions/services/rewind-editions.service";
 import { resolveSectionAccess } from "../users/helpers/visibility.helper";
 import { type User } from "../users/user.model";
 import * as usersService from "../users/users.service";
@@ -26,66 +13,40 @@ import { type GenerateRewindDto } from "./dtos/generate-rewind.dto";
 import * as rewindServiceError from "./errors/rewind.service-error";
 import { rewindViewToRewind } from "./mappers/rewind-view-to-rewind.mapper";
 import { userToRewindOwner } from "./mappers/user-to-rewind-owner.mapper";
-import { type RewindPremiumAccessKind } from "./rewind.constants";
 import {
 	type Rewind,
-	type RewindAiRecap,
-	type RewindPremiumStats,
 	type RewindSnapshot,
-	type RewindTotals,
 	type RewindView,
 	type RewindYears
 } from "./rewind.interface";
 import { Rewind as RewindModel } from "./rewind.model";
-import {
-	type RecapContent,
-	type RecapRequest,
-	type RecapSources,
-	type RewindAiBudget,
-	type RewindAiRecapReservation,
-	type RewindGenerationReservation,
-	type RewindGenerationResult
-} from "./rewind-generation.interface";
-import {
-	type RewindAiSpend,
-	type SpendableRewindAiBudget
-} from "./rewind-generation.types";
+import { type RewindGenerationResult } from "./rewind-generation.interface";
 import {
 	type RewindRecord,
 	type RewindViewerContext,
 	type RewindYearVisibility
 } from "./rewind-record.interface";
-import {
-	type RewindCalendar,
-	type RewindGameGenre,
-	type RewindRun
-} from "./rewind-run.interface";
+import { type RewindCalendar, type RewindRun } from "./rewind-run.interface";
+import { runRecap } from "./services/rewind-ai-recap.service";
 import { freezeRewind } from "./services/rewind-freeze.service";
+import {
+	requireGenerationAllowed,
+	reserveAiRecap,
+	reserveGeneration
+} from "./services/rewind-reservation.service";
 import { findRewindRuns } from "./services/rewind-runs.service";
 import { buildRewind } from "./utils/build-rewind.util";
 import { buildRewindOwnerControls } from "./utils/build-rewind-owner-controls.util";
 import { buildRewindYears } from "./utils/build-rewind-years.util";
-import { buildYearTotals } from "./utils/build-year-totals.util";
 import { collectYearRuns } from "./utils/collect-year-runs.util";
-import { isAiRecapInProgress } from "./utils/is-ai-recap-in-progress.util";
-import { listActiveGameIds } from "./utils/list-active-game-ids.util";
 import { listRewindYears } from "./utils/list-rewind-years.util";
 import { listVisibleRewindYears } from "./utils/list-visible-rewind-years.util";
-import { nextGeneratedAt } from "./utils/next-generated-at.util";
-import { planRewindGeneration } from "./utils/plan-rewind-generation.util";
 import { resolveClosedRewindEdition } from "./utils/resolve-closed-rewind-edition.util";
 import { resolveCurrentRewindDay } from "./utils/resolve-current-rewind-day.util";
-import { resolveRewindAiBudget } from "./utils/resolve-rewind-ai-budget.util";
-import { resolveRewindAiUseChanges } from "./utils/resolve-rewind-ai-use-changes.util";
-import { resolveRewindGenerationBlocker } from "./utils/resolve-rewind-generation-blocker.util";
 import { resolveRewindPremiumAccessKind } from "./utils/resolve-rewind-premium-access-kind.util";
 import { resolveRewindViewerAccess } from "./utils/resolve-rewind-viewer-access.util";
 import { resolveSpotlightYear } from "./utils/resolve-spotlight-year.util";
 import { toRewindStoredView } from "./utils/to-rewind-stored-view.util";
-
-const logger = new PinoLogger("Rewind Service");
-
-const UNFROZEN_FIELDS = { snapshot: null, frozenAt: null };
 
 async function buildRewindCalendar(owner: User): Promise<RewindCalendar> {
 	const today = resolveCurrentRewindDay();
@@ -123,8 +84,8 @@ async function findRecordsByUserId(
 	return new Map(records.map(record => [record.year, record]));
 }
 
-function findRuns(owner: User, publicOnly: boolean, includeNotes = false) {
-	return findRewindRuns(owner.id, { publicOnly, includeNotes });
+function findRuns(owner: User, publicOnly: boolean) {
+	return findRewindRuns(owner.id, { publicOnly, includeNotes: false });
 }
 
 async function findFrozenSnapshots(
@@ -403,387 +364,6 @@ async function requireYearWithData(
 		throw rewindServiceError.notFoundError();
 }
 
-function requireGenerationAllowed(
-	year: number,
-	calendar: RewindCalendar,
-	accessKind: RewindPremiumAccessKind | null
-): void {
-	const blocker = resolveRewindGenerationBlocker(year, calendar, accessKind);
-	if (blocker === "period-closed")
-		throw rewindServiceError.periodClosedError();
-	if (blocker === "requires-premium")
-		throw rewindServiceError.yearRequiresPremiumError();
-}
-
-function lockRecord(userId: string, year: number, transaction: Transaction) {
-	return RewindModel.findOne({
-		where: { userId, year },
-		lock: transaction.LOCK.UPDATE,
-		transaction
-	});
-}
-
-function pendingRecapFields(budget: RewindAiBudget, now: Date) {
-	return budget.spend
-		? { aiRecapStatus: "pending" as const, aiRecapRequestedAt: now }
-		: {};
-}
-
-async function createRecord(
-	owner: User,
-	year: number,
-	dto: GenerateRewindDto,
-	budget: RewindAiBudget,
-	transaction: Transaction
-): Promise<RewindModel> {
-	const now = new Date();
-	try {
-		return await RewindModel.create(
-			{
-				userId: owner.id,
-				year,
-				language: dto.language,
-				includesPrivateRuns: dto.includePrivateRuns,
-				includesNotes: dto.includeNotes,
-				generatedAt: now,
-				...resolveRewindAiUseChanges(
-					{ graceUsed: false, premiumAccessKind: null },
-					budget
-				),
-				...pendingRecapFields(budget, now)
-			},
-			{ transaction }
-		);
-	} catch (error) {
-		rethrowSequelizeError(error, {
-			unique: rewindServiceError.generationConflictError
-		});
-	}
-}
-
-async function regenerateRecord(
-	record: RewindModel,
-	dto: GenerateRewindDto,
-	budget: RewindAiBudget,
-	transaction: Transaction
-): Promise<RewindModel> {
-	const now = nextGeneratedAt(record.generatedAt, new Date());
-	return record.update(
-		{
-			language: dto.language,
-			includesPrivateRuns: dto.includePrivateRuns,
-			includesNotes: dto.includeNotes,
-			generatedAt: now,
-			...UNFROZEN_FIELDS,
-			...resolveRewindAiUseChanges(record, budget),
-			...pendingRecapFields(budget, now)
-		},
-		{ transaction }
-	);
-}
-
-async function reserveGeneration(
-	owner: User,
-	year: number,
-	dto: GenerateRewindDto,
-	calendar: RewindCalendar,
-	accessKind: RewindPremiumAccessKind | null
-): Promise<RewindGenerationReservation> {
-	return sequelize.transaction(async transaction => {
-		const record = await lockRecord(owner.id, year, transaction);
-		const plan = planRewindGeneration({
-			year,
-			record,
-			expectedGeneratedAt: dto.expectedGeneratedAt,
-			calendar,
-			accessKind
-		});
-
-		if (plan.kind === "conflict")
-			throw rewindServiceError.generationConflictError();
-		if (plan.kind === "premium-required")
-			throw rewindServiceError.aiRecapPremiumRequiredError();
-		if (plan.kind === "limit-reached")
-			throw rewindServiceError.regenerationLimitError();
-		if (plan.kind === "create" || !record) {
-			return {
-				record: await createRecord(
-					owner,
-					year,
-					dto,
-					plan.budget,
-					transaction
-				),
-				created: true,
-				spend: plan.budget.spend
-			};
-		}
-		return {
-			record: await regenerateRecord(
-				record,
-				dto,
-				plan.budget,
-				transaction
-			),
-			created: false,
-			spend: plan.budget.spend
-		};
-	});
-}
-
-function isValidRewindYear(
-	runs: RewindRun[],
-	calendar: RewindCalendar,
-	year: number
-): boolean {
-	return listRewindYears(runs, calendar).includes(year);
-}
-
-function publicPlatinumsFor(
-	owner: User,
-	includesPrivateRuns: boolean,
-	year: number
-): Promise<number | null> {
-	const platinumIsPublic = owner.platinumVisibility === "public";
-	if (!includesPrivateRuns && !platinumIsPublic) return Promise.resolve(null);
-	return gamePlatinumService.countPlatinumsByUserIdAndYear(owner.id, year);
-}
-
-async function buildPreviousYearTotals(
-	owner: User,
-	record: RewindRecord,
-	sourceRuns: RewindRun[],
-	genres: RewindGameGenre[],
-	calendar: RewindCalendar
-): Promise<RewindTotals | null> {
-	const previousYear = record.year - 1;
-	if (!isValidRewindYear(sourceRuns, calendar, previousYear)) return null;
-
-	const platinums = await publicPlatinumsFor(
-		owner,
-		record.includesPrivateRuns,
-		previousYear
-	);
-	return buildYearTotals(sourceRuns, previousYear, genres, platinums);
-}
-
-async function findCoopPartners(
-	runs: RewindRun[]
-): Promise<RewindCoopPartner[]> {
-	const membersByRun = await coopRunsService.findMembersForManyBacklogs(
-		runs.map(run => run.id)
-	);
-	return [...membersByRun.entries()].flatMap(([runId, members]) =>
-		members.map(member => ({ runId, partnerId: member.userId }))
-	);
-}
-
-async function findWrittenReviews(
-	owner: User,
-	runs: RewindRun[]
-): Promise<RewindGameReview[]> {
-	const gameIds = [...new Set(runs.map(run => run.gameId))];
-	if (gameIds.length === 0) return [];
-	const reviewsByGame =
-		await reviewsService.findReviewContentByUserAndGameIds(
-			owner.id,
-			gameIds
-		);
-	return [...reviewsByGame.entries()].flatMap(([gameId, review]) =>
-		review.content?.trim() ? [{ gameId, content: review.content }] : []
-	);
-}
-
-async function gatherRecapSources(
-	owner: User,
-	record: RewindRecord,
-	calendar: RewindCalendar,
-	reusablePremiumStats: RewindPremiumStats | null
-): Promise<RecapSources> {
-	const publicOnly = !record.includesPrivateRuns;
-	const { year } = record;
-	const [runs, addedByMonth] = await Promise.all([
-		findRuns(owner, publicOnly, record.includesNotes),
-		backlogRewindService.countRunsAddedByMonth(owner.id, year, { publicOnly })
-	]);
-	const [genres, franchises, platinums, coopPartners, reviews] =
-		await Promise.all([
-			gameGenreService.findGenresByGameIds(
-				listActiveGameIds(runs, [year, year - 1])
-			),
-			franchisesService.findFranchisesByGameIds(
-				listActiveGameIds(runs, [year])
-			),
-			publicPlatinumsFor(owner, record.includesPrivateRuns, year),
-			findCoopPartners(runs),
-			findWrittenReviews(owner, runs)
-		]);
-	const yearGenres = filterGenresOfYear(genres, runs, year);
-	const premiumStats =
-		reusablePremiumStats ??
-		buildRewindPremiumStats({
-			year,
-			runs,
-			genres: yearGenres,
-			addedByMonth
-		});
-	return {
-		runs,
-		genres,
-		yearGenres,
-		franchises,
-		coopPartners,
-		reviews,
-		platinums,
-		premiumStats
-	};
-}
-
-async function writeAiRecap(
-	owner: User,
-	record: RewindRecord,
-	calendar: RewindCalendar,
-	sources: RecapSources,
-	premiumAccess: PremiumAccess
-): Promise<RewindAiRecap> {
-	const { year } = record;
-	const rewind = {
-		...buildRewind({
-			year,
-			owner: userToRewindOwner(owner),
-			runs: sources.runs,
-			genres: sources.genres,
-			platinums: sources.platinums,
-			calendar,
-			visibility: {
-				generatedYears: new Set(),
-				includeUngenerated: true,
-				frozenYearListing: new Map()
-			},
-			stored: {
-				...toRewindStoredView(record, null),
-				premiumStats: sources.premiumStats
-			}
-		}),
-		premiumAccess
-	};
-	return generateRewindAiRecap({
-		year,
-		language: record.language,
-		includesNotes: record.includesNotes,
-		rewind,
-		runs: sources.runs,
-		genres: sources.yearGenres,
-		franchises: sources.franchises,
-		coopPartners: sources.coopPartners,
-		reviews: sources.reviews,
-		previousYearTotals: await buildPreviousYearTotals(
-			owner,
-			record,
-			sources.runs,
-			sources.genres,
-			calendar
-		)
-	});
-}
-
-function filterGenresOfYear(
-	genres: RewindGameGenre[],
-	runs: RewindRun[],
-	year: number
-): RewindGameGenre[] {
-	const activeGameIds = new Set(listActiveGameIds(runs, [year]));
-	return genres.filter(genre => activeGameIds.has(genre.gameId));
-}
-
-function errorCode(error: unknown): string {
-	if (error instanceof Error && "code" in error)
-		return String((error as { code: unknown }).code);
-	return error instanceof Error ? error.name : "UNKNOWN";
-}
-
-function errorFailures(error: unknown): unknown {
-	if (!(error instanceof ServiceError)) return undefined;
-	const raw = error.serviceError.raw;
-	if (typeof raw !== "object" || raw === null || !("failures" in raw))
-		return undefined;
-	return raw.failures;
-}
-
-async function finishRecap(
-	request: RecapRequest,
-	content: RecapContent,
-	succeeded: boolean
-): Promise<void> {
-	await RewindModel.update(
-		{
-			aiRecapStatus: succeeded ? "ready" : "failed",
-			...(content.aiRecap && { aiRecap: content.aiRecap }),
-			...(content.premiumStats && { premiumStats: content.premiumStats })
-		},
-		{
-			where: {
-				id: request.recordId,
-				aiRecapStatus: "pending",
-				aiRecapRequestedAt: request.requestedAt
-			}
-		}
-	);
-}
-
-async function refundAiSpend(request: RecapRequest): Promise<void> {
-	const where = { id: request.recordId };
-	if (request.spend === "grace") {
-		await RewindModel.update({ graceUsed: false }, { where });
-		return;
-	}
-	await RewindModel.increment("regenerationsLeft", { by: 1, where });
-}
-
-async function runRecap(
-	owner: User,
-	record: RewindModel,
-	calendar: RewindCalendar,
-	reusablePremiumStats: RewindPremiumStats | null,
-	premiumAccess: PremiumAccess,
-	spend: RewindAiSpend
-): Promise<boolean> {
-	const request: RecapRequest = {
-		recordId: record.id,
-		requestedAt: record.aiRecapRequestedAt ?? new Date(),
-		spend
-	};
-	let premiumStats: RewindPremiumStats | null = null;
-	try {
-		const sources = await gatherRecapSources(
-			owner,
-			record,
-			calendar,
-			reusablePremiumStats
-		);
-		premiumStats = sources.premiumStats;
-		const aiRecap = await writeAiRecap(
-			owner,
-			record,
-			calendar,
-			sources,
-			premiumAccess
-		);
-		await finishRecap(request, { aiRecap, premiumStats }, true);
-		return true;
-	} catch (error) {
-		logger.error("runRecap", "failed", {
-			rewindId: record.id,
-			year: record.year,
-			code: errorCode(error),
-			failures: errorFailures(error)
-		});
-		await finishRecap(request, { aiRecap: null, premiumStats }, false);
-		await refundAiSpend(request);
-		return false;
-	}
-}
-
 async function resolveOwnerAccess(owner: User) {
 	const [calendar, premiumAccess] = await Promise.all([
 		buildRewindCalendar(owner),
@@ -815,59 +395,19 @@ export async function generateOwnRewind(
 		accessKind
 	);
 	if (spend)
-		await runRecap(owner, record, calendar, null, premiumAccess, spend);
+		await runRecap({
+			owner,
+			record,
+			calendar,
+			reusablePremiumStats: null,
+			premiumAccess,
+			spend
+		});
 
 	return {
 		rewind: await getOwnRewind(owner, year, premiumAccess),
 		created
 	};
-}
-
-function requireAiRecapAllowed(
-	record: RewindModel,
-	calendar: RewindCalendar,
-	accessKind: RewindPremiumAccessKind | null,
-	now: Date
-): SpendableRewindAiBudget {
-	requireGenerationAllowed(record.year, calendar, accessKind);
-	if (accessKind === null)
-		throw rewindServiceError.aiRecapPremiumRequiredError();
-	if (record.aiRecapStatus === "ready" && record.aiRecap)
-		throw rewindServiceError.aiRecapExistsError();
-	if (isAiRecapInProgress(record, now))
-		throw rewindServiceError.aiRecapInProgressError();
-
-	const budget = resolveRewindAiBudget(record, calendar, accessKind);
-	const { spend } = budget;
-	if (!spend) throw rewindServiceError.regenerationLimitError();
-	return { ...budget, spend };
-}
-
-async function reserveAiRecap(
-	owner: User,
-	year: number,
-	calendar: RewindCalendar,
-	accessKind: RewindPremiumAccessKind | null
-): Promise<RewindAiRecapReservation> {
-	return sequelize.transaction(async transaction => {
-		const record = await lockRecord(owner.id, year, transaction);
-		if (!record) throw rewindServiceError.notGeneratedError();
-		const now = new Date();
-		const budget = requireAiRecapAllowed(record, calendar, accessKind, now);
-
-		return {
-			record: await record.update(
-				{
-					aiRecapStatus: "pending",
-					aiRecapRequestedAt: now,
-					...UNFROZEN_FIELDS,
-					...resolveRewindAiUseChanges(record, budget)
-				},
-				{ transaction }
-			),
-			spend: budget.spend
-		};
-	});
 }
 
 export async function addOwnRewindAiRecap(
@@ -884,14 +424,14 @@ export async function addOwnRewindAiRecap(
 		accessKind
 	);
 
-	const succeeded = await runRecap(
+	const succeeded = await runRecap({
 		owner,
 		record,
 		calendar,
-		record.premiumStats,
+		reusablePremiumStats: record.premiumStats,
 		premiumAccess,
 		spend
-	);
+	});
 	if (!succeeded) throw rewindServiceError.aiRecapFailedError();
 
 	return getOwnRewind(owner, year, premiumAccess);
@@ -923,4 +463,35 @@ export function countRewindsOfYear(
 	transaction?: Transaction
 ): Promise<number> {
 	return RewindModel.count({ where: { year }, transaction });
+}
+
+export async function shiftGeneratedRewindQuotas(
+	year: number,
+	premiumDelta: number,
+	giftDelta: number,
+	transaction: Transaction
+): Promise<number> {
+	if (premiumDelta === 0 && giftDelta === 0) return 0;
+	const [, affectedRows] = await sequelize.query(
+		`UPDATE "Rewinds"
+		SET "regenerationsLeft" = GREATEST(
+				0,
+				"regenerationsLeft" + CASE "premiumAccessKind"
+					WHEN 'premium' THEN :premiumDelta
+					WHEN 'gift' THEN :giftDelta
+				END
+			),
+			"updatedAt" = NOW()
+		WHERE "year" = :year
+			AND (
+				("premiumAccessKind" = 'premium' AND :premiumDelta <> 0)
+				OR ("premiumAccessKind" = 'gift' AND :giftDelta <> 0)
+			)`,
+		{
+			replacements: { year, premiumDelta, giftDelta },
+			type: QueryTypes.UPDATE,
+			transaction
+		}
+	);
+	return affectedRows;
 }

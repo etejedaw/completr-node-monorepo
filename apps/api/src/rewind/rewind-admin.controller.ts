@@ -4,9 +4,9 @@ import * as auditService from "../audit/audit.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type UpdateAdminRewindDto } from "./dtos/update-admin-rewind.dto";
 import { rewindAdminSerializer } from "./rewind-admin.serializer";
-import * as rewindAdminService from "./rewind-admin.service";
 import { type AdminRewindIdParam } from "./schemas/admin-rewind-id-params.schema";
 import { type AdminRewindsQuery } from "./schemas/admin-rewinds-query.schema";
+import * as rewindAdminService from "./services/rewind-admin.service";
 
 export async function getAdminRewinds(request: Request, response: Response) {
 	const query = request.locals.query as AdminRewindsQuery;

@@ -31,11 +31,6 @@ export interface RewindRecord {
 	frozenAt: Date | null;
 }
 
-export interface RewindOwnerClock {
-	today: Date;
-	now: Date;
-}
-
 export interface RewindYearVisibility {
 	generatedYears: ReadonlySet<number>;
 	includeUngenerated: boolean;

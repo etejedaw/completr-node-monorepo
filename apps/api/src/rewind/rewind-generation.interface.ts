@@ -1,8 +1,10 @@
+import { type PremiumAccess } from "../premium-access/premium-access.interface";
 import { type RewindEditionRecord } from "../rewind-editions/rewind-editions.interface";
 import {
 	type RewindCoopPartner,
 	type RewindGameReview
 } from "../rewind-recap/rewind-recap.interface";
+import { type User } from "../users/user.model";
 import { type RewindPremiumAccessKind } from "./rewind.constants";
 import {
 	type Rewind,
@@ -30,6 +32,15 @@ export interface RewindGenerationResult {
 export interface RecapRequest {
 	recordId: string;
 	requestedAt: Date;
+	spend: RewindAiSpend;
+}
+
+export interface RecapRunInput {
+	owner: User;
+	record: RewindModel;
+	calendar: RewindCalendar;
+	reusablePremiumStats: RewindPremiumStats | null;
+	premiumAccess: PremiumAccess;
 	spend: RewindAiSpend;
 }
 

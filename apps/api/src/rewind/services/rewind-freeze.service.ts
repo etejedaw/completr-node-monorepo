@@ -6,7 +6,7 @@ import { sequelize } from "../../database/sequelize.database";
 import * as gameGenreService from "../../game-genre/game-genre.service";
 import * as gamePlatinumService from "../../game-platinum/game-platinum.service";
 import { type RewindEditionRecord } from "../../rewind-editions/rewind-editions.interface";
-import * as rewindEditionsService from "../../rewind-editions/rewind-editions.service";
+import * as rewindEditionsService from "../../rewind-editions/services/rewind-editions.service";
 import { type User } from "../../users/user.model";
 import * as usersService from "../../users/users.service";
 import * as rewindServiceError from "../errors/rewind.service-error";
@@ -107,7 +107,7 @@ function buildPublicView(
 	});
 }
 
-export async function buildRewindSnapshot(
+async function buildRewindSnapshot(
 	record: RewindModel,
 	edition: RewindEditionRecord,
 	frozenAt: Date

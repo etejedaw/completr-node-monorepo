@@ -1,18 +1,18 @@
 import { Op, QueryTypes, type Transaction } from "sequelize";
 
-import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
-import { sequelize } from "../database/sequelize.database";
-import * as rewindService from "../rewind/rewind.service";
-import { type CreateRewindEditionDto } from "./dtos/create-rewind-edition.dto";
-import { type UpdateRewindEditionDto } from "./dtos/update-rewind-edition.dto";
-import * as rewindEditionsServiceError from "./errors/rewind-editions.service-error";
-import { RewindEdition } from "./rewind-edition.model";
-import { REWIND_EDITIONS_WRITE_LOCK_KEY } from "./rewind-editions.constants";
-import { toRewindEditionRecord } from "./rewind-editions.service";
+import { rethrowSequelizeError } from "../../common/errors/sequelize-error.mapper";
+import { sequelize } from "../../database/sequelize.database";
+import * as rewindService from "../../rewind/rewind.service";
+import { type CreateRewindEditionDto } from "../dtos/create-rewind-edition.dto";
+import { type UpdateRewindEditionDto } from "../dtos/update-rewind-edition.dto";
+import * as rewindEditionsServiceError from "../errors/rewind-editions.service-error";
+import { RewindEdition } from "../rewind-edition.model";
+import { REWIND_EDITIONS_WRITE_LOCK_KEY } from "../rewind-editions.constants";
 import {
 	type RewindEditionUpdateResult,
 	type RewindEditionWithStats
-} from "./rewind-editions-admin.interface";
+} from "../rewind-editions-admin.interface";
+import { toRewindEditionRecord } from "./rewind-editions.service";
 
 async function lockEditionsWrites(transaction: Transaction) {
 	await sequelize.query("SELECT pg_advisory_xact_lock(:key)", {
@@ -99,37 +99,6 @@ export async function createRewindEdition(
 	});
 }
 
-async function shiftGeneratedQuotas(
-	year: number,
-	premiumDelta: number,
-	giftDelta: number,
-	transaction: Transaction
-): Promise<number> {
-	if (premiumDelta === 0 && giftDelta === 0) return 0;
-	const [, affectedRows] = await sequelize.query(
-		`UPDATE "Rewinds"
-		SET "regenerationsLeft" = GREATEST(
-				0,
-				"regenerationsLeft" + CASE "premiumAccessKind"
-					WHEN 'premium' THEN :premiumDelta
-					WHEN 'gift' THEN :giftDelta
-				END
-			),
-			"updatedAt" = NOW()
-		WHERE "year" = :year
-			AND (
-				("premiumAccessKind" = 'premium' AND :premiumDelta <> 0)
-				OR ("premiumAccessKind" = 'gift' AND :giftDelta <> 0)
-			)`,
-		{
-			replacements: { year, premiumDelta, giftDelta },
-			type: QueryTypes.UPDATE,
-			transaction
-		}
-	);
-	return affectedRows;
-}
-
 export async function updateRewindEdition(
 	year: number,
 	dto: UpdateRewindEditionDto
@@ -165,7 +134,7 @@ export async function updateRewindEdition(
 				{ transaction }
 			);
 			const affectedRewinds = dto.applyToGenerated
-				? await shiftGeneratedQuotas(
+				? await rewindService.shiftGeneratedRewindQuotas(
 						year,
 						premiumDelta,
 						giftDelta,

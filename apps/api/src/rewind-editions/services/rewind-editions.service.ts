@@ -1,8 +1,8 @@
 import { Op, type WhereOptions } from "sequelize";
 
-import { toUtcDay } from "../common/utils/to-utc-day.util";
-import { RewindEdition } from "./rewind-edition.model";
-import { type RewindEditionRecord } from "./rewind-editions.interface";
+import { toUtcDay } from "../../common/utils/to-utc-day.util";
+import { RewindEdition } from "../rewind-edition.model";
+import { type RewindEditionRecord } from "../rewind-editions.interface";
 
 const REWIND_EDITION_ATTRS = [
 	"id",
