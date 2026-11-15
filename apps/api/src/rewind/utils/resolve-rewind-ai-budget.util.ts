@@ -50,7 +50,7 @@ export function resolveRewindAiBudget(
 	const canUseAi = yearAllowed && hasAiAccess;
 	const assignment = pendingAssignment(record, edition, accessKind);
 	const regenerationsLeft =
-		assignment?.regenerationsLeft ?? record.regenerationsLeft;
+		record.regenerationsLeft + (assignment?.regenerationsLeft ?? 0);
 	const graceEndsAt =
 		edition &&
 		canUseAi &&
