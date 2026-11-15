@@ -6,6 +6,7 @@ import { type BacklogSummary } from "../lists/lists.interface";
 import { type Review } from "../reviews/review.model";
 import { type ComparisonDimension } from "./schemas/comparison-query.schema";
 import { type User } from "./user.model";
+import { type UserRole } from "./user-role.type";
 import {
 	type HighlightsResult,
 	type SectionAccess,
@@ -139,10 +140,11 @@ export interface ThemeEntry {
 	tier: ThemeTier;
 }
 
-export interface FeaturedFavoriteRow {
-	userId: string;
-	title: string | null;
-	backgroundUrl: string | null;
+export interface AdminUserFields {
+	name?: string;
+	password?: string;
+	role?: UserRole;
+	isActive?: boolean;
 }
 
 export interface ComparisonOptions {

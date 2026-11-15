@@ -1,5 +1,6 @@
 import z from "zod";
 
+import { AvatarUrlSchema } from "../../common/schemas/avatar-url.schema";
 import { SafeTextSchema } from "../../common/schemas/safe-text.schema";
 import { DisplayNameSchema } from "./display-name.schema";
 import { PasswordPolicySchema } from "./password-policy.schema";
@@ -12,7 +13,7 @@ export const RegisterSchema = z
 		password: PasswordPolicySchema,
 		name: DisplayNameSchema,
 		bio: SafeTextSchema.max(250).optional(),
-		avatarUrl: z.url().optional()
+		avatarUrl: AvatarUrlSchema.optional()
 	})
 	.strict()
 	.readonly();

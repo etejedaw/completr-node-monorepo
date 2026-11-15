@@ -71,7 +71,6 @@ export async function patchUser(request: Request, response: Response) {
 		id,
 		updateUserDto
 	);
-	if (!user) throw userDomain.userNotFound();
 
 	if (disabledFollowRequests) {
 		await userFollowRequestsService.deleteAllIncomingRequests(user.id);
@@ -111,7 +110,7 @@ export async function getDiscoverUsers(request: Request, response: Response) {
 	const currentUser = request.locals.user as RequestUser | undefined;
 
 	const users = await usersService.findRandomPublicUsers(
-		limit ?? 12,
+		limit,
 		currentUser?.id
 	);
 	const cards = await userCardsService.buildUserCards(currentUser?.id, users);

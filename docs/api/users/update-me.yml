@@ -49,7 +49,7 @@ docs: |-
     |-----------------------|-------------------------------------|----------|-------------------------------------------------------------------|
     | name                  | string                              | No       | 1-80 characters, must not contain `<` or `>`                      |
     | bio                   | string                              | No       | 1-250 characters, must not contain `<` or `>`                     |
-    | avatarUrl             | string                              | No       | Valid URL                                                         |
+    | avatarUrl             | string                              | No       | Valid http(s) URL, up to 255 characters                                                         |
     | profileVisibility     | `private` \| `friends` \| `public`  | No       | Whole-profile gate                                                |
     | queueVisibility       | `private` \| `friends` \| `public`  | No       | Queue (Up Next) visibility                                        |
     | wishlistVisibility    | `private` \| `friends` \| `public`  | No       | Wishlist visibility                                               |

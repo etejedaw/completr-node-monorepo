@@ -42,7 +42,7 @@ docs: |-
     | password    | string | Yes      | 8-15 chars, uppercase, lowercase, number, special  |
     | name        | string | Yes      | 4-80 characters, must not contain `<` or `>`       |
     | bio         | string | No       | Max 250 characters, must not contain `<` or `>`    |
-    | avatarUrl   | string | No       | Valid URL                                           |
+    | avatarUrl   | string | No       | Valid http(s) URL, up to 255 characters                                           |
 
     ### Response (201)
 
