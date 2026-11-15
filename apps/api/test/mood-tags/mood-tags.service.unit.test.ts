@@ -193,6 +193,7 @@ void describe("moodTagsService.createTag", () => {
 		);
 		const query = stubExistingTagNames(numberedTags(99));
 		const create = stub(MoodTagMeta, "create", async () => ({}));
+		stubTransaction();
 
 		const result = await moodTagsService.createTag(
 			FREE_USER,
@@ -205,7 +206,16 @@ void describe("moodTagsService.createTag", () => {
 			description: "kept",
 			created: false
 		});
-		assert.equal(query.mock.callCount(), 0);
+		assert.ok(
+			query.mock.calls.some(call =>
+				/pg_advisory_xact_lock/.test(String(call.arguments[0]))
+			)
+		);
+		assert.ok(
+			!query.mock.calls.some(call =>
+				/UNION/.test(String(call.arguments[0]))
+			)
+		);
 		assert.equal(create.mock.callCount(), 0);
 	});
 
