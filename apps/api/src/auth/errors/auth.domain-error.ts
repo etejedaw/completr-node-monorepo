@@ -20,6 +20,15 @@ export function invalidCredentials(context?: Record<string, unknown>) {
 	);
 }
 
+export function invalidCurrentPassword(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"AUTH_INVALID_CURRENT_PASSWORD",
+		"The current password is incorrect",
+		context
+	);
+}
+
 export function authInvalidToken(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,
@@ -79,6 +88,15 @@ export function authRouteNotFound(context?: Record<string, unknown>) {
 		MODULE_NAME,
 		"AUTH_ROUTE_NOT_FOUND",
 		"Not Found",
+		context
+	);
+}
+
+export function authInternalError(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"AUTH_INTERNAL_ERROR",
+		"Unexpected Auth Service error",
 		context
 	);
 }

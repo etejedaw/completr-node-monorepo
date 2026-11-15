@@ -1,18 +1,6 @@
-import { DomainError } from "../../common/errors/domain-error";
+import { buildErrorDomainNormalizer } from "../../common/errors/build-error-domain-normalizer";
+import { authServiceToDomainMapper } from "./auth.service-to-domain.mapper";
 
-export function authErrorDomainNormalizer(
-	error: unknown,
-	correlationId: string
-): DomainError {
-	if (error instanceof DomainError) return error;
-
-	return new DomainError(
-		"COMMON",
-		"INTERNAL_ERROR",
-		"Unexpected internal error",
-		{
-			raw: error,
-			correlationId
-		}
-	);
-}
+export const authErrorDomainNormalizer = buildErrorDomainNormalizer(
+	authServiceToDomainMapper
+);
