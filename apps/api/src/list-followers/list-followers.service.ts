@@ -3,6 +3,7 @@ import { Op, type WhereOptions } from "sequelize";
 import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { Game } from "../games/game.model";
 import { ListItem } from "../list-items/list-item.model";
@@ -14,6 +15,8 @@ import { visibleListsCondition } from "../users/helpers/visibility.helper";
 import { User } from "../users/user.model";
 import * as listFollowersServiceError from "./errors/list-followers.service-error";
 import { ListFollower } from "./list-follower.model";
+
+const DEFAULT_FOLLOWERS_LIMIT = 24;
 
 const FOLLOWED_LIST_PREVIEW_INCLUDE = {
 	model: List,
@@ -76,23 +79,35 @@ export async function unfollowList(listId: string, userId: string) {
 	await follower.destroy();
 }
 
-export async function getListFollowers(listId: string, viewerId: string) {
+export async function getListFollowers(
+	listId: string,
+	viewerId: string,
+	pagination: PaginationQuery = {}
+) {
 	if (!(await listsService.isListVisibleToViewer(listId, viewerId)))
 		throw listFollowersServiceError.listNotFoundError();
 
-	return ListFollower.findAll({
-		where: { listId },
+	const list = await listsService.findListBasicById(listId);
+	const viewerOwnsList = list?.userId === viewerId;
+
+	const { rows, count } = await ListFollower.findAndCountAll({
+		where: viewerOwnsList ? { listId } : { listId, isVisible: true },
 		include: [
 			{
 				model: User,
-				attributes: USER_PUBLIC_ATTRS
+				attributes: USER_PUBLIC_ATTRS,
+				where: { isActive: true }
 			}
 		],
 		order: [
 			["createdAt", "DESC"],
 			["id", "DESC"]
-		]
+		],
+		limit: pagination.limit ?? DEFAULT_FOLLOWERS_LIMIT,
+		offset: pagination.offset ?? 0,
+		distinct: true
 	});
+	return { rows, total: count };
 }
 
 export async function getFollowingLists(userId: string) {

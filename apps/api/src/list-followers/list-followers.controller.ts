@@ -2,6 +2,7 @@ import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { listSummarySerializer } from "../lists/lists.serializer";
 import * as listsService from "../lists/lists.service";
 import { type ListIdParams } from "../lists/schemas/list-id-params.schema";
@@ -30,13 +31,16 @@ export async function getFollowers(request: Request, response: Response) {
 	const params = request.locals.params as ListIdParams;
 	const user = request.locals.user as RequestUser;
 
-	const followers = await listFollowersService.getListFollowers(
-		params.listId,
-		user.id
-	);
-	const users = followers.map(listFollowerUserSerializer);
+	const query = request.locals.query as PaginationQuery;
 
-	return response.status(200).json({ data: { users } });
+	const { rows, total } = await listFollowersService.getListFollowers(
+		params.listId,
+		user.id,
+		query
+	);
+	const users = rows.map(listFollowerUserSerializer);
+
+	return response.status(200).json({ data: { users, total } });
 }
 
 export async function getFollowing(request: Request, response: Response) {
