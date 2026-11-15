@@ -1,51 +1,59 @@
-import assert from "node:assert/strict";
-import { describe, it } from "node:test";
-
 import { authDomainToHttpMapper } from "../../src/auth/errors/auth.domain-to-http.mapper";
 import { authErrorDomainNormalizer } from "../../src/auth/errors/auth.error-domain.normalizer";
-import { DomainError } from "../../src/common/errors/domain-error";
-import { ServiceError } from "../../src/common/errors/service-error";
+import { authServiceToDomainMapper } from "../../src/auth/errors/auth.service-to-domain.mapper";
 import {
-	assertCommonInternalError,
-	describeDomainToHttpMapper
+	describeDomainToHttpMapper,
+	describeModuleErrors
 } from "../unit-helpers/error-layers";
 
-void describe("authErrorDomainNormalizer", () => {
-	void it("returns a DomainError as is", () => {
-		const domainError = new DomainError(
-			"Auth Module",
-			"AUTH_INVALID_CREDENTIALS",
-			"message"
-		);
-
-		assert.equal(
-			authErrorDomainNormalizer(domainError, "corr"),
-			domainError
-		);
-	});
-
-	void it("maps a ServiceError to COMMON INTERNAL_ERROR", () => {
-		const serviceError = new ServiceError("AUTH_ANYTHING", {
-			service: "Auth Service",
-			raw: undefined
-		});
-
-		assertCommonInternalError(
-			authErrorDomainNormalizer(serviceError, "corr"),
-			serviceError,
-			"corr"
-		);
-	});
-
-	void it("maps any other error to COMMON INTERNAL_ERROR", () => {
-		const unexpected = new Error("boom");
-
-		assertCommonInternalError(
-			authErrorDomainNormalizer(unexpected, "corr"),
-			unexpected,
-			"corr"
-		);
-	});
+describeModuleErrors({
+	name: "Auth",
+	service: "Auth Service",
+	mapper: authServiceToDomainMapper,
+	normalizer: authErrorDomainNormalizer,
+	cases: [
+		{
+			serviceCode: "AUTH_USER_ALREADY_EXISTS",
+			module: "Auth Module",
+			code: "AUTH_USER_ALREADY_EXISTS",
+			message: "Username or email are already registered"
+		},
+		{
+			serviceCode: "AUTH_INVALID_CREDENTIALS",
+			module: "Auth Module",
+			code: "AUTH_INVALID_CREDENTIALS",
+			message: "Invalid email or password"
+		},
+		{
+			serviceCode: "AUTH_INVALID_TOKEN",
+			module: "Auth Module",
+			code: "AUTH_INVALID_TOKEN",
+			message: "Invalid Token"
+		},
+		{
+			serviceCode: "AUTH_INVALID_CURRENT_PASSWORD",
+			module: "Auth Module",
+			code: "AUTH_INVALID_CURRENT_PASSWORD",
+			message: "The current password is incorrect"
+		},
+		{
+			serviceCode: "AUTH_INVALID_REFRESH_TOKEN",
+			module: "Auth Module",
+			code: "AUTH_INVALID_REFRESH_TOKEN",
+			message: "Invalid or expired refresh token"
+		},
+		{
+			serviceCode: "AUTH_INVALID_PASSWORD_RESET_TOKEN",
+			module: "Auth Module",
+			code: "AUTH_INVALID_PASSWORD_RESET_TOKEN",
+			message: "Invalid or expired password reset token"
+		}
+	],
+	fallback: {
+		module: "Auth Module",
+		code: "AUTH_INTERNAL_ERROR",
+		message: "Unexpected Auth Service error"
+	}
 });
 
 describeDomainToHttpMapper({
@@ -61,6 +69,11 @@ describeDomainToHttpMapper({
 			code: "AUTH_INVALID_CREDENTIALS",
 			status: 401,
 			detail: "Invalid email or password"
+		},
+		{
+			code: "AUTH_INVALID_CURRENT_PASSWORD",
+			status: 400,
+			detail: "The current password does not match"
 		},
 		{
 			code: "AUTH_INVALID_TOKEN",

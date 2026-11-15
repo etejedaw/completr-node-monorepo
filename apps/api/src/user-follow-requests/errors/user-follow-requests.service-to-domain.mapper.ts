@@ -25,8 +25,5 @@ export function userFollowRequestsServiceToDomainMapper(
 	if (error.code === "USER_FOLLOW_REQUEST_NOT_FOUND")
 		return domainError.notFound(context);
 
-	if (error.code === "USER_FOLLOW_REQUEST_NOT_ACCEPTING")
-		return domainError.notAcceptingRequests(context);
-
 	return domainError.internalError(context);
 }

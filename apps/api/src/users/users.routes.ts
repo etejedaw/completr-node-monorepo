@@ -36,6 +36,7 @@ import queueRouter from "../queue/queue.routes";
 import savedFiltersRouter from "../saved-filters/saved-filters.routes";
 import * as wishlistController from "../wishlist/wishlist.controller";
 import wishlistRouter from "../wishlist/wishlist.routes";
+import { requireVisibleProfileMiddleware } from "./require-visible-profile.middleware";
 import {
 	ComparisonQuerySchema,
 	HighlightsQuerySchema,
@@ -165,7 +166,8 @@ router.get(
 		authOptionalMiddleware,
 		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
-		validateSchemaMiddleware(PaginationQuerySchema, "query")
+		validateSchemaMiddleware(PaginationQuerySchema, "query"),
+		requireVisibleProfileMiddleware("shelf")
 	],
 	gameShelfController.getUserGameShelf
 );
@@ -178,7 +180,8 @@ router.get(
 		authOptionalMiddleware,
 		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
-		validateSchemaMiddleware(BacklogQuerySchema, "query")
+		validateSchemaMiddleware(BacklogQuerySchema, "query"),
+		requireVisibleProfileMiddleware("backlog")
 	],
 	backlogController.getUserBacklog
 );
@@ -193,7 +196,8 @@ router.get(
 		authOptionalMiddleware,
 		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
-		validateSchemaMiddleware(PaginationQuerySchema, "query")
+		validateSchemaMiddleware(PaginationQuerySchema, "query"),
+		requireVisibleProfileMiddleware("queue")
 	],
 	queueController.getUserQueue
 );
@@ -206,7 +210,8 @@ router.get(
 		authOptionalMiddleware,
 		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
-		validateSchemaMiddleware(PaginationQuerySchema, "query")
+		validateSchemaMiddleware(PaginationQuerySchema, "query"),
+		requireVisibleProfileMiddleware("wishlist")
 	],
 	wishlistController.getUserWishlist
 );
@@ -219,7 +224,8 @@ router.get(
 		authOptionalMiddleware,
 		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
-		validateSchemaMiddleware(PaginationQuerySchema, "query")
+		validateSchemaMiddleware(PaginationQuerySchema, "query"),
+		requireVisibleProfileMiddleware("favorite")
 	],
 	favoritesController.getUserFavorites
 );
@@ -265,7 +271,8 @@ router.get(
 		authOptionalMiddleware,
 		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
-		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
+		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query"),
+		requireVisibleProfileMiddleware("platinum")
 	],
 	gamePlatinumController.getUserPlatinums
 );

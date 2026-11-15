@@ -1,7 +1,9 @@
 import { computed, effect, inject, signal, untracked } from "@angular/core";
 
+import { StorageService } from "../../../core/services/storage";
 import { ToastService } from "../../../core/services/toast";
 import { reportHttpFailure } from "../../../shared/utils/http-failure";
+import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import {
 	DEFAULT_ENABLED_STATS,
 	SavedFiltersService,
@@ -19,13 +21,13 @@ const STATS_EXPANDED_STORAGE_KEY = "completr.backlog.statsExpanded";
 export function injectViewStats(options: ViewStatsOptions) {
 	const savedFiltersService = inject(SavedFiltersService);
 	const toast = inject(ToastService);
+	const storage = inject(StorageService);
+	const statsLoader = injectLatestLoader();
 
 	const stats = signal<SavedFilterStats | null>(null);
 	const loading = signal(false);
 	const loadFailed = signal(false);
-	const expanded = signal(
-		localStorage.getItem(STATS_EXPANDED_STORAGE_KEY) === "true"
-	);
+	const expanded = signal(storage.get(STATS_EXPANDED_STORAGE_KEY) === "true");
 	const panelOpen = signal(false);
 	const configSaving = signal(false);
 
@@ -74,7 +76,7 @@ export function injectViewStats(options: ViewStatsOptions) {
 	const load = (id: string) => {
 		loading.set(true);
 		loadFailed.set(false);
-		savedFiltersService.getStats(id).subscribe({
+		statsLoader.load(savedFiltersService.getStats(id), {
 			next: loaded => {
 				stats.set(loaded);
 				loading.set(false);
@@ -91,6 +93,7 @@ export function injectViewStats(options: ViewStatsOptions) {
 		const id = options.activeFilterId();
 		if (!id) {
 			untracked(() => {
+				statsLoader.cancel();
 				stats.set(null);
 				loading.set(false);
 				loadFailed.set(false);
@@ -109,7 +112,7 @@ export function injectViewStats(options: ViewStatsOptions) {
 	const toggleExpanded = () => {
 		const next = !expanded();
 		expanded.set(next);
-		localStorage.setItem(STATS_EXPANDED_STORAGE_KEY, String(next));
+		storage.set(STATS_EXPANDED_STORAGE_KEY, String(next));
 	};
 
 	const togglePanel = () => {

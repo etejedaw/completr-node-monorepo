@@ -105,6 +105,7 @@ describe("BacklogList interaction", () => {
 	let httpTesting: HttpTestingController;
 	let library: BacklogEntry[];
 	let savedViews: SavedFilter[];
+	let savedViewsStatus: number;
 	const savedViewWrites: { method: string; url: string; body: unknown }[] =
 		[];
 	const backlogQueries: URLSearchParams[] = [];
@@ -255,6 +256,15 @@ describe("BacklogList interaction", () => {
 			return req.flush({ data: { queue: [], total: 0 } });
 		if (url === `${api}/users/me/favorites/game-ids`)
 			return req.flush({ data: { gameIds: favoriteGameIds } });
+		if (
+			url === `${api}/users/me/saved-filters` &&
+			method === "GET" &&
+			savedViewsStatus !== 200
+		)
+			return req.flush(
+				{ title: "Failed", status: savedViewsStatus },
+				{ status: savedViewsStatus, statusText: "Failed" }
+			);
 		if (url === `${api}/users/me/saved-filters` && method === "GET")
 			return req.flush({ data: { savedFilters: savedViews } });
 		if (
@@ -343,6 +353,7 @@ describe("BacklogList interaction", () => {
 		localStorage.clear();
 		library = initialLibrary();
 		savedViews = [];
+		savedViewsStatus = 200;
 		savedViewWrites.length = 0;
 		backlogQueries.length = 0;
 		backlogPatches.length = 0;
@@ -422,6 +433,29 @@ describe("BacklogList interaction", () => {
 		expect(searchBox()).toHaveValue("hollow");
 		expect(backlogQueries.at(-1)?.get("search")).toBe("hollow");
 		expect(backlogQueries.at(-1)?.get("status")).toBeNull();
+	});
+
+	it("loads the library from a view link even when the saved views fail to load", async () => {
+		savedViewsStatus = 500;
+
+		await renderBacklog("/?savedFilterId=linked");
+
+		expect(visibleTitles()).toEqual(["Hades", "Hollow Knight", "Celeste"]);
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+	});
+
+	it("still opens the library when the browser blocks storage", async () => {
+		vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+			throw new DOMException("blocked", "SecurityError");
+		});
+		vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+			throw new DOMException("blocked", "SecurityError");
+		});
+
+		await renderBacklog();
+
+		expect(visibleTitles()).toEqual(["Hades", "Hollow Knight", "Celeste"]);
+		vi.restoreAllMocks();
 	});
 
 	it("exports exactly the filtered and sorted library", async () => {

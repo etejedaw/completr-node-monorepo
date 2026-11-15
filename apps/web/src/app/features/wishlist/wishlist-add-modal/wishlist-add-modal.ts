@@ -11,7 +11,7 @@ import { type Game } from "../../../core/models";
 import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
 import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
 import { UiButton, UiDialog } from "../../../shared/ui";
-import { injectGameSearch } from "../../games/game-search";
+import { injectGameSearch } from "../../../shared/utils/inject-game-search";
 import { WishlistPlatformChoice } from "../components/wishlist-platform-choice";
 import { WishlistService } from "../wishlist";
 

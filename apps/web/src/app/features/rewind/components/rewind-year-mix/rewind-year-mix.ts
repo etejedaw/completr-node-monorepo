@@ -12,7 +12,7 @@ import {
 	type RewindReleaseDecade,
 	type RewindYearMix as RewindYearMixData
 } from "../../../../core/models/rewind.model";
-import { ProfileSectionHeader } from "../../../public-profile/components/profile-section-header";
+import { ProfileSectionHeader } from "../../../../shared/components/profile-section-header/profile-section-header";
 import {
 	formatPercent,
 	formatRewindNumber,

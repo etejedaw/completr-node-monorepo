@@ -3,6 +3,7 @@ import { Op, QueryTypes, type Transaction } from "sequelize";
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
 import { calculateRatio } from "../common/utils/calculate-ratio.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
@@ -13,7 +14,7 @@ import * as listItemsService from "../list-items/list-items.service";
 import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import { visibleListsCondition } from "../users/helpers/visibility.helper";
-import * as usersService from "../users/users.service";
+import * as usersService from "../users/services/users.service";
 import { type DuplicateListDto } from "./dtos/duplicate-list.dto";
 import { type RegisterListDto } from "./dtos/register-list.dto";
 import { type UpdateListDto } from "./dtos/update-list.dto";
@@ -39,10 +40,7 @@ async function areFrozen(userId: string, role: string) {
 }
 
 async function lockUserLists(userId: string, transaction: Transaction) {
-	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
-		replacements: { lockKey: `lists:${userId}` },
-		transaction
-	});
+	await acquireAdvisoryLock(`lists:${userId}`, transaction);
 }
 
 async function assertWithinListLimit(

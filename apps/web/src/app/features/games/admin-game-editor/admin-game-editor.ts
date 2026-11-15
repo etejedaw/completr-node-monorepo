@@ -20,6 +20,12 @@ import {
 	type OnlineSearchSource,
 	type Platform
 } from "../../../core/models";
+import { GamesService } from "../../../core/services/games";
+import {
+	type CreateGameDto,
+	type ExternalGameDetail,
+	type UpdateGameDto
+} from "../../../core/services/games.model";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { adminErrorMessage } from "../../../core/utils/admin-error-message";
@@ -49,12 +55,6 @@ import {
 } from "../../../shared/ui";
 import { FranchisesService } from "../../franchises/franchises";
 import { type Franchise } from "../../franchises/franchises.model";
-import { GamesService } from "../games";
-import {
-	type CreateGameDto,
-	type ExternalGameDetail,
-	type UpdateGameDto
-} from "../games.model";
 import {
 	type CompilationRowMode,
 	type ManualExternalSource

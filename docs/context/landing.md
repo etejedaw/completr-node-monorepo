@@ -6,7 +6,8 @@ Estándares de una landing estática con Astro servida por nginx: estructura, co
 
 ```
 landing/
-├── astro.config.mjs        # site, sitemap y Tailwind
+├── astro.config.mjs        # site, sitemap, Tailwind y chequeos de build
+├── contact-endpoint-check.mjs  # Falla el build si el endpoint del formulario falta o no está en la CSP
 ├── nginx.conf              # Caché, CORS de los .json públicos e include de los headers
 ├── security-headers.conf   # Headers de seguridad y CSP, incluidos en cada location
 ├── public/                 # Estáticos servidos tal cual (fuentes, og.png, .well-known)
@@ -44,6 +45,7 @@ El contenido editable (changelog, textos legales) vive en content collections, c
 Todas se leen en el build: el sitio es estático y no hay runtime de Node en producción.
 
 - Las que llegan al cliente llevan el prefijo `PUBLIC_` y entran a la imagen como `ARG` del `Dockerfile`.
+- Una variable sin la que una función del sitio no sirve (el endpoint de un formulario, por ejemplo) es obligatoria: una integración de `astro.config.mjs` hace fallar `astro build` con un mensaje claro si falta, en vez de publicar un formulario roto. Si la variable apunta a otro dominio, la misma integración verifica que su origen esté en la directiva de la CSP que lo usa, para que la variable y `security-headers.conf` no se desincronicen.
 - Los tokens de servicios externos (GitHub, por ejemplo) son opcionales: sin ellos la llamada va sin autenticar, con límite de rate. Si la llamada falla, la sección usa valores por defecto y el build no se rompe.
 
 ## Headers de seguridad y CSP

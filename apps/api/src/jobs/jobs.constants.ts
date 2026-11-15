@@ -33,3 +33,4 @@ export const TALLY_KEY_BY_STATUS = {
 	no_data: "noData",
 	failed: "failed"
 } as const;
+export const COMMUNITY_AGGREGATION_BATCH_SIZE = 500;

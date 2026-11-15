@@ -18,7 +18,7 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type Game } from "../../../core/models";
-import { type ExternalGameDetail } from "../games.model";
+import { type ExternalGameDetail } from "../../../core/services/games.model";
 import { AdminGameEditor } from "./admin-game-editor";
 
 interface ApiFailure {
@@ -174,7 +174,9 @@ describe("AdminGameEditor interaction", () => {
 				: req.flush({}, { status: 404, statusText: "Not Found" });
 		}
 		if (method === "GET" && path.startsWith("/games/search")) {
-			const query = new URL(url).searchParams.get("search")!.toLowerCase();
+			const query = new URL(url).searchParams
+				.get("search")!
+				.toLowerCase();
 			const games = catalog
 				.filter(game => game.title.toLowerCase().includes(query))
 				.slice(0, searchLimit);

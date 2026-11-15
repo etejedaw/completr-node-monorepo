@@ -19,5 +19,11 @@ export function listItemsServiceToDomainMapper(
 	if (error.code === "LIST_ITEM_FROZEN")
 		return listItemDomainError.listItemFrozen(context);
 
+	if (error.code === "LIST_ITEM_UNIQUE_CONSTRAINT")
+		return listItemDomainError.listItemAlreadyInList(context);
+
+	if (error.code === "LIST_ITEM_VALIDATION_ERROR")
+		return listItemDomainError.listItemValidationError(context);
+
 	return listItemDomainError.listItemInternalError(context);
 }

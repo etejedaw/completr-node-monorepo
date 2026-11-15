@@ -13,6 +13,7 @@ import { RouterLink } from "@angular/router";
 import { map, type Observable, of, switchMap, tap } from "rxjs";
 
 import { type BacklogEntry } from "../../../core/models";
+import { QueueService } from "../../../core/services/queue";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import {
 	UiBadge,
@@ -20,7 +21,6 @@ import {
 	UiDialog,
 	UiPlainEmptyState
 } from "../../../shared/ui";
-import { QueueService } from "../../queue/queue";
 import { BacklogService } from "../backlog";
 import { type BacklogFilters } from "../backlog.model";
 

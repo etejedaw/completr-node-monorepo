@@ -1,6 +1,6 @@
 import * as auditService from "../../audit/audit.service";
-import * as usersService from "../../users/users.service";
-import * as usersDeletionService from "../../users/users-deletion.service";
+import * as usersService from "../../users/services/users.service";
+import * as usersDeletionService from "../../users/services/users-deletion.service";
 import { type DataRequest } from "../data-request.model";
 import { type DataRequestResolution } from "../data-requests.interface";
 import * as dataRequestMailService from "./data-request-mail.service";

@@ -22,8 +22,8 @@ router.get(
 router.get(
 	"/share/rewind/:username/:year/story-list.png",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(RewindYearParamsSchema, "params")
 	],
 	rewindShareController.getRewindStoryListImage

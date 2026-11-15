@@ -12,8 +12,8 @@ import {
 	type RewindYearSummary
 } from "../../../core/models/rewind.model";
 import { ViewportService } from "../../../core/services/viewport";
+import { ProfileSectionHeader } from "../../../shared/components/profile-section-header/profile-section-header";
 import { RewindYearCard } from "../../rewind/components/rewind-year-card/rewind-year-card";
-import { ProfileSectionHeader } from "./profile-section-header";
 
 const PROFILE_REWIND_LIMIT = 4;
 

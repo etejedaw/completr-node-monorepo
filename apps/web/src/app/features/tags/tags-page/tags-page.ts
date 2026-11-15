@@ -21,12 +21,14 @@ import {
 	UiButton,
 	UiDialog,
 	UiEmptyState,
+	UiLoadError,
 	UiNoMatches,
 	UiOptionPicker,
 	type UiPickerOption,
 	UiPremiumBadge,
 	UiSkeleton
 } from "../../../shared/ui";
+import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectLibraryPosters } from "../../backlog/library-posters";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
 import {
@@ -55,6 +57,7 @@ const SORT_PICKER_OPTIONS: readonly (UiPickerOption & { value: TagSort })[] = [
 		UiBadge,
 		UiButton,
 		UiEmptyState,
+		UiLoadError,
 		UiNoMatches,
 		UiSkeleton,
 		UiDialog,
@@ -67,6 +70,7 @@ const SORT_PICKER_OPTIONS: readonly (UiPickerOption & { value: TagSort })[] = [
 })
 export default class TagsPage implements OnInit {
 	private readonly moodTagsService = inject(MoodTagsService);
+	protected readonly tagsLoader = injectLatestLoader();
 	private readonly toast = inject(ToastService);
 	private readonly router = inject(Router);
 
@@ -122,9 +126,9 @@ export default class TagsPage implements OnInit {
 		this.load();
 	}
 
-	private load() {
+	protected load() {
 		this.loading.set(true);
-		this.moodTagsService.getMyTags().subscribe({
+		this.tagsLoader.load(this.moodTagsService.getMyTags(), {
 			next: tags => {
 				this.tags.set(tags);
 				this.loading.set(false);

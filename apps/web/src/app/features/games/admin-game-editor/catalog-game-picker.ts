@@ -19,7 +19,7 @@ import {
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
-import { injectGameSearch } from "../game-search";
+import { injectGameSearch } from "../../../shared/utils/inject-game-search";
 
 const CATALOG_PICKER_RESULT_LIMIT = 8;
 

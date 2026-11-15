@@ -29,7 +29,7 @@ import {
 	type UiPickerOption,
 	UiTextarea
 } from "../../../shared/ui";
-import { injectGameSearch } from "../../games/game-search";
+import { injectGameSearch } from "../../../shared/utils/inject-game-search";
 import { GameShelfService } from "../game-shelf";
 import {
 	type CreateGameShelfDto,

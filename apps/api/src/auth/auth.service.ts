@@ -1,9 +1,12 @@
+import { type Transaction } from "sequelize";
+
 import { environmentConfig } from "../common/config/environment.config";
 import { PinoLogger } from "../common/logger/pino.logger";
+import { sequelize } from "../database/sequelize.database";
 import { mailProvider } from "../mail/mail.provider";
-import * as userService from "../users/users.service";
+import * as userService from "../users/services/users.service";
 import { type LoginDto, type RegisterDto } from "./dtos";
-import * as authDomainError from "./errors/auth.domains-error";
+import * as authServiceError from "./errors/auth.service-error";
 import * as passwordService from "./services/password.service";
 import * as passwordResetService from "./services/password-reset.service";
 import * as sessionService from "./services/session.service";
@@ -19,7 +22,7 @@ export async function register(registerDto: RegisterDto, deviceInfo?: string) {
 		userService.findUserByEmail(registerDto.email),
 		userService.findUserByUsername(registerDto.username)
 	]);
-	if (userEmail || userName) throw authDomainError.userAlreadyExists();
+	if (userEmail || userName) throw authServiceError.userAlreadyExistsError();
 
 	const hashPassword = await passwordService.hashPassword(
 		registerDto.password
@@ -37,27 +40,28 @@ export async function login(loginDto: LoginDto, deviceInfo?: string) {
 	const user = await userService.findUserByEmail(loginDto.email);
 	if (!user) {
 		await passwordService.burnPasswordCheck(loginDto.password);
-		throw authDomainError.invalidCredentials();
+		throw authServiceError.invalidCredentialsError();
 	}
 
 	const comparePassword = await passwordService.verifyPassword(
 		loginDto.password,
 		user.password
 	);
-	if (!comparePassword) throw authDomainError.invalidCredentials();
+	if (!comparePassword) throw authServiceError.invalidCredentialsError();
 
 	return sessionService.issueSession(user, deviceInfo);
 }
 
 export async function refresh(rawRefreshToken: string, deviceInfo?: string) {
 	const storedToken = await tokenService.verifyRefreshToken(rawRefreshToken);
-	if (!storedToken) throw authDomainError.invalidRefreshToken();
+	if (!storedToken) throw authServiceError.invalidRefreshTokenError();
 
 	const user = await userService.findUserById(storedToken.userId);
-	if (!user || !user.isActive) throw authDomainError.invalidRefreshToken();
+	if (!user || !user.isActive)
+		throw authServiceError.invalidRefreshTokenError();
 
 	const wasClaimed = await tokenService.deleteRefreshToken(rawRefreshToken);
-	if (!wasClaimed) throw authDomainError.invalidRefreshToken();
+	if (!wasClaimed) throw authServiceError.invalidRefreshTokenError();
 
 	return sessionService.issueSession(
 		user,
@@ -69,13 +73,42 @@ export async function logout(rawRefreshToken: string) {
 	await tokenService.deleteRefreshToken(rawRefreshToken);
 }
 
-export async function changePassword(userId: string, password: string) {
-	const hashPassword = await passwordService.hashPassword(password);
+export async function changePassword(
+	userId: string,
+	currentPassword: string,
+	newPassword: string
+) {
+	const hashPassword = await passwordService.hashPassword(newPassword);
 
-	await userService.updatePassword(userId, hashPassword);
-	await tokenService.deleteAllUserRefreshTokens(userId);
+	await sequelize.transaction(async transaction => {
+		const user = await userService.findUserByIdForUpdate(
+			userId,
+			transaction
+		);
+		if (!user) throw authServiceError.invalidTokenError();
 
-	return true;
+		const isCurrentPassword = await passwordService.verifyPassword(
+			currentPassword,
+			user.password
+		);
+		if (!isCurrentPassword)
+			throw authServiceError.invalidCurrentPasswordError();
+
+		await storePasswordAndRevokeSessions(
+			user.id,
+			hashPassword,
+			transaction
+		);
+	});
+}
+
+async function storePasswordAndRevokeSessions(
+	userId: string,
+	hashPassword: string,
+	transaction: Transaction
+) {
+	await userService.updatePassword(userId, hashPassword, transaction);
+	await tokenService.deleteAllUserRefreshTokens(userId, transaction);
 }
 
 export async function listSessions(
@@ -87,7 +120,7 @@ export async function listSessions(
 
 export async function revokeSession(sessionId: string, userId: string) {
 	const ok = await tokenService.deleteRefreshTokenById(sessionId, userId);
-	if (!ok) throw authDomainError.invalidRefreshToken();
+	if (!ok) throw authServiceError.invalidRefreshTokenError();
 }
 
 export async function revokeOtherSessions(
@@ -135,10 +168,14 @@ async function sendPasswordResetEmail(email: string) {
 
 export async function resetPassword(rawToken: string, password: string) {
 	const userId = await passwordResetService.claimPasswordResetToken(rawToken);
-	if (!userId) throw authDomainError.invalidPasswordResetToken();
+	if (!userId) throw authServiceError.invalidPasswordResetTokenError();
 
 	const user = await userService.findUserById(userId);
-	if (!user) throw authDomainError.invalidPasswordResetToken();
+	if (!user) throw authServiceError.invalidPasswordResetTokenError();
 
-	await changePassword(user.id, password);
+	const hashPassword = await passwordService.hashPassword(password);
+
+	await sequelize.transaction(transaction =>
+		storePasswordAndRevokeSessions(user.id, hashPassword, transaction)
+	);
 }

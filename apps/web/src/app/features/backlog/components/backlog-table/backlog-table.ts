@@ -9,6 +9,7 @@ import {
 } from "@angular/core";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../../core/models";
+import { FavoritesService } from "../../../../core/services/favorites";
 import { BacklogStatusBadge } from "../../../../shared/components/backlog-status-badge/backlog-status-badge";
 import { BacklogStatusPicker } from "../../../../shared/components/backlog-status-picker/backlog-status-picker";
 import { GameTitleCell } from "../../../../shared/components/game-title-cell/game-title-cell";
@@ -31,7 +32,6 @@ import {
 } from "../../../../shared/utils/backlog-eligibility";
 import { isPlatinumRun } from "../../../../shared/utils/platinum";
 import { type RowSelection } from "../../../../shared/utils/row-selection.model";
-import { FavoritesService } from "../../../favorites/favorites";
 import {
 	type BacklogTableColumn,
 	type BacklogTableColumnAlign,

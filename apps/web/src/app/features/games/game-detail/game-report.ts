@@ -2,8 +2,8 @@ import { DestroyRef, inject, type Signal, signal } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 import { type Game } from "../../../core/models";
+import { GamesService } from "../../../core/services/games";
 import { ToastService } from "../../../core/services/toast";
-import { GamesService } from "../games";
 import { type ReportModalState } from "./game-detail.model";
 
 const REPORT_MESSAGE_MIN_LENGTH = 10;

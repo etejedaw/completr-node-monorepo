@@ -7,10 +7,10 @@ import { screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../../core/models";
+import { FavoritesService } from "../../../../core/services/favorites";
 import { PointerService } from "../../../../core/services/pointer";
 import { ViewportService } from "../../../../core/services/viewport";
 import { injectRowSelection } from "../../../../shared/utils/row-selection";
-import { FavoritesService } from "../../../favorites/favorites";
 import { BacklogTable } from "./backlog-table";
 
 function entry(overrides: Partial<BacklogEntry> = {}): BacklogEntry {

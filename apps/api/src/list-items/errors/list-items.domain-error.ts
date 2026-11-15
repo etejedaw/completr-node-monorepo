@@ -29,6 +29,24 @@ export function listItemFrozen(context?: Record<string, unknown>) {
 	);
 }
 
+export function listItemAlreadyInList(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"LIST_ITEM_UNIQUE_CONSTRAINT",
+		"The game is already in the list",
+		context
+	);
+}
+
+export function listItemValidationError(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"LIST_ITEM_VALIDATION_ERROR",
+		"The list item is not valid",
+		context
+	);
+}
+
 export function listItemInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

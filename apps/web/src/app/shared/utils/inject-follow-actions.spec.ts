@@ -1,9 +1,9 @@
 import { TestBed } from "@angular/core/testing";
 import { of, Subject, throwError } from "rxjs";
 
+import { PublicSocialService } from "../../core/services/public-social";
 import { ToastService } from "../../core/services/toast";
 import { type UserResult } from "../../core/services/users.model";
-import { PublicSocialService } from "../../features/public-profile/services/public-social.service";
 import { injectFollowActions } from "./inject-follow-actions";
 
 function followedUser(): UserResult {

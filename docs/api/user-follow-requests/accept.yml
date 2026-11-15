@@ -42,3 +42,4 @@ docs: |-
     | Status | Code                              | Description                |
     |--------|-----------------------------------|----------------------------|
     | 404    | USER_FOLLOW_REQUEST_NOT_FOUND     | No pending request found   |
+    | 409    | USER_FOLLOWER_ALREADY_FOLLOWING   | A concurrent request created the follow first |

@@ -24,10 +24,12 @@ import {
 	UiButton,
 	UiEmptyState,
 	UiEyebrow,
+	UiLoadError,
 	UiPagination,
 	UiPremiumBadge,
 	UiSkeleton
 } from "../../../shared/ui";
+import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectLibraryPosters } from "../../backlog/library-posters";
 import { ListModal } from "../list-modal/list-modal";
 import {
@@ -49,6 +51,7 @@ import { ListsService } from "../lists";
 		UiButton,
 		UiEmptyState,
 		UiEyebrow,
+		UiLoadError,
 		UiPagination,
 		UiSkeleton,
 		PremiumOnly,
@@ -61,6 +64,7 @@ export class ListOverview implements OnInit {
 	private readonly listsService = inject(ListsService);
 	private readonly dialogs = inject(DialogService);
 	private readonly router = inject(Router);
+	protected readonly listsLoader = injectLatestLoader();
 	private readonly searchSubject = new Subject<string>();
 	protected readonly isPremium = inject(AuthService).isPremium;
 
@@ -148,11 +152,14 @@ export class ListOverview implements OnInit {
 		});
 	}
 
-	private loadLists() {
+	protected loadLists() {
 		this.isLoading.set(true);
-		this.listsService
-			.getMyLists({ limit: this.limit, offset: this.offset() })
-			.subscribe({
+		this.listsLoader.load(
+			this.listsService.getMyLists({
+				limit: this.limit,
+				offset: this.offset()
+			}),
+			{
 				next: res => {
 					this.lists.set(res.data.lists);
 					this.total.set(res.data.total ?? res.data.lists.length);
@@ -160,7 +167,8 @@ export class ListOverview implements OnInit {
 					this.isLoading.set(false);
 				},
 				error: () => this.isLoading.set(false)
-			});
+			}
+		);
 	}
 
 	private loadFollowing() {

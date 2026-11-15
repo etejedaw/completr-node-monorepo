@@ -6,7 +6,13 @@ import {
 	type OnInit,
 	signal
 } from "@angular/core";
-import { form, FormField, maxLength, validate } from "@angular/forms/signals";
+import {
+	form,
+	FormField,
+	maxLength,
+	required,
+	validate
+} from "@angular/forms/signals";
 
 import { AuthService } from "../../../core/services/auth";
 import { type AuthSession } from "../../../core/services/auth.model";
@@ -15,6 +21,7 @@ import {
 	failedPasswordRules,
 	PASSWORD_MAX_LENGTH
 } from "../../../core/utils/password-policy";
+import { problemType } from "../../../core/utils/problem-details";
 import { PasswordRules } from "../../../shared/components/password-rules/password-rules";
 import {
 	UiBadge,
@@ -31,7 +38,13 @@ import { SettingsRow } from "../components/settings-row";
 import { currentSessionFirst, describeDevice, timeAgo } from "./session-device";
 
 const SESSIONS_PAGE_SIZE = 10;
-const EMPTY_PASSWORDS = { newPassword: "", confirmPassword: "" };
+const CURRENT_PASSWORD_MAX_LENGTH = 128;
+const INVALID_CURRENT_PASSWORD = "AUTH_INVALID_CURRENT_PASSWORD";
+const EMPTY_PASSWORDS = {
+	currentPassword: "",
+	newPassword: "",
+	confirmPassword: ""
+};
 
 @Component({
 	selector: "app-settings-security",
@@ -61,7 +74,20 @@ export class SettingsSecurity implements OnInit {
 	protected readonly timeAgo = timeAgo;
 
 	protected readonly passwords = signal(EMPTY_PASSWORDS);
+	private readonly rejectedCurrentPassword = signal<string | null>(null);
 	protected readonly passwordForm = form(this.passwords, path => {
+		required(path.currentPassword, {
+			message: "Enter your current password."
+		});
+		maxLength(path.currentPassword, CURRENT_PASSWORD_MAX_LENGTH);
+		validate(path.currentPassword, ({ value }) =>
+			value() === this.rejectedCurrentPassword()
+				? {
+						kind: "currentPasswordRejected",
+						message: "That's not your current password."
+					}
+				: null
+		);
 		maxLength(path.newPassword, PASSWORD_MAX_LENGTH);
 		maxLength(path.confirmPassword, PASSWORD_MAX_LENGTH);
 		validate(path.newPassword, ({ value }) =>
@@ -115,11 +141,13 @@ export class SettingsSecurity implements OnInit {
 			return;
 		}
 		this.changingPassword.set(true);
+		const { currentPassword, newPassword } = this.passwords();
 		this.authService
-			.changePassword(this.passwords().newPassword)
+			.changePassword(currentPassword, newPassword)
 			.subscribe({
 				next: () => {
 					this.changingPassword.set(false);
+					this.rejectedCurrentPassword.set(null);
 					this.passwords.set(EMPTY_PASSWORDS);
 					this.passwordForm().reset();
 					this.showPasswords.set(false);
@@ -129,8 +157,13 @@ export class SettingsSecurity implements OnInit {
 					this.offset.set(0);
 					this.loadSessions();
 				},
-				error: () => {
+				error: (error: unknown) => {
 					this.changingPassword.set(false);
+					if (problemType(error) === INVALID_CURRENT_PASSWORD) {
+						this.rejectedCurrentPassword.set(currentPassword);
+						this.passwordForm.currentPassword().markAsTouched();
+						return;
+					}
 					this.toast.warning("Could not update your password.");
 				}
 			});

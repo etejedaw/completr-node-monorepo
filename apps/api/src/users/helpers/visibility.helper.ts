@@ -77,19 +77,6 @@ export async function resolveSectionAccess(
 	) as SectionAccess;
 }
 
-export async function canViewList(
-	viewerId: string | undefined,
-	owner: User,
-	list: { isPublic: boolean }
-): Promise<boolean> {
-	if (viewerId && viewerId === owner.id) return true;
-	if (!list.isPublic) return false;
-	return (
-		(await canView(viewerId, owner, "profile")) &&
-		(await canView(viewerId, owner, "list"))
-	);
-}
-
 const LIST_OWNER_ALIAS = "list_owner";
 
 function mutualFollowersSql(viewerSql: string, ownerIdSql: string) {

@@ -1,13 +1,15 @@
 import { HttpClient } from "@angular/common/http";
-import { inject, Injectable, signal } from "@angular/core";
+import { effect, inject, Injectable, signal } from "@angular/core";
 import { map, tap } from "rxjs";
 
 import { environment } from "../../../environments/environment";
+import { AuthService } from "./auth";
 import { type IncomingFollowRequest } from "./follow-requests.model";
 
 @Injectable({ providedIn: "root" })
 export class FollowRequestsService {
 	private readonly http = inject(HttpClient);
+	private readonly auth = inject(AuthService);
 
 	private readonly _incoming = signal<IncomingFollowRequest[] | null>(null);
 	readonly incoming = this._incoming.asReadonly();
@@ -15,7 +17,26 @@ export class FollowRequestsService {
 	private readonly _pendingCount = signal(0);
 	readonly pendingCount = this._pendingCount.asReadonly();
 
+	constructor() {
+		let previousUserId: string | null = null;
+		effect(() => {
+			const userId = this.auth.user()?.id ?? null;
+			if (previousUserId !== null && userId !== previousUserId)
+				this.reset();
+			previousUserId = userId;
+		});
+	}
+
+	private accountGeneration = 0;
+
+	private reset() {
+		this.accountGeneration++;
+		this._incoming.set(null);
+		this._pendingCount.set(0);
+	}
+
 	list() {
+		const requestedInGeneration = this.accountGeneration;
 		return this.http
 			.get<{
 				data: { requests: IncomingFollowRequest[] };
@@ -23,6 +44,8 @@ export class FollowRequestsService {
 			.pipe(
 				map(res => res.data.requests),
 				tap(rows => {
+					if (requestedInGeneration !== this.accountGeneration)
+						return;
 					this._incoming.set(rows);
 					this._pendingCount.set(rows.length);
 				})

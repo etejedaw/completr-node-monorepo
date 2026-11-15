@@ -9,9 +9,9 @@ import { RouterLink } from "@angular/router";
 import { type QueueEntry } from "../../../core/models";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
+import { ProfileAccessState } from "../../../shared/components/profile-access-state/profile-access-state";
 import { UiButton, UiEmptyState } from "../../../shared/ui";
 import { QueueBrowser } from "../../queue/queue-browser/queue-browser";
-import { ProfileAccessState } from "../components/profile-access-state";
 import { injectPublicCollection } from "../services/public-collection";
 import { PublicLibraryService } from "../services/public-library.service";
 

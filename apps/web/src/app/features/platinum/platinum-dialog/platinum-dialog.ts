@@ -9,6 +9,8 @@ import { injectDialogRef } from "ng-primitives/dialog";
 import { forkJoin, map } from "rxjs";
 
 import { type Game } from "../../../core/models";
+import { GamesService } from "../../../core/services/games";
+import { PlatinumService } from "../../../core/services/platinum";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
 import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
@@ -29,10 +31,8 @@ import {
 	backlogStatusIconColor,
 	backlogStatusLabel
 } from "../../../shared/utils/backlog-status";
+import { injectGameSearch } from "../../../shared/utils/inject-game-search";
 import { BacklogService } from "../../backlog/backlog";
-import { injectGameSearch } from "../../games/game-search";
-import { GamesService } from "../../games/games";
-import { PlatinumService } from "../platinum";
 import {
 	type PlatinumContext,
 	type PlatinumDialogData,

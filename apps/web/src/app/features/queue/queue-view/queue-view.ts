@@ -23,6 +23,8 @@ import {
 import { type QueueEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
+import { FavoritesService } from "../../../core/services/favorites";
+import { QueueService } from "../../../core/services/queue";
 import { ToastService } from "../../../core/services/toast";
 import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
@@ -36,11 +38,10 @@ import {
 	UiPremiumBadge
 } from "../../../shared/ui";
 import { arrangeIntoFullOrder } from "../../../shared/utils/full-order";
+import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { PendingRemovals } from "../../../shared/utils/pending-removals";
 import { BacklogService } from "../../backlog/backlog";
-import { FavoritesService } from "../../favorites/favorites";
-import { QueueService } from "../queue";
 import { QueueAddModal } from "../queue-add-modal/queue-add-modal";
 import { type QueueAddModalData } from "../queue-add-modal/queue-add-modal.model";
 import { QueueBrowser } from "../queue-browser/queue-browser";
@@ -66,6 +67,7 @@ import { type QueueWrite } from "./queue-view.model";
 })
 export class QueueView implements OnInit {
 	private readonly destroyRef = inject(DestroyRef);
+	protected readonly queueLoader = injectLatestLoader();
 	private readonly queueService = inject(QueueService);
 	private readonly backlogService = inject(BacklogService);
 	private readonly favoritesService = inject(FavoritesService);
@@ -290,15 +292,15 @@ export class QueueView implements OnInit {
 		this.reorder(list, list[toIndex]);
 	}
 
-	private loadQueue() {
+	protected loadQueue() {
 		this.isLoading.set(true);
-		this.queueService
-			.getMyQueuePaged({
+		this.queueLoader.load(
+			this.queueService.getMyQueuePaged({
 				limit: this.limit,
 				offset: this.offset(),
 				search: this.searchQuery().trim() || undefined
-			})
-			.subscribe({
+			}),
+			{
 				next: res => {
 					const visible = this.pendingRemovals.withoutPending(
 						res.data.queue
@@ -311,7 +313,8 @@ export class QueueView implements OnInit {
 					this.isLoading.set(false);
 				},
 				error: () => this.isLoading.set(false)
-			});
+			}
+		);
 	}
 
 	private reorder(list: QueueEntry[], moved: QueueEntry) {

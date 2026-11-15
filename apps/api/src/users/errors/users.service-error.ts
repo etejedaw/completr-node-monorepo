@@ -9,6 +9,20 @@ export function notFoundError() {
 	});
 }
 
+export function privateError() {
+	return new ServiceError("USER_PRIVATE", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
+
+export function listNotFoundError() {
+	return new ServiceError("USER_LIST_NOT_FOUND", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
+
 export function validationError(rawError: unknown) {
 	return new ServiceError("USER_VALIDATION_ERROR", {
 		...BASE_OPTIONS,

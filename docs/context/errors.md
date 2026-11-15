@@ -65,7 +65,7 @@ errors/
 3. **Los providers lanzan `ServiceError` con `service: "<Nombre> Provider"`** — distinto a `"<Nombre> Service"` para diferenciar fallos externos de fallos internos.
 4. **El `service` y el `module` se usan como claves de routing en los normalizers globales.** Si los renombras, hay que actualizar las claves en `common/errors/error-registry.ts`.
 5. **Los códigos de error siguen el patrón `<MODULO>_<CAUSA>`** en `SCREAMING_SNAKE_CASE` (`ORDER_NOT_FOUND`, `AUTH_INVALID_CREDENTIALS`, `PAYMENTS_RATE_LIMITED`).
-6. **El `correlationId` se propaga en el `context`** para trazabilidad en logs.
+6. **El `correlationId` se propaga en el `context`** para trazabilidad en logs. `errorHandlerMiddleware` registra cada error que responde: nivel `error` con el stack de la causa original para los 5xx, y nivel `warn` para los 4xx, salvo 401, 403, 404 y 429, que son respuestas esperadas y ya quedan en el log de la request. Cada línea lleva `correlationId`, método, ruta sin query string, status, código y la causa descrita con `describeFailure`; nunca el body, las cabeceras ni los tokens.
 7. **Cuando uses `rethrowSequelizeError`, todo el cuerpo crítico (incluido el `return`) va dentro del `try`.** La función está tipada `: never`, así que el código tras el catch solo correría en path feliz — declarar variables `let` afuera para llenarlas adentro y consumirlas después es confuso y propenso a bugs. Ver "Patrón `rethrowSequelizeError`" más abajo.
 
 ## Patrón `rethrowSequelizeError`

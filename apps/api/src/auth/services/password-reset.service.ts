@@ -2,6 +2,7 @@ import { Op, type Transaction } from "sequelize";
 
 import { environmentConfig } from "../../common/config/environment.config";
 import { MS_PER_MINUTE } from "../../common/constants/time.constants";
+import { acquireAdvisoryLock } from "../../common/utils/acquire-advisory-lock.util";
 import {
 	generateOneTimeToken,
 	hashOneTimeToken
@@ -10,10 +11,7 @@ import { sequelize } from "../../database/sequelize.database";
 import { PasswordResetToken } from "../password-reset-token.model";
 
 async function lockPasswordResetsOf(userId: string, transaction: Transaction) {
-	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:key))", {
-		replacements: { key: `password-reset:${userId}` },
-		transaction
-	});
+	await acquireAdvisoryLock(`password-reset:${userId}`, transaction);
 }
 
 async function isInCooldown(userId: string, transaction: Transaction) {

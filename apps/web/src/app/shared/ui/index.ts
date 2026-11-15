@@ -35,6 +35,7 @@ export type { UiDialogSize, UiDialogTone } from "./dialog/ui-dialog";
 export { UiDialog } from "./dialog/ui-dialog";
 export { UiDrawer } from "./drawer/ui-drawer";
 export { UiEmptyState } from "./empty-state/ui-empty-state";
+export { UiLoadError } from "./empty-state/ui-load-error";
 export { UiNoMatches } from "./empty-state/ui-no-matches";
 export { UiPlainEmptyState } from "./empty-state/ui-plain-empty-state";
 export type { UiPlainEmptyStateHeadingLevel } from "./empty-state/ui-plain-empty-state.model";
@@ -66,13 +67,13 @@ export { UiPagination } from "./pagination/ui-pagination";
 export { UiPremiumBadge } from "./premium-badge/ui-premium-badge";
 export { UiProgress } from "./progress/ui-progress";
 export { UiSearchBar } from "./search-bar/ui-search-bar";
-export type { UiSelectableRowVariant } from "./selectable-row/ui-selectable-row";
-export { UiSelectableRow } from "./selectable-row/ui-selectable-row";
 export { UiSegmentedControl } from "./segmented-control/ui-segmented-control";
 export type {
 	UiSegmentedControlSemantics,
 	UiSegmentedOption
 } from "./segmented-control/ui-segmented-control.model";
+export type { UiSelectableRowVariant } from "./selectable-row/ui-selectable-row";
+export { UiSelectableRow } from "./selectable-row/ui-selectable-row";
 export { UiSeparator } from "./separator/ui-separator";
 export type { UiSkeletonVariant } from "./skeleton/ui-skeleton";
 export { UiSkeleton } from "./skeleton/ui-skeleton";

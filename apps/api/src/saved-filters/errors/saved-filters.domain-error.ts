@@ -29,6 +29,15 @@ export function savedFilterFrozen(context?: Record<string, unknown>) {
 	);
 }
 
+export function savedFilterAlreadyExists(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"SAVED_FILTER_UNIQUE_CONSTRAINT",
+		"This saved filter already exists",
+		context
+	);
+}
+
 export function savedFilterValidationError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

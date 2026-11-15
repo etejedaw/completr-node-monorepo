@@ -9,6 +9,7 @@ import {
 
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shelf";
+import { ProfileSectionHeader } from "../../../shared/components/profile-section-header/profile-section-header";
 import {
 	UiSegmentedControl,
 	type UiSegmentedOption,
@@ -18,7 +19,6 @@ import {
 	type ComparisonDimension,
 	type ComparisonGame
 } from "../services/public-library.model";
-import { ProfileSectionHeader } from "./profile-section-header";
 
 const SKELETON_RANGE = [0, 1, 2, 3, 4, 5];
 

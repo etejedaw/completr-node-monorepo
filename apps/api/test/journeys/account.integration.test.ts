@@ -235,7 +235,10 @@ void describe("account journey: invitation, devices, sessions and passwords", ()
 		await api()
 			.patch("/auth/password")
 			.set("Authorization", laptop.authorization)
-			.send({ password: CHANGED_PASSWORD })
+			.send({
+				currentPassword: DEFAULT_PASSWORD,
+				password: CHANGED_PASSWORD
+			})
 			.expect(204);
 
 		assert.equal((await refresh(laptop, LAPTOP)).status, 401);

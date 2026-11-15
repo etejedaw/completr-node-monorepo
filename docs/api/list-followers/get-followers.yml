@@ -11,6 +11,14 @@ http:
         - name: listId
           value: "{{LIST_ID}}"
           type: path
+        - name: limit
+          value: "24"
+          type: query
+          disabled: true
+        - name: offset
+          value: "0"
+          type: query
+          disabled: true
 
 settings:
     encodeUrl: true
@@ -18,11 +26,20 @@ settings:
 docs: |-
     ## Get List Followers
 
-    Returns users who follow this list. The list must be visible to the requester: the owner's profile (`profileVisibility`) and lists section (`listVisibility`) must be visible to them (friend = mutual follow) and the list must be public. The owner always sees their own list's followers. For anyone else a hidden or private list answers like a list that does not exist.
+    Returns the users who follow this list, newest first (ties broken by follow id), paginated. Deactivated accounts are not listed and do not count towards `total`. The list must be visible to the requester: the owner's profile (`profileVisibility`) and lists section (`listVisibility`) must be visible to them (friend = mutual follow) and the list must be public. For anyone else a hidden or private list answers like a list that does not exist.
+
+    The owner of the list sees every follower. Anyone else sees only the followers who kept their follow visible (`isVisible: true`, see `PATCH /lists/:listId/follow`).
 
     **Auth:** Bearer token required.
 
     **Rate Limit:** 50 requests per minute.
+
+    ### Query Params
+
+    | Param  | Type    | Required | Default | Description        |
+    |--------|---------|----------|---------|--------------------|
+    | limit  | integer | No       | 24      | Page size (1–100)  |
+    | offset | integer | No       | 0       | Page offset        |
 
     ### Response (200)
 
@@ -31,14 +48,18 @@ docs: |-
       "data": {
         "users": [
           { "id": "uuid", "username": "johndoe", "name": "John", "avatarUrl": null }
-        ]
+        ],
+        "total": 1
       }
     }
     ```
+
+    `total` counts every follower the requester may see, not just the current page. An `offset` past the end returns an empty `users` with the same `total`.
 
     ### Errors
 
     | Status | Type | When |
     |--------|------|------|
     | 401 | `UNAUTHORIZED` | Missing or invalid token |
+    | 422 | `COMMON_SCHEMA_INVALID` | `limit` outside 1–100, or a negative or non-numeric `offset` |
     | 404 | `LIST_FOLLOWER_LIST_NOT_FOUND` | The list does not exist, or the requester may not see it (private list, or hidden by the owner's profile or lists section) |

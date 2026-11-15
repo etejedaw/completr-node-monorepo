@@ -7,7 +7,7 @@ import * as passwordService from "../src/auth/services/password.service";
 import { PinoLogger } from "../src/common/logger/pino.logger";
 import { initDatabase } from "../src/database/init.database";
 import { sequelize } from "../src/database/sequelize.database";
-import * as usersService from "../src/users/users.service";
+import * as usersService from "../src/users/services/users.service";
 
 const logger = new PinoLogger("create-admin");
 

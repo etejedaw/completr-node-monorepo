@@ -26,7 +26,7 @@
 	</button>
 </app-library-hero>
 
-@if (loading() || tags().length > 0) {
+@if (loading() || (tags().length > 0 && !tagsLoader.failed())) {
 <app-library-toolbar>
 	<app-page-search
 		size="sm"
@@ -73,6 +73,8 @@
 	</div>
 	}
 </div>
+} @else if (tagsLoader.failed()) {
+<ui-load-error (retried)="load()" />
 } @else if (tags().length === 0) {
 <ui-empty-state
 	icon="label"

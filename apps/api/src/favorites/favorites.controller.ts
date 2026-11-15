@@ -7,10 +7,7 @@ import { type ExportSearchQuery } from "../common/schemas/export-search-query.sc
 import { type ExportFormat } from "../common/types/export-format.types";
 import { sendExport } from "../common/utils/send-export.util";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
-import * as userDomainError from "../users/errors/users.domain-error";
-import { canView } from "../users/helpers/visibility.helper";
-import { type UsernameParam } from "../users/schemas/username-params.schema";
-import * as usersService from "../users/users.service";
+import { type User } from "../users/user.model";
 import { type BulkFavoritesDto } from "./dtos/bulk-favorites.dto";
 import { type ReplaceFavoritesDto } from "./dtos/replace-favorites.dto";
 import {
@@ -34,11 +31,11 @@ export async function putFavorites(request: Request, response: Response) {
 	const entries = await favoritesService.replaceFavorites(user, body.gameIds);
 	const entriesPlain = entries.map(e => e.get({ plain: true }));
 
-	for (const gameId of body.gameIds) {
-		if (!currentIds.has(gameId)) {
-			activityService.record(user.id, "favorite_added", gameId);
-		}
-	}
+	activityService.recordManyForGames(
+		user.id,
+		"favorite_added",
+		body.gameIds.filter(gameId => !currentIds.has(gameId))
+	);
 
 	const tagsByGame = await moodTagsService.findTagsForGames(
 		user.id,
@@ -93,18 +90,11 @@ export async function getMeFavorites(request: Request, response: Response) {
 }
 
 export async function getUserFavorites(request: Request, response: Response) {
-	const params = request.locals.params as UsernameParam;
 	const query = request.locals.query ?? {};
 
-	const user = await usersService.findUserByUsername(params.username);
-	if (!user) throw userDomainError.userNotFound();
+	const user = request.locals.profileOwner as User;
 
 	const currentUser = request.locals.user as RequestUser | undefined;
-
-	if (!(await canView(currentUser?.id, user, "profile")))
-		throw userDomainError.userPrivate();
-	if (!(await canView(currentUser?.id, user, "favorite")))
-		throw userDomainError.userPrivate();
 
 	const { rows, total } =
 		await favoritesService.findFavoritesByUserIdPaginated(user.id, query);
@@ -168,9 +158,7 @@ export async function postFavoritesBulk(request: Request, response: Response) {
 		user,
 		body.gameIds
 	);
-	for (const gameId of added) {
-		activityService.record(user.id, "favorite_added", gameId);
-	}
+	activityService.recordManyForGames(user.id, "favorite_added", added);
 
 	const data = { action: query.action, ...result };
 	return response.status(200).json({ data });

@@ -4,6 +4,7 @@ import { BacklogQuerySchema } from "../backlog/schemas/backlog-query.schema";
 import * as backlogStatsService from "../backlog/services/backlog-stats.service";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
@@ -28,10 +29,7 @@ async function areFrozen(userId: string, role: string) {
 }
 
 async function lockUserFilters(userId: string, transaction: Transaction) {
-	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
-		replacements: { lockKey: `saved-filters:${userId}` },
-		transaction
-	});
+	await acquireAdvisoryLock(`saved-filters:${userId}`, transaction);
 }
 
 export async function createSavedFilter(

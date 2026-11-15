@@ -5,7 +5,8 @@ import { type Cron } from "croner";
 import { apiKeysConfig } from "./common/config/api-keys.config";
 import { environmentConfig } from "./common/config/environment.config";
 import { PinoLogger } from "./common/logger/pino.logger";
-import { initDatabase } from "./database/init.database";
+import { describeFailure } from "./common/utils/describe-failure.util";
+import { closeDatabase, initDatabase } from "./database/init.database";
 import { registerExternalDataSources } from "./games/services/external-data-sources.service";
 import { HltbClient } from "./hltb/hltb.provider";
 import { IgdbClient } from "./igdb/igdb.provider";
@@ -59,11 +60,23 @@ async function failJobsInterruptedByRestart() {
 	});
 }
 
+async function closeDatabaseAndExit() {
+	try {
+		await closeDatabase();
+		process.exit(0);
+	} catch (error) {
+		logger.error("shutdown", "closing the database failed", {
+			error: describeFailure(error)
+		});
+		process.exit(1);
+	}
+}
+
 function stopOnTerminationSignals(scheduler: Cron, server: Server) {
 	const shutdown = (signal: string) => {
 		logger.info("shutdown", "stopping", { signal });
 		scheduler.stop();
-		server.close(() => process.exit(0));
+		server.close(() => void closeDatabaseAndExit());
 	};
 	process.once("SIGTERM", () => shutdown("SIGTERM"));
 	process.once("SIGINT", () => shutdown("SIGINT"));
@@ -84,4 +97,10 @@ async function bootstrap() {
 	stopOnTerminationSignals(rewindFreezeScheduler, server);
 }
 
-void bootstrap();
+bootstrap().catch((error: unknown) => {
+	logger.error("startup", "failed", {
+		error: describeFailure(error),
+		stack: error instanceof Error ? error.stack : undefined
+	});
+	process.exit(1);
+});

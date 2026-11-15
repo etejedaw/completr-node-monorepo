@@ -150,13 +150,19 @@ void describe("listItemsService access rules", () => {
 
 		await listItemsService.removeItem("l-1", FREE_USER, "g-1");
 
-		const [sql, options] = query.mock.calls[0]!.arguments;
+		const [lockSql, lockOptions] = query.mock.calls[0]!.arguments;
+		assert.match(String(lockSql), /pg_advisory_xact_lock/);
+		assert.deepEqual(lockOptions, {
+			replacements: { lockKey: "list-items:l-1" },
+			transaction
+		});
+		const [sql, options] = query.mock.calls[1]!.arguments;
 		assert.match(
 			String(sql),
-			/ROW_NUMBER\(\) OVER \(ORDER BY "position", "createdAt", "id"\)/
+			/ROW_NUMBER\(\) OVER \(PARTITION BY "listId" ORDER BY "position", "createdAt", "id"\)/
 		);
 		assert.deepEqual(options, {
-			replacements: { listId: "l-1" },
+			replacements: { ownerIds: ["l-1"] },
 			transaction
 		});
 	});
@@ -169,7 +175,11 @@ void describe("listItemsService access rules", () => {
 
 		await listItemsService.removeItem("l-1", FREE_USER, "g-1");
 
-		assert.equal(query.mock.callCount(), 0);
+		assert.equal(query.mock.callCount(), 1);
+		assert.match(
+			String(query.mock.calls[0]!.arguments[0]),
+			/pg_advisory_xact_lock/
+		);
 	});
 
 	void it("never freezes premium users", async () => {
@@ -289,6 +299,7 @@ void describe("listItemsService.replaceItems", () => {
 	void it("clears the list when no games are given", async () => {
 		stubList();
 		stubOwnedListCount(1);
+		const { transaction } = stubTransaction();
 		const destroy = stub(ListItem, "destroy", async () => 3);
 
 		assert.deepEqual(
@@ -296,7 +307,7 @@ void describe("listItemsService.replaceItems", () => {
 			[]
 		);
 		assert.deepEqual(destroy.mock.calls[0]?.arguments, [
-			{ where: { listId: "l-1" } }
+			{ where: { listId: "l-1" }, transaction }
 		]);
 	});
 
@@ -351,8 +362,8 @@ void describe("listItemsService.replaceItems", () => {
 			],
 			{ transaction }
 		]);
-		assert.equal(query.mock.callCount(), 1);
-		assert.deepEqual(query.mock.calls[0]?.arguments[1], {
+		assert.equal(query.mock.callCount(), 2);
+		assert.deepEqual(query.mock.calls[1]?.arguments[1], {
 			replacements: ["li-a", 2],
 			transaction
 		});

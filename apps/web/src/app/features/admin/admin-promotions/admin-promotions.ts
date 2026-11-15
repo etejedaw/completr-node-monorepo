@@ -12,6 +12,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { form, FormField, required, validate } from "@angular/forms/signals";
 import { type Observable, type Subscription } from "rxjs";
 
+import { type PremiumGrantFeature } from "../../../core/services/premium-access-admin.model";
 import { ToastService } from "../../../core/services/toast";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import {
@@ -37,7 +38,6 @@ import {
 	UiTable
 } from "../../../shared/ui";
 import { validationSummary } from "../../../shared/utils/validation-errors";
-import { type PremiumGrantFeature } from "../services/premium-access-admin.model";
 import {
 	PREMIUM_PROMOTION_FEATURE_OPTIONS,
 	type PremiumPromotion,

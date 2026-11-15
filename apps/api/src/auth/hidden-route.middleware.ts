@@ -2,9 +2,9 @@ import { type NextFunction, type Request, type Response } from "express";
 import jwt from "jsonwebtoken";
 import { ZodError } from "zod";
 
+import * as userService from "../users/services/users.service";
 import { type UserRole } from "../users/user-role.type";
-import * as userService from "../users/users.service";
-import * as authDomainsErrors from "./errors/auth.domains-error";
+import * as authDomainsErrors from "./errors/auth.domain-error";
 import { HeaderTokenSchema } from "./schemas";
 import * as tokenService from "./services/token.service";
 import { toRequestUser } from "./utils/request-user.util";

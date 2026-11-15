@@ -7,10 +7,10 @@ import userEvent from "@testing-library/user-event";
 import { of, Subject, throwError } from "rxjs";
 
 import { AuthService } from "../../core/services/auth";
+import { PublicSocialService } from "../../core/services/public-social";
 import { ToastService } from "../../core/services/toast";
 import { UsersService } from "../../core/services/users";
 import { type UserResult } from "../../core/services/users.model";
-import { PublicSocialService } from "../public-profile/services/public-social.service";
 import { UsersDiscover } from "./users-discover";
 
 function person(id: string, username: string): UserResult {

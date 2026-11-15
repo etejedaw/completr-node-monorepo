@@ -2,10 +2,11 @@ import { col, fn, literal, Op, type Transaction } from "sequelize";
 
 import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
-import * as usersService from "../users/users.service";
+import * as usersService from "../users/services/users.service";
 import { type CreateReviewDto } from "./dtos/create-review.dto";
 import { type UpdateReviewDto } from "./dtos/update-review.dto";
 import * as reviewsServiceError from "./errors/reviews.service-error";
@@ -13,6 +14,7 @@ import { Review } from "./review.model";
 
 const LATEST_REVIEWED_GAMES_LIMIT = 16;
 const DEFAULT_USER_REVIEWS_LIMIT = 50;
+const DEFAULT_GAME_REVIEWS_LIMIT = 100;
 const REVIEW_GAME_ATTRS = ["id", "code", "title", "coverUrl", "backgroundUrl"];
 
 const hasContent = literal(`"content" IS NOT NULL AND btrim("content") <> ''`);
@@ -55,30 +57,26 @@ export async function createReview(
 	}
 }
 
-export async function findReviewsByGameId(gameId: string) {
-	return Review.findAll({
+export async function findReviewsByGameId(
+	gameId: string,
+	pagination: PaginationQuery = {}
+) {
+	return Review.findAndCountAll({
 		where: { gameId },
 		include: [
 			{
 				...usersService.userInclude(),
-				attributes: USER_PUBLIC_ATTRS
+				attributes: USER_PUBLIC_ATTRS,
+				where: { isActive: true }
 			}
 		],
 		order: [
 			["createdAt", "DESC"],
 			["id", "DESC"]
-		]
-	});
-}
-
-export async function findReviewsByUserId(userId: string) {
-	return Review.findAll({
-		where: { userId, [Op.and]: hasContentOrRating },
-		include: [{ ...gamesService.gameInclude(), attributes: REVIEW_GAME_ATTRS }],
-		order: [
-			["createdAt", "DESC"],
-			["id", "DESC"]
-		]
+		],
+		limit: pagination.limit ?? DEFAULT_GAME_REVIEWS_LIMIT,
+		offset: pagination.offset ?? 0,
+		distinct: true
 	});
 }
 
@@ -89,7 +87,9 @@ export async function findReviewsByUserIdPaginated(
 	const { limit = DEFAULT_USER_REVIEWS_LIMIT, offset = 0 } = options;
 	return Review.findAndCountAll({
 		where: { userId, [Op.and]: hasContentOrRating },
-		include: [{ ...gamesService.gameInclude(), attributes: REVIEW_GAME_ATTRS }],
+		include: [
+			{ ...gamesService.gameInclude(), attributes: REVIEW_GAME_ATTRS }
+		],
 		order: [
 			["createdAt", "DESC"],
 			["id", "DESC"]
@@ -146,7 +146,9 @@ export async function findAggregatedRatingsByGame() {
 	}[];
 }
 
-export async function findLatestReviewedGameIds(limit = LATEST_REVIEWED_GAMES_LIMIT) {
+export async function findLatestReviewedGameIds(
+	limit = LATEST_REVIEWED_GAMES_LIMIT
+) {
 	const rows = (await Review.findAll({
 		where: { [Op.and]: [hasContent, reviewedGameIsActive] },
 		attributes: ["gameId", [fn("MAX", col("createdAt")), "lastReviewedAt"]],
@@ -197,7 +199,9 @@ export async function existsByGameId(
 export async function findReviewsForDataExport(userId: string) {
 	return Review.findAll({
 		where: { userId },
-		include: [{ ...gamesService.gameInclude(), attributes: GAME_REFERENCE_ATTRS }],
+		include: [
+			{ ...gamesService.gameInclude(), attributes: GAME_REFERENCE_ATTRS }
+		],
 		order: CHRONOLOGICAL_ORDER
 	});
 }

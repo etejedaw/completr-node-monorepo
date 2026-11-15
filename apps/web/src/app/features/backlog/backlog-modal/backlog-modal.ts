@@ -4,12 +4,14 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	type ElementRef,
 	inject,
 	type OnInit,
 	signal,
 	viewChild
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { form, FormField, max, min, required } from "@angular/forms/signals";
 import { RouterLink } from "@angular/router";
 import { injectDialogRef } from "ng-primitives/dialog";
@@ -18,6 +20,11 @@ import { type Observable, of, switchMap } from "rxjs";
 import { type GamePlatinum } from "../../../core/models";
 import { type Game } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
+import { GamesService } from "../../../core/services/games";
+import { PlatinumService } from "../../../core/services/platinum";
+import { QueueService } from "../../../core/services/queue";
+import { ReviewsService } from "../../../core/services/reviews";
+import { type Review } from "../../../core/services/reviews.model";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { BacklogStatusBadge } from "../../../shared/components/backlog-status-badge/backlog-status-badge";
@@ -60,13 +67,8 @@ import {
 	problemTitle,
 	reportHttpFailure
 } from "../../../shared/utils/http-failure";
-import { injectGameSearch } from "../../games/game-search";
-import { GamesService } from "../../games/games";
-import { ReviewsService } from "../../games/reviews";
-import { type Review } from "../../games/reviews.model";
+import { injectGameSearch } from "../../../shared/utils/inject-game-search";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
-import { PlatinumService } from "../../platinum/platinum";
-import { QueueService } from "../../queue/queue";
 import { BacklogService } from "../backlog";
 import {
 	type BacklogReviewDraft,
@@ -220,6 +222,7 @@ export class BacklogModal implements OnInit {
 		});
 	}
 
+	private readonly destroyRef = inject(DestroyRef);
 	private readonly dialogRef = injectDialogRef<
 		BacklogModalData,
 		BacklogModalResult
@@ -446,6 +449,7 @@ export class BacklogModal implements OnInit {
 		this.scoreSourcesService.load();
 		this.moodTagsService
 			.getMyTags()
+			.pipe(takeUntilDestroyed(this.destroyRef))
 			.subscribe(tags =>
 				this.moodTagsSuggestions.set(tags.map(t => t.tag))
 			);
@@ -457,6 +461,7 @@ export class BacklogModal implements OnInit {
 			this.moodTags.set(e.moodTags ?? []);
 			this.moodTagsService
 				.getGameTags(e.game.id)
+				.pipe(takeUntilDestroyed(this.destroyRef))
 				.subscribe(tags => this.moodTags.set(tags));
 			this.progress.load();
 			this.coop.load();
@@ -475,14 +480,17 @@ export class BacklogModal implements OnInit {
 				} as Game);
 			}
 			this.applyExistingPlatinum(e.platinum ?? null);
-			this.gamesService.getByCode(e.game.code).subscribe({
-				next: full => {
-					this.selectedGame.set(full);
-					this.refreshAvailableCompilationParents(full);
-					if (full.userPlatinum !== undefined)
-						this.applyExistingPlatinum(full.userPlatinum);
-				}
-			});
+			this.gamesService
+				.getByCode(e.game.code)
+				.pipe(takeUntilDestroyed(this.destroyRef))
+				.subscribe({
+					next: full => {
+						this.selectedGame.set(full);
+						this.refreshAvailableCompilationParents(full);
+						if (full.userPlatinum !== undefined)
+							this.applyExistingPlatinum(full.userPlatinum);
+					}
+				});
 			this.model.set({
 				gameId: e.game.id,
 				platformId: e.platform.id,
@@ -497,11 +505,14 @@ export class BacklogModal implements OnInit {
 			});
 			this.isPublic.set(e.isPublic);
 
-			this.queueService.getMyQueue().subscribe(queue => {
-				const inQueue = queue.some(w => w.backlog.id === e.id);
-				this.isInQueue.set(inQueue);
-				this.addToQueue.set(inQueue);
-			});
+			this.queueService
+				.getMyQueue()
+				.pipe(takeUntilDestroyed(this.destroyRef))
+				.subscribe(queue => {
+					const inQueue = queue.some(w => w.backlog.id === e.id);
+					this.isInQueue.set(inQueue);
+					this.addToQueue.set(inQueue);
+				});
 		}
 
 		const parentPreset = this.preselectedCompilationParent;
@@ -534,20 +545,26 @@ export class BacklogModal implements OnInit {
 		code: string;
 		title: string;
 	}) {
-		this.gamesService.getByCode(child.code).subscribe({
-			next: game => this.selectGame(game)
-		});
+		this.gamesService
+			.getByCode(child.code)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: game => this.selectGame(game)
+			});
 	}
 
 	protected selectWholeCompilation() {
 		const parent = this.compilationParent();
 		if (!parent) return;
-		this.gamesService.getByCode(parent.code).subscribe({
-			next: game => {
-				this.compilationParent.set(null);
-				this.applyGameSelection(game);
-			}
-		});
+		this.gamesService
+			.getByCode(parent.code)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: game => {
+					this.compilationParent.set(null);
+					this.applyGameSelection(game);
+				}
+			});
 	}
 
 	private applyGameSelection(game: Game) {
@@ -556,6 +573,7 @@ export class BacklogModal implements OnInit {
 		this.fetchExistingReview(game.id);
 		this.moodTagsService
 			.getGameTags(game.id)
+			.pipe(takeUntilDestroyed(this.destroyRef))
 			.subscribe(tags => this.moodTags.set(tags));
 
 		const duration = pickDefaultDuration(game.times);
@@ -584,13 +602,16 @@ export class BacklogModal implements OnInit {
 			this.existingReview.set(null);
 			return;
 		}
-		this.reviewsService.getReviews(gameId).subscribe({
-			next: reviews => {
-				const mine = reviews.find(r => r.user?.id === userId);
-				this.existingReview.set(mine ?? null);
-			},
-			error: () => this.existingReview.set(null)
-		});
+		this.reviewsService
+			.getReviews(gameId)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: reviews => {
+					const mine = reviews.find(r => r.user?.id === userId);
+					this.existingReview.set(mine ?? null);
+				},
+				error: () => this.existingReview.set(null)
+			});
 	}
 
 	protected clearCompilationParent() {
@@ -624,9 +645,12 @@ export class BacklogModal implements OnInit {
 			) {
 				this.compilationParent.set(game);
 			} else {
-				this.gamesService.getByCode(game.code).subscribe({
-					next: full => this.compilationParent.set(full)
-				});
+				this.gamesService
+					.getByCode(game.code)
+					.pipe(takeUntilDestroyed(this.destroyRef))
+					.subscribe({
+						next: full => this.compilationParent.set(full)
+					});
 			}
 			return;
 		}
@@ -650,12 +674,15 @@ export class BacklogModal implements OnInit {
 	}
 
 	private prefillScoreOnceSourcesLoad(game: Game) {
-		this.scoreSourcesService.whenLoaded().subscribe(() => {
-			if (this.selectedGame()?.id !== game.id) return;
-			const score = this.pickScore(game);
-			this.activeScoreSource.set(score.source);
-			this.model.update(m => ({ ...m, score: score.value }));
-		});
+		this.scoreSourcesService
+			.whenLoaded()
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe(() => {
+				if (this.selectedGame()?.id !== game.id) return;
+				const score = this.pickScore(game);
+				this.activeScoreSource.set(score.source);
+				this.model.update(m => ({ ...m, score: score.value }));
+			});
 	}
 
 	private pickScore(game: Game): ReferencePick {

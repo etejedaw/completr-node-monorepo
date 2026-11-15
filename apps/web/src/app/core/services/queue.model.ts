@@ -1,0 +1,26 @@
+import { type QueueEntry } from "../models";
+import { type Appendable } from "../utils/http-params";
+
+export interface QueueListResponse {
+	data: { queue: QueueEntry[]; total?: number };
+}
+
+export interface QueueSingleResponse {
+	data: { queue: QueueEntry };
+}
+
+export interface QueueBacklogIdsResponse {
+	data: { backlogIds: string[] };
+}
+
+export interface QueuePagination extends Record<string, Appendable> {
+	limit?: number;
+	offset?: number;
+	search?: string;
+}
+
+export type QueueBulkAction = "add" | "remove";
+
+export interface QueueBulkRequest {
+	backlogIds: string[];
+}

@@ -2,9 +2,12 @@ import { Op } from "sequelize";
 
 import { sequelize } from "../../database/sequelize.database";
 import { type PremiumAccessUser } from "../../premium-access/premium-access.interface";
-import { resolvePremiumAccess } from "../../premium-access/services/premium-access.service";
+import {
+	resolvePremiumAccess,
+	resolvePremiumAccessForUsers
+} from "../../premium-access/services/premium-access.service";
+import * as usersService from "../../users/services/users.service";
 import { type User } from "../../users/user.model";
-import * as usersService from "../../users/users.service";
 import * as rewindServiceError from "../errors/rewind.service-error";
 import {
 	DEFAULT_ADMIN_REWINDS_PAGE_SIZE,
@@ -30,12 +33,19 @@ async function resolveAiAccess(
 async function resolveAiAccessByOwnerId(
 	owners: User[]
 ): Promise<Map<string, RewindPremiumAccessKind | null>> {
-	const entries = await Promise.all(
-		owners.map(
-			async owner => [owner.id, await resolveAiAccess(owner)] as const
-		)
+	const accessByOwnerId = await resolvePremiumAccessForUsers(
+		owners,
+		"rewind.premium"
 	);
-	return new Map(entries);
+	return new Map(
+		owners.map(owner => {
+			const access = accessByOwnerId.get(owner.id);
+			return [
+				owner.id,
+				access ? resolveRewindPremiumAccessKind(access) : null
+			] as const;
+		})
+	);
 }
 
 function toItem(

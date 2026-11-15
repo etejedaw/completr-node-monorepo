@@ -211,7 +211,7 @@ void describe("refresh token deletion", () => {
 		await tokenService.deleteAllUserRefreshTokens("u-1");
 
 		assert.deepEqual(destroy.mock.calls[0]?.arguments, [
-			{ where: { userId: "u-1" } }
+			{ where: { userId: "u-1" }, transaction: undefined }
 		]);
 	});
 });

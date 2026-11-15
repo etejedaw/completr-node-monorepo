@@ -25,5 +25,11 @@ export function listItemsDomainToHttpMapper(
 	if (error.code === "LIST_ITEM_FROZEN")
 		return new HttpError({ ...baseOptions, status: 402 });
 
+	if (error.code === "LIST_ITEM_UNIQUE_CONSTRAINT")
+		return new HttpError({ ...baseOptions, status: 409 });
+
+	if (error.code === "LIST_ITEM_VALIDATION_ERROR")
+		return new HttpError({ ...baseOptions, status: 422 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

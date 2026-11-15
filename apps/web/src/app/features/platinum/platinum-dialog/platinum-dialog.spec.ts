@@ -11,10 +11,10 @@ import {
 	type Game,
 	type GamePlatinum
 } from "../../../core/models";
+import { GamesService } from "../../../core/services/games";
+import { PlatinumService } from "../../../core/services/platinum";
 import { pickCalendarDate } from "../../../shared/ui/date-picker/ui-date-picker.testing";
 import { BacklogService } from "../../backlog/backlog";
-import { GamesService } from "../../games/games";
-import { PlatinumService } from "../platinum";
 import { PlatinumDialog } from "./platinum-dialog";
 import { type PlatinumDialogData } from "./platinum-dialog.model";
 

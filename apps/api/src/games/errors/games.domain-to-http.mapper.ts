@@ -34,9 +34,6 @@ export function gamesDomainToHttpMapper(
 	if (error.code === "GAME_VALIDATION_ERROR")
 		return new HttpError({ ...baseOptions, status: 400 });
 
-	if (error.code === "GAME_FORBIDDEN")
-		return new HttpError({ ...baseOptions, status: 403 });
-
 	if (error.code === "GAME_VARIANT_REQUIRED")
 		return new HttpError({ ...baseOptions, status: 422 });
 

@@ -38,7 +38,13 @@ import {
 	type Platform
 } from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
+import { FavoritesService } from "../../../core/services/favorites";
+import { GamesService } from "../../../core/services/games";
+import { PlatinumService } from "../../../core/services/platinum";
 import { PointerService } from "../../../core/services/pointer";
+import { QueueService } from "../../../core/services/queue";
+import { ReviewsService } from "../../../core/services/reviews";
+import { StorageService } from "../../../core/services/storage";
 import { ToastService } from "../../../core/services/toast";
 import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
 import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
@@ -56,6 +62,7 @@ import {
 	UiCountBadge,
 	UiEmptyState,
 	UiFiltersButton,
+	UiLoadError,
 	UiNoMatches,
 	UiOptionPicker,
 	UiPagination,
@@ -73,13 +80,9 @@ import {
 	isNotFound,
 	reportHttpFailure
 } from "../../../shared/utils/http-failure";
+import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
-import { FavoritesService } from "../../favorites/favorites";
-import { GamesService } from "../../games/games";
-import { ReviewsService } from "../../games/reviews";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
-import { PlatinumService } from "../../platinum/platinum";
-import { QueueService } from "../../queue/queue";
 import { BacklogService } from "../backlog";
 import { type BacklogFilters } from "../backlog.model";
 import {
@@ -145,6 +148,8 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 	}
 ];
 
+const VIEW_MODE_STORAGE_KEY = "completr.backlog.viewMode";
+
 @Component({
 	selector: "app-backlog-list",
 	imports: [
@@ -162,6 +167,7 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 		UiCountBadge,
 		UiFiltersButton,
 		UiEmptyState,
+		UiLoadError,
 		UiNoMatches,
 		UiPagination,
 		UiSkeleton,
@@ -182,6 +188,8 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 })
 export class BacklogList implements OnInit {
 	private readonly destroyRef = inject(DestroyRef);
+	private readonly storage = inject(StorageService);
+	protected readonly backlogLoader = injectLatestLoader();
 	private readonly route = inject(ActivatedRoute);
 	private readonly router = inject(Router);
 	private readonly backlogService = inject(BacklogService);
@@ -349,9 +357,7 @@ export class BacklogList implements OnInit {
 	});
 
 	protected readonly viewMode = signal<BacklogViewMode>(
-		(localStorage.getItem(
-			"completr.backlog.viewMode"
-		) as BacklogViewMode) || "diary"
+		(this.storage.get(VIEW_MODE_STORAGE_KEY) as BacklogViewMode) || "diary"
 	);
 
 	protected readonly viewModes = BACKLOG_VIEW_MODES;
@@ -359,7 +365,7 @@ export class BacklogList implements OnInit {
 	protected setViewMode(mode: BacklogViewMode) {
 		this.bulk.selection.clear();
 		this.viewMode.set(mode);
-		localStorage.setItem("completr.backlog.viewMode", mode);
+		this.storage.set(VIEW_MODE_STORAGE_KEY, mode);
 	}
 
 	protected readonly showFilters = signal(false);
@@ -487,13 +493,28 @@ export class BacklogList implements OnInit {
 			platforms: this.gamesService
 				.getPlatforms()
 				.pipe(catchError(() => of([]))),
-			filters: this.savedFiltersService.getAll()
-		}).subscribe(({ platforms, filters }) => {
-			this.allPlatforms.set(platforms);
-			this.savedFilters.set(filters);
-			this.backlogFilters.set(filters.filter(f => f.showInBacklog));
-			this.savedFiltersLoaded.set(true);
-		});
+			filters: this.savedFiltersService.getAll().pipe(
+				catchError((error: unknown) => {
+					reportHttpFailure(
+						this.toast,
+						error,
+						"Couldn't load your saved views. Try again."
+					);
+					return of(null);
+				})
+			)
+		})
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe(({ platforms, filters }) => {
+				this.allPlatforms.set(platforms);
+				if (filters) {
+					this.savedFilters.set(filters);
+					this.backlogFilters.set(
+						filters.filter(f => f.showInBacklog)
+					);
+				}
+				this.savedFiltersLoaded.set(true);
+			});
 		this.moodTagsService
 			.getMyTags()
 			.subscribe(tags =>
@@ -1409,10 +1430,7 @@ export class BacklogList implements OnInit {
 		};
 	}
 
-	private loadSeq = 0;
-
-	private loadBacklog() {
-		const seq = ++this.loadSeq;
+	protected loadBacklog() {
 		this.isLoading.set(true);
 		const base = this.buildBaseFilters();
 		this.appliedFilters.set(base);
@@ -1422,16 +1440,14 @@ export class BacklogList implements OnInit {
 			offset: this.offset()
 		};
 
-		this.backlogService.getMyBacklog(filters).subscribe({
+		this.backlogLoader.load(this.backlogService.getMyBacklog(filters), {
 			next: res => {
-				if (seq !== this.loadSeq) return;
 				this.entries.set(this.bulk.withoutPending(res.data.backlog));
 				this.total.set(res.data.total);
 				this.isLoading.set(false);
 				this.isInitialLoad.set(false);
 			},
 			error: () => {
-				if (seq !== this.loadSeq) return;
 				this.isLoading.set(false);
 				this.isInitialLoad.set(false);
 			}

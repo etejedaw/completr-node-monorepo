@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { describe, it, mock } from "node:test";
+
+import { type Request } from "express";
 
 import { DomainError } from "../../../src/common/errors/domain-error";
 import { ServiceError } from "../../../src/common/errors/service-error";
+import { PinoLogger } from "../../../src/common/logger/pino.logger";
 import { errorHandlerMiddleware } from "../../../src/common/middlewares/error-handler.middleware";
 import { asModel } from "../../unit-helpers/as-model";
 import { fakeRequest, fakeResponse } from "../../unit-helpers/http-fakes";
@@ -92,5 +95,112 @@ void describe("errorHandlerMiddleware", () => {
 
 		assert.equal(captured.body?.correlationId, undefined);
 		assert.equal(captured.status, 500);
+	});
+});
+
+void describe("errorHandlerMiddleware logging", () => {
+	function extraOf(callArguments: unknown[] | undefined) {
+		return (callArguments?.[2] ?? {}) as Record<string, unknown>;
+	}
+
+	function handleLogged(
+		error: Error,
+		request = asModel<Request>({
+			...fakeRequest({
+				originalUrl: "/games?token=secret",
+				correlationId: "cid"
+			}),
+			method: "POST",
+			body: { password: "hunter2" }
+		})
+	) {
+		const errorLog = mock.method(
+			PinoLogger.prototype,
+			"error",
+			() => undefined
+		);
+		const warnLog = mock.method(
+			PinoLogger.prototype,
+			"warn",
+			() => undefined
+		);
+		handle(error, request);
+		const calls = {
+			error: errorLog.mock.calls.map(call => call.arguments),
+			warn: warnLog.mock.calls.map(call => call.arguments)
+		};
+		mock.restoreAll();
+		return calls;
+	}
+
+	void it("logs an unexpected error at error level with stack, route and correlation id", () => {
+		const calls = handleLogged(new Error("boom"));
+
+		assert.equal(calls.error.length, 1);
+		assert.equal(calls.warn.length, 0);
+		const extra = extraOf(calls.error[0]);
+		assert.equal(extra.correlationId, "cid");
+		assert.equal(extra.method, "POST");
+		assert.equal(extra.route, "/games");
+		assert.equal(extra.status, 500);
+		assert.equal(extra.code, "INTERNAL_ERROR");
+		assert.equal(extra.cause, "boom");
+		assert.match(String(extra.stack), /boom/);
+	});
+
+	void it("logs the raw cause of an unmapped service error", () => {
+		const raw = new Error("connection reset");
+		const calls = handleLogged(
+			new ServiceError("SOMETHING_UNMAPPED", {
+				service: "Unregistered Service",
+				raw
+			})
+		);
+
+		const extra = extraOf(calls.error[0]);
+		assert.equal(extra.cause, "SOMETHING_UNMAPPED");
+		assert.equal(extra.stack, raw.stack);
+	});
+
+	void it("never logs request bodies, query strings or tokens", () => {
+		const calls = handleLogged(new Error("boom"));
+
+		const serialized = JSON.stringify(calls.error);
+		assert.equal(serialized.includes("hunter2"), false);
+		assert.equal(serialized.includes("secret"), false);
+	});
+
+	void it("logs a client error at warn level without stack", () => {
+		const calls = handleLogged(
+			new DomainError(
+				"Common Module",
+				"COMMON_SCHEMA_INVALID",
+				"Invalid request schema"
+			)
+		);
+
+		assert.equal(calls.error.length, 0);
+		assert.equal(calls.warn.length, 1);
+		const extra = extraOf(calls.warn[0]);
+		assert.equal(extra.status, 422);
+		assert.equal("stack" in extra, false);
+	});
+
+	void it("stays silent for expected not found responses", () => {
+		const calls = handleLogged(
+			new ServiceError("GAME_NOT_FOUND", {
+				service: "Games Service",
+				raw: undefined
+			})
+		);
+
+		assert.equal(calls.error.length, 0);
+		assert.equal(calls.warn.length, 0);
+	});
+
+	void it("tolerates a request without method or url", () => {
+		const calls = handleLogged(new Error("boom"), asModel<Request>({}));
+
+		assert.equal(calls.error.length, 1);
 	});
 });

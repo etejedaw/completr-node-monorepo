@@ -48,6 +48,7 @@
 	[limit]="limit"
 	[total]="total()"
 	(cleared)="clearSearchAndFilter()"
+	(retried)="loadWishlist()"
 	(offsetChange)="onOffsetChange($event)"
 >
 	<ng-template appLibraryPageToolbar>

@@ -9,6 +9,7 @@ import {
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { injectDialogRef } from "ng-primitives/dialog";
 
+import { GamesService } from "../../../../core/services/games";
 import {
 	UiAlert,
 	UiButton,
@@ -19,7 +20,6 @@ import {
 	UiPlainEmptyState
 } from "../../../../shared/ui";
 import { ListsService } from "../../../lists/lists";
-import { GamesService } from "../../games";
 import {
 	type GameAddToListModalData,
 	type ModalState

@@ -3,7 +3,6 @@ import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 
 export const SORT_ORDERS = ["asc", "desc"] as const;
-export type SortOrder = (typeof SORT_ORDERS)[number];
 
 export const STAT_KEYS = [
 	"totalEntries",
@@ -24,7 +23,6 @@ export const STAT_KEYS = [
 	"ratingDistribution",
 	"completionsByMonth"
 ] as const;
-export type StatKey = (typeof STAT_KEYS)[number];
 
 export const SAVED_FILTER_ICONS = [
 	"bookmark",
@@ -47,7 +45,6 @@ export const SAVED_FILTER_ICONS = [
 	"rocket_launch",
 	"visibility"
 ] as const;
-export type SavedFilterIcon = (typeof SAVED_FILTER_ICONS)[number];
 
 export const SAVED_FILTER_COLORS = [
 	"brand",
@@ -58,7 +55,6 @@ export const SAVED_FILTER_COLORS = [
 	"teal",
 	"slate"
 ] as const;
-export type SavedFilterColor = (typeof SAVED_FILTER_COLORS)[number];
 
 class SavedFilter extends Model {
 	declare id: string;

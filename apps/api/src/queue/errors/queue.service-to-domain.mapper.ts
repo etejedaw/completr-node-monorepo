@@ -28,12 +28,6 @@ export function queueServiceToDomainMapper(
 	if (error.code === "QUEUE_BACKLOGS_NOT_FOUND")
 		return queueDomainError.queueBacklogsNotFound(context);
 
-	if (
-		error.code === "QUEUE_SOURCE_GAME_MISMATCH" ||
-		error.code === "QUEUE_SOURCE_BACKLOG_MISMATCH"
-	)
-		return queueDomainError.queueSourceMismatch(context);
-
 	if (error.code === "QUEUE_BACKLOG_NOT_STARTED")
 		return queueDomainError.queueBacklogNotStarted(context);
 

@@ -14,10 +14,8 @@ import {
 import * as gamePlatinumService from "../game-platinum/game-platinum.service";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as reviewsService from "../reviews/reviews.service";
-import * as userDomainError from "../users/errors/users.domain-error";
 import { canView } from "../users/helpers/visibility.helper";
-import { type UsernameParam } from "../users/schemas/username-params.schema";
-import * as usersService from "../users/users.service";
+import { type User } from "../users/user.model";
 import {
 	BACKLOG_EXPORT_COLUMNS,
 	backlogToExportRow
@@ -130,19 +128,12 @@ export async function getMeBacklogExport(request: Request, response: Response) {
 }
 
 export async function getUserBacklog(request: Request, response: Response) {
-	const params = request.locals.params as UsernameParam;
 	const query = request.locals.query as BacklogQuery;
 
-	const user = await usersService.findUserByUsername(params.username);
-	if (!user) throw userDomainError.userNotFound();
+	const user = request.locals.profileOwner as User;
 
 	const currentUser = request.locals.user as RequestUser | undefined;
 	const isSelf = currentUser?.id === user.id;
-
-	if (!(await canView(currentUser?.id, user, "profile")))
-		throw userDomainError.userPrivate();
-	if (!(await canView(currentUser?.id, user, "backlog")))
-		throw userDomainError.userPrivate();
 
 	const canViewPlatinums = await canView(currentUser?.id, user, "platinum");
 	const visibleQuery = canViewPlatinums
@@ -255,13 +246,11 @@ async function respondBulkUpdate(
 
 	const newStatus = body.changes.status;
 	if (newStatus) {
-		for (const backlog of statusChanged) {
-			activityService.record(
-				user.id,
-				`backlog_${newStatus}`,
-				backlog.gameId
-			);
-		}
+		activityService.recordManyForGames(
+			user.id,
+			`backlog_${newStatus}`,
+			statusChanged.map(backlog => backlog.gameId)
+		);
 	}
 
 	const data = { action: "update", ...result };

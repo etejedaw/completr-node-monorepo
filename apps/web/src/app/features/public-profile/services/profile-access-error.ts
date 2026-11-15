@@ -1,4 +1,4 @@
-import { type ProfileAccessError } from "../components/profile-access-state";
+import { type ProfileAccessError } from "../../../shared/components/profile-access-state/profile-access-state";
 
 const FORBIDDEN_STATUS = 403;
 const NOT_FOUND_STATUS = 404;

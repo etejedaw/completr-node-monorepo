@@ -3,9 +3,9 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { Router } from "@angular/router";
 
 import { type Game } from "../../../core/models";
+import { GamesService } from "../../../core/services/games";
 import { ToastService } from "../../../core/services/toast";
 import { adminErrorMessage } from "../../../core/utils/admin-error-message";
-import { GamesService } from "../games";
 import { type AdminActionsState } from "./components/game-admin-bar.model";
 
 const CONFLICT_STATUS = 409;

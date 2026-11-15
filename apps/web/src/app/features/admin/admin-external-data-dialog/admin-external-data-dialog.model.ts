@@ -1,8 +1,8 @@
-import { type UiBadgeTone } from "../../../shared/ui";
 import {
 	type ExternalDataRefreshResult,
 	type ExternalDataSource
-} from "../../games/games.model";
+} from "../../../core/services/games.model";
+import { type UiBadgeTone } from "../../../shared/ui";
 
 export type ExternalDataRefreshState =
 	| { status: "idle" }

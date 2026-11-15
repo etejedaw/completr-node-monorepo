@@ -1,11 +1,14 @@
 import z from "zod";
 
-const EnvironmentConfigSchema = z
+export const MIN_PRODUCTION_ACCESS_TOKEN_SECRET_LENGTH = 32;
+const DEVELOPMENT_ACCESS_TOKEN_SECRET = "secret-token";
+
+export const EnvironmentConfigSchema = z
 	.object({
 		NODE_ENV: z.enum(["test", "dev", "prod"]).default("dev"),
 		PORT: z.coerce.number().default(3000),
 		ACCESS_TOKEN_TTL: z.union([z.string(), z.number()]).default("15m"),
-		ACCESS_TOKEN_SECRET: z.string().default("secret-token"),
+		ACCESS_TOKEN_SECRET: z.string().optional(),
 		REFRESH_TOKEN_TTL_DAYS: z.coerce.number().default(30),
 		PASSWORD_SALT_ROUNDS: z.coerce.number().default(10),
 		PASSWORD_RESET_TOKEN_TTL_MINUTES: z.coerce.number().default(60),
@@ -17,7 +20,7 @@ const EnvironmentConfigSchema = z
 		CORS_ALLOWED_HEADERS: z.string().default("Content-Type,Authorization"),
 		CORS_CREDENTIALS: z.stringbool().default(true),
 		COOKIE_DOMAIN: z.string().optional(),
-		COOKIE_SECURE: z.stringbool().default(false),
+		COOKIE_SECURE: z.stringbool().optional(),
 		COOKIE_SAME_SITE: z.enum(["strict", "lax", "none"]).default("lax"),
 		CHANGELOG_SOURCE_URL: z
 			.url()
@@ -34,6 +37,31 @@ const EnvironmentConfigSchema = z
 			z.iso.date().optional()
 		)
 	})
+	.superRefine((environment, context) => {
+		if (environment.NODE_ENV !== "prod") return;
+		const secret = environment.ACCESS_TOKEN_SECRET;
+		if (
+			secret === undefined ||
+			secret.length < MIN_PRODUCTION_ACCESS_TOKEN_SECRET_LENGTH
+		)
+			context.addIssue({
+				code: "custom",
+				path: ["ACCESS_TOKEN_SECRET"],
+				message: `ACCESS_TOKEN_SECRET must be set and have at least ${MIN_PRODUCTION_ACCESS_TOKEN_SECRET_LENGTH} characters in prod`
+			});
+		if (environment.COOKIE_SECURE !== true)
+			context.addIssue({
+				code: "custom",
+				path: ["COOKIE_SECURE"],
+				message: "COOKIE_SECURE must be true in prod"
+			});
+	})
+	.transform(environment => ({
+		...environment,
+		ACCESS_TOKEN_SECRET:
+			environment.ACCESS_TOKEN_SECRET ?? DEVELOPMENT_ACCESS_TOKEN_SECRET,
+		COOKIE_SECURE: environment.COOKIE_SECURE ?? false
+	}))
 	.readonly();
 
 export const environmentConfig = EnvironmentConfigSchema.parse(process.env);

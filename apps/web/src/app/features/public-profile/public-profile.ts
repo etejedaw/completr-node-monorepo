@@ -8,13 +8,14 @@ import {
 	signal
 } from "@angular/core";
 
+import { AdminPremiumAccess } from "../../shared/components/admin-premium-access/admin-premium-access";
 import { GameCoverCard } from "../../shared/components/game-cover-card/game-cover-card";
 import { GiftOfferCard } from "../../shared/components/gift-offer-card/gift-offer-card";
 import { PosterShelf } from "../../shared/components/poster-shelf/poster-shelf";
+import { ProfileAccessState } from "../../shared/components/profile-access-state/profile-access-state";
+import { ProfileSectionHeader } from "../../shared/components/profile-section-header/profile-section-header";
 import { UnfollowConfirmDialog } from "../../shared/components/unfollow-confirm-dialog/unfollow-confirm-dialog";
 import { UiButton, UiPlainEmptyState, UiSkeleton } from "../../shared/ui";
-import { AdminPremiumAccess } from "../admin/admin-premium-access/admin-premium-access";
-import { ProfileAccessState } from "./components/profile-access-state";
 import { ProfileActivity } from "./components/profile-activity";
 import { ProfileCollections } from "./components/profile-collections";
 import { ProfileGuestCta } from "./components/profile-guest-cta";
@@ -29,7 +30,6 @@ import { ProfileReviews } from "./components/profile-reviews";
 import { ProfileRewindSpotlight } from "./components/profile-rewind-spotlight";
 import { ProfileRewinds } from "./components/profile-rewinds";
 import { ProfileSagas } from "./components/profile-sagas";
-import { ProfileSectionHeader } from "./components/profile-section-header";
 import { ProfileStats } from "./components/profile-stats";
 import { ProfileUpNext } from "./components/profile-up-next";
 import { injectProfileShare } from "./inject-profile-share";

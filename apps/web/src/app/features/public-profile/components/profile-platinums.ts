@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 
 import { type PlatinumEntry } from "../../../core/models";
 import { PlatinumCoverCard } from "../../../shared/components/platinum-cover-card/platinum-cover-card";
+import { ProfileSectionHeader } from "../../../shared/components/profile-section-header/profile-section-header";
 import { UiBadge } from "../../../shared/ui";
-import { ProfileSectionHeader } from "./profile-section-header";
 
 const MOBILE_VISIBLE_PLATINUMS = 4;
 

@@ -18,7 +18,10 @@ import { type UserDiscoverQuery } from "./schemas/user-discover-query.schema";
 import { type UserListsQuery } from "./schemas/user-lists-query.schema";
 import { type UserSearchQuery } from "./schemas/user-search-query.schema";
 import { type UsernameListParams } from "./schemas/username-list-params.schema";
-import * as userCardsService from "./user-cards.service";
+import * as userCardsService from "./services/user-cards.service";
+import * as usersService from "./services/users.service";
+import { buildUserMe } from "./services/users-me.service";
+import * as usersProfileService from "./services/users-profile.service";
 import {
 	enrichedUserListSerializer,
 	fullProfileSerializer,
@@ -28,9 +31,6 @@ import {
 	userHighlightsSerializer,
 	userReviewsSerializer
 } from "./users.serializer";
-import * as usersService from "./users.service";
-import { buildUserMe } from "./users-me.service";
-import * as usersProfileService from "./users-profile.service";
 
 export async function getUserByUsername(request: Request, response: Response) {
 	const { username } = request.locals.params as UsernameParam;

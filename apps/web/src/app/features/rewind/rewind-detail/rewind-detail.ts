@@ -14,8 +14,8 @@ import {
 	type RewindLanguage
 } from "../../../core/models/rewind.model";
 import { AuthService } from "../../../core/services/auth";
+import { ProfileAccessState } from "../../../shared/components/profile-access-state/profile-access-state";
 import { UiButton, UiPlainEmptyState, UiSkeleton } from "../../../shared/ui";
-import { ProfileAccessState } from "../../public-profile/components/profile-access-state";
 import { RewindDesignOutlet } from "../components/rewind-design-outlet/rewind-design-outlet";
 import { RewindGenerateDialog } from "../components/rewind-generate-dialog/rewind-generate-dialog";
 import { injectRewindGenerateFlow } from "../components/rewind-generate-dialog/rewind-generate-flow";

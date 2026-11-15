@@ -2,7 +2,7 @@ import { assertInInjectionContext, inject } from "@angular/core";
 
 import { type BacklogEntry, type Game } from "../../core/models";
 import { DialogService } from "../../core/services/dialog";
-import { GamesService } from "../games/games";
+import { GamesService } from "../../core/services/games";
 import { BacklogService } from "./backlog";
 import {
 	BacklogModal,

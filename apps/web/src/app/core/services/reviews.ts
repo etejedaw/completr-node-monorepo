@@ -1,0 +1,48 @@
+import { HttpClient } from "@angular/common/http";
+import { inject, Injectable } from "@angular/core";
+import { map } from "rxjs";
+
+import { environment } from "../../../environments/environment";
+import { type Review } from "./reviews.model";
+
+export const REVIEWS_PAGE_SIZE = 100;
+
+@Injectable({ providedIn: "root" })
+export class ReviewsService {
+	private readonly http = inject(HttpClient);
+
+	getReviews(gameId: string, offset = 0) {
+		return this.http
+			.get<{
+				data: { reviews: Review[] };
+			}>(`${environment.apiUrl}/games/${gameId}/reviews`, {
+				params: offset > 0 ? { offset } : {}
+			})
+			.pipe(map(res => res.data.reviews));
+	}
+
+	createReview(gameId: string, data: { content?: string; rating?: number }) {
+		return this.http
+			.post<{
+				data: { review: Review };
+			}>(`${environment.apiUrl}/games/${gameId}/reviews`, data)
+			.pipe(map(res => res.data.review));
+	}
+
+	updateReview(
+		gameId: string,
+		data: { content?: string | null; rating?: number | null }
+	) {
+		return this.http
+			.patch<{
+				data: { review: Review };
+			}>(`${environment.apiUrl}/games/${gameId}/reviews`, data)
+			.pipe(map(res => res.data.review));
+	}
+
+	deleteReview(gameId: string) {
+		return this.http.delete(
+			`${environment.apiUrl}/games/${gameId}/reviews`
+		);
+	}
+}

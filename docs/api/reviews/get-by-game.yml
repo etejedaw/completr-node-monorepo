@@ -11,6 +11,14 @@ http:
         - name: id
           type: path
           value: ""
+        - name: limit
+          type: query
+          value: "100"
+          disabled: true
+        - name: offset
+          type: query
+          value: "0"
+          disabled: true
 
 settings:
     encodeUrl: true
@@ -18,9 +26,9 @@ settings:
 docs: |-
     ## Get Reviews by Game
 
-    Returns all reviews for a game, including the reviewer's profile summary and the latest
-    `playthroughDuration` derived from each reviewer's completed backlog for the same game.
-    Sorted by `createdAt` DESC.
+    Returns the reviews of a game, paginated and sorted by `createdAt` DESC (ties broken by id), including the reviewer's profile summary. A review is always public: it is listed whatever the visibility of its author's profile. Reviews of deactivated accounts are not listed and do not count towards `total`.
+
+    `playthroughDuration` is the latest completed run of the reviewer for the same game, and is `null` unless the reviewer's backlog is visible to the requester (`backlogVisibility`: public, or friends with a mutual follow; the reviewer always sees their own).
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
@@ -31,11 +39,19 @@ docs: |-
     |-------|------|-------------|
     | id    | uuid | Game UUID   |
 
+    ### Query Params
+
+    | Param  | Type    | Required | Default | Description        |
+    |--------|---------|----------|---------|--------------------|
+    | limit  | integer | No       | 100     | Page size (1–100)  |
+    | offset | integer | No       | 0       | Page offset        |
+
     ### Response (200)
 
     ```json
     {
       "data": {
+        "total": 1,
         "reviews": [
           {
             "id": "uuid",
@@ -57,3 +73,11 @@ docs: |-
       }
     }
     ```
+
+    `total` counts every listed review, not just the current page. An `offset` past the end returns an empty `reviews` with the same `total`.
+
+    ### Errors
+
+    | Status | Type | When |
+    |--------|------|------|
+    | 422 | `COMMON_SCHEMA_INVALID` | `limit` outside 1–100, negative or non-numeric `offset`, or an invalid game id |

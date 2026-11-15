@@ -5,8 +5,8 @@ import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
+import * as usersProfileService from "../users/services/users-profile.service";
 import { userCardSerializer } from "../users/users.serializer";
-import * as usersProfileService from "../users/users-profile.service";
 import * as userFollowersService from "./user-followers.service";
 import { type ConnectionKind } from "./user-followers.types";
 

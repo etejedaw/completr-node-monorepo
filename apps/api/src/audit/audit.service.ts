@@ -2,7 +2,7 @@ import { type WhereOptions } from "sequelize";
 
 import { PinoLogger } from "../common/logger/pino.logger";
 import * as gamesService from "../games/games.service";
-import * as usersService from "../users/users.service";
+import * as usersService from "../users/services/users.service";
 import { type AuditFilters } from "./audit.interface";
 import { AuditLog } from "./audit.model";
 

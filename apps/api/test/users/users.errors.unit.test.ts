@@ -31,6 +31,18 @@ describeModuleErrors({
 			message: "User not found"
 		},
 		{
+			serviceCode: "USER_PRIVATE",
+			module: "User Module",
+			code: "USER_PRIVATE",
+			message: "This account is private"
+		},
+		{
+			serviceCode: "USER_LIST_NOT_FOUND",
+			module: "List Module",
+			code: "LIST_NOT_FOUND",
+			message: "List not found"
+		},
+		{
 			serviceCode: "USER_THEME_FORBIDDEN",
 			module: "User Module",
 			code: "USER_THEME_FORBIDDEN",

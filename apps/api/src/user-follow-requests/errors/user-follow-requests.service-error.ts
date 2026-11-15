@@ -36,10 +36,3 @@ export function notFoundError() {
 		raw: undefined
 	});
 }
-
-export function notAcceptingRequestsError() {
-	return new ServiceError("USER_FOLLOW_REQUEST_NOT_ACCEPTING", {
-		...BASE_OPTIONS,
-		raw: undefined
-	});
-}

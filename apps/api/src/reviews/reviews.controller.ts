@@ -3,6 +3,7 @@ import { type Request, type Response } from "express";
 import * as activityService from "../activity/activity.service";
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { type GameIdParam } from "../games/schemas/game-id-params.schema";
 import { findFullPremiumUserIds } from "../premium-access/services/premium-access.service";
 import { type CreateReviewDto } from "./dtos/create-review.dto";
@@ -32,21 +33,29 @@ export async function postReview(request: Request, response: Response) {
 
 export async function getReviews(request: Request, response: Response) {
 	const params = request.locals.params as GameIdParam;
+	const query = request.locals.query as PaginationQuery;
+	const viewer = request.locals.user as RequestUser;
 
-	const reviews = await reviewsService.findReviewsByGameId(params.id);
-	const reviewsPlain = reviews.map(r => r.get({ plain: true }));
+	const { rows, count } = await reviewsService.findReviewsByGameId(
+		params.id,
+		query
+	);
+	const reviewsPlain = rows.map(r => r.get({ plain: true }));
 
 	const pairs = reviewsPlain
 		.filter(r => r.User)
 		.map(r => ({ userId: r.User.id, gameId: params.id }));
 	const [durationMap, premiumUserIds] = await Promise.all([
-		backlogService.findLatestCompletedDurations(pairs),
+		backlogService.findLatestCompletedDurations(pairs, {
+			visibleTo: viewer.id
+		}),
 		findFullPremiumUserIds(
 			reviewsPlain.flatMap(review => (review.User ? [review.User] : []))
 		)
 	]);
 
 	const data = {
+		total: count,
 		reviews: reviewsPlain.map(r =>
 			reviewSerializer(
 				r,

@@ -5,10 +5,8 @@ import {
 } from "@angular/common/http";
 import { inject } from "@angular/core";
 import {
-	BehaviorSubject,
+	AsyncSubject,
 	catchError,
-	filter,
-	finalize,
 	from,
 	map,
 	type Observable,
@@ -29,12 +27,9 @@ import { adminErrorMessage } from "../utils/admin-error-message";
 import { planLimitMessage } from "../utils/plan-limit-message";
 import { problemType } from "../utils/problem-details";
 
-let isRefreshing = false;
 const PLAN_LIMIT_TOAST_TITLE = "Free plan limit";
-const REFRESH_FAILED = Symbol("refresh-failed");
-const refreshSubject = new BehaviorSubject<
-	string | typeof REFRESH_FAILED | null
->(null);
+const REFRESH_LEFT_NO_TOKEN = Symbol("refresh-left-no-token");
+let pendingRefresh: Observable<string> | null = null;
 
 export function errorInterceptor(
 	req: HttpRequest<unknown>,
@@ -92,64 +87,80 @@ export function errorInterceptor(
 						return throwError(() => error);
 					}
 
-					if (isRefreshing) {
-						return refreshSubject.pipe(
-							filter(token => token !== null),
-							take(1),
-							switchMap(token => {
-								if (token === REFRESH_FAILED)
-									return throwError(() => error);
-								const retryReq = req.clone({
+					const startsRefresh = pendingRefresh === null;
+					return sharedRefresh(auth).pipe(
+						catchError(refreshError =>
+							throwError(() =>
+								startsRefresh &&
+								refreshError !== REFRESH_LEFT_NO_TOKEN
+									? refreshError
+									: error
+							)
+						),
+						switchMap(token =>
+							next(
+								req.clone({
 									headers: req.headers.set(
 										"Authorization",
 										`Bearer ${token}`
 									)
-								});
-								return next(retryReq);
-							})
-						);
-					}
-
-					isRefreshing = true;
-					refreshSubject.next(null);
-					const failedToken = auth.token();
-					const retryWithToken = (token: string | null) => {
-						refreshSubject.next(token);
-						return next(
-							req.clone({
-								headers: req.headers.set(
-									"Authorization",
-									`Bearer ${token}`
-								)
-							})
-						);
-					};
-
-					return auth.refresh().pipe(
-						map(() => auth.token()),
-						catchError(refreshError => {
-							const rotatedToken = auth.token();
-							if (
-								isRejectedRefresh(refreshError) &&
-								rotatedToken &&
-								rotatedToken !== failedToken
-							) {
-								return of(rotatedToken);
-							}
-							refreshSubject.next(REFRESH_FAILED);
-							if (!keepsSessionOnRefreshFailure(refreshError))
-								auth.clearSession();
-							return throwError(() => refreshError);
-						}),
-						switchMap(retryWithToken),
-						finalize(() => {
-							isRefreshing = false;
-						})
+								})
+							)
+						)
 					);
 				})
 			)
 		)
 	);
+}
+
+function sharedRefresh(auth: AuthService): Observable<string> {
+	if (pendingRefresh) return pendingRefresh;
+	const refreshOutcome = new AsyncSubject<string>();
+	const sharedOutcome = refreshOutcome.asObservable();
+	pendingRefresh = sharedOutcome;
+	const failedToken = auth.token();
+
+	auth.refresh()
+		.pipe(
+			map(() => auth.token()),
+			catchError(refreshError => {
+				const rotatedToken = auth.token();
+				if (
+					isRejectedRefresh(refreshError) &&
+					rotatedToken &&
+					rotatedToken !== failedToken
+				)
+					return of(rotatedToken);
+				if (!keepsSessionOnRefreshFailure(refreshError))
+					auth.clearSession();
+				return throwError(() => refreshError);
+			}),
+			switchMap(token => {
+				if (token) return of(token);
+				auth.clearSession();
+				return throwError(() => REFRESH_LEFT_NO_TOKEN);
+			}),
+			take(1)
+		)
+		.subscribe({
+			next: token => {
+				pendingRefresh = null;
+				refreshOutcome.next(token);
+				refreshOutcome.complete();
+			},
+			error: refreshError => {
+				pendingRefresh = null;
+				refreshOutcome.error(refreshError);
+			},
+			complete: () => {
+				if (pendingRefresh !== sharedOutcome) return;
+				pendingRefresh = null;
+				refreshOutcome.error(REFRESH_LEFT_NO_TOKEN);
+			}
+		});
+
+	return sharedOutcome;
 }
 
 function withParsedBlobBody(

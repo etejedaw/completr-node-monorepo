@@ -4,7 +4,7 @@ import { render, screen, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { type Game } from "../../../core/models";
-import { type ExternalDataRefreshResult } from "../../games/games.model";
+import { type ExternalDataRefreshResult } from "../../../core/services/games.model";
 import { AdminExternalDataDialog } from "./admin-external-data-dialog";
 
 const game = {

@@ -9,6 +9,10 @@ export const authDomainToHttpMapper = buildHttpErrorMapper({
 		status: 401,
 		detail: "Invalid email or password"
 	},
+	AUTH_INVALID_CURRENT_PASSWORD: {
+		status: 400,
+		detail: "The current password does not match"
+	},
 	AUTH_INVALID_TOKEN: {
 		status: 401,
 		detail: "The access token is invalid or expired"

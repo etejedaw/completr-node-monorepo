@@ -2,7 +2,7 @@ import { type Request, type Response } from "express";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
-import { buildUserMe } from "../users/users-me.service";
+import { buildUserMe } from "../users/services/users-me.service";
 import { authTokensSerializer, sessionSerializer } from "./auth.serializer";
 import * as authService from "./auth.service";
 import {
@@ -13,7 +13,7 @@ import {
 	type RegisterDto,
 	type ResetPasswordDto
 } from "./dtos";
-import * as authDomainError from "./errors/auth.domains-error";
+import * as authDomainError from "./errors/auth.domain-error";
 import { type SessionIdParams } from "./schemas/session-id-params.schema";
 import { getDeviceInfo } from "./utils/device-info.util";
 import {
@@ -96,11 +96,12 @@ export async function patchChangePassword(
 	request: Request,
 	response: Response
 ) {
-	const changePassword = request.locals.body as ChangePasswordDto;
+	const { currentPassword, password } = request.locals
+		.body as ChangePasswordDto;
 
 	const user = request.locals.user as RequestUser;
 
-	await authService.changePassword(user.id, changePassword.password);
+	await authService.changePassword(user.id, currentPassword, password);
 
 	return response.sendStatus(204);
 }

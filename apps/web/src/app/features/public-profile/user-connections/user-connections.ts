@@ -19,11 +19,14 @@ import {
 } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
+import { PublicSocialService } from "../../../core/services/public-social";
+import { type ConnectionsPage } from "../../../core/services/public-social.model";
 import { type UserResult } from "../../../core/services/users.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
+import { ProfileAccessState } from "../../../shared/components/profile-access-state/profile-access-state";
 import { UnfollowConfirmDialog } from "../../../shared/components/unfollow-confirm-dialog/unfollow-confirm-dialog";
 import {
 	UiButton,
@@ -34,14 +37,11 @@ import {
 } from "../../../shared/ui";
 import { injectFollowActions } from "../../../shared/utils/inject-follow-actions";
 import { UserCard } from "../../users-discover/user-card/user-card";
-import { ProfileAccessState } from "../components/profile-access-state";
 import { PublicProfileService } from "../public-profile.service";
 import {
 	hasLoadFailedOf,
 	profileAccessErrorOf
 } from "../services/profile-access-error";
-import { type ConnectionsPage } from "../services/public-social.model";
-import { PublicSocialService } from "../services/public-social.service";
 
 export type ConnectionKind = "followers" | "following";
 

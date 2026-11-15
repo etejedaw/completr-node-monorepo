@@ -7,8 +7,8 @@ import * as gameGenreService from "../../game-genre/game-genre.service";
 import * as gamePlatinumService from "../../game-platinum/game-platinum.service";
 import { type RewindEditionRecord } from "../../rewind-editions/rewind-editions.interface";
 import * as rewindEditionsService from "../../rewind-editions/services/rewind-editions.service";
+import * as usersService from "../../users/services/users.service";
 import { type User } from "../../users/user.model";
-import * as usersService from "../../users/users.service";
 import * as rewindServiceError from "../errors/rewind.service-error";
 import { userToRewindOwner } from "../mappers/user-to-rewind-owner.mapper";
 import {

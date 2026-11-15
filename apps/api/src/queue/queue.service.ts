@@ -6,6 +6,8 @@ import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
+import { compactPositions as compactPositionsOf } from "../common/utils/compact-positions.util";
 import { splitByPresence } from "../common/utils/split-by-presence.util";
 import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
@@ -40,10 +42,7 @@ async function checkLimit(
 }
 
 export async function lockUserQueue(userId: string, transaction: Transaction) {
-	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
-		replacements: { lockKey: `queue:${userId}` },
-		transaction
-	});
+	await acquireAdvisoryLock(`queue:${userId}`, transaction);
 }
 
 async function findNextPosition(userId: string, transaction: Transaction) {
@@ -300,17 +299,12 @@ export async function compactPositions(
 	transaction: Transaction
 ) {
 	await lockUserQueue(userId, transaction);
-	await sequelize.query(
-		`UPDATE "Queues" AS q
-		SET "position" = ranked."position", "updatedAt" = NOW()
-		FROM (
-			SELECT "id", ROW_NUMBER() OVER (ORDER BY "position", "createdAt", "id") AS "position"
-			FROM "Queues"
-			WHERE "userId" = :userId
-		) AS ranked
-		WHERE q."id" = ranked."id" AND q."position" <> ranked."position"`,
-		{ replacements: { userId }, transaction }
-	);
+	await compactPositionsOf({
+		table: "Queues",
+		ownerColumn: "userId",
+		ownerIds: [userId],
+		transaction
+	});
 }
 
 export async function removeByBacklogIds(

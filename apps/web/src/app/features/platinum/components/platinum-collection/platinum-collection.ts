@@ -6,6 +6,7 @@ import {
 } from "@angular/core";
 
 import { type PlatinumEntry } from "../../../../core/models";
+import { type StorageService } from "../../../../core/services/storage";
 import { CoverGrid } from "../../../../shared/components/cover-grid/cover-grid";
 import { PlatinumCoverCard } from "../../../../shared/components/platinum-cover-card/platinum-cover-card";
 import { type ViewModeOption } from "../../../../shared/components/view-mode-toggle/view-mode-toggle.model";
@@ -23,9 +24,10 @@ export const PLATINUM_VIEW_MODES: readonly ViewModeOption<PlatinumViewMode>[] =
 	];
 
 export function readStoredPlatinumViewMode(
+	storage: StorageService,
 	storageKey: string
 ): PlatinumViewMode {
-	const saved = localStorage.getItem(storageKey);
+	const saved = storage.get(storageKey);
 	return saved === "hardcore" || saved === "calendar" ? saved : "grid";
 }
 

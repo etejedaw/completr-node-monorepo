@@ -4,9 +4,9 @@ import { TestBed } from "@angular/core/testing";
 import { of, Subject, throwError } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
+import { PublicSocialService } from "../../../core/services/public-social";
 import { ToastService } from "../../../core/services/toast";
 import { CoopRunsService } from "../../coop-runs/coop-runs";
-import { PublicSocialService } from "../../public-profile/services/public-social.service";
 import { injectCoopRun } from "./inject-coop-run";
 
 describe("injectCoopRun", () => {

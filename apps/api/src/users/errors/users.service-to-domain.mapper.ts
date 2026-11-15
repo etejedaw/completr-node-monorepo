@@ -1,5 +1,6 @@
 import { type DomainError } from "../../common/errors/domain-error";
 import { ServiceError } from "../../common/errors/service-error";
+import * as listDomainError from "../../lists/errors/lists.domain-error";
 import * as userDomainError from "./users.domain-error";
 
 export function usersServiceToDomainMapper(
@@ -18,6 +19,12 @@ export function usersServiceToDomainMapper(
 
 	if (error.code === "USER_NOT_FOUND")
 		return userDomainError.userNotFound(context);
+
+	if (error.code === "USER_PRIVATE")
+		return userDomainError.userPrivate(context);
+
+	if (error.code === "USER_LIST_NOT_FOUND")
+		return listDomainError.listNotFound(context);
 
 	if (error.code === "USER_THEME_FORBIDDEN")
 		return userDomainError.userThemeForbidden(context);

@@ -14,6 +14,11 @@ import { ActivatedRoute } from "@angular/router";
 import { type Subscription } from "rxjs";
 
 import { AuthService } from "../../../../core/services/auth";
+import {
+	REVIEWS_PAGE_SIZE,
+	ReviewsService
+} from "../../../../core/services/reviews";
+import { type Review } from "../../../../core/services/reviews.model";
 import { RatingDistribution } from "../../../../shared/components/rating-distribution/rating-distribution";
 import { ReviewCard } from "../../../../shared/components/review-card/review-card";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
@@ -25,8 +30,6 @@ import {
 	UiTextarea
 } from "../../../../shared/ui";
 import { BacklogService } from "../../../backlog/backlog";
-import { ReviewsService } from "../../reviews";
-import { type Review } from "../../reviews.model";
 
 const NOT_FOUND_STATUS = 404;
 const RATING_BUCKETS = [5, 4, 3, 2, 1];
@@ -65,6 +68,8 @@ export class GameReviews {
 	readonly reviewForm = form(this.reviewModel);
 
 	readonly reviewsCount = signal(0);
+	protected readonly hasMoreReviews = signal(false);
+	protected readonly loadingMore = signal(false);
 
 	protected readonly ratingLabel = getRatingLabel;
 	protected readonly communityReviews = computed(() => {
@@ -112,6 +117,8 @@ export class GameReviews {
 		this.reviews.set([]);
 		this.myReview.set(null);
 		this.reviewsCount.set(0);
+		this.hasMoreReviews.set(false);
+		this.loadingMore.set(false);
 		this.show.set(false);
 		this.submitting.set(false);
 		this.reviewModel.set({ content: "", rating: null });
@@ -124,6 +131,8 @@ export class GameReviews {
 			.subscribe(reviews => {
 				this.reviews.set(reviews);
 				this.reviewsCount.set(reviews.length);
+				this.hasMoreReviews.set(reviews.length >= REVIEWS_PAGE_SIZE);
+				this.loadingMore.set(false);
 				const userId = this.authService.user()?.id;
 				if (userId) {
 					this.myReview.set(
@@ -131,6 +140,31 @@ export class GameReviews {
 					);
 				}
 				this.autoOpenIfRequested(gameId);
+			});
+	}
+
+	protected loadMoreReviews() {
+		const gameId = this.gameId();
+		if (!gameId || this.loadingMore() || !this.hasMoreReviews()) return;
+		this.loadingMore.set(true);
+		this.reviewsRequest?.unsubscribe();
+		this.reviewsRequest = this.reviewsService
+			.getReviews(gameId, this.reviews().length)
+			.subscribe({
+				next: page => {
+					const loaded = [...this.reviews(), ...page];
+					this.reviews.set(loaded);
+					this.reviewsCount.set(loaded.length);
+					this.hasMoreReviews.set(page.length >= REVIEWS_PAGE_SIZE);
+					this.loadingMore.set(false);
+					const userId = this.authService.user()?.id;
+					if (userId && !this.myReview()) {
+						this.myReview.set(
+							loaded.find(r => r.user?.id === userId) ?? null
+						);
+					}
+				},
+				error: () => this.loadingMore.set(false)
 			});
 	}
 

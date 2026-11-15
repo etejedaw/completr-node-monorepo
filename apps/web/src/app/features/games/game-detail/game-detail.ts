@@ -18,6 +18,9 @@ import {
 } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
+import { FavoritesService } from "../../../core/services/favorites";
+import { GamesService } from "../../../core/services/games";
+import { QueueService } from "../../../core/services/queue";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { ExpandableText } from "../../../shared/components/expandable-text/expandable-text";
@@ -30,11 +33,13 @@ import {
 	UiDialog,
 	UiEyebrow,
 	UiFieldLabel,
+	UiLoadError,
 	UiPlainEmptyState,
 	UiSkeleton,
 	UiTextarea
 } from "../../../shared/ui";
 import { pickCanonicalScore } from "../../../shared/utils/canonical-score";
+import { isNotFound } from "../../../shared/utils/http-failure";
 import { metascoreColorClass } from "../../../shared/utils/metascore-color";
 import { BacklogService } from "../../backlog/backlog";
 import {
@@ -42,7 +47,6 @@ import {
 	type BacklogModalResult
 } from "../../backlog/backlog-modal/backlog-modal";
 import { type BacklogModalData } from "../../backlog/backlog-modal/backlog-modal.model";
-import { FavoritesService } from "../../favorites/favorites";
 import { injectFranchiseTracking } from "../../franchises/franchise-tracking";
 import { GameShelfService } from "../../game-shelf/game-shelf";
 import {
@@ -55,7 +59,6 @@ import {
 	type PlatinumDialogData,
 	type PlatinumDialogResult
 } from "../../platinum/platinum-dialog/platinum-dialog.model";
-import { QueueService } from "../../queue/queue";
 import { WishlistService } from "../../wishlist/wishlist";
 import {
 	WishlistPlatformModal,
@@ -63,7 +66,6 @@ import {
 } from "../../wishlist/wishlist-platform-modal/wishlist-platform-modal";
 import { type WishlistPlatformModalData } from "../../wishlist/wishlist-platform-modal/wishlist-platform-modal.model";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
-import { GamesService } from "../games";
 import { GameAddToListModal } from "./components/game-add-to-list-modal";
 import {
 	type GameAddToListModalData,
@@ -115,6 +117,7 @@ const SIMILAR_GAMES_SHOWN = 8;
 		UiButton,
 		UiEyebrow,
 		UiFieldLabel,
+		UiLoadError,
 		UiPlainEmptyState,
 		UiTextarea,
 		GameSection,
@@ -199,6 +202,8 @@ export class GameDetail implements OnInit {
 	protected readonly commitMoodTags = this.moodTagsFlow.commit;
 	protected readonly updateMoodTagsDraft = this.moodTagsFlow.draft.set;
 	protected readonly isLoading = signal(true);
+	protected readonly loadFailed = signal(false);
+	private requestedCode = "";
 	protected readonly similarGames = signal<Game[]>([]);
 	protected readonly isFavorite = signal(false);
 	protected readonly isInWishlist = signal(false);
@@ -350,7 +355,9 @@ export class GameDetail implements OnInit {
 		this.statusRequests.unsubscribe();
 		this.gameRequests = new Subscription();
 		this.statusRequests = new Subscription();
+		this.requestedCode = code;
 		this.isLoading.set(true);
+		this.loadFailed.set(false);
 		this.game.set(null);
 		this.similarGames.set([]);
 		this.watchGame(this.gamesService.getByCode(code), {
@@ -373,8 +380,16 @@ export class GameDetail implements OnInit {
 				);
 				this.moodTagsFlow.showFor(game);
 			},
-			error: () => this.isLoading.set(false)
+			error: error => {
+				this.loadFailed.set(!isNotFound(error));
+				this.isLoading.set(false);
+			}
 		});
+	}
+
+	protected retryLoadGame() {
+		if (this.isLoading()) return;
+		this.loadGame(this.requestedCode);
 	}
 
 	private loadUserStatus(gameId: string) {

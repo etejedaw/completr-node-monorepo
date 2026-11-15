@@ -4,7 +4,7 @@ import * as auditService from "../audit/audit.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import * as userDomain from "../users/errors/users.domain-error";
 import { type UserIdParam } from "../users/schemas/user-id-params.schema";
-import * as usersService from "../users/users.service";
+import * as usersService from "../users/services/users.service";
 import { type CreatePremiumGrantDto } from "./dtos/create-premium-grant.dto";
 import { type UpdatePremiumGrantDto } from "./dtos/update-premium-grant.dto";
 import { PREMIUM_FEATURE_DEFINITIONS } from "./premium-access.constants";

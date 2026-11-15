@@ -17,6 +17,8 @@ import {
 } from "rxjs";
 
 import { type Game, type OnlineSearchSource } from "../../../core/models";
+import { GamesService } from "../../../core/services/games";
+import { type OnlineGameSearchResult } from "../../../core/services/games.model";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { OnlineSourceNote } from "../../../shared/components/online-source-note/online-source-note";
 import {
@@ -25,9 +27,7 @@ import {
 	onlineSourceLabel
 } from "../../../shared/constants/online-search";
 import { UiSearchBar, UiSelectableRow, UiSkeleton } from "../../../shared/ui";
-import { catalogOnlyResult } from "../../games/game-search";
-import { GamesService } from "../../games/games";
-import { type OnlineGameSearchResult } from "../../games/games.model";
+import { catalogOnlyResult } from "../../../shared/utils/inject-game-search";
 
 const SEARCH_DEBOUNCE_MS = 400;
 const MIN_QUERY_LENGTH = 2;

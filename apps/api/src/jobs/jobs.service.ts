@@ -4,6 +4,7 @@ import * as backlogService from "../backlog/backlog.service";
 import { environmentConfig } from "../common/config/environment.config";
 import { ServiceError } from "../common/errors/service-error";
 import { PinoLogger } from "../common/logger/pino.logger";
+import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
 import { describeFailure } from "../common/utils/describe-failure.util";
 import * as coopRunsService from "../coop-runs/coop-runs.service";
 import { sequelize } from "../database/sequelize.database";
@@ -23,11 +24,12 @@ import * as gamesService from "../games/games.service";
 import { type ExternalDataResult } from "../games/games-external-data.interface";
 import * as reviewsService from "../reviews/reviews.service";
 import * as rewindFreezeService from "../rewind/services/rewind-freeze.service";
-import * as usersService from "../users/users.service";
+import * as usersService from "../users/services/users.service";
 import * as jobsServiceError from "./errors/jobs.service-error";
 import { Job } from "./job.model";
 import {
 	ACTIVE_JOB_STATUSES,
+	COMMUNITY_AGGREGATION_BATCH_SIZE,
 	INTERRUPTED_JOB_RESULT,
 	JOB_TYPES,
 	JOBS_LIST_LIMIT,
@@ -64,10 +66,7 @@ async function findOrCreateActiveJob(
 	type: string,
 	transaction: Transaction
 ): Promise<StartedJob> {
-	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
-		replacements: { lockKey: `jobs:${type}` },
-		transaction
-	});
+	await acquireAdvisoryLock(`jobs:${type}`, transaction);
 	const existing = await Job.findOne({
 		where: { type, status: { [Op.in]: ACTIVE_JOB_STATUSES } },
 		transaction
@@ -464,8 +463,14 @@ async function runCalculateRatings(jobId: string) {
 					count: Number(reviewCount)
 				})
 			),
-		store: (gameId, value) =>
-			gameScoresService.upsertScore(gameId, "completr", value)
+		storeMany: entries =>
+			gameScoresService.upsertScores(
+				entries.map(({ gameId, value }) => ({
+					gameId,
+					source: "completr",
+					score: value
+				}))
+			)
 	});
 }
 
@@ -484,8 +489,14 @@ async function runCalculateDurations(jobId: string) {
 					count: Number(entryCount)
 				})
 			),
-		store: (gameId, value) =>
-			gameTimesService.upsertTime(gameId, "completr", value)
+		storeMany: entries =>
+			gameTimesService.upsertTimes(
+				entries.map(({ gameId, value }) => ({
+					gameId,
+					source: "completr",
+					duration: value
+				}))
+			)
 	});
 }
 
@@ -494,7 +505,9 @@ async function runCommunityAggregation(
 	aggregation: {
 		sampleLabel: string;
 		loadAggregates: () => Promise<CommunityAggregate[]>;
-		store: (gameId: string, value: number) => Promise<unknown>;
+		storeMany: (
+			entries: { gameId: string; value: number }[]
+		) => Promise<unknown>;
 	}
 ) {
 	let updated = 0;
@@ -507,6 +520,7 @@ async function runCommunityAggregation(
 			Math.ceil(totalUsers * MIN_COMMUNITY_SAMPLE_RATIO)
 		);
 
+		const eligible: { gameId: string; value: number }[] = [];
 		for (const {
 			gameId,
 			average,
@@ -516,8 +530,23 @@ async function runCommunityAggregation(
 				skipped++;
 				continue;
 			}
-			await aggregation.store(gameId, Math.round(average * 100) / 100);
-			updated++;
+			eligible.push({
+				gameId,
+				value: Math.round(average * 100) / 100
+			});
+		}
+
+		for (
+			let offset = 0;
+			offset < eligible.length;
+			offset += COMMUNITY_AGGREGATION_BATCH_SIZE
+		) {
+			const batch = eligible.slice(
+				offset,
+				offset + COMMUNITY_AGGREGATION_BATCH_SIZE
+			);
+			await aggregation.storeMany(batch);
+			updated += batch.length;
 		}
 
 		await completeJob(

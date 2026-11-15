@@ -8,9 +8,9 @@ import {
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 import { type Game } from "../../../core/models";
+import { GamesService } from "../../../core/services/games";
+import { type CompilationItemInput } from "../../../core/services/games.model";
 import { ToastService } from "../../../core/services/toast";
-import { GamesService } from "../games";
-import { type CompilationItemInput } from "../games.model";
 import {
 	type CompilationRow,
 	type CompilationRowMode

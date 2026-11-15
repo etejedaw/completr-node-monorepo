@@ -37,6 +37,8 @@
 </ui-alert>
 } } @if (isLoading()) {
 <app-queue-skeleton />
+} @else if (loadFailed()) {
+<ui-load-error (retried)="retried.emit()" />
 } @else if (queueIsEmpty()) {
 <ng-container [ngTemplateOutlet]="emptyQueueTemplate()" />
 } @else if (sortedEntries().length === 0) {
@@ -137,11 +139,11 @@
 		}
 	</ol>
 </app-queue-list-section>
-} }
-
+} } @if (!loadFailed()) {
 <ui-pagination
 	[offset]="offset()"
 	[limit]="limit()"
 	[total]="total()"
 	(offsetChange)="offsetChange.emit($event)"
 />
+}

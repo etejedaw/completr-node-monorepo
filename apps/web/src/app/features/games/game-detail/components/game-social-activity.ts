@@ -11,6 +11,7 @@ import { RouterLink } from "@angular/router";
 import { type Subscription } from "rxjs";
 
 import { AuthService } from "../../../../core/services/auth";
+import { GamesService } from "../../../../core/services/games";
 import { avatarRing } from "../../../../core/utils/premium";
 import { BacklogStatusBadge } from "../../../../shared/components/backlog-status-badge/backlog-status-badge";
 import { UiAvatar } from "../../../../shared/ui";
@@ -18,7 +19,6 @@ import {
 	backlogStatusFillClass,
 	backlogStatusLabel
 } from "../../../../shared/utils/backlog-status";
-import { GamesService } from "../../games";
 import {
 	type FriendActivity,
 	type OtherPlayer

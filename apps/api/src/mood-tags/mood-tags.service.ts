@@ -2,6 +2,7 @@ import { Op, QueryTypes, type Transaction } from "sequelize";
 
 import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
 import { sequelize } from "../database/sequelize.database";
 import * as gamesService from "../games/games.service";
 import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
@@ -16,12 +17,8 @@ import {
 import { normalizeTag, normalizeTags } from "./normalize-tag.util";
 import { UserGameTag } from "./user-game-tag.model";
 
-
 async function lockUserTags(userId: string, transaction: Transaction) {
-	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
-		replacements: { lockKey: `mood-tags:${userId}` },
-		transaction
-	});
+	await acquireAdvisoryLock(`mood-tags:${userId}`, transaction);
 }
 
 function normalizeValidTag(rawTag: string) {
@@ -91,10 +88,7 @@ export async function replaceTags(
 	if (tags.length > MAX_TAGS_PER_GAME)
 		throw moodTagsServiceError.tooManyTagsError(MAX_TAGS_PER_GAME);
 
-	const { allowed: unlimited } = await resolvePremiumAccess(
-		user,
-		"mood-tags.unlimited"
-	);
+	const unlimited = await resolveUnlimitedTags(user);
 	const replaceUnderLock = async (activeTransaction: Transaction) => {
 		await assertWithinTagLimit(user, tags, activeTransaction, unlimited);
 		return writeGameTags(userId, gameId, tags, activeTransaction);
@@ -147,6 +141,11 @@ export async function findTagsByUser(userId: string) {
 	return rows;
 }
 
+async function resolveUnlimitedTags(user: RequestUser) {
+	const { allowed } = await resolvePremiumAccess(user, "mood-tags.unlimited");
+	return allowed;
+}
+
 export async function createTag(
 	user: RequestUser,
 	rawTag: string,
@@ -155,15 +154,25 @@ export async function createTag(
 	const userId = user.id;
 	const tag = normalizeValidTag(rawTag);
 	const trimmed = normalizeDescription(description);
+	const unlimited = await resolveUnlimitedTags(user);
 
-	const existing = await MoodTagMeta.findOne({ where: { userId, tag } });
-	if (existing)
-		return { tag, description: existing.description, created: false };
+	return sequelize.transaction(async transaction => {
+		await lockUserTags(userId, transaction);
+		const existing = await MoodTagMeta.findOne({
+			where: { userId, tag },
+			transaction
+		});
+		if (existing)
+			return { tag, description: existing.description, created: false };
 
-	await assertWithinTagLimit(user, [tag]);
+		await assertWithinTagLimit(user, [tag], transaction, unlimited);
 
-	await MoodTagMeta.create({ userId, tag, description: trimmed });
-	return { tag, description: trimmed, created: true };
+		await MoodTagMeta.create(
+			{ userId, tag, description: trimmed },
+			{ transaction }
+		);
+		return { tag, description: trimmed, created: true };
+	});
 }
 
 export async function setTagDescription(
@@ -173,16 +182,19 @@ export async function setTagDescription(
 ) {
 	const userId = user.id;
 	const tag = normalizeValidTag(rawTag);
-	await assertWithinTagLimit(user, [tag]);
-
 	const trimmed = normalizeDescription(description);
+	const unlimited = await resolveUnlimitedTags(user);
 
-	const [meta] = await MoodTagMeta.upsert({
-		userId,
-		tag,
-		description: trimmed
+	return sequelize.transaction(async transaction => {
+		await lockUserTags(userId, transaction);
+		await assertWithinTagLimit(user, [tag], transaction, unlimited);
+
+		const [meta] = await MoodTagMeta.upsert(
+			{ userId, tag, description: trimmed },
+			{ transaction }
+		);
+		return meta;
 	});
-	return meta;
 }
 
 export async function renameTag(
