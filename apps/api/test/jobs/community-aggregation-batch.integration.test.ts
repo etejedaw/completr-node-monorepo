@@ -13,10 +13,13 @@ import {
 	createBacklog,
 	createGame,
 	createPlatform,
+	createScoreSource,
 	createUser
 } from "../helpers/factories.helper";
 
-useTestDatabase();
+useTestDatabase(async () => {
+	await createScoreSource({ code: "completr" });
+});
 
 const GAMES_COUNT = 6;
 
@@ -136,7 +139,12 @@ void describe("community aggregation jobs write in batches", () => {
 		await finishedJob(responses[0]?.body.data.job.id);
 
 		assert.equal(
-			await GameScore.count({ where: { source: "completr" } }),
+			await GameScore.count({
+				where: {
+					source: "completr",
+					gameId: games.map(game => game.id)
+				}
+			}),
 			GAMES_COUNT
 		);
 	});
