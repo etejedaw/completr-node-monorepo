@@ -17,6 +17,7 @@ import { rewindCopy } from "../../rewind-copy";
 import { RewindReveal } from "../../rewind-reveal";
 import {
 	REWIND_PREMIUM_FRAME_CLASS,
+	type RewindTone,
 	TONE_TINT_SECONDARY_CLASS,
 	toneVar
 } from "../../rewind-tone";
@@ -24,6 +25,9 @@ import { type InsightStyle, type InsightView } from "./rewind-ai-recap.model";
 
 const AI_RECAP_PREMIUM_PERK =
 	"The AI recap reads the whole year to describe the player behind it.";
+
+const FUN_FACT_TONE: RewindTone = "playing";
+const CHALLENGE_TONE: RewindTone = "tags";
 
 export const INSIGHT_STYLE: Record<RewindInsightKind, InsightStyle> = {
 	"taste-vs-critics": { icon: "reviews", tone: "brand" },
@@ -146,10 +150,11 @@ function isInsightKind(kind: unknown): kind is RewindInsightKind {
 					<div
 						appRewindReveal
 						class="flex min-w-0 items-start gap-3 rounded-card border border-line p-4"
+						[style.--tone]="funFactTone"
 					>
 						<span
 							aria-hidden="true"
-							class="material-icons text-xl text-premium"
+							class="material-icons text-xl text-(--tone)"
 							>lightbulb</span
 						>
 						<div class="flex min-w-0 flex-col gap-1">
@@ -170,16 +175,17 @@ function isInsightKind(kind: unknown): kind is RewindInsightKind {
 					<div
 						appRewindReveal
 						[revealDelay]="80"
-						class="flex min-w-0 items-start gap-3 rounded-card border border-premium/45 bg-premium/10 p-4"
+						class="flex min-w-0 items-start gap-3 rounded-card border border-[color-mix(in_oklab,var(--tone)_45%,transparent)] bg-[color-mix(in_oklab,var(--tone)_10%,var(--color-surface))] p-4"
+						[style.--tone]="challengeTone"
 					>
 						<span
 							aria-hidden="true"
-							class="material-icons text-xl text-premium"
+							class="material-icons text-xl text-(--tone)"
 							>flag</span
 						>
 						<div class="flex min-w-0 flex-col gap-1">
 							<h3
-								class="m-0 text-xs font-semibold uppercase tracking-[0.12em] text-premium"
+								class="m-0 text-xs font-semibold uppercase tracking-[0.12em] text-(--tone)"
 							>
 								{{ text.nextYearChallenge(year() + 1) }}
 							</h3>
@@ -212,6 +218,8 @@ export class RewindAiRecap {
 	});
 	protected readonly frameClass = REWIND_PREMIUM_FRAME_CLASS;
 	protected readonly tintSecondaryClass = TONE_TINT_SECONDARY_CLASS;
+	protected readonly funFactTone = toneVar(FUN_FACT_TONE);
+	protected readonly challengeTone = toneVar(CHALLENGE_TONE);
 
 	protected readonly copy = computed(
 		() => rewindCopy(this.language()).aiRecap
