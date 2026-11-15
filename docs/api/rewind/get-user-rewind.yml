@@ -153,7 +153,17 @@ docs: |-
             { "name": "Nintendo Switch", "abbreviation": "NSW", "count": 5 },
             { "name": "PC", "abbreviation": "PC", "count": 1 }
           ],
-          "longestStreak": { "months": 5, "fromMonth": 3, "toMonth": 7 }
+          "longestStreak": { "months": 5, "fromMonth": 3, "toMonth": 7 },
+          "classic": {
+            "gameId": "uuid",
+            "code": "final-fantasy-vii",
+            "title": "Final Fantasy VII",
+            "coverUrl": "https://media.example.com/final-fantasy-vii.jpg",
+            "backgroundUrl": "https://media.example.com/final-fantasy-vii-bg.jpg",
+            "finishedAt": "2025-08-03",
+            "platformAbbreviation": "PS5",
+            "releaseYear": 1997
+          }
         },
         "yearMix": {
           "lengthMix": [
@@ -203,6 +213,7 @@ docs: |-
     - `firstFinished` / `lastFinished`: the first and last entries of `finishedGames` (the same game when only one was finished).
     - `topGenres` / `topPlatforms`: up to 3, with the criteria and ties of `favoriteGenre` / `topPlatform`, which are their first entries; empty arrays when there is nothing to rank.
     - `longestStreak`: the longest run of consecutive months of the year with at least one finished game (by the latest run of each game); ties go to the earliest; `null` when it is shorter than 2 months.
+    - `classic`: the finished game (its latest run of the year) with the oldest release year, as long as it came out at least 10 years before `year` (`REWIND_CLASSIC_MIN_AGE_YEARS`; a 2015 game counts in the 2025 Rewind, a 2016 one does not); games without a release date never count. Ties go to the earliest `finishedAt`, then the game id. `null` when no game is old enough. A Rewind frozen before this highlight existed serves `null`.
     - Every other highlight is `null` when there is nothing to pick from.
     - `yearMix`: computed live from the latest finished run of each game in the year, so a replayed game counts once. `lengthMix` always has the four ranges in this order: `under-5`, `5-15`, `15-30` and `over-30` hours, by `realDuration` or, without real hours, the estimated `duration` (a range includes its lower edge: exactly 5 hours is `5-15`). `releaseDecades` lists only the decades with games (`decade` is 1990, 2000...), oldest first, by the release year of the game. `gamesWithoutHours` counts the finished games left out of `lengthMix` (no hours above 0) and `gamesWithoutRelease` the ones left out of `releaseDecades` (no release date, or a release year before 1950 or after `year`).
 
