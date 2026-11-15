@@ -6,6 +6,7 @@ import {
 } from "../../shared/utils/validation-errors";
 import { type ScoreOutOfRangeBody } from "./admin-error-message.model";
 import { DATA_REQUEST_ERROR_MESSAGES } from "./data-request-error-message";
+import { problemType } from "./problem-details";
 
 const SCORE_PATH = /^scores?(\.|$)/;
 const DURATION_PATH = /^(times|duration)(\.|$)/;
@@ -61,8 +62,8 @@ function schemaInvalidMessage(error: unknown): string | null {
 
 export function adminErrorMessage(error: unknown): string | null {
 	const body = (error as HttpErrorResponse | undefined)?.error;
-	const type = body?.type;
-	if (typeof type !== "string") return null;
+	const type = problemType(error);
+	if (type === null) return null;
 	if (type === "GAME_SCORE_OUT_OF_RANGE") return scoreOutOfRangeMessage(body);
 	if (type === "COMMON_SCHEMA_INVALID") return schemaInvalidMessage(error);
 	return Object.hasOwn(ADMIN_ERROR_MESSAGES, type)
