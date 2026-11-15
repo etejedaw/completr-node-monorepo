@@ -258,6 +258,8 @@
 		</div>
 		}
 	</div>
+	} @else if (!isLoading() && backlogLoader.failed()) {
+	<ui-load-error (retried)="loadBacklog()" />
 	} @else if (!isLoading() && entries().length === 0) { @if
 	(searchQuery().trim() || hasActiveFilters()) {
 	<ui-no-matches
