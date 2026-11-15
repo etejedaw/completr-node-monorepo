@@ -59,4 +59,30 @@ describe("UiAvatar", () => {
 		expect(image).toBeNull();
 		expect(avatar.textContent?.trim()).toBe("B");
 	});
+
+	it("shows the initial again when a loaded photo is removed", async () => {
+		const { fixture, image } = renderedAvatar({
+			src: "/avatars/a.png",
+			name: "Ada Lovelace"
+		});
+		Object.defineProperty(image, "naturalWidth", { value: 64 });
+		image!.dispatchEvent(new Event("load"));
+		fixture.detectChanges();
+
+		fixture.componentRef.setInput("src", null);
+		fixture.detectChanges();
+		await fixture.whenStable();
+		await new Promise(resolve => setTimeout(resolve));
+		fixture.detectChanges();
+
+		const host = fixture.nativeElement as HTMLElement;
+		const fallback = host.querySelector("[ngpAvatarFallback]");
+		expect(host.querySelector("img")).toBeNull();
+		expect(fallback).not.toBeNull();
+		expect(fallback?.textContent?.trim()).toBe("A");
+		expect(fallback?.getAttribute("style") ?? "").not.toContain("none");
+		expect(
+			host.querySelector("[ngpAvatar]")?.getAttribute("data-status")
+		).not.toBe("loaded");
+	});
 });
