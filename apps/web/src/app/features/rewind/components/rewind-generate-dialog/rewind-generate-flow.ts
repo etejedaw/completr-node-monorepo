@@ -46,13 +46,17 @@ export function injectRewindGenerateFlow(options: RewindGenerateFlowOptions) {
 	}
 
 	function announceInBackground(username: string, rewind: Rewind) {
-		toast.pending({
-			message: `Your ${rewind.year} Rewind is ready`,
-			variant: "success",
-			undoLabel: "View",
-			onCommit: () => undefined,
-			onUndo: () =>
-				void router.navigate(["/user", username, "rewind", rewind.year])
+		toast.success(`Your ${rewind.year} Rewind is ready`, {
+			action: {
+				label: "View",
+				run: () =>
+					void router.navigate([
+						"/user",
+						username,
+						"rewind",
+						rewind.year
+					])
+			}
 		});
 	}
 
