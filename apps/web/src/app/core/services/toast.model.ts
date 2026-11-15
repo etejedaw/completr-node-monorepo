@@ -8,9 +8,21 @@ export interface Toast {
 	message: string;
 	variant: ToastVariant;
 	undoLabel?: string;
+	actionLabel?: string;
 	durationMs?: number;
+	onAction?: () => void;
 	onUndo?: () => void;
 	onDismiss?: () => void;
+}
+
+export interface ToastAction {
+	label: string;
+	run: () => void;
+}
+
+export interface ToastOptions {
+	durationMs?: number;
+	action?: ToastAction;
 }
 
 export interface PendingEntry {

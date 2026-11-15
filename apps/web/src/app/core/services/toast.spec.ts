@@ -1,7 +1,12 @@
 import { type TemplateRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 
-import { TOAST_LIBRARY_LOADER, ToastService, UNDO_WINDOW_MS } from "./toast";
+import {
+	TOAST_CONFIG,
+	TOAST_LIBRARY_LOADER,
+	ToastService,
+	UNDO_WINDOW_MS
+} from "./toast";
 import { type Toast } from "./toast.model";
 
 const IDLE_PRELOAD_MS = 2000;
@@ -279,6 +284,130 @@ describe("ToastService", () => {
 				toasts.undo(99);
 				toasts.dismiss(99);
 			}).not.toThrow();
+		});
+	});
+
+	describe("action", () => {
+		beforeEach(() => toasts.registerTemplate(template));
+
+		it("exposes the action label and no undo label", () => {
+			toasts.success("Ready", {
+				action: { label: "View", run: vi.fn() }
+			});
+
+			expect(lastContext()).toMatchObject({
+				message: "Ready",
+				variant: "success",
+				actionLabel: "View"
+			});
+			expect(lastContext().undoLabel).toBeUndefined();
+		});
+
+		it("gives an action toast the longer duration unless one is set", () => {
+			toasts.info("Ready", { action: { label: "View", run: vi.fn() } });
+			expect(manager.show.mock.lastCall?.[1].duration).toBe(
+				TOAST_CONFIG.actionDurationMs
+			);
+
+			toasts.info("Ready again", {
+				durationMs: 1500,
+				action: { label: "View", run: vi.fn() }
+			});
+			expect(manager.show.mock.lastCall?.[1].duration).toBe(1500);
+		});
+
+		it("keeps the regular duration and no action for a plain message", () => {
+			toasts.success("Saved");
+
+			expect(manager.show.mock.lastCall?.[1].duration).toBe(
+				TOAST_CONFIG.durationMs
+			);
+			expect(lastContext().actionLabel).toBeUndefined();
+			expect(lastContext().onAction).toBeUndefined();
+		});
+
+		it("still accepts a plain duration number", () => {
+			toasts.warning("Careful", 900);
+
+			expect(manager.show.mock.lastCall?.[1].duration).toBe(900);
+		});
+
+		it("runs the action and dismisses the toast", () => {
+			const run = vi.fn();
+			toasts.success("Ready", { action: { label: "View", run } });
+
+			lastContext().onAction?.();
+
+			expect(run).toHaveBeenCalledOnce();
+			expect(refs[0].dismiss).toHaveBeenCalledOnce();
+		});
+
+		it("runs the action only once when it is triggered repeatedly", () => {
+			const run = vi.fn();
+			toasts.success("Ready", { action: { label: "View", run } });
+			const { onAction } = lastContext();
+
+			onAction?.();
+			onAction?.();
+			onAction?.();
+
+			expect(run).toHaveBeenCalledOnce();
+			expect(refs[0].dismiss).toHaveBeenCalledOnce();
+		});
+
+		it("never runs the action when the toast is dismissed", () => {
+			const run = vi.fn();
+			toasts.success("Ready", { action: { label: "View", run } });
+
+			lastContext().onDismiss?.();
+
+			expect(run).not.toHaveBeenCalled();
+			expect(refs[0].dismiss).toHaveBeenCalledOnce();
+		});
+
+		it("does not collapse toasts that differ only in their action", () => {
+			toasts.success("Ready", {
+				action: { label: "View", run: vi.fn() }
+			});
+			toasts.success("Ready", {
+				action: { label: "Open", run: vi.fn() }
+			});
+			toasts.success("Ready");
+
+			expect(manager.show).toHaveBeenCalledTimes(3);
+			refs.forEach(ref => expect(ref.dismiss).not.toHaveBeenCalled());
+		});
+
+		it("replaces an identical action toast and keeps only the last action live", () => {
+			const first = vi.fn();
+			const second = vi.fn();
+			toasts.success("Ready", { action: { label: "View", run: first } });
+			toasts.success("Ready", { action: { label: "View", run: second } });
+
+			expect(refs[0].dismiss).toHaveBeenCalledOnce();
+			lastContext().onAction?.();
+			expect(second).toHaveBeenCalledOnce();
+			expect(first).not.toHaveBeenCalled();
+		});
+
+		it("shows an action toast fired before the library loads", async () => {
+			TestBed.resetTestingModule();
+			let release!: (library: unknown) => void;
+			const pendingToasts = createService(
+				() => new Promise(resolve => (release = resolve))
+			);
+			pendingToasts.registerTemplate(template);
+			manager.show.mockClear();
+			const run = vi.fn();
+
+			pendingToasts.success("Ready", { action: { label: "View", run } });
+			expect(manager.show).not.toHaveBeenCalled();
+			release(fakeLibrary());
+			await vi.advanceTimersByTimeAsync(0);
+
+			expect(manager.show).toHaveBeenCalledOnce();
+			lastContext().onAction?.();
+			expect(run).toHaveBeenCalledOnce();
 		});
 	});
 
