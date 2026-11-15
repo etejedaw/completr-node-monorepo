@@ -8,6 +8,8 @@ import {
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
+import { compactPositions as compactPositionsOf } from "../common/utils/compact-positions.util";
 import { sequelize } from "../database/sequelize.database";
 import * as gameScoresService from "../game-scores/game-scores.service";
 import { type TimeSource } from "../game-times/game-time.model";
@@ -22,7 +24,10 @@ import { resolvePremiumAccess } from "../premium-access/services/premium-access.
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import * as listItemsServiceError from "./errors/list-items.service-error";
 import { ListItem } from "./list-item.model";
-import { type CopiedListItem, type FrozenScoreContext } from "./list-items.types";
+import {
+	type CopiedListItem,
+	type FrozenScoreContext
+} from "./list-items.types";
 
 const RATING_SCALE = 5;
 const SCORE_DECIMAL_FACTOR = 100;
@@ -34,8 +39,7 @@ async function checkFrozen(userId: string, role: string) {
 	);
 	if (premiumAccess.allowed) return;
 	const total = await listsService.countListsByUserId(userId);
-	if (total > FREE_LIST_LIMIT)
-		throw listItemsServiceError.frozenError();
+	if (total > FREE_LIST_LIMIT) throw listItemsServiceError.frozenError();
 }
 
 async function findOwnedList(listId: string, user: RequestUser) {
@@ -168,6 +172,15 @@ async function bulkUpdateFrozenScores(
 	);
 }
 
+function wrapListItemWrite<T>(write: () => Promise<T>) {
+	return write().catch(error =>
+		rethrowSequelizeError(error, {
+			unique: listItemsServiceError.uniqueConstraintError,
+			validation: listItemsServiceError.validationError
+		})
+	);
+}
+
 export async function replaceItems(
 	listId: string,
 	user: RequestUser,
@@ -177,7 +190,10 @@ export async function replaceItems(
 	await checkFrozen(user.id, user.role);
 
 	if (gameIds.length === 0) {
-		await ListItem.destroy({ where: { listId } });
+		await sequelize.transaction(async (transaction: Transaction) => {
+			await lockListItems(listId, transaction);
+			await ListItem.destroy({ where: { listId }, transaction });
+		});
 		return [];
 	}
 
@@ -188,27 +204,35 @@ export async function replaceItems(
 		throw listItemsServiceError.gamesNotFoundError(missing);
 	}
 
-	const existingItems = await ListItem.findAll({ where: { listId } });
-	const existingByGameId = new Map(
-		existingItems.map(item => [item.gameId, item])
-	);
-
 	const newGameIds = new Set(gameIds);
-	const toDelete = existingItems.filter(item => !newGameIds.has(item.gameId));
-	const toCreate = gameIds.filter(gameId => !existingByGameId.has(gameId));
 	const gameIdOrder = new Map(gameIds.map((id, index) => [id, index + 1]));
+	const ctx = await loadFrozenScoreContext(list, gameIds);
 
-	const ctx = await loadFrozenScoreContext(list, toCreate);
+	await wrapListItemWrite(() =>
+		sequelize.transaction(async (transaction: Transaction) => {
+			await lockListItems(listId, transaction);
 
-	await sequelize.transaction(async (transaction: Transaction) => {
-		if (toDelete.length > 0) {
-			await ListItem.destroy({
-				where: { id: toDelete.map(item => item.id) },
+			const existingItems = await ListItem.findAll({
+				where: { listId },
 				transaction
 			});
-		}
+			const existingByGameId = new Map(
+				existingItems.map(item => [item.gameId, item])
+			);
+			const toDelete = existingItems.filter(
+				item => !newGameIds.has(item.gameId)
+			);
+			const toCreate = gameIds.filter(
+				gameId => !existingByGameId.has(gameId)
+			);
 
-		try {
+			if (toDelete.length > 0) {
+				await ListItem.destroy({
+					where: { id: toDelete.map(item => item.id) },
+					transaction
+				});
+			}
+
 			if (toCreate.length > 0) {
 				const rows = toCreate.map(gameId => {
 					const { score, duration } = freezeScoresFromContext(
@@ -236,13 +260,8 @@ export async function replaceItems(
 				})),
 				transaction
 			);
-		} catch (error) {
-			rethrowSequelizeError(error, {
-				unique: listItemsServiceError.uniqueConstraintError,
-				validation: listItemsServiceError.validationError
-			});
-		}
-	});
+		})
+	);
 
 	return ListItem.findAll({
 		where: { listId },
@@ -301,41 +320,28 @@ export async function addItem(
 }
 
 async function lockListItems(listId: string, transaction: Transaction) {
-	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
-		replacements: { lockKey: `list-items:${listId}` },
-		transaction
-	});
+	await acquireAdvisoryLock(`list-items:${listId}`, transaction);
 }
 
 async function compactPositionsInLists(
 	listIds: string[],
 	transaction: Transaction
 ) {
-	await sequelize.query(
-		`UPDATE "ListItems" AS li
-		SET "position" = ranked."position", "updatedAt" = NOW()
-		FROM (
-			SELECT "id", ROW_NUMBER() OVER (PARTITION BY "listId" ORDER BY "position", "createdAt", "id") AS "position"
-			FROM "ListItems"
-			WHERE "listId" IN (:listIds)
-		) AS ranked
-		WHERE li."id" = ranked."id" AND li."position" <> ranked."position"`,
-		{ replacements: { listIds }, transaction }
-	);
+	await compactPositionsOf({
+		table: "ListItems",
+		ownerColumn: "listId",
+		ownerIds: listIds,
+		transaction
+	});
 }
 
 async function compactPositions(listId: string, transaction: Transaction) {
-	await sequelize.query(
-		`UPDATE "ListItems" AS li
-		SET "position" = ranked."position", "updatedAt" = NOW()
-		FROM (
-			SELECT "id", ROW_NUMBER() OVER (ORDER BY "position", "createdAt", "id") AS "position"
-			FROM "ListItems"
-			WHERE "listId" = :listId
-		) AS ranked
-		WHERE li."id" = ranked."id" AND li."position" <> ranked."position"`,
-		{ replacements: { listId }, transaction }
-	);
+	await compactPositionsOf({
+		table: "ListItems",
+		ownerColumn: "listId",
+		ownerIds: [listId],
+		transaction
+	});
 }
 
 async function findMaxPositionsByListId(
@@ -360,6 +366,7 @@ export async function removeItem(
 	await findOwnedList(listId, user);
 
 	await sequelize.transaction(async (transaction: Transaction) => {
+		await lockListItems(listId, transaction);
 		const removedCount = await ListItem.destroy({
 			where: { listId, gameId },
 			transaction
@@ -400,22 +407,37 @@ export async function setGameLists(
 	const requestedLists = await loadOwnedLists(listIds, ownedListIds);
 	const requestedListIds = new Set(listIds);
 
-	const listsToAdd = requestedLists.filter(
+	const hasListsToAdd = requestedLists.some(
 		list => !containingListIds.has(list.id)
 	);
-	const listIdsToRemove = [...containingListIds].filter(
-		listId => !requestedListIds.has(listId)
-	);
-
-	if (listsToAdd.length > 0) await checkFrozen(user.id, user.role);
+	if (hasListsToAdd) await checkFrozen(user.id, user.role);
 
 	const frozenContexts = await loadFrozenScoreContextsForGame(
-		listsToAdd,
+		requestedLists,
 		gameId
 	);
+	const lockOrder = [...ownedListIds].sort();
 
-	await sequelize.transaction(async (transaction: Transaction) => {
-		try {
+	await wrapListItemWrite(() =>
+		sequelize.transaction(async (transaction: Transaction) => {
+			for (const ownedListId of lockOrder)
+				await lockListItems(ownedListId, transaction);
+
+			const currentItems = await ListItem.findAll({
+				where: { gameId, listId: lockOrder },
+				attributes: ["listId"],
+				transaction
+			});
+			const currentContainingIds = new Set(
+				currentItems.map(item => item.listId)
+			);
+			const listsToAdd = requestedLists.filter(
+				list => !currentContainingIds.has(list.id)
+			);
+			const listIdsToRemove = [...currentContainingIds].filter(
+				listId => !requestedListIds.has(listId)
+			);
+
 			if (listsToAdd.length > 0) {
 				const maxPositions = await findMaxPositionsByListId(
 					listsToAdd.map(list => list.id),
@@ -442,13 +464,8 @@ export async function setGameLists(
 				});
 				await compactPositionsInLists(listIdsToRemove, transaction);
 			}
-		} catch (error) {
-			rethrowSequelizeError(error, {
-				unique: listItemsServiceError.uniqueConstraintError,
-				validation: listItemsServiceError.validationError
-			});
-		}
-	});
+		})
+	);
 
 	return gamesProfileService.getListsForGame(user.id, gameId);
 }
