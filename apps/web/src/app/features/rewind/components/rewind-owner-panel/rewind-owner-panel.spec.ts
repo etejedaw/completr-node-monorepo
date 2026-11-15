@@ -144,7 +144,7 @@ describe("RewindOwnerPanel", () => {
 		).toBeInTheDocument();
 	});
 
-	it("speaks Spanish when the Rewind was generated in Spanish", async () => {
+	it("keeps the panel in English when the Rewind was generated in Spanish", async () => {
 		await renderPanel(
 			rewindFixture({
 				language: "es",
@@ -158,24 +158,26 @@ describe("RewindOwnerPanel", () => {
 			})
 		);
 
-		expect(screen.getByRole("region")).toHaveAttribute("lang", "es");
-		expect(chip("0 generaciones con IA restantes")).toBeInTheDocument();
+		expect(screen.getByRole("region")).not.toHaveAttribute("lang");
+		expect(chip("0 AI generations left")).toBeInTheDocument();
+		expect(screen.getByText("+1 extra until Jan 7")).toBeInTheDocument();
+		expect(screen.getByText("In Spanish")).toBeInTheDocument();
+		expect(screen.queryByText("In English")).toBeNull();
+		expect(screen.getByText("Includes private runs")).toBeInTheDocument();
+		expect(screen.getByText("Uses your notes")).toBeInTheDocument();
+		expect(screen.queryByText("Public runs only")).toBeNull();
 		expect(
-			screen.getByText("+1 extra hasta el 7 de enero")
-		).toBeInTheDocument();
-		expect(screen.getByText("En español")).toBeInTheDocument();
-		expect(screen.getByText("Incluye runs privadas")).toBeInTheDocument();
-		expect(screen.getByText("Usa tus notas")).toBeInTheDocument();
-		expect(screen.queryByText("Solo runs públicas")).toBeNull();
-		expect(
-			screen.getByText("No se pudo generar el resumen con IA")
-		).toBeInTheDocument();
-		expect(
-			screen.getByRole("button", { name: "Reintentar" })
+			screen.getByText("AI recap couldn't be generated")
 		).toBeInTheDocument();
 		expect(
-			screen.getByRole("button", { name: "Regenerar" })
+			screen.getByRole("button", { name: "Retry" })
 		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: "Regenerate" })
+		).toBeInTheDocument();
+		expect(
+			screen.queryByText(/generaciones|Reintentar|Regenerar/)
+		).toBeNull();
 	});
 
 	it("says the recap uses the notes only when the owner opted in", async () => {
@@ -382,24 +384,23 @@ describe("RewindOwnerPanel", () => {
 		}
 	);
 
-	it("explains a network error in the Rewind language", async () => {
+	it("explains a network error in English even when the Rewind is in Spanish", async () => {
 		await renderPanel(
 			rewindFixture({
 				language: "es",
 				ownerControls: controls({ aiRecapState: "failed" })
 			})
 		);
-		await userEvent.click(
-			screen.getByRole("button", { name: "Reintentar" })
-		);
+		await userEvent.click(screen.getByRole("button", { name: "Retry" }));
 
 		http().expectOne(aiRecapUrl).error(new ProgressEvent("error"));
 
 		expect(
 			await screen.findByText(
-				"Parece que no tienes conexión. Revísala y vuelve a intentarlo."
+				"You seem to be offline. Check your connection and try again."
 			)
 		).toBeInTheDocument();
+		expect(screen.queryByText(/conexión/)).toBeNull();
 	});
 
 	it("does not emit when the panel is gone before the AI recap arrives", async () => {
@@ -416,7 +417,7 @@ describe("RewindOwnerPanel", () => {
 		expect(changes).toEqual([]);
 	});
 
-	it("regenerates from the dialog with the current values and emits the new Rewind", async () => {
+	it("regenerates a Spanish Rewind from the dialog with its language and emits the new Rewind", async () => {
 		await renderPanel(
 			rewindFixture({
 				language: "es",
@@ -425,7 +426,7 @@ describe("RewindOwnerPanel", () => {
 		);
 
 		await userEvent.click(
-			screen.getByRole("button", { name: "Regenerar" })
+			screen.getByRole("button", { name: "Regenerate" })
 		);
 		const dialog = await screen.findByRole("dialog", {
 			name: "Regenerate your 2026 Rewind"
@@ -472,7 +473,7 @@ describe("RewindOwnerPanel", () => {
 			};
 		}
 
-		it("marks the AI generations as premium with the label of the owner's access", async () => {
+		it("marks the AI generations as premium with the label of the owner's access, in English for any Rewind language", async () => {
 			const { fixture } = await renderPanel(rewindFixture());
 
 			expect(
@@ -493,11 +494,12 @@ describe("RewindOwnerPanel", () => {
 			fixture.detectChanges();
 
 			expect(
-				await screen.findByRole("button", { name: "Regalo" })
+				await screen.findByRole("button", { name: "Gift" })
 			).toBeInTheDocument();
 			expect(
 				screen.queryByRole("button", { name: "Premium" })
 			).toBeNull();
+			expect(screen.queryByRole("button", { name: "Regalo" })).toBeNull();
 		});
 
 		it("does not show the AI generations tile without AI access", async () => {
@@ -551,7 +553,7 @@ describe("RewindOwnerPanel", () => {
 			).toBeInTheDocument();
 		});
 
-		it("shows how many AI generations are left and the grace in Spanish with access", async () => {
+		it("shows how many AI generations are left and the grace in English for a Spanish Rewind with access", async () => {
 			await renderPanel(
 				rewindFixture({
 					language: "es",
@@ -562,14 +564,13 @@ describe("RewindOwnerPanel", () => {
 				})
 			);
 
-			expect(chip("3 generaciones con IA restantes")).toBeInTheDocument();
+			expect(chip("3 AI generations left")).toBeInTheDocument();
 			expect(
-				screen.getByText("+1 extra hasta el 7 de enero")
+				screen.getByText("+1 extra until Jan 7")
 			).toBeInTheDocument();
-			expect(screen.getByText("Abierta")).toBeInTheDocument();
-			expect(
-				screen.getByText("hasta el 31 de enero")
-			).toBeInTheDocument();
+			expect(screen.getByText("Open")).toBeInTheDocument();
+			expect(screen.getByText("until Jan 31")).toBeInTheDocument();
+			expect(screen.queryByText(/hasta el|Abierta/)).toBeNull();
 			http().expectNone(giftOffersUrl);
 		});
 
@@ -602,7 +603,7 @@ describe("RewindOwnerPanel", () => {
 			http().expectNone(giftOffersUrl);
 		});
 
-		it("says Cerrado without a date while the Rewind waits to be frozen", async () => {
+		it("says Closed in English without a date while a Spanish Rewind waits to be frozen", async () => {
 			await renderPanel(
 				rewindFixture({
 					language: "es",
@@ -617,16 +618,18 @@ describe("RewindOwnerPanel", () => {
 				})
 			);
 
-			expect(screen.getByText("Cerrado")).toBeInTheDocument();
+			expect(screen.getByText("Closed")).toBeInTheDocument();
+			expect(screen.queryByText("Cerrado")).toBeNull();
+			expect(screen.queryByText(/Final version from/)).toBeNull();
 			expect(
 				screen.getByText(
-					"Este Rewind ya no se puede generar ni regenerar."
+					"This Rewind can't be generated or regenerated anymore."
 				)
 			).toBeInTheDocument();
 			http().expectNone(giftOffersUrl);
 		});
 
-		it("says the next season is not open yet while it is scheduled, in both languages", async () => {
+		it("says the next season is not open yet in English while it is scheduled, whatever the Rewind language", async () => {
 			const { fixture } = await renderPanel(
 				rewindFixture({
 					ownerControls: controls({
@@ -661,7 +664,11 @@ describe("RewindOwnerPanel", () => {
 				})
 			);
 			fixture.detectChanges();
-			expect(await screen.findByText("Aún no abre")).toBeInTheDocument();
+			expect(await screen.findByText("Not open yet")).toBeInTheDocument();
+			expect(
+				screen.getByText(/The next Rewind season hasn't opened yet/)
+			).toBeInTheDocument();
+			expect(screen.queryByText("Aún no abre")).toBeNull();
 		});
 
 		it("does not tell a user without AI access what Premium would add", async () => {
@@ -727,7 +734,7 @@ describe("RewindOwnerPanel", () => {
 			).toBeNull();
 		});
 
-		it("shows only the latest reason when the Rewind changes quickly, in its language", async () => {
+		it("shows only the latest reason in English when the Rewind changes quickly between languages", async () => {
 			const { fixture } = await renderPanel(rewindFixture());
 			const sequence = [
 				controls({
@@ -740,21 +747,27 @@ describe("RewindOwnerPanel", () => {
 					regenerationBlockedBy: "requires-premium"
 				})
 			];
-			for (const ownerControls of sequence) {
+			sequence.forEach((ownerControls, index) => {
 				fixture.componentRef.setInput(
 					"rewind",
-					rewindFixture({ language: "es", ownerControls })
+					rewindFixture({
+						language: index % 2 === 0 ? "es" : "en",
+						ownerControls
+					})
 				);
 				fixture.detectChanges();
-			}
+			});
 
 			expect(
 				screen.getAllByText(
-					"Los Rewinds de años anteriores solo se regeneran con Premium."
+					"Rewinds of previous years can only be regenerated with Premium."
 				)
 			).toHaveLength(1);
 			expect(
-				screen.queryByRole("button", { name: "Regenerar" })
+				screen.queryByText(/solo se regeneran con Premium/)
+			).toBeNull();
+			expect(
+				screen.queryByRole("button", { name: "Regenerate" })
 			).toBeNull();
 
 			fixture.componentRef.setInput("rewind", rewindFixture());
