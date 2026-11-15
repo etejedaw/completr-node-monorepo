@@ -14,31 +14,41 @@ import {
 	type RewindRegenerationBlock
 } from "../../../../core/models/rewind.model";
 import { GiftOfferCard } from "../../../../shared/components/gift-offer-card/gift-offer-card";
-import { UiAlert, UiBadge, UiButton, UiEyebrow } from "../../../../shared/ui";
+import {
+	UiAlert,
+	UiBadge,
+	UiButton,
+	UiEyebrow,
+	UiPremiumBadge
+} from "../../../../shared/ui";
 import { RewindService } from "../../rewind";
+import { rewindCopy } from "../../rewind-copy";
 import { formatRewindDay, formatRewindDayWithYear } from "../../rewind-dates";
 import {
 	type RewindAiRecapError,
 	rewindAiRecapError
 } from "../../rewind-errors";
+import { rewindPremiumAccessKindOf } from "../../rewind-premium-access-kind";
+import { REWIND_PREMIUM_TILE_CLASS } from "../../rewind-tone";
 import { RewindGenerateDialog } from "../rewind-generate-dialog/rewind-generate-dialog";
 import { injectRewindGenerateFlow } from "../rewind-generate-dialog/rewind-generate-flow";
 import { REWIND_OWNER_PANEL_COPY } from "./rewind-owner-panel.copy";
-import { type RewindOwnerPanelState } from "./rewind-owner-panel.model";
+import {
+	type RewindOwnerAiTile,
+	type RewindOwnerPanelState,
+	type RewindOwnerSeasonTile
+} from "./rewind-owner-panel.model";
 
 const REGENERATION_BLOCKS_SHOWN_ELSEWHERE: readonly RewindRegenerationBlock[] =
-	["period-closed", "no-regenerations-left"];
-
-const CLOSED_PANEL_STATES: readonly RewindOwnerPanelState[] = [
-	"closed",
-	"scheduled"
-];
+	["period-closed", "no-regenerations-left", "no-ai-access"];
 
 function rewindOwnerPanelState(rewind: Rewind): RewindOwnerPanelState {
 	const periodStatus = rewind.ownerControls?.periodStatus ?? "closed";
 	if (periodStatus !== "open") return periodStatus;
 	return rewind.premiumAccess?.allowed ? "open-with-ai" : "open-without-ai";
 }
+
+const AI_TILE_EMPTY_VALUE = "\u2014";
 
 const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 	"exists",
@@ -56,7 +66,8 @@ const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 		RewindGenerateDialog,
 		UiAlert,
 		UiBadge,
-		UiButton
+		UiButton,
+		UiPremiumBadge
 	],
 	templateUrl: "./rewind-owner-panel.html",
 	host: { class: "block empty:hidden" },
@@ -75,47 +86,87 @@ export class RewindOwnerPanel {
 	protected readonly panelState = computed(() =>
 		rewindOwnerPanelState(this.rewind())
 	);
-	protected readonly isClosedState = computed(() =>
-		CLOSED_PANEL_STATES.includes(this.panelState())
+	private readonly frozenAt = computed(
+		() => this.rewind().ownerControls?.frozenAt ?? this.rewind().frozenAt
 	);
-	protected readonly periodBadge = computed(() => {
+	protected readonly seasonTile = computed<RewindOwnerSeasonTile>(() => {
+		const copy = this.copy();
+		const { language } = this.rewind();
 		const state = this.panelState();
-		if (state === "scheduled") return this.copy().notOpenYet;
-		return state === "closed" ? this.copy().closed : null;
-	});
-	protected readonly regenerationBlockMessage = computed(() => {
-		const block = this.rewind().ownerControls?.regenerationBlockedBy;
-		if (!block || REGENERATION_BLOCKS_SHOWN_ELSEWHERE.includes(block))
-			return null;
-		return this.copy().regenerationBlocks[block];
-	});
-	protected readonly closesLine = computed(() => {
+		if (state === "scheduled")
+			return { value: copy.notOpenYet, detail: null, tone: "closed" };
+		if (state === "closed") {
+			const frozenAt = this.frozenAt();
+			return {
+				value: copy.closed,
+				detail: frozenAt
+					? copy.finalVersion(
+							formatRewindDayWithYear(frozenAt, language)
+						)
+					: null,
+				tone: "closed"
+			};
+		}
 		const closesAt = this.rewind().ownerControls?.closesAt;
-		if (!closesAt) return null;
-		const copy = this.copy();
-		return copy.openUntil(
-			formatRewindDay(closesAt, this.rewind().language)
-		);
+		return {
+			value: copy.seasonOpen,
+			detail: closesAt
+				? copy.seasonUntil(formatRewindDay(closesAt, language))
+				: null,
+			tone: "open"
+		};
 	});
-	protected readonly closedLine = computed(() => {
-		const copy = this.copy();
-		const frozenAt =
-			this.rewind().ownerControls?.frozenAt ?? this.rewind().frozenAt;
-		if (frozenAt)
-			return copy.finalVersion(
-				formatRewindDayWithYear(frozenAt, this.rewind().language)
-			);
-		return this.panelState() === "scheduled"
-			? copy.scheduledHint
-			: copy.closedHint;
+	protected readonly premiumTileClass = REWIND_PREMIUM_TILE_CLASS;
+	protected readonly aiPremiumLabel = computed(() => {
+		const kind = rewindPremiumAccessKindOf(this.rewind().premiumAccess);
+		return kind
+			? rewindCopy(this.rewind().language).premiumStats.premiumLabels[
+					kind
+				]
+			: null;
 	});
-	protected readonly graceLine = computed(() => {
+	protected readonly aiTile = computed<RewindOwnerAiTile>(() => {
+		const copy = this.copy();
+		const state = this.panelState();
+		if (state === "open-without-ai")
+			return {
+				value: AI_TILE_EMPTY_VALUE,
+				detail: copy.aiNeedsAccess,
+				spokenSummary: [`${copy.aiGenerations}: ${copy.aiNeedsAccess}`]
+			};
+		if (state !== "open-with-ai")
+			return {
+				value: AI_TILE_EMPTY_VALUE,
+				detail: copy.aiOutsideSeason,
+				spokenSummary: [
+					`${copy.aiGenerations}: ${copy.aiOutsideSeason}`
+				]
+			};
+		const left = this.rewind().ownerControls?.regenerationsLeft ?? 0;
 		const graceEndsAt = this.rewind().ownerControls?.graceEndsAt;
-		if (!graceEndsAt) return null;
-		const copy = this.copy();
-		return copy.graceUntil(
-			formatRewindDay(graceEndsAt, this.rewind().language)
-		);
+		const language = this.rewind().language;
+		return {
+			value: String(left),
+			detail: graceEndsAt
+				? copy.aiGraceExtra(formatRewindDay(graceEndsAt, language))
+				: copy.aiLeft(left),
+			spokenSummary: graceEndsAt
+				? [
+						copy.regenerationsLeft(left),
+						copy.graceUntil(formatRewindDay(graceEndsAt, language))
+					]
+				: [copy.regenerationsLeft(left)]
+		};
+	});
+	protected readonly notice = computed(() => {
+		const block = this.rewind().ownerControls?.regenerationBlockedBy;
+		if (block && !REGENERATION_BLOCKS_SHOWN_ELSEWHERE.includes(block))
+			return this.copy().regenerationBlocks[block];
+		const state = this.panelState();
+		if (state === "scheduled") return this.copy().scheduledHint;
+		if (state === "closed" && !this.frozenAt())
+			return this.copy().closedHint;
+		return null;
 	});
 	protected readonly aiRecapPending = signal(false);
 	protected readonly aiRecapError = signal<RewindAiRecapError | null>(null);
