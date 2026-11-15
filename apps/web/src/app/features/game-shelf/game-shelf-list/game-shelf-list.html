@@ -4,11 +4,7 @@
 	[posters]="heroPosters()"
 >
 	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
-		<span
-			class="font-semibold text-fg tabular-nums"
-			[class.!text-premium]="isPremium()"
-			>{{ total() }}</span
-		>
+		<span class="font-semibold text-fg tabular-nums">{{ total() }}</span>
 		{{ total() === 1 ? 'game' : 'games' }} you own
 		<ui-premium-badge
 			*appPremiumOnly
