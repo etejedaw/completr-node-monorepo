@@ -446,17 +446,115 @@ describe("RewindHighlights layout", () => {
 		expect(platforms).toHaveClass("col-span-2", "lg:col-span-3");
 	});
 
-	it("draws stat cards in solid colour with canvas text and list cards tinted", async () => {
-		await render(RewindHighlights, {
+	it("shares one dark surface and keeps the tone for the accent", async () => {
+		const { container } = await render(RewindHighlights, {
 			inputs: { highlights: fullHighlights },
 			providers: [provideRouter([])]
 		});
 
 		const month = screen.getByText("Busiest month").closest("li")!;
 		const genres = screen.getByText("Top genres").closest("li")!;
+		const cards = [
+			...container.querySelectorAll<HTMLElement>(
+				"li[data-reveal] > a, li[data-reveal].rounded-card"
+			)
+		];
 
-		expect(month).toHaveClass("bg-(--tone)", "text-canvas");
-		expect(genres).not.toHaveClass("text-canvas");
-		expect(genres.className).toContain("var(--tone)_22%");
+		expect(cards).toHaveLength(HIGHLIGHT_ORDER.length);
+		cards.forEach(card => {
+			expect(card).toHaveClass("border-line-hover", "after:h-0.5");
+			expect(card).not.toHaveClass("text-canvas");
+			expect(card.className).not.toContain("var(--tone)_22%");
+		});
+		expect(within(month).getByText("March").className).toContain(
+			"var(--tone)_80%"
+		);
+		expect(within(genres).getByText("1").className).toContain(
+			"var(--tone)_16%"
+		);
+	});
+
+	it("draws each card icon in a tone capsule hidden from screen readers", async () => {
+		await render(RewindHighlights, {
+			inputs: { highlights: fullHighlights },
+			providers: [provideRouter([])]
+		});
+
+		const label = screen.getByText("Longest streak");
+		const icon = label.querySelector(".material-icons")!;
+
+		expect(icon).toHaveTextContent("local_fire_department");
+		expect(icon).toHaveAttribute("aria-hidden", "true");
+		expect(icon.className).toContain("var(--tone)_16%");
+	});
+
+	it("puts the game art behind every game card and none behind data cards", async () => {
+		const withArt = (code: string) => ({
+			backgroundUrl: `https://img.test/${code}-bg.jpg`,
+			coverUrl: `https://img.test/${code}.jpg`
+		});
+		await render(RewindHighlights, {
+			inputs: {
+				highlights: {
+					...fullHighlights,
+					topRated: {
+						...fullHighlights.topRated!,
+						...withArt("florence")
+					},
+					bestRatio: {
+						...fullHighlights.bestRatio!,
+						...withArt("celeste")
+					},
+					firstFinished: {
+						...fullHighlights.firstFinished!,
+						...withArt("hades")
+					},
+					lastFinished: {
+						...fullHighlights.lastFinished!,
+						coverUrl: "https://img.test/tunic.jpg"
+					},
+					longest: {
+						...fullHighlights.longest!,
+						...withArt("elden-ring")
+					},
+					fastest: { ...fullHighlights.fastest!, ...withArt("gris") },
+					classic: { ...fullHighlights.classic!, ...withArt("doom") }
+				}
+			},
+			providers: [provideRouter([])]
+		});
+
+		const artOf = (label: string) =>
+			screen
+				.getByText(label)
+				.closest("li")!
+				.querySelector<HTMLImageElement>("img[aria-hidden='true']")
+				?.getAttribute("src");
+
+		expect(artOf("Top rated")).toBe("https://img.test/florence-bg.jpg");
+		expect(artOf("Best value")).toBe("https://img.test/celeste-bg.jpg");
+		expect(artOf("First of the year")).toBe(
+			"https://img.test/hades-bg.jpg"
+		);
+		expect(artOf("Last of the year")).toBe("https://img.test/tunic.jpg");
+		expect(artOf("Longest")).toBe("https://img.test/elden-ring-bg.jpg");
+		expect(artOf("Fastest")).toBe("https://img.test/gris-bg.jpg");
+		expect(artOf("The classic")).toBe("https://img.test/doom-bg.jpg");
+		expect(artOf("Longest streak")).toBeUndefined();
+		expect(artOf("Busiest month")).toBeUndefined();
+		expect(artOf("Top genres")).toBeUndefined();
+		expect(artOf("Platforms")).toBeUndefined();
+	});
+
+	it("leaves a game card on its plain surface when the game has no art", async () => {
+		await render(RewindHighlights, {
+			inputs: { highlights: fullHighlights },
+			providers: [provideRouter([])]
+		});
+
+		const first = screen.getByText("First of the year").closest("a")!;
+
+		expect(first.querySelector("img")).toBeNull();
+		expect(first.querySelector("span.-z-10")).toBeNull();
 	});
 });
