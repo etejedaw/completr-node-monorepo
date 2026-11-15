@@ -80,3 +80,4 @@ docs: |-
     | 409 | REWIND_EDITION_EXISTS | The year already has an edition |
     | 409 | REWIND_EDITION_OVERLAP | The period overlaps another edition |
     | 422 | COMMON_SCHEMA_INVALID | Invalid date, unordered dates, unknown design, negative or non-integer quota, or extra field |
+    | 422 | REWIND_EDITION_INVALID | The database rejected the edition data |

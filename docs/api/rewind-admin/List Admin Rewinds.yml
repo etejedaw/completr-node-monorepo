@@ -5,12 +5,12 @@ info:
 
 http:
     method: GET
-    url: "{{BASE_URL}}/admin/rewinds?year=2026&q=&limit=50&offset=0"
+    url: "{{BASE_URL}}/admin/rewinds?year=2026&limit=50&offset=0"
     params:
         - name: year
           value: "2026"
           type: query
-        - name: q
+        - name: search
           value: ""
           type: query
           enabled: false
@@ -35,7 +35,7 @@ docs: |-
     ### Query
 
     - `year` (integer, optional) — filter by year
-    - `q` (string, optional, max 100) — search by username, ignoring case and accents
+    - `search` (string, optional, 1 to 100 characters) — search by username, ignoring case and accents
     - `limit` (integer, optional, 1 to 100, default 50) — page size
     - `offset` (integer, optional, default 0) — rows to skip
 
