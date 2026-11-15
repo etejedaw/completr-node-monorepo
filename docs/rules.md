@@ -137,7 +137,8 @@ Lo transversal ya resuelto en `common/` o en un módulo dueño, que no se reimpl
 ## Infraestructura y despliegue
 
 - **Despliegue en CapRover detrás de Cloudflare.** Cada app tiene un `captain-definition-<app>` en la raíz del repo.
-- **Los logs de producción de la API se escriben en `/usr/app/logs`, montado como volumen** desde la configuración de la app en CapRover, para que sobrevivan a los deploys. La salida estándar es lo que muestra el visor de logs de CapRover.
+- **Los logs de producción de la API se escriben en `/usr/app/logs`, montado como volumen** desde la configuración de la app en CapRover, para que sobrevivan a los deploys. La salida estándar es lo que muestra el visor de logs de CapRover. El contenedor de la API corre como el usuario `node` (uid 1000), así que ese directorio tiene que ser escribible por él; un volumen con archivos creados por root hay que reasignarlo una vez, o el logger de producción no arranca.
+- **El contenedor de la API se verifica con `GET /robots.txt`.** Es una ruta sin autenticación y sin rate limiter, montada antes del logger de requests (no llena el log); el `HEALTHCHECK` del `Dockerfile` la consulta. Solo comprueba que el proceso HTTP responde, no la base de datos.
 - **Las imágenes para compartir del Rewind se dibujan en el servidor** (`rewind-share/`, story 1080×1920 y og 1200×630) con satori y resvg. Las plantillas son objetos `{ type, props }` sin JSX y solo admiten flexbox, porque es lo que entiende satori. Las fuentes son los `.woff` estáticos de `@fontsource`, porque satori no lee woff2 ni fuentes variables, y resvg corre con `loadSystemFonts: false` para que el resultado no dependa del sistema. La caché es un LRU en memoria con el hash del JSON del Rewind en la clave; una imagen con portadas que no se pudieron descargar no se guarda, para no dejar fija una versión incompleta.
 
 ---
