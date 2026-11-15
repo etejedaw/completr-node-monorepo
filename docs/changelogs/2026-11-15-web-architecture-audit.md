@@ -10,7 +10,7 @@ Auditoría y corrección de `apps/web` y `apps/landing` contra `docs/context/fro
 
 - La sesión ya no se cierra ante un 500, un 429 o un fallo de red en el refresh, y varias pestañas no se pisan el token.
 - Los 404 de recursos borrados o ajenos se tratan como "no existe" y los fallos muestran un estado con reintento en vez del vacío.
-- Guardar el perfil con un avatar preset vuelve a funcionar, y "Use my initial" borra el avatar.
+- "Use my initial" borra el avatar, y los presets siguen funcionando con el schema nuevo de la API.
 - La ficha de un juego sabe si está en My Shelf aunque la estantería tenga más de 100 juegos.
 
 ## Refactors (sin cambio de comportamiento)
@@ -32,7 +32,7 @@ Auditoría y corrección de `apps/web` y `apps/landing` contra `docs/context/fro
 - **404 y errores.** list-detail, vistas guardadas, run modal, queue, wishlist, reportes, jobs, invitaciones, feed y solicitudes de seguimiento tratan un 404 como "ya no existe" (quitan la fila, recargan o muestran el vacío). list-detail, feed, Users y el perfil público muestran un estado de error con reintento ante un 5xx o sin red. La búsqueda de Users ya no muere tras un error.
 - **Respuestas desordenadas.** La ficha de un juego, sus reseñas y la actividad social, el perfil público, list-detail, el feed y las invitaciones cancelan la carga anterior; una respuesta lenta ya no pisa la del juego, usuario, mes o filtro actual.
 - **Contrato con la API.** accept-invite distingue una invitación inválida (404) de una no comprobable (5xx, 429, red); reset-password distingue un enlace inválido de una contraseña que no cumple la política; login muestra un mensaje por status; What's new y Privacy explican el 503 `COMMON_SOURCE_UNAVAILABLE`; los reportes muestran su `category`; cancelar un job inexistente recarga la lista; borrar una actividad que ya no existe (`ACTIVITY_NOT_FOUND`) cuenta como hecho y Undo restaura solo esa actividad.
-- **Avatar.** `AvatarUrlSchema` acepta una URL `http(s)` de hasta 255 caracteres o una ruta `/avatars/completr_profile_NN.png`, y `PATCH /users/me` acepta `avatarUrl: null`. La web manda el avatar solo si cambió y `null` para "Use my initial". Antes, quien tenía un preset no podía guardar ningún cambio del perfil (422).
+- **Avatar.** `AvatarUrlSchema` acepta una URL `http(s)` de hasta 255 caracteres o una ruta `/avatars/completr_profile_NN.png`, y `PATCH /users/me` acepta `avatarUrl: null`. La web manda el avatar solo si cambió y `null` para "Use my initial". Corrige una regresión de la auditoría de la API, que no llegó a producción: con el schema nuevo, quien tenía un preset no podía guardar ningún cambio del perfil (422). En producción el error real era otro: "Use my initial" no borraba el avatar.
 - **My Shelf en la ficha.** `GET /users/me/game-shelf` acepta `game_id` (uuid, opcional; con un parámetro desconocido responde 422) y la ficha pregunta por el juego abierto en vez de buscarlo en los primeros 100.
 - **Rewind.** "More Rewinds" pasa `premiumAccess` y `period`, así que Generate ya no queda muerto; `ProfileRewinds` recibe `period`; los valores de los gráficos se ven sin hover; una descarga de imagen fallida avisa.
 - **Otros.** Wishlist renumera las posiciones al quitar; error-pages ofrece "Sign in" a visitantes y un "Go back" seguro; `StorageService` tolera el almacenamiento bloqueado y lo usan onboarding, tema y layout; `GamesService` devuelve los sobres de scores y times sin desenvolverlos.

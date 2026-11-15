@@ -6,11 +6,11 @@ title: "Steadier when you click fast, switch pages or lose connection"
 icon: build
 tint: warning
 landing:
-    pitch: "Una tanda de arreglos para que la app se comporte bien aunque hagas doble clic, cambies rápido de página o se corte la conexión. Además, ya puedes guardar tu perfil con cualquier avatar y la ficha de un juego siempre sabe si lo tienes en My Shelf."
+    pitch: 'Una tanda de arreglos para que la app se comporte bien aunque hagas doble clic, cambies rápido de página o se corte la conexión. Además, "Use my initial" ahora sí quita tu avatar y la ficha de un juego siempre sabe si lo tienes en My Shelf.'
 highlights:
     - icon: face
       tint: success
-      text: 'Saving your profile works again with any avatar, and "Use my initial" now really removes your avatar.'
+      text: '"Use my initial" now really removes your avatar instead of keeping the old one.'
     - icon: touch_app
       tint: warning
       text: "Double-clicking or pressing Enter twice no longer sends things twice: sign in, follows, favorites, Up Next, Want to Get and more."
