@@ -15,6 +15,10 @@ export const GENRE_EXPLORER_MIN_GENRES = 6;
 export const PICKY_PLAYER_MIN_ABANDONED = 3;
 export const REWIND_AI_RECAP_PENDING_TIMEOUT_MS = 2 * 60 * 1000;
 export const REWIND_MIN_RELEASE_YEAR = 1950;
+export const REWIND_FREEZE_BATCH_SIZE = 100;
+export const REWIND_FREEZE_ATTEMPTS = 2;
+export const REWIND_FREEZE_LOCK_KEY = "rewind-freeze";
+export const REWIND_SNAPSHOT_SCHEMA_VERSION = 1;
 
 export const REWIND_PERSONA_CODES = [
 	"trophy-hunter",

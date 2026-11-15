@@ -56,3 +56,8 @@ export interface RunHours {
 	hours: number;
 	isEstimate: boolean;
 }
+
+export interface RewindRunsQuery {
+	publicOnly: boolean;
+	includeNotes: boolean;
+}

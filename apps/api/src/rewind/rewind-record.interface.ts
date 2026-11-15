@@ -7,7 +7,8 @@ import {
 } from "./rewind.constants";
 import {
 	type RewindAiRecap,
-	type RewindPremiumStats
+	type RewindPremiumStats,
+	type RewindView
 } from "./rewind.interface";
 import {
 	type Rewind as RewindModel,
@@ -39,6 +40,7 @@ export interface RewindOwnerClock {
 export interface RewindYearVisibility {
 	generatedYears: ReadonlySet<number>;
 	includeUngenerated: boolean;
+	frozenYearListing: ReadonlyMap<number, boolean>;
 }
 
 export interface RewindViewerContext {
@@ -49,4 +51,5 @@ export interface RewindViewerContext {
 	runs: RewindRun[];
 	calendar: RewindCalendar;
 	records: Map<number, RewindModel>;
+	frozenViews: Map<number, RewindView | null>;
 }

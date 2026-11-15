@@ -6,7 +6,8 @@ import {
 	type RewindDurationGame,
 	type RewindFinishedGame,
 	type RewindOwner,
-	type RewindTotals
+	type RewindTotals,
+	type RewindView
 } from "./rewind.interface";
 import { type RewindYearVisibility } from "./rewind-record.interface";
 import { type RewindStoredView } from "./rewind-record.types";
@@ -35,6 +36,8 @@ export interface RewindYearsSource {
 	calendar: RewindCalendar;
 	visibility: RewindYearVisibility;
 	generationAccess: RewindGenerationAccess | null;
+	frozenViews: ReadonlyMap<number, RewindView>;
+	platinumsVisible: boolean;
 }
 
 export interface RewindTotalsSource {

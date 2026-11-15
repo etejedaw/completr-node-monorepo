@@ -173,6 +173,8 @@ export interface RewindView extends Omit<
 	"finishedGames" | "ownerControls" | "premiumAccess"
 > {
 	finishedGames: RewindViewGame[];
+	personaWithoutPlatinums: RewindPersonaCode;
+	covers: RewindGameRef[];
 	previousYearTotals: RewindTotals | null;
 	options: RewindViewOptions;
 }
@@ -182,7 +184,7 @@ export interface RewindSnapshot {
 	design: string;
 	frozenAt: string;
 	owner: RewindView;
-	public: RewindView;
+	public: RewindView | null;
 }
 
 export interface RewindInsight {

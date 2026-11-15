@@ -24,14 +24,16 @@ import { type User } from "../users/user.model";
 import * as usersService from "../users/users.service";
 import { type GenerateRewindDto } from "./dtos/generate-rewind.dto";
 import * as rewindServiceError from "./errors/rewind.service-error";
-import { backlogToRewindRun } from "./mappers/backlog-to-rewind-run.mapper";
+import { rewindViewToRewind } from "./mappers/rewind-view-to-rewind.mapper";
 import { userToRewindOwner } from "./mappers/user-to-rewind-owner.mapper";
 import { type RewindPremiumAccessKind } from "./rewind.constants";
 import {
 	type Rewind,
 	type RewindAiRecap,
 	type RewindPremiumStats,
+	type RewindSnapshot,
 	type RewindTotals,
+	type RewindView,
 	type RewindYears
 } from "./rewind.interface";
 import { Rewind as RewindModel } from "./rewind.model";
@@ -53,30 +55,37 @@ import {
 	type RewindViewerContext,
 	type RewindYearVisibility
 } from "./rewind-record.interface";
-import { type RewindStoredView } from "./rewind-record.types";
 import {
 	type RewindCalendar,
 	type RewindGameGenre,
 	type RewindRun
 } from "./rewind-run.interface";
+import { freezeRewind } from "./services/rewind-freeze.service";
+import { findRewindRuns } from "./services/rewind-runs.service";
 import { buildRewind } from "./utils/build-rewind.util";
 import { buildRewindOwnerControls } from "./utils/build-rewind-owner-controls.util";
 import { buildRewindYears } from "./utils/build-rewind-years.util";
+import { buildYearTotals } from "./utils/build-year-totals.util";
 import { collectYearRuns } from "./utils/collect-year-runs.util";
-import { hasPremiumContent } from "./utils/has-premium-content.util";
 import { isAiRecapInProgress } from "./utils/is-ai-recap-in-progress.util";
 import { listActiveGameIds } from "./utils/list-active-game-ids.util";
 import { listRewindYears } from "./utils/list-rewind-years.util";
 import { listVisibleRewindYears } from "./utils/list-visible-rewind-years.util";
 import { nextGeneratedAt } from "./utils/next-generated-at.util";
 import { planRewindGeneration } from "./utils/plan-rewind-generation.util";
+import { resolveClosedRewindEdition } from "./utils/resolve-closed-rewind-edition.util";
 import { resolveCurrentRewindDay } from "./utils/resolve-current-rewind-day.util";
+import { resolveOpenRewindEdition } from "./utils/resolve-open-rewind-edition.util";
 import { resolveRewindAiBudget } from "./utils/resolve-rewind-ai-budget.util";
 import { resolveRewindAiUseChanges } from "./utils/resolve-rewind-ai-use-changes.util";
 import { resolveRewindGenerationBlocker } from "./utils/resolve-rewind-generation-blocker.util";
 import { resolveRewindPremiumAccessKind } from "./utils/resolve-rewind-premium-access-kind.util";
+import { resolveSpotlightYear } from "./utils/resolve-spotlight-year.util";
+import { toRewindStoredView } from "./utils/to-rewind-stored-view.util";
 
 const logger = new PinoLogger("Rewind Service");
+
+const UNFROZEN_FIELDS = { snapshot: null, frozenAt: null };
 
 async function buildRewindCalendar(owner: User): Promise<RewindCalendar> {
 	const today = resolveCurrentRewindDay();
@@ -107,20 +116,68 @@ async function requireSignedInOwner(userId: string): Promise<User> {
 async function findRecordsByUserId(
 	userId: string
 ): Promise<Map<number, RewindModel>> {
-	const records = await RewindModel.findAll({ where: { userId } });
+	const records = await RewindModel.findAll({
+		attributes: { exclude: ["snapshot"] },
+		where: { userId }
+	});
 	return new Map(records.map(record => [record.year, record]));
 }
 
-async function findRuns(
-	owner: User,
-	publicOnly: boolean,
-	includeNotes = false
-) {
-	const runs = await backlogService.findDatedRunsByUserId(owner.id, {
-		publicOnly,
-		includeNotes
+function findRuns(owner: User, publicOnly: boolean, includeNotes = false) {
+	return findRewindRuns(owner.id, { publicOnly, includeNotes });
+}
+
+async function findFrozenSnapshots(
+	userId: string
+): Promise<Map<number, RewindSnapshot>> {
+	const records = await RewindModel.findAll({
+		attributes: ["year", "snapshot"],
+		where: { userId, frozenAt: { [Op.ne]: null } }
 	});
-	return runs.map(backlogToRewindRun);
+	return new Map(
+		records.flatMap(record =>
+			record.snapshot ? [[record.year, record.snapshot] as const] : []
+		)
+	);
+}
+
+function viewsFor(
+	snapshots: Map<number, RewindSnapshot>,
+	isOwner: boolean
+): Map<number, RewindView | null> {
+	return new Map(
+		[...snapshots].map(([year, snapshot]) => [
+			year,
+			isOwner ? snapshot.owner : snapshot.public
+		])
+	);
+}
+
+async function freezeClosedRecordsOnRead(
+	records: Map<number, RewindModel>,
+	calendar: RewindCalendar
+): Promise<boolean> {
+	const closedEdition = resolveClosedRewindEdition(calendar);
+	const liveRecords = [...records.values()].filter(
+		record => !record.frozenAt
+	);
+	if (!closedEdition) return false;
+	let changed = false;
+	for (const record of liveRecords) {
+		const outcome = await freezeRewind(record.id, closedEdition);
+		changed ||= outcome.kind !== "pending";
+	}
+	return changed;
+}
+
+async function loadRecords(owner: User, calendar: RewindCalendar) {
+	const records = await findRecordsByUserId(owner.id);
+	const changed = await freezeClosedRecordsOnRead(records, calendar);
+	const [currentRecords, snapshots] = await Promise.all([
+		changed ? findRecordsByUserId(owner.id) : records,
+		findFrozenSnapshots(owner.id)
+	]);
+	return { records: currentRecords, snapshots };
 }
 
 async function buildViewerContext(
@@ -133,14 +190,14 @@ async function buildViewerContext(
 		throw rewindServiceError.userPrivateError();
 
 	const isOwner = viewerId === owner.id;
-	const [premiumAccess, runs, records, calendar] = await Promise.all([
+	const calendar = await buildRewindCalendar(owner);
+	const [premiumAccess, runs, { records, snapshots }] = await Promise.all([
 		isOwner
 			? (providedPremiumAccess ??
 				resolvePremiumAccess(owner, "rewind.premium"))
 			: null,
 		findRuns(owner, !isOwner),
-		findRecordsByUserId(owner.id),
-		buildRewindCalendar(owner)
+		loadRecords(owner, calendar)
 	]);
 	return {
 		owner,
@@ -149,15 +206,32 @@ async function buildViewerContext(
 		isOwner,
 		runs,
 		calendar,
-		records
+		records,
+		frozenViews: viewsFor(snapshots, isOwner)
 	};
 }
 
 function yearVisibility(context: RewindViewerContext): RewindYearVisibility {
 	return {
 		generatedYears: new Set(context.records.keys()),
-		includeUngenerated: context.isOwner
+		includeUngenerated: context.isOwner,
+		frozenYearListing: new Map(
+			[...context.frozenViews].map(([year, view]) => [
+				year,
+				view !== null
+			])
+		)
 	};
+}
+
+function listedFrozenViews(
+	context: RewindViewerContext
+): Map<number, RewindView> {
+	return new Map(
+		[...context.frozenViews].flatMap(([year, view]) =>
+			view ? [[year, view] as const] : []
+		)
+	);
 }
 
 function countVisiblePlatinums(
@@ -178,23 +252,6 @@ function listFinishedGameIds(runs: RewindRun[], years: number[]): string[] {
 	return [...new Set(gameIds)];
 }
 
-function storedView(
-	record: RewindRecord,
-	ownerControls: Rewind["ownerControls"]
-): RewindStoredView {
-	return {
-		language: record.language,
-		generatedAt: record.generatedAt.toISOString(),
-		frozenAt: record.frozenAt?.toISOString() ?? null,
-		aiRecap: record.aiRecapStatus === "ready" ? record.aiRecap : null,
-		premiumStats: record.premiumStats,
-		premiumAccessKind: hasPremiumContent(record)
-			? record.premiumAccessKind
-			: null,
-		ownerControls
-	};
-}
-
 function ownerControlsFor(context: RewindViewerContext, record: RewindRecord) {
 	if (!context.isOwner) return null;
 	return buildRewindOwnerControls(
@@ -213,16 +270,16 @@ export async function getRewindYearsForViewer(
 	const owner = await requireRewindOwner(username);
 	const context = await buildViewerContext(viewerId, owner);
 	const visibility = yearVisibility(context);
-	const years = listVisibleRewindYears(
+	const liveYears = listVisibleRewindYears(
 		context.runs,
 		context.calendar,
 		visibility
-	);
+	).filter(year => !context.frozenViews.has(year));
 	const [genres, platinumCounts] = await Promise.all([
 		gameGenreService.findGenresByGameIds(
-			listFinishedGameIds(context.runs, years)
+			listFinishedGameIds(context.runs, liveYears)
 		),
-		Promise.all(years.map(year => countVisiblePlatinums(context, year)))
+		Promise.all(liveYears.map(year => countVisiblePlatinums(context, year)))
 	]);
 
 	return {
@@ -230,7 +287,7 @@ export async function getRewindYearsForViewer(
 			runs: context.runs,
 			genres,
 			platinumsByYear: new Map(
-				years.map((year, index) => [
+				liveYears.map((year, index) => [
 					year,
 					platinumCounts[index] ?? null
 				])
@@ -245,10 +302,32 @@ export async function getRewindYearsForViewer(
 								)
 							: null
 					}
-				: null
+				: null,
+			frozenViews: listedFrozenViews(context),
+			platinumsVisible: context.access.platinum
 		}),
 		premiumAccess: context.premiumAccess
 	};
+}
+
+function buildFrozenRewind(
+	context: RewindViewerContext,
+	record: RewindRecord
+): Rewind {
+	const view = context.frozenViews.get(record.year);
+	if (!view) throw rewindServiceError.notFoundError();
+	return rewindViewToRewind(view, {
+		user: userToRewindOwner(context.owner),
+		isSpotlight: resolveSpotlightYear(context.calendar) === record.year,
+		otherYears: listVisibleRewindYears(
+			context.runs,
+			context.calendar,
+			yearVisibility(context)
+		).filter(other => other !== record.year),
+		ownerControls: ownerControlsFor(context, record),
+		premiumAccess: context.premiumAccess,
+		platinumsVisible: context.access.platinum
+	});
 }
 
 async function buildRewindForContext(
@@ -256,6 +335,8 @@ async function buildRewindForContext(
 	year: number
 ): Promise<Rewind> {
 	const record = context.records.get(year);
+	if (record?.frozenAt) return buildFrozenRewind(context, record);
+
 	const isListed = listRewindYears(context.runs, context.calendar).includes(
 		year
 	);
@@ -282,7 +363,10 @@ async function buildRewindForContext(
 			platinums,
 			calendar: context.calendar,
 			visibility: yearVisibility(context),
-			stored: storedView(record, ownerControlsFor(context, record))
+			stored: toRewindStoredView(
+				record,
+				ownerControlsFor(context, record)
+			)
 		}),
 		premiumAccess: context.premiumAccess
 	};
@@ -388,6 +472,7 @@ async function regenerateRecord(
 			includesPrivateRuns: dto.includePrivateRuns,
 			includesNotes: dto.includeNotes,
 			generatedAt: now,
+			...UNFROZEN_FIELDS,
 			...resolveRewindAiUseChanges(record, budget),
 			...pendingRecapFields(budget, now)
 		},
@@ -477,16 +562,7 @@ async function buildPreviousYearTotals(
 		record.includesPrivateRuns,
 		previousYear
 	);
-	return buildRewind({
-		year: previousYear,
-		owner: userToRewindOwner(owner),
-		runs: sourceRuns,
-		genres,
-		platinums,
-		calendar,
-		visibility: { generatedYears: new Set(), includeUngenerated: true },
-		stored: storedView(record, null)
-	}).totals;
+	return buildYearTotals(sourceRuns, previousYear, genres, platinums);
 }
 
 async function findCoopPartners(
@@ -577,9 +653,13 @@ async function writeAiRecap(
 			genres: sources.genres,
 			platinums: sources.platinums,
 			calendar,
-			visibility: { generatedYears: new Set(), includeUngenerated: true },
+			visibility: {
+				generatedYears: new Set(),
+				includeUngenerated: true,
+				frozenYearListing: new Map()
+			},
 			stored: {
-				...storedView(record, null),
+				...toRewindStoredView(record, null),
 				premiumStats: sources.premiumStats
 			}
 		}),
@@ -778,6 +858,7 @@ async function reserveAiRecap(
 				{
 					aiRecapStatus: "pending",
 					aiRecapRequestedAt: now,
+					...UNFROZEN_FIELDS,
 					...resolveRewindAiUseChanges(record, budget)
 				},
 				{ transaction }
