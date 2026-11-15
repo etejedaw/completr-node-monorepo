@@ -11,7 +11,11 @@ function sameTarget(
 	a: RewindShareTarget | null,
 	b: RewindShareTarget | null
 ): boolean {
-	return a?.username === b?.username && a?.year === b?.year;
+	return (
+		a?.username === b?.username &&
+		a?.year === b?.year &&
+		a?.design === b?.design
+	);
 }
 
 export function injectRewindStoryImage(

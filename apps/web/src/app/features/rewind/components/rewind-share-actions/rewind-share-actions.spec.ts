@@ -13,7 +13,7 @@ import {
 
 function storyImage(): RewindStoryImage {
 	return {
-		target: signal({ username: "ada", year: 2026 }),
+		target: signal({ username: "ada", year: 2026, design: "2026" }),
 		blob: signal(new Blob(["png"], { type: "image/png" })),
 		objectUrl: signal("blob:story"),
 		isLoading: signal(false),
