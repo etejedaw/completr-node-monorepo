@@ -14,7 +14,7 @@ settings:
 docs: |-
     ## List Rewind Editions
 
-    Lists every Rewind edition, newest year first, with the designs an edition can use. `inProgress` is true when today (UTC, honoring `REWIND_TODAY` outside prod) is inside the period. `generatedCount` is the number of rewinds of that year.
+    Lists every Rewind edition, newest year first, with the designs an edition can use. `status` is `scheduled` before `opensAt`, `open` from `opensAt` to `closesAt` (both included) and `closed` after, comparing UTC days and honoring `REWIND_TODAY` outside prod. `inProgress` is true exactly when `status` is `open`. `generatedCount` is the number of rewinds of that year.
 
     **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
 
@@ -34,6 +34,7 @@ docs: |-
       "premiumRegenerations": 3,
       "giftRegenerations": 1,
       "frozenAt": null,
+      "status": "scheduled",
       "inProgress": false,
       "generatedCount": 42
     }

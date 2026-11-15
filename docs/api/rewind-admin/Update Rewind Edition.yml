@@ -65,6 +65,7 @@ docs: |-
           "premiumRegenerations": 5,
           "giftRegenerations": 2,
           "frozenAt": null,
+          "status": "scheduled",
           "inProgress": false,
           "generatedCount": 42
         },
