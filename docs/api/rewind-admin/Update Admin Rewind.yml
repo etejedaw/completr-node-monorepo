@@ -27,7 +27,7 @@ settings:
 docs: |-
     ## Update Admin Rewind
 
-    Sets the regenerations left of a rewind. The row is locked while it is written, like a generation, so a spend in progress finishes first and is not overwritten halfway.
+    Sets the regenerations left of a rewind. Only for owners with access to the AI (`aiAccess` `gift` or `premium`), resolved when saving. Regenerations given before the rewind first uses the AI are kept: on that first use the edition quota is added to them. The row is locked while it is written, like a generation, so a spend in progress finishes first and is not overwritten halfway.
 
     **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
 
@@ -51,6 +51,7 @@ docs: |-
           "year": 2026,
           "user": { "id": "<uuid>", "username": "marta_plays" },
           "accessKind": "gift",
+          "aiAccess": "gift",
           "regenerationsLeft": 3,
           "graceUsed": false,
           "generatedAt": "2026-12-02T10:00:00.000Z",
@@ -67,4 +68,5 @@ docs: |-
     | Status | Code | Description |
     |--------|------|-------------|
     | 404 | REWIND_NOT_FOUND | The rewind does not exist |
+    | 409 | REWIND_NO_AI_ACCESS | The owner has no access to the AI right now; nothing is changed |
     | 422 | COMMON_SCHEMA_INVALID | Invalid UUID, negative or non-integer value, or extra field |
