@@ -11,15 +11,6 @@ export function backlogNotFound(context?: Record<string, unknown>) {
 	);
 }
 
-export function forbidden(context?: Record<string, unknown>) {
-	return new DomainError(
-		MODULE_NAME,
-		"COOP_FORBIDDEN",
-		"Not allowed to modify co-op on this backlog",
-		context
-	);
-}
-
 export function targetUserNotFound(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

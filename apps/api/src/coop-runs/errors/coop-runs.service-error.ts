@@ -9,13 +9,6 @@ export function backlogNotFoundError() {
 	});
 }
 
-export function forbiddenError() {
-	return new ServiceError("COOP_FORBIDDEN", {
-		...BASE_OPTIONS,
-		raw: undefined
-	});
-}
-
 export function targetUserNotFoundError() {
 	return new ServiceError("COOP_TARGET_USER_NOT_FOUND", {
 		...BASE_OPTIONS,

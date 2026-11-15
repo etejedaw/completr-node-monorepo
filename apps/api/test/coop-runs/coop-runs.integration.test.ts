@@ -210,7 +210,7 @@ void describe("POST /users/me/backlog/:backlogId/coop", () => {
 		assert.equal(response.body.type, "COOP_BACKLOG_NOT_FOUND");
 	});
 
-	void it("rejects another user's backlog entry with 403 COOP_FORBIDDEN", async () => {
+	void it("rejects another user's backlog entry with 404 COOP_BACKLOG_NOT_FOUND", async () => {
 		const { partner, hostBacklog } = await seedCoopPair();
 		const intruder = await createUserWithSession();
 		await follow(intruder, partner);
@@ -219,8 +219,8 @@ void describe("POST /users/me/backlog/:backlogId/coop", () => {
 			userId: partner.user.id
 		});
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "COOP_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "COOP_BACKLOG_NOT_FOUND");
 	});
 
 	void it("rejects an invalid body with 422 COMMON_SCHEMA_INVALID", async () => {
@@ -271,7 +271,7 @@ void describe("GET /users/me/backlog/:backlogId/coop", () => {
 		);
 	});
 
-	void it("rejects listing the members of another user's playthrough with 403 COOP_FORBIDDEN", async () => {
+	void it("rejects listing the members of another user's playthrough with 404 COOP_BACKLOG_NOT_FOUND", async () => {
 		const { host, partner, hostBacklog } = await seedCoopPair();
 		await addMember(host, hostBacklog.id, {
 			userId: partner.user.id
@@ -282,8 +282,8 @@ void describe("GET /users/me/backlog/:backlogId/coop", () => {
 			.get(coopPath(hostBacklog.id))
 			.set("Authorization", intruder.authorization);
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "COOP_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "COOP_BACKLOG_NOT_FOUND");
 	});
 
 	void it("rejects an unknown playthrough with 404 COOP_BACKLOG_NOT_FOUND", async () => {
@@ -399,7 +399,7 @@ void describe("DELETE /users/me/backlog/:backlogId/coop/:userId", () => {
 		assert.deepEqual(await getMembers(host, hostBacklog.id), []);
 	});
 
-	void it("rejects a third user removing a member with 403 COOP_FORBIDDEN", async () => {
+	void it("rejects a third user removing a member with 404 COOP_BACKLOG_NOT_FOUND", async () => {
 		const { host, partner, hostBacklog } = await seedCoopPair();
 		await addMember(host, hostBacklog.id, {
 			userId: partner.user.id
@@ -410,8 +410,8 @@ void describe("DELETE /users/me/backlog/:backlogId/coop/:userId", () => {
 			.delete(`${coopPath(hostBacklog.id)}/${partner.user.id}`)
 			.set("Authorization", intruder.authorization);
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "COOP_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "COOP_BACKLOG_NOT_FOUND");
 		assert.equal((await getMembers(host, hostBacklog.id)).length, 1);
 	});
 

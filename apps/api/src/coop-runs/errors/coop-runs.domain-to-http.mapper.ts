@@ -24,9 +24,6 @@ export function coopRunsDomainToHttpMapper(
 	)
 		return new HttpError({ ...baseOptions, status: 404 });
 
-	if (error.code === "COOP_FORBIDDEN")
-		return new HttpError({ ...baseOptions, status: 403 });
-
 	if (
 		error.code === "COOP_TARGET_NOT_FOLLOWED" ||
 		error.code === "COOP_SELF_TAG" ||

@@ -1,21 +1,27 @@
 import { Op, type Transaction } from "sequelize";
 
+import { type CoopMemberSummary } from "../backlog/backlog.interface";
 import { type Backlog } from "../backlog/backlog.model";
 import * as backlogService from "../backlog/backlog.service";
+import * as backlogCoopService from "../backlog/services/backlog-coop.service";
 import { sequelize } from "../database/sequelize.database";
 import * as userFollowersService from "../user-followers/user-followers.service";
 import { canView } from "../users/helpers/visibility.helper";
-import { type User } from "../users/user.model";
 import * as usersService from "../users/users.service";
 import { CoopRun } from "./coop-run.model";
+import {
+	type CoopCandidatesResult,
+	type CoopMemberDetail
+} from "./coop-runs.interface";
 import { type SyncableField } from "./coop-runs.types";
 import { type SyncDto } from "./dtos/sync.dto";
 import * as coopServiceError from "./errors/coop-runs.service-error";
+import { toCoopMemberSummary } from "./to-coop-member-summary.util";
 
 async function loadOwnedBacklog(backlogId: string, userId: string) {
 	const backlog = await backlogService.findBacklogBasicById(backlogId);
-	if (!backlog) throw coopServiceError.backlogNotFoundError();
-	if (backlog.userId !== userId) throw coopServiceError.forbiddenError();
+	if (!backlog || backlog.userId !== userId)
+		throw coopServiceError.backlogNotFoundError();
 	return backlog;
 }
 
@@ -34,7 +40,7 @@ async function assertFollowing(currentUserId: string, targetUserId: string) {
 }
 
 async function assertNotInRun(coopRunId: string, userId: string) {
-	const membership = await backlogService.findCoopMembership(
+	const membership = await backlogCoopService.findCoopMembership(
 		coopRunId,
 		userId
 	);
@@ -43,13 +49,13 @@ async function assertNotInRun(coopRunId: string, userId: string) {
 
 async function assertInRun(viewerId: string, backlog: Backlog) {
 	if (backlog.userId === viewerId) return;
-	if (!backlog.coopRunId) throw coopServiceError.forbiddenError();
+	if (!backlog.coopRunId) throw coopServiceError.backlogNotFoundError();
 
-	const membership = await backlogService.findCoopMembership(
+	const membership = await backlogCoopService.findCoopMembership(
 		backlog.coopRunId,
 		viewerId
 	);
-	if (!membership) throw coopServiceError.forbiddenError();
+	if (!membership) throw coopServiceError.backlogNotFoundError();
 }
 
 export async function addMember(
@@ -72,7 +78,16 @@ export async function addMember(
 	const canSeeTargetBacklog = await canView(currentUserId, target, "backlog");
 
 	return sequelize.transaction(async transaction => {
-		let coopRunId = myBacklog.coopRunId ?? null;
+		const lockedBacklog = await backlogCoopService.findOwnedBacklogForUpdate(
+			myBacklog.id,
+			currentUserId,
+			transaction
+		);
+		if (!lockedBacklog) throw coopServiceError.backlogNotFoundError();
+		if (lockedBacklog.coopRunId)
+			await assertNotInRun(lockedBacklog.coopRunId, targetUserId);
+
+		let coopRunId = lockedBacklog.coopRunId ?? null;
 
 		if (!coopRunId) {
 			const run = await CoopRun.create(
@@ -80,13 +95,13 @@ export async function addMember(
 				{ transaction }
 			);
 			coopRunId = run.id;
-			await myBacklog.update({ coopRunId }, { transaction });
+			await lockedBacklog.update({ coopRunId }, { transaction });
 		}
 
 		let targetBacklog: Backlog | null = null;
 
 		if (explicitTargetBacklogId) {
-			targetBacklog = await backlogService.findCoopBacklogForTarget(
+			targetBacklog = await backlogCoopService.findCoopBacklogForTarget(
 				{
 					id: explicitTargetBacklogId,
 					userId: targetUserId,
@@ -96,9 +111,10 @@ export async function addMember(
 				transaction
 			);
 			if (!targetBacklog) throw coopServiceError.backlogNotFoundError();
-			if (!canSeeTargetBacklog) throw coopServiceError.forbiddenError();
+			if (!canSeeTargetBacklog)
+				throw coopServiceError.backlogNotFoundError();
 		} else if (canSeeTargetBacklog) {
-			targetBacklog = await backlogService.findOpenCoopCandidate(
+			targetBacklog = await backlogCoopService.findOpenCoopCandidate(
 				targetUserId,
 				myBacklog.gameId,
 				myBacklog.platformId,
@@ -107,7 +123,7 @@ export async function addMember(
 		}
 
 		if (!targetBacklog) {
-			targetBacklog = await backlogService.createCoopBacklog(
+			targetBacklog = await backlogCoopService.createCoopBacklog(
 				{
 					userId: targetUserId,
 					gameId: myBacklog.gameId,
@@ -136,17 +152,7 @@ export async function findCandidatesForTarget(
 	currentUserId: string,
 	myBacklogId: string,
 	targetUserId: string
-): Promise<{
-	accessible: boolean;
-	candidates: {
-		id: string;
-		status: string;
-		startedAt: Date | null;
-		finishedAt: Date | null;
-		realDuration: number | null;
-		coopRunId: string | null;
-	}[];
-}> {
+): Promise<CoopCandidatesResult> {
 	if (currentUserId === targetUserId) throw coopServiceError.selfTagError();
 
 	const target = await usersService.findUserByIdUnfiltered(targetUserId);
@@ -158,7 +164,7 @@ export async function findCandidatesForTarget(
 	const canSee = await canView(currentUserId, target, "backlog");
 	if (!canSee) return { accessible: false, candidates: [] };
 
-	const runs = await backlogService.findBacklogCandidatesForCoop(
+	const runs = await backlogCoopService.findBacklogCandidatesForCoop(
 		targetUserId,
 		myBacklog.gameId,
 		myBacklog.platformId
@@ -184,28 +190,39 @@ export async function removeMember(
 ) {
 	const backlog = await loadAnyBacklog(backlogId);
 	if (backlog.userId !== currentUserId && targetUserId !== currentUserId)
-		throw coopServiceError.forbiddenError();
+		throw coopServiceError.backlogNotFoundError();
 
-	if (!backlog.coopRunId) throw coopServiceError.memberNotFoundError();
+	const { coopRunId } = backlog;
+	if (!coopRunId) throw coopServiceError.memberNotFoundError();
 
-	const targetBacklog = await backlogService.findCoopMembership(
-		backlog.coopRunId,
-		targetUserId
-	);
-	if (!targetBacklog) throw coopServiceError.memberNotFoundError();
+	await sequelize.transaction(async transaction => {
+		await CoopRun.findByPk(coopRunId, {
+			lock: transaction.LOCK.UPDATE,
+			transaction
+		});
 
-	await targetBacklog.update({ coopRunId: null });
+		const targetBacklog = await backlogCoopService.findCoopMembership(
+			coopRunId,
+			targetUserId,
+			transaction
+		);
+		if (!targetBacklog) throw coopServiceError.memberNotFoundError();
 
-	const remaining = await backlogService.countBacklogsInCoopRun(
-		backlog.coopRunId
-	);
-	if (remaining > 1) return;
+		await targetBacklog.update({ coopRunId: null }, { transaction });
 
-	const last = await backlogService.findAnyBacklogInCoopRun(
-		backlog.coopRunId
-	);
-	if (last) await last.update({ coopRunId: null });
-	await CoopRun.destroy({ where: { id: backlog.coopRunId } });
+		const remaining = await backlogCoopService.countBacklogsInCoopRun(
+			coopRunId,
+			transaction
+		);
+		if (remaining > 1) return;
+
+		const last = await backlogCoopService.findAnyBacklogInCoopRun(
+			coopRunId,
+			transaction
+		);
+		if (last) await last.update({ coopRunId: null }, { transaction });
+		await CoopRun.destroy({ where: { id: coopRunId }, transaction });
+	});
 }
 
 export async function syncFromMember(
@@ -216,7 +233,7 @@ export async function syncFromMember(
 	const myBacklog = await loadOwnedBacklog(myBacklogId, currentUserId);
 	if (!myBacklog.coopRunId) throw coopServiceError.memberNotFoundError();
 
-	const source = await backlogService.findBacklogInCoopRun(
+	const source = await backlogCoopService.findBacklogInCoopRun(
 		dto.fromBacklogId,
 		myBacklog.coopRunId
 	);
@@ -233,61 +250,31 @@ export async function syncFromMember(
 export async function findMembersForBacklog(
 	currentUserId: string,
 	backlogId: string
-): Promise<
-	{
-		userId: string;
-		username: string;
-		name: string;
-		avatarUrl: string | null;
-		backlogId: string;
-		status: string;
-		startedAt: Date | null;
-		finishedAt: Date | null;
-		realDuration: number | null;
-	}[]
-> {
+): Promise<CoopMemberDetail[]> {
 	const backlog = await loadAnyBacklog(backlogId);
 	await assertInRun(currentUserId, backlog);
 	if (!backlog.coopRunId) return [];
 
-	const peers = await backlogService.findCoopPeersWithUser(
+	const peers = await backlogCoopService.findCoopPeersWithUser(
 		backlog.coopRunId,
 		backlogId
 	);
 
-	return peers.map(p => {
-		const u = p.User as User | undefined;
-		return {
-			userId: p.userId,
-			username: u?.username ?? "",
-			name: u?.name ?? "",
-			avatarUrl: u?.avatarUrl ?? null,
-			backlogId: p.id,
-			status: p.status,
-			startedAt: p.startedAt ?? null,
-			finishedAt: p.finishedAt ?? null,
-			realDuration: p.realDuration ?? null
-		};
-	});
+	return peers.map(peer => ({
+		...toCoopMemberSummary(peer),
+		status: peer.status,
+		startedAt: peer.startedAt ?? null,
+		finishedAt: peer.finishedAt ?? null,
+		realDuration: peer.realDuration ?? null
+	}));
 }
 
 export async function findMembersForManyBacklogs(
 	backlogIds: readonly string[]
-): Promise<
-	Map<
-		string,
-		{
-			userId: string;
-			username: string;
-			name: string;
-			avatarUrl: string | null;
-			backlogId: string;
-		}[]
-	>
-> {
+): Promise<Map<string, CoopMemberSummary[]>> {
 	if (backlogIds.length === 0) return new Map();
 
-	const myBacklogs = await backlogService.findBacklogsInCoopRunsByIds([
+	const myBacklogs = await backlogCoopService.findBacklogsInCoopRunsByIds([
 		...backlogIds
 	]);
 
@@ -301,7 +288,7 @@ export async function findMembersForManyBacklogs(
 	}
 	if (runIds.size === 0) return new Map();
 
-	const peers = await backlogService.findBacklogsOfCoopRunsWithUser([
+	const peers = await backlogCoopService.findBacklogsOfCoopRunsWithUser([
 		...runIds
 	]);
 
@@ -313,32 +300,14 @@ export async function findMembersForManyBacklogs(
 		peersByRun.set(p.coopRunId, arr);
 	}
 
-	const result = new Map<
-		string,
-		{
-			userId: string;
-			username: string;
-			name: string;
-			avatarUrl: string | null;
-			backlogId: string;
-		}[]
-	>();
+	const result = new Map<string, CoopMemberSummary[]>();
 	for (const [backlogId, runId] of runByBacklog) {
 		const runPeers = peersByRun.get(runId) ?? [];
 		result.set(
 			backlogId,
 			runPeers
 				.filter(p => p.id !== backlogId)
-				.map(p => {
-					const u = p.User as User | undefined;
-					return {
-						userId: p.userId,
-						username: u?.username ?? "",
-						name: u?.name ?? "",
-						avatarUrl: u?.avatarUrl ?? null,
-						backlogId: p.id
-					};
-				})
+				.map(toCoopMemberSummary)
 		);
 	}
 
@@ -356,58 +325,9 @@ export async function cleanupOrphanRuns(): Promise<number> {
 	const ids = orphans[0].map(o => o.id);
 	if (ids.length === 0) return 0;
 
-	await backlogService.clearCoopRunFromBacklogs(ids);
+	await backlogCoopService.clearCoopRunFromBacklogs(ids);
 	await CoopRun.destroy({ where: { id: { [Op.in]: ids } } });
 	return ids.length;
-}
-
-export async function findFriendsCoopForGame(
-	gameId: string,
-	viewerId: string,
-	friendIds: readonly string[]
-) {
-	if (friendIds.length === 0) return [];
-
-	const viewerOrFriends = [viewerId, ...friendIds];
-	const backlogs = await backlogService.findCoopBacklogsOfUsersForGame(
-		gameId,
-		viewerOrFriends
-	);
-
-	const byRun = new Map<string, typeof backlogs>();
-	for (const b of backlogs) {
-		if (!b.coopRunId) continue;
-		const arr = byRun.get(b.coopRunId) ?? [];
-		arr.push(b);
-		byRun.set(b.coopRunId, arr);
-	}
-
-	const runs: {
-		coopRunId: string;
-		members: {
-			userId: string;
-			username: string;
-			name: string;
-			avatarUrl: string | null;
-			backlogId: string;
-		}[];
-	}[] = [];
-	for (const [coopRunId, members] of byRun) {
-		runs.push({
-			coopRunId,
-			members: members.map(m => {
-				const u = m.User as User | undefined;
-				return {
-					userId: m.userId,
-					username: u?.username ?? "",
-					name: u?.name ?? "",
-					avatarUrl: u?.avatarUrl ?? null,
-					backlogId: m.id
-				};
-			})
-		});
-	}
-	return runs;
 }
 
 export async function existsByGameId(

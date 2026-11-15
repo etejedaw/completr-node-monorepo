@@ -11,8 +11,6 @@ export function coopRunsServiceToDomainMapper(
 
 	if (error.code === "COOP_BACKLOG_NOT_FOUND")
 		return coopDomainError.backlogNotFound(context);
-	if (error.code === "COOP_FORBIDDEN")
-		return coopDomainError.forbidden(context);
 	if (error.code === "COOP_TARGET_USER_NOT_FOUND")
 		return coopDomainError.targetUserNotFound(context);
 	if (error.code === "COOP_TARGET_NOT_FOLLOWED")
