@@ -12,11 +12,12 @@ import { NgpSwitch, NgpSwitchThumb } from "ng-primitives/switch";
 	template: `
 		<button
 			type="button"
-			class="ui-switch__track"
+			class="ui-switch__track tap-area"
 			ngpSwitch
 			[(ngpSwitchChecked)]="checked"
 			[ngpSwitchDisabled]="disabled()"
 			[attr.aria-label]="ariaLabel() || label() || null"
+			[attr.aria-describedby]="ariaDescribedBy() || null"
 		>
 			<span ngpSwitchThumb class="ui-switch__thumb"></span>
 		</button>
@@ -33,4 +34,5 @@ export class UiSwitch {
 	disabled = input(false);
 	label = input<string>("");
 	ariaLabel = input<string>("");
+	ariaDescribedBy = input<string>("");
 }
