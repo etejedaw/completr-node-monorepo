@@ -11,6 +11,7 @@ import {
 
 import {
 	type Rewind,
+	type RewindLanguage,
 	type RewindRegenerationBlock
 } from "../../../../core/models/rewind.model";
 import { GiftOfferCard } from "../../../../shared/components/gift-offer-card/gift-offer-card";
@@ -46,6 +47,8 @@ function rewindOwnerPanelState(rewind: Rewind): RewindOwnerPanelState {
 	if (periodStatus !== "open") return periodStatus;
 	return rewind.premiumAccess?.allowed ? "open-with-ai" : "open-without-ai";
 }
+
+const PANEL_LANGUAGE: RewindLanguage = "en";
 
 const STATUS_CHIP_CLASS =
 	"inline-flex h-9 max-w-full items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface/60 px-3.5 text-sm text-fg";
@@ -83,9 +86,7 @@ export class RewindOwnerPanel {
 	private readonly rewindService = inject(RewindService);
 	private hostDestroyed = false;
 
-	protected readonly copy = computed(
-		() => REWIND_OWNER_PANEL_COPY[this.rewind().language]
-	);
+	protected readonly copy = REWIND_OWNER_PANEL_COPY;
 	protected readonly panelState = computed(() =>
 		rewindOwnerPanelState(this.rewind())
 	);
@@ -93,8 +94,7 @@ export class RewindOwnerPanel {
 		() => this.rewind().ownerControls?.frozenAt ?? this.rewind().frozenAt
 	);
 	protected readonly seasonChip = computed<RewindOwnerSeasonChip>(() => {
-		const copy = this.copy();
-		const { language } = this.rewind();
+		const copy = this.copy;
 		const state = this.panelState();
 		if (state === "scheduled")
 			return { value: copy.notOpenYet, detail: null, tone: "closed" };
@@ -104,7 +104,7 @@ export class RewindOwnerPanel {
 				value: copy.closed,
 				detail: frozenAt
 					? copy.finalVersion(
-							formatRewindDayWithYear(frozenAt, language)
+							formatRewindDayWithYear(frozenAt, PANEL_LANGUAGE)
 						)
 					: null,
 				tone: "closed"
@@ -114,7 +114,7 @@ export class RewindOwnerPanel {
 		return {
 			value: copy.seasonOpen,
 			detail: closesAt
-				? copy.seasonUntil(formatRewindDay(closesAt, language))
+				? copy.seasonUntil(formatRewindDay(closesAt, PANEL_LANGUAGE))
 				: null,
 			tone: "open"
 		};
@@ -124,9 +124,7 @@ export class RewindOwnerPanel {
 	protected readonly aiPremiumLabel = computed(() => {
 		const kind = rewindPremiumAccessKindOf(this.rewind().premiumAccess);
 		return kind
-			? rewindCopy(this.rewind().language).premiumStats.premiumLabels[
-					kind
-				]
+			? rewindCopy(PANEL_LANGUAGE).premiumStats.premiumLabels[kind]
 			: null;
 	});
 	protected readonly aiChip = computed<RewindOwnerAiChip | null>(() => {
@@ -134,13 +132,13 @@ export class RewindOwnerPanel {
 		const controls = this.rewind().ownerControls;
 		const count = controls?.regenerationsLeft ?? 0;
 		const graceEndsAt = controls?.graceEndsAt;
-		const copy = this.copy();
+		const copy = this.copy;
 		return {
 			count,
 			label: copy.aiGenerationsLabel(count),
 			grace: graceEndsAt
 				? copy.aiGraceExtra(
-						formatRewindDay(graceEndsAt, this.rewind().language)
+						formatRewindDay(graceEndsAt, PANEL_LANGUAGE)
 					)
 				: null
 		};
@@ -148,18 +146,17 @@ export class RewindOwnerPanel {
 	protected readonly notice = computed(() => {
 		const block = this.rewind().ownerControls?.regenerationBlockedBy;
 		if (block && !REGENERATION_BLOCKS_SHOWN_ELSEWHERE.includes(block))
-			return this.copy().regenerationBlocks[block];
+			return this.copy.regenerationBlocks[block];
 		const state = this.panelState();
-		if (state === "scheduled") return this.copy().scheduledHint;
-		if (state === "closed" && !this.frozenAt())
-			return this.copy().closedHint;
+		if (state === "scheduled") return this.copy.scheduledHint;
+		if (state === "closed" && !this.frozenAt()) return this.copy.closedHint;
 		return null;
 	});
 	protected readonly aiRecapPending = signal(false);
 	protected readonly aiRecapError = signal<RewindAiRecapError | null>(null);
 	protected readonly aiRecapErrorMessage = computed(() => {
 		const error = this.aiRecapError();
-		return error ? this.copy().aiRecapErrors[error] : null;
+		return error ? this.copy.aiRecapErrors[error] : null;
 	});
 	protected readonly generation = injectRewindGenerateFlow({
 		username: () => this.rewind().user.username,

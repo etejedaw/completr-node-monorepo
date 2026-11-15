@@ -2,16 +2,15 @@
 <section
 	class="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 sm:p-5"
 	aria-labelledby="rewind-owner-panel-heading"
-	[attr.lang]="rewind().language"
 >
 	<div class="flex min-w-0 flex-wrap items-center gap-2">
 		<h2 id="rewind-owner-panel-heading" uiEyebrow tone="brand" class="m-0">
-			{{ copy().eyebrow }}
+			{{ copy.eyebrow }}
 		</h2>
-		<ui-badge tone="neutral" icon="lock" [attr.title]="copy().onlyYouHint"
-			>{{ copy().onlyYou }}</ui-badge
+		<ui-badge tone="neutral" icon="lock" [attr.title]="copy.onlyYouHint"
+			>{{ copy.onlyYou }}</ui-badge
 		>
-		<span class="sr-only">{{ copy().onlyYouHint }}</span>
+		<span class="sr-only">{{ copy.onlyYouHint }}</span>
 	</div>
 
 	<div class="flex flex-col gap-3 sm:flex-row sm:items-start">
@@ -42,7 +41,7 @@
 					size="sm"
 					interactive
 					[label]="premiumLabel"
-					[message]="copy().aiPerk"
+					[message]="copy.aiPerk"
 				/>
 				}
 				<strong class="font-bold tabular-nums">{{ ai.count }}</strong>
@@ -62,7 +61,7 @@
 					class="material-icons text-base text-fg-muted"
 					>translate</span
 				>
-				{{ copy().writtenIn }}
+				{{ copy.writtenIn[rewind().language] }}
 			</li>
 			<li [class]="statusChipClass">
 				<span
@@ -71,8 +70,8 @@
 					>{{ controls.includesPrivateRuns ? "visibility" : "public"
 					}}</span
 				>
-				{{ controls.includesPrivateRuns ? copy().includesPrivateRuns :
-				copy().publicRunsOnly }}
+				{{ controls.includesPrivateRuns ? copy.includesPrivateRuns :
+				copy.publicRunsOnly }}
 			</li>
 			@if (controls.includesNotes) {
 			<li [class]="statusChipClass">
@@ -81,7 +80,7 @@
 					class="material-icons text-base text-fg-muted"
 					>edit_note</span
 				>
-				{{ copy().usesNotes }}
+				{{ copy.usesNotes }}
 			</li>
 			}
 		</ul>
@@ -98,8 +97,7 @@
 			<span aria-hidden="true" class="material-icons text-base"
 				>refresh</span
 			>
-			{{ generation.isPending() ? copy().regenerating : copy().regenerate
-			}}
+			{{ generation.isPending() ? copy.regenerating : copy.regenerate }}
 		</button>
 		}
 	</div>
@@ -122,7 +120,7 @@
 				class="material-icons text-base text-warning"
 				>error_outline</span
 			>
-			{{ copy().aiRecapFailed }}
+			{{ copy.aiRecapFailed }}
 		</p>
 		<button
 			uiButton
@@ -132,7 +130,7 @@
 			[disabled]="aiRecapPending()"
 			(click)="addAiRecap()"
 		>
-			{{ copy().retry }}
+			{{ copy.retry }}
 		</button>
 	</div>
 	} @else if (controls.aiRecapState === "available" && panelState() ===
@@ -141,7 +139,7 @@
 		class="flex flex-col gap-3 border-t border-line pt-4 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between"
 	>
 		<p class="m-0 text-sm text-fg-secondary text-pretty">
-			{{ copy().addAiRecapHint }}
+			{{ copy.addAiRecapHint }}
 		</p>
 		<button
 			uiButton
@@ -154,7 +152,7 @@
 			<span aria-hidden="true" class="material-icons text-base"
 				>auto_awesome</span
 			>
-			{{ copy().addAiRecap }}
+			{{ copy.addAiRecap }}
 		</button>
 	</div>
 	} @if (aiRecapPending()) {
@@ -167,7 +165,7 @@
 			class="material-icons text-base text-premium motion-safe:animate-spin"
 			>autorenew</span
 		>
-		{{ copy().aiRecapPending }}
+		{{ copy.aiRecapPending }}
 	</p>
 	} @else if (aiRecapErrorMessage(); as message) {
 	<ui-alert [tone]="aiRecapError() === 'exists' ? 'info' : 'danger'"

@@ -1,4 +1,7 @@
-import { type RewindRegenerationBlock } from "../../../../core/models/rewind.model";
+import {
+	type RewindLanguage,
+	type RewindRegenerationBlock
+} from "../../../../core/models/rewind.model";
 import { type RewindAiRecapError } from "../../rewind-errors";
 
 export interface RewindOwnerPanelCopy {
@@ -10,7 +13,7 @@ export interface RewindOwnerPanelCopy {
 	aiPerk: string;
 	aiGenerationsLabel: (count: number) => string;
 	aiGraceExtra: (date: string) => string;
-	writtenIn: string;
+	writtenIn: Record<RewindLanguage, string>;
 	publicRunsOnly: string;
 	regenerate: string;
 	regenerating: string;
