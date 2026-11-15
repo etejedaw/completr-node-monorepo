@@ -37,6 +37,8 @@ import { igdbDomainToHttpMapper } from "../../igdb/errors/igdb.domain-to-http.ma
 import { igdbErrorDomainNormalizer } from "../../igdb/errors/igdb.error-domain.normalizer";
 import { invitationsDomainToHttpMapper } from "../../invitations/errors/invitations.domain-to-http.mapper";
 import { invitationsErrorDomainNormalizer } from "../../invitations/errors/invitations.error-domain.normalizer";
+import { jobsDomainToHttpMapper } from "../../jobs/errors/jobs.domain-to-http.mapper";
+import { jobsErrorDomainNormalizer } from "../../jobs/errors/jobs.error-domain.normalizer";
 import { listFollowersDomainToHttpMapper } from "../../list-followers/errors/list-followers.domain-to-http.mapper";
 import { listFollowersErrorDomainNormalizer } from "../../list-followers/errors/list-followers.error-domain.normalizer";
 import { listItemsDomainToHttpMapper } from "../../list-items/errors/list-items.domain-to-http.mapper";
@@ -103,6 +105,7 @@ export const SERVICE_ERROR_NORMALIZERS: Record<string, ErrorDomainNormalizer> =
 		"Wishlist Service": wishlistErrorDomainNormalizer,
 		"Favorite Service": favoritesErrorDomainNormalizer,
 		"GameReport Service": gameReportsErrorDomainNormalizer,
+		"Jobs Service": jobsErrorDomainNormalizer,
 		"UserFollower Service": userFollowersErrorDomainNormalizer,
 		"UserFollowRequest Service": userFollowRequestsErrorDomainNormalizer,
 		"Review Service": reviewsErrorDomainNormalizer,
@@ -146,6 +149,7 @@ export const DOMAIN_ERROR_HTTP_MAPPERS: Record<string, DomainToHttpMapper> = {
 	"Wishlist Module": wishlistDomainToHttpMapper,
 	"Favorite Module": favoritesDomainToHttpMapper,
 	"GameReport Module": gameReportsDomainToHttpMapper,
+	"Jobs Module": jobsDomainToHttpMapper,
 	"UserFollower Module": userFollowersDomainToHttpMapper,
 	"UserFollowRequest Module": userFollowRequestsDomainToHttpMapper,
 	"Review Module": reviewsDomainToHttpMapper,
