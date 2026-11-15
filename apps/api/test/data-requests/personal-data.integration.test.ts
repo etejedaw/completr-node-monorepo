@@ -101,7 +101,7 @@ void describe("GET /admin/users/:userId/data-export", () => {
 		assert.equal(body.account.email, owner.email);
 		assert.equal(body.privacySettings.profileVisibility, "public");
 		assert.equal(
-			body.privacySettings.rewindIgnoresProfileVisibility,
+			"rewindIgnoresProfileVisibility" in body.privacySettings,
 			false
 		);
 		assert.equal(body.premium.grants.length, 1);

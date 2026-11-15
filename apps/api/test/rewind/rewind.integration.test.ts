@@ -721,35 +721,39 @@ void describe("rewind visibility", () => {
 		}
 	});
 
-	void it("requires the profile to be visible too", async () => {
+	void it("requires the profile to be visible for the archive but not for the detail by link", async () => {
 		const { owner, mutual } = fixture;
 
 		await withOwnerVisibility(
 			{ profileVisibility: "private" },
 			async () => {
-				for (const request of endpoints) {
-					const anonymous = await request(owner.user.username);
-					assert.equal(anonymous.status, 403);
-					assert.equal(anonymous.body.type, "USER_PRIVATE");
-					assert.equal(
-						(
-							await request(
-								owner.user.username,
-								mutual.authorization
-							)
-						).status,
-						403
-					);
-					assert.equal(
-						(
-							await request(
-								owner.user.username,
-								owner.authorization
-							)
-						).status,
-						200
-					);
-				}
+				const anonymous = await rewinds(owner.user.username);
+				assert.equal(anonymous.status, 403);
+				assert.equal(anonymous.body.type, "USER_PRIVATE");
+				assert.equal(
+					(await rewinds(owner.user.username, mutual.authorization))
+						.status,
+					403
+				);
+				assert.equal(
+					(await rewinds(owner.user.username, owner.authorization))
+						.status,
+					200
+				);
+				assert.equal(
+					(await rewind(owner.user.username, "2025")).status,
+					200
+				);
+				assert.equal(
+					(
+						await rewind(
+							owner.user.username,
+							"2025",
+							mutual.authorization
+						)
+					).status,
+					200
+				);
 			}
 		);
 	});

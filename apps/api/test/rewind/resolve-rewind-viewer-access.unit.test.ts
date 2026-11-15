@@ -15,43 +15,51 @@ function sectionAccess(overrides: Partial<SectionAccess>): SectionAccess {
 }
 
 void describe("resolveRewindViewerAccess", () => {
-	void it("needs the profile while the owner keeps the toggle off", () => {
+	void it("opens the Rewind by link without the profile", () => {
 		const access = resolveRewindViewerAccess(
 			sectionAccess({ profile: false }),
-			{ rewindIgnoresProfileVisibility: false }
-		);
-
-		assert.deepEqual(access, { rewind: false, platinum: false });
-	});
-
-	void it("opens the Rewind without the profile once the toggle is on", () => {
-		const access = resolveRewindViewerAccess(
-			sectionAccess({ profile: false }),
-			{ rewindIgnoresProfileVisibility: true }
+			"link"
 		);
 
 		assert.deepEqual(access, { rewind: true, platinum: false });
 	});
 
-	void it("never opens a Rewind the viewer cannot see on its own level", () => {
+	void it("needs the profile to reach the Rewind through the archive", () => {
 		const access = resolveRewindViewerAccess(
-			sectionAccess({ profile: false, rewind: false }),
-			{ rewindIgnoresProfileVisibility: true }
+			sectionAccess({ profile: false }),
+			"archive"
 		);
 
-		assert.equal(access.rewind, false);
+		assert.deepEqual(access, { rewind: false, platinum: false });
+	});
+
+	void it("never opens a Rewind the viewer cannot see on its own level", () => {
+		for (const entryPoint of ["link", "archive"] as const) {
+			const access = resolveRewindViewerAccess(
+				sectionAccess({ rewind: false }),
+				entryPoint
+			);
+
+			assert.equal(access.rewind, false, entryPoint);
+		}
 	});
 
 	void it("shows platinums only with access to the profile and the platinum section", () => {
 		const withoutPlatinums = resolveRewindViewerAccess(
 			sectionAccess({ platinum: false }),
-			{ rewindIgnoresProfileVisibility: true }
+			"link"
 		);
-		const withEverything = resolveRewindViewerAccess(sectionAccess({}), {
-			rewindIgnoresProfileVisibility: false
-		});
+		const withoutProfile = resolveRewindViewerAccess(
+			sectionAccess({ profile: false }),
+			"link"
+		);
+		const withEverything = resolveRewindViewerAccess(
+			sectionAccess({}),
+			"archive"
+		);
 
 		assert.deepEqual(withoutPlatinums, { rewind: true, platinum: false });
+		assert.deepEqual(withoutProfile, { rewind: true, platinum: false });
 		assert.deepEqual(withEverything, { rewind: true, platinum: true });
 	});
 });

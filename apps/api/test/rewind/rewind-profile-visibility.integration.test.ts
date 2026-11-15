@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 
 import { GamePlatinum } from "../../src/game-platinum/game-platinum.model";
 import { type Platform } from "../../src/platforms/platform.model";
@@ -34,7 +34,6 @@ interface OwnerPrivacy {
 	profileVisibility: VisibilityLevel;
 	rewindVisibility: VisibilityLevel;
 	platinumVisibility: VisibilityLevel;
-	rewindIgnoresProfileVisibility: boolean;
 }
 
 type Viewer = "anonymous" | "stranger" | "follower" | "mutual" | "owner";
@@ -42,8 +41,7 @@ type Viewer = "anonymous" | "stranger" | "follower" | "mutual" | "owner";
 const PRIVATE_PROFILE: OwnerPrivacy = {
 	profileVisibility: "private",
 	rewindVisibility: "public",
-	platinumVisibility: "public",
-	rewindIgnoresProfileVisibility: false
+	platinumVisibility: "public"
 };
 
 const VIEWERS: Viewer[] = [
@@ -76,13 +74,6 @@ async function setOwnerPrivacy(privacy: Partial<OwnerPrivacy>) {
 	);
 }
 
-function patchToggle(enabled: boolean) {
-	return api()
-		.patch("/users/me")
-		.set("Authorization", fixture.owner.authorization)
-		.send({ rewindIgnoresProfileVisibility: enabled });
-}
-
 async function statusesFor(
 	request: (authorization?: string) => Promise<{ status: number }>
 ): Promise<Record<Viewer, number>> {
@@ -96,6 +87,13 @@ async function statusesFor(
 		)
 	);
 	return Object.fromEntries(entries) as Record<Viewer, number>;
+}
+
+function patchLegacyField() {
+	return api()
+		.patch("/users/me")
+		.set("Authorization", fixture.owner.authorization)
+		.send({ rewindIgnoresProfileVisibility: true });
 }
 
 function detailStatuses() {
@@ -119,10 +117,20 @@ function expectedStatuses(visibleTo: Viewer[]): Record<Viewer, number> {
 	) as Record<Viewer, number>;
 }
 
-async function assertVisibleTo(visibleTo: Viewer[]) {
-	const expected = expectedStatuses(visibleTo);
-	assert.deepEqual(await detailStatuses(), expected, "detail");
-	assert.deepEqual(await listingStatuses(), expected, "listing");
+async function assertDetailVisibleTo(visibleTo: Viewer[]) {
+	assert.deepEqual(
+		await detailStatuses(),
+		expectedStatuses(visibleTo),
+		"detail"
+	);
+}
+
+async function assertListingVisibleTo(visibleTo: Viewer[]) {
+	assert.deepEqual(
+		await listingStatuses(),
+		expectedStatuses(visibleTo),
+		"listing"
+	);
 }
 
 async function seedTrophyHunterPlatinums(owner: User) {
@@ -180,48 +188,63 @@ async function seedFixture() {
 
 useTestDatabase(seedFixture);
 
+beforeEach(async () => {
+	clearRewindImageCache();
+	await setOwnerPrivacy({});
+});
+
 void describe("Rewind with a private profile", () => {
-	void it("stays hidden from everyone but the owner while the toggle is off", async () => {
+	void it("opens the detail by link on its own level while the archive stays closed", async () => {
 		await setOwnerPrivacy({ rewindVisibility: "public" });
-		await assertVisibleTo([]);
 
+		await assertDetailVisibleTo([
+			"anonymous",
+			"stranger",
+			"follower",
+			"mutual"
+		]);
+		await assertListingVisibleTo([]);
+		const archive = await readRewindYears(ownerUsername());
+		assert.equal(archive.body.type, "USER_PRIVATE");
+	});
+
+	void it("opens a friends Rewind only to mutual followers by link", async () => {
 		await setOwnerPrivacy({ rewindVisibility: "friends" });
-		await assertVisibleTo([]);
 
+		await assertDetailVisibleTo(["mutual"]);
+		await assertListingVisibleTo([]);
+	});
+
+	void it("shows nothing but to the owner when the Rewind is private", async () => {
+		await setOwnerPrivacy({ rewindVisibility: "private" });
+
+		await assertDetailVisibleTo([]);
+		await assertListingVisibleTo([]);
 		const hidden = await readRewind(ownerUsername(), 2025);
 		assert.equal(hidden.body.type, "USER_PRIVATE");
 	});
 
-	void it("opens a public Rewind to every visitor once the toggle is on", async () => {
+	void it("opens the archive again once the profile is visible", async () => {
 		await setOwnerPrivacy({
-			rewindVisibility: "public",
-			rewindIgnoresProfileVisibility: true
+			profileVisibility: "public",
+			rewindVisibility: "public"
 		});
 
-		await assertVisibleTo(["anonymous", "stranger", "follower", "mutual"]);
-	});
-
-	void it("opens a friends Rewind only to mutual followers once the toggle is on", async () => {
-		await setOwnerPrivacy({
-			rewindVisibility: "friends",
-			rewindIgnoresProfileVisibility: true
-		});
-
-		await assertVisibleTo(["mutual"]);
-	});
-
-	void it("keeps a private Rewind hidden even with the toggle on", async () => {
-		await setOwnerPrivacy({
-			rewindVisibility: "private",
-			rewindIgnoresProfileVisibility: true
-		});
-
-		await assertVisibleTo([]);
+		await assertDetailVisibleTo([
+			"anonymous",
+			"stranger",
+			"follower",
+			"mutual"
+		]);
+		await assertListingVisibleTo([
+			"anonymous",
+			"stranger",
+			"follower",
+			"mutual"
+		]);
 	});
 
 	void it("shows the owner name and avatar in the header of the Rewind", async () => {
-		await setOwnerPrivacy({ rewindIgnoresProfileVisibility: true });
-
 		const response = await readRewind(ownerUsername(), 2025).expect(200);
 
 		assert.equal(response.body.data.user.username, ownerUsername());
@@ -229,46 +252,28 @@ void describe("Rewind with a private profile", () => {
 		assert.ok("avatarUrl" in response.body.data.user);
 	});
 
-	void it("lists only the years the owner generated", async () => {
-		await setOwnerPrivacy({ rewindIgnoresProfileVisibility: true });
-
-		const visitor = await readRewindYears(ownerUsername()).expect(200);
+	void it("lists only the years the owner generated to the owner", async () => {
 		const owner = await readRewindYears(
 			ownerUsername(),
 			fixture.owner.authorization
 		).expect(200);
 
-		const yearsOf = (response: {
-			body: { data: { years: { year: number }[] } };
-		}) => response.body.data.years.map(entry => entry.year);
-		assert.deepEqual(yearsOf(visitor), [2025]);
-		assert.deepEqual(yearsOf(owner), [2025, 2024]);
+		assert.deepEqual(
+			owner.body.data.years.map((entry: { year: number }) => entry.year),
+			[2025, 2024]
+		);
 		await readRewind(ownerUsername(), 2024).expect(404);
 	});
 
 	void it("keeps the platinums hidden while the profile is private", async () => {
-		await setOwnerPrivacy({
-			rewindIgnoresProfileVisibility: true,
-			platinumVisibility: "public"
-		});
-
 		for (const viewer of ["anonymous", "mutual"] as const) {
 			const detail = await readRewind(
 				ownerUsername(),
 				2025,
 				authorizationOf(viewer)
 			).expect(200);
-			const listing = await readRewindYears(
-				ownerUsername(),
-				authorizationOf(viewer)
-			).expect(200);
 			assert.equal(detail.body.data.totals.platinums, null, viewer);
 			assert.notEqual(detail.body.data.persona, TROPHY_HUNTER, viewer);
-			assert.notEqual(
-				listing.body.data.years[0].persona,
-				TROPHY_HUNTER,
-				viewer
-			);
 		}
 
 		const own = await readRewind(
@@ -283,11 +288,20 @@ void describe("Rewind with a private profile", () => {
 		assert.equal(own.body.data.persona, TROPHY_HUNTER);
 	});
 
-	void it("shows the platinums again once the profile is visible", async () => {
+	void it("keeps the platinums hidden when the section is closed even with a public profile", async () => {
 		await setOwnerPrivacy({
 			profileVisibility: "public",
-			rewindIgnoresProfileVisibility: true
+			platinumVisibility: "private"
 		});
+
+		const detail = await readRewind(ownerUsername(), 2025).expect(200);
+
+		assert.equal(detail.body.data.totals.platinums, null);
+		assert.notEqual(detail.body.data.persona, TROPHY_HUNTER);
+	});
+
+	void it("shows the platinums again once the profile is visible", async () => {
+		await setOwnerPrivacy({ profileVisibility: "public" });
 
 		const detail = await readRewind(ownerUsername(), 2025).expect(200);
 
@@ -298,9 +312,7 @@ void describe("Rewind with a private profile", () => {
 		assert.equal(detail.body.data.persona, TROPHY_HUNTER);
 	});
 
-	void it("keeps the profile restricted with the toggle on", async () => {
-		await setOwnerPrivacy({ rewindIgnoresProfileVisibility: true });
-
+	void it("keeps the profile restricted while the Rewind opens by link", async () => {
 		for (const viewer of ["anonymous", "follower", "mutual"] as const) {
 			const request = api().get(`/users/${ownerUsername()}`);
 			const authorization = authorizationOf(viewer);
@@ -318,34 +330,27 @@ void describe("Rewind with a private profile", () => {
 		assert.equal(backlog.status, 403);
 		assert.equal(backlog.body.type, "USER_PRIVATE");
 	});
+
+	void it("survives a visitor asking for the archive and the detail back to back", async () => {
+		const sequence = await Promise.all(
+			Array.from({ length: PARALLEL_READERS }, (_, index) =>
+				index % 2 === 0
+					? readRewindYears(ownerUsername())
+					: readRewind(ownerUsername(), 2025)
+			)
+		);
+
+		sequence.forEach((response, index) => {
+			assert.equal(response.status, index % 2 === 0 ? 403 : 200);
+		});
+		const after = await readRewindYears(ownerUsername());
+		assert.equal(after.status, 403);
+		assert.equal(after.body.type, "USER_PRIVATE");
+	});
 });
 
 void describe("Rewind share with a private profile", () => {
-	void it("serves the generic card while the toggle is off", async () => {
-		await setOwnerPrivacy({ rewindIgnoresProfileVisibility: false });
-		clearRewindImageCache();
-
-		const page = await api()
-			.get(`/share/rewind/${ownerUsername()}/2025`)
-			.expect(200);
-		const image = await api().get(
-			`/share/rewind/${ownerUsername()}/2025/og.png`
-		);
-		const list = await api().get(
-			`/share/rewind/${ownerUsername()}/2025/story-list.png`
-		);
-
-		assert.match(page.text, /<title>Completr Rewind<\/title>/);
-		assert.doesNotMatch(page.text, /og:image/);
-		assert.doesNotMatch(page.text, /Celeste/);
-		assert.equal(image.status, 403);
-		assert.equal(image.body.type, "USER_PRIVATE");
-		assert.equal(list.status, 403);
-		assert.equal(list.body.type, "USER_PRIVATE");
-	});
-
-	void it("serves the card of the year once the toggle is on", async () => {
-		await setOwnerPrivacy({ rewindIgnoresProfileVisibility: true });
+	void it("serves the card of the year by link while the Rewind is public", async () => {
 		clearRewindImageCache();
 
 		const page = await api()
@@ -368,73 +373,48 @@ void describe("Rewind share with a private profile", () => {
 		assert.equal(image.headers["content-type"], "image/png");
 		assert.equal(list.headers["content-type"], "image/png");
 	});
+
+	void it("serves the generic card when the Rewind is private", async () => {
+		await setOwnerPrivacy({ rewindVisibility: "private" });
+		clearRewindImageCache();
+
+		const page = await api()
+			.get(`/share/rewind/${ownerUsername()}/2025`)
+			.expect(200);
+		const image = await api().get(
+			`/share/rewind/${ownerUsername()}/2025/og.png`
+		);
+		const list = await api().get(
+			`/share/rewind/${ownerUsername()}/2025/story-list.png`
+		);
+
+		assert.match(page.text, /<title>Completr Rewind<\/title>/);
+		assert.doesNotMatch(page.text, /og:image/);
+		assert.doesNotMatch(page.text, /Celeste/);
+		assert.equal(image.status, 403);
+		assert.equal(image.body.type, "USER_PRIVATE");
+		assert.equal(list.status, 403);
+		assert.equal(list.body.type, "USER_PRIVATE");
+	});
 });
 
-void describe("PATCH /users/me rewindIgnoresProfileVisibility", () => {
-	void it("starts off for a new account and is saved by PATCH", async () => {
-		const account = await signUpOn("2024-01-01");
+void describe("PATCH /users/me with the removed rewindIgnoresProfileVisibility", () => {
+	void it("answers 422 COMMON_SCHEMA_INVALID for the unknown field", async () => {
+		const response = await patchLegacyField();
 
-		const before = await api()
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+	});
+
+	void it("does not return the field in the account", async () => {
+		const account = await api()
 			.get("/users/me")
-			.set("Authorization", account.authorization)
-			.expect(200);
-		await api()
-			.patch("/users/me")
-			.set("Authorization", account.authorization)
-			.send({ rewindIgnoresProfileVisibility: true })
-			.expect(200);
-		const after = await api()
-			.get("/users/me")
-			.set("Authorization", account.authorization)
+			.set("Authorization", fixture.owner.authorization)
 			.expect(200);
 
 		assert.equal(
-			before.body.data.user.rewindIgnoresProfileVisibility,
+			"rewindIgnoresProfileVisibility" in account.body.data.user,
 			false
 		);
-		assert.equal(after.body.data.user.rewindIgnoresProfileVisibility, true);
-	});
-
-	void it("answers 422 COMMON_SCHEMA_INVALID for a value that is not a boolean", async () => {
-		for (const value of ["yes", 1, null]) {
-			const response = await api()
-				.patch("/users/me")
-				.set("Authorization", fixture.owner.authorization)
-				.send({ rewindIgnoresProfileVisibility: value });
-			assert.equal(response.status, 422, String(value));
-			assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
-		}
-	});
-
-	void it("survives the toggle flipping while visitors read in parallel", async () => {
-		await setOwnerPrivacy({});
-		const toggles = [true, false, true, true, false, true];
-
-		const [patches, reads] = await Promise.all([
-			Promise.all(toggles.map(enabled => patchToggle(enabled))),
-			Promise.all(
-				Array.from({ length: PARALLEL_READERS }, (_, index) =>
-					index % 2 === 0
-						? readRewind(ownerUsername(), 2025)
-						: readRewindYears(ownerUsername())
-				)
-			)
-		]);
-
-		for (const patch of patches) assert.equal(patch.status, 200);
-		for (const read of reads) {
-			assert.ok([200, 403].includes(read.status), String(read.status));
-			if (read.status === 403)
-				assert.equal(read.body.type, "USER_PRIVATE");
-		}
-
-		await patchToggle(true).expect(200);
-		await patchToggle(true).expect(200);
-		await readRewind(ownerUsername(), 2025).expect(200);
-
-		await patchToggle(false).expect(200);
-		const hidden = await readRewind(ownerUsername(), 2025);
-		assert.equal(hidden.status, 403);
-		assert.equal(hidden.body.type, "USER_PRIVATE");
 	});
 });
