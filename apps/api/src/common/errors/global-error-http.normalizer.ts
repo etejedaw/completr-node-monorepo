@@ -1,175 +1,23 @@
 import { type Request } from "express";
 
-import { activityDomainToHttpMapper } from "../../activity/errors/activity.domain-to-http.mapper";
-import { authDomainToHttpMapper } from "../../auth/errors/auth.domain-to-http.mapper";
-import { backlogDomainToHttpMapper } from "../../backlog/errors/backlog.domain-to-http.mapper";
-import { backlogProgressDomainToHttpMapper } from "../../backlog-progress/errors/backlog-progress.domain-to-http.mapper";
-import { coopRunsDomainToHttpMapper } from "../../coop-runs/errors/coop-runs.domain-to-http.mapper";
-import { dataRequestsDomainToHttpMapper } from "../../data-requests/errors/data-requests.domain-to-http.mapper";
-import { favoritesDomainToHttpMapper } from "../../favorites/errors/favorites.domain-to-http.mapper";
-import { franchisesDomainToHttpMapper } from "../../franchises/errors/franchises.domain-to-http.mapper";
-import { gameExternalDomainToHttpMapper } from "../../game-external/errors/game-external.domain-to-http.mapper";
-import { gamePlatinumDomainToHttpMapper } from "../../game-platinum/errors/game-platinum.domain-to-http.mapper";
-import { gameReportsDomainToHttpMapper } from "../../game-reports/errors/game-reports.domain-to-http.mapper";
-import { gameScoresDomainToHttpMapper } from "../../game-scores/errors/game-scores.domain-to-http.mapper";
-import { gameShelfDomainToHttpMapper } from "../../game-shelf/errors/game-shelf.domain-to-http.mapper";
-import { gameTimesDomainToHttpMapper } from "../../game-times/errors/game-times.domain-to-http.mapper";
-import { gamesDomainToHttpMapper } from "../../games/errors/games.domain-to-http.mapper";
-import { genresDomainToHttpMapper } from "../../genres/errors/genres.domain-to-http.mapper";
-import { hltbDomainToHttpMapper } from "../../hltb/errors/hltb.domain-to-http.mapper";
-import { iaDomainToHttpMapper } from "../../ia/errors/ia.domain-to-http.mapper";
-import { igdbDomainToHttpMapper } from "../../igdb/errors/igdb.domain-to-http.mapper";
-import { invitationsDomainToHttpMapper } from "../../invitations/errors/invitations.domain-to-http.mapper";
-import { listFollowersDomainToHttpMapper } from "../../list-followers/errors/list-followers.domain-to-http.mapper";
-import { listItemsDomainToHttpMapper } from "../../list-items/errors/list-items.domain-to-http.mapper";
-import { listsDomainToHttpMapper } from "../../lists/errors/lists.domain-to-http.mapper";
-import { mailDomainToHttpMapper } from "../../mail/errors/mail.domain-to-http.mapper";
-import { metacriticDomainToHttpMapper } from "../../metacritic/errors/metacritic.domain-to-http.mapper";
-import { moodTagsDomainToHttpMapper } from "../../mood-tags/errors/mood-tags.domain-to-http.mapper";
-import { platformsDomainToHttpMapper } from "../../platforms/errors/platforms.domain-to-http.mapper";
-import { premiumAccessDomainToHttpMapper } from "../../premium-access/errors/premium-access.domain-to-http.mapper";
-import { queueDomainToHttpMapper } from "../../queue/errors/queue.domain-to-http.mapper";
-import { rawgDomainToHttpMapper } from "../../rawg/errors/rawg.domain-to-http.mapper";
-import { reviewsDomainToHttpMapper } from "../../reviews/errors/reviews.domain-to-http.mapper";
-import { rewindDomainToHttpMapper } from "../../rewind/errors/rewind.domain-to-http.mapper";
-import { rewindEditionsDomainToHttpMapper } from "../../rewind-editions/errors/rewind-editions.domain-to-http.mapper";
-import { savedFiltersDomainToHttpMapper } from "../../saved-filters/errors/saved-filters.domain-to-http.mapper";
-import { scoreSourcesDomainToHttpMapper } from "../../score-sources/errors/score-sources.domain-to-http.mapper";
-import { userFollowRequestsDomainToHttpMapper } from "../../user-follow-requests/errors/user-follow-requests.domain-to-http.mapper";
-import { userFollowersDomainToHttpMapper } from "../../user-followers/errors/user-followers.domain-to-http.mapper";
-import { usersDomainToHttpMapper } from "../../users/errors/users.domain-to-http.mapper";
-import { wikidataDomainToHttpMapper } from "../../wikidata/errors/wikidata.domain-to-http.mapper";
-import { wishlistDomainToHttpMapper } from "../../wishlist/errors/wishlist.domain-to-http.mapper";
 import { commonDomainToHttpMapper } from "./common.domain-to-http.mapper";
 import { type DomainError } from "./domain-error";
+import { DOMAIN_ERROR_HTTP_MAPPERS } from "./error-registry";
 import { HttpError } from "./http-error";
+
+const COMMON_MODULE_NAMES = new Set(["Common Module", "COMMON"]);
 
 export function globalErrorHttpNormalizer(
 	error: DomainError,
 	request: Request
 ) {
-	if (error.module === "User Module")
-		return usersDomainToHttpMapper(error, request);
-
-	if (error.module === "Auth Module")
-		return authDomainToHttpMapper(error, request);
-
-	if (error.module === "Game Module")
-		return gamesDomainToHttpMapper(error, request);
-
-	if (error.module === "Platform Module")
-		return platformsDomainToHttpMapper(error, request);
-
-	if (error.module === "Genre Module")
-		return genresDomainToHttpMapper(error, request);
-
-	if (error.module === "Game External Module")
-		return gameExternalDomainToHttpMapper(error, request);
-
-	if (error.module === "Franchise Module")
-		return franchisesDomainToHttpMapper(error, request);
-
-	if (error.module === "GameShelf Module")
-		return gameShelfDomainToHttpMapper(error, request);
-
-	if (error.module === "ScoreSource Module")
-		return scoreSourcesDomainToHttpMapper(error, request);
-
-	if (error.module === "GameScore Module")
-		return gameScoresDomainToHttpMapper(error, request);
-
-	if (error.module === "GameTime Module")
-		return gameTimesDomainToHttpMapper(error, request);
-
-	if (error.module === "Backlog Module")
-		return backlogDomainToHttpMapper(error, request);
-
-	if (error.module === "SavedFilter Module")
-		return savedFiltersDomainToHttpMapper(error, request);
-
-	if (error.module === "List Module")
-		return listsDomainToHttpMapper(error, request);
-
-	if (error.module === "ListItem Module")
-		return listItemsDomainToHttpMapper(error, request);
-
-	if (error.module === "ListFollower Module")
-		return listFollowersDomainToHttpMapper(error, request);
-
-	if (error.module === "Queue Module")
-		return queueDomainToHttpMapper(error, request);
-
-	if (error.module === "Wishlist Module")
-		return wishlistDomainToHttpMapper(error, request);
-
-	if (error.module === "Favorite Module")
-		return favoritesDomainToHttpMapper(error, request);
-
-	if (error.module === "GameReport Module")
-		return gameReportsDomainToHttpMapper(error, request);
-
-	if (error.module === "UserFollower Module")
-		return userFollowersDomainToHttpMapper(error, request);
-
-	if (error.module === "UserFollowRequest Module")
-		return userFollowRequestsDomainToHttpMapper(error, request);
-
-	if (error.module === "Review Module")
-		return reviewsDomainToHttpMapper(error, request);
-
-	if (error.module === "Rewind Module")
-		return rewindDomainToHttpMapper(error, request);
-
-	if (error.module === "Rewind Editions Module")
-		return rewindEditionsDomainToHttpMapper(error, request);
-
-	if (error.module === "MoodTags Module")
-		return moodTagsDomainToHttpMapper(error, request);
-
-	if (error.module === "GamePlatinum Module")
-		return gamePlatinumDomainToHttpMapper(error, request);
-
-	if (error.module === "BacklogProgress Module")
-		return backlogProgressDomainToHttpMapper(error, request);
-
-	if (error.module === "CoopRuns Module")
-		return coopRunsDomainToHttpMapper(error, request);
-
-	if (error.module === "Premium Access Module")
-		return premiumAccessDomainToHttpMapper(error, request);
-
-	if (error.module === "Activity Module")
-		return activityDomainToHttpMapper(error, request);
-
-	if (error.module === "RAWG Provider")
-		return rawgDomainToHttpMapper(error, request);
-
-	if (error.module === "IGDB Provider")
-		return igdbDomainToHttpMapper(error, request);
-
-	if (error.module === "HLTB Provider")
-		return hltbDomainToHttpMapper(error, request);
-
-	if (error.module === "Metacritic Provider")
-		return metacriticDomainToHttpMapper(error, request);
-
-	if (error.module === "Wikidata Provider")
-		return wikidataDomainToHttpMapper(error, request);
-
-	if (error.module === "IA Provider")
-		return iaDomainToHttpMapper(error, request);
-
-	if (error.module === "Invitation Module")
-		return invitationsDomainToHttpMapper(error, request);
-
-	if (error.module === "Data Request Module")
-		return dataRequestsDomainToHttpMapper(error, request);
-
-	if (error.module === "Mail Provider")
-		return mailDomainToHttpMapper(error, request);
-
-	if (error.module === "Common Module" || error.module === "COMMON")
+	if (COMMON_MODULE_NAMES.has(error.module))
 		return commonDomainToHttpMapper(error, request);
+
+	const mapper = Object.hasOwn(DOMAIN_ERROR_HTTP_MAPPERS, error.module)
+		? DOMAIN_ERROR_HTTP_MAPPERS[error.module]
+		: undefined;
+	if (mapper) return mapper(error, request);
 
 	return new HttpError({
 		type: error.code,

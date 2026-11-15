@@ -1,42 +1,12 @@
-import { type Request } from "express";
+import { buildHttpErrorMapper } from "./build-http-error-mapper";
 
-import { type DomainError } from "../../common/errors/domain-error";
-import { HttpError } from "../../common/errors/http-error";
-
-export function commonDomainToHttpMapper(
-	error: DomainError,
-	request: Request
-): HttpError {
-	const baseOptions = {
-		type: error.code,
-		title: error.message,
-		instance: request.originalUrl,
-		timestamp: new Date(),
-		correlationId: request.locals?.correlationId as string,
-		context: error.context,
-		issues: error.issues
-	};
-
-	if (error.code === "COMMON_SCHEMA_INVALID")
-		return new HttpError({ ...baseOptions, status: 422 });
-
-	if (error.code === "COMMON_INVALID_JSON")
-		return new HttpError({ ...baseOptions, status: 400 });
-
-	if (error.code === "COMMON_PAYLOAD_TOO_LARGE")
-		return new HttpError({ ...baseOptions, status: 413 });
-
-	if (error.code === "COMMON_RESOURCE_IN_USE")
-		return new HttpError({ ...baseOptions, status: 409 });
-
-	if (error.code === "COMMON_REFERENCE_NOT_FOUND")
-		return new HttpError({ ...baseOptions, status: 422 });
-
-	if (error.code === "EXPORT_FORMAT_PREMIUM")
-		return new HttpError({ ...baseOptions, status: 402 });
-
-	if (error.code === "EXPORT_FORMAT_NOT_ACCEPTABLE")
-		return new HttpError({ ...baseOptions, status: 406 });
-
-	return new HttpError({ ...baseOptions, status: 500 });
-}
+export const commonDomainToHttpMapper = buildHttpErrorMapper({
+	COMMON_SCHEMA_INVALID: 422,
+	COMMON_INVALID_JSON: 400,
+	COMMON_PAYLOAD_TOO_LARGE: 413,
+	COMMON_RESOURCE_IN_USE: 409,
+	COMMON_REFERENCE_NOT_FOUND: 422,
+	COMMON_SOURCE_UNAVAILABLE: 503,
+	EXPORT_FORMAT_PREMIUM: 402,
+	EXPORT_FORMAT_NOT_ACCEPTABLE: 406
+});

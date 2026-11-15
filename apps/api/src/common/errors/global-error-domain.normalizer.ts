@@ -1,51 +1,15 @@
 import { ForeignKeyConstraintError } from "sequelize";
 
-import { authErrorDomainNormalizer } from "../../auth/errors/auth.error-domain.normalizer";
-import { backlogErrorDomainNormalizer } from "../../backlog/errors/backlog.error-domain.normalizer";
-import { backlogProgressErrorDomainNormalizer } from "../../backlog-progress/errors/backlog-progress.error-domain.normalizer";
-import { coopRunsErrorDomainNormalizer } from "../../coop-runs/errors/coop-runs.error-domain.normalizer";
-import { dataRequestsErrorDomainNormalizer } from "../../data-requests/errors/data-requests.error-domain.normalizer";
-import { favoritesErrorDomainNormalizer } from "../../favorites/errors/favorites.error-domain.normalizer";
-import { franchisesErrorDomainNormalizer } from "../../franchises/errors/franchises.error-domain.normalizer";
-import { gameExternalErrorDomainNormalizer } from "../../game-external/errors/game-external.error-domain.normalizer";
-import { gamePlatinumErrorDomainNormalizer } from "../../game-platinum/errors/game-platinum.error-domain.normalizer";
-import { gameReportsErrorDomainNormalizer } from "../../game-reports/errors/game-reports.error-domain.normalizer";
-import { gameScoresErrorDomainNormalizer } from "../../game-scores/errors/game-scores.error-domain.normalizer";
-import { gameShelfErrorDomainNormalizer } from "../../game-shelf/errors/game-shelf.error-domain.normalizer";
-import { gameTimesErrorDomainNormalizer } from "../../game-times/errors/game-times.error-domain.normalizer";
-import { gamesErrorDomainNormalizer } from "../../games/errors/games.error-domain.normalizer";
-import { genresErrorDomainNormalizer } from "../../genres/errors/genres.error-domain.normalizer";
-import { hltbErrorDomainNormalizer } from "../../hltb/errors/hltb.error-domain.normalizer";
-import { iaErrorDomainNormalizer } from "../../ia/errors/ia.error-domain.normalizer";
-import { igdbErrorDomainNormalizer } from "../../igdb/errors/igdb.error-domain.normalizer";
-import { invitationsErrorDomainNormalizer } from "../../invitations/errors/invitations.error-domain.normalizer";
-import { listFollowersErrorDomainNormalizer } from "../../list-followers/errors/list-followers.error-domain.normalizer";
-import { listItemsErrorDomainNormalizer } from "../../list-items/errors/list-items.error-domain.normalizer";
-import { listsErrorDomainNormalizer } from "../../lists/errors/lists.error-domain.normalizer";
-import { mailErrorDomainNormalizer } from "../../mail/errors/mail.error-domain.normalizer";
-import { metacriticErrorDomainNormalizer } from "../../metacritic/errors/metacritic.error-domain.normalizer";
-import { moodTagsErrorDomainNormalizer } from "../../mood-tags/errors/mood-tags.error-domain.normalizer";
-import { platformsErrorDomainNormalizer } from "../../platforms/errors/platforms.error-domain.normalizer";
-import { premiumAccessErrorDomainNormalizer } from "../../premium-access/errors/premium-access.error-domain.normalizer";
-import { queueErrorDomainNormalizer } from "../../queue/errors/queue.error-domain.normalizer";
-import { rawgErrorDomainNormalizer } from "../../rawg/errors/rawg.error-domain.normalizer";
-import { reviewsErrorDomainNormalizer } from "../../reviews/errors/reviews.error-domain.normalizer";
-import { rewindErrorDomainNormalizer } from "../../rewind/errors/rewind.error-domain.normalizer";
-import { rewindEditionsErrorDomainNormalizer } from "../../rewind-editions/errors/rewind-editions.error-domain.normalizer";
-import { savedFiltersErrorDomainNormalizer } from "../../saved-filters/errors/saved-filters.error-domain.normalizer";
-import { scoreSourcesErrorDomainNormalizer } from "../../score-sources/errors/score-sources.error-domain.normalizer";
-import { userFollowRequestsErrorDomainNormalizer } from "../../user-follow-requests/errors/user-follow-requests.error-domain.normalizer";
-import { userFollowersErrorDomainNormalizer } from "../../user-followers/errors/user-followers.error-domain.normalizer";
-import { usersErrorDomainNormalizer } from "../../users/errors/users.error-domain.normalizer";
-import { wikidataErrorDomainNormalizer } from "../../wikidata/errors/wikidata.error-domain.normalizer";
-import { wishlistErrorDomainNormalizer } from "../../wishlist/errors/wishlist.error-domain.normalizer";
 import {
 	bodyParserErrorMapper,
 	isBodyParserError
 } from "./body-parser-error.mapper";
 import * as commonDomainError from "./common.domain-error";
 import { DomainError } from "./domain-error";
+import { SERVICE_ERROR_NORMALIZERS } from "./error-registry";
 import { ServiceError } from "./service-error";
+
+const PARENT_ROW_DELETE_PATTERN = /^update or delete on table/;
 
 export function globalErrorDomainNormalizer(
 	error: unknown,
@@ -62,150 +26,22 @@ export function globalErrorDomainNormalizer(
 	if (isBodyParserError(error))
 		return bodyParserErrorMapper(error, correlationId);
 
-	return new DomainError(
-		"COMMON",
-		"INTERNAL_ERROR",
-		"Unexpected internal error",
-		{
-			raw: error,
-			correlationId
-		}
-	);
+	return commonDomainError.commonInternalError({ raw: error, correlationId });
 }
 
 function globalServiceErrorMapper(
 	error: ServiceError,
 	correlationId: string
 ): DomainError {
-	if (error.serviceError.service === "Users Service")
-		return usersErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Auth Service")
-		return authErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Games Service")
-		return gamesErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Platform Service")
-		return platformsErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Genre Service")
-		return genresErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Franchise Service")
-		return franchisesErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "GameShelf Service")
-		return gameShelfErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "ScoreSource Service")
-		return scoreSourcesErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "GameScore Service")
-		return gameScoresErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "GameTime Service")
-		return gameTimesErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Backlog Service")
-		return backlogErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "SavedFilter Service")
-		return savedFiltersErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "List Service")
-		return listsErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "ListItem Service")
-		return listItemsErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "ListFollower Service")
-		return listFollowersErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Queue Service")
-		return queueErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Wishlist Service")
-		return wishlistErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Favorite Service")
-		return favoritesErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "GameReport Service")
-		return gameReportsErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "UserFollower Service")
-		return userFollowersErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "UserFollowRequest Service")
-		return userFollowRequestsErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Review Service")
-		return reviewsErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Rewind Service")
-		return rewindErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Rewind Editions Service")
-		return rewindEditionsErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "MoodTags Service")
-		return moodTagsErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "GamePlatinum Service")
-		return gamePlatinumErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "BacklogProgress Service")
-		return backlogProgressErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "CoopRuns Service")
-		return coopRunsErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Premium Access Service")
-		return premiumAccessErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "RAWG Provider")
-		return rawgErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "IGDB Provider")
-		return igdbErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "HLTB Provider")
-		return hltbErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Metacritic Provider")
-		return metacriticErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Wikidata Provider")
-		return wikidataErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "IA Provider")
-		return iaErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Invitation Service")
-		return invitationsErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Data Requests Service")
-		return dataRequestsErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Mail Provider")
-		return mailErrorDomainNormalizer(error, correlationId);
-
-	if (error.serviceError.service === "Game External Service")
-		return gameExternalErrorDomainNormalizer(error, correlationId);
-
-	return new DomainError(
-		"COMMON",
-		"INTERNAL_ERROR",
-		"Unexpected internal error",
-		{
-			raw: error,
-			correlationId
-		}
-	);
+	const normalizer = Object.hasOwn(
+		SERVICE_ERROR_NORMALIZERS,
+		error.serviceError.service
+	)
+		? SERVICE_ERROR_NORMALIZERS[error.serviceError.service]
+		: undefined;
+	if (normalizer) return normalizer(error, correlationId);
+	return commonDomainError.commonInternalError({ raw: error, correlationId });
 }
-
-const PARENT_ROW_DELETE_PATTERN = /^update or delete on table/;
 
 function foreignKeyErrorMapper(
 	error: ForeignKeyConstraintError,
