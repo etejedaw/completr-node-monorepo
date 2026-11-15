@@ -20,7 +20,7 @@ export async function createReport(
 		return await GameReport.create({ gameId, userId, message, category });
 	} catch (error) {
 		rethrowSequelizeError(error, {
-			unique: () => gameReportsServiceError.alreadyReportedError()
+			unique: gameReportsServiceError.alreadyReportedError
 		});
 	}
 }
