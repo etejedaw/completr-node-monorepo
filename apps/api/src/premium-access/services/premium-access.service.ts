@@ -46,30 +46,81 @@ export async function resolvePremiumAccess(
 			}
 		});
 
-		const fullGrant = mostFavorableGrant(
-			grants.filter(
-				grant =>
-					grant.userId === user.id &&
-					grant.feature === FULL_PREMIUM_FEATURE
-			)
-		);
-		if (fullGrant) return accessFrom("full-grant", fullGrant.expiresAt);
+		return accessFromGrants(user.id, feature, grants);
+	} catch (error) {
+		throw premiumAccessServiceError.internalError(error);
+	}
+}
 
-		const individualGrant = mostFavorableGrant(
-			grants.filter(
-				grant => grant.userId === user.id && grant.feature === feature
-			)
-		);
-		const globalGrant = mostFavorableGrant(
-			grants.filter(
-				grant => grant.userId === null && grant.feature === feature
-			)
-		);
-		const featureGrant = individualGrant ?? globalGrant;
-		if (featureGrant)
-			return accessFrom("feature-grant", featureGrant.expiresAt);
+function accessFromGrants(
+	userId: string,
+	feature: PremiumFeature | typeof FULL_PREMIUM_FEATURE,
+	grants: PremiumGrant[]
+): PremiumAccess {
+	const fullGrant = mostFavorableGrant(
+		grants.filter(
+			grant =>
+				grant.userId === userId &&
+				grant.feature === FULL_PREMIUM_FEATURE
+		)
+	);
+	if (fullGrant) return accessFrom("full-grant", fullGrant.expiresAt);
 
-		return DENIED_ACCESS;
+	const individualGrant = mostFavorableGrant(
+		grants.filter(
+			grant => grant.userId === userId && grant.feature === feature
+		)
+	);
+	const globalGrant = mostFavorableGrant(
+		grants.filter(
+			grant => grant.userId === null && grant.feature === feature
+		)
+	);
+	const featureGrant = individualGrant ?? globalGrant;
+	if (featureGrant)
+		return accessFrom("feature-grant", featureGrant.expiresAt);
+
+	return DENIED_ACCESS;
+}
+
+export async function resolvePremiumAccessForUsers(
+	users: PremiumAccessUser[],
+	feature: PremiumFeature | typeof FULL_PREMIUM_FEATURE,
+	now = new Date()
+): Promise<Map<string, PremiumAccess>> {
+	const accessByUserId = new Map<string, PremiumAccess>();
+	const grantedUserIds: string[] = [];
+	for (const user of users) {
+		if (isPremiumRole(user.role))
+			accessByUserId.set(user.id, accessFrom("role", null));
+		else grantedUserIds.push(user.id);
+	}
+	if (grantedUserIds.length === 0) return accessByUserId;
+
+	try {
+		const grants = await PremiumGrant.findAll({
+			attributes: ["userId", "feature", "expiresAt"],
+			where: {
+				[Op.and]: [
+					{
+						[Op.or]: [
+							{
+								userId: { [Op.in]: grantedUserIds },
+								feature: [FULL_PREMIUM_FEATURE, feature]
+							},
+							{ userId: null, feature }
+						]
+					},
+					buildActiveGrantsCondition(now)
+				]
+			}
+		});
+		for (const userId of grantedUserIds)
+			accessByUserId.set(
+				userId,
+				accessFromGrants(userId, feature, grants)
+			);
+		return accessByUserId;
 	} catch (error) {
 		throw premiumAccessServiceError.internalError(error);
 	}
