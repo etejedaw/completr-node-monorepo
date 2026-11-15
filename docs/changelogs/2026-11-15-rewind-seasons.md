@@ -109,3 +109,4 @@ El Rewind deja de tener un calendario fijo en código (`REWIND_OPENING_MONTH`, `
 - `9e631c08` — feat(api): export rewind rolls left and freeze date in personal data
 - `c4361142` — feat(api): gate rewind generation by edition period and spend ai rolls per rewind
 - `faf1fc1a` — feat(api): add rewind editions model and service
+- `fb1c551a` — feat(api): add rewind editions table and per-rewind rolls, snapshot and freeze columns
