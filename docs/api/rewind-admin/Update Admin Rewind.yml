@@ -1,0 +1,70 @@
+info:
+    name: Update Admin Rewind
+    type: http
+    seq: 5
+
+http:
+    method: PATCH
+    url: "{{BASE_URL}}/admin/rewinds/:rewindId"
+    headers:
+        - name: Content-Type
+          value: application/json
+    params:
+        - name: rewindId
+          value: ""
+          type: path
+    body:
+        type: json
+        data: |-
+            {
+              "regenerationsLeft": 3
+            }
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Update Admin Rewind
+
+    Sets the regenerations left of a rewind. The row is locked while it is written, like a generation, so a spend in progress finishes first and is not overwritten halfway.
+
+    **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
+
+    ### Path params
+
+    - `rewindId` (uuid) — rewind id
+
+    ### Request Body
+
+    | Field | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | regenerationsLeft | integer | Yes | 0 to 1000 |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "rewind": {
+          "id": "<uuid>",
+          "year": 2026,
+          "user": { "id": "<uuid>", "username": "marta_plays" },
+          "accessKind": "gift",
+          "regenerationsLeft": 3,
+          "graceUsed": false,
+          "generatedAt": "2026-12-02T10:00:00.000Z",
+          "frozenAt": null
+        }
+      }
+    }
+    ```
+
+    Records the audit event `rewind_edited`.
+
+    ### Errors
+
+    | Status | Code | Description |
+    |--------|------|-------------|
+    | 404 | REWIND_NOT_FOUND | The rewind does not exist |
+    | 422 | COMMON_SCHEMA_INVALID | Invalid UUID, negative or non-integer value, or extra field |

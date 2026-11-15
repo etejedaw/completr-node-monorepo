@@ -1,0 +1,70 @@
+info:
+    name: List Admin Rewinds
+    type: http
+    seq: 4
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/admin/rewinds?year=2026&q=&limit=50&offset=0"
+    params:
+        - name: year
+          value: "2026"
+          type: query
+        - name: q
+          value: ""
+          type: query
+          enabled: false
+        - name: limit
+          value: "50"
+          type: query
+        - name: offset
+          value: "0"
+          type: query
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## List Admin Rewinds
+
+    Lists the generated rewinds, newest first, with `limit`/`offset` like the other admin listings.
+
+    **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
+
+    ### Query
+
+    - `year` (integer, optional) — filter by year
+    - `q` (string, optional, max 100) — search by username, ignoring case and accents
+    - `limit` (integer, optional, 1 to 100, default 50) — page size
+    - `offset` (integer, optional, default 0) — rows to skip
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "rewinds": [
+          {
+            "id": "<uuid>",
+            "year": 2026,
+            "user": { "id": "<uuid>", "username": "marta_plays" },
+            "accessKind": "gift",
+            "regenerationsLeft": 2,
+            "graceUsed": false,
+            "generatedAt": "2026-12-02T10:00:00.000Z",
+            "frozenAt": null
+          }
+        ],
+        "total": 53
+      }
+    }
+    ```
+
+    `accessKind` is `none`, `gift` or `premium`.
+
+    ### Errors
+
+    | Status | Code | Description |
+    |--------|------|-------------|
+    | 422 | COMMON_SCHEMA_INVALID | Invalid year, limit, offset or search, or unknown query parameter |
