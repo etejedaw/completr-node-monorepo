@@ -82,6 +82,8 @@
 	<h2 id="my-lists-heading" uiEyebrow class="m-0 mb-3">Your lists</h2>
 	@if (isLoading()) {
 	<ng-container [ngTemplateOutlet]="cardsSkeleton" />
+	} @else if (listsLoader.failed()) {
+	<ui-load-error (retried)="loadLists()" />
 	} @else if (lists().length === 0) {
 	<ui-empty-state
 		icon="format_list_bulleted"
