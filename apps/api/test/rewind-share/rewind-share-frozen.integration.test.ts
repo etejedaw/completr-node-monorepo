@@ -71,6 +71,12 @@ function storyOf(player: Account) {
 		.buffer(true);
 }
 
+function listOf(player: Account) {
+	return api()
+		.get(`/share/rewind/${player.user.username}/2026/story-list.png`)
+		.buffer(true);
+}
+
 function sharePageOf(player: Account) {
 	return api().get(`/share/rewind/${player.user.username}/2026`);
 }
@@ -106,6 +112,54 @@ void describe("share images of a frozen Rewind", () => {
 			) === 0
 		);
 		assert.equal(pageAfterRuns.text, page.text);
+	});
+
+	void it("draws the list from the snapshot and caches it apart from the story", async () => {
+		const player = await frozenPlayer();
+
+		const list = await listOf(player).expect(200);
+		await storyOf(player).expect(200);
+		await addRun(player, games.celeste, platform, {
+			finishedAt: "2026-06-06"
+		});
+		await Backlog.update(
+			{ isPublic: false },
+			{ where: { userId: player.user.id, gameId: games.hades.id } }
+		);
+		const listAfterRuns = await listOf(player).expect(200);
+
+		assert.deepEqual(pngDimensions(list.body as Buffer), {
+			width: 1080,
+			height: 1920
+		});
+		assert.ok((list.body as Buffer).equals(listAfterRuns.body as Buffer));
+		assert.equal(rewindImageCacheSize(), 2);
+	});
+
+	void it("answers 404 to a visitor for the list when no public game was finished at closing, while the owner still gets it", async () => {
+		const player = await signUpOn("2025-01-15T00:00:00.000Z");
+		await addRun(player, games.hades, platform, {
+			finishedAt: "2026-03-10",
+			isPublic: false
+		});
+		await addRun(player, games.celeste, platform, {
+			status: "playing",
+			startedAt: "2026-04-02"
+		});
+		await generate(player, 2026).expect(201);
+		await closeEdition(2026);
+		await freezeClosedRewindEditions();
+
+		const story = await storyOf(player);
+		const list = await listOf(player);
+		const ownList = await listOf(player)
+			.set("Authorization", player.authorization)
+			.expect(200);
+
+		assert.equal(story.status, 200);
+		assert.equal(list.status, 404);
+		assert.equal(list.body.type, "REWIND_NOT_FOUND");
+		assert.ok(hasPngSignature(ownList.body as Buffer));
 	});
 
 	void it("renders a new image when the Rewind is frozen and again when it is regenerated", async () => {

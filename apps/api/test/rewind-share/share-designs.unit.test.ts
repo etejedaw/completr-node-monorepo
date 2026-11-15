@@ -11,13 +11,22 @@ import {
 	STORY_COVER_LIMIT,
 	storyTemplate
 } from "../../src/rewind-share/templates/story.template";
+import {
+	STORY_LIST_COVER_LIMIT,
+	storyListTemplate
+} from "../../src/rewind-share/templates/story-list.template";
 
 void describe("shareDesignTemplates", () => {
-	void it("maps the 2026 design to the current story and og templates", () => {
+	void it("maps the 2026 design to the current story, story list and og templates", () => {
 		const templates = shareDesignTemplates("2026");
 
 		assert.equal(templates.story.render, storyTemplate);
 		assert.equal(templates.story.coverLimit, STORY_COVER_LIMIT);
+		assert.equal(templates["story-list"].render, storyListTemplate);
+		assert.equal(
+			templates["story-list"].coverLimit,
+			STORY_LIST_COVER_LIMIT
+		);
 		assert.equal(templates.og.render, ogTemplate);
 		assert.equal(templates.og.coverLimit, OG_COVER_LIMIT);
 	});
@@ -39,6 +48,7 @@ void describe("shareDesignTemplates", () => {
 		for (const design of REWIND_DESIGNS) {
 			const templates = shareDesignTemplates(design);
 			assert.equal(typeof templates.story.render, "function");
+			assert.equal(typeof templates["story-list"].render, "function");
 			assert.equal(typeof templates.og.render, "function");
 		}
 	});

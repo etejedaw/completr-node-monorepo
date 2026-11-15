@@ -331,12 +331,17 @@ void describe("Rewind share with a private profile", () => {
 		const image = await api().get(
 			`/share/rewind/${ownerUsername()}/2025/og.png`
 		);
+		const list = await api().get(
+			`/share/rewind/${ownerUsername()}/2025/story-list.png`
+		);
 
 		assert.match(page.text, /<title>Completr Rewind<\/title>/);
 		assert.doesNotMatch(page.text, /og:image/);
 		assert.doesNotMatch(page.text, /Celeste/);
 		assert.equal(image.status, 403);
 		assert.equal(image.body.type, "USER_PRIVATE");
+		assert.equal(list.status, 403);
+		assert.equal(list.body.type, "USER_PRIVATE");
 	});
 
 	void it("serves the card of the year once the toggle is on", async () => {
@@ -350,6 +355,10 @@ void describe("Rewind share with a private profile", () => {
 			.get(`/share/rewind/${ownerUsername()}/2025/og.png`)
 			.buffer(true)
 			.expect(200);
+		const list = await api()
+			.get(`/share/rewind/${ownerUsername()}/2025/story-list.png`)
+			.buffer(true)
+			.expect(200);
 
 		assert.match(
 			page.text,
@@ -357,6 +366,7 @@ void describe("Rewind share with a private profile", () => {
 		);
 		assert.match(page.text, /2 games finished/);
 		assert.equal(image.headers["content-type"], "image/png");
+		assert.equal(list.headers["content-type"], "image/png");
 	});
 });
 
