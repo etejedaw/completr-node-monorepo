@@ -15,6 +15,7 @@ import { type PlatinumEntry } from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
 import { type ExportParams } from "../../../core/services/export";
 import { PlatinumService } from "../../../core/services/platinum";
+import { StorageService } from "../../../core/services/storage";
 import { ToastService } from "../../../core/services/toast";
 import { BulkActionBar } from "../../../shared/components/bulk-action-bar/bulk-action-bar";
 import { type BulkAction } from "../../../shared/components/bulk-action-bar/bulk-action-bar.model";
@@ -39,6 +40,7 @@ import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view
 import { UiButton } from "../../../shared/ui";
 import { countOf } from "../../../shared/utils/bulk-feedback";
 import { injectBulkRemoval } from "../../../shared/utils/bulk-removal";
+import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectRowSelection } from "../../../shared/utils/row-selection";
 import {
 	PLATINUM_VIEW_MODES,
@@ -79,10 +81,12 @@ export class PlatinumList implements OnInit {
 	private readonly dialogs = inject(DialogService);
 	private readonly toast = inject(ToastService);
 	private readonly destroyRef = inject(DestroyRef);
+	private readonly storage = inject(StorageService);
+	private readonly platinumsLoader = injectLatestLoader();
 
 	protected readonly viewModes = PLATINUM_VIEW_MODES;
 	protected readonly viewMode = signal<PlatinumViewMode>(
-		readStoredPlatinumViewMode(VIEW_MODE_STORAGE_KEY)
+		readStoredPlatinumViewMode(this.storage, VIEW_MODE_STORAGE_KEY)
 	);
 	protected readonly allPlatinums = signal<PlatinumEntry[]>([]);
 	protected readonly isLoading = signal(true);
@@ -130,6 +134,7 @@ export class PlatinumList implements OnInit {
 	]);
 	protected readonly pageState = computed<LibraryPageState>(() => {
 		if (this.isLoading()) return "loading";
+		if (this.platinumsLoader.failed()) return "error";
 		if (this.platinums().length > 0) return "ready";
 		return this.searchQuery().trim() || this.selectedPlatform()
 			? "no-matches"
@@ -145,9 +150,7 @@ export class PlatinumList implements OnInit {
 	private readonly searchSubject = new Subject<string>();
 
 	constructor() {
-		effect(() =>
-			localStorage.setItem(VIEW_MODE_STORAGE_KEY, this.viewMode())
-		);
+		effect(() => this.storage.set(VIEW_MODE_STORAGE_KEY, this.viewMode()));
 	}
 
 	protected setViewMode(mode: PlatinumViewMode) {
@@ -220,16 +223,15 @@ export class PlatinumList implements OnInit {
 		});
 	}
 
-	private loadPlatinums() {
+	protected loadPlatinums() {
 		this.isLoading.set(true);
-		this.platinumService
-			.getMine({
+		this.platinumsLoader.load(
+			this.platinumService.getMine({
 				limit: this.limit,
 				offset: this.offset(),
 				search: this.searchQuery().trim() || undefined
-			})
-			.pipe(takeUntilDestroyed(this.destroyRef))
-			.subscribe({
+			}),
+			{
 				next: res => {
 					this.allPlatinums.set(
 						this.bulkRemoval.withoutPending(res.data.platinums)
@@ -238,6 +240,7 @@ export class PlatinumList implements OnInit {
 					this.isLoading.set(false);
 				},
 				error: () => this.isLoading.set(false)
-			});
+			}
+		);
 	}
 }
