@@ -363,6 +363,159 @@ describe("errorInterceptor", () => {
 
 		expect(auth.refresh).toHaveBeenCalledTimes(2);
 	});
+	describe("when the request that started the refresh goes away", () => {
+		function unauthorized(url: string) {
+			const onNext = vi.fn();
+			const onError = vi.fn<(error: HttpErrorResponse) => void>();
+			const subscription = http
+				.get(url)
+				.subscribe({ next: onNext, error: onError });
+			httpTesting
+				.expectOne(url)
+				.flush(null, { status: 401, statusText: "Unauthorized" });
+			return { onNext, onError, subscription };
+		}
+
+		function finishRefreshWith(nextToken: string | null) {
+			token = nextToken;
+			refresh$.next({});
+			refresh$.complete();
+		}
+
+		it("still retries the requests waiting behind it", () => {
+			const leader = unauthorized("/api/typeahead");
+			const follower = unauthorized("/api/profile");
+
+			leader.subscription.unsubscribe();
+			finishRefreshWith("fresh");
+
+			const retry = httpTesting.expectOne("/api/profile");
+			expect(retry.request.headers.get("Authorization")).toBe(
+				"Bearer fresh"
+			);
+			retry.flush({ ok: true });
+			expect(follower.onNext).toHaveBeenCalledWith({ ok: true });
+			httpTesting.expectNone("/api/typeahead");
+			expect(leader.onNext).not.toHaveBeenCalled();
+			expect(auth.refresh).toHaveBeenCalledTimes(1);
+		});
+
+		it("keeps the refresh running even when every request is cancelled", () => {
+			const first = unauthorized("/api/first");
+			const second = unauthorized("/api/second");
+
+			first.subscription.unsubscribe();
+			second.subscription.unsubscribe();
+
+			expect(refresh$.observed).toBe(true);
+			finishRefreshWith("fresh");
+			httpTesting.expectNone("/api/first");
+			httpTesting.expectNone("/api/second");
+			expect(auth.clearSession).not.toHaveBeenCalled();
+		});
+
+		it("lets a 401 that arrives after the cancellation join the same refresh", () => {
+			const leader = unauthorized("/api/first");
+			leader.subscription.unsubscribe();
+			const late = unauthorized("/api/late");
+
+			expect(auth.refresh).toHaveBeenCalledTimes(1);
+			finishRefreshWith("fresh");
+
+			httpTesting.expectOne("/api/late").flush({ id: "late" });
+			expect(late.onNext).toHaveBeenCalledWith({ id: "late" });
+		});
+
+		it("starts a new refresh on the next 401 once the shared one finished", () => {
+			const leader = unauthorized("/api/first");
+			leader.subscription.unsubscribe();
+			finishRefreshWith("fresh");
+
+			refresh$ = new Subject();
+			auth.refresh.mockReturnValue(refresh$);
+			const next = unauthorized("/api/second");
+
+			expect(auth.refresh).toHaveBeenCalledTimes(2);
+			finishRefreshWith("fresher");
+			const retry = httpTesting.expectOne("/api/second");
+			expect(retry.request.headers.get("Authorization")).toBe(
+				"Bearer fresher"
+			);
+			retry.flush({});
+			expect(next.onNext).toHaveBeenCalledTimes(1);
+		});
+
+		it("errors the waiting requests and clears the session once when the refresh is rejected", () => {
+			const leader = unauthorized("/api/first");
+			const follower = unauthorized("/api/second");
+			leader.subscription.unsubscribe();
+
+			refresh$.error(
+				new HttpErrorResponse({ status: 401, statusText: "err" })
+			);
+
+			expect(follower.onError).toHaveBeenCalledTimes(1);
+			expect(follower.onError.mock.calls[0][0].status).toBe(401);
+			expect(leader.onError).not.toHaveBeenCalled();
+			expect(auth.clearSession).toHaveBeenCalledTimes(1);
+		});
+
+		it("keeps the session for the waiting requests when the refresh hits a network error", () => {
+			const leader = unauthorized("/api/first");
+			const follower = unauthorized("/api/second");
+			leader.subscription.unsubscribe();
+
+			refresh$.error(
+				new HttpErrorResponse({ status: 0, statusText: "offline" })
+			);
+
+			expect(follower.onError).toHaveBeenCalledTimes(1);
+			expect(auth.clearSession).not.toHaveBeenCalled();
+		});
+
+		it("retries many concurrent requests whose responses arrive out of order", () => {
+			const urls = ["/api/a", "/api/b", "/api/c", "/api/d"];
+			const requests = urls.map(unauthorized);
+			requests[0].subscription.unsubscribe();
+			requests[2].subscription.unsubscribe();
+
+			finishRefreshWith("fresh");
+
+			httpTesting.expectNone("/api/a");
+			httpTesting.expectNone("/api/c");
+			httpTesting.expectOne("/api/d").flush({ id: "d" });
+			httpTesting.expectOne("/api/b").flush({ id: "b" });
+			expect(requests[1].onNext).toHaveBeenCalledWith({ id: "b" });
+			expect(requests[3].onNext).toHaveBeenCalledWith({ id: "d" });
+			expect(auth.refresh).toHaveBeenCalledTimes(1);
+		});
+	});
+
+	describe("when the refresh succeeds but leaves no token behind", () => {
+		it("treats it as a failed refresh instead of retrying with a null token", () => {
+			const onFirst = vi.fn<(error: HttpErrorResponse) => void>();
+			const onSecond = vi.fn<(error: HttpErrorResponse) => void>();
+			http.get("/api/first").subscribe({ error: onFirst });
+			http.get("/api/second").subscribe({ error: onSecond });
+			httpTesting
+				.expectOne("/api/first")
+				.flush(null, { status: 401, statusText: "Unauthorized" });
+			httpTesting
+				.expectOne("/api/second")
+				.flush(null, { status: 401, statusText: "Unauthorized" });
+
+			token = null;
+			refresh$.next({});
+			refresh$.complete();
+
+			httpTesting.expectNone("/api/first");
+			httpTesting.expectNone("/api/second");
+			expect(onFirst.mock.calls[0][0].status).toBe(401);
+			expect(onSecond.mock.calls[0][0].status).toBe(401);
+			expect(auth.clearSession).toHaveBeenCalledTimes(1);
+		});
+	});
+
 	describe("when the refresh itself fails", () => {
 		function startUnauthorized(url = "/api/thing") {
 			const onError = vi.fn<(error: HttpErrorResponse) => void>();
