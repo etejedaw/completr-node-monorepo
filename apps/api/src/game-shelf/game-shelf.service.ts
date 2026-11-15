@@ -6,6 +6,7 @@ import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
+import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
 import { buildPlatformFilterWhere } from "../common/utils/platform-filter-where.util";
 import { splitByPresence } from "../common/utils/split-by-presence.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
@@ -39,10 +40,7 @@ const shelfInclude = [
 ];
 
 async function lockUserShelf(userId: string, transaction: Transaction) {
-	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
-		replacements: { lockKey: `game-shelf:${userId}` },
-		transaction
-	});
+	await acquireAdvisoryLock(`game-shelf:${userId}`, transaction);
 }
 
 async function createShelfEntry(

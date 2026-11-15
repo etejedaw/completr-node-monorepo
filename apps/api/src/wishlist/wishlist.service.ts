@@ -4,6 +4,8 @@ import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
+import { compactPositions as compactPositionsOf } from "../common/utils/compact-positions.util";
 import { buildPlatformFilterWhere } from "../common/utils/platform-filter-where.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
@@ -20,24 +22,16 @@ function wishlistInclude() {
 }
 
 async function lockUserWishlist(userId: string, transaction: Transaction) {
-	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
-		replacements: { lockKey: `wishlist:${userId}` },
-		transaction
-	});
+	await acquireAdvisoryLock(`wishlist:${userId}`, transaction);
 }
 
 async function compactPositions(userId: string, transaction: Transaction) {
-	await sequelize.query(
-		`UPDATE "Wishlists" AS w
-		SET "position" = ranked."position", "updatedAt" = NOW()
-		FROM (
-			SELECT "id", ROW_NUMBER() OVER (ORDER BY "position", "createdAt", "id") AS "position"
-			FROM "Wishlists"
-			WHERE "userId" = :userId
-		) AS ranked
-		WHERE w."id" = ranked."id" AND w."position" <> ranked."position"`,
-		{ replacements: { userId }, transaction }
-	);
+	await compactPositionsOf({
+		table: "Wishlists",
+		ownerColumn: "userId",
+		ownerIds: [userId],
+		transaction
+	});
 }
 
 export async function replaceWishlist(user: RequestUser, gameIds: string[]) {

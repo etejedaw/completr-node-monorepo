@@ -4,6 +4,8 @@ import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type ExportSearchQuery } from "../common/schemas/export-search-query.schema";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
+import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
+import { compactPositions as compactPositionsOf } from "../common/utils/compact-positions.util";
 import { splitByPresence } from "../common/utils/split-by-presence.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
@@ -56,10 +58,7 @@ export async function replaceFavorites(user: RequestUser, gameIds: string[]) {
 }
 
 async function lockUserFavorites(userId: string, transaction: Transaction) {
-	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
-		replacements: { lockKey: `favorites:${userId}` },
-		transaction
-	});
+	await acquireAdvisoryLock(`favorites:${userId}`, transaction);
 }
 
 async function checkBulkLimit(
@@ -81,17 +80,12 @@ async function checkBulkLimit(
 }
 
 async function compactPositions(userId: string, transaction: Transaction) {
-	await sequelize.query(
-		`UPDATE "Favorites" AS f
-		SET "position" = ranked."position", "updatedAt" = NOW()
-		FROM (
-			SELECT "id", ROW_NUMBER() OVER (ORDER BY "position", "createdAt", "id") AS "position"
-			FROM "Favorites"
-			WHERE "userId" = :userId
-		) AS ranked
-		WHERE f."id" = ranked."id" AND f."position" <> ranked."position"`,
-		{ replacements: { userId }, transaction }
-	);
+	await compactPositionsOf({
+		table: "Favorites",
+		ownerColumn: "userId",
+		ownerIds: [userId],
+		transaction
+	});
 }
 
 export async function bulkAddFavorites(user: RequestUser, gameIds: string[]) {

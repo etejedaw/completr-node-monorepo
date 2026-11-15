@@ -322,10 +322,10 @@ void describe("queueService.compactPositions", () => {
 		const [compactSql, compactOptions] = query.mock.calls[1]!.arguments;
 		assert.match(
 			String(compactSql),
-			/ROW_NUMBER\(\) OVER \(ORDER BY "position", "createdAt", "id"\)/
+			/ROW_NUMBER\(\) OVER \(PARTITION BY "userId" ORDER BY "position", "createdAt", "id"\)/
 		);
 		assert.deepEqual(compactOptions, {
-			replacements: { userId: "user-1" },
+			replacements: { ownerIds: ["user-1"] },
 			transaction
 		});
 	});

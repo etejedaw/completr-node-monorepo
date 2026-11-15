@@ -4,6 +4,7 @@ import * as backlogService from "../backlog/backlog.service";
 import { environmentConfig } from "../common/config/environment.config";
 import { ServiceError } from "../common/errors/service-error";
 import { PinoLogger } from "../common/logger/pino.logger";
+import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
 import { describeFailure } from "../common/utils/describe-failure.util";
 import * as coopRunsService from "../coop-runs/coop-runs.service";
 import { sequelize } from "../database/sequelize.database";
@@ -64,10 +65,7 @@ async function findOrCreateActiveJob(
 	type: string,
 	transaction: Transaction
 ): Promise<StartedJob> {
-	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
-		replacements: { lockKey: `jobs:${type}` },
-		transaction
-	});
+	await acquireAdvisoryLock(`jobs:${type}`, transaction);
 	const existing = await Job.findOne({
 		where: { type, status: { [Op.in]: ACTIVE_JOB_STATUSES } },
 		transaction
