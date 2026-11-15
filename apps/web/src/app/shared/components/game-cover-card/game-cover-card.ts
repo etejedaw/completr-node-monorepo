@@ -53,7 +53,7 @@ import {
 						uiIconButton
 						size="sm"
 						tone="danger"
-						class="!absolute !top-1 !right-1 !bg-black/60 hover:!bg-black/80 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100 pointer-coarse:opacity-100"
+						class="!absolute !top-1 !right-1 !bg-scrim hover:!bg-scrim-strong opacity-0 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100 pointer-coarse:opacity-100"
 						aria-label="Remove"
 						title="Remove"
 						(click)="remove.emit()"
@@ -72,7 +72,7 @@ import {
 								[class]="
 									action.active
 										? action.overlayActiveClass
-										: 'bg-black/60 text-on-image'
+										: 'bg-scrim text-on-image'
 								"
 								[class.opacity-0]="!action.alwaysVisible"
 								[class.group-hover:opacity-100]="
@@ -149,7 +149,7 @@ import {
 			/>
 			@if (topLeftBadge()) {
 				<span
-					class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-caption font-bold text-on-image bg-black/70 backdrop-blur-sm"
+					class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-caption font-bold text-on-image bg-scrim-badge backdrop-blur-sm"
 				>
 					{{ topLeftBadge() }}
 				</span>
@@ -169,7 +169,7 @@ import {
 					}
 					@if (duration() !== null && duration() !== undefined) {
 						<span
-							class="px-2 py-0.5 rounded-full text-caption font-semibold text-on-image bg-black/70 backdrop-blur-sm"
+							class="px-2 py-0.5 rounded-full text-caption font-semibold text-on-image bg-scrim-badge backdrop-blur-sm"
 							>{{ duration() }}h</span
 						>
 					}
@@ -177,7 +177,7 @@ import {
 			}
 			@if (acquiredAt()) {
 				<span
-					class="absolute bottom-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-caption font-semibold text-on-image bg-black/70 backdrop-blur-sm"
+					class="absolute bottom-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-caption font-semibold text-on-image bg-scrim-badge backdrop-blur-sm"
 				>
 					<span
 						aria-hidden="true"
@@ -227,7 +227,7 @@ export class GameCoverCard {
 				active: favorite,
 				pressed: favorite,
 				alwaysVisible: true,
-				overlayActiveClass: "bg-black/60 text-nav-favorites",
+				overlayActiveClass: "bg-scrim text-nav-favorites",
 				barActiveClass: "text-nav-favorites"
 			});
 		}

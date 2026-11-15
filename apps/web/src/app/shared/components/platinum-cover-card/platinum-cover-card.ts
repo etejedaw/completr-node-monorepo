@@ -36,7 +36,7 @@ const TITLE_CLASS =
 			></span>
 			<span
 				aria-hidden="true"
-				class="absolute top-2 right-2 flex items-center justify-center w-7 h-7 rounded-full bg-black/70 ring-1 ring-platinum/50 backdrop-blur-sm shadow-card"
+				class="absolute top-2 right-2 flex items-center justify-center w-7 h-7 rounded-full bg-scrim-badge ring-1 ring-platinum/50 backdrop-blur-sm shadow-card"
 			>
 				<span class="material-icons text-[1rem] text-platinum"
 					>emoji_events</span
@@ -44,7 +44,7 @@ const TITLE_CLASS =
 			</span>
 			@if (platinum().platform; as platform) {
 				<span
-					class="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-caption font-semibold text-on-image bg-black/70 backdrop-blur-sm"
+					class="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-caption font-semibold text-on-image bg-scrim-badge backdrop-blur-sm"
 					[title]="platform.name"
 					>{{ platform.abbreviation }}</span
 				>
