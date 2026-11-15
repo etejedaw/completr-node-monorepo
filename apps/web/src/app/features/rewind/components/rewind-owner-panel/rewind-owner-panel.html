@@ -64,7 +64,7 @@
 			}
 		</ul>
 
-		@if (controls.canRegenerate) {
+		@if (controls.canRegenerate && !aiChip()) {
 		<button
 			uiButton
 			type="button"
@@ -95,7 +95,9 @@
 		class="flex flex-col gap-3 rounded-card border border-premium/30 bg-premium/5 p-3 sm:p-4"
 		data-premium-zone
 	>
-		<div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+		<div
+			class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
+		>
 			<div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
 				@if (aiPremiumLabel(); as premiumLabel) {
 				<span class="inline-flex items-center gap-1.5 pr-1">
@@ -155,6 +157,21 @@
 					>auto_awesome</span
 				>
 				{{ copy.addAiRecap }}
+			</button>
+			} @if (controls.canRegenerate) {
+			<button
+				uiButton
+				type="button"
+				variant="primary"
+				class="shrink-0 tap:min-h-[44px] max-sm:!w-full"
+				[attr.aria-busy]="generation.isPending()"
+				(click)="generation.open()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>refresh</span
+				>
+				{{ generation.isPending() ? copy.regenerating : copy.regenerate
+				}}
 			</button>
 			}
 		</div>
