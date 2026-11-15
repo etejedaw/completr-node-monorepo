@@ -1,4 +1,4 @@
-import "./rewind-today-env.setup";
+import "../rewind/rewind-today-env.setup";
 
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
@@ -29,7 +29,7 @@ import {
 	requestAiRecap,
 	signUpOn,
 	storeRewind
-} from "./rewind-generation.helper";
+} from "../rewind/rewind-generation.helper";
 
 let platform: Platform;
 let games: Record<"hades" | "celeste", Game>;
