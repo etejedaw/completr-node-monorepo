@@ -910,7 +910,7 @@ describe("RewindOwnerPanel", () => {
 			return document.querySelector<HTMLElement>("[data-premium-zone]");
 		}
 
-		it("groups the AI generations, the extra day and Add AI recap in a gold framed zone, apart from Regenerate", async () => {
+		it("groups the AI generations, the extra day and Add AI recap and Regenerate in a gold framed zone, with a single Regenerate button", async () => {
 			await renderPanel(
 				rewindFixture({
 					ownerControls: controls({
@@ -935,8 +935,11 @@ describe("RewindOwnerPanel", () => {
 				inZone.getByRole("button", { name: /Add AI recap/ })
 			).toBeInTheDocument();
 			expect(
-				inZone.queryByRole("button", { name: /Regenerate/ })
-			).toBeNull();
+				inZone.getByRole("button", { name: /Regenerate/ })
+			).toBeInTheDocument();
+			expect(
+				screen.getAllByRole("button", { name: /Regenerate/ })
+			).toHaveLength(1);
 			expect(screen.getByRole("group", { name: "Premium" })).toBe(zone);
 		});
 
