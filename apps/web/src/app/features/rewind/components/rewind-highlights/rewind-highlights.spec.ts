@@ -52,7 +52,8 @@ const fullHighlights: RewindHighlightsData = {
 		{ name: "PlayStation 5", abbreviation: "PS5", count: 12 },
 		{ name: "Switch", abbreviation: "NS", count: 1 }
 	],
-	longestStreak: { months: 5, fromMonth: 3, toMonth: 7 }
+	longestStreak: { months: 5, fromMonth: 3, toMonth: 7 },
+	classic: { ...game("doom", "Doom", "2026-06-10"), releaseYear: 1993 }
 };
 
 describe("RewindHighlights", () => {
@@ -85,6 +86,11 @@ describe("RewindHighlights", () => {
 		).toBeInTheDocument();
 		expect(screen.getByText("1 partida")).toBeInTheDocument();
 		expect(screen.getByText("12 partidas")).toBeInTheDocument();
+		expect(
+			screen.getByRole("link", {
+				name: /El más clásico.*Doom.*Lanzado en 1993/
+			})
+		).toHaveAttribute("href", "/games/doom");
 	});
 
 	it("shows every highlight and links the ones that name a game", async () => {
@@ -118,6 +124,11 @@ describe("RewindHighlights", () => {
 		).toHaveAttribute("href", "/games/tunic");
 		expect(screen.getByText("March")).toBeInTheDocument();
 		expect(screen.getByText("5 games finished")).toBeInTheDocument();
+		expect(
+			screen.getByRole("link", {
+				name: /The classic.*Doom.*Released in 1993/
+			})
+		).toHaveAttribute("href", "/games/doom");
 	});
 
 	it("tells the longest streak in months with its range spelled out for screen readers", async () => {
@@ -171,7 +182,8 @@ describe("RewindHighlights", () => {
 			fastest: null,
 			busiestMonth: null,
 			longestStreak: null,
-			topPlatforms: []
+			topPlatforms: [],
+			classic: null
 		});
 
 		expect(screen.queryByText("Top rated")).not.toBeInTheDocument();
@@ -179,6 +191,7 @@ describe("RewindHighlights", () => {
 		expect(screen.queryByText("Busiest month")).not.toBeInTheDocument();
 		expect(screen.queryByText("Longest streak")).not.toBeInTheDocument();
 		expect(screen.queryByText("Platforms")).not.toBeInTheDocument();
+		expect(screen.queryByText("The classic")).not.toBeInTheDocument();
 		expect(
 			screen
 				.getAllByRole("listitem")
@@ -212,7 +225,8 @@ describe("RewindHighlights", () => {
 			"var(--color-nav-shelf)",
 			"var(--color-success)",
 			"var(--color-nav-queue)",
-			"var(--color-platinum)"
+			"var(--color-platinum)",
+			"var(--color-nav-sagas)"
 		]);
 		expect(HIGHLIGHT_TONE.topRated).toBe("brand");
 	});
@@ -237,7 +251,8 @@ function highlightsWith(present: HighlightKey[]): RewindHighlightsData {
 			: null,
 		busiestMonth: has("busiestMonth") ? fullHighlights.busiestMonth : null,
 		topGenres: has("topGenres") ? fullHighlights.topGenres : [],
-		topPlatforms: has("topPlatforms") ? fullHighlights.topPlatforms : []
+		topPlatforms: has("topPlatforms") ? fullHighlights.topPlatforms : [],
+		classic: has("classic") ? fullHighlights.classic : null
 	};
 }
 
@@ -319,8 +334,48 @@ describe("highlightLayout", () => {
 			["longestStreak", 1],
 			["busiestMonth", 1],
 			["topGenres", 2],
-			["topPlatforms", 2]
+			["topPlatforms", 2],
+			["classic", 2]
 		]);
+	});
+
+	it("gives Platforms two columns on desktop and the classic the one left in their row", () => {
+		const withClassic = highlightLayout(fullHighlights);
+		const withoutClassic = highlightLayout({
+			...fullHighlights,
+			classic: null
+		});
+		const lastRow = (cells: HighlightCell[]) =>
+			cells.slice(-3).map(cell => [cell.key, cell.wideColumns]);
+
+		expect(lastRow(withClassic)).toEqual([
+			["topGenres", 1],
+			["topPlatforms", 2],
+			["classic", 1]
+		]);
+		expect(lastRow(withoutClassic)).toEqual([
+			["busiestMonth", 1],
+			["topGenres", 1],
+			["topPlatforms", 3]
+		]);
+	});
+
+	it("stretches the classic only when no list card can take the gap", () => {
+		const cells = highlightLayoutOf(["longest", "fastest", "classic"]);
+		const withGenres = highlightLayoutOf([
+			"longest",
+			"fastest",
+			"topGenres",
+			"classic"
+		]);
+
+		expect(cells.map(cell => cell.wideColumns)).toEqual([1, 1, 2]);
+		expect(withGenres.map(cell => cell.wideColumns)).toEqual([1, 1, 1, 1]);
+		expect(
+			highlightLayoutOf(["longest", "topGenres", "classic"]).map(
+				cell => cell.wideColumns
+			)
+		).toEqual([1, 2, 1]);
 	});
 
 	it("reads which highlights are present from the API shape", () => {
@@ -361,6 +416,34 @@ describe("RewindHighlights layout", () => {
 		const [, , month] = screen.getAllByRole("listitem");
 
 		expect(month).toHaveClass("col-span-2", "lg:col-span-2");
+	});
+
+	it("renders Platforms over two desktop columns next to the classic", async () => {
+		await render(RewindHighlights, {
+			inputs: { highlights: fullHighlights },
+			providers: [provideRouter([])]
+		});
+
+		const platforms = screen
+			.getByRole("list", { name: "Platforms" })
+			.closest("li")!;
+		const classic = screen.getByText("The classic").closest("li")!;
+
+		expect(platforms).toHaveClass("col-span-2", "lg:col-span-2");
+		expect(classic).toHaveClass("col-span-2", "lg:col-span-1");
+	});
+
+	it("renders Platforms over three desktop columns without the classic", async () => {
+		await render(RewindHighlights, {
+			inputs: { highlights: { ...fullHighlights, classic: null } },
+			providers: [provideRouter([])]
+		});
+
+		const platforms = screen
+			.getByRole("list", { name: "Platforms" })
+			.closest("li")!;
+
+		expect(platforms).toHaveClass("col-span-2", "lg:col-span-3");
 	});
 
 	it("draws stat cards in solid colour with canvas text and list cards tinted", async () => {

@@ -111,7 +111,8 @@ function rewindFor(year: number, otherYears: number[]): Rewind {
 			topPlatforms: [
 				{ name: "PlayStation 5", abbreviation: "PS5", count: 12 }
 			],
-			longestStreak: { months: 5, fromMonth: 3, toMonth: 7 }
+			longestStreak: { months: 5, fromMonth: 3, toMonth: 7 },
+			classic: null
 		},
 		yearMix: {
 			lengthMix: [

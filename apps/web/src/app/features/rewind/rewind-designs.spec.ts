@@ -51,7 +51,8 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 			lastFinished: null,
 			topGenres: [],
 			topPlatforms: [],
-			longestStreak: null
+			longestStreak: null,
+			classic: null
 		},
 		yearMix: {
 			lengthMix: [],
