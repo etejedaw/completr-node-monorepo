@@ -9,12 +9,14 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	ElementRef,
 	inject,
 	Injector,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { RouterLink } from "@angular/router";
 import {
 	catchError,
@@ -26,7 +28,6 @@ import {
 } from "rxjs";
 
 import { type FavoriteEntry } from "../../../core/models";
-import { AuthService } from "../../../core/services/auth";
 import { type ExportParams } from "../../../core/services/export";
 import { ToastService } from "../../../core/services/toast";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
@@ -74,6 +75,7 @@ import { FavoritesService } from "../favorites";
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FavoritesView implements OnInit {
+	private readonly destroyRef = inject(DestroyRef);
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly toast = inject(ToastService);
 	private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -82,7 +84,6 @@ export class FavoritesView implements OnInit {
 		this.loadFavorites()
 	);
 
-	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly entries = signal<FavoriteEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
@@ -114,7 +115,7 @@ export class FavoritesView implements OnInit {
 		}))
 	);
 
-	onOffsetChange(offset: number) {
+	protected onOffsetChange(offset: number) {
 		this.offset.set(offset);
 		this.loadFavorites();
 	}
@@ -139,7 +140,11 @@ export class FavoritesView implements OnInit {
 
 	ngOnInit() {
 		this.searchSubject
-			.pipe(debounceTime(300), distinctUntilChanged())
+			.pipe(
+				debounceTime(300),
+				distinctUntilChanged(),
+				takeUntilDestroyed(this.destroyRef)
+			)
 			.subscribe(() => {
 				this.offset.set(0);
 				this.loadFavorites();
@@ -147,7 +152,7 @@ export class FavoritesView implements OnInit {
 		this.loadFavorites();
 	}
 
-	onSearch(query: string) {
+	protected onSearch(query: string) {
 		this.searchQuery.set(query);
 		if (!query.trim()) {
 			this.offset.set(0);
@@ -157,7 +162,7 @@ export class FavoritesView implements OnInit {
 		this.searchSubject.next(query);
 	}
 
-	remove(entry: FavoriteEntry) {
+	protected remove(entry: FavoriteEntry) {
 		const snapshot = this.entries();
 		const previousTotal = this.total();
 		const restore = () => {
@@ -181,17 +186,17 @@ export class FavoritesView implements OnInit {
 		});
 	}
 
-	startReordering() {
+	protected startReordering() {
 		if (!this.canReorder()) return;
 		this.reorderAnnouncement.set("");
 		this.reordering.set(true);
 	}
 
-	finishReordering() {
+	protected finishReordering() {
 		this.reordering.set(false);
 	}
 
-	onReorderAction(index: number, action: FavoriteReorderAction) {
+	protected onReorderAction(index: number, action: FavoriteReorderAction) {
 		const target =
 			action === "first"
 				? 0
@@ -201,7 +206,7 @@ export class FavoritesView implements OnInit {
 		this.moveEntry(index, target, action);
 	}
 
-	onDrop(event: CdkDragDrop<FavoriteEntry[]>) {
+	protected onDrop(event: CdkDragDrop<FavoriteEntry[]>) {
 		this.moveEntry(event.previousIndex, event.currentIndex);
 	}
 
