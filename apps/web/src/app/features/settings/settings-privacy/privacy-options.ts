@@ -2,6 +2,7 @@ import { type VisibilityLevel } from "../../../core/models/user.model";
 import { NAV_SECTIONS } from "../../../layout/nav-sections";
 import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
 import {
+	type PrivacyDraft,
 	type PrivacyMode,
 	type PrivacyPreset,
 	type PrivacySection,
@@ -62,8 +63,18 @@ export const PRIVACY_PRESETS: PrivacyPreset[] = [
 export const PROFILE_GATE = {
 	title: "Profile",
 	description:
-		"The front door. People who can't open it see nothing else, whatever each section says.",
+		"The front door. People who can't open it see nothing else, unless you choose to show your Rewind anyway.",
 	icon: "account_circle",
+	iconColor: "text-brand"
+};
+
+export const REWIND_PROFILE_BYPASS = {
+	label: "Show my Rewind even if my profile is private",
+	hint: "Your Rewind follows its own level, even for people who can't open your profile. Your profile, platinums and other sections stay hidden.",
+	unavailableHint:
+		"Your Rewind is set to Only you, so nobody else sees it either way.",
+	unavailableHintId: "rewind-profile-bypass-unavailable",
+	icon: "lock_open",
 	iconColor: "text-brand"
 };
 
@@ -187,6 +198,27 @@ export function effectiveVisibility(
 	return VISIBILITY_RANK[section] <= VISIBILITY_RANK[profile]
 		? section
 		: profile;
+}
+
+export function rewindBypassesProfile(
+	draft: Pick<
+		PrivacyDraft,
+		"rewindVisibility" | "rewindIgnoresProfileVisibility"
+	>
+): boolean {
+	return (
+		draft.rewindIgnoresProfileVisibility &&
+		draft.rewindVisibility !== "private"
+	);
+}
+
+export function effectiveSectionVisibility(
+	draft: PrivacyDraft,
+	key: SectionVisibilityKey
+): VisibilityLevel {
+	if (key === "rewindVisibility" && rewindBypassesProfile(draft))
+		return draft.rewindVisibility;
+	return effectiveVisibility(draft[key], draft.profileVisibility);
 }
 
 export function derivePrivacyMode(

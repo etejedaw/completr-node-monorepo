@@ -33,10 +33,12 @@ import { SettingsRow } from "../components/settings-row";
 import { SettingsSaveBar } from "../components/settings-save-bar";
 import {
 	derivePrivacyMode,
-	effectiveVisibility,
+	effectiveSectionVisibility,
 	PRIVACY_PRESETS,
 	PRIVACY_SECTION_GROUPS,
 	PROFILE_GATE,
+	REWIND_PROFILE_BYPASS,
+	rewindBypassesProfile,
 	SECTION_KEYS,
 	VISIBILITY_OPTIONS,
 	visibilityLabel
@@ -59,6 +61,7 @@ const DEFAULT_DRAFT: PrivacyDraft = {
 	platinumVisibility: "public",
 	franchiseVisibility: "public",
 	rewindVisibility: "public",
+	rewindIgnoresProfileVisibility: false,
 	acceptFollowRequests: true
 };
 
@@ -102,6 +105,7 @@ export class SettingsPrivacy implements OnInit {
 	protected readonly levelOptions = VISIBILITY_OPTIONS;
 	protected readonly presets = PRIVACY_PRESETS;
 	protected readonly profileGate = PROFILE_GATE;
+	protected readonly rewindProfileBypass = REWIND_PROFILE_BYPASS;
 	protected readonly visibilityLabel = visibilityLabel;
 	protected readonly avatarRing = avatarRing;
 
@@ -113,6 +117,14 @@ export class SettingsPrivacy implements OnInit {
 		DRAFT_KEYS.some(key => this.draft()[key] !== this.saved()[key])
 	);
 	protected readonly mode = signal<PrivacyMode>("public");
+	protected readonly rewindBypassUnavailable = computed(
+		() => this.draft().rewindVisibility === "private"
+	);
+	protected readonly profileCapScope = computed(() =>
+		rewindBypassesProfile(this.draft())
+			? "no section except your Rewind"
+			: "no section"
+	);
 
 	protected readonly incomingRequests = this.followRequestsService.incoming;
 	protected readonly requestsLoading = signal(false);
@@ -158,11 +170,15 @@ export class SettingsPrivacy implements OnInit {
 		}));
 	}
 
+	protected setRewindIgnoresProfileVisibility(enabled: boolean) {
+		this.draft.update(draft => ({
+			...draft,
+			rewindIgnoresProfileVisibility: enabled
+		}));
+	}
+
 	protected effectiveLevel(key: SectionVisibilityKey): VisibilityLevel {
-		return effectiveVisibility(
-			this.draft()[key],
-			this.draft().profileVisibility
-		);
+		return effectiveSectionVisibility(this.draft(), key);
 	}
 
 	protected discard() {

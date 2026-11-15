@@ -16,6 +16,7 @@ export interface PrivacyDraft extends Record<
 	SectionVisibilityKey | "profileVisibility",
 	VisibilityLevel
 > {
+	rewindIgnoresProfileVisibility: boolean;
 	acceptFollowRequests: boolean;
 }
 
