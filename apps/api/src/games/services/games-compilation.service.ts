@@ -2,16 +2,15 @@ import { type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../../common/errors/sequelize-error.mapper";
 import { titleToSlug } from "../../common/utils/title-to-slug.util";
-import { CompilationItem } from "../../compilation-items/compilation-item.model";
+import * as compilationItemsService from "../../compilation-items/compilation-items.service";
 import { sequelize } from "../../database/sequelize.database";
-import * as gameGenresService from "../../game-genre/game-genre.service";
-import * as gamePlatformsService from "../../game-platform/game-platform.service";
-import * as gameScoresService from "../../game-scores/game-scores.service";
-import * as gameTimesService from "../../game-times/game-times.service";
 import * as gamesServiceError from "../errors/games.service-error";
 import { Game } from "../game.model";
-import { type InheritedParentAssets } from "../games.interface";
+import { type CatalogAssets } from "../games.interface";
 import { type SetCompilationItemInput } from "../games.types";
+import { buildCatalogIncludes } from "../utils/build-catalog-includes.util";
+import { extractCatalogAssets } from "../utils/extract-catalog-assets.util";
+import { cloneCatalogAssetsToGames } from "./games-clone-assets.service";
 
 export async function setCompilationItems(
 	parentGameId: string,
@@ -19,57 +18,52 @@ export async function setCompilationItems(
 ) {
 	const parent = await loadCompilationParent(parentGameId);
 	assertCompilationItemsValid(parentGameId, items);
+	await assertLinkedGamesExist(linkedGameIds(items));
 
-	const linkedIds = items
-		.filter(i => i.mode === "link")
-		.map(i => (i as { gameId: string }).gameId);
-	await assertLinkedGamesExist(linkedIds);
+	const inherited = extractCatalogAssets(parent);
 
-	const inherited = extractParentAssets(parent);
-
-	const transaction = await sequelize.transaction();
 	try {
-		await CompilationItem.destroy({
-			where: { parentGameId },
-			transaction
-		});
-
-		const children = await createCompilationChildren(
-			parent,
-			items.flatMap(item => (item.mode === "create" ? [item.title] : [])),
-			inherited,
-			transaction
-		);
-		const createdChildIds = children.map(child => child.id);
-		const resolvedChildIds = items.map(item =>
-			item.mode === "link" ? item.gameId : createdChildIds.shift()!
-		);
-
-		if (new Set(resolvedChildIds).size !== resolvedChildIds.length) {
-			throw gamesServiceError.compilationInvalidError();
-		}
-
-		await CompilationItem.bulkCreate(
-			resolvedChildIds.map((childGameId, position) => ({
+		await sequelize.transaction(async transaction => {
+			await compilationItemsService.removeByParentGameId(
 				parentGameId,
-				childGameId,
-				position
-			})),
-			{ validate: true, transaction }
-		);
+				transaction
+			);
 
-		await parent.update({ isCompilation: true }, { transaction });
+			const children = await createCompilationChildren(
+				parent,
+				createdTitles(items),
+				inherited,
+				transaction
+			);
+			const createdChildIds = children.map(child => child.id);
+			const resolvedChildIds = items.flatMap(item =>
+				item.mode === "link"
+					? [item.gameId]
+					: createdChildIds.splice(0, 1)
+			);
 
-		await transaction.commit();
+			if (new Set(resolvedChildIds).size !== resolvedChildIds.length)
+				throw gamesServiceError.compilationInvalidError();
 
-		return await findCompilationItemsByParent(parentGameId);
+			await compilationItemsService.createMany(
+				resolvedChildIds.map((childGameId, position) => ({
+					parentGameId,
+					childGameId,
+					position
+				})),
+				transaction
+			);
+
+			await parent.update({ isCompilation: true }, { transaction });
+		});
 	} catch (error) {
-		await transaction.rollback();
 		rethrowSequelizeError(error, {
 			unique: gamesServiceError.uniqueConstraintError,
 			validation: gamesServiceError.validationError
 		});
 	}
+
+	return findCompilationItemsByParent(parentGameId);
 }
 
 export async function clearCompilation(parentGameId: string) {
@@ -78,39 +72,17 @@ export async function clearCompilation(parentGameId: string) {
 	});
 	if (!parent) throw gamesServiceError.notFoundError();
 
-	const transaction = await sequelize.transaction();
-	try {
-		await CompilationItem.destroy({
-			where: { parentGameId },
+	await sequelize.transaction(async transaction => {
+		await compilationItemsService.removeByParentGameId(
+			parentGameId,
 			transaction
-		});
+		);
 		await parent.update({ isCompilation: false }, { transaction });
-		await transaction.commit();
-	} catch (error) {
-		await transaction.rollback();
-		throw error;
-	}
+	});
 }
 
 export async function findCompilationItemsByParent(parentGameId: string) {
-	return CompilationItem.findAll({
-		where: { parentGameId },
-		include: [
-			{
-				association: "ChildGame",
-				include: [
-					{ association: "Platforms" },
-					{ association: "GameScores" },
-					{ association: "GameTimes" },
-					{ association: "Genres" }
-				]
-			}
-		],
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
-	});
+	return compilationItemsService.findByParentGameId(parentGameId);
 }
 
 export async function existsActiveCompilation(id: string): Promise<boolean> {
@@ -124,102 +96,60 @@ export async function gameBelongsToCompilation(
 	gameId: string,
 	compilationGameId: string
 ): Promise<boolean> {
-	const count = await CompilationItem.count({
-		where: { parentGameId: compilationGameId, childGameId: gameId }
-	});
-	return count > 0;
+	return compilationItemsService.existsPair(compilationGameId, gameId);
 }
 
 export async function findCompilationParentsForChild(childGameId: string) {
-	return CompilationItem.findAll({
-		where: { childGameId },
-		include: [
-			{
-				association: "ParentGame",
-				where: { isActive: true },
-				required: true
-			}
-		],
-		order: [
-			["createdAt", "ASC"],
-			["id", "ASC"]
-		]
-	});
+	return compilationItemsService.findByChildGameId(childGameId);
+}
+
+function linkedGameIds(items: readonly SetCompilationItemInput[]) {
+	return items.flatMap(item => (item.mode === "link" ? [item.gameId] : []));
+}
+
+function createdTitles(items: readonly SetCompilationItemInput[]) {
+	return items.flatMap(item => (item.mode === "create" ? [item.title] : []));
 }
 
 async function loadCompilationParent(parentGameId: string) {
 	const parent = await Game.findOne({
 		where: { id: parentGameId, isActive: true },
-		include: [
-			{ association: "Platforms" },
-			{ association: "Genres" },
-			{ association: "GameScores" },
-			{ association: "GameTimes" }
-		]
+		include: buildCatalogIncludes()
 	});
 	if (!parent) throw gamesServiceError.notFoundError();
 	return parent;
+}
+
+function hasDuplicates(values: readonly unknown[]) {
+	return new Set(values).size !== values.length;
 }
 
 function assertCompilationItemsValid(
 	parentGameId: string,
 	items: readonly SetCompilationItemInput[]
 ) {
-	for (const item of items) {
-		if (item.mode === "link" && item.gameId === parentGameId) {
-			throw gamesServiceError.compilationInvalidError();
-		}
-	}
+	const linkedIds = linkedGameIds(items);
+	if (linkedIds.includes(parentGameId) || hasDuplicates(linkedIds))
+		throw gamesServiceError.compilationInvalidError();
 
-	const linkedIds = items
-		.filter(i => i.mode === "link")
-		.map(i => (i as { gameId: string }).gameId);
-	if (new Set(linkedIds).size !== linkedIds.length) {
+	const createdSlugs = createdTitles(items).map(titleToSlug);
+	if (createdSlugs.some(slug => !slug) || hasDuplicates(createdSlugs))
 		throw gamesServiceError.compilationInvalidError();
-	}
-
-	const createdSlugs = items
-		.filter(i => i.mode === "create")
-		.map(i => titleToSlug((i as { title: string }).title));
-	if (createdSlugs.some(s => !s)) {
-		throw gamesServiceError.compilationInvalidError();
-	}
-	if (new Set(createdSlugs).size !== createdSlugs.length) {
-		throw gamesServiceError.compilationInvalidError();
-	}
 }
 
 async function assertLinkedGamesExist(linkedIds: readonly string[]) {
 	if (linkedIds.length === 0) return;
 	const found = await Game.findAll({
-		where: { id: linkedIds as string[], isActive: true }
+		where: { id: [...linkedIds], isActive: true }
 	});
-	if (found.length !== linkedIds.length) {
+	if (found.length !== linkedIds.length)
 		throw gamesServiceError.notFoundError();
-	}
-}
-
-function extractParentAssets(parent: Game): InheritedParentAssets {
-	return {
-		platformIds: parent.Platforms?.map(p => p.id) ?? [],
-		genreIds: parent.Genres?.map(g => g.id) ?? [],
-		scores:
-			parent.GameScores?.map(s => ({
-				source: s.source,
-				score: s.score
-			})) ?? [],
-		times:
-			parent.GameTimes?.map(t => ({
-				source: t.source,
-				duration: t.duration
-			})) ?? []
-	};
 }
 
 async function createCompilationChildren(
 	parent: Game,
 	titles: string[],
-	inherited: InheritedParentAssets,
+	inherited: CatalogAssets,
 	transaction: Transaction
 ) {
 	if (titles.length === 0) return [];
@@ -236,27 +166,9 @@ async function createCompilationChildren(
 		})),
 		{ validate: true, transaction }
 	);
-	const childIds = children.map(child => child.id);
-	await gamePlatformsService.linkGamesToPlatforms(
-		childIds,
-		inherited.platformIds,
-		transaction
-	);
-	await gameGenresService.linkGamesToGenres(
-		childIds,
-		inherited.genreIds,
-		transaction
-	);
-	await gameScoresService.createGameScores(
-		childIds.flatMap(gameId =>
-			inherited.scores.map(score => ({ gameId, ...score }))
-		),
-		transaction
-	);
-	await gameTimesService.createGameTimes(
-		childIds.flatMap(gameId =>
-			inherited.times.map(time => ({ gameId, ...time }))
-		),
+	await cloneCatalogAssetsToGames(
+		children.map(child => child.id),
+		inherited,
 		transaction
 	);
 	return children;

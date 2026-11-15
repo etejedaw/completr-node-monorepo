@@ -9,11 +9,7 @@ export async function linkGameToGenres(
 	genreIds: string[],
 	transaction?: Transaction
 ) {
-	const gameGenres = genreIds.map(genreId => ({ gameId, genreId }));
-	return GameGenre.bulkCreate(gameGenres, {
-		ignoreDuplicates: true,
-		transaction
-	});
+	return linkGamesToGenres([gameId], genreIds, transaction);
 }
 
 export async function linkGamesToGenres(

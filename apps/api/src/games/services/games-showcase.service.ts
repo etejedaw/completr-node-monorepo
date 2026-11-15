@@ -1,11 +1,11 @@
 import { QueryTypes } from "sequelize";
 
 import { sequelize } from "../../database/sequelize.database";
-import { type CachedShowcase, type ShowcaseGameRow } from "../games.interface";
 import {
 	CANONICAL_DURATION_SUBQUERY,
 	CANONICAL_SCORE_SUBQUERY
-} from "../utils/search-filters.util";
+} from "../games.constants";
+import { type CachedShowcase, type ShowcaseGameRow } from "../games.interface";
 
 const SHOWCASE_SIZE = 21;
 const SHOWCASE_POOL_SIZE = 80;

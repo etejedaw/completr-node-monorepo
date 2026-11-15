@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { type Game } from "../../src/games/game.model";
+import { ONLINE_SEARCH_UNAVAILABLE } from "../../src/games/games.constants";
 import {
 	type OnlineSearchCooldown,
 	type ResolvedOnlineGame
@@ -10,10 +11,7 @@ import {
 	type OnlineSearchOutcome,
 	type OnlineSearchSource
 } from "../../src/games/games.types";
-import {
-	ONLINE_SEARCH_UNAVAILABLE,
-	OnlineSearchHandler
-} from "../../src/games/services/online-search.handler";
+import { OnlineSearchHandler } from "../../src/games/services/online-search.handler";
 
 const gameWithId = (id: string) => ({ id }) as Game;
 

@@ -3,18 +3,16 @@ import { describe, it } from "node:test";
 
 import { Op } from "sequelize";
 
-import {
-	buildActiveFlagWhere,
-	buildAggregateCondition,
-	buildCanonicalScoreCondition,
-	buildCompilationFlagsWhere,
-	buildGenreCondition,
-	buildMissingRelationCondition,
-	buildOrder,
-	buildPlatformCondition,
-	buildReleaseDateRangeWhere,
-	buildSourceExclusionCondition
-} from "../../../src/games/utils/search-filters.util";
+import { buildActiveFlagWhere } from "../../../src/games/utils/build-active-flag-where.util";
+import { buildAggregateCondition } from "../../../src/games/utils/build-aggregate-condition.util";
+import { buildCanonicalScoreCondition } from "../../../src/games/utils/build-canonical-score-condition.util";
+import { buildCompilationFlagsWhere } from "../../../src/games/utils/build-compilation-flags-where.util";
+import { buildGenreCondition } from "../../../src/games/utils/build-genre-condition.util";
+import { buildMissingRelationCondition } from "../../../src/games/utils/build-missing-relation-condition.util";
+import { buildOrder } from "../../../src/games/utils/build-order.util";
+import { buildPlatformCondition } from "../../../src/games/utils/build-platform-condition.util";
+import { buildReleaseDateRangeWhere } from "../../../src/games/utils/build-release-date-range-where.util";
+import { buildSourceExclusionCondition } from "../../../src/games/utils/build-source-exclusion-condition.util";
 
 function inSubquery(
 	condition: object | null,

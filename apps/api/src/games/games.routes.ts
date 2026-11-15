@@ -9,6 +9,7 @@ import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middle
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import reviewsRouter from "../reviews/reviews.routes";
 import * as gamesController from "./games.controller";
+import { DeleteGameQuerySchema } from "./schemas/delete-game-query.schema";
 import { GameCodeParamSchema } from "./schemas/game-code-params.schema";
 import { GameIdParamSchema } from "./schemas/game-id-params.schema";
 import { GameSearchQuerySchema } from "./schemas/game-search-query.schema";
@@ -137,7 +138,8 @@ router.delete(
 	[
 		authMiddleware("admin"),
 		rateLimiterMiddleware(userLimiter),
-		validateSchemaMiddleware(GameIdParamSchema, "params")
+		validateSchemaMiddleware(GameIdParamSchema, "params"),
+		validateSchemaMiddleware(DeleteGameQuerySchema, "query")
 	],
 	gamesController.deleteGame
 );

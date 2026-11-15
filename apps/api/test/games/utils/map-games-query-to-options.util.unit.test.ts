@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { type GamesQuery } from "../../../src/games/schemas/games-query.schema";
-import { mapGamesQueryToOptions } from "../../../src/games/utils/games-query.adapter";
+import { mapGamesQueryToOptions } from "../../../src/games/utils/map-games-query-to-options.util";
 
 function adapt(query: Partial<GamesQuery>) {
 	return mapGamesQueryToOptions(query as GamesQuery);

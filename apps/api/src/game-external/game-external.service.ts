@@ -1,4 +1,4 @@
-import { type Transaction } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import * as gameExternalServiceError from "./errors/game-external.service-error";
@@ -116,6 +116,37 @@ export async function upsertMany(
 			...updated,
 			...created
 		];
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: gameExternalServiceError.uniqueConstraintError
+		});
+	}
+}
+
+export async function findByExternalIds(
+	entries: readonly { source: string; externalId: string }[]
+) {
+	if (entries.length === 0) return [];
+	return GameExternal.findAll({
+		where: {
+			[Op.or]: entries.map(({ source, externalId }) => ({
+				source,
+				externalId
+			}))
+		}
+	});
+}
+
+export async function createMany(
+	rows: { gameId: string; source: ExternalSource; externalId: string }[],
+	transaction: Transaction
+) {
+	if (rows.length === 0) return [];
+	try {
+		return await GameExternal.bulkCreate(rows, {
+			validate: true,
+			transaction
+		});
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: gameExternalServiceError.uniqueConstraintError

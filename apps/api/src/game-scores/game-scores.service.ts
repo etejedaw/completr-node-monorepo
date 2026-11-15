@@ -3,7 +3,7 @@ import { Op, type Transaction } from "sequelize";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { sequelize } from "../database/sequelize.database";
 import * as gamesService from "../games/games.service";
-import { COMPLETR_SCORE_SOURCE } from "../score-sources/score-source.constants";
+import { COMPLETR_SCORE_SOURCE } from "../score-sources/score-sources.constants";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import * as gameScoreServiceError from "./errors/game-scores.service-error";
 import { GameScore } from "./game-score.model";

@@ -1,4 +1,9 @@
 import { type IgdbGame } from "../../igdb/igdb.interface";
+import {
+	IGDB_IMPORT_LIMIT,
+	IGDB_SEARCH_LIMIT,
+	SEARCHABLE_IGDB_GAME_TYPES
+} from "../games.constants";
 import { type ResolvedOnlineGame } from "../games.interface";
 import { type OnlineSearchOutcome } from "../games.types";
 import {
@@ -6,23 +11,6 @@ import {
 	type IgdbSource
 } from "../games-external-data.interface";
 import { OnlineSearchHandler } from "./online-search.handler";
-
-const IGDB_SEARCH_CANDIDATES = 10;
-const IGDB_IMPORT_LIMIT = 3;
-const MAIN_GAME = 0;
-const STANDALONE_EXPANSION = 4;
-const REMAKE = 8;
-const REMASTER = 9;
-const EXPANDED_GAME = 10;
-const PORT = 11;
-const SEARCHABLE_GAME_TYPES = new Set([
-	MAIN_GAME,
-	STANDALONE_EXPANSION,
-	REMAKE,
-	REMASTER,
-	EXPANDED_GAME,
-	PORT
-]);
 
 export class IgdbSearchHandler extends OnlineSearchHandler {
 	protected readonly source = "igdb";
@@ -45,7 +33,7 @@ export class IgdbSearchHandler extends OnlineSearchHandler {
 		try {
 			await this.getPacer().waitForTurn();
 			results = await igdb.searchGame(query, {
-				limit: IGDB_SEARCH_CANDIDATES
+				limit: IGDB_SEARCH_LIMIT
 			});
 		} catch (error) {
 			return this.reportUnavailable("IGDB search failed", error);
@@ -70,5 +58,5 @@ export class IgdbSearchHandler extends OnlineSearchHandler {
 
 function isSearchableGame(game: IgdbGame): boolean {
 	const gameType = game.game_type?.id;
-	return gameType === undefined || SEARCHABLE_GAME_TYPES.has(gameType);
+	return gameType === undefined || SEARCHABLE_IGDB_GAME_TYPES.has(gameType);
 }
