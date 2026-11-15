@@ -86,3 +86,27 @@ export async function findRewindEditionByYear(
 	});
 	return edition ? toRewindEditionRecord(edition) : null;
 }
+
+export async function findClosedUnfrozenRewindEditionYears(
+	today: Date
+): Promise<number[]> {
+	const editions = await RewindEdition.findAll({
+		attributes: ["year"],
+		where: { closesAt: { [Op.lt]: toUtcDay(today) }, frozenAt: null },
+		order: [
+			["closesAt", "ASC"],
+			["year", "ASC"]
+		]
+	});
+	return editions.map(edition => edition.year);
+}
+
+export async function markRewindEditionsFrozen(
+	years: number[],
+	at: Date
+): Promise<void> {
+	await RewindEdition.update(
+		{ frozenAt: at },
+		{ where: { year: { [Op.in]: years }, frozenAt: null } }
+	);
+}
