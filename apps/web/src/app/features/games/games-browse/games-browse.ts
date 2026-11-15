@@ -38,8 +38,6 @@ import { type LibraryHeroPoster } from "../../../shared/components/library-hero/
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { ListCard } from "../../../shared/components/list-card/list-card";
 import { OnlineSourceNote } from "../../../shared/components/online-source-note/online-source-note";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shelf";
 import {
 	ONLINE_SEARCH_UNAVAILABLE_HINT,
@@ -51,7 +49,9 @@ import {
 	UiButton,
 	UiEmptyState,
 	UiFiltersButton,
+	UiOptionPicker,
 	UiPagination,
+	type UiPickerOption,
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
@@ -82,7 +82,7 @@ const SORT_ICONS: Record<string, string> = {
 	selector: "app-games-browse",
 	imports: [
 		UiSearchBar,
-		OptionPicker,
+		UiOptionPicker,
 		NgTemplateOutlet,
 		AdminGameEditor,
 		UiBottomSheet,
@@ -232,7 +232,7 @@ export class GamesBrowse implements OnInit {
 	protected readonly selectedGenreNames = computed(() =>
 		this.allGenres().filter(genre => this.selectedGenres().has(genre.code))
 	);
-	protected readonly genrePickerOptions = computed<PickerOption[]>(() => [
+	protected readonly genrePickerOptions = computed<UiPickerOption[]>(() => [
 		{ value: "", label: "Any genre", icon: "category" },
 		...this.allGenres().map(genre => ({
 			value: genre.code,
@@ -248,7 +248,7 @@ export class GamesBrowse implements OnInit {
 	protected readonly genrePickerPlaceholder = computed(
 		() => `${this.selectedGenres().size} genres`
 	);
-	protected readonly sortPickerOptions: readonly PickerOption[] =
+	protected readonly sortPickerOptions: readonly UiPickerOption[] =
 		this.sortOptions.map(option => ({
 			value: option.value,
 			label: option.label,

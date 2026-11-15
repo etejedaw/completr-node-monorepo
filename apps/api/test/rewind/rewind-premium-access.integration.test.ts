@@ -18,6 +18,7 @@ import {
 	generate,
 	mockAiRecap,
 	mockPremiumStats,
+	openRewindEdition2026,
 	PREMIUM_STATS,
 	readRewind,
 	readRewindYears,
@@ -33,6 +34,7 @@ let game: Game;
 useTestDatabase(async () => {
 	platform = await createPlatform();
 	game = await createGame({ title: "Hades" });
+	await openRewindEdition2026({ premiumRegenerations: 3 });
 });
 
 afterEach(() => {
@@ -79,7 +81,7 @@ async function visitorViews(owner: Account) {
 }
 
 void describe("Rewind premium access", () => {
-	void it("labels content generated with a Rewind feature grant as a gift without changing regeneration limits", async () => {
+	void it("labels content generated with a Rewind feature grant as a gift and spends the gift quota", async () => {
 		const player = await playerWithYear();
 		const grant = await grantRewindGift(player);
 		const aiMock = mockAiRecap();
@@ -101,6 +103,7 @@ void describe("Rewind premium access", () => {
 		});
 		assert.equal(first.body.data.ownerControls.includesPrivateRuns, true);
 		assert.equal(first.body.data.ownerControls.includesNotes, true);
+		assert.equal(first.body.data.ownerControls.regenerationsLeft, 1);
 
 		const years = await readRewindYears(
 			player.user.username,
@@ -201,13 +204,14 @@ void describe("Rewind premium access", () => {
 		);
 	});
 
-	void it("relabels the Rewind with the access used by the latest premium regeneration", async () => {
+	void it("keeps the quota and the label of the first AI use after the owner upgrades", async () => {
 		const player = await playerWithYear();
 		await grantRewindGift(player);
 		mockPremiumStats();
 		mockAiRecap();
 		const gifted = await generate(player, 2026).expect(201);
 		assert.equal(gifted.body.data.premiumAccessKind, "gift");
+		assert.equal(gifted.body.data.ownerControls.regenerationsLeft, 1);
 
 		await User.update(
 			{ role: "premium" },
@@ -219,11 +223,15 @@ void describe("Rewind premium access", () => {
 			regenerationOf(gifted.body.data.generatedAt)
 		).expect(200);
 
-		assert.equal(upgraded.body.data.premiumAccessKind, "premium");
+		assert.equal(upgraded.body.data.premiumAccessKind, "gift");
 		assert.equal(upgraded.body.data.premiumAccess.source, "role");
+		assert.equal(upgraded.body.data.ownerControls.regenerationsLeft, 0);
+		const row = await findRewindRow(player, 2026);
+		assert.equal(row?.premiumAccessKind, "gift");
+		assert.equal(row?.regenerationsLeft, 0);
 	});
 
-	void it("keeps the gift label on stored content after the gift expires while new free generations stay basic", async () => {
+	void it("keeps the gift label on stored content after the gift expires and refuses to regenerate without access", async () => {
 		const giftedPlayer = await playerWithYear();
 		const grant = await grantRewindGift(giftedPlayer);
 		const aiMock = mockAiRecap();
@@ -250,16 +258,21 @@ void describe("Rewind premium access", () => {
 			expiresAt: null
 		});
 
+		assert.equal(own.body.data.ownerControls.regenerationsLeft, 1);
+		assert.equal(own.body.data.ownerControls.canRegenerate, false);
+
 		const denied = await requestAiRecap(giftedPlayer, 2026);
 		assert.equal(denied.status, 402);
 		const regenerated = await generate(
 			giftedPlayer,
 			2026,
 			regenerationOf(generated.body.data.generatedAt)
-		).expect(200);
-		assert.deepEqual(regenerated.body.data.aiRecap, AI_RECAP);
-		assert.deepEqual(regenerated.body.data.premiumStats, PREMIUM_STATS);
-		assert.equal(regenerated.body.data.premiumAccessKind, "gift");
+		);
+		assert.equal(regenerated.status, 402);
+		assert.equal(regenerated.body.type, "REWIND_AI_RECAP_PREMIUM_REQUIRED");
+		const row = await findRewindRow(giftedPlayer, 2026);
+		assert.equal(row?.regenerationsLeft, 1);
+		assert.equal(row?.premiumAccessKind, "gift");
 		assert.equal(aiMock.mock.callCount(), 1);
 		assert.equal(statsMock.mock.callCount(), 1);
 
@@ -273,25 +286,26 @@ void describe("Rewind premium access", () => {
 		assert.equal(statsMock.mock.callCount(), 1);
 	});
 
-	void it("clears the label when a free regeneration leaves no premium content", async () => {
+	void it("hides the label of a quota that left no premium content and never clears it", async () => {
 		const player = await playerWithYear();
 		await storeRewind(player, 2026, {
 			premiumAccessKind: "gift",
+			regenerationsLeft: 1,
 			aiRecapStatus: "failed"
 		});
+
+		for (const { detail } of await visitorViews(player))
+			assert.equal(detail.body.data.premiumAccessKind, null);
 
 		const regenerated = await generate(
 			player,
 			2026,
 			regenerationOf("2026-12-02T10:00:00.000Z")
-		).expect(200);
-
-		assert.equal(regenerated.body.data.premiumAccessKind, null);
-		assert.equal(regenerated.body.data.aiRecap, null);
-		assert.equal(regenerated.body.data.premiumStats, null);
+		);
+		assert.equal(regenerated.status, 402);
 		assert.equal(
 			(await findRewindRow(player, 2026))?.premiumAccessKind,
-			null
+			"gift"
 		);
 	});
 
@@ -328,6 +342,9 @@ void describe("Rewind premium access", () => {
 		const empty = await generate(emptyPlayer, 2026).expect(201);
 		assert.equal(empty.body.data.premiumStats, null);
 		assert.equal(empty.body.data.premiumAccessKind, null);
+		const row = await findRewindRow(emptyPlayer, 2026);
+		assert.equal(row?.premiumAccessKind, "premium");
+		assert.equal(row?.regenerationsLeft, 3);
 	});
 
 	void it("sends the owner premium access only to the owner, in the year and in the year list", async () => {
@@ -379,9 +396,8 @@ void describe("Rewind premium access", () => {
 		const statuses = responses.map(response => response.status).sort();
 		assert.deepEqual(statuses, [201, 409]);
 		assert.equal(aiMock.mock.callCount(), 1);
-		assert.equal(
-			(await findRewindRow(player, 2026))?.premiumAccessKind,
-			"gift"
-		);
+		const row = await findRewindRow(player, 2026);
+		assert.equal(row?.premiumAccessKind, "gift");
+		assert.equal(row?.regenerationsLeft, 1);
 	});
 });

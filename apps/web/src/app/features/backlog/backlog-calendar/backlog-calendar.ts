@@ -22,7 +22,7 @@ import {
 	startOfMonth
 } from "../../../shared/components/month-calendar/month-calendar";
 import { type CalendarAgendaItem } from "../../../shared/components/month-calendar/month-calendar.model";
-import { UiButton } from "../../../shared/ui";
+import { UiButton, UiFilterChip } from "../../../shared/ui";
 import {
 	backlogStatusCalendarBarClass,
 	backlogStatusFillClass,
@@ -46,6 +46,7 @@ const MONTH_LIMIT = 100;
 		CalendarDayOverflow,
 		CalendarDayTemplate,
 		CalendarEventChip,
+		UiFilterChip,
 		MonthCalendar,
 		UiButton
 	],
@@ -208,7 +209,7 @@ export class BacklogCalendar {
 
 	protected readonly barClass = backlogStatusCalendarBarClass;
 
-	isStatusHidden(status: BacklogStatus): boolean {
+	protected isStatusHidden(status: BacklogStatus): boolean {
 		return this.hiddenStatuses().has(status);
 	}
 
@@ -225,7 +226,7 @@ export class BacklogCalendar {
 		if (entry) this.entryClick.emit(entry);
 	}
 
-	toggleStatus(status: BacklogStatus) {
+	protected toggleStatus(status: BacklogStatus) {
 		const next = new Set(this.hiddenStatuses());
 		if (next.has(status)) next.delete(status);
 		else next.add(status);

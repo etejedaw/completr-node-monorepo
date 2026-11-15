@@ -4,18 +4,22 @@ import { afterEach, beforeEach, describe, it, mock } from "node:test";
 import * as rewindServiceError from "../../src/rewind/errors/rewind.service-error";
 import { type Rewind } from "../../src/rewind/rewind.interface";
 import * as rewindService from "../../src/rewind/rewind.service";
-import { clearRewindImageCache } from "../../src/rewind-share/rewind-share.service";
+import {
+	clearRewindImageCache,
+	rewindImageCacheSize
+} from "../../src/rewind-share/rewind-share.service";
 import * as userDomainError from "../../src/users/errors/users.domain-error";
 import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
 import { useTestDatabase } from "../helpers/database.helper";
 import { hasPngSignature, pngDimensions } from "./png.helper";
-import { buildRewind } from "./rewind.fixture";
+import { buildRewind, emptyRewind } from "./rewind.fixture";
 
 useTestDatabase();
 
 const IMAGE_FORMATS = [
 	{ path: "story.png", width: 1080, height: 1920 },
+	{ path: "story-list.png", width: 1080, height: 1920 },
 	{ path: "og.png", width: 1200, height: 630 }
 ] as const;
 
@@ -175,6 +179,68 @@ void describe("Rewind share images", () => {
 			});
 		});
 	}
+});
+
+void describe("GET /share/rewind/:username/:year/story-list.png without finished games", () => {
+	beforeEach(() => {
+		clearRewindImageCache();
+	});
+
+	afterEach(() => {
+		mock.restoreAll();
+	});
+
+	void it("answers 404 REWIND_NOT_FOUND like a Rewind nobody can see, while the first story still renders", async () => {
+		const { authorization } = await createUserWithSession();
+		stubRewind(() => Promise.resolve(emptyRewind()));
+
+		const guest = await api()
+			.get("/share/rewind/esteban/2026/story-list.png")
+			.expect(404);
+		const viewer = await api()
+			.get("/share/rewind/esteban/2026/story-list.png")
+			.set("Authorization", authorization)
+			.expect(404);
+		await api().get("/share/rewind/esteban/2026/story.png").expect(200);
+
+		for (const response of [guest, viewer]) {
+			assert.equal(response.body.type, "REWIND_NOT_FOUND");
+			assert.match(
+				response.headers["content-type"] ?? "",
+				/application\/problem\+json|application\/json/
+			);
+		}
+	});
+
+	void it("answers 404 to every repeated request without caching a missing list", async () => {
+		stubRewind(() => Promise.resolve(emptyRewind()));
+
+		const responses = await Promise.all(
+			Array.from({ length: 4 }, () =>
+				api().get("/share/rewind/esteban/2026/story-list.png")
+			)
+		);
+
+		assert.deepEqual(
+			responses.map(response => response.status),
+			[404, 404, 404, 404]
+		);
+		assert.equal(rewindImageCacheSize(), 0);
+	});
+
+	void it("caches the story and the list as two images of the same Rewind", async () => {
+		stubRewind(answerRewind);
+
+		await api().get("/share/rewind/esteban/2026/story.png").expect(200);
+		await api()
+			.get("/share/rewind/esteban/2026/story-list.png")
+			.expect(200);
+		await api()
+			.get("/share/rewind/esteban/2026/story-list.png")
+			.expect(200);
+
+		assert.equal(rewindImageCacheSize(), 2);
+	});
 });
 
 void describe("legacy image routes", () => {

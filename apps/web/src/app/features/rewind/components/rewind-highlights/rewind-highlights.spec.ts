@@ -52,7 +52,8 @@ const fullHighlights: RewindHighlightsData = {
 		{ name: "PlayStation 5", abbreviation: "PS5", count: 12 },
 		{ name: "Switch", abbreviation: "NS", count: 1 }
 	],
-	longestStreak: { months: 5, fromMonth: 3, toMonth: 7 }
+	longestStreak: { months: 5, fromMonth: 3, toMonth: 7 },
+	classic: { ...game("doom", "Doom", "2026-06-10"), releaseYear: 1993 }
 };
 
 describe("RewindHighlights", () => {
@@ -85,6 +86,11 @@ describe("RewindHighlights", () => {
 		).toBeInTheDocument();
 		expect(screen.getByText("1 partida")).toBeInTheDocument();
 		expect(screen.getByText("12 partidas")).toBeInTheDocument();
+		expect(
+			screen.getByRole("link", {
+				name: /El más clásico.*Doom.*Lanzado en 1993/
+			})
+		).toHaveAttribute("href", "/games/doom");
 	});
 
 	it("shows every highlight and links the ones that name a game", async () => {
@@ -118,6 +124,11 @@ describe("RewindHighlights", () => {
 		).toHaveAttribute("href", "/games/tunic");
 		expect(screen.getByText("March")).toBeInTheDocument();
 		expect(screen.getByText("5 games finished")).toBeInTheDocument();
+		expect(
+			screen.getByRole("link", {
+				name: /The classic.*Doom.*Released in 1993/
+			})
+		).toHaveAttribute("href", "/games/doom");
 	});
 
 	it("tells the longest streak in months with its range spelled out for screen readers", async () => {
@@ -171,7 +182,8 @@ describe("RewindHighlights", () => {
 			fastest: null,
 			busiestMonth: null,
 			longestStreak: null,
-			topPlatforms: []
+			topPlatforms: [],
+			classic: null
 		});
 
 		expect(screen.queryByText("Top rated")).not.toBeInTheDocument();
@@ -179,6 +191,7 @@ describe("RewindHighlights", () => {
 		expect(screen.queryByText("Busiest month")).not.toBeInTheDocument();
 		expect(screen.queryByText("Longest streak")).not.toBeInTheDocument();
 		expect(screen.queryByText("Platforms")).not.toBeInTheDocument();
+		expect(screen.queryByText("The classic")).not.toBeInTheDocument();
 		expect(
 			screen
 				.getAllByRole("listitem")
@@ -212,7 +225,8 @@ describe("RewindHighlights", () => {
 			"var(--color-nav-shelf)",
 			"var(--color-success)",
 			"var(--color-nav-queue)",
-			"var(--color-platinum)"
+			"var(--color-platinum)",
+			"var(--color-nav-sagas)"
 		]);
 		expect(HIGHLIGHT_TONE.topRated).toBe("brand");
 	});
@@ -237,7 +251,8 @@ function highlightsWith(present: HighlightKey[]): RewindHighlightsData {
 			: null,
 		busiestMonth: has("busiestMonth") ? fullHighlights.busiestMonth : null,
 		topGenres: has("topGenres") ? fullHighlights.topGenres : [],
-		topPlatforms: has("topPlatforms") ? fullHighlights.topPlatforms : []
+		topPlatforms: has("topPlatforms") ? fullHighlights.topPlatforms : [],
+		classic: has("classic") ? fullHighlights.classic : null
 	};
 }
 
@@ -319,8 +334,48 @@ describe("highlightLayout", () => {
 			["longestStreak", 1],
 			["busiestMonth", 1],
 			["topGenres", 2],
-			["topPlatforms", 2]
+			["topPlatforms", 2],
+			["classic", 2]
 		]);
+	});
+
+	it("gives Platforms two columns on desktop and the classic the one left in their row", () => {
+		const withClassic = highlightLayout(fullHighlights);
+		const withoutClassic = highlightLayout({
+			...fullHighlights,
+			classic: null
+		});
+		const lastRow = (cells: HighlightCell[]) =>
+			cells.slice(-3).map(cell => [cell.key, cell.wideColumns]);
+
+		expect(lastRow(withClassic)).toEqual([
+			["topGenres", 1],
+			["topPlatforms", 2],
+			["classic", 1]
+		]);
+		expect(lastRow(withoutClassic)).toEqual([
+			["busiestMonth", 1],
+			["topGenres", 1],
+			["topPlatforms", 3]
+		]);
+	});
+
+	it("stretches the classic only when no list card can take the gap", () => {
+		const cells = highlightLayoutOf(["longest", "fastest", "classic"]);
+		const withGenres = highlightLayoutOf([
+			"longest",
+			"fastest",
+			"topGenres",
+			"classic"
+		]);
+
+		expect(cells.map(cell => cell.wideColumns)).toEqual([1, 1, 2]);
+		expect(withGenres.map(cell => cell.wideColumns)).toEqual([1, 1, 1, 1]);
+		expect(
+			highlightLayoutOf(["longest", "topGenres", "classic"]).map(
+				cell => cell.wideColumns
+			)
+		).toEqual([1, 2, 1]);
 	});
 
 	it("reads which highlights are present from the API shape", () => {
@@ -363,17 +418,143 @@ describe("RewindHighlights layout", () => {
 		expect(month).toHaveClass("col-span-2", "lg:col-span-2");
 	});
 
-	it("draws stat cards in solid colour with canvas text and list cards tinted", async () => {
+	it("renders Platforms over two desktop columns next to the classic", async () => {
 		await render(RewindHighlights, {
+			inputs: { highlights: fullHighlights },
+			providers: [provideRouter([])]
+		});
+
+		const platforms = screen
+			.getByRole("list", { name: "Platforms" })
+			.closest("li")!;
+		const classic = screen.getByText("The classic").closest("li")!;
+
+		expect(platforms).toHaveClass("col-span-2", "lg:col-span-2");
+		expect(classic).toHaveClass("col-span-2", "lg:col-span-1");
+	});
+
+	it("renders Platforms over three desktop columns without the classic", async () => {
+		await render(RewindHighlights, {
+			inputs: { highlights: { ...fullHighlights, classic: null } },
+			providers: [provideRouter([])]
+		});
+
+		const platforms = screen
+			.getByRole("list", { name: "Platforms" })
+			.closest("li")!;
+
+		expect(platforms).toHaveClass("col-span-2", "lg:col-span-3");
+	});
+
+	it("shares one dark surface and keeps the tone for the accent", async () => {
+		const { container } = await render(RewindHighlights, {
 			inputs: { highlights: fullHighlights },
 			providers: [provideRouter([])]
 		});
 
 		const month = screen.getByText("Busiest month").closest("li")!;
 		const genres = screen.getByText("Top genres").closest("li")!;
+		const cards = [
+			...container.querySelectorAll<HTMLElement>(
+				"li[data-reveal] > a, li[data-reveal].rounded-card"
+			)
+		];
 
-		expect(month).toHaveClass("bg-(--tone)", "text-canvas");
-		expect(genres).not.toHaveClass("text-canvas");
-		expect(genres.className).toContain("var(--tone)_22%");
+		expect(cards).toHaveLength(HIGHLIGHT_ORDER.length);
+		cards.forEach(card => {
+			expect(card).toHaveClass("border-line-hover", "after:h-0.5");
+			expect(card).not.toHaveClass("text-canvas");
+			expect(card.className).not.toContain("var(--tone)_22%");
+		});
+		expect(within(month).getByText("March").className).toContain(
+			"var(--tone)_80%"
+		);
+		expect(within(genres).getByText("1").className).toContain(
+			"var(--tone)_16%"
+		);
+	});
+
+	it("draws each card icon in a tone capsule hidden from screen readers", async () => {
+		await render(RewindHighlights, {
+			inputs: { highlights: fullHighlights },
+			providers: [provideRouter([])]
+		});
+
+		const label = screen.getByText("Longest streak");
+		const icon = label.querySelector(".material-icons")!;
+
+		expect(icon).toHaveTextContent("local_fire_department");
+		expect(icon).toHaveAttribute("aria-hidden", "true");
+		expect(icon.className).toContain("var(--tone)_16%");
+	});
+
+	it("puts the game art behind every game card and none behind data cards", async () => {
+		const withArt = (code: string) => ({
+			backgroundUrl: `https://img.test/${code}-bg.jpg`,
+			coverUrl: `https://img.test/${code}.jpg`
+		});
+		await render(RewindHighlights, {
+			inputs: {
+				highlights: {
+					...fullHighlights,
+					topRated: {
+						...fullHighlights.topRated!,
+						...withArt("florence")
+					},
+					bestRatio: {
+						...fullHighlights.bestRatio!,
+						...withArt("celeste")
+					},
+					firstFinished: {
+						...fullHighlights.firstFinished!,
+						...withArt("hades")
+					},
+					lastFinished: {
+						...fullHighlights.lastFinished!,
+						coverUrl: "https://img.test/tunic.jpg"
+					},
+					longest: {
+						...fullHighlights.longest!,
+						...withArt("elden-ring")
+					},
+					fastest: { ...fullHighlights.fastest!, ...withArt("gris") },
+					classic: { ...fullHighlights.classic!, ...withArt("doom") }
+				}
+			},
+			providers: [provideRouter([])]
+		});
+
+		const artOf = (label: string) =>
+			screen
+				.getByText(label)
+				.closest("li")!
+				.querySelector<HTMLImageElement>("img[aria-hidden='true']")
+				?.getAttribute("src");
+
+		expect(artOf("Top rated")).toBe("https://img.test/florence-bg.jpg");
+		expect(artOf("Best value")).toBe("https://img.test/celeste-bg.jpg");
+		expect(artOf("First of the year")).toBe(
+			"https://img.test/hades-bg.jpg"
+		);
+		expect(artOf("Last of the year")).toBe("https://img.test/tunic.jpg");
+		expect(artOf("Longest")).toBe("https://img.test/elden-ring-bg.jpg");
+		expect(artOf("Fastest")).toBe("https://img.test/gris-bg.jpg");
+		expect(artOf("The classic")).toBe("https://img.test/doom-bg.jpg");
+		expect(artOf("Longest streak")).toBeUndefined();
+		expect(artOf("Busiest month")).toBeUndefined();
+		expect(artOf("Top genres")).toBeUndefined();
+		expect(artOf("Platforms")).toBeUndefined();
+	});
+
+	it("leaves a game card on its plain surface when the game has no art", async () => {
+		await render(RewindHighlights, {
+			inputs: { highlights: fullHighlights },
+			providers: [provideRouter([])]
+		});
+
+		const first = screen.getByText("First of the year").closest("a")!;
+
+		expect(first.querySelector("img")).toBeNull();
+		expect(first.querySelector("span.-z-10")).toBeNull();
 	});
 });

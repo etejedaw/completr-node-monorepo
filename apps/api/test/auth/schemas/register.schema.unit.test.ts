@@ -55,4 +55,24 @@ void describe("RegisterSchema", () => {
 			false
 		);
 	});
+
+	void it("accepts preset avatar paths and rejects null and path tricks", () => {
+		assert.equal(
+			RegisterSchema.safeParse({
+				...validRegistration,
+				avatarUrl: "/avatars/completr_profile_03.png"
+			}).success,
+			true
+		);
+		for (const avatarUrl of [
+			null,
+			"../avatars/x.png",
+			"javascript:alert(1)"
+		])
+			assert.equal(
+				RegisterSchema.safeParse({ ...validRegistration, avatarUrl })
+					.success,
+				false
+			);
+	});
 });

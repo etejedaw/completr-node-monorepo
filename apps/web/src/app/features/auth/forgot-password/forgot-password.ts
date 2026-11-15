@@ -41,7 +41,7 @@ export class ForgotPassword {
 
 	protected onSubmit(event: Event) {
 		event.preventDefault();
-		if (this.form().invalid()) return;
+		if (this.isLoading() || this.form().invalid()) return;
 
 		this.isLoading.set(true);
 		this.error.set("");

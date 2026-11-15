@@ -2,10 +2,12 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import {
 	form,
 	FormField,
@@ -46,6 +48,12 @@ import {
 
 export type AdminFranchiseModalResult = "saved";
 
+const SEARCH_DEBOUNCE_MS = 300;
+const SEARCH_MIN_LENGTH = 2;
+const NAME_MAX_LENGTH = 100;
+const DESCRIPTION_MAX_LENGTH = 500;
+const FRANCHISE_GAMES_PAGE_SIZE = 100;
+
 @Component({
 	selector: "app-admin-franchise-modal",
 	imports: [
@@ -79,6 +87,7 @@ export class AdminFranchiseModal implements OnInit {
 		AdminFranchiseModalResult
 	>();
 	private readonly franchise = this.dialogRef.data.franchise;
+	private readonly destroyRef = inject(DestroyRef);
 	private readonly searchSubject = new Subject<string>();
 
 	protected readonly skeletonRange = [0, 1, 2];
@@ -136,10 +145,10 @@ export class AdminFranchiseModal implements OnInit {
 				? { kind: "blankName", message: "Name is required" }
 				: null
 		);
-		maxLength(path.name, 100, {
+		maxLength(path.name, NAME_MAX_LENGTH, {
 			message: "Name must be 100 characters or fewer"
 		});
-		maxLength(path.description, 500, {
+		maxLength(path.description, DESCRIPTION_MAX_LENGTH, {
 			message: "Description must be 500 characters or fewer"
 		});
 	});
@@ -147,10 +156,11 @@ export class AdminFranchiseModal implements OnInit {
 	ngOnInit() {
 		this.searchSubject
 			.pipe(
-				debounceTime(300),
+				takeUntilDestroyed(this.destroyRef),
+				debounceTime(SEARCH_DEBOUNCE_MS),
 				switchMap(query => {
 					this.searchError.set(false);
-					if (query.trim().length < 2) {
+					if (query.trim().length < SEARCH_MIN_LENGTH) {
 						this.isSearching.set(false);
 						return of<Game[]>([]);
 					}
@@ -189,7 +199,8 @@ export class AdminFranchiseModal implements OnInit {
 		this.isLoadingGames.set(true);
 		this.gamesLoadError.set(false);
 		this.franchisesService
-			.getFranchiseByCode(code, { limit: 100 })
+			.getFranchiseByCode(code, { limit: FRANCHISE_GAMES_PAGE_SIZE })
+			.pipe(takeUntilDestroyed(this.destroyRef))
 			.subscribe({
 				next: detail => {
 					const games = detail.games.map(g => this.toSelected(g));
@@ -262,15 +273,19 @@ export class AdminFranchiseModal implements OnInit {
 	}
 
 	private saveCreate(dto: FranchiseDto) {
-		this.franchisesService.createFranchise(dto).subscribe({
-			next: () => this.dialogRef.close("saved"),
-			error: err => this.fail(err, "Creation failed")
-		});
+		this.franchisesService
+			.createFranchise(dto)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: () => this.dialogRef.close("saved"),
+				error: err => this.fail(err, "Creation failed")
+			});
 	}
 
 	private saveEdit(dto: FranchiseDto) {
 		this.franchisesService
 			.updateFranchise(this.franchise!.id, dto)
+			.pipe(takeUntilDestroyed(this.destroyRef))
 			.subscribe({
 				next: () => this.dialogRef.close("saved"),
 				error: err => this.fail(err, "Update failed")

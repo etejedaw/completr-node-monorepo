@@ -21,19 +21,21 @@ import { environment } from "../../../environments/environment";
 import {
 	type Rewind,
 	type RewindAiRecap,
+	type RewindGenerationBlock,
+	type RewindPeriod,
 	type RewindPersonaCode,
 	type RewindPremiumStats,
 	type RewindYearSummary
 } from "../../core/models/rewind.model";
 import { ExportService } from "../../core/services/export";
-import { ToastContainer } from "../../shared/components/toast-container/toast-container";
+import { UiToastContainer } from "../../shared/ui";
 import { RewindArchive } from "./rewind-archive/rewind-archive";
 import { RewindDetail } from "./rewind-detail/rewind-detail";
 
 @Component({
 	selector: "app-rewind-host",
-	imports: [RouterOutlet, ToastContainer],
-	template: `<router-outlet /><app-toast-container />`,
+	imports: [RouterOutlet, UiToastContainer],
+	template: `<router-outlet /><ui-toast-container />`,
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 class RewindHost {}
@@ -41,7 +43,8 @@ class RewindHost {}
 const api = environment.apiUrl;
 const NETWORK_ERROR = 0;
 const rewindUrlPattern = /\/users\/([^/]+)\/rewinds\/(\d+)$/;
-const storyUrlPattern = /^\/share\/rewind\/([^/]+)\/(\d+)\/story\.png$/;
+const storyUrlPattern =
+	/^\/share\/rewind\/([^/]+)\/(\d+)\/(story|story-list)\.png$/;
 
 const PERSONA_BY_YEAR: Record<number, RewindPersonaCode> = {
 	2026: "trophy-hunter",
@@ -109,7 +112,8 @@ function rewindFor(year: number, otherYears: number[]): Rewind {
 			topPlatforms: [
 				{ name: "PlayStation 5", abbreviation: "PS5", count: 12 }
 			],
-			longestStreak: { months: 5, fromMonth: 3, toMonth: 7 }
+			longestStreak: { months: 5, fromMonth: 3, toMonth: 7 },
+			classic: null
 		},
 		yearMix: {
 			lengthMix: [
@@ -127,6 +131,8 @@ function rewindFor(year: number, otherYears: number[]): Rewind {
 		},
 		language: "en",
 		generatedAt: `${year}-12-02T10:00:00.000Z`,
+		design: "2026",
+		frozenAt: null,
 		aiRecap: null,
 		premiumStats: null,
 		premiumAccessKind: null,
@@ -160,6 +166,7 @@ function summaryFor(year: number): RewindYearSummary {
 	return {
 		year,
 		isGenerated: true,
+		generationBlockedBy: null,
 		finishedCount: 18,
 		startedCount: 23,
 		hoursPlayed: 212.5,
@@ -176,8 +183,12 @@ describe("Rewind interaction", () => {
 	let parked: TestRequest[];
 	let availableYears: number[];
 	let rewindFailures: Map<number, { status: number; type?: string }>;
+	let generationBlocks: Map<number, RewindGenerationBlock>;
+	let yearsPeriod: RewindPeriod | null;
 	let rewindOverrides: Map<number, Partial<Rewind>>;
 	let storyFailures: number[];
+	let gamesFailures: number[];
+	let imageRequests: string[];
 	let holdRewinds: boolean;
 	let holdStories: boolean;
 	let saveFile: ReturnType<typeof vi.fn>;
@@ -219,7 +230,12 @@ describe("Rewind interaction", () => {
 			return req.flush({
 				data: {
 					spotlightYear: null,
-					years: availableYears.map(summaryFor),
+					period: yearsPeriod,
+					years: availableYears.map(year => ({
+						...summaryFor(year),
+						isGenerated: !generationBlocks.has(year),
+						generationBlockedBy: generationBlocks.get(year) ?? null
+					})),
 					premiumAccess: {
 						allowed: true,
 						source: "feature-grant",
@@ -230,7 +246,10 @@ describe("Rewind interaction", () => {
 		}
 		const story = storyUrlPattern.exec(url);
 		if (story) {
-			const failure = storyFailures.shift();
+			imageRequests.push(url);
+			const failures =
+				story[3] === "story" ? storyFailures : gamesFailures;
+			const failure = failures.shift();
 			if (failure !== undefined) return fail(req, failure);
 			return req.flush(new Blob(["png"], { type: "image/png" }));
 		}
@@ -325,7 +344,18 @@ describe("Rewind interaction", () => {
 		await untilVisible(() =>
 			expect(
 				within(shareSection()).getByRole("button", {
-					name: "Download image"
+					name: "Download summary"
+				})
+			).toBeInTheDocument()
+		);
+		return shareSection();
+	}
+
+	async function untilSingleImage() {
+		await untilVisible(() =>
+			expect(
+				within(shareSection()).getByRole("img", {
+					name: "@ada's 2026 Rewind"
 				})
 			).toBeInTheDocument()
 		);
@@ -335,7 +365,9 @@ describe("Rewind interaction", () => {
 	async function shareActionsWithImage() {
 		const section = await shareActions();
 		await untilVisible(() =>
-			expect(within(section).getByRole("img")).toBeInTheDocument()
+			expect(
+				within(section).getAllByRole("img", { hidden: true })
+			).toHaveLength(2)
 		);
 		return section;
 	}
@@ -344,8 +376,12 @@ describe("Rewind interaction", () => {
 		availableYears = [2026, 2025, 2024];
 		parked = [];
 		rewindFailures = new Map();
+		generationBlocks = new Map();
+		yearsPeriod = null;
 		rewindOverrides = new Map();
 		storyFailures = [];
+		gamesFailures = [];
+		imageRequests = [];
 		holdRewinds = false;
 		holdStories = false;
 		share = undefined;
@@ -479,7 +515,7 @@ describe("Rewind interaction", () => {
 					within(shareSection()).getByRole("img", {
 						name: "@ada's 2026 Rewind"
 					})
-				).toHaveAttribute("src", "blob:story-1")
+				).toHaveAttribute("src", expect.stringMatching(/^blob:story-/))
 			);
 			expect(
 				screen.getByRole("region", { name: "Finished in 2026" })
@@ -565,7 +601,7 @@ describe("Rewind interaction", () => {
 			expect(screen.getByText("Picky Player")).toBeInTheDocument();
 		});
 
-		it("opens a single Share dialog on a double click and closes it while the image is still loading", async () => {
+		it("opens a single Share dialog on a double click and closes it while the images are still loading", async () => {
 			const user = userEvent.setup();
 			holdStories = true;
 			await renderRewind();
@@ -578,12 +614,12 @@ describe("Rewind interaction", () => {
 			expect(dialogs).toHaveLength(1);
 			await user.click(
 				within(dialogs[0]).getByRole("button", {
-					name: "Download image"
+					name: "Download summary"
 				})
 			);
 			expect(
 				within(dialogs[0]).getByRole("button", {
-					name: "Download image"
+					name: "Download summary"
 				})
 			).toHaveAttribute("aria-busy", "true");
 
@@ -599,40 +635,56 @@ describe("Rewind interaction", () => {
 			expect(saveFile).not.toHaveBeenCalled();
 		});
 
-		it("downloads the image once per double click with the expected file name", async () => {
+		it("downloads each image once per double click with its own file name", async () => {
 			const user = userEvent.setup();
 			await renderRewind();
 			const section = await shareActionsWithImage();
 
 			await user.dblClick(
-				within(section).getByRole("button", { name: "Download image" })
+				within(section).getByRole("button", {
+					name: "Download summary"
+				})
+			);
+			await user.dblClick(
+				within(section).getByRole("button", { name: "Download games" })
 			);
 
-			expect(saveFile).toHaveBeenCalledTimes(1);
-			expect(saveFile).toHaveBeenCalledWith(
-				expect.any(Blob),
-				"completr-rewind-ada-2026.png"
-			);
+			expect(saveFile).toHaveBeenCalledTimes(2);
+			expect(saveFile.mock.calls.map(([, name]) => name)).toEqual([
+				"completr-rewind-ada-2026.png",
+				"completr-rewind-ada-2026-games.png"
+			]);
 		});
 
-		it("waits for the image when Download is pressed early and still downloads it only once", async () => {
+		it("waits for both images when both downloads are pressed early and saves each only once", async () => {
 			const user = userEvent.setup();
 			holdStories = true;
 			await renderRewind();
 			const section = await shareActions();
-			const download = within(section).getByRole("button", {
-				name: "Download image"
+			const summary = within(section).getByRole("button", {
+				name: "Download summary"
+			});
+			const games = within(section).getByRole("button", {
+				name: "Download games"
 			});
 
-			await user.dblClick(download);
+			await user.dblClick(games);
+			await user.dblClick(summary);
+			await user.click(games);
 			expect(saveFile).not.toHaveBeenCalled();
+			expect(games).toHaveAttribute("aria-busy", "true");
 			holdStories = false;
 
-			await untilVisible(() => expect(saveFile).toHaveBeenCalledTimes(1));
-			expect(download).not.toHaveAttribute("aria-busy");
+			await untilVisible(() => expect(saveFile).toHaveBeenCalledTimes(2));
+			expect(saveFile.mock.calls.map(([, name]) => name).sort()).toEqual([
+				"completr-rewind-ada-2026-games.png",
+				"completr-rewind-ada-2026.png"
+			]);
+			expect(summary).not.toHaveAttribute("aria-busy");
+			expect(games).not.toHaveAttribute("aria-busy");
 		});
 
-		it("lets the user retry when the image fails to load", async () => {
+		it("lets the user retry when the summary fails to load", async () => {
 			const user = userEvent.setup();
 			storyFailures.push(500);
 			await renderRewind();
@@ -648,8 +700,82 @@ describe("Rewind interaction", () => {
 			);
 
 			await untilVisible(() =>
-				expect(within(section).getByRole("img")).toBeInTheDocument()
+				expect(
+					within(section).getAllByRole("img", { hidden: true })
+				).toHaveLength(2)
 			);
+		});
+
+		it("retries the games image from its download button and saves it once it arrives", async () => {
+			const user = userEvent.setup();
+			gamesFailures.push(500);
+			await renderRewind();
+			const section = await shareActions();
+			await untilVisible(() =>
+				expect(
+					within(section).getByText("Couldn't load the image.")
+				).toBeInTheDocument()
+			);
+
+			await user.dblClick(
+				within(section).getByRole("button", { name: "Download games" })
+			);
+
+			await untilVisible(() => expect(saveFile).toHaveBeenCalledTimes(1));
+			expect(saveFile).toHaveBeenCalledWith(
+				expect.any(Blob),
+				"completr-rewind-ada-2026-games.png"
+			);
+		});
+
+		it("gives up a pending download when the image fails again", async () => {
+			const user = userEvent.setup();
+			gamesFailures.push(500, 500);
+			await renderRewind();
+			const section = await shareActions();
+			await untilVisible(() =>
+				expect(
+					within(section).getByText("Couldn't load the image.")
+				).toBeInTheDocument()
+			);
+			const games = within(section).getByRole("button", {
+				name: "Download games"
+			});
+
+			await user.click(games);
+
+			await untilVisible(() =>
+				expect(games).not.toHaveAttribute("aria-busy")
+			);
+			expect(saveFile).not.toHaveBeenCalled();
+			expect(games).toBeEnabled();
+		});
+
+		it("switches the preview between the summary and the games list however fast the user taps", async () => {
+			const user = userEvent.setup();
+			await renderRewind();
+			const section = await shareActionsWithImage();
+			const tabs = within(section).getByRole("tablist", {
+				name: "Story images"
+			});
+			const summary = within(tabs).getByRole("tab", { name: "Summary" });
+			const games = within(tabs).getByRole("tab", { name: "Games" });
+			expect(summary).toHaveAttribute("aria-selected", "true");
+
+			await user.click(games);
+			await user.click(summary);
+			await user.dblClick(games);
+
+			expect(games).toHaveAttribute("aria-selected", "true");
+			expect(summary).toHaveAttribute("aria-selected", "false");
+			expect(
+				within(section).getByRole("img", {
+					name: "@ada's 2026 Rewind: finished games"
+				})
+			).toBeInTheDocument();
+			games.focus();
+			await user.keyboard("{ArrowLeft}");
+			expect(summary).toHaveAttribute("aria-selected", "true");
 		});
 
 		it("copies the share link once on a double click", async () => {
@@ -668,23 +794,23 @@ describe("Rewind interaction", () => {
 			);
 		});
 
-		it("hides Share image when the browser cannot share files", async () => {
+		it("offers a download for each image when the browser cannot share files", async () => {
 			await renderRewind();
 			const section = await shareActions();
 
 			expect(
 				within(section).queryByRole("button", {
-					name: "Share image"
+					name: "Share images"
 				})
 			).not.toBeInTheDocument();
-			expect(
-				within(section).getByRole("button", {
-					name: "Download image"
-				})
-			).toBeInTheDocument();
+			for (const name of ["Download summary", "Download games"]) {
+				expect(
+					within(section).getByRole("button", { name })
+				).toBeInTheDocument();
+			}
 		});
 
-		it("shares the image once and stays quiet when the user cancels the share sheet", async () => {
+		it("shares both images in one sheet once and stays quiet when the user cancels it", async () => {
 			const user = userEvent.setup();
 			enableWebShare(() =>
 				Promise.reject(new DOMException("cancelled", "AbortError"))
@@ -693,21 +819,73 @@ describe("Rewind interaction", () => {
 			const section = await shareActionsWithImage();
 
 			await user.dblClick(
-				within(section).getByRole("button", { name: "Share image" })
+				within(section).getByRole("button", { name: "Share images" })
 			);
 
 			expect(share).toHaveBeenCalledTimes(1);
 			const [payload] = share!.mock.calls[0] as [ShareData];
-			expect(payload.files?.[0].name).toBe(
-				"completr-rewind-ada-2026.png"
-			);
-			expect(payload.files?.[0].type).toBe("image/png");
+			expect(payload.files?.map(file => file.name)).toEqual([
+				"completr-rewind-ada-2026.png",
+				"completr-rewind-ada-2026-games.png"
+			]);
+			expect(
+				payload.files?.every(file => file.type === "image/png")
+			).toBe(true);
 			await new Promise(resolve => setTimeout(resolve, 20));
 			expect(
 				screen.queryByText(
-					"Couldn't share the image. Download it instead."
+					"Couldn't share the images. Download them instead."
 				)
 			).not.toBeInTheDocument();
+		});
+
+		it("keeps Share images disabled until both images have loaded", async () => {
+			enableWebShare(() => Promise.resolve());
+			holdStories = true;
+			await renderRewind();
+			const section = await shareActions();
+
+			expect(
+				within(section).getByRole("button", { name: "Share images" })
+			).toBeDisabled();
+			holdStories = false;
+
+			await untilVisible(() =>
+				expect(
+					within(section).getByRole("button", {
+						name: "Share images"
+					})
+				).toBeEnabled()
+			);
+		});
+
+		it("shares the summary alone when the games image cannot be loaded", async () => {
+			const user = userEvent.setup();
+			enableWebShare(() => Promise.reject(new Error("NotAllowedError")));
+			gamesFailures.push(404);
+			await renderRewind();
+			const section = await shareActions();
+			await untilVisible(() =>
+				expect(
+					within(section).getByRole("button", {
+						name: "Share images"
+					})
+				).toBeEnabled()
+			);
+
+			await user.click(
+				within(section).getByRole("button", { name: "Share images" })
+			);
+
+			const [payload] = share!.mock.calls[0] as [ShareData];
+			expect(payload.files?.map(file => file.name)).toEqual([
+				"completr-rewind-ada-2026.png"
+			]);
+			expect(
+				await screen.findByText(
+					"Couldn't share the image. Download it instead."
+				)
+			).toBeInTheDocument();
 		});
 
 		it("suggests downloading when sharing fails for another reason", async () => {
@@ -717,23 +895,88 @@ describe("Rewind interaction", () => {
 			const section = await shareActionsWithImage();
 
 			await user.click(
-				within(section).getByRole("button", { name: "Share image" })
+				within(section).getByRole("button", { name: "Share images" })
 			);
 
 			expect(
 				await screen.findByText(
-					"Couldn't share the image. Download it instead."
+					"Couldn't share the images. Download them instead."
 				)
 			).toBeInTheDocument();
 		});
 
-		it("releases the preview image when the user leaves the page", async () => {
+		it("keeps the single image actions for a year without finished games and never asks for the list", async () => {
+			const user = userEvent.setup();
+			enableWebShare(() => Promise.resolve());
+			rewindOverrides.set(2026, { finishedGames: [] });
+			await renderRewind();
+			const section = await untilSingleImage();
+
+			expect(
+				within(section).queryByRole("tablist")
+			).not.toBeInTheDocument();
+			await user.click(
+				within(section).getByRole("button", { name: "Share image" })
+			);
+			await user.click(
+				within(section).getByRole("button", { name: "Download image" })
+			);
+
+			const [payload] = share!.mock.calls[0] as [ShareData];
+			expect(payload.files).toHaveLength(1);
+			expect(saveFile).toHaveBeenCalledWith(
+				expect.any(Blob),
+				"completr-rewind-ada-2026.png"
+			);
+			expect(imageRequests).toEqual(["/share/rewind/ada/2026/story.png"]);
+		});
+
+		it("falls back to the summary when the user leaves the games tab for a year without finished games", async () => {
+			const user = userEvent.setup();
+			rewindOverrides.set(2024, { finishedGames: [] });
+			await renderRewind();
+			const section = await shareActionsWithImage();
+			await user.click(
+				within(section).getByRole("tab", { name: "Games" })
+			);
+
+			await user.click(
+				screen.getByRole("button", { name: "Year: 2026" })
+			);
+			await user.click(
+				within(screen.getByRole("menu")).getByRole("menuitem", {
+					name: /2024/
+				})
+			);
+
+			await untilVisible(() =>
+				expect(
+					within(shareSection()).getByRole("img", {
+						name: "@ada's 2024 Rewind"
+					})
+				).toBeInTheDocument()
+			);
+			expect(
+				within(shareSection()).queryByRole("tablist")
+			).not.toBeInTheDocument();
+			expect(
+				within(shareSection()).getByRole("button", {
+					name: "Download image"
+				})
+			).toBeInTheDocument();
+			expect(imageRequests).not.toContain(
+				"/share/rewind/ada/2024/story-list.png"
+			);
+		});
+
+		it("releases both preview images when the user leaves the page", async () => {
 			const fixture = await renderRewind();
 			await shareActionsWithImage();
 
 			fixture.destroy();
 
 			expect(revokeObjectURL).toHaveBeenCalledWith("blob:story-1");
+			expect(revokeObjectURL).toHaveBeenCalledWith("blob:story-2");
 		});
 	});
 
@@ -792,12 +1035,33 @@ describe("Rewind interaction", () => {
 				screen.getByRole("button", { name: "Año: 2026" })
 			).toBeInTheDocument();
 			const share = screen.getByRole("region", { name: "Compartir" });
-			await user.click(
-				within(share).getByRole("button", { name: "Copiar enlace" })
+			expect(
+				screen.getByRole("button", { name: "Share" })
+			).toBeInTheDocument();
+			expect(
+				within(share).getByRole("tab", { name: "Summary" })
+			).toBeInTheDocument();
+			expect(
+				within(share).getByRole("tab", { name: "Games" })
+			).toBeInTheDocument();
+			for (const name of ["Download summary", "Download games"])
+				expect(
+					within(share).getByRole("button", { name })
+				).toBeInTheDocument();
+			await untilVisible(() =>
+				expect(
+					within(share).getByRole("img", {
+						name: "@ada's 2026 Rewind"
+					})
+				).toBeInTheDocument()
 			);
 			expect(
-				await screen.findByText("Enlace copiado")
-			).toBeInTheDocument();
+				within(share).queryByText(/Descargar|Resumen|Juegos|Copiar/)
+			).not.toBeInTheDocument();
+			await user.click(
+				within(share).getByRole("button", { name: "Copy link" })
+			);
+			expect(await screen.findByText("Link copied")).toBeInTheDocument();
 			expect(screen.queryByText("Results")).not.toBeInTheDocument();
 		});
 
@@ -981,7 +1245,9 @@ describe("Rewind interaction", () => {
 		it("takes a regenerated Rewind from the owner panel without reloading", async () => {
 			const fixture = await renderRewind();
 			const page = fixture.debugElement.query(By.directive(RewindDetail))
-				.componentInstance as RewindDetail;
+				.componentInstance as unknown as {
+				replaceRewind(rewind: Rewind): void;
+			};
 			const regenerated: Rewind = {
 				...rewindFor(2026, [2025, 2024]),
 				language: "es",
@@ -1019,7 +1285,12 @@ describe("Rewind interaction", () => {
 					regenerationsLeft: 1,
 					graceEndsAt: null,
 					canRegenerate: true,
-					aiRecapState: "unavailable"
+					regenerationBlockedBy: null,
+					aiRecapState: "unavailable",
+					periodOpen: true,
+					periodStatus: "open",
+					closesAt: "2027-01-31",
+					frozenAt: null
 				}
 			});
 			await renderRewind();
@@ -1062,7 +1333,7 @@ describe("Rewind interaction", () => {
 			await untilVisible(() =>
 				expect(
 					screen.getByText(
-						"Rewinds open on December 1 and only exist for years with games started or finished."
+						"Each Rewind opens with its season and only exists for years with games started or finished."
 					)
 				).toBeInTheDocument()
 			);
@@ -1091,6 +1362,83 @@ describe("Rewind interaction", () => {
 			expect(
 				screen.queryByText("This Rewind isn't available")
 			).not.toBeInTheDocument();
+		});
+
+		it.each([
+			[
+				"requires-premium" as const,
+				null,
+				"Rewinds of previous years can only be generated with Premium."
+			],
+			[
+				"period-closed" as const,
+				{
+					status: "scheduled" as const,
+					year: 2027,
+					opensAt: "2027-12-01",
+					closesAt: "2028-01-31"
+				},
+				"Rewind generation opens on Dec 1, 2027."
+			],
+			[
+				"period-closed" as const,
+				{
+					status: "closed" as const,
+					year: 2026,
+					opensAt: "2026-12-01",
+					closesAt: "2027-01-31"
+				},
+				"The Rewind season is closed. Years that weren't generated during it can't be generated anymore."
+			]
+		])(
+			"hides Generate on a Rewind blocked by %s and says why",
+			async (block, period, message) => {
+				rewindFailures.set(2025, {
+					status: 404,
+					type: "REWIND_NOT_GENERATED"
+				});
+				generationBlocks.set(2025, block);
+				yearsPeriod = period;
+				await renderAt("/user/ada/rewind/2025");
+
+				await untilVisible(() =>
+					expect(screen.getByText(message)).toBeInTheDocument()
+				);
+				expect(
+					screen.queryByRole("button", {
+						name: "Generate your Rewind"
+					})
+				).toBeNull();
+				expect(
+					screen.getByRole("link", { name: "Go to your profile" })
+				).toBeInTheDocument();
+			}
+		);
+
+		it("keeps Generate disabled until it knows the year can be generated", async () => {
+			rewindFailures.set(2026, {
+				status: 404,
+				type: "REWIND_NOT_GENERATED"
+			});
+			const yearsUrl = `${api}/users/ada/rewinds`;
+			await renderAt("/user/ada/rewind/2026");
+			await waitFor(() => {
+				pendingRequests()
+					.filter(req => rewindUrlPattern.test(req.request.url))
+					.forEach(req => answer(release(req)));
+				expect(
+					screen.getByRole("button", { name: "Generate your Rewind" })
+				).toBeDisabled();
+			});
+			expect(
+				pendingRequests().filter(req => req.request.url === yearsUrl)
+			).toHaveLength(1);
+
+			await untilVisible(() =>
+				expect(
+					screen.getByRole("button", { name: "Generate your Rewind" })
+				).toBeEnabled()
+			);
 		});
 
 		it("says the player does not exist", async () => {

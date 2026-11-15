@@ -13,9 +13,6 @@ export function listsServiceToDomainMapper(
 	if (error.code === "LIST_NOT_FOUND")
 		return listDomainError.listNotFound(context);
 
-	if (error.code === "LIST_FORBIDDEN")
-		return listDomainError.listForbidden(context);
-
 	if (error.code === "LIST_UNIQUE_CONSTRAINT")
 		return listDomainError.listUniqueConstraint(context);
 

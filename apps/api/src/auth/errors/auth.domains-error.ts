@@ -42,7 +42,7 @@ export function authSchemaInvalid(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,
 		"AUTH_SCHEMA_INVALID",
-		"Missing Token",
+		"Missing or malformed authorization header",
 		context
 	);
 }

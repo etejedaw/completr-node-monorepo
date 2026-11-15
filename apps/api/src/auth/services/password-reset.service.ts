@@ -1,14 +1,13 @@
 import { Op, type Transaction } from "sequelize";
 
 import { environmentConfig } from "../../common/config/environment.config";
+import { MS_PER_MINUTE } from "../../common/constants/time.constants";
 import {
 	generateOneTimeToken,
 	hashOneTimeToken
 } from "../../common/utils/one-time-token.util";
 import { sequelize } from "../../database/sequelize.database";
 import { PasswordResetToken } from "../password-reset-token.model";
-
-const MINUTES_TO_MS = 60_000;
 
 async function lockPasswordResetsOf(userId: string, transaction: Transaction) {
 	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:key))", {
@@ -20,7 +19,7 @@ async function lockPasswordResetsOf(userId: string, transaction: Transaction) {
 async function isInCooldown(userId: string, transaction: Transaction) {
 	const cooldownStart = new Date(
 		Date.now() -
-			environmentConfig.PASSWORD_RESET_COOLDOWN_MINUTES * MINUTES_TO_MS
+			environmentConfig.PASSWORD_RESET_COOLDOWN_MINUTES * MS_PER_MINUTE
 	);
 	const recentTokens = await PasswordResetToken.count({
 		where: { userId, createdAt: { [Op.gt]: cooldownStart } },
@@ -42,7 +41,7 @@ export async function createPasswordResetToken(
 		const expiresAt = new Date(
 			Date.now() +
 				environmentConfig.PASSWORD_RESET_TOKEN_TTL_MINUTES *
-					MINUTES_TO_MS
+					MS_PER_MINUTE
 		);
 
 		await PasswordResetToken.create(

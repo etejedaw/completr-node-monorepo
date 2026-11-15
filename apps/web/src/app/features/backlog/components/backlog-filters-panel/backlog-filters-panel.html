@@ -29,14 +29,14 @@
 <ng-template #filtersBody>
 	<div class="flex flex-col gap-6">
 		<app-filter-section label="Status">
-			<app-chip-group
+			<ui-chip-group
 				[options]="statusChipOptions"
 				[value]="statuses()"
 				(valueChange)="statuses.set($event)"
 			/>
 		</app-filter-section>
 
-		<app-multi-option-picker
+		<ui-multi-option-picker
 			label="Platform"
 			heading="Filter by platform"
 			placeholder="All platforms"
@@ -51,9 +51,7 @@
 		<app-filter-section label="Started">
 			<div class="grid grid-cols-2 gap-3">
 				<div class="flex flex-col gap-1 min-w-0">
-					<span
-						aria-hidden="true"
-						class="text-[0.6875rem] text-fg-muted"
+					<span aria-hidden="true" class="text-caption text-fg-muted"
 						>From</span
 					>
 					<ui-date-picker
@@ -65,9 +63,7 @@
 					/>
 				</div>
 				<div class="flex flex-col gap-1 min-w-0">
-					<span
-						aria-hidden="true"
-						class="text-[0.6875rem] text-fg-muted"
+					<span aria-hidden="true" class="text-caption text-fg-muted"
 						>To</span
 					>
 					<ui-date-picker
@@ -84,9 +80,7 @@
 		<app-filter-section label="Finished">
 			<div class="grid grid-cols-2 gap-3">
 				<div class="flex flex-col gap-1 min-w-0">
-					<span
-						aria-hidden="true"
-						class="text-[0.6875rem] text-fg-muted"
+					<span aria-hidden="true" class="text-caption text-fg-muted"
 						>From</span
 					>
 					<ui-date-picker
@@ -98,9 +92,7 @@
 					/>
 				</div>
 				<div class="flex flex-col gap-1 min-w-0">
-					<span
-						aria-hidden="true"
-						class="text-[0.6875rem] text-fg-muted"
+					<span aria-hidden="true" class="text-caption text-fg-muted"
 						>To</span
 					>
 					<ui-date-picker
@@ -119,7 +111,7 @@
 				<div class="flex flex-col gap-1">
 					<span
 						id="backlog-min-rating"
-						class="text-[0.6875rem] text-fg-muted"
+						class="text-caption text-fg-muted"
 						><span class="sr-only">Your rating, </span>Min</span
 					>
 					<app-star-rating
@@ -132,7 +124,7 @@
 				<div class="flex flex-col gap-1">
 					<span
 						id="backlog-max-rating"
-						class="text-[0.6875rem] text-fg-muted"
+						class="text-caption text-fg-muted"
 						><span class="sr-only">Your rating, </span>Max</span
 					>
 					<app-star-rating
@@ -152,7 +144,7 @@
 			<a
 				sectionAction
 				routerLink="/tags"
-				class="tap-area text-[0.6875rem] font-medium text-brand no-underline hover:underline"
+				class="tap-area text-caption font-medium text-brand no-underline hover:underline"
 				(click)="closed.emit()"
 				>Manage tags →</a
 			>
@@ -244,14 +236,14 @@
 		}
 
 		<div class="grid grid-cols-2 gap-2">
-			<app-option-picker
+			<ui-option-picker
 				label="Sort by"
 				heading="Sort games by"
 				[options]="sortPickerOptions"
 				[value]="sortBy()"
 				(valueChange)="sortBy.set($event)"
 			/>
-			<app-option-picker
+			<ui-option-picker
 				label="Order"
 				heading="Sort order"
 				[options]="sortOrderPickerOptions"

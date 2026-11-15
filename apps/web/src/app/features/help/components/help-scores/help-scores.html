@@ -1,0 +1,39 @@
+<section
+	id="scores"
+	aria-labelledby="scores-title"
+	class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
+	appInView
+	inViewRootMargin="-30% 0px -65% 0px"
+	(inViewChange)="scrollSpy().onSectionInView('scores', $event)"
+>
+	<span uiEyebrow tone="brand">03 · Scores</span>
+	<h2
+		id="scores-title"
+		class="font-display m-0 mt-1 text-2xl sm:text-3xl font-bold tracking-tight"
+	>
+		Where a game's score comes from
+	</h2>
+	<p
+		class="m-0 mt-4 max-w-[68ch] text-lead leading-relaxed text-fg-secondary"
+	>
+		Every game page shows one score card. Completr uses the most reliable
+		source it has, in this order:
+	</p>
+	<ol class="m-0 mt-6 p-0 list-none grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+		@for (score of scoreExamples; track score.type; let i = $index) {
+		<li class="flex flex-col gap-3">
+			<span uiEyebrow>
+				{{ i + 1 }} · @switch (score.type) { @case ("completr") {
+				Preferred } @case ("aggregate") { Until the community weighs in
+				} @default { Fallback } }
+			</span>
+			<app-game-score-card [score]="score" />
+		</li>
+		}
+	</ol>
+	<p class="m-0 mt-4 max-w-[68ch] text-sm leading-relaxed text-fg-muted">
+		The Completr score needs ratings and real hours from enough players who
+		finished the game. Until then, the card shows Metacritic with
+		HowLongToBeat, or RAWG when those are missing.
+	</p>
+</section>

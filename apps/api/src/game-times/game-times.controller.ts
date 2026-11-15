@@ -3,6 +3,7 @@ import { type Request, type Response } from "express";
 import { type RegisterGameTimeDto } from "./dtos/register-game-time.dto";
 import { type ReplaceGameTimesDto } from "./dtos/replace-game-times.dto";
 import { type UpdateGameTimeDto } from "./dtos/update-game-time.dto";
+import { gameTimeSerializer } from "./game-times.serializer";
 import * as gameTimesService from "./game-times.service";
 import { type GameTimeIdParams } from "./schemas/game-time-id-params.schema";
 import { type GameTimeParams } from "./schemas/game-time-params.schema";
@@ -15,7 +16,7 @@ export async function postGameTime(request: Request, response: Response) {
 		registerGameTimeDto.source,
 		registerGameTimeDto.duration
 	);
-	const data = { gameTime: gameTime.get({ plain: true }) };
+	const data = { gameTime: gameTimeSerializer(gameTime) };
 	return response.status(201).json({ data });
 }
 
@@ -28,7 +29,7 @@ export async function patchGameTime(request: Request, response: Response) {
 		params.source,
 		updateGameTimeDto.duration
 	);
-	const data = { gameTime: gameTime.get({ plain: true }) };
+	const data = { gameTime: gameTimeSerializer(gameTime) };
 	return response.status(200).json({ data });
 }
 
@@ -41,7 +42,7 @@ export async function putGameTimes(request: Request, response: Response) {
 		replaceGameTimesDto.times
 	);
 	const data = {
-		gameTimes: times.map(time => time.get({ plain: true }))
+		gameTimes: times.map(gameTimeSerializer)
 	};
 	return response.status(200).json({ data });
 }
@@ -51,7 +52,7 @@ export async function getGameTimes(request: Request, response: Response) {
 
 	const times = await gameTimesService.findTimesByGameId(params.gameId);
 	const data = {
-		gameTimes: times.map(time => time.get({ plain: true }))
+		gameTimes: times.map(gameTimeSerializer)
 	};
 	return response.status(200).json({ data });
 }

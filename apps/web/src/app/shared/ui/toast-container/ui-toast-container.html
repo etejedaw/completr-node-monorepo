@@ -1,0 +1,79 @@
+<ng-template #tpl let-t="context">
+	<div
+		ngpToast
+		class="pointer-events-auto flex items-start gap-2.5 px-3.5 py-2.5 rounded-md border backdrop-blur-md shadow-toast max-w-[380px] w-[calc(100vw-2rem)] data-[swipe-direction=right]:translate-x-[var(--ngp-toast-swipe-amount-x)] data-[swipe-direction=left]:translate-x-[var(--ngp-toast-swipe-amount-x)] data-[swipe-direction=down]:translate-y-[var(--ngp-toast-swipe-amount-y)] transition-[transform,translate,opacity,display] transition-discrete duration-150 data-[visible=false]:hidden data-[visible=false]:opacity-0 motion-reduce:transition-none"
+		[class]="classesFor(t.variant)"
+	>
+		<span aria-hidden="true" class="material-icons text-base mt-0.5"
+			>{{ iconFor(t.variant) }}</span
+		>
+		<span class="flex-1 flex flex-col gap-0.5 text-compact leading-snug">
+			@if (t.title) {
+			<span class="font-semibold">{{ t.title }}</span>
+			}
+			<span class="text-fg">{{ t.message }}</span>
+		</span>
+		@if (t.undoLabel) {
+		<button
+			uiButton
+			variant="ghost"
+			size="sm"
+			type="button"
+			class="shrink-0 -my-1 !text-fg !font-semibold"
+			(click)="t.onUndo?.()"
+		>
+			<span
+				class="relative inline-flex items-center justify-center w-4 h-4"
+			>
+				<svg class="absolute inset-0 -rotate-90" viewBox="0 0 36 36">
+					<circle
+						cx="18"
+						cy="18"
+						r="16"
+						fill="none"
+						stroke-width="4"
+						class="stroke-current opacity-25"
+					/>
+					<circle
+						cx="18"
+						cy="18"
+						r="16"
+						fill="none"
+						stroke-width="4"
+						class="stroke-current"
+						stroke-linecap="round"
+						pathLength="100"
+						stroke-dasharray="100"
+						stroke-dashoffset="0"
+						[style.animation]="'toastCountdown ' + (t.durationMs ?? undoWindowMs) + 'ms linear forwards'"
+					/>
+				</svg>
+			</span>
+			{{ t.undoLabel }}
+		</button>
+		} @else if (t.actionLabel) {
+		<button
+			uiButton
+			variant="ghost"
+			size="sm"
+			type="button"
+			class="shrink-0 -my-1 !text-fg !font-semibold"
+			(click)="t.onAction?.()"
+		>
+			{{ t.actionLabel }}
+		</button>
+		}
+		<button
+			uiIconButton
+			shape="circle"
+			type="button"
+			class="shrink-0 -my-1 -mr-[6px]"
+			(click)="t.onDismiss?.()"
+			aria-label="Dismiss"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>close</span
+			>
+		</button>
+	</div>
+</ng-template>

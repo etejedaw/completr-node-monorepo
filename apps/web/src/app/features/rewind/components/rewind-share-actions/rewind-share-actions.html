@@ -1,4 +1,4 @@
-@let text = copy();
+@let text = copy;
 <div
 	[class]="layoutClass()"
 	appInView
@@ -11,85 +11,119 @@
 		class="pointer-events-none absolute left-1/2 top-[40%] -z-10 size-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[conic-gradient(from_210deg,var(--color-brand),var(--color-nav-queue),var(--color-nav-shelf),var(--color-brand))] opacity-40 blur-3xl"
 	></span>
 	}
-	<figure
-		class="m-0 shrink-0 relative aspect-[9/16] max-w-full overflow-hidden rounded-card border border-line bg-surface shadow-[0_24px_60px_-24px_rgb(0_0_0/0.75)]"
-		[class]="previewHeightClass()"
-		[attr.aria-busy]="image().isLoading() || null"
+	<ui-tabs
+		[class]="previewColumnClass()"
+		[value]="activePage()"
+		(valueChange)="selectPage($event)"
 	>
-		@if (image().objectUrl(); as url) {
-		<img
-			[src]="url"
-			[alt]="previewAlt()"
-			class="w-full h-full object-cover"
-		/>
-		} @else if (image().hasError()) {
-		<div
-			class="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center"
+		@if (hasSeveralPages()) {
+		<ui-tab-list
+			class="!mb-3 w-full justify-center"
+			[attr.aria-label]="text.imagesLabel"
 		>
-			<span
-				aria-hidden="true"
-				class="material-icons text-3xl text-fg-secondary"
-				>broken_image</span
-			>
-			<p class="m-0 text-sm text-fg-secondary">{{ text.imageFailed }}</p>
-			<button
-				uiButton
-				variant="secondary"
-				size="sm"
-				class="tap:min-h-[44px]"
-				(click)="retryPreview()"
-			>
-				{{ text.tryAgain }}
+			@for (page of pages(); track page.key; let index = $index) {
+			<button uiTab type="button" [value]="page.key">
+				<span
+					aria-hidden="true"
+					class="mr-1.5 font-display tabular-nums text-fg-muted"
+					>{{ index + 1 }}/{{ pages().length }}</span
+				>{{ page.tab }}
 			</button>
+			}
+		</ui-tab-list>
+		} @for (page of pages(); track page.key) {
+		<div uiTabPanel [value]="page.key" [class]="panelClass()">
+			<figure
+				class="relative m-0 mx-auto aspect-[9/16] max-w-full overflow-hidden rounded-card border border-line bg-surface shadow-popover"
+				[class]="previewHeightClass()"
+				[attr.aria-busy]="page.image.isLoading() || null"
+			>
+				@if (page.image.objectUrl(); as url) {
+				<img
+					[src]="url"
+					[alt]="page.alt"
+					class="h-full w-full object-cover"
+				/>
+				} @else if (page.image.hasError()) {
+				<div
+					class="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center"
+				>
+					<span
+						aria-hidden="true"
+						class="material-icons text-3xl text-fg-secondary"
+						>broken_image</span
+					>
+					<p class="m-0 text-sm text-fg-secondary">
+						{{ text.imageFailed }}
+					</p>
+					<button
+						uiButton
+						variant="secondary"
+						size="sm"
+						class="tap:min-h-[44px]"
+						(click)="retryPreview(page)"
+					>
+						{{ text.tryAgain }}
+					</button>
+				</div>
+				} @else {
+				<ui-skeleton variant="rect" class="absolute inset-0" />
+				<span class="sr-only">{{ text.preparingImage }}</span>
+				}
+			</figure>
 		</div>
-		} @else {
-		<ui-skeleton variant="rect" class="absolute inset-0" />
-		<span class="sr-only">{{ text.preparingImage }}</span>
 		}
-	</figure>
+	</ui-tabs>
 
 	<div [class]="actionsClass()">
-		@if (canShareFiles) {
+		@if (canShareFiles()) {
 		<button
 			uiButton
 			variant="primary"
 			class="max-md:min-h-[44px] tap:min-h-[44px]"
-			[class.col-span-2]="isStage()"
+			[class.col-span-2]="isStage() && !hasSeveralPages()"
 			[disabled]="!isReady() || sharing()"
 			[attr.aria-busy]="sharing() || null"
-			(click)="shareImage()"
+			(click)="shareImages()"
 		>
 			<span aria-hidden="true" class="material-icons text-base"
 				>ios_share</span
 			>
-			{{ text.shareImage }}
+			{{ shareLabel() }}
 		</button>
+		} @if (pairsShareWithLink()) {
+		<ng-container [ngTemplateOutlet]="copyLinkButton" />
+		} @for (page of pages(); track page.key) { @let pending =
+		pendingDownloads().has(page.key);
+		<button
+			uiButton
+			[variant]="canShareFiles() ? 'secondary' : 'primary'"
+			class="max-md:min-h-[44px] tap:min-h-[44px]"
+			[class.col-span-2]="isStage() && !canShareFiles() && !hasSeveralPages()"
+			[disabled]="pending"
+			[attr.aria-busy]="pending || null"
+			(click)="download(page)"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>{{ pending ? 'hourglass_top' : 'download' }}</span
+			>
+			{{ page.downloadLabel }}
+		</button>
+		} @if (!pairsShareWithLink()) {
+		<ng-container [ngTemplateOutlet]="copyLinkButton" />
 		}
-		<button
-			uiButton
-			[variant]="canShareFiles ? 'secondary' : 'primary'"
-			class="max-md:min-h-[44px] tap:min-h-[44px]"
-			[class.col-span-2]="isStage() && !canShareFiles"
-			[disabled]="downloadPending()"
-			[attr.aria-busy]="downloadPending() || null"
-			(click)="download()"
-		>
-			<span aria-hidden="true" class="material-icons text-base"
-				>{{ downloadPending() ? 'hourglass_top' : 'download' }}</span
-			>
-			{{ text.downloadImage }}
-		</button>
-		<button
-			uiButton
-			[variant]="isStage() ? 'secondary' : 'ghost'"
-			class="max-md:min-h-[44px] tap:min-h-[44px]"
-			[class.col-span-2]="isStage() && !canShareFiles"
-			(click)="copyLink()"
-		>
-			<span aria-hidden="true" class="material-icons text-base"
-				>link</span
-			>
-			{{ text.copyLink }}
-		</button>
 	</div>
 </div>
+
+<ng-template #copyLinkButton>
+	<button
+		uiButton
+		[variant]="isStage() ? 'secondary' : 'ghost'"
+		class="max-md:min-h-[44px] tap:min-h-[44px]"
+		[class.col-span-2]="isStage() && !canShareFiles()"
+		(click)="copyLink()"
+	>
+		<span aria-hidden="true" class="material-icons text-base">link</span>
+		{{ copy.copyLink }}
+	</button>
+</ng-template>

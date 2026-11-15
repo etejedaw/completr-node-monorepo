@@ -1,13 +1,12 @@
 import { titleToSlug } from "../../common/utils/title-to-slug.util";
 import { type RawgClient } from "../../rawg/rawg.provider";
+import { RAWG_SEARCH_PAGE_SIZE } from "../games.constants";
 import {
 	type OnlineSearchCooldown,
 	type ResolvedOnlineGame
 } from "../games.interface";
 import { type OnlineSearchOutcome } from "../games.types";
 import { OnlineSearchHandler } from "./online-search.handler";
-
-const RAWG_SEARCH_PAGE_SIZE = 3;
 
 export class RawgSearchHandler extends OnlineSearchHandler {
 	protected readonly source = "rawg";

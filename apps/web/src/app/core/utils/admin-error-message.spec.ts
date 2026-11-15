@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from "@angular/common/http";
 
-import { adminErrorMessage } from "./admin-error-message";
-import { DATA_REQUEST_ERROR_MESSAGES } from "./data-request-error-message";
+import { ADMIN_ERROR_MESSAGES, adminErrorMessage } from "./admin-error-message";
 
 function apiError(status: number, body: object | null) {
 	return new HttpErrorResponse({ status, error: body });
@@ -9,6 +8,22 @@ function apiError(status: number, body: object | null) {
 
 describe("adminErrorMessage", () => {
 	it.each([
+		[
+			"REWIND_EDITION_EXISTS",
+			409,
+			"There is already an edition for that year."
+		],
+		[
+			"REWIND_EDITION_OVERLAP",
+			409,
+			"The period overlaps another edition. Choose other dates."
+		],
+		[
+			"REWIND_EDITION_FROZEN",
+			409,
+			"That edition was frozen in the meantime, so it can no longer be edited."
+		],
+		["REWIND_EDITION_NOT_FOUND", 404, "That edition no longer exists."],
 		[
 			"GAME_IN_USE",
 			409,
@@ -176,6 +191,6 @@ describe("adminErrorMessage for data requests", () => {
 			adminErrorMessage(
 				new HttpErrorResponse({ status, error: { type } })
 			)
-		).toBe(DATA_REQUEST_ERROR_MESSAGES[type]);
+		).toBe(ADMIN_ERROR_MESSAGES[type]);
 	});
 });

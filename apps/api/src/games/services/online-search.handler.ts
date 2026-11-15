@@ -1,4 +1,5 @@
 import { PinoLogger } from "../../common/logger/pino.logger";
+import { NO_COOLDOWN, ONLINE_SEARCH_UNAVAILABLE } from "../games.constants";
 import {
 	type OnlineSearchCooldown,
 	type OnlineSearchFound,
@@ -8,15 +9,6 @@ import {
 	type OnlineSearchOutcome,
 	type OnlineSearchSource
 } from "../games.types";
-
-export const ONLINE_SEARCH_UNAVAILABLE: OnlineSearchOutcome = {
-	available: false
-};
-
-const NO_COOLDOWN: OnlineSearchCooldown = {
-	durationMs: 0,
-	now: () => Date.now()
-};
 
 export abstract class OnlineSearchHandler {
 	protected abstract readonly source: OnlineSearchSource;

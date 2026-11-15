@@ -32,7 +32,7 @@
 		</div>
 		}
 
-		<app-option-picker
+		<ui-option-picker
 			class="md:hidden"
 			label="Status"
 			heading="Filter by status"
@@ -65,7 +65,7 @@
 			/>
 
 			@if (viewPickerViews().length > 0) {
-			<app-option-picker
+			<ui-option-picker
 				variant="compact"
 				size="md"
 				label="View"
@@ -82,7 +82,7 @@
 			<div class="flex items-center gap-2">
 				@if (activeFilterId()) {
 				<div class="sm:hidden">
-					<app-action-menu
+					<ui-action-menu
 						#mobileToolsMenu
 						label="Filters & stats"
 						heading="Filters & stats"
@@ -90,8 +90,8 @@
 						[subheading]="activeView()?.name ?? null"
 						icon="tune"
 						size="md"
-						[count]="activeFiltersCount() + enabledStatsCount()"
-						[active]="hasActiveFilters() || hasAnyStatEnabled()"
+						[count]="activeFiltersCount() + viewStats.enabledCount()"
+						[active]="hasActiveFilters() || viewStats.hasAnyEnabled()"
 						[items]="mobileToolsItems()"
 						(selected)="runMobileTool($event)"
 					/>
@@ -102,8 +102,8 @@
 					uiFiltersButton
 					class="sm:!hidden"
 					labelVisibility="always"
-					[count]="activeFiltersCount() + enabledStatsCount()"
-					[active]="hasActiveFilters() || hasAnyStatEnabled()"
+					[count]="activeFiltersCount() + viewStats.enabledCount()"
+					[active]="hasActiveFilters() || viewStats.hasAnyEnabled()"
 					(click)="openFilters()"
 				>
 					Filters
@@ -139,16 +139,16 @@
 					type="button"
 					variant="secondary"
 					class="max-sm:!hidden h-10 shrink-0"
-					[active]="showStatsPanel() || hasAnyStatEnabled()"
+					[active]="viewStats.panelOpen() || viewStats.hasAnyEnabled()"
 					aria-haspopup="dialog"
 					title="Configure the stats of this view"
-					(click)="toggleStatsPanel()"
+					(click)="viewStats.togglePanel()"
 				>
 					<span aria-hidden="true" class="material-icons text-lg"
 						>insights</span
 					>
-					Stats @if (enabledStatsCount() > 0) {
-					<ui-count-badge [count]="enabledStatsCount()" />
+					Stats @if (viewStats.enabledCount() > 0) {
+					<ui-count-badge [count]="viewStats.enabledCount()" />
 					}
 				</button>
 				}
@@ -174,15 +174,15 @@
 	<p class="-mt-1 mb-4 text-xs italic text-fg-muted">
 		{{ activeFilterDescription() }}
 	</p>
-	} @if (activeFilterId() && hasAnyStatEnabled()) {
+	} @if (activeFilterId() && viewStats.hasAnyEnabled()) {
 	<app-saved-view-stats
-		[stats]="stats()"
-		[enabledStats]="enabledStatKeys()"
-		[loading]="statsLoading()"
-		[loadFailed]="statsError()"
-		[expanded]="statsExpanded()"
-		(expandedToggle)="toggleStatsExpanded()"
-		(retryRequested)="retryStats()"
+		[stats]="viewStats.stats()"
+		[enabledStats]="viewStats.enabledKeys()"
+		[loading]="viewStats.loading()"
+		[loadFailed]="viewStats.loadFailed()"
+		[expanded]="viewStats.expanded()"
+		(expandedToggle)="viewStats.toggleExpanded()"
+		(retryRequested)="viewStats.retry()"
 	/>
 	} @if (showFilters()) {
 	<app-backlog-filters-panel
@@ -230,14 +230,14 @@
 		(applied)="applyAndCloseFilters()"
 		(closed)="closeFilters()"
 	/>
-	} @if (showStatsPanel()) {
+	} @if (viewStats.panelOpen()) {
 	<app-saved-view-stats-panel
 		[viewName]="activeView()?.name ?? null"
-		[enabledStats]="enabledStatKeys()"
-		[saving]="statsConfigSaving()"
-		[custom]="isStatsCustom()"
-		(statToggle)="toggleStatKey($event)"
-		(resetRequested)="resetStatsConfig()"
+		[enabledStats]="viewStats.enabledKeys()"
+		[saving]="viewStats.configSaving()"
+		[custom]="viewStats.isCustom()"
+		(statToggle)="viewStats.toggleKey($event)"
+		(resetRequested)="viewStats.resetConfig()"
 		(closed)="closeStatsPanel()"
 	/>
 	} @if (isInitialLoad() && isLoading()) {

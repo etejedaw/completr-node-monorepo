@@ -6,12 +6,15 @@ import {
 } from "../../shared/utils/validation-errors";
 import { type ScoreOutOfRangeBody } from "./admin-error-message.model";
 import { DATA_REQUEST_ERROR_MESSAGES } from "./data-request-error-message";
+import { problemType } from "./problem-details";
 
 const SCORE_PATH = /^scores?(\.|$)/;
 const DURATION_PATH = /^(times|duration)(\.|$)/;
 
-const ADMIN_ERROR_MESSAGES: Record<string, string> = {
+export const ADMIN_ERROR_MESSAGES: Readonly<Record<string, string>> = {
 	...DATA_REQUEST_ERROR_MESSAGES,
+	USER_DELETE_FORBIDDEN:
+		"Admin accounts, including your own, can't be deleted. Change the role first if this account must go.",
 	GAME_SCORE_OUT_OF_RANGE:
 		"A score is above the maximum of its source. Scores go from 0 up to the scale of the source.",
 	GAME_IN_USE:
@@ -32,6 +35,12 @@ const ADMIN_ERROR_MESSAGES: Record<string, string> = {
 	PLATFORM_UNIQUE_CONSTRAINT: "A platform with this name already exists.",
 	PLATFORM_NOT_FOUND:
 		"This platform no longer exists. Refresh the list and try again.",
+	REWIND_EDITION_EXISTS: "There is already an edition for that year.",
+	REWIND_EDITION_OVERLAP:
+		"The period overlaps another edition. Choose other dates.",
+	REWIND_EDITION_FROZEN:
+		"That edition was frozen in the meantime, so it can no longer be edited.",
+	REWIND_EDITION_NOT_FOUND: "That edition no longer exists.",
 	PLATFORM_IN_USE:
 		"This platform is used by games, shelves, backlogs or wishlist entries. Remove those references before deleting it."
 };
@@ -55,8 +64,8 @@ function schemaInvalidMessage(error: unknown): string | null {
 
 export function adminErrorMessage(error: unknown): string | null {
 	const body = (error as HttpErrorResponse | undefined)?.error;
-	const type = body?.type;
-	if (typeof type !== "string") return null;
+	const type = problemType(error);
+	if (type === null) return null;
 	if (type === "GAME_SCORE_OUT_OF_RANGE") return scoreOutOfRangeMessage(body);
 	if (type === "COMMON_SCHEMA_INVALID") return schemaInvalidMessage(error);
 	return Object.hasOwn(ADMIN_ERROR_MESSAGES, type)

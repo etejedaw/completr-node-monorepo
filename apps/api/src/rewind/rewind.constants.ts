@@ -1,10 +1,10 @@
-export const REWIND_OPENING_MONTH = 12;
-export const REWIND_SPOTLIGHT_LAST_MONTH = 1;
+export const DEFAULT_ADMIN_REWINDS_PAGE_SIZE = 50;
 export const REWIND_COVERS_LIMIT = 5;
 export const REWIND_MIN_YEAR = 2000;
 export const REWIND_MAX_YEAR = 2100;
 export const REWIND_TOP_LIMIT = 3;
 export const REWIND_MIN_STREAK_MONTHS = 2;
+export const REWIND_CLASSIC_MIN_AGE_YEARS = 10;
 export const TROPHY_HUNTER_MIN_PLATINUMS = 3;
 export const MARATHONER_MIN_FINISHED = 3;
 export const MARATHONER_MIN_AVERAGE_HOURS = 30;
@@ -14,10 +14,12 @@ export const FINISHER_MIN_FINISHED = 10;
 export const FINISHER_MIN_FINISH_RATE = 80;
 export const GENRE_EXPLORER_MIN_GENRES = 6;
 export const PICKY_PLAYER_MIN_ABANDONED = 3;
-export const REWIND_REGENERATION_LIMIT = 1;
-export const REWIND_GRACE_LAST_DAY = 7;
 export const REWIND_AI_RECAP_PENDING_TIMEOUT_MS = 2 * 60 * 1000;
 export const REWIND_MIN_RELEASE_YEAR = 1950;
+export const REWIND_FREEZE_BATCH_SIZE = 100;
+export const REWIND_FREEZE_ATTEMPTS = 2;
+export const REWIND_FREEZE_LOCK_KEY = "rewind-freeze";
+export const REWIND_SNAPSHOT_SCHEMA_VERSION = 1;
 
 export const REWIND_PERSONA_CODES = [
 	"trophy-hunter",
@@ -39,6 +41,27 @@ export const REWIND_PREMIUM_ACCESS_KINDS = ["premium", "gift"] as const;
 
 export type RewindPremiumAccessKind =
 	(typeof REWIND_PREMIUM_ACCESS_KINDS)[number];
+
+export const REWIND_PERIOD_STATUSES = ["scheduled", "open", "closed"] as const;
+
+export type RewindPeriodStatus = (typeof REWIND_PERIOD_STATUSES)[number];
+
+export const REWIND_GENERATION_BLOCKERS = [
+	"period-closed",
+	"requires-premium"
+] as const;
+
+export type RewindGenerationBlocker =
+	(typeof REWIND_GENERATION_BLOCKERS)[number];
+
+export const REWIND_REGENERATION_BLOCKERS = [
+	...REWIND_GENERATION_BLOCKERS,
+	"no-ai-access",
+	"no-regenerations-left"
+] as const;
+
+export type RewindRegenerationBlocker =
+	(typeof REWIND_REGENERATION_BLOCKERS)[number];
 
 export const REWIND_INSIGHT_KINDS = [
 	"taste-vs-critics",

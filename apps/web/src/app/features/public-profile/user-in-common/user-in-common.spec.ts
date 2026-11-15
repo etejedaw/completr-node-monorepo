@@ -62,6 +62,7 @@ describe("UserInCommon", () => {
 				{
 					provide: ActivatedRoute,
 					useValue: {
+						paramMap: of({ get: () => "grace" }),
 						snapshot: {
 							paramMap: { get: () => "grace" },
 							queryParamMap: { get: () => by }

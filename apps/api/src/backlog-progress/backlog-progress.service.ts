@@ -1,9 +1,24 @@
-import { Op, type Transaction } from "sequelize";
+import { Op, QueryTypes, type Transaction } from "sequelize";
 
 import * as backlogService from "../backlog/backlog.service";
 import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
+import { sequelize } from "../database/sequelize.database";
+import { type LatestProgress, type LatestProgressRow } from "./backlog-progress.interface";
 import { BacklogProgress } from "./backlog-progress.model";
 import * as backlogProgressServiceError from "./errors/backlog-progress.service-error";
+
+async function assertOwnedBacklog(
+	userId: string,
+	backlogId: string,
+	transaction?: Transaction
+) {
+	const backlog = await backlogService.findBacklogBasicById(
+		backlogId,
+		transaction
+	);
+	if (!backlog || backlog.userId !== userId)
+		throw backlogProgressServiceError.backlogNotFoundError();
+}
 
 export async function addProgress(
 	userId: string,
@@ -11,22 +26,12 @@ export async function addProgress(
 	note: string,
 	transaction?: Transaction
 ) {
-	const backlog = await backlogService.findBacklogById(
-		backlogId,
-		transaction
-	);
-	if (!backlog) throw backlogProgressServiceError.backlogNotFoundError();
-	if (backlog.userId !== userId)
-		throw backlogProgressServiceError.forbiddenError();
-
+	await assertOwnedBacklog(userId, backlogId, transaction);
 	return BacklogProgress.create({ backlogId, note }, { transaction });
 }
 
 export async function findProgressByBacklog(userId: string, backlogId: string) {
-	const backlog = await backlogService.findBacklogById(backlogId);
-	if (!backlog) throw backlogProgressServiceError.backlogNotFoundError();
-	if (backlog.userId !== userId)
-		throw backlogProgressServiceError.forbiddenError();
+	await assertOwnedBacklog(userId, backlogId);
 
 	return BacklogProgress.findAll({
 		where: { backlogId },
@@ -42,10 +47,7 @@ export async function removeProgress(
 	backlogId: string,
 	noteId: string
 ) {
-	const backlog = await backlogService.findBacklogById(backlogId);
-	if (!backlog) throw backlogProgressServiceError.backlogNotFoundError();
-	if (backlog.userId !== userId)
-		throw backlogProgressServiceError.forbiddenError();
+	await assertOwnedBacklog(userId, backlogId);
 
 	const note = await BacklogProgress.findOne({
 		where: { id: noteId, backlogId }
@@ -57,28 +59,26 @@ export async function removeProgress(
 
 export async function findLatestProgressForBacklogs(
 	backlogIds: readonly string[]
-): Promise<Map<string, { note: string; createdAt: Date }>> {
+): Promise<Map<string, LatestProgress>> {
 	if (backlogIds.length === 0) return new Map();
 
-	const rows = await BacklogProgress.findAll({
-		where: { backlogId: { [Op.in]: [...backlogIds] } },
-		order: [
-			["backlogId", "ASC"],
-			["createdAt", "DESC"]
-		],
-		raw: true
-	});
-
-	const map = new Map<string, { note: string; createdAt: Date }>();
-	for (const row of rows) {
-		if (!map.has(row.backlogId)) {
-			map.set(row.backlogId, {
-				note: row.note,
-				createdAt: row.createdAt
-			});
+	const rows = await sequelize.query<LatestProgressRow>(
+		`SELECT DISTINCT ON ("backlogId") "backlogId", "note", "createdAt"
+		 FROM "BacklogProgresses"
+		 WHERE "backlogId" IN (:backlogIds)
+		 ORDER BY "backlogId", "createdAt" DESC, "id" DESC`,
+		{
+			replacements: { backlogIds: [...backlogIds] },
+			type: QueryTypes.SELECT
 		}
-	}
-	return map;
+	);
+
+	return new Map(
+		rows.map(row => [
+			row.backlogId,
+			{ note: row.note, createdAt: row.createdAt }
+		])
+	);
 }
 
 export async function findProgressForBacklogs(backlogIds: readonly string[]) {

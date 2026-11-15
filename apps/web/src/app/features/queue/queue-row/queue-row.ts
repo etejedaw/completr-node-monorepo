@@ -9,14 +9,22 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { type QueueEntry } from "../../../core/models";
-import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
-import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
-import { UiIconButton } from "../../../shared/ui";
+import {
+	UiActionMenu,
+	type UiActionMenuItem,
+	UiIconButton
+} from "../../../shared/ui";
 
 @Component({
 	selector: "app-queue-row",
-	imports: [ActionMenu, CdkDragHandle, RouterLink, GamePoster, UiIconButton],
+	imports: [
+		UiActionMenu,
+		CdkDragHandle,
+		RouterLink,
+		GamePoster,
+		UiIconButton
+	],
 	templateUrl: "./queue-row.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -41,9 +49,9 @@ export class QueueRow {
 
 	protected readonly isTop = computed(() => this.entry().position <= 1);
 
-	protected readonly menuActions = computed<ActionMenuItem[]>(() => {
+	protected readonly menuActions = computed<UiActionMenuItem[]>(() => {
 		const favorite = this.isFavorite();
-		const actions: ActionMenuItem[] = [
+		const actions: UiActionMenuItem[] = [
 			{
 				id: "favorite",
 				icon: favorite ? "favorite" : "favorite_border",

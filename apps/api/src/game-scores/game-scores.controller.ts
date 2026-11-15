@@ -3,6 +3,7 @@ import { type Request, type Response } from "express";
 import { type RegisterGameScoreDto } from "./dtos/register-game-score.dto";
 import { type ReplaceGameScoresDto } from "./dtos/replace-game-scores.dto";
 import { type UpdateGameScoreDto } from "./dtos/update-game-score.dto";
+import { gameScoreSerializer } from "./game-scores.serializer";
 import * as gameScoresService from "./game-scores.service";
 import { type GameScoreIdParams } from "./schemas/game-score-id-params.schema";
 import { type GameScoreParams } from "./schemas/game-score-params.schema";
@@ -15,9 +16,7 @@ export async function postGameScore(request: Request, response: Response) {
 		registerGameScoreDto.source,
 		registerGameScoreDto.score
 	);
-	const gameScorePlain = gameScore.get({ plain: true });
-
-	const data = { gameScore: gameScorePlain };
+	const data = { gameScore: gameScoreSerializer(gameScore) };
 	return response.status(201).json({ data });
 }
 
@@ -30,9 +29,7 @@ export async function patchGameScore(request: Request, response: Response) {
 		params.source,
 		updateGameScoreDto.score
 	);
-	const gameScorePlain = gameScore.get({ plain: true });
-
-	const data = { gameScore: gameScorePlain };
+	const data = { gameScore: gameScoreSerializer(gameScore) };
 	return response.status(200).json({ data });
 }
 
@@ -44,9 +41,7 @@ export async function putGameScores(request: Request, response: Response) {
 		params.gameId,
 		replaceGameScoresDto.scores
 	);
-	const scoresPlain = scores.map(score => score.get({ plain: true }));
-
-	const data = { gameScores: scoresPlain };
+	const data = { gameScores: scores.map(gameScoreSerializer) };
 	return response.status(200).json({ data });
 }
 
@@ -54,9 +49,7 @@ export async function getGameScores(request: Request, response: Response) {
 	const params = request.locals.params as GameScoreParams;
 
 	const scores = await gameScoresService.findScoresByGameId(params.gameId);
-	const scoresPlain = scores.map(score => score.get({ plain: true }));
-
-	const data = { gameScores: scoresPlain };
+	const data = { gameScores: scores.map(gameScoreSerializer) };
 	return response.status(200).json({ data });
 }
 

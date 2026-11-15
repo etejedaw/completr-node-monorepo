@@ -12,8 +12,8 @@ const router = Router();
 router.get(
 	"/game-external/rawg/:slug",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ExternalSlugParamSchema, "params")
 	],
 	gameExternalController.getRawgBySlug
@@ -22,8 +22,8 @@ router.get(
 router.get(
 	"/game-external/igdb/:slug",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ExternalSlugParamSchema, "params")
 	],
 	gameExternalController.getIgdbBySlug

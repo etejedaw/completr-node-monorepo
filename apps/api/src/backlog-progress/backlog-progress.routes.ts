@@ -14,8 +14,8 @@ const router = Router();
 router.get(
 	"/users/me/backlog/:backlogId/progress",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(BacklogIdParamsSchema, "params")
 	],
 	backlogProgressController.getProgress
@@ -24,8 +24,8 @@ router.get(
 router.post(
 	"/users/me/backlog/:backlogId/progress",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(BacklogIdParamsSchema, "params"),
 		validateSchemaMiddleware(AddProgressSchema, "body")
 	],
@@ -35,8 +35,8 @@ router.post(
 router.delete(
 	"/users/me/backlog/:backlogId/progress/:noteId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(NoteIdParamsSchema, "params")
 	],
 	backlogProgressController.deleteProgress

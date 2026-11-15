@@ -1,3 +1,5 @@
+import { type Transaction } from "sequelize";
+
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import * as scoreSourcesServiceError from "./errors/score-sources.service-error";
 import { type RegisterScoreSourceDto } from "./register-score-source.dto";
@@ -21,17 +23,24 @@ export async function findByCodes(codes: string[]) {
 	return ScoreSource.findAll({ where: { code: codes } });
 }
 
-export async function findExistingCodes(codes: string[]): Promise<Set<string>> {
+export async function findExistingCodes(
+	codes: string[],
+	transaction?: Transaction
+): Promise<Set<string>> {
 	if (codes.length === 0) return new Set();
 	const sources = await ScoreSource.findAll({
 		where: { code: codes },
-		attributes: ["code"]
+		attributes: ["code"],
+		transaction
 	});
 	return new Set(sources.map(source => source.code));
 }
 
-export async function existsByCode(code: string): Promise<boolean> {
-	return (await findExistingCodes([code])).has(code);
+export async function existsByCode(
+	code: string,
+	transaction?: Transaction
+): Promise<boolean> {
+	return (await findExistingCodes([code], transaction)).has(code);
 }
 
 export async function create(dto: RegisterScoreSourceDto) {

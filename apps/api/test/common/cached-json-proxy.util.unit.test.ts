@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
+import { DomainError } from "../../src/common/errors/domain-error";
 import { createCachedJsonProxy } from "../../src/common/utils/cached-json-proxy.util";
 import { fakeRequest, fakeResponse } from "../unit-helpers/http-fakes";
 
@@ -19,6 +20,15 @@ async function callProxy(proxy: ReturnType<typeof createProxy>) {
 	const { response, captured } = fakeResponse();
 	await proxy(fakeRequest(), response);
 	return captured;
+}
+
+async function assertSourceUnavailable(call: Promise<unknown>) {
+	await assert.rejects(call, (error: unknown) => {
+		assert.ok(error instanceof DomainError);
+		assert.equal(error.code, "COMMON_SOURCE_UNAVAILABLE");
+		assert.equal(error.message, UNAVAILABLE_MESSAGE);
+		return true;
+	});
 }
 
 function jsonResponse(body: unknown, status = 200) {
@@ -127,15 +137,12 @@ void describe("createCachedJsonProxy", () => {
 		assert.deepEqual(second.body, { version: 1 });
 	});
 
-	void it("answers 503 with the unavailable message when the source fails and there is no cache", async () => {
+	void it("rejects with the unavailable error when the source fails and there is no cache", async () => {
 		stubFetch(async () => {
 			throw new TypeError("fetch failed");
 		});
 
-		const captured = await callProxy(createProxy());
-
-		assert.equal(captured.status, 503);
-		assert.deepEqual(captured.body, { error: UNAVAILABLE_MESSAGE });
+		await assertSourceUnavailable(callProxy(createProxy()));
 	});
 
 	void it("serves the stale cache when the source fails after the TTL", async () => {
@@ -155,13 +162,10 @@ void describe("createCachedJsonProxy", () => {
 		assert.deepEqual(captured.body, { version: 1 });
 	});
 
-	void it("answers 503 when the source returns a non-ok status and there is no cache", async () => {
+	void it("rejects with the unavailable error when the source returns a non-ok status and there is no cache", async () => {
 		stubFetch(async () => jsonResponse({ error: "boom" }, 500));
 
-		const captured = await callProxy(createProxy());
-
-		assert.equal(captured.status, 503);
-		assert.deepEqual(captured.body, { error: UNAVAILABLE_MESSAGE });
+		await assertSourceUnavailable(callProxy(createProxy()));
 	});
 
 	void it("serves the stale cache when the source returns a non-ok status after the TTL", async () => {
@@ -178,15 +182,12 @@ void describe("createCachedJsonProxy", () => {
 		assert.deepEqual(captured.body, { version: 1 });
 	});
 
-	void it("answers 503 when the source returns invalid JSON and there is no cache", async () => {
+	void it("rejects with the unavailable error when the source returns invalid JSON and there is no cache", async () => {
 		stubFetch(
 			async () => new Response("<html>not json</html>", { status: 200 })
 		);
 
-		const captured = await callProxy(createProxy());
-
-		assert.equal(captured.status, 503);
-		assert.deepEqual(captured.body, { error: UNAVAILABLE_MESSAGE });
+		await assertSourceUnavailable(callProxy(createProxy()));
 	});
 
 	void it("serves the stale cache when the source returns invalid JSON after the TTL", async () => {
@@ -214,7 +215,7 @@ void describe("createCachedJsonProxy", () => {
 			return jsonResponse({ version: 1 });
 		});
 		const proxy = createProxy();
-		await callProxy(proxy);
+		await assertSourceUnavailable(callProxy(proxy));
 
 		shouldFail = false;
 		const captured = await callProxy(proxy);

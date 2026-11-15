@@ -219,7 +219,7 @@ void describe("lists privacy and ownership", () => {
 		assert.equal(response.body.type, "LIST_NOT_FOUND");
 	});
 
-	void it("rejects editing another user's list with 403 LIST_FORBIDDEN", async () => {
+	void it("answers 404 LIST_NOT_FOUND when editing another user's list", async () => {
 		const owner = await createUserWithSession();
 		const intruder = await createUserWithSession();
 		const list = await createList(owner.user.id, scoreSource, {
@@ -230,14 +230,14 @@ void describe("lists privacy and ownership", () => {
 			.patch(`/lists/${list.id}`)
 			.set("Authorization", intruder.authorization)
 			.send({ name: "Hijacked" });
-		assert.equal(patched.status, 403);
-		assert.equal(patched.body.type, "LIST_FORBIDDEN");
+		assert.equal(patched.status, 404);
+		assert.equal(patched.body.type, "LIST_NOT_FOUND");
 
 		const deleted = await api()
 			.delete(`/lists/${list.id}`)
 			.set("Authorization", intruder.authorization);
-		assert.equal(deleted.status, 403);
-		assert.equal(deleted.body.type, "LIST_FORBIDDEN");
+		assert.equal(deleted.status, 404);
+		assert.equal(deleted.body.type, "LIST_NOT_FOUND");
 	});
 });
 
@@ -329,7 +329,7 @@ void describe("POST /lists/:listId/duplicate", () => {
 		assert.equal(copy.items[0].score, 4);
 	});
 
-	void it("rejects copying another user's private list with 403 LIST_FORBIDDEN", async () => {
+	void it("answers 404 LIST_NOT_FOUND when copying another user's private list", async () => {
 		const owner = await createUserWithSession();
 		const copier = await createUserWithSession();
 		const source = await createList(owner.user.id, scoreSource);
@@ -339,8 +339,8 @@ void describe("POST /lists/:listId/duplicate", () => {
 			.set("Authorization", copier.authorization)
 			.send({ name: "Sneaky copy" });
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "LIST_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "LIST_NOT_FOUND");
 	});
 
 	void it("answers 404 LIST_NOT_FOUND for an unknown list", async () => {
@@ -499,7 +499,7 @@ void describe("list items", () => {
 		assert.equal(response.body.type, "LIST_ITEM_LIST_NOT_FOUND");
 	});
 
-	void it("rejects touching another user's items with 403 LIST_ITEM_FORBIDDEN", async () => {
+	void it("answers 404 LIST_ITEM_LIST_NOT_FOUND when touching another user's items", async () => {
 		const owner = await createUserWithSession();
 		const intruder = await createUserWithSession();
 		const list = await createList(owner.user.id, scoreSource, {
@@ -512,8 +512,8 @@ void describe("list items", () => {
 			.set("Authorization", intruder.authorization)
 			.send({ gameId: game.id });
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "LIST_ITEM_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "LIST_ITEM_LIST_NOT_FOUND");
 	});
 
 	void it("removes an item", async () => {

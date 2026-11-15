@@ -31,6 +31,6 @@ docs: |-
 
     ### Errors
 
-    - 403 `LIST_FOLLOWER_NOT_PUBLIC` — Cannot follow a private list
-    - 404 `LIST_FOLLOWER_LIST_NOT_FOUND` — The list does not exist, or it is public but hidden from the requester by the owner's profile or lists section
+    - 403 `LIST_FOLLOWER_NOT_PUBLIC` — Cannot follow your own private list
+    - 404 `LIST_FOLLOWER_LIST_NOT_FOUND` — The list does not exist, is private and not yours, or is public but hidden from the requester by the owner's profile or lists section
     - 409 `LIST_FOLLOWER_ALREADY_FOLLOWING` — Already following this list

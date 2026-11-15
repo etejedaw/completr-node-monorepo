@@ -183,11 +183,11 @@ export class OnboardingTour {
 	readonly skip = output<void>();
 	readonly seeFullGuide = output<void>();
 
-	next() {
+	protected next() {
 		this.index.update(i => Math.min(i + 1, this.steps.length - 1));
 	}
 
-	prev() {
+	protected prev() {
 		this.index.update(i => Math.max(i - 1, 0));
 	}
 }

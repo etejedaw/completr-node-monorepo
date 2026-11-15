@@ -36,7 +36,7 @@ docs: |-
 
     | Param | Type   | Required | Description                                         |
     |-------|--------|----------|-----------------------------------------------------|
-    | hard  | string | No       | `true` for physical delete, only when the game has no user data (admin only) |
+    | hard  | bool   | No       | `true` for physical delete, only when the game has no user data (admin only). Any other value than a boolean string is rejected with 422 `COMMON_SCHEMA_INVALID` |
 
     ### Soft delete (default)
 

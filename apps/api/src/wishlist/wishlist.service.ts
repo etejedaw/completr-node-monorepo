@@ -7,39 +7,58 @@ import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-qu
 import { buildPlatformFilterWhere } from "../common/utils/platform-filter-where.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
-import { Game } from "../games/game.model";
 import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
-import { Platform } from "../platforms/platform.model";
 import * as platformsService from "../platforms/platforms.service";
-import { resolvePremiumAccess } from "../premium-access/premium-access.service";
+import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import * as wishlistServiceError from "./errors/wishlist.service-error";
+import { FREE_WISHLIST_LIMIT, WISHLIST_ORDER } from "./wishlist.constants";
 import { Wishlist } from "./wishlist.model";
 
-const FREE_WISHLIST_LIMIT = 20;
-const INCLUDE = [{ model: Game }, { model: Platform }];
+function wishlistInclude() {
+	return [gamesService.gameInclude(), platformsService.platformInclude()];
+}
+
+async function lockUserWishlist(userId: string, transaction: Transaction) {
+	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
+		replacements: { lockKey: `wishlist:${userId}` },
+		transaction
+	});
+}
+
+async function compactPositions(userId: string, transaction: Transaction) {
+	await sequelize.query(
+		`UPDATE "Wishlists" AS w
+		SET "position" = ranked."position", "updatedAt" = NOW()
+		FROM (
+			SELECT "id", ROW_NUMBER() OVER (ORDER BY "position", "createdAt", "id") AS "position"
+			FROM "Wishlists"
+			WHERE "userId" = :userId
+		) AS ranked
+		WHERE w."id" = ranked."id" AND w."position" <> ranked."position"`,
+		{ replacements: { userId }, transaction }
+	);
+}
 
 export async function replaceWishlist(user: RequestUser, gameIds: string[]) {
-	if (gameIds.length === 0) {
-		await Wishlist.destroy({ where: { userId: user.id } });
-		return [];
-	}
+	if (gameIds.length > 0) {
+		const premiumAccess = await resolvePremiumAccess(
+			user,
+			"wishlist.unlimited"
+		);
+		if (!premiumAccess.allowed && gameIds.length > FREE_WISHLIST_LIMIT)
+			throw wishlistServiceError.limitReachedError();
 
-	const premiumAccess = await resolvePremiumAccess(
-		user,
-		"wishlist.unlimited"
-	);
-	if (!premiumAccess.allowed && gameIds.length > FREE_WISHLIST_LIMIT)
-		throw wishlistServiceError.limitReachedError();
-
-	const games = await gamesService.findGamesByIds(gameIds);
-	if (games.length !== gameIds.length) {
-		const foundIds = new Set(games.map(g => g.id));
-		const missing = gameIds.filter(id => !foundIds.has(id));
-		throw wishlistServiceError.gamesNotFoundError(missing);
+		const games = await gamesService.findGamesByIds(gameIds);
+		if (games.length !== gameIds.length) {
+			const foundIds = new Set(games.map(g => g.id));
+			const missing = gameIds.filter(id => !foundIds.has(id));
+			throw wishlistServiceError.gamesNotFoundError(missing);
+		}
 	}
 
 	await sequelize.transaction(async transaction => {
+		await lockUserWishlist(user.id, transaction);
 		const current = await Wishlist.findAll({
 			where: { userId: user.id },
 			attributes: ["gameId", "platformId"],
@@ -50,23 +69,64 @@ export async function replaceWishlist(user: RequestUser, gameIds: string[]) {
 		);
 
 		await Wishlist.destroy({ where: { userId: user.id }, transaction });
-
-		const entries = gameIds.map((gameId, index) => ({
-			userId: user.id,
-			gameId,
-			platformId: platformByGameId.get(gameId) ?? null,
-			position: index + 1
-		}));
-		await Wishlist.bulkCreate(entries, { transaction });
+		await Wishlist.bulkCreate(
+			gameIds.map((gameId, index) => ({
+				userId: user.id,
+				gameId,
+				platformId: platformByGameId.get(gameId) ?? null,
+				position: index + 1
+			})),
+			{ transaction }
+		);
 	});
 
+	if (gameIds.length === 0) return [];
 	return Wishlist.findAll({
 		where: { userId: user.id },
-		include: INCLUDE,
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
+		include: wishlistInclude(),
+		order: WISHLIST_ORDER
+	});
+}
+
+async function addEntry(
+	user: RequestUser,
+	gameId: string,
+	platformId: string | null,
+	unlimited: boolean,
+	transaction: Transaction
+) {
+	await lockUserWishlist(user.id, transaction);
+
+	const existing = await Wishlist.findOne({
+		where: { userId: user.id, gameId },
+		transaction
+	});
+	if (existing) throw wishlistServiceError.alreadyExistsError();
+
+	const count = await Wishlist.count({
+		where: { userId: user.id },
+		transaction
+	});
+	if (!unlimited && count >= FREE_WISHLIST_LIMIT)
+		throw wishlistServiceError.limitReachedError();
+
+	const lastPosition = await Wishlist.max<number | null, Wishlist>(
+		"position",
+		{ where: { userId: user.id }, transaction }
+	);
+	await Wishlist.create(
+		{
+			userId: user.id,
+			gameId,
+			platformId,
+			position: (lastPosition ?? 0) + 1
+		},
+		{ transaction }
+	);
+	return Wishlist.findOne({
+		where: { userId: user.id, gameId },
+		include: wishlistInclude(),
+		transaction
 	});
 }
 
@@ -83,30 +143,21 @@ export async function addToWishlist(
 		if (!platform) throw wishlistServiceError.platformNotFoundError();
 	}
 
-	const existing = await Wishlist.findOne({
-		where: { userId: user.id, gameId }
-	});
-	if (existing) throw wishlistServiceError.alreadyExistsError();
-
 	const premiumAccess = await resolvePremiumAccess(
 		user,
 		"wishlist.unlimited"
 	);
-	const count = await Wishlist.count({ where: { userId: user.id } });
-	if (!premiumAccess.allowed && count >= FREE_WISHLIST_LIMIT)
-		throw wishlistServiceError.limitReachedError();
 
 	try {
-		await Wishlist.create({
-			userId: user.id,
-			gameId,
-			platformId: platformId ?? null,
-			position: count + 1
-		});
-		return Wishlist.findOne({
-			where: { userId: user.id, gameId },
-			include: INCLUDE
-		});
+		return await sequelize.transaction(transaction =>
+			addEntry(
+				user,
+				gameId,
+				platformId ?? null,
+				premiumAccess.allowed,
+				transaction
+			)
+		);
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: () => wishlistServiceError.alreadyExistsError()
@@ -115,10 +166,15 @@ export async function addToWishlist(
 }
 
 export async function removeFromWishlist(user: RequestUser, gameId: string) {
-	const deleted = await Wishlist.destroy({
-		where: { userId: user.id, gameId }
+	await sequelize.transaction(async transaction => {
+		await lockUserWishlist(user.id, transaction);
+		const deleted = await Wishlist.destroy({
+			where: { userId: user.id, gameId },
+			transaction
+		});
+		if (deleted === 0) throw wishlistServiceError.notFoundError();
+		await compactPositions(user.id, transaction);
 	});
-	if (deleted === 0) throw wishlistServiceError.notFoundError();
 }
 
 export async function findWishlistByUserId(userId: string) {
@@ -140,14 +196,11 @@ export async function findGameEntriesByUserId(
 		attributes: ["gameId"],
 		include: [
 			{
-				model: Game,
+				...gamesService.gameInclude(),
 				attributes: ["id", "code", "title", "backgroundUrl"]
 			}
 		],
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
+		order: WISHLIST_ORDER
 	});
 }
 
@@ -155,7 +208,7 @@ export async function findWishlistByUserIdPaginated(
 	userId: string,
 	pagination: PaginatedSearchQuery = {}
 ) {
-	const gameInclude: Record<string, unknown> = { model: Game };
+	const gameInclude: Record<string, unknown> = { ...gamesService.gameInclude() };
 	const titleWhere = pagination.search
 		? buildTextSearchWhere(pagination.search, ["Game.title"])
 		: null;
@@ -166,11 +219,8 @@ export async function findWishlistByUserIdPaginated(
 
 	const query: Record<string, unknown> = {
 		where: { userId },
-		include: [gameInclude, { model: Platform }],
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
+		include: [gameInclude, { ...platformsService.platformInclude() }],
+		order: WISHLIST_ORDER
 	};
 	if (pagination.limit) query.limit = pagination.limit;
 	if (pagination.offset) query.offset = pagination.offset;
@@ -191,16 +241,13 @@ export async function findWishlistForExport(
 		where: { userId, ...buildPlatformFilterWhere(filters.platform) },
 		include: [
 			{
-				model: Game,
+				...gamesService.gameInclude(),
 				attributes: ["id", "title"],
 				...(titleWhere && { required: true, where: titleWhere })
 			},
-			{ model: Platform, attributes: ["id", "name"] }
+			{ ...platformsService.platformInclude(), attributes: ["id", "name"] }
 		],
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
+		order: WISHLIST_ORDER
 	});
 }
 
@@ -221,12 +268,9 @@ export async function findWishlistForDataExport(userId: string) {
 	return Wishlist.findAll({
 		where: { userId },
 		include: [
-			{ model: Game, attributes: GAME_REFERENCE_ATTRS },
-			{ model: Platform, attributes: ["id", "name"] }
+			{ ...gamesService.gameInclude(), attributes: GAME_REFERENCE_ATTRS },
+			{ ...platformsService.platformInclude(), attributes: ["id", "name"] }
 		],
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
+		order: WISHLIST_ORDER
 	});
 }

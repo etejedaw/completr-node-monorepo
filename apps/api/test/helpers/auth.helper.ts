@@ -14,6 +14,8 @@ export interface Session {
 	refreshCookie: string;
 }
 
+export type Account = Awaited<ReturnType<typeof createUserWithSession>>;
+
 export function bearer(accessToken: string) {
 	return `Bearer ${accessToken}`;
 }

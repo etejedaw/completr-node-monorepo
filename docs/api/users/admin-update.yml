@@ -43,7 +43,7 @@ docs: |-
     | Field    | Type                                          | Required | Description                                    |
     |----------|-----------------------------------------------|----------|------------------------------------------------|
     | name     | string                                        | No       | 1-100 characters, must not contain `<` or `>`  |
-    | password | string                                        | No       | 8-128 characters, stored hashed                |
+    | password | string                                        | No       | Follows the password policy (8-15 chars, uppercase, lowercase, number, special), stored hashed                |
     | role     | `user` \| `premium` \| `moderator` \| `admin` | No       | New role                                       |
     | isActive | boolean                                       | No       | Activate or deactivate the account             |
 

@@ -3,6 +3,7 @@ import { type Signal } from "@angular/core";
 export interface RewindShareTarget {
 	username: string;
 	year: number;
+	design: string;
 }
 
 export interface RewindStoryImage {

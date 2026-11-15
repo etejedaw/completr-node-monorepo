@@ -1,6 +1,6 @@
 import z from "zod";
 
-import { COMPLETR_SCORE_SOURCE } from "./score-source.constants";
+import { COMPLETR_SCORE_SOURCE } from "./score-sources.constants";
 
 export const ScoreSourceCodeSchema = z.string().trim().min(1).max(50);
 

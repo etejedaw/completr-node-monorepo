@@ -29,5 +29,5 @@ docs: |-
 
     ### Errors
 
-    - 403 `LIST_FORBIDDEN` — Not the owner
+    - 404 `LIST_NOT_FOUND` — The list does not exist or is not yours
     - 404 `LIST_NOT_FOUND`

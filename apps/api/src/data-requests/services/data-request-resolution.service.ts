@@ -49,14 +49,7 @@ async function completeDeletion(request: DataRequest, adminId: string) {
 		request.userId,
 		adminId
 	);
-	await dataRequestMailService.notifyRequesterOfResolution(
-		{
-			...request.get({ plain: true }),
-			status: "completed",
-			resolvedAt: new Date()
-		},
-		requester
-	);
+	const recipient = { username: requester.username, email: requester.email };
 	const resolved = await usersDeletionService.deleteAccount(
 		requester,
 		adminId,
@@ -66,6 +59,10 @@ async function completeDeletion(request: DataRequest, adminId: string) {
 				completion,
 				transaction
 			)
+	);
+	await dataRequestMailService.notifyRequesterOfResolution(
+		resolved,
+		recipient
 	);
 	recordResolution(adminId, resolved);
 	return resolved;

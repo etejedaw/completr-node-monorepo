@@ -2,7 +2,10 @@ import { Router } from "express";
 
 import { authMiddleware } from "../auth/auth.middleware";
 import { hiddenRouteMiddleware } from "../auth/hidden-route.middleware";
-import { userLimiter } from "../common/config/rate-limiter.config";
+import {
+	dataExportLimiter,
+	userLimiter
+} from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import * as dataRequestsController from "./data-requests.controller";
@@ -17,8 +20,8 @@ const router = Router();
 router.post(
 	"/users/me/data-requests",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(CreateDataRequestSchema, "body")
 	],
 	dataRequestsController.postDataRequest
@@ -26,15 +29,15 @@ router.post(
 
 router.get(
 	"/users/me/data-requests",
-	[rateLimiterMiddleware(userLimiter), authMiddleware()],
+	[authMiddleware(), rateLimiterMiddleware(userLimiter)],
 	dataRequestsController.getDataRequests
 );
 
 router.get(
 	"/users/me/data-requests/:requestId/download",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(dataExportLimiter),
 		validateSchemaMiddleware(DataRequestIdParamSchema, "params")
 	],
 	dataRequestsController.getDataRequestDownload
@@ -43,8 +46,8 @@ router.get(
 router.get(
 	"/admin/data-requests",
 	[
-		rateLimiterMiddleware(userLimiter),
 		hiddenRouteMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(AdminDataRequestsQuerySchema, "query")
 	],
 	dataRequestsAdminController.getAdminDataRequests
@@ -53,8 +56,8 @@ router.get(
 router.post(
 	"/admin/data-requests/:requestId/complete",
 	[
-		rateLimiterMiddleware(userLimiter),
 		hiddenRouteMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(DataRequestIdParamSchema, "params")
 	],
 	dataRequestsAdminController.postCompleteDataRequest
@@ -63,8 +66,8 @@ router.post(
 router.post(
 	"/admin/data-requests/:requestId/reject",
 	[
-		rateLimiterMiddleware(userLimiter),
 		hiddenRouteMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(DataRequestIdParamSchema, "params"),
 		validateSchemaMiddleware(RejectDataRequestSchema, "body")
 	],

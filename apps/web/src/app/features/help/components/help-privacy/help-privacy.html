@@ -1,0 +1,78 @@
+<section
+	id="privacy"
+	aria-labelledby="privacy-title"
+	class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
+	appInView
+	inViewRootMargin="-30% 0px -65% 0px"
+	(inViewChange)="scrollSpy().onSectionInView('privacy', $event)"
+>
+	<span uiEyebrow tone="brand">08 · Privacy</span>
+	<h2
+		id="privacy-title"
+		class="font-display m-0 mt-1 text-2xl sm:text-3xl font-bold tracking-tight"
+	>
+		You decide who sees what
+	</h2>
+	<p
+		class="m-0 mt-4 max-w-[68ch] text-lead leading-relaxed text-fg-secondary"
+	>
+		Choose a level for your whole profile, or fine-tune each section on its
+		own: My Games, My Shelf, Platinums, Sagas, Rewind, Up Next, Want to Get,
+		Favorites, Lists and your activity in other people's feeds.
+	</p>
+	<p
+		class="m-0 mt-3 max-w-[68ch] text-lead leading-relaxed text-fg-secondary"
+	>
+		Your profile is the front door: people who can't open it see none of its
+		sections. Your Rewind is the one exception: anyone with its link can
+		open it at its own level, even if your profile is private, but it never
+		appears in your profile or in your archive of years, and your platinums
+		stay hidden.
+	</p>
+	<ul class="m-0 mt-6 p-0 list-none grid gap-3 sm:grid-cols-3">
+		<li class="p-4 rounded-card border border-line bg-surface/40">
+			<span class="flex items-center gap-2 text-sm font-semibold text-fg">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-success"
+					>public</span
+				>
+				Everyone
+			</span>
+			<p class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed">
+				Anyone, even visitors without an account.
+			</p>
+		</li>
+		<li class="p-4 rounded-card border border-line bg-surface/40">
+			<span class="flex items-center gap-2 text-sm font-semibold text-fg">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-info"
+					>group</span
+				>
+				Friends
+			</span>
+			<p class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed">
+				Only people you follow and who follow you back.
+			</p>
+		</li>
+		<li class="p-4 rounded-card border border-line bg-surface/40">
+			<span class="flex items-center gap-2 text-sm font-semibold text-fg">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-fg-muted"
+					>lock</span
+				>
+				Only you
+			</span>
+			<p class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed">
+				Hidden from everyone else. Hidden sections don't appear on your
+				profile at all.
+			</p>
+		</li>
+	</ul>
+	<a uiButton variant="secondary" routerLink="/settings/privacy" class="mt-5">
+		<span aria-hidden="true" class="material-icons text-base">shield</span>
+		Open privacy settings
+	</a>
+</section>

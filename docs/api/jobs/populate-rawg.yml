@@ -30,7 +30,7 @@ docs: |-
 
     | Param | Type | Required | Description                                              |
     |-------|------|----------|----------------------------------------------------------|
-    | limit | int  | No       | Max number of games to process this run. Omit for all.   |
+    | limit | int  | No       | Positive integer. Max number of games to process this run. Omit for all.   |
 
     ### Response (202)
 

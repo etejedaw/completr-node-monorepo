@@ -54,7 +54,6 @@ export async function patchPlatform(request: Request, response: Response) {
 		platformId,
 		updatePlatformDto
 	);
-	if (!platform) throw platformDomainError.platformNotFound();
 
 	const platformPlain = platform.get({ plain: true });
 

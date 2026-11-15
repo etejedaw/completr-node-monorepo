@@ -1,0 +1,138 @@
+<section
+	id="ratio"
+	aria-labelledby="ratio-title"
+	class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
+	appInView
+	inViewRootMargin="-30% 0px -65% 0px"
+	(inViewChange)="scrollSpy().onSectionInView('ratio', $event)"
+>
+	<span uiEyebrow tone="brand">02 · Ratio</span>
+	<h2
+		id="ratio-title"
+		class="font-display m-0 mt-1 text-2xl sm:text-3xl font-bold tracking-tight"
+	>
+		How much a game gives back per hour
+	</h2>
+	<p
+		class="m-0 mt-4 max-w-[68ch] text-lead leading-relaxed text-fg-secondary"
+	>
+		The ratio is Completr's signature number. It weighs how good a game is
+		against how long it takes to beat.
+		<strong class="text-fg">Higher means more value per hour</strong>, which
+		makes it a great way to choose what to play next.
+	</p>
+
+	<div
+		class="mt-6 p-5 sm:p-6 rounded-card border border-brand/30 bg-brand-subtle/40"
+	>
+		<p
+			class="m-0 flex flex-wrap items-baseline gap-x-3 gap-y-1 font-display text-2xl sm:text-4xl font-bold tracking-tight"
+		>
+			<span
+				>Score
+				<span
+					class="font-sans text-xs sm:text-sm font-medium tracking-normal text-fg-muted tabular-nums"
+					>(1–5)</span
+				></span
+			>
+			<span aria-hidden="true" class="text-fg-muted">÷</span>
+			<span class="sr-only">divided by</span>
+			<span>Hours</span>
+			<span aria-hidden="true" class="text-fg-muted">×</span>
+			<span class="sr-only">times</span>
+			<span class="tabular-nums">20</span>
+			<span aria-hidden="true" class="text-fg-muted">=</span>
+			<span class="sr-only">equals</span>
+			<span class="text-brand">Ratio</span>
+		</p>
+		<dl class="m-0 mt-5 grid gap-4 sm:grid-cols-2 text-sm leading-relaxed">
+			<div>
+				<dt class="font-semibold text-fg">Score, on a 1–5 scale</dt>
+				<dd class="m-0 mt-1 text-fg-secondary">
+					Every source rates on its own scale, so scores are
+					normalized first to fit 1–5: 82/100 becomes 4.1 and 6/7
+					becomes 4.29. A score that is already out of 5 is used as
+					is.
+				</dd>
+			</div>
+			<div>
+				<dt class="font-semibold text-fg">Why × 20</dt>
+				<dd class="m-0 mt-1 text-fg-secondary">
+					Once the score is on 1–5, the result is multiplied by 20 so
+					it reads as a 0–100 number. Bigger numbers leave more room
+					to tell games apart: a five-star game you beat in one hour
+					sits at 100, the practical maximum.
+				</dd>
+			</div>
+		</dl>
+	</div>
+
+	<h3 class="m-0 mt-8 text-sm font-semibold text-fg">
+		Same score, very different value
+	</h3>
+	<ul class="m-0 mt-3 p-0 list-none flex flex-col divide-y divide-line">
+		<li class="flex items-center gap-4 py-3">
+			<app-game-poster
+				[src]="null"
+				title="Florence"
+				[width]="420"
+				[compact]="true"
+				class="w-10 aspect-[2/3] shrink-0 rounded overflow-hidden"
+			/>
+			<div class="flex-1 min-w-0">
+				<p class="m-0 text-sm font-medium text-fg">Florence</p>
+				<p class="m-0 text-xs text-fg-muted tabular-nums">
+					4.1 ★ · 1 h
+				</p>
+				<ui-progress aria-hidden="true" class="mt-2" [value]="82" />
+			</div>
+			<span
+				class="font-display text-2xl font-bold text-brand tabular-nums"
+				>82</span
+			>
+		</li>
+		<li class="flex items-center gap-4 py-3">
+			<app-game-poster
+				[src]="null"
+				title="Epic JRPG"
+				[width]="420"
+				[compact]="true"
+				class="w-10 aspect-[2/3] shrink-0 rounded overflow-hidden"
+			/>
+			<div class="flex-1 min-w-0">
+				<p class="m-0 text-sm font-medium text-fg">Epic JRPG</p>
+				<p class="m-0 text-xs text-fg-muted tabular-nums">
+					4.1 ★ · 100 h
+				</p>
+				<ui-progress aria-hidden="true" class="mt-2" [value]="1" />
+			</div>
+			<span
+				class="font-display text-2xl font-bold text-fg-secondary tabular-nums"
+				>0.82</span
+			>
+		</li>
+	</ul>
+
+	<div
+		class="mt-8 grid gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-center p-5 rounded-card border border-line bg-surface"
+	>
+		<div>
+			<h3 class="m-0 text-base font-semibold text-fg">
+				Your personal ratio
+			</h3>
+			<p
+				class="m-0 mt-2 max-w-[60ch] text-sm leading-relaxed text-fg-secondary"
+			>
+				When you complete a run, Completr runs the same math with
+				<strong class="text-fg">your rating</strong> and
+				<strong class="text-fg">your real hours</strong>. The arrow
+				tells you if the game was worth more or less to you than
+				estimated.
+			</p>
+		</div>
+		<div class="flex flex-wrap gap-x-8 gap-y-4">
+			<app-ratio-summary [ratio]="40" [personalRatio]="52" />
+			<app-ratio-summary [ratio]="82" [personalRatio]="75" />
+		</div>
+	</div>
+</section>

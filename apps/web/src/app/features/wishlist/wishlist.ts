@@ -93,7 +93,12 @@ export class WishlistService {
 		return this.http.delete<void>(`${this.baseUrl}/${gameId}`).pipe(
 			tap(() => {
 				this._wishlist.set(
-					this._wishlist().filter(w => w.game.id !== gameId)
+					this._wishlist()
+						.filter(w => w.game.id !== gameId)
+						.map((entry, index) => ({
+							...entry,
+							position: index + 1
+						}))
 				);
 				const next = new Set(this._gameIds());
 				next.delete(gameId);
@@ -106,18 +111,5 @@ export class WishlistService {
 		return this.isInWishlist(gameId)
 			? this.remove(gameId)
 			: this.add(gameId).pipe(map(() => undefined));
-	}
-
-	replaceWishlist(gameIds: string[]) {
-		return this.http.put<WishlistResponse>(this.baseUrl, { gameIds }).pipe(
-			tap(res => {
-				this._wishlist.set(res.data.wishlist);
-				this.idsLoaded = true;
-				this._gameIds.set(
-					new Set(res.data.wishlist.map(w => w.game.id))
-				);
-			}),
-			map(res => res.data.wishlist)
-		);
 	}
 }

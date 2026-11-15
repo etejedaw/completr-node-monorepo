@@ -17,13 +17,13 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type WishlistEntry } from "../../../core/models";
-import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
+import { UiToastContainer } from "../../../shared/ui";
 import { WishlistView } from "./wishlist-view";
 
 @Component({
 	selector: "app-wishlist-host",
-	imports: [WishlistView, ToastContainer],
-	template: `<app-wishlist-view /><app-toast-container />`,
+	imports: [WishlistView, UiToastContainer],
+	template: `<app-wishlist-view /><ui-toast-container />`,
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 class WishlistHost {}

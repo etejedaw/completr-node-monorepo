@@ -2,6 +2,7 @@ import { Op } from "sequelize";
 
 import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
+import { sequelize } from "../database/sequelize.database";
 import * as userFollowersService from "../user-followers/user-followers.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { User } from "../users/user.model";
@@ -64,24 +65,29 @@ export async function listIncomingRequests(targetId: string) {
 	});
 }
 
-export async function countIncomingRequests(targetId: string) {
-	return UserFollowRequest.count({ where: { targetId } });
-}
-
 export async function acceptRequest(targetId: string, requesterId: string) {
-	const request = await UserFollowRequest.findOne({
-		where: { targetId, requesterId }
-	});
-	if (!request) throw serviceError.notFoundError();
+	return sequelize.transaction(async transaction => {
+		const request = await UserFollowRequest.findOne({
+			where: { targetId, requesterId },
+			lock: transaction.LOCK.UPDATE,
+			transaction
+		});
+		if (!request) throw serviceError.notFoundError();
 
-	const existing = await userFollowersService.findFollow(
-		requesterId,
-		targetId
-	);
-	if (!existing) {
-		await userFollowersService.createFollow(requesterId, targetId);
-	}
-	await request.destroy();
+		const existing = await userFollowersService.findFollow(
+			requesterId,
+			targetId,
+			transaction
+		);
+		if (!existing)
+			await userFollowersService.createFollow(
+				requesterId,
+				targetId,
+				transaction
+			);
+		await request.destroy({ transaction });
+		return { followCreated: !existing };
+	});
 }
 
 export async function rejectRequest(targetId: string, requesterId: string) {

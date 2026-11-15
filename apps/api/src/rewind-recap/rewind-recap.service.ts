@@ -1,8 +1,7 @@
-import { environmentConfig } from "../common/config/environment.config";
 import { iaProvider } from "../ia/ia.provider";
 import { type RewindLanguage } from "../rewind/rewind.constants";
 import { type RewindAiRecap } from "../rewind/rewind.interface";
-import { resolveRewindToday } from "../rewind/utils/resolve-rewind-today.util";
+import { resolveCurrentRewindDay } from "../rewind/utils/resolve-current-rewind-day.util";
 import { type RewindRecapInput } from "./rewind-recap.interface";
 import { buildRewindRecapInstructions } from "./rewind-recap.prompt";
 import { RewindAiRecapSchema } from "./schemas/rewind-ai-recap.schema";
@@ -15,12 +14,6 @@ const REWIND_AI_RECAP_REQUEST = {
 	temperature: 0.5,
 	timeoutMs: 25_000
 };
-
-function rewindTodayOverride(): string | undefined {
-	return environmentConfig.NODE_ENV === "prod"
-		? undefined
-		: environmentConfig.REWIND_TODAY;
-}
 
 function cleanText(language: RewindLanguage) {
 	return (text: string) => {
@@ -52,7 +45,7 @@ function cleanRecap(
 export async function generateRewindAiRecap(
 	input: RewindRecapInput
 ): Promise<RewindAiRecap> {
-	const today = resolveRewindToday(rewindTodayOverride(), new Date());
+	const today = resolveCurrentRewindDay();
 	const recap = await iaProvider.generateJson(RewindAiRecapSchema, {
 		...REWIND_AI_RECAP_REQUEST,
 		instructions: buildRewindRecapInstructions(input.language),

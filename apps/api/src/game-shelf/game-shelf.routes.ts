@@ -9,7 +9,6 @@ import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middle
 import { validateBulkBodyMiddleware } from "../common/middlewares/validate-bulk-body.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import { ExportPlatformSearchQuerySchema } from "../common/schemas/export-platform-search-query.schema";
-import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
 import * as gameShelfController from "./game-shelf.controller";
 import { BulkDeleteGameShelfSchema } from "./schemas/bulk-delete-game-shelf.schema";
 import {
@@ -17,6 +16,7 @@ import {
 	GameShelfBulkQuerySchema
 } from "./schemas/game-shelf-bulk-query.schema";
 import { GameShelfIdParamSchema } from "./schemas/game-shelf-id-params.schema";
+import { GameShelfQuerySchema } from "./schemas/game-shelf-query.schema";
 import { RegisterGameShelfSchema } from "./schemas/register-game-shelf.schema";
 import { UpdateGameShelfSchema } from "./schemas/update-game-shelf.schema";
 
@@ -25,8 +25,8 @@ const router = Router({ mergeParams: true });
 router.post(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(RegisterGameShelfSchema, "body")
 	],
 	gameShelfController.postGameShelf
@@ -35,8 +35,8 @@ router.post(
 router.post(
 	"/bulk",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameShelfBulkQuerySchema, "query"),
 		validateBulkBodyMiddleware({
 			delete: BulkDeleteGameShelfSchema
@@ -48,9 +48,9 @@ router.post(
 router.get(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
-		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
+		rateLimiterMiddleware(userLimiter),
+		validateSchemaMiddleware(GameShelfQuerySchema, "query")
 	],
 	gameShelfController.getMeGameShelf
 );
@@ -58,8 +58,8 @@ router.get(
 router.patch(
 	"/:gameShelfId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameShelfIdParamSchema, "params"),
 		validateSchemaMiddleware(UpdateGameShelfSchema, "body")
 	],
@@ -69,8 +69,8 @@ router.patch(
 router.delete(
 	"/:gameShelfId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameShelfIdParamSchema, "params")
 	],
 	gameShelfController.deleteGameShelf
@@ -79,8 +79,8 @@ router.delete(
 router.get(
 	"/export",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ExportPlatformSearchQuerySchema, "query"),
 		exportFormatNegotiationMiddleware,
 		exportFormatAccessMiddleware

@@ -3,11 +3,13 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	effect,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
 import { type BulkResult, type GameShelfEntry } from "../../../core/models";
@@ -53,6 +55,7 @@ import { uniqueGameIds } from "../../../shared/utils/backlog-eligibility";
 import { countOf } from "../../../shared/utils/bulk-feedback";
 import { injectBulkRemoval } from "../../../shared/utils/bulk-removal";
 import { injectBulkRunner } from "../../../shared/utils/bulk-runner";
+import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { injectRowSelection } from "../../../shared/utils/row-selection";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { FavoritesService } from "../../favorites/favorites";
@@ -112,14 +115,17 @@ function readStoredViewMode(): ShelfViewMode {
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GameShelfList implements OnInit {
+	private readonly destroyRef = inject(DestroyRef);
 	private readonly shelfService = inject(GameShelfService);
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly wishlistService = inject(WishlistService);
+	private readonly wishlistToggle = injectToggleAction();
+	private readonly favoriteToggle = injectToggleAction();
 	private readonly dialogs = inject(DialogService);
+	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly openBacklogQuickAdd = injectBacklogQuickAdd(() =>
 		this.loadShelf()
 	);
-	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly viewModes = VIEW_MODES;
 
 	protected readonly allEntries = signal<GameShelfEntry[]>([]);
@@ -272,7 +278,11 @@ export class GameShelfList implements OnInit {
 
 	ngOnInit() {
 		this.searchSubject
-			.pipe(debounceTime(300), distinctUntilChanged())
+			.pipe(
+				debounceTime(300),
+				distinctUntilChanged(),
+				takeUntilDestroyed(this.destroyRef)
+			)
 			.subscribe(() => {
 				this.offset.set(0);
 				this.loadShelf();
@@ -282,23 +292,31 @@ export class GameShelfList implements OnInit {
 		this.loadShelf();
 	}
 
-	isInWishlist(gameId: string): boolean {
+	protected isInWishlist(gameId: string): boolean {
 		return this.wishlistService.isInWishlist(gameId);
 	}
 
-	toggleWishlist(gameId: string) {
-		this.wishlistService.toggle(gameId).subscribe();
+	protected toggleWishlist(gameId: string) {
+		this.wishlistToggle.run({
+			key: gameId,
+			request: this.wishlistService.toggle(gameId),
+			failureMessage: "Couldn't update Want to Get. Try again."
+		});
 	}
 
-	isFavorite(gameId: string): boolean {
+	protected isFavorite(gameId: string): boolean {
 		return this.favoritesService.isFavorite(gameId);
 	}
 
-	toggleFavorite(gameId: string) {
-		this.favoritesService.toggle(gameId).subscribe();
+	protected toggleFavorite(gameId: string) {
+		this.favoriteToggle.run({
+			key: gameId,
+			request: this.favoritesService.toggle(gameId),
+			failureMessage: "Couldn't update your favorites. Try again."
+		});
 	}
 
-	onSearch(query: string) {
+	protected onSearch(query: string) {
 		this.searchQuery.set(query);
 		if (!query.trim()) {
 			this.offset.set(0);
@@ -308,18 +326,18 @@ export class GameShelfList implements OnInit {
 		this.searchSubject.next(query);
 	}
 
-	clearSearchAndFilter() {
+	protected clearSearchAndFilter() {
 		this.searchQuery.set("");
 		this.selectedPlatform.set("");
 		this.offset.set(0);
 		this.loadShelf();
 	}
 
-	openCreate() {
+	protected openCreate() {
 		this.openModal(null);
 	}
 
-	openEdit(entry: GameShelfEntry) {
+	protected openEdit(entry: GameShelfEntry) {
 		this.openModal(entry);
 	}
 
@@ -333,7 +351,7 @@ export class GameShelfList implements OnInit {
 		});
 	}
 
-	onOffsetChange(offset: number) {
+	protected onOffsetChange(offset: number) {
 		this.offset.set(offset);
 		this.loadShelf();
 	}

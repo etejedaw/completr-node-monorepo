@@ -11,15 +11,6 @@ export function reviewNotFound(context?: Record<string, unknown>) {
 	);
 }
 
-export function reviewForbidden(context?: Record<string, unknown>) {
-	return new DomainError(
-		MODULE_NAME,
-		"REVIEW_FORBIDDEN",
-		"Cannot modify another user's review",
-		context
-	);
-}
-
 export function reviewAlreadyExists(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

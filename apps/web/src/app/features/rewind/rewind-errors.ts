@@ -15,23 +15,50 @@ export function rewindLoadError(error: unknown): RewindLoadError | null {
 	return "failed";
 }
 
+const PERIOD_CLOSED_ERROR_TYPE = "REWIND_PERIOD_CLOSED";
+const YEAR_REQUIRES_PREMIUM_ERROR_TYPE = "REWIND_YEAR_REQUIRES_PREMIUM";
+const REGENERATION_LIMIT_ERROR_TYPE = "REWIND_REGENERATION_LIMIT";
+const AI_RECAP_IN_PROGRESS_ERROR_TYPE = "REWIND_AI_RECAP_IN_PROGRESS";
+
+function errorType(response: HttpErrorResponse | undefined): unknown {
+	return response?.error?.type;
+}
+
 export type RewindGenerateError =
 	| "conflict"
 	| "limit"
+	| "period_closed"
+	| "year_requires_premium"
+	| "premium_required"
 	| "not_found"
 	| "rate_limited"
 	| "invalid"
 	| "failed"
 	| "network";
 
+export const BLOCKING_GENERATE_ERRORS: readonly RewindGenerateError[] = [
+	"limit",
+	"not_found",
+	"period_closed",
+	"year_requires_premium",
+	"premium_required"
+];
+
 export function rewindGenerateError(error: unknown): RewindGenerateError {
 	const response = error as HttpErrorResponse;
 	if (response?.status === 0) return "network";
 	if (response?.status === 409) {
-		return response.error?.type === "REWIND_REGENERATION_LIMIT"
-			? "limit"
-			: "conflict";
+		const type = errorType(response);
+		if (type === REGENERATION_LIMIT_ERROR_TYPE) return "limit";
+		if (type === PERIOD_CLOSED_ERROR_TYPE) return "period_closed";
+		return "conflict";
 	}
+	if (
+		response?.status === 403 &&
+		errorType(response) === YEAR_REQUIRES_PREMIUM_ERROR_TYPE
+	)
+		return "year_requires_premium";
+	if (response?.status === 402) return "premium_required";
 	if (response?.status === 404) return "not_found";
 	if (response?.status === 422) return "invalid";
 	if (response?.status === 429) return "rate_limited";
@@ -40,6 +67,9 @@ export function rewindGenerateError(error: unknown): RewindGenerateError {
 
 export type RewindAiRecapError =
 	| "premium_required"
+	| "year_requires_premium"
+	| "period_closed"
+	| "limit"
 	| "exists"
 	| "in_progress"
 	| "not_generated"
@@ -51,10 +81,17 @@ export function rewindAiRecapError(error: unknown): RewindAiRecapError {
 	const response = error as HttpErrorResponse;
 	if (response?.status === 0) return "network";
 	if (response?.status === 402) return "premium_required";
+	if (
+		response?.status === 403 &&
+		errorType(response) === YEAR_REQUIRES_PREMIUM_ERROR_TYPE
+	)
+		return "year_requires_premium";
 	if (response?.status === 409) {
-		return response.error?.type === "REWIND_AI_RECAP_IN_PROGRESS"
-			? "in_progress"
-			: "exists";
+		const type = errorType(response);
+		if (type === AI_RECAP_IN_PROGRESS_ERROR_TYPE) return "in_progress";
+		if (type === PERIOD_CLOSED_ERROR_TYPE) return "period_closed";
+		if (type === REGENERATION_LIMIT_ERROR_TYPE) return "limit";
+		return "exists";
 	}
 	if (response?.status === 404) return "not_generated";
 	if (response?.status === 429) return "rate_limited";

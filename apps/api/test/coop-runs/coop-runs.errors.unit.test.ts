@@ -19,12 +19,6 @@ describeModuleErrors({
 			message: "Backlog not found"
 		},
 		{
-			serviceCode: "COOP_FORBIDDEN",
-			module: "CoopRuns Module",
-			code: "COOP_FORBIDDEN",
-			message: "Not allowed to modify co-op on this backlog"
-		},
-		{
 			serviceCode: "COOP_TARGET_USER_NOT_FOUND",
 			module: "CoopRuns Module",
 			code: "COOP_TARGET_USER_NOT_FOUND",
@@ -76,7 +70,6 @@ describeDomainToHttpMapper({
 		{ code: "COOP_TARGET_USER_NOT_FOUND", status: 404 },
 		{ code: "COOP_MEMBER_NOT_FOUND", status: 404 },
 		{ code: "COOP_SOURCE_NOT_IN_RUN", status: 404 },
-		{ code: "COOP_FORBIDDEN", status: 403 },
 		{ code: "COOP_TARGET_NOT_FOLLOWED", status: 422 },
 		{ code: "COOP_SELF_TAG", status: 422 },
 		{ code: "COOP_ALREADY_TAGGED", status: 422 }

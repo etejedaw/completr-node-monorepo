@@ -17,23 +17,24 @@ import { AuthService } from "../../../core/services/auth";
 import { FollowRequestsService } from "../../../core/services/follow-requests";
 import { ToastService } from "../../../core/services/toast";
 import { avatarRing } from "../../../core/utils/premium";
-import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
 import {
 	UiAlert,
 	UiAvatar,
 	UiBadge,
 	UiButton,
 	UiEyebrow,
+	UiSegmentedControl,
 	UiSkeleton,
 	UiSwitch
 } from "../../../shared/ui";
+import { injectFollowRequestActions } from "../../../shared/utils/inject-follow-request-actions";
 import { ProfileService } from "../../profile/profile";
 import { SettingsPanel } from "../components/settings-panel";
 import { SettingsRow } from "../components/settings-row";
 import { SettingsSaveBar } from "../components/settings-save-bar";
 import {
 	derivePrivacyMode,
-	effectiveVisibility,
+	effectiveSectionVisibility,
 	PRIVACY_PRESETS,
 	PRIVACY_SECTION_GROUPS,
 	PROFILE_GATE,
@@ -75,7 +76,7 @@ function draftFromUser(user: User): PrivacyDraft {
 	imports: [
 		NgTemplateOutlet,
 		RouterLink,
-		SegmentedControl,
+		UiSegmentedControl,
 		SettingsPanel,
 		SettingsRow,
 		SettingsSaveBar,
@@ -116,7 +117,10 @@ export class SettingsPrivacy implements OnInit {
 
 	protected readonly incomingRequests = this.followRequestsService.incoming;
 	protected readonly requestsLoading = signal(false);
-	protected readonly resolvingRequest = signal<string | null>(null);
+	private readonly requestActions = injectFollowRequestActions();
+	protected readonly resolvingRequest = this.requestActions.resolvingId;
+	protected readonly acceptRequest = this.requestActions.accept;
+	protected readonly rejectRequest = this.requestActions.reject;
 	protected readonly showRequests = computed(
 		() =>
 			this.saved().profileVisibility === "private" &&
@@ -159,10 +163,7 @@ export class SettingsPrivacy implements OnInit {
 	}
 
 	protected effectiveLevel(key: SectionVisibilityKey): VisibilityLevel {
-		return effectiveVisibility(
-			this.draft()[key],
-			this.draft().profileVisibility
-		);
+		return effectiveSectionVisibility(this.draft(), key);
 	}
 
 	protected discard() {
@@ -171,6 +172,7 @@ export class SettingsPrivacy implements OnInit {
 	}
 
 	protected save() {
+		if (this.saving()) return;
 		const draft = this.draft();
 		this.saving.set(true);
 		this.profileService.update(draft).subscribe({
@@ -184,33 +186,6 @@ export class SettingsPrivacy implements OnInit {
 			error: () => {
 				this.saving.set(false);
 				this.toast.warning("Could not update privacy settings.");
-			}
-		});
-	}
-
-	protected acceptRequest(requesterId: string) {
-		if (this.resolvingRequest()) return;
-		this.resolvingRequest.set(requesterId);
-		this.followRequestsService.accept(requesterId).subscribe({
-			next: () => {
-				this.resolvingRequest.set(null);
-				this.toast.success("Follow request accepted.");
-			},
-			error: () => {
-				this.resolvingRequest.set(null);
-				this.toast.warning("Could not accept the request.");
-			}
-		});
-	}
-
-	protected rejectRequest(requesterId: string) {
-		if (this.resolvingRequest()) return;
-		this.resolvingRequest.set(requesterId);
-		this.followRequestsService.reject(requesterId).subscribe({
-			next: () => this.resolvingRequest.set(null),
-			error: () => {
-				this.resolvingRequest.set(null);
-				this.toast.warning("Could not reject the request.");
 			}
 		});
 	}

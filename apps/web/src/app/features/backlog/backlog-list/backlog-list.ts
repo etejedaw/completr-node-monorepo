@@ -3,6 +3,7 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	effect,
 	ElementRef,
 	inject,
@@ -12,7 +13,11 @@ import {
 	untracked,
 	viewChild
 } from "@angular/core";
-import { toObservable, toSignal } from "@angular/core/rxjs-interop";
+import {
+	takeUntilDestroyed,
+	toObservable,
+	toSignal
+} from "@angular/core/rxjs-interop";
 import { ActivatedRoute, type ParamMap, Router } from "@angular/router";
 import {
 	catchError,
@@ -35,29 +40,27 @@ import {
 import { DialogService } from "../../../core/services/dialog";
 import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
-import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
-import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
 import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
 import { BulkActionBar } from "../../../shared/components/bulk-action-bar/bulk-action-bar";
 import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import {
-	type PickerAction,
-	type PickerOption
-} from "../../../shared/components/option-picker/option-picker.model";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
 import { type ViewModeOption } from "../../../shared/components/view-mode-toggle/view-mode-toggle.model";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import {
+	UiActionMenu,
+	type UiActionMenuItem,
 	UiButton,
 	UiCountBadge,
 	UiEmptyState,
 	UiFiltersButton,
 	UiNoMatches,
+	UiOptionPicker,
 	UiPagination,
+	type UiPickerAction,
+	type UiPickerOption,
 	UiSkeleton
 } from "../../../shared/ui";
 import {
@@ -66,6 +69,11 @@ import {
 	backlogStatusIconColor,
 	backlogStatusLabel
 } from "../../../shared/utils/backlog-status";
+import {
+	isNotFound,
+	reportHttpFailure
+} from "../../../shared/utils/http-failure";
+import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { FavoritesService } from "../../favorites/favorites";
 import { GamesService } from "../../games/games";
 import { ReviewsService } from "../../games/reviews";
@@ -98,18 +106,11 @@ import { SavedViewStatsPanel } from "../components/saved-view-stats-panel/saved-
 import { StatusChangeDialog } from "../components/status-change-dialog/status-change-dialog";
 import { type PendingStatusUpdate } from "../components/status-change-dialog/status-change-dialog.model";
 import { savedFilterColorHex } from "../saved-filter-appearance";
-import {
-	DEFAULT_ENABLED_STATS,
-	SavedFiltersService,
-	STAT_KEYS,
-	type StatKey
-} from "../saved-filters";
-import {
-	type SavedFilter,
-	type SavedFilterStats
-} from "../saved-filters.model";
+import { SavedFiltersService } from "../saved-filters";
+import { type SavedFilter } from "../saved-filters.model";
 import { SurpriseMe } from "../surprise-me/surprise-me";
 import { type ClearAction } from "./backlog-list.model";
+import { injectViewStats } from "./inject-view-stats";
 
 const MIXED_STATUS_VALUE = "__mixed__";
 
@@ -151,7 +152,7 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 		ViewModeToggle,
 		BacklogTable,
 		BacklogStatusPills,
-		OptionPicker,
+		UiOptionPicker,
 		BacklogCalendar,
 		SurpriseMe,
 		BacklogEntryCard,
@@ -165,7 +166,7 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 		UiPagination,
 		UiSkeleton,
 		BacklogFiltersPanel,
-		ActionMenu,
+		UiActionMenu,
 		EntryRatingSheet,
 		ReorderViewsDialog,
 		SavedViewStats,
@@ -180,12 +181,15 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BacklogList implements OnInit {
+	private readonly destroyRef = inject(DestroyRef);
 	private readonly route = inject(ActivatedRoute);
 	private readonly router = inject(Router);
 	private readonly backlogService = inject(BacklogService);
 	private readonly savedFiltersService = inject(SavedFiltersService);
 	private readonly queueService = inject(QueueService);
 	private readonly favoritesService = inject(FavoritesService);
+	private readonly favoriteToggle = injectToggleAction();
+	private readonly queueToggle = injectToggleAction();
 	private readonly gamesService = inject(GamesService);
 	private readonly reviewsService = inject(ReviewsService);
 	private readonly moodTagsService = inject(MoodTagsService);
@@ -249,7 +253,7 @@ export class BacklogList implements OnInit {
 		return active && !active.showInBacklog ? [...pinned, active] : pinned;
 	});
 
-	protected readonly viewPickerOptions = computed<PickerOption[]>(() => [
+	protected readonly viewPickerOptions = computed<UiPickerOption[]>(() => [
 		{ value: "", label: "None", icon: "bookmark_border" },
 		...this.viewPickerViews().map(view => ({
 			value: view.id,
@@ -260,7 +264,7 @@ export class BacklogList implements OnInit {
 		}))
 	]);
 
-	protected readonly viewPickerActions = computed<PickerAction[]>(() => [
+	protected readonly viewPickerActions = computed<UiPickerAction[]>(() => [
 		...(this.backlogFilters().length > 1
 			? [
 					{
@@ -270,7 +274,12 @@ export class BacklogList implements OnInit {
 					}
 				]
 			: []),
-		{ id: "manage", label: "Manage saved views", icon: "settings" }
+		{
+			id: "manage",
+			label: "Manage saved views",
+			icon: "settings",
+			link: { routerLink: ["/saved-views"] }
+		}
 	]);
 
 	protected readonly quickStatusIconColor = computed(() => {
@@ -347,7 +356,7 @@ export class BacklogList implements OnInit {
 
 	protected readonly viewModes = BACKLOG_VIEW_MODES;
 
-	setViewMode(mode: BacklogViewMode) {
+	protected setViewMode(mode: BacklogViewMode) {
 		this.bulk.selection.clear();
 		this.viewMode.set(mode);
 		localStorage.setItem("completr.backlog.viewMode", mode);
@@ -394,151 +403,11 @@ export class BacklogList implements OnInit {
 	protected readonly showReorderModal = signal(false);
 	protected readonly savingReorder = signal(false);
 
-	protected readonly stats = signal<SavedFilterStats | null>(null);
-	protected readonly statsLoading = signal(false);
-	protected readonly statsError = signal(false);
-	protected readonly statsExpanded = signal(
-		localStorage.getItem("completr.backlog.statsExpanded") === "true"
-	);
-	protected readonly showStatsPanel = signal(false);
-	protected readonly statsConfigSaving = signal(false);
-
-	protected enabledStatsCount(): number {
-		const filter = this.getActiveFilter();
-		if (!filter) return 0;
-		const enabled = filter.enabledStats;
-		if (enabled === undefined || enabled === null) {
-			return DEFAULT_ENABLED_STATS.length;
-		}
-		return enabled.length;
-	}
-
-	protected isStatsCustom(): boolean {
-		const filter = this.getActiveFilter();
-		if (!filter) return false;
-		return (
-			filter.enabledStats !== undefined && filter.enabledStats !== null
-		);
-	}
-
-	protected toggleStatsPanel() {
-		if (!this.activeFilterId()) return;
-		this.showStatsPanel.update(v => !v);
-	}
-
-	private readonly loadStatsEffect = effect(() => {
-		const id = this.activeFilterId();
-		if (!id) {
-			untracked(() => {
-				this.stats.set(null);
-				this.statsLoading.set(false);
-				this.statsError.set(false);
-			});
-			return;
-		}
-		untracked(() => this.loadStats(id));
+	protected readonly viewStats = injectViewStats({
+		activeFilterId: this.activeFilterId,
+		savedFilters: this.savedFilters,
+		backlogFilters: this.backlogFilters
 	});
-
-	private loadStats(id: string) {
-		this.statsLoading.set(true);
-		this.statsError.set(false);
-		this.savedFiltersService.getStats(id).subscribe({
-			next: stats => {
-				this.stats.set(stats);
-				this.statsLoading.set(false);
-			},
-			error: () => {
-				this.stats.set(null);
-				this.statsLoading.set(false);
-				this.statsError.set(true);
-			}
-		});
-	}
-
-	retryStats() {
-		const id = this.activeFilterId();
-		if (id) this.loadStats(id);
-	}
-
-	toggleStatsExpanded() {
-		const next = !this.statsExpanded();
-		this.statsExpanded.set(next);
-		localStorage.setItem("completr.backlog.statsExpanded", String(next));
-	}
-
-	protected onActiveFilterChangedCloseStatsPanel = effect(() => {
-		const id = this.activeFilterId();
-		if (!id) untracked(() => this.showStatsPanel.set(false));
-	});
-
-	private getActiveFilter(): SavedFilter | null {
-		const id = this.activeFilterId();
-		if (!id) return null;
-		return this.savedFilters().find(f => f.id === id) ?? null;
-	}
-
-	protected readonly enabledStatKeys = computed<ReadonlySet<StatKey>>(() => {
-		const enabled = this.getActiveFilter()?.enabledStats;
-		if (enabled === undefined || enabled === null)
-			return new Set(DEFAULT_ENABLED_STATS);
-		return new Set(STAT_KEYS.filter(key => enabled.includes(key)));
-	});
-
-	protected hasAnyStatEnabled(): boolean {
-		return this.enabledStatKeys().size > 0;
-	}
-
-	protected toggleStatKey(key: StatKey) {
-		const filter = this.getActiveFilter();
-		if (!filter) return;
-		const current =
-			filter.enabledStats === undefined || filter.enabledStats === null
-				? [...DEFAULT_ENABLED_STATS]
-				: [...filter.enabledStats];
-		const idx = current.indexOf(key);
-		if (idx >= 0) current.splice(idx, 1);
-		else current.push(key);
-		this.persistEnabledStats(filter, current);
-	}
-
-	protected resetStatsConfig() {
-		const filter = this.getActiveFilter();
-		if (!filter) return;
-		this.persistEnabledStats(filter, null);
-	}
-
-	private persistEnabledStats(filter: SavedFilter, value: string[] | null) {
-		this.statsConfigSaving.set(true);
-		const next = { ...filter, enabledStats: value };
-		this.savedFilters.update(list =>
-			list.map(f => (f.id === filter.id ? next : f))
-		);
-		this.backlogFilters.update(list =>
-			list.map(f => (f.id === filter.id ? next : f))
-		);
-		this.savedFiltersService
-			.update(filter.id, { enabledStats: value })
-			.subscribe({
-				next: updated => {
-					this.savedFilters.update(list =>
-						list.map(f => (f.id === updated.id ? updated : f))
-					);
-					this.backlogFilters.update(list =>
-						list.map(f => (f.id === updated.id ? updated : f))
-					);
-					this.statsConfigSaving.set(false);
-				},
-				error: () => {
-					this.savedFilters.update(list =>
-						list.map(f => (f.id === filter.id ? filter : f))
-					);
-					this.backlogFilters.update(list =>
-						list.map(f => (f.id === filter.id ? filter : f))
-					);
-					this.statsConfigSaving.set(false);
-				}
-			});
-	}
 
 	protected readonly hasActiveFilters = () => this.activeFiltersCount() > 0;
 
@@ -780,7 +649,7 @@ export class BacklogList implements OnInit {
 		this.surpriseMeFilters.set(this.buildBaseFilters());
 	}
 
-	isInQueue(entry: BacklogEntry): boolean {
+	protected isInQueue(entry: BacklogEntry): boolean {
 		return this.queueBacklogIds().has(entry.id);
 	}
 
@@ -791,21 +660,29 @@ export class BacklogList implements OnInit {
 	}
 
 	private loadSavedFilters() {
-		this.savedFiltersService.getAll().subscribe(filters => {
-			this.savedFilters.set(filters);
-			this.backlogFilters.set(filters.filter(f => f.showInBacklog));
+		this.savedFiltersService.getAll().subscribe({
+			next: filters => {
+				this.savedFilters.set(filters);
+				this.backlogFilters.set(filters.filter(f => f.showInBacklog));
+			},
+			error: (error: unknown) =>
+				reportHttpFailure(
+					this.toast,
+					error,
+					"Couldn't load your views. Try again."
+				)
 		});
 	}
 
-	openReorderModal() {
+	private openReorderModal() {
 		this.showReorderModal.set(true);
 	}
 
-	closeReorderModal() {
+	protected closeReorderModal() {
 		this.showReorderModal.set(false);
 	}
 
-	saveReorder(ids: string[]) {
+	protected saveReorder(ids: string[]) {
 		this.savingReorder.set(true);
 		this.savedFiltersService.reorder(ids).subscribe({
 			next: () => {
@@ -813,17 +690,30 @@ export class BacklogList implements OnInit {
 				this.showReorderModal.set(false);
 				this.loadSavedFilters();
 			},
-			error: () => this.savingReorder.set(false)
+			error: (error: unknown) => {
+				this.savingReorder.set(false);
+				if (isNotFound(error)) {
+					this.toast.error("One of these views no longer exists.");
+					this.showReorderModal.set(false);
+					this.loadSavedFilters();
+					return;
+				}
+				reportHttpFailure(
+					this.toast,
+					error,
+					"Couldn't save the new order. Try again."
+				);
+			}
 		});
 	}
 
-	setQuickStatus(status: string | null) {
+	protected setQuickStatus(status: string | null) {
 		this.activeStatuses.set(status ? new Set([status]) : new Set());
 		this.applyFilters();
 	}
 
 	protected openFilters() {
-		this.showStatsPanel.set(false);
+		this.viewStats.panelOpen.set(false);
 		this.showFilters.set(true);
 	}
 
@@ -834,7 +724,7 @@ export class BacklogList implements OnInit {
 	}
 
 	protected closeStatsPanel() {
-		this.showStatsPanel.set(false);
+		this.viewStats.panelOpen.set(false);
 		this.returnFocusToToolsButton();
 	}
 
@@ -844,7 +734,7 @@ export class BacklogList implements OnInit {
 		ElementRef<HTMLButtonElement>
 	>("mobileToolsButton", { read: ElementRef });
 	private readonly mobileToolsMenu = viewChild("mobileToolsMenu", {
-		read: ActionMenu
+		read: UiActionMenu
 	});
 	private focusToolsButtonOnClose = false;
 
@@ -869,9 +759,9 @@ export class BacklogList implements OnInit {
 		this.closeFilters();
 	}
 
-	protected readonly mobileToolsItems = computed<ActionMenuItem[]>(() => {
+	protected readonly mobileToolsItems = computed<UiActionMenuItem[]>(() => {
 		const filters = this.activeFiltersCount();
-		const stats = this.enabledStatsCount();
+		const stats = this.viewStats.enabledCount();
 		return [
 			{
 				id: "filters",
@@ -921,14 +811,14 @@ export class BacklogList implements OnInit {
 		});
 	}
 
-	applyFilters() {
+	private applyFilters() {
 		if (!this.activeFilterId()) this.saveCurrentFilter();
 		this.activeFilterId.set(null);
 		this.offset.set(0);
 		this.loadBacklog();
 	}
 
-	clearFilters() {
+	protected clearFilters() {
 		this.searchQuery.set("");
 		this.selectedPlatforms.set(new Set());
 		this.selectedGenres.set(new Set());
@@ -958,7 +848,7 @@ export class BacklogList implements OnInit {
 		this.loadBacklog();
 	}
 
-	applySavedFilter(filter: SavedFilter) {
+	private applySavedFilter(filter: SavedFilter) {
 		if (this.activeFilterId() === filter.id) {
 			this.clearFilters();
 			this.showFilters.set(false);
@@ -973,7 +863,7 @@ export class BacklogList implements OnInit {
 		this.loadBacklog();
 	}
 
-	updateCurrentFilter() {
+	protected updateCurrentFilter() {
 		const id = this.activeFilterId();
 		if (!id) return;
 
@@ -990,22 +880,53 @@ export class BacklogList implements OnInit {
 				next: () => {
 					this.savingFilter.set(false);
 					this.loadSavedFilters();
-					this.loadStats(id);
+					this.viewStats.load(id);
 				},
-				error: () => this.savingFilter.set(false)
+				error: (error: unknown) => {
+					this.savingFilter.set(false);
+					this.reportViewWriteFailure(
+						error,
+						"Couldn't update this view."
+					);
+				}
 			});
 	}
 
-	deleteSavedFilter(filter: SavedFilter) {
-		this.savedFiltersService.delete(filter.id).subscribe(() => {
+	private reportViewWriteFailure(error: unknown, message: string) {
+		if (isNotFound(error)) {
+			this.toast.error("This view no longer exists.");
+			this.clearFilters();
 			this.loadSavedFilters();
-			if (this.activeFilterId() === filter.id) {
-				this.activeFilterId.set(null);
+			return;
+		}
+		reportHttpFailure(this.toast, error, message);
+	}
+
+	private deleteSavedFilter(filter: SavedFilter) {
+		this.savedFiltersService.delete(filter.id).subscribe({
+			next: () => {
+				this.loadSavedFilters();
+				if (this.activeFilterId() === filter.id) {
+					this.activeFilterId.set(null);
+				}
+			},
+			error: (error: unknown) => {
+				if (isNotFound(error)) {
+					this.loadSavedFilters();
+					if (this.activeFilterId() === filter.id)
+						this.activeFilterId.set(null);
+					return;
+				}
+				reportHttpFailure(
+					this.toast,
+					error,
+					"Couldn't delete this view."
+				);
 			}
 		});
 	}
 
-	saveCurrentFilter() {
+	protected saveCurrentFilter() {
 		const name = this.newFilterName().trim();
 		if (!name) return;
 
@@ -1027,7 +948,14 @@ export class BacklogList implements OnInit {
 					this.newFilterPinned.set(true);
 					this.loadSavedFilters();
 				},
-				error: () => this.savingFilter.set(false)
+				error: (error: unknown) => {
+					this.savingFilter.set(false);
+					reportHttpFailure(
+						this.toast,
+						error,
+						"Couldn't save this view."
+					);
+				}
 			});
 	}
 
@@ -1072,7 +1000,7 @@ export class BacklogList implements OnInit {
 
 	private readonly searchSubject = new Subject<string>();
 
-	onSearch(query: string) {
+	protected onSearch(query: string) {
 		this.searchQuery.set(query);
 		if (!query.trim()) {
 			this.offset.set(0);
@@ -1084,14 +1012,18 @@ export class BacklogList implements OnInit {
 
 	private setupSearch() {
 		this.searchSubject
-			.pipe(debounceTime(300), distinctUntilChanged())
+			.pipe(
+				debounceTime(300),
+				distinctUntilChanged(),
+				takeUntilDestroyed(this.destroyRef)
+			)
 			.subscribe(() => {
 				this.offset.set(0);
 				this.loadBacklog();
 			});
 	}
 
-	sort(column: string) {
+	protected sort(column: string) {
 		if (this.sortBy() === column) {
 			this.sortOrder.set(this.sortOrder() === "asc" ? "desc" : "asc");
 		} else {
@@ -1106,7 +1038,7 @@ export class BacklogList implements OnInit {
 	protected statusIcon = backlogStatusIcon;
 	protected statusIconColor = backlogStatusIconColor;
 
-	onQuickRate(entry: BacklogEntry, rating: number | null) {
+	protected onQuickRate(entry: BacklogEntry, rating: number | null) {
 		if (rating == null) return;
 		this.entries.set(
 			this.entries().map(e =>
@@ -1118,11 +1050,15 @@ export class BacklogList implements OnInit {
 			.subscribe();
 	}
 
-	isStatusUpdating(entry: BacklogEntry): boolean {
+	protected isStatusUpdating(entry: BacklogEntry): boolean {
 		return this.updatingStatusIds().has(entry.id);
 	}
 
-	selectNewStatus(entry: BacklogEntry, status: BacklogStatus, event?: Event) {
+	protected selectNewStatus(
+		entry: BacklogEntry,
+		status: BacklogStatus,
+		event?: Event
+	) {
 		event?.stopPropagation();
 		const newStatus = status;
 		if (newStatus === entry.status) return;
@@ -1146,7 +1082,7 @@ export class BacklogList implements OnInit {
 		});
 	}
 
-	cancelStatusChange() {
+	protected cancelStatusChange() {
 		this.pendingStatusUpdate.set(null);
 	}
 
@@ -1154,7 +1090,7 @@ export class BacklogList implements OnInit {
 		this.pendingStatusUpdate.update(s => (s ? { ...s, ...patch } : s));
 	}
 
-	saveAndOpenReview() {
+	protected saveAndOpenReview() {
 		const pending = this.pendingStatusUpdate();
 		if (!pending) return;
 		const gameCode = pending.entry.game.code;
@@ -1165,7 +1101,7 @@ export class BacklogList implements OnInit {
 		});
 	}
 
-	confirmStatusChange() {
+	protected confirmStatusChange() {
 		const pending = this.pendingStatusUpdate();
 		if (!pending) return;
 		const { entry, status } = pending;
@@ -1291,7 +1227,7 @@ export class BacklogList implements OnInit {
 		return `${y}-${m}-${d}`;
 	}
 
-	hasAdvancedFiltersActive(): boolean {
+	protected hasAdvancedFiltersActive(): boolean {
 		return (
 			this.selectedGenres().size > 0 ||
 			this.yearFrom() !== null ||
@@ -1305,24 +1241,29 @@ export class BacklogList implements OnInit {
 		);
 	}
 
-	isFavorite(gameId: string): boolean {
+	protected isFavorite(gameId: string): boolean {
 		return this.favoritesService.isFavorite(gameId);
 	}
 
-	toggleFavorite(gameId: string, event?: Event) {
+	protected toggleFavorite(gameId: string, event?: Event) {
 		event?.stopPropagation();
-		this.favoritesService.toggle(gameId).subscribe();
+		this.favoriteToggle.run({
+			key: gameId,
+			request: this.favoritesService.toggle(gameId),
+			failureMessage: "Couldn't update your favorites. Try again."
+		});
 	}
 
-	toggleQueue(entry: BacklogEntry) {
-		if (!this.isInQueue(entry)) {
-			this.queueService.addFromBacklog(entry.id).subscribe(() => {
-				this.loadQueueIds();
-			});
-			return;
-		}
-		this.queueService.removeByBacklogId(entry.id).subscribe(() => {
-			this.loadQueueIds();
+	protected toggleQueue(entry: BacklogEntry) {
+		this.queueToggle.run({
+			key: entry.id,
+			request: this.isInQueue(entry)
+				? this.queueService.removeByBacklogId(entry.id)
+				: this.queueService.addFromBacklog(entry.id),
+			failureMessage: "Couldn't update Up Next. Try again.",
+			missingMessage: "This run no longer exists.",
+			onSuccess: () => this.loadQueueIds(),
+			onMissing: () => this.loadQueueIds()
 		});
 	}
 
@@ -1345,7 +1286,7 @@ export class BacklogList implements OnInit {
 
 	protected openStatsFromSheet() {
 		this.closeFilters();
-		this.toggleStatsPanel();
+		this.viewStats.togglePanel();
 		this.focusToolsButtonOnClose = true;
 	}
 
@@ -1369,7 +1310,6 @@ export class BacklogList implements OnInit {
 
 	protected runViewAction(id: string) {
 		if (id === "reorder") this.openReorderModal();
-		if (id === "manage") this.router.navigate(["/saved-views"]);
 	}
 
 	protected isFlipped(entryId: string): boolean {
@@ -1384,11 +1324,11 @@ export class BacklogList implements OnInit {
 		this.flippedEntryIds.set(next);
 	}
 
-	openCreate() {
+	protected openCreate() {
 		this.openBacklog(null);
 	}
 
-	openEdit(entry: BacklogEntry, event?: Event) {
+	protected openEdit(entry: BacklogEntry, event?: Event) {
 		if (event) {
 			const target = event.target as HTMLElement;
 			if (target.closest("a") || target.closest("button")) return;
@@ -1413,7 +1353,7 @@ export class BacklogList implements OnInit {
 		});
 	}
 
-	onOffsetChange(offset: number) {
+	protected onOffsetChange(offset: number) {
 		this.offset.set(offset);
 		this.loadBacklog();
 	}

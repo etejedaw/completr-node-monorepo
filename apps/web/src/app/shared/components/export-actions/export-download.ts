@@ -10,7 +10,7 @@ import {
 import { type ExportResource } from "../../../core/services/export.model";
 import { ToastService } from "../../../core/services/toast";
 import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
-import { type ActionMenuItem } from "../action-menu/action-menu.model";
+import { type UiActionMenuItem } from "../../ui";
 
 export const EXPORT_ACTION_PREFIX = "export:";
 
@@ -32,7 +32,7 @@ export function injectExportDownload(source: ExportSource) {
 	);
 	const isBusy = computed(() => downloading().size > 0);
 
-	const menuItems = computed<ActionMenuItem[]>(() => [
+	const menuItems = computed<UiActionMenuItem[]>(() => [
 		{
 			id: `${EXPORT_ACTION_PREFIX}csv`,
 			label: "Download CSV",

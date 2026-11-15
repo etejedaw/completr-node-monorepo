@@ -16,8 +16,8 @@ const router = Router();
 router.post(
 	"/game-times",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(RegisterGameTimeSchema, "body")
 	],
 	gameTimesController.postGameTime
@@ -26,8 +26,8 @@ router.post(
 router.patch(
 	"/game-times/:gameId/:source",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameTimeIdParamsSchema, "params"),
 		validateSchemaMiddleware(UpdateGameTimeSchema, "body")
 	],
@@ -37,8 +37,8 @@ router.patch(
 router.put(
 	"/games/:gameId/times",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameTimeParamsSchema, "params"),
 		validateSchemaMiddleware(ReplaceGameTimesSchema, "body")
 	],
@@ -48,8 +48,8 @@ router.put(
 router.get(
 	"/game-times/:gameId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameTimeParamsSchema, "params")
 	],
 	gameTimesController.getGameTimes

@@ -4,26 +4,19 @@ import { GamePlatform } from "./game-platform.model";
 
 export async function linkGameToPlatforms(
 	gameId: string,
-	platformsId: string[],
+	platformIds: string[],
 	transaction?: Transaction
 ) {
-	const gamePlatforms = platformsId.map(platformId => ({
-		gameId,
-		platformId
-	}));
-	return GamePlatform.bulkCreate(gamePlatforms, {
-		ignoreDuplicates: true,
-		transaction
-	});
+	return linkGamesToPlatforms([gameId], platformIds, transaction);
 }
 
 export async function linkGamesToPlatforms(
 	gameIds: string[],
-	platformsId: string[],
+	platformIds: string[],
 	transaction?: Transaction
 ) {
 	const gamePlatforms = gameIds.flatMap(gameId =>
-		platformsId.map(platformId => ({ gameId, platformId }))
+		platformIds.map(platformId => ({ gameId, platformId }))
 	);
 	if (gamePlatforms.length === 0) return [];
 	return GamePlatform.bulkCreate(gamePlatforms, {
@@ -34,11 +27,11 @@ export async function linkGamesToPlatforms(
 
 export async function replaceGamePlatforms(
 	gameId: string,
-	platformsId: string[],
+	platformIds: string[],
 	transaction?: Transaction
 ) {
 	await GamePlatform.destroy({ where: { gameId }, transaction });
-	if (!platformsId.length) return;
+	if (!platformIds.length) return;
 
-	return await linkGameToPlatforms(gameId, platformsId, transaction);
+	return linkGameToPlatforms(gameId, platformIds, transaction);
 }

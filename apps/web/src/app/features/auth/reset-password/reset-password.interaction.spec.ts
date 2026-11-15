@@ -221,7 +221,7 @@ describe("Reset password interaction", () => {
 		).toHaveAttribute("aria-pressed", "true");
 	});
 
-	it.each([400, 422])(
+	it.each([400])(
 		"shows the invalid link page for a %i response and offers a new link",
 		async status => {
 			const user = userEvent.setup();
@@ -305,4 +305,36 @@ describe("Reset password interaction", () => {
 			httpTesting.expectNone(`${api}/auth/reset-password`);
 		}
 	);
+	it("keeps the form and explains a rejected password on a 422 response", async () => {
+		const user = userEvent.setup();
+		await renderResetPassword();
+
+		await fillPasswords(user);
+		await user.click(
+			screen.getByRole("button", { name: "Update password" })
+		);
+		httpTesting
+			.expectOne(`${api}/auth/reset-password`)
+			.flush(null, { status: 422, statusText: "Unprocessable" });
+
+		expect(await screen.findByRole("alert")).toHaveTextContent(
+			"doesn't meet the requirements"
+		);
+		expect(
+			screen.queryByRole("heading", { name: "This link no longer works" })
+		).not.toBeInTheDocument();
+	});
+
+	it("sends one request when the form is submitted twice before the answer", async () => {
+		const user = userEvent.setup();
+		await renderResetPassword();
+
+		await fillPasswords(user);
+		await user.type(
+			screen.getByLabelText("New password"),
+			"{Enter}{Enter}"
+		);
+
+		expect(httpTesting.match(`${api}/auth/reset-password`)).toHaveLength(1);
+	});
 });

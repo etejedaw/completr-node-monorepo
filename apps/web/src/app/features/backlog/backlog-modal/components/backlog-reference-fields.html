@@ -57,7 +57,7 @@
 				</button>
 			</div>
 		</div>
-		<p class="text-[0.75rem] text-fg-muted m-0 mb-3 leading-snug">
+		<p class="text-xs text-fg-muted m-0 mb-3 leading-snug">
 			Critic score and estimated duration from external sources, required
 			to compute the ratio. Your personal data goes under Tracking below.
 		</p>
@@ -85,7 +85,7 @@
 					class="min-h-[26px] mb-2 flex flex-wrap items-center gap-1.5"
 				>
 					@if (scores().length > 0) {
-					<app-chip-group
+					<ui-chip-group
 						mode="single"
 						label="Score sources"
 						[allowEmpty]="false"
@@ -95,11 +95,9 @@
 					/>
 					} @else {
 					<span
-						class="inline-flex flex-wrap items-center gap-1 text-[0.625rem] text-fg-muted"
+						class="inline-flex flex-wrap items-center gap-1 text-tiny text-fg-muted"
 					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.75rem]"
+						<span aria-hidden="true" class="material-icons text-xs"
 							>help_outline</span
 						>
 						No sources found — enter it manually.
@@ -163,7 +161,7 @@
 					class="min-h-[26px] mb-2 flex flex-wrap items-center gap-1.5"
 				>
 					@if (times().length > 0) {
-					<app-chip-group
+					<ui-chip-group
 						mode="single"
 						label="Duration sources"
 						[allowEmpty]="false"
@@ -173,11 +171,9 @@
 					/>
 					} @else {
 					<span
-						class="inline-flex flex-wrap items-center gap-1 text-[0.625rem] text-fg-muted"
+						class="inline-flex flex-wrap items-center gap-1 text-tiny text-fg-muted"
 					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.75rem]"
+						<span aria-hidden="true" class="material-icons text-xs"
 							>help_outline</span
 						>
 						No sources found — enter it manually.
@@ -216,14 +212,12 @@
 		</div>
 		@if (tooltipText()) {
 		<p
-			class="mt-3 mb-0 text-[0.75rem] text-fg-muted bg-input-bg border border-line rounded px-2.5 py-2 leading-snug"
+			class="mt-3 mb-0 text-xs text-fg-muted bg-input-bg border border-line rounded px-2.5 py-2 leading-snug"
 		>
 			{{ tooltipText() }}
 		</p>
 		} @if (reportFeedback()) {
-		<p class="mt-2 mb-0 text-[0.75rem] text-success">
-			{{ reportFeedback() }}
-		</p>
+		<p class="mt-2 mb-0 text-xs text-success">{{ reportFeedback() }}</p>
 		}
 	</div>
 	}

@@ -106,13 +106,14 @@ export class SettingsProfile implements OnInit {
 	}
 
 	protected save() {
-		if (this.profileForm().invalid()) return;
+		if (this.saving() || this.profileForm().invalid()) return;
 		const draft = this.draft();
 		const dto: UpdateProfileDto = {
 			name: draft.name.trim() || undefined,
-			bio: draft.bio.trim() || undefined,
-			avatarUrl: draft.avatarUrl || undefined
+			bio: draft.bio.trim() || undefined
 		};
+		if (draft.avatarUrl !== this.saved().avatarUrl)
+			dto.avatarUrl = draft.avatarUrl || null;
 		this.saving.set(true);
 		this.profileService.update(dto).subscribe({
 			next: () => {

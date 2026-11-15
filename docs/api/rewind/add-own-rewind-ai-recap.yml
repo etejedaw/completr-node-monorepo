@@ -18,7 +18,7 @@ settings:
 docs: |-
     ## Add Own Rewind AI Recap
 
-    Generates the AI recap (and the premium stats, if they are missing) of a Rewind the owner already generated. Used to retry after a failed recap, or by an owner who gained `rewind.premium` access after generating the year. Uses the stored `language`, `includesPrivateRuns` and `includesNotes` and does not spend a regeneration.
+    Generates the AI recap (and the premium stats, if they are missing) of a Rewind the owner already generated. Used to retry after a failed recap, or by an owner who gained `rewind.premium` access after generating the year. Uses the stored `language`, `includesPrivateRuns` and `includesNotes`. Like any AI generation it needs an open edition and the year allowed (the edition year, or a previous year with full premium), and spends the grace if it is available or one roll otherwise; the first AI use assigns the quota of the open edition (see `POST /users/me/rewinds/:year`). If the AI fails, the grace or the roll is given back.
 
     **Authentication:** Bearer token required (roles: user, premium, moderator, admin). The owner must currently have `rewind.premium` access through a premium role, temporary full premium or a specific Rewind grant.
     **Rate Limit:** 5 requests every 10 minutes (shared with `POST /users/me/rewinds/:year`).
@@ -28,6 +28,8 @@ docs: |-
     | Param | Type    | Required | Description                                   |
     |-------|---------|----------|-----------------------------------------------|
     | year  | integer | Yes      | Calendar year, digits only, from 2000 to 2100 |
+
+    Adding the recap to a frozen Rewind (a previous year, in a later edition) clears its snapshot and `frozenAt`: the Rewind is live again with the design of the open edition and is frozen again when that edition closes.
 
     The recap is marked `pending` under a row lock before calling the AI, so a double click gets 409 `REWIND_AI_RECAP_IN_PROGRESS`. A `pending` recap older than 2 minutes counts as failed and can be retried.
 
@@ -40,6 +42,8 @@ docs: |-
       "data": {
         "year": 2026,
         "language": "en",
+        "design": "2026",
+        "frozenAt": null,
         "aiRecap": {
           "headline": "A year of long nights",
           "summary": "You finished what you started, and then some.",
@@ -62,7 +66,12 @@ docs: |-
           "regenerationsLeft": 1,
           "graceEndsAt": null,
           "canRegenerate": true,
-          "aiRecapState": "ready"
+          "regenerationBlockedBy": null,
+          "aiRecapState": "ready",
+          "periodOpen": true,
+          "periodStatus": "open",
+          "closesAt": "2027-01-31",
+          "frozenAt": null
         },
         "premiumAccess": {
           "allowed": true,
@@ -80,10 +89,13 @@ docs: |-
     | 401    | AUTH_INVALID_TOKEN               | Invalid or expired token                          |
     | 402    | REWIND_AI_RECAP_PREMIUM_REQUIRED | The owner is not premium                          |
     | 403    | AUTH_FORBIDDEN                   | Role not allowed                                  |
+    | 403    | REWIND_YEAR_REQUIRES_PREMIUM     | A previous year without full premium              |
     | 404    | REWIND_NOT_GENERATED             | The owner has not generated this year             |
     | 404    | REWIND_NOT_FOUND                 | The year no longer has data                       |
     | 409    | REWIND_AI_RECAP_EXISTS           | The Rewind already has an AI recap                |
     | 409    | REWIND_AI_RECAP_IN_PROGRESS      | A recap was requested less than 2 minutes ago     |
+    | 409    | REWIND_PERIOD_CLOSED             | No Rewind edition is open today                   |
+    | 409    | REWIND_REGENERATION_LIMIT        | No grace and no rolls left                        |
     | 422    | AUTH_SCHEMA_INVALID              | Missing or malformed `Authorization` header       |
     | 422    | COMMON_SCHEMA_INVALID            | Bad `year`                                        |
     | 429    | AUTH_RATE_LIMITED                | Too many requests                                 |

@@ -17,8 +17,8 @@ const router = Router();
 router.put(
 	"/lists/:listId/items",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator", "admin"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ListIdParamsSchema, "params"),
 		validateSchemaMiddleware(ReplaceListItemsSchema, "body")
 	],
@@ -28,8 +28,8 @@ router.put(
 router.post(
 	"/lists/:listId/items",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator", "admin"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ListIdParamsSchema, "params"),
 		validateSchemaMiddleware(AddListItemSchema, "body")
 	],
@@ -39,8 +39,8 @@ router.post(
 router.delete(
 	"/lists/:listId/items/:gameId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator", "admin"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ListItemGameParamsSchema, "params")
 	],
 	listItemsController.deleteListItem
@@ -49,8 +49,8 @@ router.delete(
 router.post(
 	"/lists/:listId/refresh-scores",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator", "admin"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ListIdParamsSchema, "params")
 	],
 	listItemsController.postRefreshScores
@@ -59,8 +59,8 @@ router.post(
 router.put(
 	"/games/:gameId/lists",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator", "admin"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameListsParamsSchema, "params"),
 		validateSchemaMiddleware(PutGameListsSchema, "body")
 	],

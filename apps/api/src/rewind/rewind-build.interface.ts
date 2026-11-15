@@ -1,9 +1,13 @@
-import { type RewindPersonaCode } from "./rewind.constants";
+import {
+	type RewindPersonaCode,
+	type RewindPremiumAccessKind
+} from "./rewind.constants";
 import {
 	type RewindDurationGame,
 	type RewindFinishedGame,
 	type RewindOwner,
-	type RewindTotals
+	type RewindTotals,
+	type RewindView
 } from "./rewind.interface";
 import { type RewindYearVisibility } from "./rewind-record.interface";
 import { type RewindStoredView } from "./rewind-record.types";
@@ -21,12 +25,19 @@ export interface FinishedBookends {
 	lastFinished: RewindFinishedGame | null;
 }
 
+export interface RewindGenerationAccess {
+	accessKind: RewindPremiumAccessKind | null;
+}
+
 export interface RewindYearsSource {
 	runs: RewindRun[];
 	genres: RewindGameGenre[];
 	platinumsByYear: ReadonlyMap<number, number | null>;
 	calendar: RewindCalendar;
 	visibility: RewindYearVisibility;
+	generationAccess: RewindGenerationAccess | null;
+	frozenViews: ReadonlyMap<number, RewindView>;
+	platinumsVisible: boolean;
 }
 
 export interface RewindTotalsSource {
@@ -46,6 +57,7 @@ export interface DurationExtremes {
 }
 
 export interface RewindHighlightsSource {
+	year: number;
 	finishedRuns: ClosedRewindRun[];
 	latestFinishedRuns: ClosedRewindRun[];
 	finishedGames: RewindFinishedGame[];

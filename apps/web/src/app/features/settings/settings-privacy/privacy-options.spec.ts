@@ -1,5 +1,6 @@
 import {
 	derivePrivacyMode,
+	effectiveSectionVisibility,
 	effectiveVisibility,
 	PRIVACY_PRESETS,
 	PRIVACY_SECTION_GROUPS,
@@ -7,6 +8,7 @@ import {
 	VISIBILITY_OPTIONS,
 	visibilityLabel
 } from "./privacy-options";
+import { type PrivacyDraft } from "./privacy-options.model";
 
 describe("privacy options", () => {
 	const allAt = (level: "public" | "friends" | "private") =>
@@ -166,6 +168,39 @@ describe("privacy options", () => {
 			["private", "Only you"]
 		] as const)("labels %s as %s", (level, label) => {
 			expect(visibilityLabel(level)).toBe(label);
+		});
+	});
+	describe("effectiveSectionVisibility", () => {
+		const privateProfile = (
+			overrides: Partial<PrivacyDraft> = {}
+		): PrivacyDraft => ({
+			...allAt("public"),
+			profileVisibility: "private",
+			acceptFollowRequests: true,
+			...overrides
+		});
+
+		it.each(["public", "friends", "private"] as const)(
+			"lets a %s Rewind keep its own level under a private profile",
+			level => {
+				const draft = privateProfile({ rewindVisibility: level });
+
+				expect(
+					effectiveSectionVisibility(draft, "rewindVisibility")
+				).toBe(level);
+			}
+		);
+
+		it("keeps every other section capped by the profile", () => {
+			expect(
+				effectiveSectionVisibility(
+					privateProfile(),
+					"platinumVisibility"
+				)
+			).toBe("private");
+			expect(
+				effectiveSectionVisibility(privateProfile(), "queueVisibility")
+			).toBe("private");
 		});
 	});
 });

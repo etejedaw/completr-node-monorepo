@@ -13,12 +13,10 @@ import { form, FormField, required, validate } from "@angular/forms/signals";
 import { type Observable, type Subscription } from "rxjs";
 
 import { ToastService } from "../../../core/services/toast";
-import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
-import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import {
+	UiActionMenu,
+	type UiActionMenuItem,
 	UiAlert,
 	UiBadge,
 	type UiBadgeTone,
@@ -33,6 +31,8 @@ import {
 	UiFormField,
 	UiInput,
 	UiLabel,
+	UiOptionPicker,
+	type UiPickerOption,
 	UiSkeleton,
 	UiTable
 } from "../../../shared/ui";
@@ -56,7 +56,7 @@ interface PromotionStatusStyle {
 interface PromotionRow {
 	promotion: PremiumPromotion;
 	status: PremiumPromotionStatus;
-	menuItems: ActionMenuItem[];
+	menuItems: UiActionMenuItem[];
 }
 
 type PromotionDialog =
@@ -129,11 +129,11 @@ function endsAtError(startsAt: string, endsAt: string) {
 @Component({
 	selector: "app-admin-promotions",
 	imports: [
-		ActionMenu,
+		UiActionMenu,
 		DatePipe,
 		FormField,
 		LibraryHero,
-		OptionPicker,
+		UiOptionPicker,
 		UiAlert,
 		UiBadge,
 		UiButton,
@@ -171,7 +171,7 @@ export class AdminPromotions implements OnInit {
 	protected readonly isBusy = computed(() => this.busyKey() !== "");
 	protected readonly skeletonRows = [1, 2, 3, 4];
 	protected readonly featureOptions = PREMIUM_PROMOTION_FEATURE_OPTIONS;
-	protected readonly featurePickerOptions: PickerOption[] =
+	protected readonly featurePickerOptions: UiPickerOption[] =
 		PREMIUM_PROMOTION_FEATURE_OPTIONS.map(option => ({
 			value: option.feature,
 			label: option.label

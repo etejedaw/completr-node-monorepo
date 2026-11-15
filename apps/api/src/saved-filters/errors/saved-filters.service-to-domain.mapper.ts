@@ -13,9 +13,6 @@ export function savedFiltersServiceToDomainMapper(
 	if (error.code === "SAVED_FILTER_NOT_FOUND")
 		return savedFilterDomainError.savedFilterNotFound(context);
 
-	if (error.code === "SAVED_FILTER_FORBIDDEN")
-		return savedFilterDomainError.savedFilterForbidden(context);
-
 	if (error.code === "SAVED_FILTER_LIMIT_REACHED")
 		return savedFilterDomainError.savedFilterLimitReached(context);
 

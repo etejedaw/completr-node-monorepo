@@ -1,4 +1,5 @@
 import { DOCUMENT } from "@angular/common";
+import { HttpErrorResponse } from "@angular/common/http";
 import { signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import {
@@ -9,7 +10,13 @@ import {
 	type RouterStateSnapshot,
 	UrlTree
 } from "@angular/router";
-import { isObservable, lastValueFrom, type Observable, of } from "rxjs";
+import {
+	isObservable,
+	lastValueFrom,
+	type Observable,
+	of,
+	throwError
+} from "rxjs";
 
 import { BETA_SIGNUP_URL } from "../../shared/constants/beta-signup";
 import { type User } from "../models";
@@ -143,6 +150,34 @@ describe("route guards", () => {
 			loadedUser = { role: "user" };
 
 			expect(urlOf(await run(adminGuard))).toBe("/403");
+		});
+	});
+
+	describe.each([
+		["adminGuard", adminGuard],
+		["moderatorGuard", moderatorGuard]
+	])("%s when the user cannot be loaded", (_name, guard) => {
+		beforeEach(() => {
+			token = "t";
+		});
+
+		it.each([500, 503, 429, 0])(
+			"blocks the navigation without sending to 403 on a %i",
+			async status => {
+				loadUser.mockReturnValue(
+					throwError(() => new HttpErrorResponse({ status }))
+				);
+
+				expect(await run(guard)).toBe(false);
+			}
+		);
+
+		it.each([401, 403])("sends to 403 on a %i", async status => {
+			loadUser.mockReturnValue(
+				throwError(() => new HttpErrorResponse({ status }))
+			);
+
+			expect(urlOf(await run(guard))).toBe("/403");
 		});
 	});
 

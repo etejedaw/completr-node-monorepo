@@ -23,9 +23,26 @@ export interface RewindFinishedGame extends RewindGameRef {
 	platformAbbreviation: string | null;
 }
 
+export const REWIND_PERIOD_STATUSES = ["scheduled", "open", "closed"] as const;
+export type RewindPeriodStatus = (typeof REWIND_PERIOD_STATUSES)[number];
+
+export interface RewindPeriod {
+	status: RewindPeriodStatus;
+	year: number;
+	opensAt: string;
+	closesAt: string;
+}
+
+export const REWIND_GENERATION_BLOCKS = [
+	"period-closed",
+	"requires-premium"
+] as const;
+export type RewindGenerationBlock = (typeof REWIND_GENERATION_BLOCKS)[number];
+
 export interface RewindYearSummary {
 	year: number;
 	isGenerated: boolean;
+	generationBlockedBy: RewindGenerationBlock | null;
 	finishedCount: number;
 	startedCount: number;
 	hoursPlayed: number;
@@ -35,6 +52,7 @@ export interface RewindYearSummary {
 
 export interface RewindYears {
 	spotlightYear: number | null;
+	period: RewindPeriod | null;
 	years: RewindYearSummary[];
 	premiumAccess: RewindPremiumAccess | null;
 }
@@ -62,6 +80,10 @@ export interface RewindRatioGame extends RewindFinishedGame {
 export interface RewindDurationGame extends RewindFinishedGame {
 	hours: number;
 	isEstimate: boolean;
+}
+
+export interface RewindClassicGame extends RewindFinishedGame {
+	releaseYear: number;
 }
 
 export interface RewindGenre {
@@ -111,6 +133,7 @@ export interface RewindHighlights {
 	topGenres: RewindGenre[];
 	topPlatforms: RewindPlatform[];
 	longestStreak: RewindStreak | null;
+	classic: RewindClassicGame | null;
 }
 
 export const REWIND_LENGTH_RANGES = [
@@ -157,6 +180,8 @@ export interface Rewind {
 	yearMix: RewindYearMix;
 	language: RewindLanguage;
 	generatedAt: string;
+	design: string;
+	frozenAt: string | null;
 	aiRecap: RewindAiRecap | null;
 	premiumStats: RewindPremiumStats | null;
 	premiumAccessKind: RewindPremiumAccessKind | null;
@@ -224,13 +249,27 @@ export const REWIND_AI_RECAP_STATES = [
 ] as const;
 export type RewindAiRecapState = (typeof REWIND_AI_RECAP_STATES)[number];
 
+export const REWIND_REGENERATION_BLOCKS = [
+	"period-closed",
+	"requires-premium",
+	"no-ai-access",
+	"no-regenerations-left"
+] as const;
+export type RewindRegenerationBlock =
+	(typeof REWIND_REGENERATION_BLOCKS)[number];
+
 export interface RewindOwnerControls {
 	includesPrivateRuns: boolean;
 	includesNotes: boolean;
 	regenerationsLeft: number;
 	graceEndsAt: string | null;
 	canRegenerate: boolean;
+	regenerationBlockedBy: RewindRegenerationBlock | null;
 	aiRecapState: RewindAiRecapState;
+	periodOpen: boolean;
+	periodStatus: RewindPeriodStatus;
+	closesAt: string | null;
+	frozenAt: string | null;
 }
 
 export interface GenerateRewindRequest {

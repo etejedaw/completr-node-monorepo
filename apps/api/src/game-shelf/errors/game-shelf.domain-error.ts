@@ -11,15 +11,6 @@ export function gameShelfNotFound(context?: Record<string, unknown>) {
 	);
 }
 
-export function gameShelfForbidden(context?: Record<string, unknown>) {
-	return new DomainError(
-		MODULE_NAME,
-		"GAME_SHELF_FORBIDDEN",
-		"You do not have permission to modify this game shelf entry",
-		context
-	);
-}
-
 export function gameShelfValidation(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

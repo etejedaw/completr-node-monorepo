@@ -210,8 +210,8 @@ void describe("lists journey: build, share, follow, duplicate and delete a list"
 	void it("rejects another user touching the items and keeps them", async () => {
 		const response = await addItem(celeste.id, follower);
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "LIST_ITEM_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "LIST_ITEM_LIST_NOT_FOUND");
 		const list = await getVisibleList(owner, listId);
 		assert.deepEqual(gameIdsOf(list), [inside.id, portal.id]);
 	});
@@ -227,8 +227,8 @@ void describe("lists journey: build, share, follow, duplicate and delete a list"
 		const followed = await api()
 			.post(`/lists/${listId}/follow`)
 			.set("Authorization", follower.authorization);
-		assert.equal(followed.status, 403);
-		assert.equal(followed.body.type, "LIST_FOLLOWER_NOT_PUBLIC");
+		assert.equal(followed.status, 404);
+		assert.equal(followed.body.type, "LIST_FOLLOWER_LIST_NOT_FOUND");
 		assert.deepEqual(await followedListIds(follower), []);
 	});
 

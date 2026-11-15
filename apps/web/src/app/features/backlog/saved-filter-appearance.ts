@@ -52,12 +52,12 @@ export const SAVED_FILTER_COLORS: {
 	label: string;
 }[] = [
 	{ key: "brand", hex: "var(--color-brand)", label: "Theme color" },
-	{ key: "sky", hex: "#38bdf8", label: "Sky blue" },
-	{ key: "emerald", hex: "#34d399", label: "Green" },
-	{ key: "rose", hex: "#fb7185", label: "Pink" },
-	{ key: "purple", hex: "#a78bfa", label: "Purple" },
-	{ key: "teal", hex: "#2dd4bf", label: "Teal" },
-	{ key: "slate", hex: "#94a3b8", label: "Gray" }
+	{ key: "sky", hex: "var(--color-view-sky)", label: "Sky blue" },
+	{ key: "emerald", hex: "var(--color-view-emerald)", label: "Green" },
+	{ key: "rose", hex: "var(--color-view-rose)", label: "Pink" },
+	{ key: "purple", hex: "var(--color-view-purple)", label: "Purple" },
+	{ key: "teal", hex: "var(--color-view-teal)", label: "Teal" },
+	{ key: "slate", hex: "var(--color-view-slate)", label: "Gray" }
 ];
 
 export function savedFilterColorHex(color: string | null | undefined) {

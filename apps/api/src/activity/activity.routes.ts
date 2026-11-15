@@ -13,8 +13,8 @@ const router = Router();
 router.get(
 	"/feed",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(FeedQuerySchema, "query")
 	],
 	activityController.getFeed
@@ -23,8 +23,8 @@ router.get(
 router.delete(
 	"/feed/:activityId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ActivityIdParamsSchema, "params")
 	],
 	activityController.deleteActivity

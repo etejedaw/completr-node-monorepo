@@ -2,11 +2,14 @@ import { type PremiumAccess } from "../premium-access/premium-access.interface";
 import { type UserRole } from "../users/user-role.type";
 import {
 	type RewindAiRecapState,
+	type RewindGenerationBlocker,
 	type RewindInsightKind,
 	type RewindLanguage,
 	type RewindLengthRange,
+	type RewindPeriodStatus,
 	type RewindPersonaCode,
-	type RewindPremiumAccessKind
+	type RewindPremiumAccessKind,
+	type RewindRegenerationBlocker
 } from "./rewind.constants";
 
 export interface RewindGameRef {
@@ -22,9 +25,17 @@ export interface RewindFinishedGame extends RewindGameRef {
 	platformAbbreviation: string | null;
 }
 
+export interface RewindPeriod {
+	status: RewindPeriodStatus;
+	year: number;
+	opensAt: string;
+	closesAt: string;
+}
+
 export interface RewindYearSummary {
 	year: number;
 	isGenerated: boolean;
+	generationBlockedBy: RewindGenerationBlocker | null;
 	persona: RewindPersonaCode;
 	finishedCount: number;
 	startedCount: number;
@@ -34,6 +45,7 @@ export interface RewindYearSummary {
 
 export interface RewindYears {
 	spotlightYear: number | null;
+	period: RewindPeriod | null;
 	years: RewindYearSummary[];
 	premiumAccess: PremiumAccess | null;
 }
@@ -61,6 +73,10 @@ export interface RewindRatioGame extends RewindFinishedGame {
 export interface RewindDurationGame extends RewindFinishedGame {
 	hours: number;
 	isEstimate: boolean;
+}
+
+export interface RewindClassicGame extends RewindFinishedGame {
+	releaseYear: number;
 }
 
 export interface RewindGenre {
@@ -99,6 +115,14 @@ export interface RewindHighlights {
 	topGenres: RewindGenre[];
 	topPlatforms: RewindPlatform[];
 	longestStreak: RewindStreak | null;
+	classic: RewindClassicGame | null;
+}
+
+export interface RewindStoredHighlights extends Omit<
+	RewindHighlights,
+	"classic"
+> {
+	classic?: RewindClassicGame | null;
 }
 
 export interface RewindLengthBucket {
@@ -137,11 +161,43 @@ export interface Rewind {
 	yearMix: RewindYearMix;
 	language: RewindLanguage;
 	generatedAt: string;
+	design: string;
+	frozenAt: string | null;
 	aiRecap: RewindAiRecap | null;
 	premiumStats: RewindPremiumStats | null;
 	premiumAccessKind: RewindPremiumAccessKind | null;
 	ownerControls: RewindOwnerControls | null;
 	premiumAccess: PremiumAccess | null;
+}
+
+export interface RewindViewGame extends RewindFinishedGame {
+	platformName: string | null;
+	genres: string[];
+}
+
+export interface RewindViewOptions {
+	includesPrivateRuns: boolean;
+	includesNotes: boolean;
+}
+
+export interface RewindView extends Omit<
+	Rewind,
+	"finishedGames" | "highlights" | "ownerControls" | "premiumAccess"
+> {
+	finishedGames: RewindViewGame[];
+	highlights: RewindStoredHighlights;
+	personaWithoutPlatinums: RewindPersonaCode;
+	covers: RewindGameRef[];
+	previousYearTotals: RewindTotals | null;
+	options: RewindViewOptions;
+}
+
+export interface RewindSnapshot {
+	schemaVersion: 1;
+	design: string;
+	frozenAt: string;
+	owner: RewindView;
+	public: RewindView | null;
 }
 
 export interface RewindInsight {
@@ -188,7 +244,12 @@ export interface RewindOwnerControls {
 	regenerationsLeft: number;
 	graceEndsAt: string | null;
 	canRegenerate: boolean;
+	regenerationBlockedBy: RewindRegenerationBlocker | null;
 	aiRecapState: RewindAiRecapState;
+	periodOpen: boolean;
+	periodStatus: RewindPeriodStatus;
+	closesAt: string | null;
+	frozenAt: string | null;
 }
 
 export interface GenerateRewindRequest {

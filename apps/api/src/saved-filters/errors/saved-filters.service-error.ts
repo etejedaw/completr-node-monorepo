@@ -9,13 +9,6 @@ export function notFoundError() {
 	});
 }
 
-export function forbiddenError() {
-	return new ServiceError("SAVED_FILTER_FORBIDDEN", {
-		...BASE_OPTIONS,
-		raw: undefined
-	});
-}
-
 export function limitReachedError() {
 	return new ServiceError("SAVED_FILTER_LIMIT_REACHED", {
 		...BASE_OPTIONS,

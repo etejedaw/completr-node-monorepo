@@ -5,5 +5,3 @@ export const HeaderTokenSchema = z
 		authorization: z.string().regex(/^(Bearer) \S+$/)
 	})
 	.readonly();
-
-export type HeaderToken = z.infer<typeof HeaderTokenSchema>;

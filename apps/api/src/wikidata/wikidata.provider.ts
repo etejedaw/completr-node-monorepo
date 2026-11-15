@@ -3,29 +3,19 @@ import { ScrapingHttpClient } from "../scraping/scraping-http.client";
 import { asRecord } from "../scraping/utils/as-record.util";
 import { parseReleaseYear } from "../scraping/utils/parse-release-year.util";
 import * as wikidataServiceError from "./errors/wikidata.service-error";
+import { buildHltbCandidatesQuery } from "./utils/build-hltb-candidates-query.util";
+import { keepEarliestYear } from "./utils/keep-earliest-year.util";
+import { readBindingValue } from "./utils/read-binding-value.util";
+import {
+	HLTB_ID_PATTERN,
+	SPARQL_ENDPOINT,
+	SPARQL_JSON_HEADERS,
+	WIKIDATA_HTTP_OPTIONS
+} from "./wikidata.constants";
 import {
 	type WikidataHltbCandidate,
 	type WikidataHltbQuery
 } from "./wikidata.interface";
-
-const SPARQL_ENDPOINT = "https://query.wikidata.org/sparql";
-const SPARQL_JSON_HEADERS = { Accept: "application/sparql-results+json" };
-export const WIKIDATA_HTTP_OPTIONS = {
-	minDelayMs: 1000,
-	jitterMs: 500,
-	backgroundMaxRetryAfterMs: 10 * 60_000
-};
-const HLTB_ID_PATTERN = /^\d+$/;
-const SPARQL_STRING_ESCAPES: Record<string, string> = {
-	"\\": "\\\\",
-	'"': '\\"',
-	"\n": "\\n",
-	"\r": "\\r",
-	"\t": "\\t",
-	"\b": "\\b",
-	"\f": "\\f"
-};
-const SPARQL_STRING_SPECIAL_CHARS = /["\\\n\r\t\b\f]/g;
 
 export class WikidataClient {
 	private static sharedInstance?: WikidataClient;
@@ -121,57 +111,4 @@ export class WikidataClient {
 			rawgSlug: readBindingValue(binding, "rawgSlug")?.trim() || null
 		};
 	}
-}
-
-export function escapeSparqlString(value: string) {
-	return value.replace(
-		SPARQL_STRING_SPECIAL_CHARS,
-		char => SPARQL_STRING_ESCAPES[char] ?? char
-	);
-}
-
-export function buildHltbCandidatesQuery({
-	rawgSlug,
-	title
-}: WikidataHltbQuery): string | null {
-	const slug = rawgSlug?.trim();
-	const label = title.trim();
-	const branches = [
-		...(slug ? [`?item wdt:P9968 "${escapeSparqlString(slug)}" .`] : []),
-		...(label
-			? [`?item rdfs:label "${escapeSparqlString(label)}"@en .`]
-			: [])
-	];
-	if (branches.length === 0) return null;
-
-	return [
-		"SELECT ?item ?hltbId ?label ?rawgSlug ?publication WHERE {",
-		`  ${branches.map(branch => `{ ${branch} }`).join(" UNION ")}`,
-		"  ?item wdt:P2816 ?hltbId .",
-		'  OPTIONAL { ?item rdfs:label ?label . FILTER(LANG(?label) = "en") }',
-		"  OPTIONAL { ?item wdt:P9968 ?rawgSlug . }",
-		"  OPTIONAL { ?item wdt:P577 ?publication . }",
-		"}"
-	].join("\n");
-}
-
-function readBindingValue(
-	binding: Record<string, unknown>,
-	name: string
-): string | undefined {
-	const value = asRecord(binding[name])?.value;
-	return typeof value === "string" ? value : undefined;
-}
-
-function keepEarliestYear(
-	existing: WikidataHltbCandidate,
-	candidate: WikidataHltbCandidate
-): WikidataHltbCandidate {
-	if (candidate.releaseYear === null) return existing;
-	if (
-		existing.releaseYear === null ||
-		candidate.releaseYear < existing.releaseYear
-	)
-		return { ...existing, releaseYear: candidate.releaseYear };
-	return existing;
 }

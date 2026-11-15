@@ -93,7 +93,7 @@ export class ListOverview implements OnInit {
 		return this.isLoading() ? null : this.total();
 	});
 
-	onOffsetChange(offset: number) {
+	protected onOffsetChange(offset: number) {
 		this.offset.set(offset);
 		this.loadLists();
 	}
@@ -120,17 +120,17 @@ export class ListOverview implements OnInit {
 			});
 	}
 
-	onSearch(query: string) {
+	protected onSearch(query: string) {
 		this.searchQuery.set(query);
 		if (query.length >= 2) this.isSearching.set(true);
 		this.searchSubject.next(query);
 	}
 
-	onGiftClaimed() {
+	protected onGiftClaimed() {
 		this.loadLists();
 	}
 
-	openCreate() {
+	protected openCreate() {
 		this.openModal(null);
 	}
 

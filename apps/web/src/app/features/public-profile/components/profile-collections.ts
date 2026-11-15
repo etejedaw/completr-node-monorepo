@@ -11,8 +11,7 @@ import { catchError, map, of } from "rxjs";
 
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shelf";
-import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
-import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
+import { UiSegmentedControl, type UiSegmentedOption } from "../../../shared/ui";
 import { PublicLibraryService } from "../services/public-library.service";
 import { type CollectionGame } from "./profile-collections.model";
 
@@ -31,35 +30,8 @@ const COLLECTION_OPTIONS: {
 
 @Component({
 	selector: "app-profile-collections",
-	imports: [GameCoverCard, PosterShelf, SegmentedControl],
-	template: `
-		@if (options().length > 0) {
-			<app-poster-shelf
-				[contained]="true"
-				heading="Collection"
-				eyebrow="Owned & wanted"
-				seeAllLabel="See all"
-				[seeAllLink]="['/user', username(), selectedRoute()]"
-			>
-				@if (options().length > 1) {
-					<app-segmented-control
-						shelfActions
-						class="mr-1"
-						label="Collection"
-						[options]="options()"
-						[(value)]="selected"
-					/>
-				}
-				@for (item of items(); track item.id) {
-					<app-game-cover-card
-						class="w-32 sm:w-40"
-						[game]="item.game"
-						[topLeftBadge]="item.badge"
-					/>
-				}
-			</app-poster-shelf>
-		}
-	`,
+	imports: [GameCoverCard, PosterShelf, UiSegmentedControl],
+	templateUrl: "./profile-collections.html",
 	host: { class: "block empty:hidden" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -111,7 +83,7 @@ export class ProfileCollections {
 		wishlist: this.wishlist.hasValue() ? this.wishlist.value() : null
 	}));
 
-	protected readonly options = computed<SegmentedOption<CollectionKind>[]>(
+	protected readonly options = computed<UiSegmentedOption<CollectionKind>[]>(
 		() =>
 			COLLECTION_OPTIONS.filter(
 				option => (this.pages()[option.value]?.total ?? 0) > 0

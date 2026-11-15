@@ -73,3 +73,5 @@ export function injectSectionScrollSpy(
 		}
 	};
 }
+
+export type SectionScrollSpy = ReturnType<typeof injectSectionScrollSpy>;

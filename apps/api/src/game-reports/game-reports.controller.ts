@@ -5,6 +5,10 @@ import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type GameIdParam } from "../games/schemas/game-id-params.schema";
 import { type CreateReportDto } from "./dtos/create-report.dto";
 import { type UpdateReportStatusDto } from "./dtos/update-report-status.dto";
+import {
+	gameReportSerializer,
+	pendingGameReportSerializer
+} from "./game-reports.serializer";
 import * as gameReportsService from "./game-reports.service";
 import { type ReportIdParams } from "./schemas/report-id-params.schema";
 
@@ -20,13 +24,17 @@ export async function postReport(request: Request, response: Response) {
 		category
 	);
 
-	return response.status(201).json({ data: { report } });
+	return response
+		.status(201)
+		.json({ data: { report: gameReportSerializer(report) } });
 }
 
 export async function getPendingReports(_request: Request, response: Response) {
 	const reports = await gameReportsService.findPendingReports();
 
-	return response.status(200).json({ data: { reports } });
+	return response
+		.status(200)
+		.json({ data: { reports: reports.map(pendingGameReportSerializer) } });
 }
 
 export async function patchReportStatus(request: Request, response: Response) {
@@ -41,5 +49,7 @@ export async function patchReportStatus(request: Request, response: Response) {
 
 	auditService.record(user.id, `report_${status}`, "report", reportId);
 
-	return response.status(200).json({ data: { report } });
+	return response
+		.status(200)
+		.json({ data: { report: gameReportSerializer(report) } });
 }

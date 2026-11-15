@@ -1,61 +1,37 @@
 import { NgTemplateOutlet } from "@angular/common";
 import {
-	afterNextRender,
 	booleanAttribute,
 	ChangeDetectionStrategy,
 	Component,
 	computed,
-	Directive,
-	ElementRef,
-	inject,
+	type ElementRef,
 	input,
 	model,
 	output,
 	signal,
 	viewChild
 } from "@angular/core";
-import {
-	NgpDatePicker,
-	NgpDatePickerCell,
-	NgpDatePickerCellRender,
-	NgpDatePickerDateButton,
-	NgpDatePickerGrid,
-	NgpDatePickerLabel,
-	NgpDatePickerNextMonth,
-	NgpDatePickerPreviousMonth,
-	NgpDatePickerRowRender
-} from "ng-primitives/date-picker";
+import { NgpDatePicker } from "ng-primitives/date-picker";
 import { NgpPopover, NgpPopoverTrigger } from "ng-primitives/popover";
 
-import { ViewportService } from "../../../core/services/viewport";
 import { UiBottomSheet } from "../bottom-sheet/ui-bottom-sheet";
 import { UiButton } from "../button/ui-button";
 import { UiIconButton } from "../icon-button/ui-icon-button";
+import { injectCalendarOpening } from "./calendar-opening";
 import {
 	clampDate,
 	formatDateDisplay,
 	formatDateValue,
-	formatDayLabel,
-	formatMonthLabel,
 	formatTwoDigits,
-	isSameDay,
 	parseDateValue,
 	startOfDay,
 	type UiDatePickerMode,
 	withTime
 } from "./date-picker-value";
+import { UiCalendarPanel } from "./ui-calendar-panel";
+import { UiDatePickerInitialFocus } from "./ui-date-picker-initial-focus";
 
 export type { UiDatePickerMode } from "./date-picker-value";
-
-const WEEKDAYS = [
-	{ short: "S", full: "Sunday" },
-	{ short: "M", full: "Monday" },
-	{ short: "T", full: "Tuesday" },
-	{ short: "W", full: "Wednesday" },
-	{ short: "T", full: "Thursday" },
-	{ short: "F", full: "Friday" },
-	{ short: "S", full: "Saturday" }
-];
 
 const HOURS_PER_DAY = 24;
 const MINUTES_PER_HOUR = 60;
@@ -65,38 +41,16 @@ const HOUR_PAGE_STEP = 6;
 
 type TimeUnit = "hours" | "minutes";
 
-let nextDatePickerId = 0;
-
-@Directive({ selector: "[uiDatePickerInitialFocus]" })
-export class UiDatePickerInitialFocus {
-	constructor() {
-		const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
-		afterNextRender({
-			read: () =>
-				host
-					.querySelector<HTMLElement>('[data-day][tabindex="0"]')
-					?.focus()
-		});
-	}
-}
-
 @Component({
 	selector: "ui-date-picker",
 	imports: [
 		NgTemplateOutlet,
 		NgpDatePicker,
-		NgpDatePickerCell,
-		NgpDatePickerCellRender,
-		NgpDatePickerDateButton,
-		NgpDatePickerGrid,
-		NgpDatePickerLabel,
-		NgpDatePickerNextMonth,
-		NgpDatePickerPreviousMonth,
-		NgpDatePickerRowRender,
 		NgpPopover,
 		NgpPopoverTrigger,
 		UiBottomSheet,
 		UiButton,
+		UiCalendarPanel,
 		UiIconButton,
 		UiDatePickerInitialFocus
 	],
@@ -120,14 +74,14 @@ export class UiDatePicker {
 	readonly describedBy = input<string | null>(null);
 	readonly touch = output<void>();
 
-	protected readonly isMobile = inject(ViewportService).isMobile;
-	protected readonly weekdays = WEEKDAYS;
-	protected readonly sheetOpen = signal(false);
-	protected readonly popoverOpen = signal(false);
+	protected readonly opening = injectCalendarOpening({
+		isDisabled: () => this.disabled(),
+		prepare: () => this.prepareDraft(),
+		closed: () => this.touch.emit()
+	});
 	protected readonly focusedDay = signal(startOfDay(new Date()));
 	protected readonly draftHours = signal(0);
 	protected readonly draftMinutes = signal(0);
-	protected readonly gridLabelId = `ui-date-picker-month-${nextDatePickerId++}`;
 	private readonly popoverTrigger = viewChild(NgpPopoverTrigger);
 	private readonly trigger =
 		viewChild.required<ElementRef<HTMLButtonElement>>("trigger");
@@ -150,9 +104,6 @@ export class UiDatePicker {
 		const max = this.maxBound();
 		return max ? startOfDay(max) : undefined;
 	});
-	protected readonly isOpen = computed(
-		() => this.sheetOpen() || this.popoverOpen()
-	);
 	protected readonly displayText = computed(() => {
 		const selected = this.selected();
 		return selected ? formatDateDisplay(selected, this.mode()) : null;
@@ -170,9 +121,6 @@ export class UiDatePicker {
 	);
 	protected readonly canClear = computed(
 		() => this.clearable() && !!this.value() && !this.disabled()
-	);
-	protected readonly monthLabel = computed(() =>
-		formatMonthLabel(this.focusedDay())
 	);
 	protected readonly todayDisabled = computed(() => {
 		const today = startOfDay(new Date());
@@ -194,31 +142,9 @@ export class UiDatePicker {
 		this.trigger().nativeElement.focus(options);
 	}
 
-	protected openSheet() {
-		if (this.disabled()) return;
-		this.prepareDraft();
-		if (this.isMobile()) this.sheetOpen.set(true);
-	}
-
-	protected onPopoverOpenChange(open: boolean) {
-		this.popoverOpen.set(open);
-		if (!open) this.touch.emit();
-	}
-
-	protected closeSheet() {
-		if (!this.sheetOpen()) return;
-		this.sheetOpen.set(false);
-		this.touch.emit();
-	}
-
 	protected close() {
-		this.closeSheet();
+		this.opening.closeSheet();
 		void this.popoverTrigger()?.hide("keyboard");
-	}
-
-	protected dayLabel(date: Date) {
-		const today = isSameDay(date, new Date()) ? ", today" : "";
-		return formatDayLabel(date) + today;
 	}
 
 	protected onFocusedDayChange(date: Date) {

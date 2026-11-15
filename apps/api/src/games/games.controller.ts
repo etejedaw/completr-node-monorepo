@@ -6,7 +6,7 @@ import * as franchiseService from "../franchises/franchises.service";
 import { gamePlatinumSerializer } from "../game-platinum/game-platinum.serializer";
 import * as gamePlatinumService from "../game-platinum/game-platinum.service";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
-import { findFullPremiumUserIds } from "../premium-access/premium-access.service";
+import { findFullPremiumUserIds } from "../premium-access/services/premium-access.service";
 import { type MarkCompilationDto } from "./dtos/mark-compilation.dto";
 import { type RefreshExternalDataDto } from "./dtos/refresh-external-data.dto";
 import { type RegisterGameDto } from "./dtos/register-game.dto";
@@ -24,13 +24,14 @@ import {
 	gameShowcaseSerializer
 } from "./games.serializer";
 import * as gameService from "./games.service";
+import { type DeleteGameQuery } from "./schemas/delete-game-query.schema";
 import { type GameCodeParam } from "./schemas/game-code-params.schema";
 import { type GameIdParam } from "./schemas/game-id-params.schema";
 import { type GameSearchQuery } from "./schemas/game-search-query.schema";
 import { type GamesQuery } from "./schemas/games-query.schema";
 import { type LatestReviewedQuery } from "./schemas/latest-reviewed-query.schema";
 import * as gamesProfileService from "./services/games-profile.service";
-import { mapGamesQueryToOptions } from "./utils/games-query.adapter";
+import { mapGamesQueryToOptions } from "./utils/map-games-query-to-options.util";
 
 export async function getGameByCode(request: Request, response: Response) {
 	const params = request.locals.params as GameCodeParam;
@@ -226,13 +227,11 @@ export async function postSplitGame(request: Request, response: Response) {
 
 export async function deleteGame(request: Request, response: Response) {
 	const gameIdParam = request.locals.params as GameIdParam;
+	const { hard } = request.locals.query as DeleteGameQuery;
 	const user = request.locals.user as RequestUser;
 	const { id } = gameIdParam;
 
-	const hard = request.query.hard === "true";
-
 	if (hard) {
-		if (user.role !== "admin") throw gameDomainError.gameForbidden();
 		await gameService.hardDeleteGame(id);
 		auditService.record(user.id, "game_deleted", "game", id);
 	} else {

@@ -63,7 +63,7 @@ errors/
 1. **Los services nunca lanzan `DomainError`.** Solo `ServiceError` (o retornan `null` para que el controller decida).
 2. **Los controllers nunca lanzan `ServiceError`.** Solo `DomainError` para reglas de negocio que el controller mismo detecta.
 3. **Los providers lanzan `ServiceError` con `service: "<Nombre> Provider"`** — distinto a `"<Nombre> Service"` para diferenciar fallos externos de fallos internos.
-4. **El `service` y el `module` se usan como claves de routing en los normalizers globales.** Si los renombras, hay que actualizar `global-error-domain.normalizer.ts` y `global-error-http.normalizer.ts`.
+4. **El `service` y el `module` se usan como claves de routing en los normalizers globales.** Si los renombras, hay que actualizar las claves en `common/errors/error-registry.ts`.
 5. **Los códigos de error siguen el patrón `<MODULO>_<CAUSA>`** en `SCREAMING_SNAKE_CASE` (`ORDER_NOT_FOUND`, `AUTH_INVALID_CREDENTIALS`, `PAYMENTS_RATE_LIMITED`).
 6. **El `correlationId` se propaga en el `context`** para trazabilidad en logs.
 7. **Cuando uses `rethrowSequelizeError`, todo el cuerpo crítico (incluido el `return`) va dentro del `try`.** La función está tipada `: never`, así que el código tras el catch solo correría en path feliz — declarar variables `let` afuera para llenarlas adentro y consumirlas después es confuso y propenso a bugs. Ver "Patrón `rethrowSequelizeError`" más abajo.
@@ -118,7 +118,7 @@ Si el callback de la transacción tiene un try/catch con `rethrowSequelizeError`
 
 ## Ejemplo completo
 
-Cualquier módulo existente tiene los cinco archivos de `errors/`, y su registro está en los dos normalizers globales de `common/errors/`. Un módulo nuevo copia esa forma. Si te saltas el registro global, los errores del módulo caen al fallback genérico (500, `INTERNAL_ERROR`) y se pierden el status y el mensaje.
+Cualquier módulo existente tiene los cinco archivos de `errors/`, y su registro está en las dos tablas de `common/errors/error-registry.ts` (`SERVICE_ERROR_NORMALIZERS` y `DOMAIN_ERROR_HTTP_MAPPERS`). Un módulo nuevo copia esa forma. Si te saltas el registro global, los errores del módulo caen al fallback genérico (500, `INTERNAL_ERROR`) y se pierden el status y el mensaje.
 
 ## Response al cliente
 
@@ -132,4 +132,4 @@ El campo `context` solo se incluye fuera de `NODE_ENV=prod` para no filtrar deta
 2. Agrega el constructor en `<modulo>.service-error.ts` (si aplica) y en `<modulo>.domain-error.ts`.
 3. Mapea el código en `<modulo>.service-to-domain.mapper.ts`.
 4. Mapea el status HTTP en `<modulo>.domain-to-http.mapper.ts`.
-5. (No tocas el global si el módulo ya está registrado.)
+5. (No tocas `error-registry.ts` si el módulo ya está registrado.)

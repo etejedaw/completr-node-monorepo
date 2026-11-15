@@ -127,48 +127,7 @@ function countedValue(target: number, progress: number): number {
 @Component({
 	selector: "app-rewind-tally",
 	imports: [InView, StarRating],
-	template: `
-		<dl
-			class="m-0 flex flex-col"
-			appInView
-			(inViewChange)="$event && start()"
-		>
-			@for (row of rows(); track row.label; let i = $index) {
-				<div
-					class="flex items-center gap-3 border-b border-l-4 border-b-line border-l-(--tone) py-3 pl-3 sm:py-4 sm:pl-4 last:border-b-0"
-					[style.--tone]="toneOf(row)"
-				>
-					<dt
-						class="flex min-w-0 flex-1 items-baseline gap-3 text-sm sm:text-base text-fg-secondary"
-					>
-						<span class="shrink-0">{{ row.label }}</span>
-						<span
-							aria-hidden="true"
-							class="min-w-4 flex-1 border-b-2 border-dotted border-line-hover"
-						></span>
-					</dt>
-					<dd
-						class="m-0 flex shrink-0 items-center gap-2.5 font-display text-4xl sm:text-5xl font-semibold leading-none tabular-nums text-(--tone)"
-					>
-						@if (row.unit === "rating") {
-							<app-star-rating
-								aria-hidden="true"
-								class="max-sm:hidden"
-								size="sm"
-								[value]="row.value"
-								[readonly]="true"
-								[showValue]="false"
-							/>
-						}
-						<span aria-hidden="true">{{
-							displayValue(row, i)
-						}}</span>
-						<span class="sr-only">{{ spoken(row) }}</span>
-					</dd>
-				</div>
-			}
-		</dl>
-	`,
+	templateUrl: "./rewind-tally.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

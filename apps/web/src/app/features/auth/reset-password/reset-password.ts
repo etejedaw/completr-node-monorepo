@@ -82,6 +82,7 @@ export class ResetPassword {
 
 	protected onSubmit(event: Event) {
 		event.preventDefault();
+		if (this.isLoading()) return;
 		if (this.form().invalid()) {
 			this.form().markAsTouched();
 			return;
@@ -99,7 +100,7 @@ export class ResetPassword {
 				},
 				error: err => {
 					this.isLoading.set(false);
-					if (err.status === 400 || err.status === 422) {
+					if (err.status === 400) {
 						this.status.set("invalidLink");
 						return;
 					}
@@ -109,6 +110,8 @@ export class ResetPassword {
 	}
 
 	private messageFor(err: { status?: number }): string {
+		if (err.status === 422)
+			return "Your new password doesn't meet the requirements. Check them and try again.";
 		if (err.status === 429) {
 			return "Too many attempts. Wait a few minutes and try again.";
 		}

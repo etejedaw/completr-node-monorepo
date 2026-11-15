@@ -52,18 +52,18 @@ export class WishlistAddModal {
 	protected readonly selectedPlatformId = signal<string | null>(null);
 	protected readonly returnedToSearch = signal(false);
 
-	pickGame(game: Game) {
+	protected pickGame(game: Game) {
 		this.selectedGame.set(game);
 		this.selectedPlatformId.set(null);
 	}
 
-	backToSearch() {
+	protected backToSearch() {
 		this.selectedGame.set(null);
 		this.selectedPlatformId.set(null);
 		this.returnedToSearch.set(true);
 	}
 
-	confirm(skipPlatform = false) {
+	protected confirm(skipPlatform = false) {
 		const game = this.selectedGame();
 		if (!game || this.adding()) return;
 		this.adding.set(true);
@@ -79,7 +79,7 @@ export class WishlistAddModal {
 		});
 	}
 
-	onClose() {
+	protected onClose() {
 		this.dialogRef.close();
 	}
 }

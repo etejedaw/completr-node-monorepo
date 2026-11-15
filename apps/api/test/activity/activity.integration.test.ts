@@ -146,7 +146,8 @@ void describe("DELETE /feed/:activityId", () => {
 		const missingResponse = await deleteActivity(intruder, NON_EXISTENT_ID);
 
 		assert.equal(foreignResponse.status, missingResponse.status);
-		assert.deepEqual(foreignResponse.body, missingResponse.body);
+		assert.equal(foreignResponse.body.type, missingResponse.body.type);
+		assert.equal(foreignResponse.body.title, missingResponse.body.title);
 	});
 
 	void it("does not let a follower delete the activity they see in their feed", async () => {

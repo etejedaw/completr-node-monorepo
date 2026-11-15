@@ -23,9 +23,11 @@ docs: |-
 
     Returns the Rewind of `:username` for one calendar year: totals, every finished game and the highlights of the year. Powers the `/user/:username/rewind/:year` page and the share images.
 
-    The owner must have generated the year with `POST /users/me/rewinds/:year`: until then visitors get 404 `REWIND_NOT_FOUND` and the owner gets 404 `REWIND_NOT_GENERATED`. The base numbers are computed live for each viewer; `language`, `generatedAt`, `aiRecap` and `premiumStats` come from the stored generation and are the same for every viewer, free or premium.
+    The owner must have generated the year with `POST /users/me/rewinds/:year`: until then visitors get 404 `REWIND_NOT_FOUND` and the owner gets 404 `REWIND_NOT_GENERATED`. While the Rewind is live, the base numbers are computed for each viewer; `language`, `generatedAt`, `frozenAt`, `aiRecap` and `premiumStats` come from the stored generation and are the same for every viewer, free or premium.
 
-    The year must be open (a past year, or the current year from December 1, UTC), not earlier than the year the user signed up (`createdAt`, UTC), and have data for the viewer, as in `GET /users/:username/rewinds`. The owner sees every run; everyone else gets the Rewind built from public runs only. Notes are never returned. The platinum total is only sent to viewers who can see the platinums section (`platinumVisibility`); for everyone else it is `null`. For non-self viewers the target's `profile` and `rewind` sections must be visible.
+    **Frozen Rewinds.** At the close of the period in which it was generated or regenerated (00:00 UTC of the day after the edition `closesAt`), the Rewind is frozen: it stores a snapshot with the owner view and the visitor view of that moment, and from then on it is read from the snapshot (`frozenAt` is set). Games, totals, highlights, `yearMix`, `language`, `generatedAt`, `aiRecap`, `premiumStats`, `premiumAccessKind` and `design` come from the snapshot, so runs added later or a run that turns private do not change it. A visitor gets the visitor view; a year that had no public runs at the close stays 404 `REWIND_NOT_FOUND` for visitors even if its runs turn public later. The snapshot keeps the persona computed with and without platinums, and the response serves the one that matches the current access of the viewer to the platinums section. What stays live: `user`, `isSpotlight`, `premiumAccess`, `ownerControls` and access to the sections — if the owner hides the rewind section, the visitor gets 403 `USER_PRIVATE`, and without access to the platinums `totals.platinums` is `null`. `otherYears` lists frozen years as they were at their close and the rest live, like `GET /users/:username/rewinds`. If the period already closed and the freeze job has not reached the Rewind yet, this request freezes it before answering (unless its AI recap is still in progress). Regenerating the Rewind in a later edition (or adding its AI recap) clears the snapshot and the Rewind is live again until that edition closes.
+
+    The year must be open (a past year, or the year of the latest edition that already opened, UTC), not earlier than the year the user signed up (`createdAt`, UTC), and have data for the viewer, as in `GET /users/:username/rewinds`. The owner sees every run; everyone else gets the Rewind built from public runs only. Notes are never returned. The platinum total is only sent to viewers who can see both the profile and the platinums section (`profileVisibility` and `platinumVisibility`); for everyone else it is `null`. For non-self viewers the target's `rewind` section must be visible, and the `profile` section does not matter: the detail is reached by link and only `rewindVisibility` counts, even when the profile is private. The visitor sees the owner's name and avatar in `user`, and the profile, the year archive and the other sections stay restricted.
 
     **Authentication:** optional (Bearer token). Required to see a Rewind whose privacy needs it.
     **Rate Limit:** 300 requests per minute (public).
@@ -151,7 +153,17 @@ docs: |-
             { "name": "Nintendo Switch", "abbreviation": "NSW", "count": 5 },
             { "name": "PC", "abbreviation": "PC", "count": 1 }
           ],
-          "longestStreak": { "months": 5, "fromMonth": 3, "toMonth": 7 }
+          "longestStreak": { "months": 5, "fromMonth": 3, "toMonth": 7 },
+          "classic": {
+            "gameId": "uuid",
+            "code": "final-fantasy-vii",
+            "title": "Final Fantasy VII",
+            "coverUrl": "https://media.example.com/final-fantasy-vii.jpg",
+            "backgroundUrl": "https://media.example.com/final-fantasy-vii-bg.jpg",
+            "finishedAt": "2025-08-03",
+            "platformAbbreviation": "PS5",
+            "releaseYear": 1997
+          }
         },
         "yearMix": {
           "lengthMix": [
@@ -170,6 +182,8 @@ docs: |-
         },
         "language": "en",
         "generatedAt": "2025-12-03T20:15:00.000Z",
+        "design": "2026",
+        "frozenAt": null,
         "aiRecap": null,
         "premiumStats": null,
         "premiumAccessKind": null,
@@ -179,15 +193,17 @@ docs: |-
     ```
 
     - `persona`: the title of the year, the first rule that matches: `trophy-hunter` (`platinums` >= 3, never when `platinums` is `null`), `marathoner` (`finished` >= 3 and an average of 30 hours or more per finished game), `short-and-sweet` (`finished` >= 5 and an average of 8 hours or less), `finisher` (`finished` >= 10 and `finishRate` >= 80), `genre-explorer` (`genresPlayed` >= 6), `picky-player` (`abandoned` > `finished` and `abandoned` >= 3), otherwise `steady-player`. The average uses the hours of `longest` / `fastest` (real or estimated) of the latest run of each finished game, leaving out games without hours.
-    - `isSpotlight`: `true` while today (UTC) is between December 1 of `year` and January 31 of the next year.
+    - `isSpotlight`: `true` while an edition of `year` is open: today (UTC) between its `opensAt` and `closesAt`, both included.
     - `premiumAccess`: only for the owner, `null` for everyone else. The owner's current access to `rewind.premium`: `source` is `role`, `full-grant`, `feature-grant` or null; `expiresAt` is the applicable grant expiration or null. It controls premium generation actions, not access to already generated content nor the badge.
-    - `premiumAccessKind`: same for every viewer. How the stored premium part (`aiRecap`, `premiumStats`) was generated: `gift` with a specific Rewind grant, `premium` with a premium role or temporary full premium, `null` without premium content or for Rewinds generated before this field existed. It is stored with the content, so it stays correct after the owner's access expires; the client shows the badge from it.
+    - `premiumAccessKind`: same for every viewer. The access the Rewind had the first time it used the AI, which also decided its quota of rolls: `gift` with a specific Rewind grant, `premium` with a premium role or temporary full premium. It is fixed at that first use and never changes or goes back to `null`, so it stays correct after the owner's access expires; the client shows the badge from it. It is `null` while there is no premium content (no ready `aiRecap` and no `premiumStats`), also for Rewinds generated before this field existed.
+    - `design`: key of the design the Rewind is drawn with (`"2026"`). While the Rewind is not frozen it is the design of the latest edition that already opened; once frozen, the design of the edition in whose period it was live, from the snapshot.
+    - `frozenAt`: ISO date when the Rewind was frozen at the close of its period (from the snapshot), `null` while it is live.
     - `otherYears`: the other years `GET /users/:username/rewinds` lists for the same viewer, newest first (only generated years for visitors).
     - `language`: `en` or `es`, chosen by the owner when generating; the page is shown in it for every viewer.
     - `generatedAt`: ISO date of the last generation. The owner sends it back as `expectedGeneratedAt` to regenerate.
     - `aiRecap`: the stored AI recap (`headline`, `summary`, `insights` with `kind` / `title` / `body`, `funFact`, `nextYearChallenge`), only when it finished successfully; `null` otherwise. Losing premium never removes it.
     - `premiumStats`: `hoursByMonth`, `tasteVsCritics`, `backlogFlow` and `genreShare`, stored with the AI recap; `null` when the year was never generated with premium access.
-    - `ownerControls`: only for the owner, `null` for everyone else. `includesPrivateRuns` and `includesNotes` repeat the last generation choices; `regenerationsLeft` is `1 - regenerationsUsed`; `graceEndsAt` is `"<year+1>-01-07"` from January 1 to 7 (UTC) of the next year while the grace regeneration is unused, `null` otherwise; `canRegenerate` is `graceEndsAt !== null || regenerationsLeft > 0`; `aiRecapState` is `ready` (recap stored), `failed` (failed or still pending), `available` (no recap and the owner has `rewind.premium` access today) or `unavailable`.
+    - `ownerControls`: only for the owner, `null` for everyone else. `includesPrivateRuns` and `includesNotes` repeat the last generation choices; `regenerationsLeft` is the rolls this Rewind has left (before its first AI use, the quota the owner's current access would get from the open edition); `graceEndsAt` is the `graceEndsAt` of the open edition (`YYYY-MM-DD`) when the Rewind is of the edition year, today is inside the grace window, the grace is unused and the owner has `rewind.premium` access, `null` otherwise; `canRegenerate` is `periodOpen` && year allowed (the edition year, or a previous year with full premium) && `rewind.premium` access && (`graceEndsAt !== null || regenerationsLeft > 0`); `regenerationBlockedBy` is `null` when `canRegenerate` is `true`; otherwise the first applicable reason: `period-closed` (no edition open), `requires-premium` (a previous year without full premium), `no-ai-access` (no `rewind.premium` access) or `no-regenerations-left` (no rolls and no grace left), the same rules that answer the 409/403 of regenerating; `aiRecapState` is `ready` (recap stored), `failed` (failed or still pending), `available` (no recap and `canRegenerate`) or `unavailable`; `periodOpen` says whether an edition is open today; `periodStatus` is `open` (an edition is open), `scheduled` (none is open and a later one exists) or `closed` (no later edition), the same criterion as `period.status` in `GET /users/:username/rewinds`; `closesAt` is the `closesAt` of the open edition (`YYYY-MM-DD`) or `null`; `frozenAt` repeats the Rewind `frozenAt`.
     - `totals`: distinct games `finished` (`completed`) and `abandoned` with `finishedAt` in the year, distinct games `started` (`startedAt` in the year), `hoursPlayed` as in the years list, and `platinums` with `platinumedAt` in the year (`null` without access to the platinums). `finishRate` is `round(finished / (finished + abandoned) * 100)`, `null` when both are 0. `averageRating` is the mean `userRating` of the rated finished runs, 1 decimal, `null` without ratings. `genresPlayed` / `platformsPlayed` count the distinct genres of the finished games and the distinct platforms of the finished runs.
     - `finishedGames`: one entry per finished game (its latest run of the year), by `finishedAt` ascending and then run id.
     - `topRated`: the finished run with the highest `userRating`; ties go to the latest `finishedAt`, then the run id.
@@ -197,6 +213,7 @@ docs: |-
     - `firstFinished` / `lastFinished`: the first and last entries of `finishedGames` (the same game when only one was finished).
     - `topGenres` / `topPlatforms`: up to 3, with the criteria and ties of `favoriteGenre` / `topPlatform`, which are their first entries; empty arrays when there is nothing to rank.
     - `longestStreak`: the longest run of consecutive months of the year with at least one finished game (by the latest run of each game); ties go to the earliest; `null` when it is shorter than 2 months.
+    - `classic`: the finished game (its latest run of the year) with the oldest release year, as long as it came out at least 10 years before `year` (`REWIND_CLASSIC_MIN_AGE_YEARS`; a 2015 game counts in the 2025 Rewind, a 2016 one does not); games without a release date never count. Ties go to the earliest `finishedAt`, then the game id. `null` when no game is old enough. A Rewind frozen before this highlight existed serves `null`.
     - Every other highlight is `null` when there is nothing to pick from.
     - `yearMix`: computed live from the latest finished run of each game in the year, so a replayed game counts once. `lengthMix` always has the four ranges in this order: `under-5`, `5-15`, `15-30` and `over-30` hours, by `realDuration` or, without real hours, the estimated `duration` (a range includes its lower edge: exactly 5 hours is `5-15`). `releaseDecades` lists only the decades with games (`decade` is 1990, 2000...), oldest first, by the release year of the game. `gamesWithoutHours` counts the finished games left out of `lengthMix` (no hours above 0) and `gamesWithoutRelease` the ones left out of `releaseDecades` (no release date, or a release year before 1950 or after `year`).
 
@@ -204,7 +221,7 @@ docs: |-
 
     | Status | Code                  | Description                                                     |
     |--------|-----------------------|-----------------------------------------------------------------|
-    | 403    | USER_PRIVATE          | Profile or its rewind section is not visible                    |
+    | 403    | USER_PRIVATE          | Rewind section not visible |
     | 404    | USER_NOT_FOUND        | No active user with that username                               |
     | 404    | REWIND_NOT_FOUND      | The year is not open yet, is before the sign-up, has no data, or (for visitors) is not generated |
     | 404    | REWIND_NOT_GENERATED  | The owner reads an open year with data they have not generated  |

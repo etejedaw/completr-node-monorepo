@@ -58,7 +58,7 @@ import { type FeaturedList } from "./game-featured-lists.model";
 								>
 							}
 							<span
-								class="mt-auto pt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.6875rem] text-fg-muted"
+								class="mt-auto pt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-fg-muted"
 							>
 								@if (list.owner) {
 									<span

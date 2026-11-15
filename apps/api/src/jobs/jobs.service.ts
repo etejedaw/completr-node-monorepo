@@ -1,16 +1,19 @@
-import { Op } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import * as backlogService from "../backlog/backlog.service";
-import { apiKeysConfig } from "../common/config/api-keys.config";
+import { environmentConfig } from "../common/config/environment.config";
 import { ServiceError } from "../common/errors/service-error";
 import { PinoLogger } from "../common/logger/pino.logger";
+import { describeFailure } from "../common/utils/describe-failure.util";
 import * as coopRunsService from "../coop-runs/coop-runs.service";
+import { sequelize } from "../database/sequelize.database";
 import * as gameExternalService from "../game-external/game-external.service";
 import * as gamePopularityService from "../game-popularity/game-popularity.service";
 import * as gameScoresService from "../game-scores/game-scores.service";
 import * as gameTimesService from "../game-times/game-times.service";
 import {
-	EXTERNAL_DATA_THROTTLE_SUFFIXES,
+	EXTERNAL_DATA_UNRECORDED_FAILURE_PREFIX,
+	EXTERNAL_DATA_UNRECORDED_FAILURE_SUFFIXES,
 	HLTB_ID_LOOKUP_PAUSED,
 	IGDB_AUTH_ERROR,
 	IGDB_DISABLED,
@@ -18,39 +21,34 @@ import {
 } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import { type ExternalDataResult } from "../games/games-external-data.interface";
-import * as rawgServiceError from "../rawg/errors/rawg.service-error";
-import { RawgClient } from "../rawg/rawg.provider";
 import * as reviewsService from "../reviews/reviews.service";
+import * as rewindFreezeService from "../rewind/services/rewind-freeze.service";
 import * as usersService from "../users/users.service";
+import * as jobsServiceError from "./errors/jobs.service-error";
 import { Job } from "./job.model";
 import {
+	ACTIVE_JOB_STATUSES,
+	INTERRUPTED_JOB_RESULT,
+	JOB_TYPES,
+	JOBS_LIST_LIMIT,
+	MAX_CONSECUTIVE_TRANSIENT_FAILURES,
+	MIN_COMMUNITY_SAMPLE_RATIO,
+	MIN_COMMUNITY_SAMPLE_SIZE,
+	RAWG_POPULATE_REQUEST_INTERVAL_MS,
+	TALLY_KEY_BY_STATUS
+} from "./jobs.constants";
+import {
+	type CommunityAggregate,
 	type ExternalDataFailureStreaks,
 	type ExternalDataJobReport,
-	type ExternalDataSourceTally
+	type ExternalDataSourceTally,
+	type StartedJob
 } from "./jobs.interface";
+import { describeRewindFreezeReport } from "./utils/describe-rewind-freeze-report.util";
 
-const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
 const logger = new PinoLogger("Jobs");
 
-const MIN_THRESHOLD_PERCENT = 0.1;
-const EXTERNAL_DATA_STOP_SUFFIXES = [
-	...EXTERNAL_DATA_THROTTLE_SUFFIXES,
-	"_PARSE_ERROR"
-];
 const EXTERNAL_DATA_STOP_CODES = [IGDB_AUTH_ERROR, IGDB_DISABLED];
-const MAX_CONSECUTIVE_TRANSIENT_FAILURES = 3;
-const HLTB_ID_LOOKUP_ERROR_PREFIX = "WIKIDATA_";
-const EXTERNAL_DATA_JOB_OPERATION = "populate_external_data";
-const TALLY_KEY_BY_STATUS = {
-	updated: "updated",
-	not_found: "notFound",
-	ambiguous: "ambiguous",
-	no_data: "noData",
-	failed: "failed"
-} as const;
-const ACTIVE_JOB_STATUSES = ["pending", "running"];
-const INTERRUPTED_JOB_RESULT =
-	"Interrupted: the API restarted before the job finished";
 
 export async function findAll() {
 	return Job.findAll({
@@ -58,22 +56,42 @@ export async function findAll() {
 			["createdAt", "DESC"],
 			["id", "DESC"]
 		],
-		limit: 20
+		limit: JOBS_LIST_LIMIT
 	});
+}
+
+async function findOrCreateActiveJob(
+	type: string,
+	transaction: Transaction
+): Promise<StartedJob> {
+	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
+		replacements: { lockKey: `jobs:${type}` },
+		transaction
+	});
+	const existing = await Job.findOne({
+		where: { type, status: { [Op.in]: ACTIVE_JOB_STATUSES } },
+		transaction
+	});
+	if (existing) return { job: existing, started: false };
+
+	const job = await Job.create({ type, status: "running" }, { transaction });
+	return { job, started: true };
 }
 
 async function startJob(
 	type: string,
 	runner: (jobId: string) => Promise<void>
-) {
-	const existing = await Job.findOne({
-		where: { type, status: { [Op.in]: ACTIVE_JOB_STATUSES } }
-	});
-	if (existing) return existing;
+): Promise<StartedJob> {
+	const startedJob = await sequelize.transaction(transaction =>
+		findOrCreateActiveJob(type, transaction)
+	);
+	if (startedJob.started)
+		runner(startedJob.job.id).catch(ignoreRunnerFailure);
+	return startedJob;
+}
 
-	const job = await Job.create({ type, status: "running" });
-	runner(job.id).catch(Function.prototype as () => void);
-	return job;
+function ignoreRunnerFailure() {
+	return undefined;
 }
 
 export async function failInterruptedJobs() {
@@ -101,10 +119,11 @@ async function isCancelled(jobId: string) {
 }
 
 export async function cancelJob(jobId: string) {
-	const job = await Job.findByPk(jobId);
-	if (!job || job.status !== "running") return false;
-	await job.update({ status: "cancelled", completedAt: new Date() });
-	return true;
+	const [cancelledCount] = await Job.update(
+		{ status: "cancelled", completedAt: new Date() },
+		{ where: { id: jobId, status: "running" } }
+	);
+	if (cancelledCount === 0) throw jobsServiceError.notFoundError();
 }
 
 async function failJob(jobId: string, result: string) {
@@ -115,21 +134,23 @@ async function failJob(jobId: string, result: string) {
 }
 
 export async function startPopulateRawg(limit?: number) {
-	if (!rawg.isEnabled) throw rawgServiceError.disabledError();
+	gamesService.assertRawgEnabled();
 
-	return startJob("populate_rawg", jobId => runPopulateRawg(jobId, limit));
+	return startJob(JOB_TYPES.populateRawg, jobId =>
+		runPopulateRawg(jobId, limit)
+	);
 }
 
 function isRawgNotFound(error: unknown) {
 	return error instanceof ServiceError && error.code === "RAWG_NOT_FOUND";
 }
 
-function describeFailure(error: unknown) {
-	if (error instanceof ServiceError) {
-		const { raw } = error.serviceError;
-		return typeof raw === "string" ? `${error.code}: ${raw}` : error.code;
-	}
-	return error instanceof Error ? error.message : String(error);
+function pauseBetweenRawgRequests() {
+	const intervalMs =
+		environmentConfig.NODE_ENV === "test"
+			? 0
+			: RAWG_POPULATE_REQUEST_INTERVAL_MS;
+	return new Promise(resolve => setTimeout(resolve, intervalMs));
 }
 
 async function runPopulateRawg(jobId: string, limit?: number) {
@@ -143,7 +164,7 @@ async function runPopulateRawg(jobId: string, limit?: number) {
 
 		const allGames = await gamesService.findActiveGameSummaries();
 
-		let toProcess = allGames.filter(g => !hasRawg.has(g.id));
+		let toProcess = allGames.filter(game => !hasRawg.has(game.id));
 		if (limit) toProcess = toProcess.slice(0, limit);
 
 		for (const game of toProcess) {
@@ -155,12 +176,12 @@ async function runPopulateRawg(jobId: string, limit?: number) {
 				return;
 			}
 			try {
-				const detail = await rawg.getGameBySlug(game.code);
-				if (detail?.id) {
+				const rawgId = await gamesService.findRawgIdBySlug(game.code);
+				if (rawgId) {
 					await gameExternalService.create(
 						game.id,
 						"rawg",
-						String(detail.id)
+						String(rawgId)
 					);
 					processed++;
 				}
@@ -168,7 +189,7 @@ async function runPopulateRawg(jobId: string, limit?: number) {
 				if (!isRawgNotFound(error)) throw error;
 				notFound++;
 			}
-			await new Promise(r => setTimeout(r, 1100));
+			await pauseBetweenRawgRequests();
 		}
 
 		await completeJob(
@@ -188,7 +209,7 @@ export async function startPopulateExternalData(limit?: number) {
 		REQUIRED_EXTERNAL_DATA_SOURCES
 	);
 
-	return startJob("populate_external_data", jobId =>
+	return startJob(JOB_TYPES.populateExternalData, jobId =>
 		runPopulateExternalData(jobId, limit)
 	);
 }
@@ -277,12 +298,14 @@ function describeFailureDetail(result: ExternalDataResult) {
 function isStopFailure(errorCode: string) {
 	return (
 		EXTERNAL_DATA_STOP_CODES.includes(errorCode) ||
-		EXTERNAL_DATA_STOP_SUFFIXES.some(suffix => errorCode.endsWith(suffix))
+		EXTERNAL_DATA_UNRECORDED_FAILURE_SUFFIXES.some(suffix =>
+			errorCode.endsWith(suffix)
+		)
 	);
 }
 
 function isHltbIdLookupFailure(errorCode: string) {
-	return errorCode.startsWith(HLTB_ID_LOOKUP_ERROR_PREFIX);
+	return errorCode.startsWith(EXTERNAL_DATA_UNRECORDED_FAILURE_PREFIX);
 }
 
 function failureReason(
@@ -339,7 +362,10 @@ async function stopExternalDataJob(
 	report: ExternalDataJobReport,
 	stopReason: string
 ) {
-	logger.warn(EXTERNAL_DATA_JOB_OPERATION, "stopped", { jobId, stopReason });
+	logger.warn(JOB_TYPES.populateExternalData, "stopped", {
+		jobId,
+		stopReason
+	});
 	await settleRunningJob(
 		jobId,
 		"failed",
@@ -353,7 +379,7 @@ function warnIfHltbIdLookupJustPaused(
 	wasPaused: boolean
 ) {
 	if (wasPaused || report.hltbIdLookupPausedReason === null) return;
-	logger.warn(EXTERNAL_DATA_JOB_OPERATION, "HLTB ID lookup paused", {
+	logger.warn(JOB_TYPES.populateExternalData, "HLTB ID lookup paused", {
 		jobId,
 		reason: report.hltbIdLookupPausedReason
 	});
@@ -423,103 +449,126 @@ async function runPopulateExternalData(jobId: string, limit?: number) {
 	}
 }
 
-// --- Calculate Ratings (reviews → GameScore completr) ---
-
 export async function startCalculateRatings() {
-	return startJob("calculate_ratings", runCalculateRatings);
+	return startJob(JOB_TYPES.calculateRatings, runCalculateRatings);
 }
 
 async function runCalculateRatings(jobId: string) {
+	await runCommunityAggregation(jobId, {
+		sampleLabel: "reviews",
+		loadAggregates: async () =>
+			(await reviewsService.findAggregatedRatingsByGame()).map(
+				({ gameId, avgRating, reviewCount }) => ({
+					gameId,
+					average: avgRating,
+					count: Number(reviewCount)
+				})
+			),
+		store: (gameId, value) =>
+			gameScoresService.upsertScore(gameId, "completr", value)
+	});
+}
+
+export async function startCalculateDurations() {
+	return startJob(JOB_TYPES.calculateDurations, runCalculateDurations);
+}
+
+async function runCalculateDurations(jobId: string) {
+	await runCommunityAggregation(jobId, {
+		sampleLabel: "entries",
+		loadAggregates: async () =>
+			(await backlogService.findAggregatedRealDurationsByGame()).map(
+				({ gameId, avgDuration, entryCount }) => ({
+					gameId,
+					average: avgDuration,
+					count: Number(entryCount)
+				})
+			),
+		store: (gameId, value) =>
+			gameTimesService.upsertTime(gameId, "completr", value)
+	});
+}
+
+async function runCommunityAggregation(
+	jobId: string,
+	aggregation: {
+		sampleLabel: string;
+		loadAggregates: () => Promise<CommunityAggregate[]>;
+		store: (gameId: string, value: number) => Promise<unknown>;
+	}
+) {
 	let updated = 0;
 	let skipped = 0;
 
 	try {
 		const totalUsers = await usersService.countActiveUsers();
-		const minReviews = Math.max(
-			2,
-			Math.ceil(totalUsers * MIN_THRESHOLD_PERCENT)
+		const minimumSample = Math.max(
+			MIN_COMMUNITY_SAMPLE_SIZE,
+			Math.ceil(totalUsers * MIN_COMMUNITY_SAMPLE_RATIO)
 		);
 
-		const results = await reviewsService.findAggregatedRatingsByGame();
-
-		for (const { gameId, avgRating, reviewCount } of results) {
-			if (Number(reviewCount) < minReviews) {
+		for (const {
+			gameId,
+			average,
+			count
+		} of await aggregation.loadAggregates()) {
+			if (count < minimumSample) {
 				skipped++;
 				continue;
 			}
-			const rounded = Math.round(avgRating * 100) / 100;
-			await gameScoresService.upsertScore(gameId, "completr", rounded);
+			await aggregation.store(gameId, Math.round(average * 100) / 100);
 			updated++;
 		}
 
 		await completeJob(
 			jobId,
-			`Updated: ${updated}, Skipped: ${skipped} (min ${minReviews} reviews, ${totalUsers} users)`
+			`Updated: ${updated}, Skipped: ${skipped} (min ${minimumSample} ${aggregation.sampleLabel}, ${totalUsers} users)`
 		);
-	} catch {
-		await failJob(jobId, `Failed after ${updated} updated`);
+	} catch (error) {
+		await failJob(
+			jobId,
+			`Failed after ${updated} updated. Reason: ${describeFailure(error)}`
+		);
 	}
 }
 
 export async function startCleanupCoopRuns() {
-	return startJob("cleanup_coop_runs", runCleanupCoopRuns);
+	return startJob(JOB_TYPES.cleanupCoopRuns, runCleanupCoopRuns);
 }
 
 async function runCleanupCoopRuns(jobId: string) {
 	try {
 		const removed = await coopRunsService.cleanupOrphanRuns();
 		await completeJob(jobId, `Removed ${removed} orphan coop runs`);
-	} catch {
-		await failJob(jobId, `Failed`);
+	} catch (error) {
+		await failJob(jobId, `Failed. Reason: ${describeFailure(error)}`);
 	}
 }
 
 export async function startRecomputePopularity() {
-	return startJob("recompute_popularity", runRecomputePopularity);
+	return startJob(JOB_TYPES.recomputePopularity, runRecomputePopularity);
 }
 
 async function runRecomputePopularity(jobId: string) {
 	try {
 		const total = await gamePopularityService.recomputeAllPopularity();
 		await completeJob(jobId, `Recomputed popularity for ${total} games`);
-	} catch {
-		await failJob(jobId, `Failed`);
+	} catch (error) {
+		await failJob(jobId, `Failed. Reason: ${describeFailure(error)}`);
 	}
 }
 
-export async function startCalculateDurations() {
-	return startJob("calculate_durations", runCalculateDurations);
+export async function startRewindFreeze() {
+	return startJob(JOB_TYPES.rewindFreeze, runRewindFreeze);
 }
 
-async function runCalculateDurations(jobId: string) {
-	let updated = 0;
-	let skipped = 0;
-
+async function runRewindFreeze(jobId: string) {
 	try {
-		const totalUsers = await usersService.countActiveUsers();
-		const minEntries = Math.max(
-			2,
-			Math.ceil(totalUsers * MIN_THRESHOLD_PERCENT)
-		);
-
-		const results =
-			await backlogService.findAggregatedRealDurationsByGame();
-
-		for (const { gameId, avgDuration, entryCount } of results) {
-			if (Number(entryCount) < minEntries) {
-				skipped++;
-				continue;
-			}
-			const rounded = Math.round(avgDuration * 100) / 100;
-			await gameTimesService.upsertTime(gameId, "completr", rounded);
-			updated++;
-		}
-
-		await completeJob(
-			jobId,
-			`Updated: ${updated}, Skipped: ${skipped} (min ${minEntries} entries, ${totalUsers} users)`
-		);
-	} catch {
-		await failJob(jobId, `Failed after ${updated} updated`);
+		const report = await rewindFreezeService.freezeClosedRewindEditions();
+		const result = describeRewindFreezeReport(report);
+		if (report.failed > 0) await failJob(jobId, result);
+		else await completeJob(jobId, result);
+	} catch (error) {
+		await failJob(jobId, `Failed. Reason: ${describeFailure(error)}`);
 	}
 }

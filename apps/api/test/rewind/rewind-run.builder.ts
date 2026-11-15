@@ -4,6 +4,7 @@ import {
 	type RewindCalendar,
 	type RewindRun
 } from "../../src/rewind/rewind-run.interface";
+import { type RewindEditionRecord } from "../../src/rewind-editions/rewind-editions.interface";
 
 let sequence = 0;
 
@@ -53,8 +54,36 @@ export function finishedRun(
 	});
 }
 
-export function calendarOn(today: Date, firstYear = 2000): RewindCalendar {
-	return { today, firstYear };
+export function editionOf(
+	year: number,
+	overrides: Partial<RewindEditionRecord> = {}
+): RewindEditionRecord {
+	return {
+		year,
+		opensAt: `${year}-12-01`,
+		closesAt: `${year + 1}-01-31`,
+		graceStartsAt: `${year + 1}-01-01`,
+		graceEndsAt: `${year + 1}-01-07`,
+		design: "2026",
+		premiumRegenerations: 0,
+		giftRegenerations: 0,
+		frozenAt: null,
+		...overrides
+	};
+}
+
+function standardEditionOpenedBy(today: Date): RewindEditionRecord {
+	const year = today.getUTCFullYear();
+	return editionOf(today.getUTCMonth() === 11 ? year : year - 1);
+}
+
+export function calendarOn(
+	today: Date,
+	firstYear = 2000,
+	edition: RewindEditionRecord | null = standardEditionOpenedBy(today),
+	upcomingEdition: RewindEditionRecord | null = null
+): RewindCalendar {
+	return { today, firstYear, edition, upcomingEdition };
 }
 
 export function ownerVisibility(
@@ -62,7 +91,8 @@ export function ownerVisibility(
 ): RewindYearVisibility {
 	return {
 		generatedYears: new Set(generatedYears),
-		includeUngenerated: true
+		includeUngenerated: true,
+		frozenYearListing: new Map()
 	};
 }
 
@@ -71,7 +101,8 @@ export function visitorVisibility(
 ): RewindYearVisibility {
 	return {
 		generatedYears: new Set(generatedYears),
-		includeUngenerated: false
+		includeUngenerated: false,
+		frozenYearListing: new Map()
 	};
 }
 
@@ -81,6 +112,7 @@ export function storedView(
 	return {
 		language: "en",
 		generatedAt: "2026-12-02T10:00:00.000Z",
+		frozenAt: null,
 		aiRecap: null,
 		premiumStats: null,
 		premiumAccessKind: null,

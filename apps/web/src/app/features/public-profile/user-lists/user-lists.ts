@@ -28,10 +28,11 @@ import {
 	UiPagination,
 	UiSkeleton
 } from "../../../shared/ui";
+import { ProfileAccessState } from "../components/profile-access-state";
 import {
-	type ProfileAccessError,
-	ProfileAccessState
-} from "../components/profile-access-state";
+	hasLoadFailedOf,
+	profileAccessErrorOf
+} from "../services/profile-access-error";
 import {
 	type PublicListsPage,
 	type PublicListsQuery
@@ -167,20 +168,12 @@ export class UserLists {
 		() => this.lists.isLoading() || this.inRangeOffset() !== null
 	);
 
-	private readonly errorStatus = computed(() => {
-		const error = this.lists.error() as { status?: number } | undefined;
-		return error ? (error.status ?? 0) : null;
-	});
+	protected readonly accessError = computed(() =>
+		profileAccessErrorOf(this.lists.error())
+	);
 
-	protected readonly accessError = computed<ProfileAccessError | null>(() => {
-		const status = this.errorStatus();
-		if (status === 403) return "private";
-		if (status === 404) return "not_found";
-		return null;
-	});
-
-	protected readonly hasLoadFailed = computed(
-		() => this.errorStatus() !== null && this.accessError() === null
+	protected readonly hasLoadFailed = computed(() =>
+		hasLoadFailedOf(this.lists.error())
 	);
 
 	protected readonly isSelf = computed(

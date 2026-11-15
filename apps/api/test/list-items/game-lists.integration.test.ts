@@ -154,8 +154,8 @@ void describe("PUT /games/:gameId/lists", () => {
 			foreignList.id
 		]);
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "LIST_ITEM_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "LIST_ITEM_LIST_NOT_FOUND");
 		assert.deepEqual(await listGameIds(ownList.id), []);
 		assert.deepEqual(await listGameIds(foreignList.id), []);
 	});

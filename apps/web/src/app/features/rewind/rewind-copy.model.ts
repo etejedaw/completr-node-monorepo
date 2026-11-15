@@ -43,20 +43,10 @@ export interface RewindHighlightsCopy {
 	gamesFinished: (count: number) => string;
 	topGenres: string;
 	platforms: string;
+	classic: string;
+	releasedIn: (year: number) => string;
 	games: (count: number) => string;
 	runs: (count: number) => string;
-}
-
-export interface RewindShareCopy {
-	shareImage: string;
-	downloadImage: string;
-	copyLink: string;
-	imageFailed: string;
-	tryAgain: string;
-	preparingImage: string;
-	shareFailed: string;
-	linkCopied: string;
-	copyFailed: string;
 }
 
 export interface RewindAiRecapCopy {
@@ -120,8 +110,6 @@ export interface RewindYearMixCopy {
 export interface RewindPageCopy {
 	ownerEyebrow: string;
 	visitorEyebrow: (username: string) => string;
-	ownerPreviewAlt: (year: number) => string;
-	visitorPreviewAlt: (username: string, year: number) => string;
 	share: string;
 	year: string;
 	yearHeading: string;
@@ -146,11 +134,11 @@ export interface RewindPageCopy {
 
 export interface RewindCopy {
 	locale: string;
+	dayMonthStyle: "long" | "short";
 	page: RewindPageCopy;
 	summary: RewindSummaryCopy;
 	tally: RewindTallyCopy;
 	highlights: RewindHighlightsCopy;
-	share: RewindShareCopy;
 	aiRecap: RewindAiRecapCopy;
 	premiumStats: RewindPremiumStatsCopy;
 	yearMix: RewindYearMixCopy;

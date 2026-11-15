@@ -51,4 +51,4 @@ docs: |-
     |--------|----------------------------|-----------------------------------------------------|
     | 404    | `COOP_BACKLOG_NOT_FOUND`   | The backlogId does not exist                        |
     | 404    | `COOP_MEMBER_NOT_FOUND`    | The user is not in this run                         |
-    | 403    | `COOP_FORBIDDEN`           | You are neither the backlog owner nor the target    |
+    | 404    | `COOP_BACKLOG_NOT_FOUND`   | You are neither the backlog owner nor the target    |

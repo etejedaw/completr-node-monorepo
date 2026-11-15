@@ -9,6 +9,7 @@ import {
 } from "@angular/core";
 import { form, FormField, maxLength, validate } from "@angular/forms/signals";
 
+import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
 import {
 	UiAlert,
 	UiButton,
@@ -22,7 +23,6 @@ import {
 	UiLabel
 } from "../../../shared/ui";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
-import { isCentrallyNotified } from "../tag-errors";
 
 const TAG_NAME_MAX_LENGTH = 40;
 const TAG_DESCRIPTION_MAX_LENGTH = 255;
@@ -100,7 +100,7 @@ export class TagCreateDialog {
 				},
 				error: (err: HttpErrorResponse) => {
 					this.submitting.set(false);
-					if (!isCentrallyNotified(err))
+					if (!isToastedByErrorInterceptor(err.status))
 						this.error.set(
 							err.error?.title ?? "Couldn't create the tag."
 						);

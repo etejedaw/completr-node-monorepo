@@ -37,6 +37,7 @@ import "../audit/audit.model";
 import "../reviews/review.model";
 import "../jobs/job.model";
 import "../rewind/rewind.model";
+import "../rewind-editions/rewind-edition.model";
 import "../premium-access/premium-grant.model";
 import "../premium-access/premium-promotion.model";
 import "../data-requests/data-request.model";

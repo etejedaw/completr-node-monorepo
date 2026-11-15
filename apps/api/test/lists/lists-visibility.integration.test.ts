@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { before, describe, it } from "node:test";
+import { describe, it } from "node:test";
 
 import { ListFollower } from "../../src/list-followers/list-follower.model";
 import { type List } from "../../src/lists/list.model";
@@ -15,10 +15,6 @@ import { useTestDatabase } from "../helpers/database.helper";
 import { createList, createScoreSource } from "../helpers/factories.helper";
 
 let scoreSource: string;
-
-useTestDatabase(async () => {
-	scoreSource = (await createScoreSource()).code;
-});
 
 type Account = Awaited<ReturnType<typeof createUserWithSession>>;
 
@@ -119,7 +115,8 @@ async function buildFixture(): Promise<Fixture> {
 	return { viewers, owners, officialOwners };
 }
 
-before(async () => {
+useTestDatabase(async () => {
+	scoreSource = (await createScoreSource()).code;
 	fixture = await buildFixture();
 });
 
@@ -484,7 +481,7 @@ void describe("POST /lists/:listId/duplicate visibility", () => {
 		assert.equal(response.body.type, "LIST_NOT_FOUND");
 	});
 
-	void it("keeps answering 403 LIST_FORBIDDEN for a private list of another user", async () => {
+	void it("answers 404 LIST_NOT_FOUND for a private list of another user", async () => {
 		const ownerCase = ownerCaseOf("public", "public");
 
 		const response = await duplicate(
@@ -492,7 +489,7 @@ void describe("POST /lists/:listId/duplicate visibility", () => {
 			fixture.viewers.mutual.authorization
 		);
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "LIST_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "LIST_NOT_FOUND");
 	});
 });

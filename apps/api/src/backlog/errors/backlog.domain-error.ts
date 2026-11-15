@@ -11,15 +11,6 @@ export function backlogNotFound(context?: Record<string, unknown>) {
 	);
 }
 
-export function backlogForbidden(context?: Record<string, unknown>) {
-	return new DomainError(
-		MODULE_NAME,
-		"BACKLOG_FORBIDDEN",
-		"You do not have permission to modify this backlog entry",
-		context
-	);
-}
-
 export function backlogValidation(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

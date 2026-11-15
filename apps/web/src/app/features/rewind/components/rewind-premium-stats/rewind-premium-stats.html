@@ -59,8 +59,8 @@
 						[style.min-height.px]="bar.hours > 0 ? 3 : 0"
 					>
 						<span
-							class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap text-[0.6875rem] font-semibold tabular-nums text-fg"
-							[class]="bar.isPeak ? '' : 'opacity-0 group-hover:opacity-100'"
+							class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap text-caption font-semibold tabular-nums"
+							[class]="bar.isPeak ? 'text-fg' : 'text-fg-secondary'"
 							>{{ number(bar.hours) }}</span
 						>
 					</span>
@@ -70,7 +70,7 @@
 			<div aria-hidden="true" class="-mt-2 grid grid-cols-12 gap-0.5">
 				@for (bar of hoursBars(); track bar.month) {
 				<span
-					class="truncate text-center text-[0.625rem] sm:text-xs text-fg-muted"
+					class="truncate text-center text-tiny sm:text-xs text-fg-muted"
 					>{{ monthLabel(bar.month) }}</span
 				>
 				}
@@ -177,9 +177,25 @@
 			<div aria-hidden="true" class="-mt-2 grid grid-cols-12 gap-1">
 				@for (bar of flowBars(); track bar.month) {
 				<span
-					class="truncate text-center text-[0.625rem] sm:text-xs text-fg-muted"
+					class="truncate text-center text-tiny sm:text-xs text-fg-muted"
 					>{{ monthLabel(bar.month) }}</span
 				>
+				}
+			</div>
+			<div
+				aria-hidden="true"
+				data-chart-values="backlog-flow"
+				class="-mt-2 grid grid-cols-12 gap-1 text-center text-tiny font-semibold tabular-nums sm:text-xs"
+			>
+				@for (bar of flowBars(); track bar.month) {
+				<span class="flex min-w-0 flex-col">
+					<span class="truncate text-nav-queue"
+						>{{ number(bar.added) }}</span
+					>
+					<span class="truncate text-nav-lists"
+						>{{ number(bar.finished) }}</span
+					>
+				</span>
 				}
 			</div>
 			<table class="sr-only">

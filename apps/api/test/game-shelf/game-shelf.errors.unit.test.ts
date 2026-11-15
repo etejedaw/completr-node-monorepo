@@ -19,13 +19,6 @@ describeModuleErrors({
 			message: "Game shelf entry not found"
 		},
 		{
-			serviceCode: "GAME_SHELF_FORBIDDEN",
-			module: "GameShelf Module",
-			code: "GAME_SHELF_FORBIDDEN",
-			message:
-				"You do not have permission to modify this game shelf entry"
-		},
-		{
 			serviceCode: "GAME_SHELF_UNIQUE_CONSTRAINT",
 			module: "GameShelf Module",
 			code: "GAME_SHELF_UNIQUE_CONSTRAINT",
@@ -56,7 +49,6 @@ describeDomainToHttpMapper({
 	mapper: gameShelfDomainToHttpMapper,
 	cases: [
 		{ code: "GAME_SHELF_NOT_FOUND", status: 404 },
-		{ code: "GAME_SHELF_FORBIDDEN", status: 403 },
 		{ code: "GAME_SHELF_UNIQUE_CONSTRAINT", status: 409 },
 		{ code: "GAME_SHELF_VALIDATION_ERROR", status: 400 },
 		{ code: "GAME_SHELF_LIMIT_REACHED", status: 402 }

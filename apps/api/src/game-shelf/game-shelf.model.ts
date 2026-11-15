@@ -3,7 +3,7 @@ import { DataTypes, Model, Sequelize } from "sequelize";
 import { sequelize } from "../database/sequelize.database";
 import { type Game } from "../games/game.model";
 import { type Platform } from "../platforms/platform.model";
-import { type User } from "../users";
+import { type User } from "../users/user.model";
 
 class GameShelf extends Model {
 	declare id: string;

@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -26,9 +27,9 @@ import {
 import { RewindReveal } from "../../rewind-reveal";
 import {
 	type RewindTone,
-	TONE_SOLID_CLASS,
-	TONE_TINT_CLASS,
-	TONE_TINT_SECONDARY_CLASS,
+	TONE_ACCENT_CAPSULE_CLASS,
+	TONE_ACCENT_CARD_CLASS,
+	TONE_ACCENT_TEXT_CLASS,
 	toneVar
 } from "../../rewind-tone";
 import {
@@ -49,7 +50,8 @@ export const HIGHLIGHT_ORDER: HighlightKey[] = [
 	"longestStreak",
 	"busiestMonth",
 	"topGenres",
-	"topPlatforms"
+	"topPlatforms",
+	"classic"
 ];
 
 export const HIGHLIGHT_TONE: Record<HighlightKey, RewindTone> = {
@@ -62,8 +64,30 @@ export const HIGHLIGHT_TONE: Record<HighlightKey, RewindTone> = {
 	longestStreak: "shelf",
 	busiestMonth: "success",
 	topGenres: "queue",
-	topPlatforms: "platinum"
+	topPlatforms: "platinum",
+	classic: "sagas"
 };
+
+const HIGHLIGHT_ICON: Record<HighlightKey, string> = {
+	topRated: "star",
+	bestRatio: "bolt",
+	firstFinished: "flag",
+	lastFinished: "sports_score",
+	longest: "hourglass_full",
+	fastest: "timer",
+	longestStreak: "local_fire_department",
+	busiestMonth: "calendar_month",
+	topGenres: "category",
+	topPlatforms: "sports_esports",
+	classic: "history"
+};
+
+const ARTWORK_CLASS =
+	"absolute inset-0 -z-20 size-full object-cover opacity-55 saturate-80 transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.06]";
+const RISING_VEIL_CLASS =
+	"absolute inset-0 -z-10 bg-[linear-gradient(to_top,var(--color-surface)_48%,color-mix(in_oklab,var(--color-surface)_55%,transparent)_82%,transparent)]";
+const FLAT_VEIL_CLASS =
+	"absolute inset-0 -z-10 bg-[linear-gradient(to_right,color-mix(in_oklab,var(--color-surface)_90%,transparent),color-mix(in_oklab,var(--color-surface)_72%,transparent))]";
 
 const REVEAL_STAGGER_MS = 60;
 const WIDE_LARGE = new Set<HighlightKey>(["topRated", "bestRatio"]);
@@ -73,8 +97,10 @@ const NARROW_FULL = new Set<HighlightKey>([
 	"firstFinished",
 	"lastFinished",
 	"topGenres",
-	"topPlatforms"
+	"topPlatforms",
+	"classic"
 ]);
+const WIDE_STRETCH_FIRST = new Set<HighlightKey>(["topGenres", "topPlatforms"]);
 const TOP_RATED_TALL_MIN_NEIGHBOURS = 3;
 
 const NARROW_SPAN_CLASS: Record<number, string> = {
@@ -111,7 +137,8 @@ export function presentHighlightKeys(
 		longestStreak: highlights.longestStreak !== null,
 		busiestMonth: highlights.busiestMonth !== null,
 		topGenres: highlights.topGenres.length > 0,
-		topPlatforms: highlights.topPlatforms.length > 0
+		topPlatforms: highlights.topPlatforms.length > 0,
+		classic: highlights.classic !== null
 	};
 	return HIGHLIGHT_ORDER.filter(key => present[key]);
 }
@@ -142,6 +169,20 @@ function lastMatching(
 	return [...cells].reverse().find(predicate);
 }
 
+function wideFillerFor(
+	cells: HighlightCell[],
+	wideGap: number
+): HighlightCell | undefined {
+	const fitsGap = (cell: HighlightCell) =>
+		cell.wideRows === 1 && cell.wideColumns + wideGap <= WIDE_COLUMNS;
+	return (
+		lastMatching(
+			cells,
+			cell => WIDE_STRETCH_FIRST.has(cell.key) && fitsGap(cell)
+		) ?? lastMatching(cells, fitsGap)
+	);
+}
+
 function packIntoFullRows(cells: HighlightCell[]): HighlightCell[] {
 	if (cells.length === 0) return cells;
 	const [first, ...neighbours] = cells;
@@ -163,11 +204,7 @@ function packIntoFullRows(cells: HighlightCell[]): HighlightCell[] {
 		cells,
 		cell => cell.columns + narrowGap <= NARROW_COLUMNS
 	);
-	const wideFiller = lastMatching(
-		cells,
-		cell =>
-			cell.wideRows === 1 && cell.wideColumns + wideGap <= WIDE_COLUMNS
-	);
+	const wideFiller = wideFillerFor(cells, wideGap);
 	if (narrowFiller) narrowFiller.columns += narrowGap;
 	if (wideFiller) wideFiller.wideColumns += wideGap;
 	return cells;
@@ -195,7 +232,14 @@ function cellClass(cell: HighlightCell): string {
 
 @Component({
 	selector: "app-rewind-highlights",
-	imports: [CoverUrlPipe, RouterLink, GamePoster, RewindReveal, StarRating],
+	imports: [
+		CoverUrlPipe,
+		NgTemplateOutlet,
+		RouterLink,
+		GamePoster,
+		RewindReveal,
+		StarRating
+	],
 	templateUrl: "./rewind-highlights.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -207,9 +251,13 @@ export class RewindHighlights {
 	protected readonly copy = computed(
 		() => rewindCopy(this.language()).highlights
 	);
-	protected readonly solidClass = TONE_SOLID_CLASS;
-	protected readonly tintClass = TONE_TINT_CLASS;
-	protected readonly tintSecondaryClass = TONE_TINT_SECONDARY_CLASS;
+	protected readonly cardClass = TONE_ACCENT_CARD_CLASS;
+	protected readonly accentClass = TONE_ACCENT_TEXT_CLASS;
+	protected readonly capsuleClass = TONE_ACCENT_CAPSULE_CLASS;
+	protected readonly artworkClass = ARTWORK_CLASS;
+	protected readonly risingVeilClass = RISING_VEIL_CLASS;
+	protected readonly flatVeilClass = FLAT_VEIL_CLASS;
+	protected readonly icons = HIGHLIGHT_ICON;
 
 	protected readonly cells = computed(() => {
 		const views: Partial<Record<HighlightKey, CellView>> = {};

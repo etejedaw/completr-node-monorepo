@@ -3,7 +3,7 @@
 </div>
 
 @switch (status()) { @case ("idle") {
-<p class="m-0 px-6 py-10 text-center text-[0.8125rem] text-fg-muted">
+<p class="m-0 px-6 py-10 text-center text-compact text-fg-muted">
 	Type at least 2 characters to search.
 </p>
 } @case ("searching") {
@@ -32,7 +32,7 @@
 		>cloud_off</span
 	>
 	<p class="m-0 text-sm font-semibold text-fg">{{ unavailableTitle }}</p>
-	<p class="m-0 text-[0.8125rem] text-fg-muted max-w-[20rem]">
+	<p class="m-0 text-compact text-fg-muted max-w-[20rem]">
 		{{ unavailableHint }}
 	</p>
 	<button
@@ -59,7 +59,7 @@
 		>search_off</span
 	>
 	<p class="m-0 text-sm font-semibold text-fg">No games found</p>
-	<p class="m-0 text-[0.8125rem] text-fg-muted max-w-[20rem]">
+	<p class="m-0 text-compact text-fg-muted max-w-[20rem]">
 		{{ emptyHint() }}
 	</p>
 	@if (allowOnline()) {
@@ -96,18 +96,18 @@
 			[compact]="true"
 		/>
 		<div class="flex flex-col gap-1 min-w-0 flex-1">
-			<span class="text-[0.8125rem] font-medium text-fg truncate"
+			<span class="text-compact font-medium text-fg truncate"
 				>{{ game.title }}</span
 			>
 			@if (releaseYear(game) || game.justImported || game.isDlc) {
 			<span class="flex items-center gap-1.5 flex-wrap">
 				@if (releaseYear(game); as year) {
-				<span class="text-[0.6875rem] text-fg-muted tabular-nums"
+				<span class="text-caption text-fg-muted tabular-nums"
 					>{{ year }}</span
 				>
 				} @if (game.justImported) {
 				<span
-					class="inline-flex items-center gap-1 px-1.5 py-px rounded-full bg-info/15 text-info text-[0.625rem] font-semibold uppercase tracking-[0.16em]"
+					class="inline-flex items-center gap-1 px-1.5 py-px rounded-full bg-info/15 text-info text-tiny font-semibold uppercase tracking-[0.16em]"
 					[attr.title]="'Just imported from ' + sourceLabel()"
 				>
 					<span
@@ -119,7 +119,7 @@
 				</span>
 				} @if (game.isDlc) {
 				<span
-					class="px-1.5 py-px rounded-full bg-brand-subtle text-brand text-[0.625rem] font-semibold uppercase tracking-[0.16em]"
+					class="px-1.5 py-px rounded-full bg-brand-subtle text-brand text-tiny font-semibold uppercase tracking-[0.16em]"
 					>DLC</span
 				>
 				}
@@ -144,7 +144,7 @@
 <div class="px-5 md:px-6 pt-1 pb-4">
 	<button
 		type="button"
-		class="w-full min-h-[44px] flex items-center gap-2 px-3 rounded-card border border-dashed border-line bg-transparent text-left text-[0.8125rem] font-medium text-brand cursor-pointer transition hover:border-brand hover:bg-brand-subtle disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+		class="w-full min-h-[44px] flex items-center gap-2 px-3 rounded-card border border-dashed border-line bg-transparent text-left text-compact font-medium text-brand cursor-pointer transition hover:border-brand hover:bg-brand-subtle disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
 		[disabled]="onlineSearching()"
 		(click)="searchOnline.emit()"
 	>

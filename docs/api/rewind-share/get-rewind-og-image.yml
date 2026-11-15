@@ -1,7 +1,7 @@
 info:
     name: Get Rewind OG Image
     type: http
-    seq: 2
+    seq: 3
 
 http:
     method: GET
@@ -54,7 +54,7 @@ docs: |-
     | Status | Code                  | Description                                                        |
     |--------|-----------------------|--------------------------------------------------------------------|
     | 404    | USER_NOT_FOUND        | Username does not exist                                            |
-    | 403    | USER_PRIVATE          | The viewer cannot see the profile or the rewind section            |
+    | 403    | USER_PRIVATE          | The viewer cannot see the rewind section (the profile does not matter) |
     | 404    | REWIND_NOT_FOUND      | The year is not open yet, has no data for this viewer or (for anyone but the owner) is not generated |
     | 404    | REWIND_NOT_GENERATED  | The owner requests a year they have not generated                  |
     | 422    | COMMON_SCHEMA_INVALID | `year` is not an integer between 2000 and 2100                     |

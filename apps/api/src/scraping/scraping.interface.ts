@@ -31,3 +31,21 @@ export interface ScrapingRequestOptions {
 	priority?: ScrapingPriority;
 	signal?: AbortSignal;
 }
+
+export interface QueuedRequest {
+	url: URL;
+	headers: Record<string, string>;
+	priority: ScrapingPriority;
+	signal?: AbortSignal;
+	sequence: number;
+	attempts: number;
+	notBefore: number;
+	resolve(body: string): void;
+	reject(error: unknown): void;
+}
+
+export interface HostQueue {
+	waiting: QueuedRequest[];
+	draining: boolean;
+	wake?: AbortController;
+}

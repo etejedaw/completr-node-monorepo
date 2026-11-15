@@ -6,6 +6,7 @@ import * as gamesService from "../games/games.service";
 import { type RegisterGenreDto } from "./dtos/register-genre.dto";
 import { type UpdateGenreDto } from "./dtos/update-genre.dto";
 import * as genreDomainError from "./errors/genres.domain-error";
+import { genreSerializer } from "./genres.serializer";
 import * as genreService from "./genres.service";
 import { type GenreCodeParam } from "./schemas/genre-code-params.schema";
 import { type GenreIdParam } from "./schemas/genre-id-params.schema";
@@ -18,27 +19,22 @@ export async function getGenreByCode(request: Request, response: Response) {
 	const genre = await genreService.findGenreByCode(code);
 	if (!genre) throw genreDomainError.genreNotFound();
 
-	const genrePlain = genre.get({ plain: true });
-
-	const data = { genre: genrePlain };
+	const data = { genre: genreSerializer(genre) };
 	return response.status(200).json({ data });
 }
 
 export async function getAllGenres(_request: Request, response: Response) {
 	const genres = await genreService.findAllGenres();
-	const genresPlain = genres.map(genre => genre.get({ plain: true }));
-
-	const data = { genres: genresPlain };
+	const data = { genres: genres.map(genreSerializer) };
 	return response.status(200).json({ data });
 }
 
 export async function postGenre(request: Request, response: Response) {
 	const registerGenreDto = request.locals.body as RegisterGenreDto;
 
-	const registerGenre = await genreService.registerGenre(registerGenreDto);
-	const genrePlain = registerGenre.get({ plain: true });
+	const genre = await genreService.registerGenre(registerGenreDto);
 
-	const data = { genre: genrePlain };
+	const data = { genre: genreSerializer(genre) };
 	return response.status(201).json({ data });
 }
 
@@ -50,9 +46,7 @@ export async function patchGenre(request: Request, response: Response) {
 
 	const genre = await genreService.updateGenre(genreId, updateGenreDto);
 
-	const genrePlain = genre.get({ plain: true });
-
-	const data = { genre: genrePlain };
+	const data = { genre: genreSerializer(genre) };
 	return response.status(200).json({ data });
 }
 
@@ -72,7 +66,7 @@ export async function getGamesByGenre(request: Request, response: Response) {
 	const gamesPlain = rows.map(game => game.get({ plain: true }));
 
 	const data = {
-		genre: genre.get({ plain: true }),
+		genre: genreSerializer(genre),
 		games: gamesPlain.map(g => gameSerializer(g)),
 		hasMore
 	};

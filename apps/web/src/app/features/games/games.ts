@@ -22,9 +22,11 @@ import {
 	type ExternalDataRefreshResponse,
 	type ExternalDataSource,
 	type ExternalGameDetail,
+	type GameScoreEntry,
 	type GamesQuery,
 	type GamesResponse,
 	type GamesSearchResponse,
+	type GameTimeEntry,
 	type GenresResponse,
 	type OnlineGameSearchResult,
 	type PlatformsResponse,
@@ -201,22 +203,23 @@ export class GamesService {
 	}
 
 	createScore(gameId: string, source: string, score: number) {
-		return this.http.post(`${environment.apiUrl}/game-scores`, {
-			gameId,
-			source,
+		return this.http.post<{
+			data: { gameScore: GameScoreEntry };
+		}>(`${environment.apiUrl}/game-scores`, { gameId, source, score });
+	}
+
+	updateScore(gameId: string, source: string, score: number) {
+		return this.http.patch<{
+			data: { gameScore: GameScoreEntry };
+		}>(`${environment.apiUrl}/game-scores/${gameId}/${source}`, {
 			score
 		});
 	}
 
-	updateScore(gameId: string, source: string, score: number) {
-		return this.http.patch(
-			`${environment.apiUrl}/game-scores/${gameId}/${source}`,
-			{ score }
-		);
-	}
-
 	createTime(gameId: string, source: string, duration: number) {
-		return this.http.post(`${environment.apiUrl}/game-times`, {
+		return this.http.post<{
+			data: { gameTime: GameTimeEntry };
+		}>(`${environment.apiUrl}/game-times`, {
 			gameId,
 			source,
 			duration
@@ -224,10 +227,11 @@ export class GamesService {
 	}
 
 	updateTime(gameId: string, source: string, duration: number) {
-		return this.http.patch(
-			`${environment.apiUrl}/game-times/${gameId}/${source}`,
-			{ duration }
-		);
+		return this.http.patch<{
+			data: { gameTime: GameTimeEntry };
+		}>(`${environment.apiUrl}/game-times/${gameId}/${source}`, {
+			duration
+		});
 	}
 
 	deleteScore(gameId: string, source: string) {

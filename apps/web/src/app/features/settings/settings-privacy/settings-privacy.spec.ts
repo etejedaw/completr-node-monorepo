@@ -252,6 +252,25 @@ describe("SettingsPrivacy", () => {
 		expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
 	});
 
+	it("sends one save request when the save button is double clicked", async () => {
+		const userInteraction = userEvent.setup();
+		await renderPrivacy();
+
+		await userInteraction.click(
+			screen.getByRole("radio", { name: /friends/i })
+		);
+		await userInteraction.dblClick(
+			screen.getByRole("button", { name: /save changes/i })
+		);
+
+		const patches = httpTesting.match(`${api}/users/me`);
+		expect(patches).toHaveLength(1);
+		patches[0].flush({ data: { user: publicUser } });
+		httpTesting
+			.match(`${api}/users/me/follow-requests`)
+			.forEach(req => req.flush({ data: { requests: [] } }));
+	});
+
 	it("keeps the draft and warns when the API rejects the save", async () => {
 		const userInteraction = userEvent.setup();
 		await renderPrivacy();
@@ -353,6 +372,41 @@ describe("SettingsPrivacy", () => {
 				"Follow request accepted."
 			);
 			expect(screen.queryByText("Grace Hopper")).not.toBeInTheDocument();
+		});
+
+		it("removes the request without warning when it was already resolved elsewhere", async () => {
+			const userInteraction = userEvent.setup();
+			await renderPrivacy(privateProfile, [incomingRequest]);
+
+			await userInteraction.click(
+				screen.getByRole("button", { name: "Accept" })
+			);
+			httpTesting
+				.expectOne(`${api}/users/me/follow-requests/u2/accept`)
+				.flush(
+					{ type: "USER_FOLLOW_REQUEST_NOT_FOUND" },
+					{ status: 404, statusText: "Not Found" }
+				);
+
+			expect(
+				await screen.findByText("No pending requests.")
+			).toBeInTheDocument();
+			expect(toast.warning).not.toHaveBeenCalled();
+		});
+
+		it("sends one accept request when the button is double clicked", async () => {
+			const userInteraction = userEvent.setup();
+			await renderPrivacy(privateProfile, [incomingRequest]);
+
+			await userInteraction.dblClick(
+				screen.getByRole("button", { name: "Accept" })
+			);
+
+			const requests = httpTesting.match(
+				`${api}/users/me/follow-requests/u2/accept`
+			);
+			expect(requests).toHaveLength(1);
+			requests[0].flush({});
 		});
 
 		it("warns and keeps the request when accepting fails", async () => {

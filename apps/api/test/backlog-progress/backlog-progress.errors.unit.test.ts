@@ -19,12 +19,6 @@ describeModuleErrors({
 			message: "Backlog not found"
 		},
 		{
-			serviceCode: "BACKLOG_PROGRESS_FORBIDDEN",
-			module: "BacklogProgress Module",
-			code: "BACKLOG_PROGRESS_FORBIDDEN",
-			message: "Not allowed to access this backlog's progress"
-		},
-		{
 			serviceCode: "BACKLOG_PROGRESS_NOTE_NOT_FOUND",
 			module: "BacklogProgress Module",
 			code: "BACKLOG_PROGRESS_NOTE_NOT_FOUND",
@@ -43,7 +37,6 @@ describeDomainToHttpMapper({
 	mapper: backlogProgressDomainToHttpMapper,
 	cases: [
 		{ code: "BACKLOG_PROGRESS_BACKLOG_NOT_FOUND", status: 404 },
-		{ code: "BACKLOG_PROGRESS_NOTE_NOT_FOUND", status: 404 },
-		{ code: "BACKLOG_PROGRESS_FORBIDDEN", status: 403 }
+		{ code: "BACKLOG_PROGRESS_NOTE_NOT_FOUND", status: 404 }
 	]
 });

@@ -1,12 +1,11 @@
-import { literal, Op, type Transaction } from "sequelize";
+import { literal, Op, type Transaction, type WhereOptions } from "sequelize";
 
 import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
-import { Game } from "../games/game.model";
-import { List } from "../lists/list.model";
+import { PinoLogger } from "../common/logger/pino.logger";
+import { sequelize } from "../database/sequelize.database";
 import * as userFollowersService from "../user-followers/user-followers.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { sectionVisibleToViewerSql } from "../users/helpers/visibility.helper";
-import { User } from "../users/user.model";
 import { Activity, type ActivityType } from "./activity.model";
 import { type FeedCategory } from "./schemas/feed-query.schema";
 import { ActivityGame } from "./targets/activity-game.model";
@@ -37,15 +36,46 @@ const SOCIAL_TYPES: string[] = ["user_followed", "user_followed_by"];
 const PLATINUM_TYPES: string[] = ["game_platinumed"];
 const FRIEND_VISIBLE_LEVELS = ["public", "friends"];
 
+const DEFAULT_PROFILE_ACTIVITY_LIMIT = 10;
+const DEFAULT_FEED_LIMIT = 25;
+
+const logger = new PinoLogger("Activity Service");
+
 export function record(
 	userId: string,
 	type: ActivityType,
 	targetId?: string,
 	metadata?: Record<string, unknown>
 ) {
-	persist(userId, type, targetId, metadata).catch(
-		Function.prototype as () => void
+	persist(userId, type, targetId, metadata).catch(error =>
+		logger.warn("record", "failed", {
+			type,
+			error: error instanceof Error ? error.message : String(error)
+		})
 	);
+}
+
+async function createTarget(
+	activityId: string,
+	type: ActivityType,
+	targetId: string,
+	transaction: Transaction
+) {
+	if (GAME_TYPES.includes(type))
+		await ActivityGame.create(
+			{ activityId, gameId: targetId },
+			{ transaction }
+		);
+	else if (LIST_TYPES.includes(type))
+		await ActivityList.create(
+			{ activityId, listId: targetId },
+			{ transaction }
+		);
+	else if (USER_TYPES.includes(type))
+		await ActivityUser.create(
+			{ activityId, targetUserId: targetId },
+			{ transaction }
+		);
 }
 
 async function persist(
@@ -54,28 +84,15 @@ async function persist(
 	targetId?: string,
 	metadata?: Record<string, unknown>
 ) {
-	const activity = await Activity.create({ userId, type, metadata });
-
-	if (!targetId) return activity;
-
-	if (GAME_TYPES.includes(type)) {
-		await ActivityGame.create({
-			activityId: activity.id,
-			gameId: targetId
-		});
-	} else if (LIST_TYPES.includes(type)) {
-		await ActivityList.create({
-			activityId: activity.id,
-			listId: targetId
-		});
-	} else if (USER_TYPES.includes(type)) {
-		await ActivityUser.create({
-			activityId: activity.id,
-			targetUserId: targetId
-		});
-	}
-
-	return activity;
+	return sequelize.transaction(async transaction => {
+		const activity = await Activity.create(
+			{ userId, type, metadata },
+			{ transaction }
+		);
+		if (targetId)
+			await createTarget(activity.id, type, targetId, transaction);
+		return activity;
+	});
 }
 
 const TARGET_INCLUDES = [
@@ -83,21 +100,20 @@ const TARGET_INCLUDES = [
 		model: ActivityGame,
 		include: [
 			{
-				model: Game,
+				association: "Game",
 				attributes: ["id", "title", "code", "backgroundUrl"]
 			}
 		]
 	},
 	{
 		model: ActivityList,
-		include: [{ model: List, attributes: ["id", "name"] }]
+		include: [{ association: "List", attributes: ["id", "name"] }]
 	},
 	{
 		model: ActivityUser,
 		include: [
 			{
-				model: User,
-				as: "TargetUser",
+				association: "TargetUser",
 				attributes: USER_PUBLIC_ATTRS
 			}
 		]
@@ -106,19 +122,26 @@ const TARGET_INCLUDES = [
 
 export async function getUserActivity(
 	userId: string,
-	limit = 10,
-	options: { includeSocial?: boolean; includePlatinums?: boolean } = {}
+	limit = DEFAULT_PROFILE_ACTIVITY_LIMIT,
+	options: {
+		includeSocial?: boolean;
+		includePlatinums?: boolean;
+		viewerId?: string;
+	} = {}
 ) {
-	const where: Record<string, unknown> = { userId };
+	const where: WhereOptions = {
+		userId,
+		[Op.and]: [hidesPrivateListsFrom(options.viewerId)]
+	};
 	const hiddenTypes = [
 		...(options.includeSocial ? [] : SOCIAL_TYPES),
 		...(options.includePlatinums === false ? PLATINUM_TYPES : [])
 	];
-	if (hiddenTypes.length > 0) {
-		where.type = { [Op.notIn]: hiddenTypes };
-	}
 	return Activity.findAll({
-		where,
+		where:
+			hiddenTypes.length > 0
+				? { ...where, type: { [Op.notIn]: hiddenTypes } }
+				: where,
 		include: TARGET_INCLUDES,
 		order: [
 			["createdAt", "DESC"],
@@ -150,6 +173,15 @@ function resolveFeedTypes(filter: {
 	return allowed;
 }
 
+const PRIVATE_LIST_TARGET_SQL = `EXISTS (SELECT 1 FROM "ActivityLists" AS "private_target" INNER JOIN "Lists" AS "private_list" ON "private_list"."id" = "private_target"."listId" WHERE "private_target"."activityId" = "Activity"."id" AND "private_list"."isPublic" = false)`;
+
+function hidesPrivateListsFrom(viewerId?: string) {
+	const ownActivity = viewerId
+		? `"Activity"."userId" = ${sequelize.escape(viewerId)} OR `
+		: "";
+	return literal(`(${ownActivity}NOT ${PRIVATE_LIST_TARGET_SQL})`);
+}
+
 function platinumActivityVisibleCondition(viewerId: string) {
 	const platinumTypes = PLATINUM_TYPES.map(type => `'${type}'`).join(", ");
 	const ownerAllows = sectionVisibleToViewerSql(
@@ -164,7 +196,7 @@ function platinumActivityVisibleCondition(viewerId: string) {
 
 export async function getFeed(
 	userId: string,
-	limit = 25,
+	limit = DEFAULT_FEED_LIMIT,
 	offset = 0,
 	filter: {
 		category?: FeedCategory;
@@ -189,11 +221,14 @@ export async function getFeed(
 		where: {
 			userId: { [Op.in]: feedUserIds },
 			type: typeCondition,
-			[Op.and]: [platinumActivityVisibleCondition(userId)]
+			[Op.and]: [
+				platinumActivityVisibleCondition(userId),
+				hidesPrivateListsFrom(userId)
+			]
 		},
 		include: [
 			{
-				model: User,
+				association: "User",
 				attributes: USER_PUBLIC_ATTRS,
 				where: {
 					[Op.or]: [

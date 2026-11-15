@@ -1,4 +1,10 @@
-import { col, fn, type Transaction } from "sequelize";
+import {
+	col,
+	fn,
+	type IncludeOptions,
+	type OrderItem,
+	type Transaction
+} from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
@@ -10,14 +16,16 @@ import { Game } from "../games/game.model";
 import * as gamesService from "../games/games.service";
 import * as gamesProfileService from "../games/services/games-profile.service";
 import { List } from "../lists/list.model";
+import { FREE_LIST_LIMIT } from "../lists/lists.constants";
 import * as listsService from "../lists/lists.service";
-import { resolvePremiumAccess } from "../premium-access/premium-access.service";
+import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import * as listItemsServiceError from "./errors/list-items.service-error";
 import { ListItem } from "./list-item.model";
-import { type FrozenScoreContext } from "./list-items.types";
+import { type CopiedListItem, type FrozenScoreContext } from "./list-items.types";
 
-const FREE_OWNED_LISTS_LIMIT = 5;
+const RATING_SCALE = 5;
+const SCORE_DECIMAL_FACTOR = 100;
 
 async function checkFrozen(userId: string, role: string) {
 	const premiumAccess = await resolvePremiumAccess(
@@ -26,8 +34,15 @@ async function checkFrozen(userId: string, role: string) {
 	);
 	if (premiumAccess.allowed) return;
 	const total = await listsService.countListsByUserId(userId);
-	if (total > FREE_OWNED_LISTS_LIMIT)
+	if (total > FREE_LIST_LIMIT)
 		throw listItemsServiceError.frozenError();
+}
+
+async function findOwnedList(listId: string, user: RequestUser) {
+	const list = await listsService.findListBasicById(listId);
+	if (!list || list.userId !== user.id)
+		throw listItemsServiceError.listNotFoundError();
+	return list;
 }
 
 async function loadFrozenScoreContext(
@@ -97,8 +112,12 @@ function freezeScoresFromContext(gameId: string, ctx: FrozenScoreContext) {
 	const { scoreSource } = ctx;
 
 	const normalizedScore =
-		gameScore && scoreSource && scoreSource.scale !== 5
-			? Math.round((gameScore.score / scoreSource.scale) * 5 * 100) / 100
+		gameScore && scoreSource && scoreSource.scale !== RATING_SCALE
+			? Math.round(
+					(gameScore.score / scoreSource.scale) *
+						RATING_SCALE *
+						SCORE_DECIMAL_FACTOR
+				) / SCORE_DECIMAL_FACTOR
 			: (gameScore?.score ?? null);
 
 	return {
@@ -154,9 +173,7 @@ export async function replaceItems(
 	user: RequestUser,
 	gameIds: string[]
 ) {
-	const list = await listsService.findListBasicById(listId);
-	if (!list) throw listItemsServiceError.listNotFoundError();
-	if (list.userId !== user.id) throw listItemsServiceError.forbiddenError();
+	const list = await findOwnedList(listId, user);
 	await checkFrozen(user.id, user.role);
 
 	if (gameIds.length === 0) {
@@ -242,32 +259,38 @@ export async function addItem(
 	user: RequestUser,
 	gameId: string
 ) {
-	const list = await listsService.findListBasicById(listId);
-	if (!list) throw listItemsServiceError.listNotFoundError();
-	if (list.userId !== user.id) throw listItemsServiceError.forbiddenError();
+	const list = await findOwnedList(listId, user);
 	await checkFrozen(user.id, user.role);
 
-	const existing = await ListItem.findOne({ where: { listId, gameId } });
-	if (existing) return existing;
+	const alreadyInList = await ListItem.findOne({ where: { listId, gameId } });
+	if (alreadyInList) return alreadyInList;
 
 	const games = await gamesService.findGamesByIds([gameId]);
 	if (games.length === 0)
 		throw listItemsServiceError.gamesNotFoundError([gameId]);
 
-	const max = (await ListItem.max("position", { where: { listId } })) as
-		number | null;
-	const nextPosition = (max ?? 0) + 1;
-
 	const ctx = await loadFrozenScoreContext(list, [gameId]);
 	const { score, duration } = freezeScoresFromContext(gameId, ctx);
 
 	try {
-		return await ListItem.create({
-			listId,
-			gameId,
-			position: nextPosition,
-			score,
-			duration
+		return await sequelize.transaction(async transaction => {
+			await lockListItems(listId, transaction);
+
+			const existing = await ListItem.findOne({
+				where: { listId, gameId },
+				transaction
+			});
+			if (existing) return existing;
+
+			const max = (await ListItem.max("position", {
+				where: { listId },
+				transaction
+			})) as number | null;
+
+			return ListItem.create(
+				{ listId, gameId, position: (max ?? 0) + 1, score, duration },
+				{ transaction }
+			);
 		});
 	} catch (error) {
 		rethrowSequelizeError(error, {
@@ -275,6 +298,13 @@ export async function addItem(
 			validation: listItemsServiceError.validationError
 		});
 	}
+}
+
+async function lockListItems(listId: string, transaction: Transaction) {
+	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
+		replacements: { lockKey: `list-items:${listId}` },
+		transaction
+	});
 }
 
 async function compactPositionsInLists(
@@ -327,9 +357,7 @@ export async function removeItem(
 	user: RequestUser,
 	gameId: string
 ) {
-	const list = await listsService.findListBasicById(listId);
-	if (!list) throw listItemsServiceError.listNotFoundError();
-	if (list.userId !== user.id) throw listItemsServiceError.forbiddenError();
+	await findOwnedList(listId, user);
 
 	await sequelize.transaction(async (transaction: Transaction) => {
 		const removedCount = await ListItem.destroy({
@@ -345,9 +373,8 @@ async function loadOwnedLists(listIds: string[], ownedListIds: Set<string>) {
 	const listById = new Map(lists.map(list => [list.id, list]));
 	return listIds.map(listId => {
 		const list = listById.get(listId);
-		if (!list) throw listItemsServiceError.listNotFoundError();
-		if (!ownedListIds.has(list.id))
-			throw listItemsServiceError.forbiddenError();
+		if (!list || !ownedListIds.has(list.id))
+			throw listItemsServiceError.listNotFoundError();
 		return list;
 	});
 }
@@ -427,9 +454,7 @@ export async function setGameLists(
 }
 
 export async function refreshScores(listId: string, user: RequestUser) {
-	const list = await listsService.findListBasicById(listId);
-	if (!list) throw listItemsServiceError.listNotFoundError();
-	if (list.userId !== user.id) throw listItemsServiceError.forbiddenError();
+	const list = await findOwnedList(listId, user);
 	await checkFrozen(user.id, user.role);
 
 	const items = await ListItem.findAll({ where: { listId } });
@@ -463,12 +488,7 @@ export async function findGameIdsByListId(listId: string) {
 
 export async function copyItemsToList(
 	listId: string,
-	items: {
-		gameId: string;
-		position: number;
-		score?: number | null;
-		duration?: number | null;
-	}[],
+	items: CopiedListItem[],
 	transaction: Transaction
 ) {
 	if (items.length === 0) return;
@@ -514,4 +534,17 @@ export async function existsByGameId(
 			transaction
 		})) !== null
 	);
+}
+
+export function listItemInclude(
+	options: Omit<IncludeOptions, "model"> = {}
+): IncludeOptions {
+	return { model: ListItem, ...options };
+}
+
+export function listItemOrder(
+	column: "position" | "id",
+	direction: "ASC" | "DESC"
+): OrderItem {
+	return [ListItem, column, direction];
 }

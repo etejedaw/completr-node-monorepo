@@ -3,36 +3,28 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DOCUMENT,
 	inject,
-	type OnInit,
 	signal
 } from "@angular/core";
-import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 
-import { type PlatinumEntry } from "../../core/models/platinum.model";
-import { type QueueEntry } from "../../core/models/queue.model";
-import { type RewindYears } from "../../core/models/rewind.model";
-import { AuthService } from "../../core/services/auth";
-import { ToastService } from "../../core/services/toast";
-import { avatarRing, isPremiumRole } from "../../core/utils/premium";
 import { GameCoverCard } from "../../shared/components/game-cover-card/game-cover-card";
 import { GiftOfferCard } from "../../shared/components/gift-offer-card/gift-offer-card";
 import { PosterShelf } from "../../shared/components/poster-shelf/poster-shelf";
-import { BETA_SIGNUP_URL } from "../../shared/constants/beta-signup";
-import { UiAvatar, UiButton, UiDialog, UiSkeleton } from "../../shared/ui";
+import { UnfollowConfirmDialog } from "../../shared/components/unfollow-confirm-dialog/unfollow-confirm-dialog";
+import { UiButton, UiPlainEmptyState, UiSkeleton } from "../../shared/ui";
 import { AdminPremiumAccess } from "../admin/admin-premium-access/admin-premium-access";
-import { FeedService } from "../feed/feed";
-import { type TrackedFranchise } from "../franchises/franchises.model";
-import { RewindService } from "../rewind/rewind";
 import { ProfileAccessState } from "./components/profile-access-state";
 import { ProfileActivity } from "./components/profile-activity";
 import { ProfileCollections } from "./components/profile-collections";
+import { ProfileGuestCta } from "./components/profile-guest-cta";
 import { ProfileHero } from "./components/profile-hero";
 import { ProfileInCommon } from "./components/profile-in-common";
 import { ProfileLists } from "./components/profile-lists";
 import { ProfileMonthReview } from "./components/profile-month-review";
 import { ProfilePlatinums } from "./components/profile-platinums";
 import { ProfilePlayingNow } from "./components/profile-playing-now";
+import { ProfilePrivateState } from "./components/profile-private-state";
 import { ProfileReviews } from "./components/profile-reviews";
 import { ProfileRewindSpotlight } from "./components/profile-rewind-spotlight";
 import { ProfileRewinds } from "./components/profile-rewinds";
@@ -40,49 +32,39 @@ import { ProfileSagas } from "./components/profile-sagas";
 import { ProfileSectionHeader } from "./components/profile-section-header";
 import { ProfileStats } from "./components/profile-stats";
 import { ProfileUpNext } from "./components/profile-up-next";
-import {
-	pickProfileBackdrop,
-	PROFILE_FAVORITES_LIMIT
-} from "./profile-backdrop";
-import { type PublicProfile } from "./public-profile.model";
-import { PublicProfileService } from "./public-profile.service";
+import { injectProfileShare } from "./inject-profile-share";
+import { injectPublicProfile } from "./inject-public-profile";
+import { type PublicUser } from "./public-profile.model";
 import { COMPARISON_OPTIONS } from "./services/comparison-options";
-import {
-	type ComparisonDimension,
-	type PublicFavorite,
-	type UserComparison
-} from "./services/public-library.model";
-import { PublicLibraryService } from "./services/public-library.service";
-import {
-	type HighlightsData,
-	type ReviewEntry
-} from "./services/public-reviews.model";
-import { PublicReviewsService } from "./services/public-reviews.service";
-import { PublicSocialService } from "./services/public-social.service";
 
-const LATEST_REVIEWS_COUNT = 4;
-const REVIEWS_SAMPLE_SIZE = 20;
-const UP_NEXT_LIMIT = 10;
-const PROFILE_PLATINUMS_LIMIT = 8;
+const SKELETON_ROW_COUNT = 6;
+const PROFILE_LISTS_SECTION_ID = "profile-lists";
+
+const MONTH_LABEL_FORMAT = new Intl.DateTimeFormat("en-US", {
+	year: "numeric",
+	month: "long",
+	timeZone: "UTC"
+});
 
 @Component({
 	selector: "app-public-profile",
 	imports: [
 		AdminPremiumAccess,
 		NgTemplateOutlet,
-		RouterLink,
 		GameCoverCard,
+		GiftOfferCard,
 		PosterShelf,
 		ProfileAccessState,
 		ProfileActivity,
-		GiftOfferCard,
 		ProfileCollections,
+		ProfileGuestCta,
 		ProfileHero,
 		ProfileInCommon,
 		ProfileLists,
 		ProfileMonthReview,
 		ProfilePlatinums,
 		ProfilePlayingNow,
+		ProfilePrivateState,
 		ProfileReviews,
 		ProfileRewindSpotlight,
 		ProfileRewinds,
@@ -90,50 +72,64 @@ const PROFILE_PLATINUMS_LIMIT = 8;
 		ProfileSectionHeader,
 		ProfileStats,
 		ProfileUpNext,
-		UiAvatar,
 		UiButton,
-		UiDialog,
-		UiSkeleton
+		UiPlainEmptyState,
+		UiSkeleton,
+		UnfollowConfirmDialog
 	],
 	templateUrl: "./public-profile.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PublicProfileComponent implements OnInit {
-	private readonly route = inject(ActivatedRoute);
-	private readonly router = inject(Router);
-	private readonly profileService = inject(PublicProfileService);
-	private readonly socialService = inject(PublicSocialService);
-	private readonly libraryService = inject(PublicLibraryService);
-	private readonly reviewsService = inject(PublicReviewsService);
-	private readonly authService = inject(AuthService);
-	private readonly toast = inject(ToastService);
-	private readonly feedService = inject(FeedService);
-	private readonly rewindService = inject(RewindService);
+export class PublicProfileComponent {
+	private readonly document = inject(DOCUMENT);
+	private readonly state = injectPublicProfile();
+	private readonly shareLink = injectProfileShare();
 
-	private static readonly HIGHLIGHTS_MONTH_PARAM = "highlightsMonth";
+	protected readonly username = this.state.username;
+	protected readonly isLoggedIn = this.state.isLoggedIn;
+	protected readonly isLoading = this.state.isLoading;
+	protected readonly notFound = this.state.notFound;
+	protected readonly loadFailed = this.state.loadFailed;
+	protected readonly isPrivate = this.state.isPrivate;
+	protected readonly profile = this.state.profile;
+	protected readonly isSelf = this.state.isSelf;
+	protected readonly canManagePremium = this.state.canManagePremium;
+	protected readonly visibility = this.state.visibility;
+	protected readonly backdropUrl = this.state.backdropUrl;
+	protected readonly togglingFollow = this.state.togglingFollow;
+	protected readonly unfollowTarget = this.state.unfollowTarget;
+	protected readonly confirmUnfollow = this.state.confirmUnfollow;
+	protected readonly cancelUnfollow = this.state.cancelUnfollow;
+	protected readonly toggleFollow = this.state.toggleFollow;
+	protected readonly retry = this.state.retry;
+	protected readonly queueData = this.state.queueData;
+	protected readonly favoritesData = this.state.favoritesData;
+	protected readonly platinumsData = this.state.platinumsData;
+	protected readonly platinumsTotal = this.state.platinumsTotal;
+	protected readonly sagas = this.state.sagas;
+	protected readonly rewindYears = this.state.rewindYears;
+	protected readonly rewindSpotlight = this.state.rewindSpotlight;
+	protected readonly pastRewinds = this.state.pastRewinds;
+	protected readonly reloadRewinds = this.state.reloadRewinds;
+	protected readonly highlightsData = this.state.highlightsData;
+	protected readonly isAtCurrentMonth = this.state.isAtCurrentMonth;
+	protected readonly isLoadingHighlightsMonth =
+		this.state.isLoadingHighlightsMonth;
+	protected readonly changeHighlightsMonth = this.state.changeHighlightsMonth;
+	protected readonly latestReviews = this.state.latestReviews;
+	protected readonly userReviewsTotal = this.state.userReviewsTotal;
+	protected readonly comparisonBy = this.state.comparisonBy;
+	protected readonly comparisonLoading = this.state.comparisonLoading;
+	protected readonly comparisonPrivate = this.state.comparisonPrivate;
+	protected readonly showComparison = this.state.showComparison;
+	protected readonly changeComparison = this.state.changeComparison;
+	protected readonly recentActivity = this.state.recentActivity;
+	protected readonly showActivity = this.state.showActivity;
+	protected readonly deleteActivity = this.state.deleteActivity;
 
-	protected readonly betaSignupUrl = BETA_SIGNUP_URL;
-	protected readonly profile = signal<PublicProfile | null>(null);
-	protected readonly isLoading = signal(true);
-	protected readonly isPrivate = signal(false);
-	protected readonly notFound = signal(false);
-	protected readonly username = signal("");
-	protected readonly isLoggedIn = this.authService.isLoggedIn;
-	protected readonly isSelf = computed(
-		() => this.authService.user()?.id === this.profile()?.user.id
-	);
-	protected readonly canManagePremium = computed(() => {
-		const user = this.profile()?.user;
-		return (
-			!!user &&
-			this.authService.user()?.role === "admin" &&
-			!this.isSelf() &&
-			!isPremiumRole(user.role)
-		);
-	});
+	protected readonly listsSectionId = PROFILE_LISTS_SECTION_ID;
+	protected readonly comparisonDimensions = COMPARISON_OPTIONS;
 	protected readonly showPremiumAccess = signal(false);
-	protected readonly togglingFollow = signal(false);
-	protected readonly showUnfollowConfirm = signal(false);
 	protected readonly emptyStats = {
 		not_started: 0,
 		playing: 0,
@@ -141,507 +137,39 @@ export class PublicProfileComponent implements OnInit {
 		abandoned: 0,
 		total: 0
 	};
-	protected readonly visibility = computed(() => {
-		const access = this.profile()?.access;
-		return {
-			backlog: !!access?.backlog,
-			shelf: !!access?.shelf,
-			lists: !!access?.list,
-			favorites: !!access?.favorite,
-			queue: !!access?.queue,
-			wishlist: !!access?.wishlist,
-			feed: !!access?.feed,
-			platinums: !!access?.platinum,
-			sagas: !!access?.franchise,
-			rewind: !!access?.rewind
-		};
-	});
-	protected readonly backdropUrl = computed(() =>
-		pickProfileBackdrop({
-			profile: this.profile(),
-			favorites: this.favoritesData(),
-			showsFavorites: this.visibility().favorites
-		})
+	protected readonly skeletonRange = Array.from(
+		{ length: SKELETON_ROW_COUNT },
+		(_, index) => index
 	);
-
-	protected readonly queueData = signal<QueueEntry[] | null>(null);
-	protected readonly favoritesData = signal<PublicFavorite[] | null>(null);
-	protected readonly platinumsData = signal<PlatinumEntry[] | null>(null);
-	protected readonly platinumsTotal = signal(0);
-	protected readonly sagas = signal<TrackedFranchise[]>([]);
-	protected readonly rewindYears = signal<RewindYears | null>(null);
-	protected readonly rewindSpotlight = computed(() => {
-		const rewinds = this.rewindYears();
-		if (rewinds?.spotlightYear == null) return null;
-		return (
-			rewinds.years.find(
-				summary => summary.year === rewinds.spotlightYear
-			) ?? null
-		);
-	});
-	protected readonly pastRewinds = computed(() => {
-		const spotlightYear = this.rewindSpotlight()?.year;
-		return (this.rewindYears()?.years ?? []).filter(
-			summary => summary.year !== spotlightYear
-		);
-	});
-	protected readonly comparison = signal<UserComparison | null>(null);
-	protected readonly comparisonBy = signal<ComparisonDimension>("completed");
-	protected readonly comparisonLoading = signal(false);
-	protected readonly comparisonPrivate = signal(false);
-	protected readonly comparisonDimensions = COMPARISON_OPTIONS;
-	protected readonly avatarRing = avatarRing;
 	protected readonly comparisonGames = computed(
-		() => this.comparison()?.inCommon ?? []
+		() => this.state.comparison()?.inCommon ?? []
 	);
 	protected readonly comparisonCount = computed(
-		() => this.comparison()?.counts.inCommon ?? 0
+		() => this.state.comparison()?.counts.inCommon ?? 0
 	);
-	protected readonly showComparison = computed(
-		() => this.isLoggedIn() && !this.isSelf() && !!this.profile()
-	);
-	protected readonly showActivity = computed(() => {
-		const p = this.profile();
-		if (!p) return false;
-		return this.visibility().feed && p.recentActivity.length > 0;
-	});
-	protected readonly highlightsData = signal<HighlightsData | null>(null);
-	protected readonly highlightsMonth = signal(this.currentMonth());
-	protected readonly isLoadingHighlightsMonth = signal(false);
 	protected readonly monthLabel = computed(() => {
-		const { year, month } = this.highlightsMonth();
-		return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString(
-			"en-US",
-			{ year: "numeric", month: "long", timeZone: "UTC" }
+		const { year, month } = this.state.highlightsMonth();
+		return MONTH_LABEL_FORMAT.format(
+			new Date(Date.UTC(year, month - 1, 1))
 		);
 	});
-	protected readonly isAtCurrentMonth = computed(() => {
-		const { year, month } = this.highlightsMonth();
-		const now = this.currentMonth();
-		return year === now.year && month === now.month;
-	});
-	protected readonly skeletonRange = Array.from({ length: 6 }, (_, i) => i);
 
-	private currentMonth(): { year: number; month: number } {
-		const now = new Date();
-		return {
-			year: now.getUTCFullYear(),
-			month: now.getUTCMonth() + 1
-		};
-	}
-
-	private parseMonthParam(raw: string | null): {
-		year: number;
-		month: number;
-	} | null {
-		if (!raw) return null;
-		const match = /^(\d{4})-(0[1-9]|1[0-2])$/.exec(raw);
-		if (!match) return null;
-		return { year: Number(match[1]), month: Number(match[2]) };
-	}
-
-	private formatMonthParam(year: number, month: number): string {
-		return `${year}-${String(month).padStart(2, "0")}`;
-	}
-
-	private syncHighlightsMonthInUrl() {
-		const next = this.isAtCurrentMonth()
-			? null
-			: this.formatMonthParam(
-					this.highlightsMonth().year,
-					this.highlightsMonth().month
-				);
-		this.router.navigate([], {
-			relativeTo: this.route,
-			queryParams: {
-				[PublicProfileComponent.HIGHLIGHTS_MONTH_PARAM]: next
-			},
-			queryParamsHandling: "merge",
-			replaceUrl: true
-		});
-	}
-
-	protected goToPreviousMonth() {
-		const { year, month } = this.highlightsMonth();
-		const next =
-			month === 1
-				? { year: year - 1, month: 12 }
-				: { year, month: month - 1 };
-		this.highlightsMonth.set(next);
-		this.syncHighlightsMonthInUrl();
-		this.refetchHighlights();
-	}
-
-	protected goToNextMonth() {
-		if (this.isAtCurrentMonth()) return;
-		const { year, month } = this.highlightsMonth();
-		const next =
-			month === 12
-				? { year: year + 1, month: 1 }
-				: { year, month: month + 1 };
-		this.highlightsMonth.set(next);
-		this.syncHighlightsMonthInUrl();
-		this.refetchHighlights();
-	}
-
-	private refetchHighlights() {
-		const u = this.username();
-		if (!u) return;
-		const { year, month } = this.highlightsMonth();
-		this.isLoadingHighlightsMonth.set(true);
-		this.reviewsService.getHighlights(u, { year, month }).subscribe({
-			next: data => {
-				this.highlightsData.set(data);
-				this.isLoadingHighlightsMonth.set(false);
-			},
-			error: () => this.isLoadingHighlightsMonth.set(false)
-		});
-	}
-
-	private ensureHighlightsLoaded(username: string) {
-		if (this.highlightsData() !== null) return;
-		const { year, month } = this.highlightsMonth();
-		this.reviewsService.getHighlights(username, { year, month }).subscribe({
-			next: data => this.highlightsData.set(data),
-			error: () =>
-				this.highlightsData.set({
-					recent: [],
-					month: {
-						startsAt: new Date().toISOString(),
-						endsAt: new Date().toISOString(),
-						completedCount: 0,
-						longestPlayed: null,
-						bestPersonalRatio: null,
-						highestRated: null
-					}
-				})
-		});
-	}
-
-	private ensureFavoritesLoaded(username: string) {
-		if (this.favoritesData() !== null) return;
-		this.libraryService
-			.getUserFavorites(username, { limit: PROFILE_FAVORITES_LIMIT })
-			.subscribe({
-				next: res =>
-					this.favoritesData.set(
-						res.items.map(e => ({
-							id: e.id,
-							position: e.position,
-							game: e.game
-						}))
-					),
-				error: () => this.favoritesData.set([])
-			});
-	}
-
-	private ensurePlatinumsLoaded(username: string) {
-		if (this.platinumsData() !== null) return;
-		this.libraryService
-			.getUserPlatinums(username, { limit: PROFILE_PLATINUMS_LIMIT })
-			.subscribe({
-				next: page => {
-					this.platinumsData.set(page.items);
-					this.platinumsTotal.set(page.total);
-				},
-				error: () => this.platinumsData.set([])
-			});
-	}
-
-	protected loadRewinds(username: string) {
-		this.rewindService.getYears(username).subscribe({
-			next: rewinds => {
-				if (this.username() === username) this.rewindYears.set(rewinds);
-			},
-			error: () => undefined
-		});
-	}
-
-	private ensureQueueLoaded(username: string) {
-		if (this.queueData() !== null) return;
-		this.libraryService
-			.getUserQueue(username, { limit: UP_NEXT_LIMIT })
-			.subscribe({
-				next: page => this.queueData.set(page.items),
-				error: () => this.queueData.set([])
-			});
-	}
-
-	protected readonly userReviews = signal<ReviewEntry[]>([]);
-	protected readonly latestReviews = computed(() => {
-		const reviews = this.userReviews();
-		const written = reviews.filter(review => review.content?.trim());
-		const ratedOnly = reviews.filter(review => !review.content?.trim());
-		return [...written, ...ratedOnly].slice(0, LATEST_REVIEWS_COUNT);
-	});
-	protected readonly userReviewsTotal = signal(0);
-
-	ngOnInit() {
-		if (this.authService.token() && !this.authService.user()) {
-			this.authService.loadUser().subscribe({
-				next: () => this.init(),
-				error: () => this.init()
-			});
-		} else {
-			this.init();
-		}
-	}
-
-	private init() {
-		const rawMonth = this.route.snapshot.queryParamMap.get(
-			PublicProfileComponent.HIGHLIGHTS_MONTH_PARAM
-		);
-		const parsed = this.parseMonthParam(rawMonth);
-		if (parsed) this.highlightsMonth.set(parsed);
-		this.route.paramMap.subscribe(params => {
-			const raw = params.get("username") ?? "";
-			this.username.set(raw);
-			this.loadProfile(raw);
-		});
-	}
-
-	onFollowButtonClick() {
-		const p = this.profile();
-		if (!p || this.togglingFollow()) return;
-		if (p.isFollowing) {
-			this.showUnfollowConfirm.set(true);
-			return;
-		}
-		if (p.hasPendingRequest) {
-			this.cancelOutgoingRequest();
-			return;
-		}
-		this.follow();
-	}
-
-	confirmUnfollow() {
-		this.unfollow();
-	}
-
-	private follow() {
-		const u = this.username();
-		if (!u || this.togglingFollow()) return;
-		this.togglingFollow.set(true);
-		this.socialService.follow(u).subscribe({
-			next: result => {
-				this.profile.update(prev => {
-					if (!prev) return prev;
-					if (result.status === "pending") {
-						return { ...prev, hasPendingRequest: true };
-					}
-					return {
-						...prev,
-						isFollowing: true,
-						followerCount: prev.followerCount + 1
-					};
-				});
-				this.togglingFollow.set(false);
-			},
-			error: () => this.togglingFollow.set(false)
-		});
-	}
-
-	private unfollow() {
-		const u = this.username();
-		if (!u || this.togglingFollow()) return;
-		this.togglingFollow.set(true);
-		this.socialService.unfollow(u).subscribe({
-			next: () => {
-				this.profile.update(prev =>
-					prev
-						? {
-								...prev,
-								isFollowing: false,
-								followerCount: Math.max(
-									0,
-									prev.followerCount - 1
-								)
-							}
-						: prev
-				);
-				this.togglingFollow.set(false);
-				this.showUnfollowConfirm.set(false);
-			},
-			error: () => this.togglingFollow.set(false)
-		});
-	}
-
-	private cancelOutgoingRequest() {
-		const u = this.username();
-		if (!u || this.togglingFollow()) return;
-		this.togglingFollow.set(true);
-		this.socialService.cancelFollowRequest(u).subscribe({
-			next: () => {
-				this.profile.update(prev =>
-					prev ? { ...prev, hasPendingRequest: false } : prev
-				);
-				this.togglingFollow.set(false);
-			},
-			error: () => this.togglingFollow.set(false)
-		});
-	}
-
-	openPremiumAccess() {
+	protected openPremiumAccess() {
 		if (this.canManagePremium()) this.showPremiumAccess.set(true);
 	}
 
-	closePremiumAccess() {
+	protected closePremiumAccess() {
 		this.showPremiumAccess.set(false);
-		const username = this.profile()?.user.username;
-		if (!username) return;
-		this.profileService.getProfile(username).subscribe({
-			next: data =>
-				this.profile.update(current =>
-					current?.user.id === data.user.id
-						? {
-								...current,
-								user: {
-									...current.user,
-									hasPremium: data.user.hasPremium
-								}
-							}
-						: current
-				),
-			error: () => undefined
-		});
+		this.state.refreshPremiumFlag();
 	}
 
-	shareProfile() {
-		const url = window.location.href.split("?")[0];
-		const name = this.profile()?.user.name || this.username();
-		if (navigator.share) {
-			navigator
-				.share({ title: `${name} on Completr`, url })
-				.catch(() => undefined);
-			return;
-		}
-		navigator.clipboard
-			?.writeText(url)
-			.then(() => this.toast.success("Profile link copied."))
-			.catch(() => this.toast.warning("Could not copy the link."));
-	}
-
-	protected deleteActivity(id: string) {
-		const snapshot = this.profile();
-		if (!snapshot) return;
-		this.profile.set({
-			...snapshot,
-			recentActivity: snapshot.recentActivity.filter(
-				activity => activity.id !== id
-			)
-		});
-		this.toast.pending({
-			message: "Activity removed",
-			onCommit: () => this.feedService.deleteActivity(id).subscribe(),
-			onUndo: () =>
-				this.profile.update(current =>
-					current
-						? {
-								...current,
-								recentActivity: snapshot.recentActivity
-							}
-						: current
-				)
-		});
+	protected shareProfile(user: PublicUser) {
+		this.shareLink(user.name || user.username);
 	}
 
 	protected scrollToLists() {
-		document
-			.getElementById("profile-lists")
+		this.document
+			.getElementById(PROFILE_LISTS_SECTION_ID)
 			?.scrollIntoView({ behavior: "smooth", block: "start" });
-	}
-
-	protected changeComparison(by: ComparisonDimension) {
-		if (by === this.comparisonBy() && this.comparison()) return;
-		this.comparisonBy.set(by);
-		this.loadComparison();
-	}
-
-	private loadComparison() {
-		const username = this.username();
-		const by = this.comparisonBy();
-		this.comparisonLoading.set(true);
-		this.comparisonPrivate.set(false);
-		this.libraryService
-			.getComparison(username, by, { limit: 12 })
-			.subscribe({
-				next: data => {
-					this.comparison.set(data);
-					this.comparisonLoading.set(false);
-				},
-				error: err => {
-					this.comparison.set(null);
-					this.comparisonPrivate.set(err.status === 403);
-					this.comparisonLoading.set(false);
-				}
-			});
-	}
-
-	private loadProfile(username: string) {
-		this.isLoading.set(true);
-		this.isPrivate.set(false);
-		this.notFound.set(false);
-		this.profile.set(null);
-		this.highlightsData.set(null);
-		this.highlightsMonth.set(this.currentMonth());
-		this.favoritesData.set(null);
-		this.platinumsData.set(null);
-		this.platinumsTotal.set(0);
-		this.queueData.set(null);
-		this.comparison.set(null);
-		this.comparisonBy.set("completed");
-		this.comparisonPrivate.set(false);
-		this.sagas.set([]);
-		this.rewindYears.set(null);
-		this.userReviews.set([]);
-		this.userReviewsTotal.set(0);
-
-		this.profileService.getProfile(username).subscribe({
-			next: data => {
-				this.profile.set(data);
-				if (data.isPrivate) {
-					this.isPrivate.set(true);
-					this.isLoading.set(false);
-					return;
-				}
-				this.isLoading.set(false);
-				if (this.visibility().backlog) {
-					this.ensureHighlightsLoaded(username);
-				}
-				if (this.visibility().favorites) {
-					this.ensureFavoritesLoaded(username);
-				}
-				if (this.visibility().platinums) {
-					this.ensurePlatinumsLoaded(username);
-				}
-				if (this.visibility().queue) {
-					this.ensureQueueLoaded(username);
-				}
-				if (this.visibility().rewind) {
-					this.loadRewinds(username);
-				}
-				this.reviewsService
-					.getUserReviews(username, { limit: REVIEWS_SAMPLE_SIZE })
-					.subscribe(r => {
-						this.userReviews.set(r.reviews);
-						this.userReviewsTotal.set(r.total);
-					});
-				this.comparison.set(null);
-				if (this.isLoggedIn() && !this.isSelf()) {
-					this.loadComparison();
-				}
-				this.sagas.set([]);
-				if (this.visibility().sagas) {
-					this.libraryService.getUserFranchises(username).subscribe({
-						next: franchises => this.sagas.set(franchises),
-						error: () => this.sagas.set([])
-					});
-				}
-			},
-			error: err => {
-				if (err.status === 404) this.notFound.set(true);
-				this.isLoading.set(false);
-			}
-		});
 	}
 }

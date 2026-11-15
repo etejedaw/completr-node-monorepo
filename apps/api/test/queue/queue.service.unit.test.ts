@@ -35,6 +35,11 @@ function backlogEntry(overrides: Record<string, unknown> = {}) {
 }
 
 void describe("queueService.addFromBacklog", () => {
+	beforeEach(() => {
+		stub(sequelize, "query", async () => []);
+		stubTransaction();
+	});
+
 	afterEach(() => {
 		mock.restoreAll();
 	});
@@ -79,7 +84,7 @@ void describe("queueService.addFromBacklog", () => {
 		assert.equal(errorCode(error), "QUEUE_BACKLOG_NOT_FOUND");
 	});
 
-	void it("fails when the backlog belongs to another user", async () => {
+	void it("answers QUEUE_BACKLOG_NOT_FOUND when the backlog belongs to another user", async () => {
 		stub(Queue, "count", async () => 0);
 		stub(backlogService, "findBacklogBasicById", async () =>
 			backlogEntry({ userId: "owner" })
@@ -89,7 +94,7 @@ void describe("queueService.addFromBacklog", () => {
 			queueService.addFromBacklog("b-1", FREE_USER)
 		);
 
-		assert.equal(errorCode(error), "QUEUE_BACKLOG_NOT_OWNED");
+		assert.equal(errorCode(error), "QUEUE_BACKLOG_NOT_FOUND");
 	});
 
 	for (const status of ["playing", "completed", "abandoned", "endless"]) {
@@ -173,6 +178,7 @@ void describe("queueService.addFromBacklog", () => {
 void describe("queueService.replaceQueue", () => {
 	beforeEach(() => {
 		stub(sequelize, "query", async () => []);
+		stubTransaction();
 	});
 
 	afterEach(() => {
@@ -181,10 +187,11 @@ void describe("queueService.replaceQueue", () => {
 
 	void it("clears the queue when the new list is empty", async () => {
 		const destroy = stub(Queue, "destroy", async () => 2);
+		stub(Queue, "bulkCreate", async () => []);
 
 		assert.deepEqual(await queueService.replaceQueue(FREE_USER, []), []);
 		assert.deepEqual(destroy.mock.calls[0]?.arguments, [
-			{ where: { userId: "user-1" } }
+			{ where: { userId: "user-1" }, transaction: { id: "tx" } }
 		]);
 	});
 

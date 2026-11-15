@@ -8,13 +8,26 @@ import { isAiRecapInProgress } from "../../src/rewind/utils/is-ai-recap-in-progr
 import { nextGeneratedAt } from "../../src/rewind/utils/next-generated-at.util";
 import { planRewindGeneration } from "../../src/rewind/utils/plan-rewind-generation.util";
 import { resolveAiRecapState } from "../../src/rewind/utils/resolve-ai-recap-state.util";
-import { resolveGraceEndsAt } from "../../src/rewind/utils/resolve-grace-ends-at.util";
+import { resolveRewindAiBudget } from "../../src/rewind/utils/resolve-rewind-ai-budget.util";
+import { resolveRewindAiUseChanges } from "../../src/rewind/utils/resolve-rewind-ai-use-changes.util";
+import { calendarOn, editionOf } from "./rewind-run.builder";
 
 const GENERATED_AT = new Date("2026-12-05T10:00:00.000Z");
+const EDITION = editionOf(2026, {
+	premiumRegenerations: 3,
+	giftRegenerations: 1
+});
+const BEFORE_OPENING = new Date("2026-11-30T23:59:59.999Z");
 const DECEMBER = new Date("2026-12-20T00:00:00.000Z");
 const GRACE_FIRST_DAY = new Date("2027-01-01T00:00:00.000Z");
 const GRACE_LAST_DAY = new Date("2027-01-07T23:59:59.999Z");
 const AFTER_GRACE = new Date("2027-01-08T00:00:00.000Z");
+const LAST_DAY = new Date("2027-01-31T23:59:59.999Z");
+const AFTER_CLOSING = new Date("2027-02-01T00:00:00.000Z");
+
+function on(today: Date) {
+	return calendarOn(today, 2000, EDITION);
+}
 
 function record(overrides: Partial<RewindRecord> = {}): RewindRecord {
 	return {
@@ -23,15 +36,24 @@ function record(overrides: Partial<RewindRecord> = {}): RewindRecord {
 		includesPrivateRuns: false,
 		includesNotes: false,
 		generatedAt: GENERATED_AT,
-		regenerationsUsed: 0,
+		regenerationsLeft: 0,
 		graceUsed: false,
 		aiRecap: null,
 		aiRecapStatus: "none",
 		aiRecapRequestedAt: null,
 		premiumStats: null,
 		premiumAccessKind: null,
+		frozenAt: null,
 		...overrides
 	};
+}
+
+function premiumRecord(overrides: Partial<RewindRecord> = {}) {
+	return record({
+		premiumAccessKind: "premium",
+		regenerationsLeft: 1,
+		...overrides
+	});
 }
 
 const RECAP = {
@@ -42,24 +64,77 @@ const RECAP = {
 	nextYearChallenge: "n"
 };
 
+const EXPECTED = GENERATED_AT.toISOString();
+
 void describe("planRewindGeneration", () => {
 	void it("creates the first generation only without an expected date", () => {
+		const plan = planRewindGeneration({
+			year: 2026,
+			record: null,
+			expectedGeneratedAt: null,
+			calendar: on(DECEMBER),
+			accessKind: null
+		});
+		assert.equal(plan.kind, "create");
 		assert.deepEqual(
 			planRewindGeneration({
+				year: 2026,
 				record: null,
-				expectedGeneratedAt: null,
-				today: DECEMBER
-			}),
-			{ kind: "create" }
-		);
-		assert.deepEqual(
-			planRewindGeneration({
-				record: null,
-				expectedGeneratedAt: GENERATED_AT.toISOString(),
-				today: DECEMBER
+				expectedGeneratedAt: EXPECTED,
+				calendar: on(DECEMBER),
+				accessKind: "premium"
 			}),
 			{ kind: "conflict" }
 		);
+	});
+
+	void it("assigns the quota of the access on the first generation and spends one roll", () => {
+		const create = (accessKind: "premium" | "gift" | null) => {
+			const plan = planRewindGeneration({
+				year: 2026,
+				record: null,
+				expectedGeneratedAt: null,
+				calendar: on(DECEMBER),
+				accessKind
+			});
+			assert.equal(plan.kind, "create");
+			return plan.kind === "create" ? plan.budget : null;
+		};
+
+		const premium = create("premium");
+		assert.deepEqual(premium?.assignment, {
+			premiumAccessKind: "premium",
+			regenerationsLeft: 3
+		});
+		assert.equal(premium?.spend, "regeneration");
+
+		const gift = create("gift");
+		assert.deepEqual(gift?.assignment, {
+			premiumAccessKind: "gift",
+			regenerationsLeft: 1
+		});
+		assert.equal(gift?.spend, "regeneration");
+
+		const free = create(null);
+		assert.equal(free?.assignment, null);
+		assert.equal(free?.spend, null);
+	});
+
+	void it("creates the base without the AI when the quota is zero", () => {
+		const plan = planRewindGeneration({
+			year: 2026,
+			record: null,
+			expectedGeneratedAt: null,
+			calendar: calendarOn(DECEMBER, 2000, editionOf(2026)),
+			accessKind: "premium"
+		});
+		assert.equal(plan.kind, "create");
+		if (plan.kind !== "create") return;
+		assert.deepEqual(plan.budget.assignment, {
+			premiumAccessKind: "premium",
+			regenerationsLeft: 0
+		});
+		assert.equal(plan.budget.spend, null);
 	});
 
 	void it("answers a conflict for a missing or stale expected date", () => {
@@ -70,9 +145,11 @@ void describe("planRewindGeneration", () => {
 		]) {
 			assert.deepEqual(
 				planRewindGeneration({
-					record: record(),
+					year: 2026,
+					record: premiumRecord(),
 					expectedGeneratedAt: expected,
-					today: DECEMBER
+					calendar: on(DECEMBER),
+					accessKind: "premium"
 				}),
 				{ kind: "conflict" },
 				String(expected)
@@ -80,88 +157,266 @@ void describe("planRewindGeneration", () => {
 		}
 	});
 
-	void it("accepts the same instant written with another offset", () => {
+	void it("checks the expected date before the access, so a stale click spends nothing", () => {
 		assert.deepEqual(
 			planRewindGeneration({
+				year: 2026,
 				record: record(),
-				expectedGeneratedAt: "2026-12-05T07:00:00-03:00",
-				today: DECEMBER
+				expectedGeneratedAt: "2020-01-01T00:00:00.000Z",
+				calendar: on(DECEMBER),
+				accessKind: null
 			}),
-			{ kind: "regenerate", spendsGrace: false }
+			{ kind: "conflict" }
 		);
 	});
 
-	void it("spends the grace first inside January 1-7 and the normal one after", () => {
-		const expectedGeneratedAt = GENERATED_AT.toISOString();
-		for (const today of [GRACE_FIRST_DAY, GRACE_LAST_DAY]) {
+	void it("refuses to regenerate without access to the AI, even with rolls left", () => {
+		for (const stored of [
+			record(),
+			premiumRecord({ regenerationsLeft: 3 })
+		]) {
 			assert.deepEqual(
 				planRewindGeneration({
-					record: record({ regenerationsUsed: 1 }),
-					expectedGeneratedAt,
-					today
+					year: 2026,
+					record: stored,
+					expectedGeneratedAt: EXPECTED,
+					calendar: on(DECEMBER),
+					accessKind: null
 				}),
-				{ kind: "regenerate", spendsGrace: true }
+				{ kind: "premium-required" }
 			);
 		}
-		assert.deepEqual(
-			planRewindGeneration({
-				record: record({ graceUsed: true }),
-				expectedGeneratedAt,
-				today: GRACE_FIRST_DAY
-			}),
-			{ kind: "regenerate", spendsGrace: false }
-		);
-		assert.deepEqual(
-			planRewindGeneration({
-				record: record({ regenerationsUsed: 1 }),
-				expectedGeneratedAt,
-				today: AFTER_GRACE
-			}),
-			{ kind: "limit-reached" }
-		);
-		assert.deepEqual(
-			planRewindGeneration({
-				record: record({ regenerationsUsed: 1, graceUsed: true }),
-				expectedGeneratedAt,
-				today: GRACE_LAST_DAY
-			}),
-			{ kind: "limit-reached" }
+	});
+
+	void it("accepts the same instant written with another offset", () => {
+		const plan = planRewindGeneration({
+			year: 2026,
+			record: premiumRecord(),
+			expectedGeneratedAt: "2026-12-05T07:00:00-03:00",
+			calendar: on(DECEMBER),
+			accessKind: "premium"
+		});
+		assert.equal(plan.kind, "regenerate");
+		assert.equal(
+			plan.kind === "regenerate" && plan.budget.spend,
+			"regeneration"
 		);
 	});
 
-	void it("does not open a grace window for an older year", () => {
-		assert.deepEqual(
-			planRewindGeneration({
-				record: record({ year: 2025, regenerationsUsed: 1 }),
-				expectedGeneratedAt: GENERATED_AT.toISOString(),
-				today: GRACE_FIRST_DAY
-			}),
-			{ kind: "limit-reached" }
+	void it("spends the grace first inside its window and the rolls after", () => {
+		const spendOn = (today: Date, stored: RewindRecord) => {
+			const plan = planRewindGeneration({
+				year: 2026,
+				record: stored,
+				expectedGeneratedAt: EXPECTED,
+				calendar: on(today),
+				accessKind: "premium"
+			});
+			return plan.kind === "regenerate" ? plan.budget.spend : plan.kind;
+		};
+
+		for (const today of [GRACE_FIRST_DAY, GRACE_LAST_DAY])
+			assert.equal(
+				spendOn(today, premiumRecord({ regenerationsLeft: 0 })),
+				"grace"
+			);
+		assert.equal(
+			spendOn(GRACE_FIRST_DAY, premiumRecord({ graceUsed: true })),
+			"regeneration"
 		);
+		assert.equal(
+			spendOn(AFTER_GRACE, premiumRecord({ regenerationsLeft: 0 })),
+			"limit-reached"
+		);
+		assert.equal(
+			spendOn(
+				GRACE_LAST_DAY,
+				premiumRecord({ regenerationsLeft: 0, graceUsed: true })
+			),
+			"limit-reached"
+		);
+		assert.equal(spendOn(LAST_DAY, premiumRecord()), "regeneration");
+	});
+
+	void it("never opens the grace for an older year", () => {
+		const plan = planRewindGeneration({
+			year: 2025,
+			record: premiumRecord({ year: 2025, regenerationsLeft: 0 }),
+			expectedGeneratedAt: EXPECTED,
+			calendar: on(GRACE_FIRST_DAY),
+			accessKind: "premium"
+		});
+		assert.deepEqual(plan, { kind: "limit-reached" });
+	});
+
+	void it("gives an owner who generated without access the quota of the access they have now", () => {
+		const plan = planRewindGeneration({
+			year: 2026,
+			record: record(),
+			expectedGeneratedAt: EXPECTED,
+			calendar: on(DECEMBER),
+			accessKind: "gift"
+		});
+		assert.equal(plan.kind, "regenerate");
+		if (plan.kind !== "regenerate") return;
+		assert.deepEqual(plan.budget.assignment, {
+			premiumAccessKind: "gift",
+			regenerationsLeft: 1
+		});
+		assert.equal(plan.budget.spend, "regeneration");
+	});
+
+	void it("keeps the first quota when the access changes later", () => {
+		const plan = planRewindGeneration({
+			year: 2026,
+			record: record({ premiumAccessKind: "gift", regenerationsLeft: 0 }),
+			expectedGeneratedAt: EXPECTED,
+			calendar: on(DECEMBER),
+			accessKind: "premium"
+		});
+		assert.deepEqual(plan, { kind: "limit-reached" });
 	});
 });
 
-void describe("resolveGraceEndsAt", () => {
-	void it("is January 7 of the next year only while the grace is open and unused", () => {
-		assert.equal(
-			resolveGraceEndsAt(record(), GRACE_FIRST_DAY),
-			"2027-01-07"
+void describe("resolveRewindAiBudget", () => {
+	void it("spends nothing outside the period, even with rolls and access", () => {
+		for (const today of [BEFORE_OPENING, AFTER_CLOSING]) {
+			const budget = resolveRewindAiBudget(
+				premiumRecord({ regenerationsLeft: 2 }),
+				on(today),
+				"premium"
+			);
+			assert.equal(budget.edition, null);
+			assert.equal(budget.spend, null);
+			assert.equal(budget.regenerationsLeft, 2);
+			assert.equal(budget.graceEndsAt, null);
+		}
+	});
+
+	void it("lets only full premium use the AI on a previous year", () => {
+		const older = record({ year: 2025 });
+		const premium = resolveRewindAiBudget(older, on(DECEMBER), "premium");
+		assert.equal(premium.yearAllowed, true);
+		assert.equal(premium.spend, "regeneration");
+
+		const gift = resolveRewindAiBudget(older, on(DECEMBER), "gift");
+		assert.equal(gift.yearAllowed, false);
+		assert.equal(gift.spend, null);
+	});
+
+	void it("keeps the rolls of an owner who lost the access but lets none be used", () => {
+		const budget = resolveRewindAiBudget(
+			premiumRecord({ regenerationsLeft: 2 }),
+			on(GRACE_FIRST_DAY),
+			null
 		);
-		assert.equal(
-			resolveGraceEndsAt(record(), GRACE_LAST_DAY),
-			"2027-01-07"
+		assert.equal(budget.regenerationsLeft, 2);
+		assert.equal(budget.graceEndsAt, null);
+		assert.equal(budget.spend, null);
+	});
+
+	void it("adds the edition quota to the rolls an admin gave before the first use", () => {
+		const budget = resolveRewindAiBudget(
+			record({ regenerationsLeft: 2 }),
+			on(DECEMBER),
+			"premium"
 		);
-		assert.equal(resolveGraceEndsAt(record(), AFTER_GRACE), null);
-		assert.equal(resolveGraceEndsAt(record(), DECEMBER), null);
+		assert.deepEqual(budget.assignment, {
+			premiumAccessKind: "premium",
+			regenerationsLeft: 3
+		});
+		assert.equal(budget.regenerationsLeft, 5);
+		assert.equal(budget.spend, "regeneration");
+	});
+
+	void it("never adds the quota again once the rewind used the AI", () => {
+		const budget = resolveRewindAiBudget(
+			premiumRecord({ regenerationsLeft: 2 }),
+			on(DECEMBER),
+			"premium"
+		);
+		assert.equal(budget.assignment, null);
+		assert.equal(budget.regenerationsLeft, 2);
+	});
+
+	void it("announces the grace only while it can be used", () => {
+		const graceOf = (today: Date, stored: RewindRecord) =>
+			resolveRewindAiBudget(stored, on(today), "gift").graceEndsAt;
+		assert.equal(graceOf(GRACE_FIRST_DAY, premiumRecord()), "2027-01-07");
+		assert.equal(graceOf(GRACE_LAST_DAY, premiumRecord()), "2027-01-07");
+		assert.equal(graceOf(AFTER_GRACE, premiumRecord()), null);
+		assert.equal(graceOf(DECEMBER, premiumRecord()), null);
 		assert.equal(
-			resolveGraceEndsAt(record({ graceUsed: true }), GRACE_FIRST_DAY),
+			graceOf(GRACE_FIRST_DAY, premiumRecord({ graceUsed: true })),
 			null
 		);
 	});
 });
 
+void describe("resolveRewindAiUseChanges", () => {
+	void it("writes the assigned quota minus the roll spent", () => {
+		const budget = resolveRewindAiBudget(record(), on(DECEMBER), "premium");
+		assert.deepEqual(resolveRewindAiUseChanges(record(), budget), {
+			premiumAccessKind: "premium",
+			regenerationsLeft: 2,
+			graceUsed: false
+		});
+	});
+
+	void it("keeps the rolls an admin gave before the first use on top of the quota", () => {
+		const stored = record({ regenerationsLeft: 4 });
+		const budget = resolveRewindAiBudget(stored, on(DECEMBER), "gift");
+		assert.deepEqual(resolveRewindAiUseChanges(stored, budget), {
+			premiumAccessKind: "gift",
+			regenerationsLeft: 4,
+			graceUsed: false
+		});
+	});
+
+	void it("keeps the admin rolls and the quota when the grace is spent", () => {
+		const stored = record({ regenerationsLeft: 2 });
+		const budget = resolveRewindAiBudget(
+			stored,
+			on(GRACE_FIRST_DAY),
+			"premium"
+		);
+		assert.deepEqual(resolveRewindAiUseChanges(stored, budget), {
+			premiumAccessKind: "premium",
+			regenerationsLeft: 5,
+			graceUsed: true
+		});
+	});
+
+	void it("marks the grace without touching the rolls", () => {
+		const stored = premiumRecord({ regenerationsLeft: 1 });
+		const budget = resolveRewindAiBudget(
+			stored,
+			on(GRACE_FIRST_DAY),
+			"premium"
+		);
+		assert.deepEqual(resolveRewindAiUseChanges(stored, budget), {
+			premiumAccessKind: "premium",
+			regenerationsLeft: 1,
+			graceUsed: true
+		});
+	});
+
+	void it("assigns the quota even when nothing can be spent", () => {
+		const budget = resolveRewindAiBudget(
+			record(),
+			calendarOn(DECEMBER, 2000, editionOf(2026)),
+			"gift"
+		);
+		assert.deepEqual(resolveRewindAiUseChanges(record(), budget), {
+			premiumAccessKind: "gift",
+			regenerationsLeft: 0,
+			graceUsed: false
+		});
+	});
+});
+
 void describe("resolveAiRecapState", () => {
-	void it("maps the stored status and the current role", () => {
+	void it("maps the stored status and whether the AI can be used now", () => {
 		assert.equal(
 			resolveAiRecapState(
 				record({ aiRecapStatus: "ready", aiRecap: RECAP }),
@@ -214,53 +469,104 @@ void describe("isAiRecapInProgress", () => {
 });
 
 void describe("buildRewindOwnerControls", () => {
-	void it("counts the regenerations left and whether the owner can regenerate", () => {
-		assert.deepEqual(buildRewindOwnerControls(record(), DECEMBER, false), {
-			includesPrivateRuns: false,
-			includesNotes: false,
-			regenerationsLeft: 1,
-			graceEndsAt: null,
-			canRegenerate: true,
-			aiRecapState: "unavailable"
+	void it("answers the full shape for an owner without access", () => {
+		assert.deepEqual(
+			buildRewindOwnerControls(record(), on(DECEMBER), null),
+			{
+				includesPrivateRuns: false,
+				includesNotes: false,
+				regenerationsLeft: 0,
+				graceEndsAt: null,
+				canRegenerate: false,
+				regenerationBlockedBy: "no-ai-access",
+				aiRecapState: "unavailable",
+				periodOpen: true,
+				periodStatus: "open",
+				closesAt: "2027-01-31",
+				frozenAt: null
+			}
+		);
+	});
+
+	void it("counts the rolls the access would give before the first use", () => {
+		const controls = buildRewindOwnerControls(
+			record(),
+			on(DECEMBER),
+			"premium"
+		);
+		assert.equal(controls.regenerationsLeft, 3);
+		assert.equal(controls.canRegenerate, true);
+		assert.equal(controls.aiRecapState, "available");
+	});
+
+	void it("counts the admin rolls plus the pending quota before the first use", () => {
+		const stored = record({ regenerationsLeft: 2 });
+		assert.equal(
+			buildRewindOwnerControls(stored, on(DECEMBER), "gift")
+				.regenerationsLeft,
+			3
+		);
+		assert.equal(
+			buildRewindOwnerControls(stored, on(DECEMBER), null)
+				.regenerationsLeft,
+			2
+		);
+	});
+
+	void it("offers the grace with zero rolls and closes everything after the period", () => {
+		const stored = premiumRecord({
+			regenerationsLeft: 0,
+			includesPrivateRuns: true,
+			includesNotes: true
 		});
 		assert.deepEqual(
-			buildRewindOwnerControls(
-				record({
-					regenerationsUsed: 1,
-					includesPrivateRuns: true,
-					includesNotes: true
-				}),
-				GRACE_FIRST_DAY,
-				true
-			),
+			buildRewindOwnerControls(stored, on(GRACE_FIRST_DAY), "premium"),
 			{
 				includesPrivateRuns: true,
 				includesNotes: true,
 				regenerationsLeft: 0,
 				graceEndsAt: "2027-01-07",
 				canRegenerate: true,
-				aiRecapState: "available"
+				regenerationBlockedBy: null,
+				aiRecapState: "available",
+				periodOpen: true,
+				periodStatus: "open",
+				closesAt: "2027-01-31",
+				frozenAt: null
 			}
 		);
-		assert.equal(
+
+		const frozenAt = new Date("2027-02-01T00:05:00.000Z");
+		assert.deepEqual(
 			buildRewindOwnerControls(
-				record({ regenerationsUsed: 1 }),
-				AFTER_GRACE,
-				true
-			).canRegenerate,
-			false
+				premiumRecord({ regenerationsLeft: 2, frozenAt }),
+				on(AFTER_CLOSING),
+				"premium"
+			),
+			{
+				includesPrivateRuns: false,
+				includesNotes: false,
+				regenerationsLeft: 2,
+				graceEndsAt: null,
+				canRegenerate: false,
+				regenerationBlockedBy: "period-closed",
+				aiRecapState: "unavailable",
+				periodOpen: false,
+				periodStatus: "closed",
+				closesAt: null,
+				frozenAt: "2027-02-01T00:05:00.000Z"
+			}
 		);
 	});
 
-	void it("never answers negative regenerations for corrupted counters", () => {
-		assert.equal(
-			buildRewindOwnerControls(
-				record({ regenerationsUsed: 5 }),
-				DECEMBER,
-				false
-			).regenerationsLeft,
-			0
+	void it("does not offer the AI with zero rolls outside the grace", () => {
+		const controls = buildRewindOwnerControls(
+			premiumRecord({ regenerationsLeft: 0 }),
+			on(AFTER_GRACE),
+			"premium"
 		);
+		assert.equal(controls.canRegenerate, false);
+		assert.equal(controls.aiRecapState, "unavailable");
 	});
 });
 

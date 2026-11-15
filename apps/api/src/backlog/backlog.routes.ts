@@ -26,8 +26,8 @@ const router = Router({ mergeParams: true });
 router.post(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(RegisterBacklogSchema, "body")
 	],
 	backlogController.postBacklog
@@ -36,8 +36,8 @@ router.post(
 router.post(
 	"/bulk",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(BacklogBulkQuerySchema, "query"),
 		validateBulkBodyMiddleware({
 			update: BulkUpdateBacklogSchema,
@@ -50,8 +50,8 @@ router.post(
 router.get(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(BacklogQuerySchema, "query")
 	],
 	backlogController.getMeBacklog
@@ -60,8 +60,8 @@ router.get(
 router.get(
 	"/export",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(BacklogExportQuerySchema, "query"),
 		exportFormatNegotiationMiddleware,
 		exportFormatAccessMiddleware
@@ -72,8 +72,8 @@ router.get(
 router.patch(
 	"/:backlogId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(BacklogIdParamsSchema, "params"),
 		validateSchemaMiddleware(UpdateBacklogSchema, "body")
 	],
@@ -83,8 +83,8 @@ router.patch(
 router.delete(
 	"/:backlogId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(BacklogIdParamsSchema, "params")
 	],
 	backlogController.deleteBacklog

@@ -2,11 +2,14 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+import { type Observable, type Observer, Subscription } from "rxjs";
 
 import {
 	type BacklogEntry,
@@ -17,7 +20,6 @@ import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
-import { adminErrorMessage } from "../../../core/utils/admin-error-message";
 import { ExpandableText } from "../../../shared/components/expandable-text/expandable-text";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import { InView } from "../../../shared/directives/in-view";
@@ -48,7 +50,6 @@ import {
 	type GameShelfModalResult
 } from "../../game-shelf/game-shelf-modal/game-shelf-modal";
 import { type GameShelfModalData } from "../../game-shelf/game-shelf-modal/game-shelf-modal.model";
-import { MoodTagsService } from "../../mood-tags/mood-tags";
 import { PlatinumDialog } from "../../platinum/platinum-dialog/platinum-dialog";
 import {
 	type PlatinumDialogData,
@@ -69,7 +70,6 @@ import {
 	type ListsChanged
 } from "./components/game-add-to-list-modal.model";
 import { GameAdminBar } from "./components/game-admin-bar";
-import { type AdminActionsState } from "./components/game-admin-bar.model";
 import { GameDlcList } from "./components/game-dlc-list";
 import { GameFeaturedLists } from "./components/game-featured-lists";
 import { GameHero } from "./components/game-hero";
@@ -87,10 +87,11 @@ import { GameRuns } from "./components/game-runs";
 import { GameScoreCard } from "./components/game-score-card";
 import { GameSection } from "./components/game-section";
 import { GameSocialActivity } from "./components/game-social-activity";
-import {
-	type ExternalLinkView,
-	type ReportModalState
-} from "./game-detail.model";
+import { injectGameAdminActions } from "./game-admin-actions";
+import { type ExternalLinkView } from "./game-detail.model";
+import { EXTERNAL_LINK_SOURCES } from "./game-external-links";
+import { injectGameMoodTags } from "./game-mood-tags";
+import { injectGameReport } from "./game-report";
 import { resolveQueueIntent } from "./queue-intent";
 import { type QueueIntent } from "./queue-intent.model";
 
@@ -101,31 +102,8 @@ const TIME_SOURCE_LABELS: Record<string, string> = {
 };
 
 const HERO_SCORE_SOURCES_LIMIT = 3;
-
-const NUMERIC_ID_PATTERN = /^\d+$/;
-const IGDB_SHORT_ID_RADIX = 36;
-
-const EXTERNAL_LINK_SOURCES: Record<
-	string,
-	{ label: string; url: (externalId: string) => string | null }
-> = {
-	rawg: { label: "RAWG", url: id => `https://rawg.io/games/${id}` },
-	igdb: { label: "IGDB", url: igdbShortUrl },
-	steam: {
-		label: "Steam",
-		url: id => `https://store.steampowered.com/app/${id}`
-	},
-	metacritic: {
-		label: "Metacritic",
-		url: id => `https://www.metacritic.com/game/${id}`
-	}
-};
-
-function igdbShortUrl(externalId: string): string | null {
-	if (!NUMERIC_ID_PATTERN.test(externalId)) return null;
-	const shortId = Number(externalId).toString(IGDB_SHORT_ID_RADIX);
-	return `https://www.igdb.com/g/${shortId}`;
-}
+const SIMILAR_GAMES_POOL = 30;
+const SIMILAR_GAMES_SHOWN = 8;
 
 @Component({
 	selector: "app-game-detail",
@@ -173,9 +151,11 @@ export class GameDetail implements OnInit {
 	private readonly wishlistService = inject(WishlistService);
 	private readonly backlogService = inject(BacklogService);
 	private readonly gameShelfService = inject(GameShelfService);
-	private readonly moodTagsService = inject(MoodTagsService);
 	private readonly dialogs = inject(DialogService);
 	private readonly toast = inject(ToastService);
+	private readonly destroyRef = inject(DestroyRef);
+	private gameRequests = new Subscription();
+	private statusRequests = new Subscription();
 
 	protected readonly game = signal<Game | null>(null);
 	protected readonly externalLinks = computed<ExternalLinkView[]>(() =>
@@ -208,45 +188,16 @@ export class GameDetail implements OnInit {
 		const franchise = this.trackableFranchise();
 		return franchise ? this.franchiseTracking.isPending(franchise) : false;
 	});
-	protected readonly moodTags = signal<string[]>([]);
-	protected readonly moodTagsDraft = signal<string[]>([]);
-	protected readonly moodTagsSuggestions = signal<string[]>([]);
-	protected readonly editingMoodTags = signal(false);
-	protected readonly savingMoodTags = signal(false);
-
-	startEditMoodTags() {
-		this.moodTagsDraft.set([...this.moodTags()]);
-		this.editingMoodTags.set(true);
-	}
-
-	cancelEditMoodTags() {
-		this.editingMoodTags.set(false);
-	}
-
-	updateMoodTagsDraft(tags: string[]) {
-		this.moodTagsDraft.set(tags);
-	}
-
-	commitMoodTags() {
-		const game = this.game();
-		if (!game) return;
-		this.savingMoodTags.set(true);
-		this.moodTagsService
-			.replaceGameTags(game.id, this.moodTagsDraft())
-			.subscribe({
-				next: tags => {
-					this.moodTags.set(tags);
-					this.editingMoodTags.set(false);
-					this.savingMoodTags.set(false);
-					this.moodTagsService
-						.getMyTags()
-						.subscribe(all =>
-							this.moodTagsSuggestions.set(all.map(t => t.tag))
-						);
-				},
-				error: () => this.savingMoodTags.set(false)
-			});
-	}
+	private readonly moodTagsFlow = injectGameMoodTags(this.game);
+	protected readonly moodTags = this.moodTagsFlow.tags;
+	protected readonly moodTagsDraft = this.moodTagsFlow.draft;
+	protected readonly moodTagsSuggestions = this.moodTagsFlow.suggestions;
+	protected readonly editingMoodTags = this.moodTagsFlow.editing;
+	protected readonly savingMoodTags = this.moodTagsFlow.saving;
+	protected readonly startEditMoodTags = this.moodTagsFlow.startEdit;
+	protected readonly cancelEditMoodTags = this.moodTagsFlow.cancelEdit;
+	protected readonly commitMoodTags = this.moodTagsFlow.commit;
+	protected readonly updateMoodTagsDraft = this.moodTagsFlow.draft.set;
 	protected readonly isLoading = signal(true);
 	protected readonly similarGames = signal<Game[]>([]);
 	protected readonly isFavorite = signal(false);
@@ -329,20 +280,18 @@ export class GameDetail implements OnInit {
 	protected readonly togglingFavorite = signal(false);
 	protected readonly togglingWishlist = signal(false);
 
-	protected readonly adminActions = signal<AdminActionsState>({
-		confirmDeactivate: false,
-		confirmDelete: false,
-		editor: false,
-		deactivating: false,
-		deleting: false
-	});
-	protected readonly reportModal = signal<ReportModalState>({
-		show: false,
-		message: "",
-		submitting: false,
-		sent: false,
-		error: ""
-	});
+	private readonly adminFlow = injectGameAdminActions(this.game);
+	private readonly reportFlow = injectGameReport(this.game);
+	protected readonly adminActions = this.adminFlow.state;
+	protected readonly updateAdminActions = this.adminFlow.update;
+	protected readonly deactivateGame = this.adminFlow.deactivate;
+	protected readonly deleteGame = this.adminFlow.remove;
+	protected readonly reportModal = this.reportFlow.state;
+	protected readonly openReportModal = this.reportFlow.open;
+	protected readonly closeReportModal = this.reportFlow.close;
+	protected readonly setReportMessage = this.reportFlow.setMessage;
+	protected readonly reportMissingData = this.reportFlow.reportMissingData;
+	protected readonly submitReport = this.reportFlow.submit;
 	protected readonly featuredLists = signal<
 		{
 			id: string;
@@ -362,24 +311,52 @@ export class GameDetail implements OnInit {
 
 	ngOnInit() {
 		this.scoreSourcesService.load();
-		this.favoritesService.ensureIdsLoaded().subscribe();
-		this.wishlistService.ensureIdsLoaded().subscribe();
-		this.route.paramMap.subscribe(params => {
-			const code = params.get("code");
-			if (code) this.loadGame(code);
+		this.favoritesService
+			.ensureIdsLoaded()
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe();
+		this.wishlistService
+			.ensureIdsLoaded()
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe();
+		this.route.paramMap
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe(params => {
+				const code = params.get("code");
+				if (code) this.loadGame(code);
+			});
+		this.destroyRef.onDestroy(() => {
+			this.gameRequests.unsubscribe();
+			this.statusRequests.unsubscribe();
 		});
 	}
 
+	private watchGame<T>(
+		source: Observable<T>,
+		observer: Partial<Observer<T>> | ((value: T) => void)
+	) {
+		this.gameRequests.add(source.subscribe(observer));
+	}
+
+	private watchStatus<T>(
+		source: Observable<T>,
+		observer: Partial<Observer<T>> | ((value: T) => void)
+	) {
+		this.statusRequests.add(source.subscribe(observer));
+	}
+
 	private loadGame(code: string) {
+		this.gameRequests.unsubscribe();
+		this.statusRequests.unsubscribe();
+		this.gameRequests = new Subscription();
+		this.statusRequests = new Subscription();
 		this.isLoading.set(true);
 		this.game.set(null);
 		this.similarGames.set([]);
-		this.gamesService.getByCode(code).subscribe({
+		this.watchGame(this.gamesService.getByCode(code), {
 			next: game => {
 				this.game.set(game);
-				this.moodTags.set(game.userMoodTags ?? []);
 				this.platinum.set(game.userPlatinum ?? null);
-				this.editingMoodTags.set(false);
 				this.isFavorite.set(this.favoritesService.isFavorite(game.id));
 				this.isInWishlist.set(
 					this.wishlistService.isInWishlist(game.id)
@@ -387,35 +364,35 @@ export class GameDetail implements OnInit {
 				this.isLoading.set(false);
 				this.loadSimilarGames(game);
 				this.loadUserStatus(game.id);
-				this.gamesService.getGameLists(game.id).subscribe(data => {
-					this.featuredLists.set(data.lists);
-					this.myLists.set(data.myLists);
-				});
-				this.moodTagsService
-					.getMyTags()
-					.subscribe(all =>
-						this.moodTagsSuggestions.set(all.map(t => t.tag))
-					);
+				this.watchGame(
+					this.gamesService.getGameLists(game.id),
+					data => {
+						this.featuredLists.set(data.lists);
+						this.myLists.set(data.myLists);
+					}
+				);
+				this.moodTagsFlow.showFor(game);
 			},
 			error: () => this.isLoading.set(false)
 		});
 	}
 
 	private loadUserStatus(gameId: string) {
-		this.backlogService.getMyBacklog({ game_id: gameId }).subscribe({
-			next: res => this.myRuns.set(res.data.backlog)
-		});
+		this.statusRequests.unsubscribe();
+		this.statusRequests = new Subscription();
+		this.watchStatus(
+			this.backlogService.getMyBacklog({ game_id: gameId }),
+			{ next: res => this.myRuns.set(res.data.backlog) }
+		);
 		this.loadQueuedRunIds(gameId);
-		this.gameShelfService.getMyShelf({ limit: 100 }).subscribe({
-			next: res =>
-				this.isInShelf.set(
-					res.data.gameShelf.some(s => s.game.id === gameId)
-				)
-		});
+		this.watchStatus(
+			this.gameShelfService.getMyShelf({ game_id: gameId, limit: 1 }),
+			{ next: res => this.isInShelf.set(res.data.gameShelf.length > 0) }
+		);
 	}
 
 	private loadQueuedRunIds(gameId: string) {
-		this.queueService.getMyQueue().subscribe({
+		this.watchStatus(this.queueService.getMyQueue(), {
 			next: queue =>
 				this.queuedRunIds.set(
 					new Set(
@@ -430,28 +407,38 @@ export class GameDetail implements OnInit {
 	private loadSimilarGames(game: Game) {
 		const genre = game.genres?.[0];
 		if (!genre) return;
-		this.gamesService
-			.getGames({ limit: 30, genre: genre.code, sort_by: "random" })
-			.subscribe(res => {
+		this.watchGame(
+			this.gamesService.getGames({
+				limit: SIMILAR_GAMES_POOL,
+				genre: genre.code,
+				sort_by: "random"
+			}),
+			res => {
 				const filtered = res.data.games.filter(g => g.id !== game.id);
-				this.similarGames.set(filtered.slice(0, 8));
-			});
+				this.similarGames.set(filtered.slice(0, SIMILAR_GAMES_SHOWN));
+			}
+		);
 	}
 
-	toggleFavorite() {
+	protected toggleFavorite() {
 		const gameId = this.game()?.id;
 		if (!gameId || this.togglingFavorite()) return;
 		this.togglingFavorite.set(true);
-		this.favoritesService.toggle(gameId).subscribe({
-			next: () => {
-				this.isFavorite.set(this.favoritesService.isFavorite(gameId));
-				this.togglingFavorite.set(false);
-			},
-			error: () => this.togglingFavorite.set(false)
-		});
+		this.favoritesService
+			.toggle(gameId)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: () => {
+					this.isFavorite.set(
+						this.favoritesService.isFavorite(gameId)
+					);
+					this.togglingFavorite.set(false);
+				},
+				error: () => this.togglingFavorite.set(false)
+			});
 	}
 
-	toggleFranchiseTrack() {
+	protected toggleFranchiseTrack() {
 		const franchise = this.trackableFranchise();
 		if (franchise) this.franchiseTracking.toggle(franchise);
 	}
@@ -461,18 +448,21 @@ export class GameDetail implements OnInit {
 		if (code) this.loadGame(code);
 	}
 
-	toggleWishlist() {
+	protected toggleWishlist() {
 		const g = this.game();
 		if (!g || this.togglingWishlist()) return;
 		if (this.isInWishlist()) {
 			this.togglingWishlist.set(true);
-			this.wishlistService.remove(g.id).subscribe({
-				next: () => {
-					this.isInWishlist.set(false);
-					this.togglingWishlist.set(false);
-				},
-				error: () => this.togglingWishlist.set(false)
-			});
+			this.wishlistService
+				.remove(g.id)
+				.pipe(takeUntilDestroyed(this.destroyRef))
+				.subscribe({
+					next: () => {
+						this.isInWishlist.set(false);
+						this.togglingWishlist.set(false);
+					},
+					error: () => this.togglingWishlist.set(false)
+				});
 		} else {
 			const ref = this.dialogs.open<
 				WishlistPlatformModalData,
@@ -484,16 +474,18 @@ export class GameDetail implements OnInit {
 					platforms: g.platforms
 				}
 			});
-			ref.afterClosed.subscribe(result => {
-				if (result === "saved")
-					this.isInWishlist.set(
-						this.wishlistService.isInWishlist(g.id)
-					);
-			});
+			ref.afterClosed
+				.pipe(takeUntilDestroyed(this.destroyRef))
+				.subscribe(result => {
+					if (result === "saved")
+						this.isInWishlist.set(
+							this.wishlistService.isInWishlist(g.id)
+						);
+				});
 		}
 	}
 
-	addToQueue() {
+	protected addToQueue() {
 		if (this.addedToQueue() || this.addingToQueue()) return;
 		const intent = resolveQueueIntent(this.myRuns(), this.queuedRunIds());
 		this.followQueueIntent(intent);
@@ -514,68 +506,35 @@ export class GameDetail implements OnInit {
 		>(GameQueueRunPicker, {
 			data: { gameTitle: g.title, runs: intent.runs }
 		});
-		ref.afterClosed.subscribe(result => {
-			if (result === "newRun") this.openBacklog(true);
-			else if (result) this.addRunToQueue(result);
-		});
+		ref.afterClosed
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe(result => {
+				if (result === "newRun") this.openBacklog(true);
+				else if (result) this.addRunToQueue(result);
+			});
 	}
 
 	private addRunToQueue(run: BacklogEntry) {
 		this.addingToQueue.set(true);
-		this.queueService.addFromBacklog(run.id).subscribe({
-			next: () => {
-				this.queuedRunIds.update(ids => new Set(ids).add(run.id));
-				this.addingToQueue.set(false);
-				this.toast.success(
-					`Your ${run.platform.abbreviation} run is in Up Next.`
-				);
-			},
-			error: () => {
-				this.addingToQueue.set(false);
-				this.loadQueuedRunIds(run.game.id);
-			}
-		});
+		this.queueService
+			.addFromBacklog(run.id)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: () => {
+					this.queuedRunIds.update(ids => new Set(ids).add(run.id));
+					this.addingToQueue.set(false);
+					this.toast.success(
+						`Your ${run.platform.abbreviation} run is in Up Next.`
+					);
+				},
+				error: () => {
+					this.addingToQueue.set(false);
+					this.loadQueuedRunIds(run.game.id);
+				}
+			});
 	}
 
-	deactivateGame() {
-		const g = this.game();
-		if (!g || this.adminActions().deactivating) return;
-		this.updateAdminActions({ deactivating: true });
-		this.gamesService.deactivate(g.id).subscribe({
-			next: () => this.router.navigate(["/games"]),
-			error: err => {
-				this.updateAdminActions({
-					deactivating: false,
-					confirmDeactivate: false
-				});
-				this.reportAdminActionError(err, "Could not deactivate game.");
-			}
-		});
-	}
-
-	deleteGame() {
-		const g = this.game();
-		if (!g || this.adminActions().deleting) return;
-		this.updateAdminActions({ deleting: true });
-		this.gamesService.hardDelete(g.id).subscribe({
-			next: () => this.router.navigate(["/games"]),
-			error: err => {
-				this.updateAdminActions({
-					deleting: false,
-					confirmDelete: false
-				});
-				this.reportAdminActionError(err, "Could not delete game.");
-			}
-		});
-	}
-
-	private reportAdminActionError(err: { status?: number }, fallback: string) {
-		const alreadyToastedByInterceptor = err.status === 409;
-		if (alreadyToastedByInterceptor) return;
-		this.toast.warning(adminErrorMessage(err) ?? fallback);
-	}
-
-	openBacklogModal() {
+	protected openBacklogModal() {
 		this.openBacklog(false);
 	}
 
@@ -595,12 +554,14 @@ export class GameDetail implements OnInit {
 				}
 			}
 		);
-		ref.afterClosed.subscribe(result => {
-			if (result === "saved") this.loadUserStatus(g.id);
-		});
+		ref.afterClosed
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe(result => {
+				if (result === "saved") this.loadUserStatus(g.id);
+			});
 	}
 
-	openRun(entry: BacklogEntry) {
+	protected openRun(entry: BacklogEntry) {
 		const g = this.game();
 		if (!g) return;
 		const ref = this.dialogs.open<BacklogModalData, BacklogModalResult>(
@@ -615,13 +576,15 @@ export class GameDetail implements OnInit {
 				}
 			}
 		);
-		ref.afterClosed.subscribe(result => {
-			if (result === "saved") this.loadUserStatus(g.id);
-			else if (result === "newRun") this.openBacklogModal();
-		});
+		ref.afterClosed
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe(result => {
+				if (result === "saved") this.loadUserStatus(g.id);
+				else if (result === "newRun") this.openBacklogModal();
+			});
 	}
 
-	openPlatinumDialog() {
+	protected openPlatinumDialog() {
 		const g = this.game();
 		if (!g) return;
 		const ref = this.dialogs.open<PlatinumDialogData, PlatinumDialogResult>(
@@ -642,38 +605,44 @@ export class GameDetail implements OnInit {
 				}
 			}
 		);
-		ref.afterClosed.subscribe(result => {
-			if (!result) return;
-			const platinum = result === "removed" ? null : result.platinum;
-			this.platinum.set(platinum);
-			this.myRuns.update(runs => runs.map(run => ({ ...run, platinum })));
-			this.toast.success(
-				platinum
-					? `${g.title} platinumed`
-					: `Platinum removed from ${g.title}`
-			);
-		});
+		ref.afterClosed
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe(result => {
+				if (!result) return;
+				const platinum = result === "removed" ? null : result.platinum;
+				this.platinum.set(platinum);
+				this.myRuns.update(runs =>
+					runs.map(run => ({ ...run, platinum }))
+				);
+				this.toast.success(
+					platinum
+						? `${g.title} platinumed`
+						: `Platinum removed from ${g.title}`
+				);
+			});
 	}
 
-	openShelfModal() {
+	protected openShelfModal() {
 		const g = this.game();
 		if (!g) return;
 		const ref = this.dialogs.open<GameShelfModalData, GameShelfModalResult>(
 			GameShelfModal,
 			{ data: { entry: null, preselectedGame: g } }
 		);
-		ref.afterClosed.subscribe(result => {
-			if (result === "saved") this.loadUserStatus(g.id);
-		});
+		ref.afterClosed
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe(result => {
+				if (result === "saved") this.loadUserStatus(g.id);
+			});
 	}
 
-	onEditorSaved() {
+	protected onEditorSaved() {
 		this.updateAdminActions({ editor: false });
 		const code = this.game()?.code;
 		if (code) this.loadGame(code);
 	}
 
-	onEditorSplit(firstVariant: { code: string }) {
+	protected onEditorSplit(firstVariant: { code: string }) {
 		this.updateAdminActions({ editor: false });
 		this.router.navigate(["/games", firstVariant.code]);
 	}
@@ -690,7 +659,7 @@ export class GameDetail implements OnInit {
 		);
 	}
 
-	openAddToListModal() {
+	protected openAddToListModal() {
 		const g = this.game();
 		if (!g) return;
 		this.dialogs.open<GameAddToListModalData>(GameAddToListModal, {
@@ -703,80 +672,8 @@ export class GameDetail implements OnInit {
 		});
 	}
 
-	onAddToListListsChanged(data: ListsChanged) {
+	protected onAddToListListsChanged(data: ListsChanged) {
 		this.featuredLists.set(data.lists);
 		this.myLists.set(data.myLists);
-	}
-
-	openReportModal() {
-		this.updateReportModal({ show: true, message: "", error: "" });
-	}
-
-	closeReportModal() {
-		this.updateReportModal({ show: false });
-	}
-
-	setReportMessage(value: string) {
-		this.updateReportModal({ message: value });
-	}
-
-	reportMissingData() {
-		const gameId = this.game()?.id;
-		if (!gameId || this.reportModal().submitting) return;
-		this.updateReportModal({ submitting: true });
-		this.gamesService
-			.reportGame(
-				gameId,
-				"Missing data for Completr Score (auto-reported from aggregate slot)",
-				"missing_score"
-			)
-			.subscribe({
-				next: () =>
-					this.updateReportModal({ submitting: false, sent: true }),
-				error: err =>
-					this.updateReportModal({
-						submitting: false,
-						sent:
-							err.status === 409 ? true : this.reportModal().sent
-					})
-			});
-	}
-
-	submitReport() {
-		const gameId = this.game()?.id;
-		const state = this.reportModal();
-		if (
-			!gameId ||
-			!state.message ||
-			state.message.length < 10 ||
-			state.submitting
-		)
-			return;
-
-		this.updateReportModal({ submitting: true, error: "" });
-		this.gamesService.reportGame(gameId, state.message).subscribe({
-			next: () =>
-				this.updateReportModal({
-					submitting: false,
-					show: false,
-					sent: true
-				}),
-			error: err =>
-				this.updateReportModal({
-					submitting: false,
-					error:
-						err.error?.detail ||
-						err.error?.title ||
-						"Failed to submit report"
-				})
-		});
-	}
-
-	protected updateAdminActions(patch: Partial<AdminActionsState>) {
-		this.adminActions.update(s => ({ ...s, ...patch }));
-	}
-
-	protected updateReportModal(patch: Partial<ReportModalState>) {
-		this.reportModal.update(s => ({ ...s, ...patch }));
 	}
 }

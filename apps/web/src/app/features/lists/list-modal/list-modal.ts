@@ -10,11 +10,11 @@ import { form, FormField, maxLength, required } from "@angular/forms/signals";
 import { injectDialogRef } from "ng-primitives/dialog";
 
 import { ScoreSourcesService } from "../../../core/services/score-sources";
-import { ChipGroup } from "../../../shared/components/chip-group/chip-group";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import {
 	UiAlert,
 	UiButton,
+	UiChipGroup,
 	UiDescription,
 	UiDialog,
 	UiFieldError,
@@ -48,7 +48,7 @@ const DURATION_SOURCES: readonly SourceOption[] = [
 		UiAlert,
 		UiFieldLabel,
 		UiFieldOptional,
-		ChipGroup,
+		UiChipGroup,
 		DialogDeleteAction,
 		FormField,
 		UiButton,
@@ -99,7 +99,7 @@ export class ListModal implements OnInit {
 		durationSource: "hltb"
 	});
 
-	readonly form = form(this.model, path => {
+	protected readonly form = form(this.model, path => {
 		required(path.name, { message: "Name is required" });
 		maxLength(path.name, 100, {
 			message: "Name must be 100 characters or fewer"
@@ -146,7 +146,7 @@ export class ListModal implements OnInit {
 		}
 	}
 
-	onSubmit(event: Event) {
+	protected onSubmit(event: Event) {
 		event.preventDefault();
 		if (this.form().invalid()) return;
 		this.isLoading.set(true);
@@ -187,7 +187,7 @@ export class ListModal implements OnInit {
 		}
 	}
 
-	onDelete() {
+	protected onDelete() {
 		this.isLoading.set(true);
 		this.listsService.delete(this.list!.id).subscribe({
 			next: () => this.dialogRef.close({ status: "deleted" }),
@@ -198,7 +198,7 @@ export class ListModal implements OnInit {
 		});
 	}
 
-	onClose() {
+	protected onClose() {
 		this.dialogRef.close();
 	}
 }

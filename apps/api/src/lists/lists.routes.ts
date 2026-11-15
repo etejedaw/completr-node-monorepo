@@ -23,8 +23,8 @@ const router = Router();
 router.post(
 	"/lists",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator", "admin"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(RegisterListSchema, "body")
 	],
 	listsController.postList
@@ -33,8 +33,8 @@ router.post(
 router.post(
 	"/lists/:listId/duplicate",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator", "admin"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ListIdParamsSchema, "params"),
 		validateSchemaMiddleware(DuplicateListSchema, "body")
 	],
@@ -44,8 +44,8 @@ router.post(
 router.get(
 	"/lists/me",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator", "admin"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
 	listsController.getMeLists
@@ -54,8 +54,8 @@ router.get(
 router.get(
 	"/lists/official",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(DiscoveryQuerySchema, "query")
 	],
 	listsController.getOfficialLists
@@ -64,8 +64,8 @@ router.get(
 router.get(
 	"/lists/recent",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(DiscoveryQuerySchema, "query")
 	],
 	listsController.getRecentLists
@@ -74,8 +74,8 @@ router.get(
 router.get(
 	"/lists/search",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(SearchQuerySchema, "query")
 	],
 	listsController.searchLists
@@ -84,8 +84,8 @@ router.get(
 router.get(
 	"/lists/:listId",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(ListIdParamsSchema, "params")
 	],
 	listsController.getListById
@@ -94,8 +94,8 @@ router.get(
 router.get(
 	"/lists/:listId/export",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator", "admin"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ListIdParamsSchema, "params"),
 		exportFormatNegotiationMiddleware,
 		exportFormatAccessMiddleware
@@ -106,8 +106,8 @@ router.get(
 router.patch(
 	"/lists/:listId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator", "admin"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ListIdParamsSchema, "params"),
 		validateSchemaMiddleware(UpdateListSchema, "body")
 	],
@@ -117,8 +117,8 @@ router.patch(
 router.delete(
 	"/lists/:listId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator", "admin"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ListIdParamsSchema, "params")
 	],
 	listsController.deleteList

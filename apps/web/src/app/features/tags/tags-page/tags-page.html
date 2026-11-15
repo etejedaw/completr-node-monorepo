@@ -38,7 +38,7 @@
 		[value]="searchQuery()"
 		(valueChange)="searchQuery.set($event)"
 	/>
-	<app-option-picker
+	<ui-option-picker
 		class="max-md:hidden shrink-0"
 		variant="compact"
 		size="md"
@@ -49,7 +49,7 @@
 		[value]="sortBy()"
 		(valueChange)="sortBy.set($any($event))"
 	/>
-	<app-option-picker
+	<ui-option-picker
 		class="md:hidden basis-full"
 		label="Sort"
 		heading="Sort tags by"

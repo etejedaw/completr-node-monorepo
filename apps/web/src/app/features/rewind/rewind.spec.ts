@@ -33,6 +33,7 @@ describe("RewindService", () => {
 	it("gets the years of a user and unwraps the data", () => {
 		const years: RewindYears = {
 			spotlightYear: 2026,
+			period: null,
 			years: [],
 			premiumAccess: { allowed: false, source: null, expiresAt: null }
 		};
@@ -65,22 +66,25 @@ describe("RewindService", () => {
 		});
 	});
 
-	it.each(["story", "og"] as const)("gets the %s image as a Blob", format => {
-		const png = new Blob(["png"], { type: "image/png" });
-		let result: Blob | undefined;
+	it.each(["story", "story-list", "og"] as const)(
+		"gets the %s image as a Blob",
+		format => {
+			const png = new Blob(["png"], { type: "image/png" });
+			let result: Blob | undefined;
 
-		service
-			.getImage("ada", 2026, format)
-			.subscribe(value => (result = value));
+			service
+				.getImage("ada", 2026, format)
+				.subscribe(value => (result = value));
 
-		const req = httpTesting.expectOne(
-			`/share/rewind/ada/2026/${format}.png`
-		);
-		expect(req.request.method).toBe("GET");
-		expect(req.request.responseType).toBe("blob");
-		req.flush(png);
-		expect(result).toBe(png);
-	});
+			const req = httpTesting.expectOne(
+				`/share/rewind/ada/2026/${format}.png`
+			);
+			expect(req.request.method).toBe("GET");
+			expect(req.request.responseType).toBe("blob");
+			req.flush(png);
+			expect(result).toBe(png);
+		}
+	);
 
 	it("builds the public share link on the web origin", () => {
 		expect(rewindShareUrl("ada", 2026)).toBe(

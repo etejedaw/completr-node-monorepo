@@ -77,7 +77,7 @@ docs: |-
     |--------|---------------------------------|-------------------------------------------------|
     | 404    | `COOP_BACKLOG_NOT_FOUND`        | The backlogId does not exist                    |
     | 404    | `COOP_TARGET_USER_NOT_FOUND`    | The userId in body does not exist               |
-    | 403    | `COOP_FORBIDDEN`                | The backlog is not yours                        |
+    | 404    | `COOP_BACKLOG_NOT_FOUND`        | The backlog is missing or not yours             |
     | 422    | `COOP_SELF_TAG`                 | You tried to tag yourself                       |
     | 422    | `COOP_TARGET_NOT_FOLLOWED`      | You are not following the target user           |
     | 422    | `COOP_ALREADY_TAGGED`           | User is already part of this run (with or without `targetBacklogId`) |

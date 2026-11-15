@@ -172,7 +172,7 @@ function distributeInColumns(posters: ShowcasePoster[]): ShowcasePoster[][] {
 					</div>
 					<div class="flex flex-col items-end ml-6 leading-none">
 						<span
-							class="text-[0.5625rem] uppercase tracking-[0.18em] text-fg-muted mb-1"
+							class="text-micro uppercase tracking-[0.18em] text-fg-muted mb-1"
 							>Ratio</span
 						>
 						<span

@@ -1,4 +1,5 @@
 import { type BacklogStatus } from "../backlog/backlog.model";
+import { type RewindEditionRecord } from "../rewind-editions/rewind-editions.interface";
 import { type RewindGameRef } from "./rewind.interface";
 
 export interface RewindRunPlatform {
@@ -30,6 +31,8 @@ export interface ClosedRewindRun extends RewindRun {
 export interface RewindCalendar {
 	today: Date;
 	firstYear: number;
+	edition: RewindEditionRecord | null;
+	upcomingEdition: RewindEditionRecord | null;
 }
 
 export interface RewindGameGenre {
@@ -52,4 +55,9 @@ export interface RewindYearRuns {
 export interface RunHours {
 	hours: number;
 	isEstimate: boolean;
+}
+
+export interface RewindRunsQuery {
+	publicOnly: boolean;
+	includeNotes: boolean;
 }

@@ -2,110 +2,67 @@ import { type Request, type Response } from "express";
 
 import * as auditService from "../audit/audit.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type StartedJob } from "./jobs.interface";
+import { jobSerializer, startedJobSerializer } from "./jobs.serializer";
 import * as jobsService from "./jobs.service";
 import { type JobIdParam } from "./schemas/job-id-params.schema";
 import { type PopulateExternalDataQuery } from "./schemas/populate-external-data-query.schema";
+import { type PopulateRawgQuery } from "./schemas/populate-rawg-query.schema";
+
+function startJobHandler(start: (request: Request) => Promise<StartedJob>) {
+	return async (request: Request, response: Response) => {
+		const user = request.locals.user as RequestUser;
+
+		const { job, started } = await start(request);
+		if (started) auditService.record(user.id, "job_started", "job", job.id);
+
+		return response
+			.status(202)
+			.json({ data: { job: startedJobSerializer(job) } });
+	};
+}
 
 export async function getJobs(_request: Request, response: Response) {
 	const jobs = await jobsService.findAll();
 
-	const data = {
-		jobs: jobs.map(j => ({
-			id: j.id,
-			type: j.type,
-			status: j.status,
-			result: j.result,
-			createdAt: j.createdAt,
-			completedAt: j.completedAt
-		}))
-	};
+	const data = { jobs: jobs.map(jobSerializer) };
 	return response.status(200).json({ data });
 }
 
-function startJobResponse(job: { id: string; type: string; status: string }) {
-	return {
-		data: {
-			job: { id: job.id, type: job.type, status: job.status }
-		}
-	};
-}
+export const postPopulateRawg = startJobHandler(request => {
+	const { limit } = request.locals.query as PopulateRawgQuery;
+	return jobsService.startPopulateRawg(limit);
+});
 
-export async function postPopulateRawg(request: Request, response: Response) {
-	const user = request.locals.user as RequestUser;
-	const limit = request.query.limit ? Number(request.query.limit) : undefined;
-
-	const job = await jobsService.startPopulateRawg(limit);
-	auditService.record(user.id, "job_started", "job", job.id);
-
-	return response.status(202).json(startJobResponse(job));
-}
-
-export async function postPopulateExternalData(
-	request: Request,
-	response: Response
-) {
-	const user = request.locals.user as RequestUser;
+export const postPopulateExternalData = startJobHandler(request => {
 	const { limit } = request.locals.query as PopulateExternalDataQuery;
+	return jobsService.startPopulateExternalData(limit);
+});
 
-	const job = await jobsService.startPopulateExternalData(limit);
-	auditService.record(user.id, "job_started", "job", job.id);
+export const postCalculateRatings = startJobHandler(() =>
+	jobsService.startCalculateRatings()
+);
 
-	return response.status(202).json(startJobResponse(job));
-}
+export const postCalculateDurations = startJobHandler(() =>
+	jobsService.startCalculateDurations()
+);
 
-export async function postCalculateRatings(
-	request: Request,
-	response: Response
-) {
-	const user = request.locals.user as RequestUser;
+export const postRecomputePopularity = startJobHandler(() =>
+	jobsService.startRecomputePopularity()
+);
 
-	const job = await jobsService.startCalculateRatings();
-	auditService.record(user.id, "job_started", "job", job.id);
+export const postCleanupCoopRuns = startJobHandler(() =>
+	jobsService.startCleanupCoopRuns()
+);
 
-	return response.status(202).json(startJobResponse(job));
-}
-
-export async function postCalculateDurations(
-	request: Request,
-	response: Response
-) {
-	const user = request.locals.user as RequestUser;
-
-	const job = await jobsService.startCalculateDurations();
-	auditService.record(user.id, "job_started", "job", job.id);
-
-	return response.status(202).json(startJobResponse(job));
-}
-
-export async function postRecomputePopularity(
-	request: Request,
-	response: Response
-) {
-	const user = request.locals.user as RequestUser;
-
-	const job = await jobsService.startRecomputePopularity();
-	auditService.record(user.id, "job_started", "job", job.id);
-
-	return response.status(202).json(startJobResponse(job));
-}
-
-export async function postCleanupCoopRuns(
-	request: Request,
-	response: Response
-) {
-	const user = request.locals.user as RequestUser;
-
-	const job = await jobsService.startCleanupCoopRuns();
-	auditService.record(user.id, "job_started", "job", job.id);
-
-	return response.status(202).json(startJobResponse(job));
-}
+export const postRewindFreeze = startJobHandler(() =>
+	jobsService.startRewindFreeze()
+);
 
 export async function deleteJob(request: Request, response: Response) {
 	const { jobId } = request.locals.params as JobIdParam;
 
-	const cancelled = await jobsService.cancelJob(jobId);
-	if (!cancelled) return response.sendStatus(404);
+	await jobsService.cancelJob(jobId);
 
 	return response.sendStatus(204);
 }

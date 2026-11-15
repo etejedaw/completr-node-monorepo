@@ -33,6 +33,7 @@ function summary(
 ): RewindYearSummary {
 	return {
 		isGenerated: true,
+		generationBlockedBy: null,
 		year: 2026,
 		finishedCount: 18,
 		startedCount: 23,
@@ -225,15 +226,21 @@ describe("ProfileRewindSpotlight", () => {
 
 	describe("owner invitation before the Rewind is generated", () => {
 		let toast: {
-			pending: ReturnType<typeof vi.fn>;
+			success: ReturnType<typeof vi.fn>;
 			error: ReturnType<typeof vi.fn>;
 		};
 
-		async function renderInvitation({ isSelf = true } = {}) {
+		async function renderInvitation({
+			isSelf = true,
+			generationBlockedBy = null as RewindYearSummary["generationBlockedBy"]
+		} = {}) {
 			const result = await render(ProfileRewindSpotlight, {
 				inputs: {
 					username: "ada",
-					summary: summary({ isGenerated: false }),
+					summary: summary({
+						isGenerated: false,
+						generationBlockedBy
+					}),
 					isSelf,
 					hasMoreYears: false,
 					premiumAccess: {
@@ -267,7 +274,7 @@ describe("ProfileRewindSpotlight", () => {
 		}
 
 		beforeEach(() => {
-			toast = { pending: vi.fn(), error: vi.fn() };
+			toast = { success: vi.fn(), error: vi.fn() };
 			vi.spyOn(performance, "now").mockReturnValue(10_000);
 			vi.stubGlobal(
 				"matchMedia",
@@ -306,6 +313,19 @@ describe("ProfileRewindSpotlight", () => {
 			const teaser = container.querySelector("[data-rewind-teaser]")!;
 			expect(teaser).toHaveAttribute("aria-hidden", "true");
 			expect(teaser.querySelectorAll("app-game-poster")).toHaveLength(5);
+		});
+
+		it("swaps Generate for the reason when the API blocks the year", async () => {
+			await renderInvitation({ generationBlockedBy: "requires-premium" });
+
+			expect(
+				screen.queryByRole("button", { name: "Generate your Rewind" })
+			).toBeNull();
+			expect(
+				screen.getByText(
+					"Rewinds of previous years can only be generated with Premium."
+				)
+			).toBeInTheDocument();
 		});
 
 		it("renders nothing for a visitor if an unpublished year ever reaches the page", async () => {
@@ -387,9 +407,10 @@ describe("ProfileRewindSpotlight", () => {
 			).toBeInTheDocument();
 			expect(screen.getByText("Genre Explorer")).toBeInTheDocument();
 			expect(navigate).not.toHaveBeenCalled();
-			expect(toast.pending).toHaveBeenCalledWith(
+			expect(toast.success).toHaveBeenCalledWith(
+				"Your 2026 Rewind is ready",
 				expect.objectContaining({
-					message: "Your 2026 Rewind is ready"
+					action: expect.objectContaining({ label: "View" })
 				})
 			);
 		});

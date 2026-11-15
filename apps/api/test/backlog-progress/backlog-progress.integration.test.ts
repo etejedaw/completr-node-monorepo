@@ -226,7 +226,7 @@ void describe("POST /users/me/backlog/:backlogId/progress", () => {
 		assert.equal(response.body.type, "BACKLOG_PROGRESS_BACKLOG_NOT_FOUND");
 	});
 
-	void it("forbids creating a note on the backlog of another user", async () => {
+	void it("answers 404 when creating a note on the backlog of another user", async () => {
 		const owner = await createUserWithSession();
 		const intruder = await createUserWithSession();
 		const backlog = await seedBacklog(owner);
@@ -235,8 +235,8 @@ void describe("POST /users/me/backlog/:backlogId/progress", () => {
 			note: "Not my game"
 		});
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "BACKLOG_PROGRESS_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "BACKLOG_PROGRESS_BACKLOG_NOT_FOUND");
 		assert.equal((await listNotes(owner, backlog.id)).length, 0);
 	});
 
@@ -345,7 +345,7 @@ void describe("GET /users/me/backlog/:backlogId/progress", () => {
 		assert.equal(response.body.type, "BACKLOG_PROGRESS_BACKLOG_NOT_FOUND");
 	});
 
-	void it("forbids reading the notes of another user's backlog", async () => {
+	void it("answers 404 when reading the notes of another user's backlog", async () => {
 		const owner = await createUserWithSession();
 		const intruder = await createUserWithSession();
 		const backlog = await seedBacklog(owner);
@@ -355,8 +355,8 @@ void describe("GET /users/me/backlog/:backlogId/progress", () => {
 
 		const response = await getNotes(intruder, backlog.id);
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "BACKLOG_PROGRESS_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "BACKLOG_PROGRESS_BACKLOG_NOT_FOUND");
 		assert.equal(response.body.data, undefined);
 	});
 
@@ -466,7 +466,7 @@ void describe("DELETE /users/me/backlog/:backlogId/progress/:noteId", () => {
 		assert.equal(badBacklog.status, 422);
 	});
 
-	void it("forbids deleting a note from another user's backlog and keeps it", async () => {
+	void it("answers 404 when deleting a note from another user's backlog and keeps it", async () => {
 		const owner = await createUserWithSession();
 		const intruder = await createUserWithSession();
 		const backlog = await seedBacklog(owner);
@@ -477,8 +477,8 @@ void describe("DELETE /users/me/backlog/:backlogId/progress/:noteId", () => {
 
 		const response = await deleteNote(intruder, backlog.id, noteId);
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "BACKLOG_PROGRESS_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "BACKLOG_PROGRESS_BACKLOG_NOT_FOUND");
 		assert.ok(await BacklogProgress.findByPk(noteId));
 		assert.equal((await listNotes(owner, backlog.id)).length, 1);
 	});

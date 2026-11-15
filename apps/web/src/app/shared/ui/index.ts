@@ -1,3 +1,9 @@
+export { UiActionMenu } from "./action-menu/ui-action-menu";
+export type {
+	UiActionMenuItem,
+	UiActionMenuLink,
+	UiActionMenuVariant
+} from "./action-menu/ui-action-menu.model";
 export type { UiAlertRole, UiAlertTone } from "./alert/ui-alert";
 export { UiAlert } from "./alert/ui-alert";
 export { UiAvatar } from "./avatar/ui-avatar";
@@ -10,9 +16,21 @@ export { UiButton } from "./button/ui-button";
 export type { UiFiltersButtonLabelVisibility } from "./button/ui-filters-button";
 export { UiFiltersButton } from "./button/ui-filters-button";
 export { UiCheckbox } from "./checkbox/ui-checkbox";
+export type {
+	UiChipGroupLayout,
+	UiChipGroupMode
+} from "./chip-group/ui-chip-group";
+export { UiChipGroup } from "./chip-group/ui-chip-group";
+export type { UiChipOption } from "./chip-group/ui-chip-group.model";
+export type {
+	UiFilterChipSize,
+	UiFilterChipTouchTarget
+} from "./chip-group/ui-filter-chip";
+export { UiFilterChip } from "./chip-group/ui-filter-chip";
 export { UiCountBadge } from "./count-badge/ui-count-badge";
 export type { UiDatePickerMode } from "./date-picker/ui-date-picker";
 export { UiDatePicker } from "./date-picker/ui-date-picker";
+export { UiDateRangePicker } from "./date-picker/ui-date-range-picker";
 export type { UiDialogSize, UiDialogTone } from "./dialog/ui-dialog";
 export { UiDialog } from "./dialog/ui-dialog";
 export { UiDrawer } from "./drawer/ui-drawer";
@@ -38,15 +56,31 @@ export { UiInput } from "./input/ui-input";
 export { UiEyebrow } from "./label/ui-eyebrow";
 export { UiFieldLabel } from "./label/ui-field-label";
 export { UiFieldOptional } from "./label/ui-field-optional";
+export { UiMultiOptionPicker } from "./option-picker/ui-multi-option-picker";
+export { UiOptionPicker } from "./option-picker/ui-option-picker";
+export type {
+	UiPickerAction,
+	UiPickerOption
+} from "./option-picker/ui-option-picker.model";
 export { UiPagination } from "./pagination/ui-pagination";
 export { UiPremiumBadge } from "./premium-badge/ui-premium-badge";
 export { UiProgress } from "./progress/ui-progress";
 export { UiSearchBar } from "./search-bar/ui-search-bar";
+export type { UiSelectableRowVariant } from "./selectable-row/ui-selectable-row";
+export { UiSelectableRow } from "./selectable-row/ui-selectable-row";
+export { UiSegmentedControl } from "./segmented-control/ui-segmented-control";
+export type {
+	UiSegmentedControlSemantics,
+	UiSegmentedOption
+} from "./segmented-control/ui-segmented-control.model";
 export { UiSeparator } from "./separator/ui-separator";
 export type { UiSkeletonVariant } from "./skeleton/ui-skeleton";
 export { UiSkeleton } from "./skeleton/ui-skeleton";
+export type { UiSwatchShape } from "./swatch-button/ui-swatch-button";
+export { UiSwatchButton } from "./swatch-button/ui-swatch-button";
 export { UiSwitch } from "./switch/ui-switch";
 export { UiTable } from "./table/ui-table";
 export { UiTab, UiTabList, UiTabPanel, UiTabs } from "./tabs/ui-tabs";
 export { UiTextarea } from "./textarea/ui-textarea";
+export { UiToastContainer } from "./toast-container/ui-toast-container";
 export type { UiTone } from "./tone/ui-tone";

@@ -1,0 +1,231 @@
+@if (rewind().ownerControls; as controls) {
+<section
+	class="flex flex-col gap-3 rounded-card border border-line bg-surface p-4 sm:p-5"
+	aria-labelledby="rewind-owner-panel-heading"
+>
+	<div class="flex min-w-0 flex-wrap items-center gap-2">
+		<h2 id="rewind-owner-panel-heading" uiEyebrow tone="brand" class="m-0">
+			{{ copy.eyebrow }}
+		</h2>
+		<ui-badge tone="neutral" icon="lock" [attr.title]="copy.onlyYouHint"
+			>{{ copy.onlyYou }}</ui-badge
+		>
+		<span class="sr-only">{{ copy.onlyYouHint }}</span>
+	</div>
+
+	<div class="flex flex-col gap-3 sm:flex-row sm:items-start">
+		<ul class="m-0 flex min-w-0 flex-1 list-none flex-wrap gap-2 p-0">
+			@let season = seasonChip();
+			<li [class]="statusChipClass">
+				@if (season.tone === "open") {
+				<span
+					aria-hidden="true"
+					class="size-2 shrink-0 rounded-full bg-success"
+				></span>
+				} @else {
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-fg-muted"
+					>lock</span
+				>
+				}
+				<strong class="font-semibold">{{ season.value }}</strong>
+				@if (season.detail) {
+				<span class="text-fg-secondary">&ngsp;{{ season.detail }}</span>
+				}
+			</li>
+			<li [class]="statusChipClass">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-fg-muted"
+					>translate</span
+				>
+				{{ copy.writtenIn[rewind().language] }}
+			</li>
+			@if (!aiChip()) {
+			<ng-container
+				[ngTemplateOutlet]="aiInputChips"
+				[ngTemplateOutletContext]="{ $implicit: controls }"
+			/>
+			}
+		</ul>
+
+		@if (controls.canRegenerate && !aiChip()) {
+		<button
+			uiButton
+			type="button"
+			variant="primary"
+			class="shrink-0 tap:min-h-[44px] max-sm:!w-full"
+			[attr.aria-busy]="generation.isPending()"
+			(click)="generation.open()"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>refresh</span
+			>
+			{{ generation.isPending() ? copy.regenerating : copy.regenerate }}
+		</button>
+		}
+	</div>
+
+	@if (notice(); as message) {
+	<p class="m-0 inline-flex items-start gap-1.5 text-sm text-fg-secondary">
+		<span aria-hidden="true" class="material-icons text-base text-fg-muted"
+			>info</span
+		>
+		{{ message }}
+	</p>
+	} @if (aiChip(); as ai) {
+	<div
+		role="group"
+		[attr.aria-label]="aiPremiumLabel()"
+		class="flex flex-col gap-3 rounded-card border border-premium/30 bg-premium/5 p-3 sm:p-4"
+		data-premium-zone
+	>
+		<div
+			class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
+		>
+			<div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+				@if (aiPremiumLabel(); as premiumLabel) {
+				<span class="inline-flex items-center pr-1">
+					<ui-premium-badge
+						interactive
+						[label]="premiumLabel"
+						[message]="copy.aiPerk"
+					/>
+				</span>
+				}
+				<ul class="m-0 flex min-w-0 list-none flex-wrap gap-2 p-0">
+					<li [class]="statusChipClass">
+						<strong class="font-bold tabular-nums"
+							>{{ ai.count }}</strong
+						>
+						{{ ai.label }}
+					</li>
+					@if (ai.grace) {
+					<li [class]="statusChipClass">
+						<span
+							aria-hidden="true"
+							class="material-icons text-base text-fg-muted"
+							>event_available</span
+						>
+						{{ ai.grace }}
+					</li>
+					}
+					<ng-container
+						[ngTemplateOutlet]="aiInputChips"
+						[ngTemplateOutletContext]="{ $implicit: controls }"
+					/>
+				</ul>
+			</div>
+			@if (controls.aiRecapState === "failed") {
+			<button
+				uiButton
+				type="button"
+				variant="secondary"
+				class="tap:min-h-[44px] max-sm:!w-full shrink-0"
+				[disabled]="aiRecapPending()"
+				(click)="addAiRecap()"
+			>
+				{{ copy.retry }}
+			</button>
+			} @else if (controls.aiRecapState === "available") {
+			<button
+				uiButton
+				type="button"
+				variant="secondary"
+				class="tap:min-h-[44px] max-sm:!w-full shrink-0"
+				[disabled]="aiRecapPending()"
+				(click)="addAiRecap()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>auto_awesome</span
+				>
+				{{ copy.addAiRecap }}
+			</button>
+			} @if (controls.canRegenerate) {
+			<button
+				uiButton
+				type="button"
+				variant="primary"
+				class="shrink-0 tap:min-h-[44px] max-sm:!w-full"
+				[attr.aria-busy]="generation.isPending()"
+				(click)="generation.open()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>refresh</span
+				>
+				{{ generation.isPending() ? copy.regenerating : copy.regenerate
+				}}
+			</button>
+			}
+		</div>
+		@if (controls.aiRecapState === "failed") {
+		<p class="m-0 inline-flex items-center gap-1.5 text-sm text-fg">
+			<span
+				aria-hidden="true"
+				class="material-icons text-base text-warning"
+				>error_outline</span
+			>
+			{{ copy.aiRecapFailed }}
+		</p>
+		} @else if (controls.aiRecapState === "available") {
+		<p class="m-0 text-sm text-fg-secondary text-pretty">
+			{{ copy.addAiRecapHint }}
+		</p>
+		}
+	</div>
+	} @if (aiRecapPending()) {
+	<p
+		role="status"
+		class="m-0 inline-flex items-center gap-2 text-sm text-fg-secondary"
+	>
+		<span
+			aria-hidden="true"
+			class="material-icons text-base text-premium motion-safe:animate-spin"
+			>autorenew</span
+		>
+		{{ copy.aiRecapPending }}
+	</p>
+	} @else if (aiRecapErrorMessage(); as message) {
+	<ui-alert [tone]="aiRecapError() === 'exists' ? 'info' : 'danger'"
+		>{{ message }}</ui-alert
+	>
+	}
+</section>
+@if (panelState() === "open-without-ai") {
+<app-gift-offer-card
+	feature="rewind.premium"
+	class="mt-4 block empty:hidden"
+	(claimed)="reloadRewind()"
+/>
+} } @if (generation.isOpen()) {
+<app-rewind-generate-dialog
+	[username]="rewind().user.username"
+	[year]="rewind().year"
+	[rewind]="generation.latestRewind()"
+	[premiumAccess]="
+			generation.latestRewind()?.premiumAccess ?? null
+		"
+	[pending]="generation.isPending()"
+	[error]="generation.error()"
+	(submitted)="generation.submit($event)"
+	(closed)="generation.close()"
+/>
+}
+<ng-template #aiInputChips let-controls>
+	<li [class]="statusChipClass">
+		<span aria-hidden="true" class="material-icons text-base text-fg-muted"
+			>{{ controls.includesPrivateRuns ? "visibility" : "public" }}</span
+		>
+		{{ controls.includesPrivateRuns ? copy.includesPrivateRuns :
+		copy.publicRunsOnly }}
+	</li>
+	@if (controls.includesNotes) {
+	<li [class]="statusChipClass">
+		<span aria-hidden="true" class="material-icons text-base text-fg-muted"
+			>edit_note</span
+		>
+		{{ copy.usesNotes }}
+	</li>
+	}
+</ng-template>

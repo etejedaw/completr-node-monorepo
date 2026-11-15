@@ -11,22 +11,22 @@ import { form, FormField, required } from "@angular/forms/signals";
 import { injectDialogRef } from "ng-primitives/dialog";
 
 import { type Game } from "../../../core/models";
-import { ChipGroup } from "../../../shared/components/chip-group/chip-group";
-import { type ChipOption } from "../../../shared/components/chip-group/chip-group.model";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
 import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import {
 	UiAlert,
 	UiButton,
+	UiChipGroup,
+	type UiChipOption,
 	UiDatePicker,
 	UiDialog,
 	UiFieldLabel,
 	UiFieldOptional,
 	UiInput,
+	UiOptionPicker,
+	type UiPickerOption,
 	UiTextarea
 } from "../../../shared/ui";
 import { injectGameSearch } from "../../games/game-search";
@@ -54,13 +54,13 @@ const EDITION_SUGGESTIONS = [
 	selector: "app-game-shelf-modal",
 	imports: [
 		UiAlert,
-		ChipGroup,
+		UiChipGroup,
 		DatePipe,
 		DialogDeleteAction,
 		FormField,
 		GamePoster,
 		GameSearchStep,
-		OptionPicker,
+		UiOptionPicker,
 		SelectedGameRow,
 		UiButton,
 		UiDatePicker,
@@ -91,7 +91,7 @@ export class GameShelfModal implements OnInit {
 		signal(true)
 	);
 	protected readonly returnedToSearch = signal(false);
-	protected readonly platformOptions = computed<PickerOption[]>(() =>
+	protected readonly platformOptions = computed<UiPickerOption[]>(() =>
 		(this.selectedGame()?.platforms ?? []).map(platform => ({
 			value: platform.id,
 			label: platform.name,
@@ -116,7 +116,7 @@ export class GameShelfModal implements OnInit {
 			: null;
 	});
 
-	switchToEdit() {
+	protected switchToEdit() {
 		this.viewMode.set("edit");
 	}
 
@@ -128,18 +128,18 @@ export class GameShelfModal implements OnInit {
 		notes: ""
 	});
 
-	readonly form = form(this.model, path => {
+	protected readonly form = form(this.model, path => {
 		required(path.gameId);
 		required(path.platformId);
 	});
 
-	protected readonly editionChipOptions: readonly ChipOption[] =
+	protected readonly editionChipOptions: readonly UiChipOption[] =
 		EDITION_SUGGESTIONS.map(suggestion => ({
 			value: suggestion,
 			label: suggestion
 		}));
 
-	applyEditionSuggestion(value: string | undefined) {
+	protected applyEditionSuggestion(value: string | undefined) {
 		if (value) this.model.update(m => ({ ...m, edition: value }));
 	}
 
@@ -168,7 +168,7 @@ export class GameShelfModal implements OnInit {
 		}
 	}
 
-	selectGame(game: Game) {
+	protected selectGame(game: Game) {
 		this.selectedGame.set(game);
 		const platforms = game.platforms ?? [];
 		this.model.update(m => ({
@@ -178,17 +178,17 @@ export class GameShelfModal implements OnInit {
 		}));
 	}
 
-	setPlatform(platformId: string) {
+	protected setPlatform(platformId: string) {
 		this.model.update(m => ({ ...m, platformId }));
 	}
 
-	clearGame() {
+	protected clearGame() {
 		this.selectedGame.set(null);
 		this.model.update(m => ({ ...m, gameId: "", platformId: "" }));
 		this.returnedToSearch.set(true);
 	}
 
-	onSubmit(event: Event) {
+	protected onSubmit(event: Event) {
 		event.preventDefault();
 		if (this.form().invalid()) return;
 		this.isLoading.set(true);
@@ -227,7 +227,7 @@ export class GameShelfModal implements OnInit {
 		}
 	}
 
-	onDelete() {
+	protected onDelete() {
 		this.isLoading.set(true);
 		this.shelfService.delete(this.entry!.id).subscribe({
 			next: () => this.dialogRef.close("saved"),
@@ -238,7 +238,7 @@ export class GameShelfModal implements OnInit {
 		});
 	}
 
-	onClose() {
+	protected onClose() {
 		this.dialogRef.close();
 	}
 }

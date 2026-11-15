@@ -15,3 +15,17 @@ export const VISIBILITY_SECTIONS = [
 	"rewind"
 ] as const;
 export type VisibilitySection = (typeof VISIBILITY_SECTIONS)[number];
+
+export const VISIBILITY_FIELDS = [
+	"profileVisibility",
+	"queueVisibility",
+	"wishlistVisibility",
+	"favoriteVisibility",
+	"feedVisibility",
+	"backlogVisibility",
+	"shelfVisibility",
+	"listVisibility",
+	"platinumVisibility",
+	"franchiseVisibility",
+	"rewindVisibility"
+] as const;

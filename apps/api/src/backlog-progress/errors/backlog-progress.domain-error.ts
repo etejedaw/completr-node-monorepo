@@ -11,15 +11,6 @@ export function backlogNotFound(context?: Record<string, unknown>) {
 	);
 }
 
-export function forbidden(context?: Record<string, unknown>) {
-	return new DomainError(
-		MODULE_NAME,
-		"BACKLOG_PROGRESS_FORBIDDEN",
-		"Not allowed to access this backlog's progress",
-		context
-	);
-}
-
 export function noteNotFound(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

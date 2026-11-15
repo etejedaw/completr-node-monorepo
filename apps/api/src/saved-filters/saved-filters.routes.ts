@@ -16,8 +16,8 @@ const router = Router({ mergeParams: true });
 router.post(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(RegisterSavedFilterSchema, "body")
 	],
 	savedFiltersController.postSavedFilter
@@ -26,8 +26,8 @@ router.post(
 router.get(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],
 	savedFiltersController.getMeSavedFilters
@@ -36,8 +36,8 @@ router.get(
 router.put(
 	"/reorder",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ReorderSavedFiltersSchema, "body")
 	],
 	savedFiltersController.putReorderSavedFilters
@@ -46,8 +46,8 @@ router.put(
 router.get(
 	"/:filterId/stats",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(SavedFilterIdParamsSchema, "params")
 	],
 	savedFiltersController.getSavedFilterStats
@@ -56,8 +56,8 @@ router.get(
 router.patch(
 	"/:filterId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(SavedFilterIdParamsSchema, "params"),
 		validateSchemaMiddleware(UpdateSavedFilterSchema, "body")
 	],
@@ -67,8 +67,8 @@ router.patch(
 router.delete(
 	"/:filterId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(SavedFilterIdParamsSchema, "params")
 	],
 	savedFiltersController.deleteSavedFilter

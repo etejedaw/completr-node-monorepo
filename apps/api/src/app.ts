@@ -1,3 +1,7 @@
+import { type Server } from "node:http";
+
+import { type Cron } from "croner";
+
 import { apiKeysConfig } from "./common/config/api-keys.config";
 import { environmentConfig } from "./common/config/environment.config";
 import { PinoLogger } from "./common/logger/pino.logger";
@@ -6,6 +10,7 @@ import { registerExternalDataSources } from "./games/services/external-data-sour
 import { HltbClient } from "./hltb/hltb.provider";
 import { IgdbClient } from "./igdb/igdb.provider";
 import * as jobsService from "./jobs/jobs.service";
+import { startRewindFreezeScheduler } from "./jobs/rewind-freeze.scheduler";
 import { MetacriticClient } from "./metacritic/metacritic.provider";
 import { createApp } from "./server";
 import { WikidataClient } from "./wikidata/wikidata.provider";
@@ -54,17 +59,29 @@ async function failJobsInterruptedByRestart() {
 	});
 }
 
+function stopOnTerminationSignals(scheduler: Cron, server: Server) {
+	const shutdown = (signal: string) => {
+		logger.info("shutdown", "stopping", { signal });
+		scheduler.stop();
+		server.close(() => process.exit(0));
+	};
+	process.once("SIGTERM", () => shutdown("SIGTERM"));
+	process.once("SIGINT", () => shutdown("SIGINT"));
+}
+
 async function bootstrap() {
 	await initDatabase();
 	await failJobsInterruptedByRestart();
 	warnIfRawgDisabled();
 	warnIfIgdbDisabled();
 	registerScrapingProviders();
+	const rewindFreezeScheduler = startRewindFreezeScheduler();
 
 	const port = environmentConfig.PORT;
-	createApp().listen(port, () =>
+	const server = createApp().listen(port, () =>
 		logger.info("startup", "listening", { port })
 	);
+	stopOnTerminationSignals(rewindFreezeScheduler, server);
 }
 
 void bootstrap();

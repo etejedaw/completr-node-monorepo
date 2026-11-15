@@ -18,8 +18,8 @@ const router = Router({ mergeParams: true });
 router.put(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ReplaceWishlistSchema, "body")
 	],
 	wishlistController.putWishlist
@@ -28,8 +28,8 @@ router.put(
 router.post(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(AddWishlistSchema, "body")
 	],
 	wishlistController.postWishlist
@@ -38,8 +38,8 @@ router.post(
 router.delete(
 	"/:gameId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(WishlistGameParamsSchema, "params")
 	],
 	wishlistController.deleteWishlistItem
@@ -48,8 +48,8 @@ router.delete(
 router.get(
 	"/game-ids",
 	[
-		rateLimiterMiddleware(userLimiter),
-		authMiddleware("user", "premium", "moderator")
+		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter)
 	],
 	wishlistController.getMeWishlistGameIds
 );
@@ -57,8 +57,8 @@ router.get(
 router.get(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],
 	wishlistController.getMeWishlist
@@ -67,8 +67,8 @@ router.get(
 router.get(
 	"/export",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ExportPlatformSearchQuerySchema, "query"),
 		exportFormatNegotiationMiddleware,
 		exportFormatAccessMiddleware

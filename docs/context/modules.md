@@ -184,7 +184,7 @@ Pero **solo para `include`, asociaciones y `order`**. Nunca para CRUD (`find*`, 
 4. Crear la migración Sequelize en `apps/api/migrations/`. Cada FK lleva en la migración el mismo `ON DELETE` que declara su asociación.
 5. Crear `<modulo>.service.ts` con funciones que lancen `ServiceError`.
 6. Crear los errores del módulo en `errors/` siguiendo [`errors.md`](./errors.md).
-7. Registrar el normalizer y el mapper del módulo en `apps/api/src/common/errors/global-error-domain.normalizer.ts` y `global-error-http.normalizer.ts`.
+7. Registrar el normalizer y el mapper del módulo en las dos tablas de `apps/api/src/common/errors/error-registry.ts`, con el `service` y el `module` como claves.
 8. Crear schemas Zod en `schemas/` y sus DTOs en `dtos/`.
 9. Crear `<modulo>.controller.ts` y `<modulo>.serializer.ts`.
 10. Crear `<modulo>.routes.ts` con middlewares.

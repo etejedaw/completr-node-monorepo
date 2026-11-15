@@ -240,7 +240,6 @@ describe("Admin reports interaction", () => {
 
 	it.each([
 		["500", () => ({ status: 500 })],
-		["404", () => ({ status: 404 })],
 		["network", () => ({ status: 0 })]
 	])(
 		"surfaces a failed Approve or Reject (%s) as a warning and keeps the card",

@@ -47,7 +47,6 @@ const languageColors: Record<string, string> = {
 };
 const otherColor = "#6e7681";
 
-// Snapshot used when the GitHub API is unreachable or rate-limited at build time
 const fallbackLicense = "AGPL-3.0";
 const fallbackLanguageBytes: GitHubLanguages = {
 	TypeScript: 1148427,
@@ -74,10 +73,10 @@ const sortedLanguages = Object.entries(bytes)
 	.map(([name, size]) => ({ name, percent: (size / totalBytes) * 100 }))
 	.sort((a, b) => b.percent - a.percent);
 
-// Keep the bar legible: show the top four and fold the rest into "Otros"
-const topLanguages = sortedLanguages.slice(0, 4);
+const TOP_LANGUAGES_SHOWN = 4;
+const topLanguages = sortedLanguages.slice(0, TOP_LANGUAGES_SHOWN);
 const otherPercent = sortedLanguages
-	.slice(4)
+	.slice(TOP_LANGUAGES_SHOWN)
 	.reduce((sum, language) => sum + language.percent, 0);
 const languages = [
 	...topLanguages.map(language => ({

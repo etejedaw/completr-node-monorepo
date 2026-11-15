@@ -182,4 +182,54 @@ describe("Login interaction", () => {
 			screen.getByRole("button", { name: "Hide password" })
 		).toBeInTheDocument();
 	});
+	it("sends one request when Enter is pressed twice before the answer", async () => {
+		const user = userEvent.setup();
+		await renderLogin();
+		await user.type(screen.getByLabelText("Email"), "ada@example.com");
+		await user.type(
+			screen.getByLabelText("Password"),
+			"secret-pass{Enter}"
+		);
+		await user.type(screen.getByLabelText("Password"), "{Enter}{Enter}");
+
+		const requests = httpTesting.match(`${api}/auth/login`);
+		expect(requests).toHaveLength(1);
+		requests[0].flush({}, { status: 500, statusText: "Server Error" });
+		expect(await screen.findByRole("alert")).toHaveTextContent(
+			"Login failed. Please try again."
+		);
+	});
+
+	it("shows no inline error on a rate limit and lets the user retry", async () => {
+		const user = userEvent.setup();
+		await renderLogin();
+		await user.type(screen.getByLabelText("Email"), "ada@example.com");
+		await user.type(screen.getByLabelText("Password"), "secret-pass");
+		await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+		httpTesting
+			.expectOne(`${api}/auth/login`)
+			.flush({}, { status: 429, statusText: "Too Many Requests" });
+
+		await screen.findByRole("button", { name: /sign in/i });
+		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+		expect(screen.getByRole("button", { name: /sign in/i })).toBeEnabled();
+	});
+
+	it("explains a network failure without leaving the form stuck", async () => {
+		const user = userEvent.setup();
+		await renderLogin();
+		await user.type(screen.getByLabelText("Email"), "ada@example.com");
+		await user.type(screen.getByLabelText("Password"), "secret-pass");
+		await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+		httpTesting
+			.expectOne(`${api}/auth/login`)
+			.error(new ProgressEvent("error"), { status: 0 });
+
+		expect(await screen.findByRole("alert")).toHaveTextContent(
+			"Login failed. Please try again."
+		);
+		expect(screen.getByRole("button", { name: /sign in/i })).toBeEnabled();
+	});
 });

@@ -4,10 +4,12 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import {
 	catchError,
 	concatMap,
@@ -22,6 +24,7 @@ import { type QueueEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
+import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
@@ -33,6 +36,7 @@ import {
 	UiPremiumBadge
 } from "../../../shared/ui";
 import { arrangeIntoFullOrder } from "../../../shared/utils/full-order";
+import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { PendingRemovals } from "../../../shared/utils/pending-removals";
 import { BacklogService } from "../../backlog/backlog";
 import { FavoritesService } from "../../favorites/favorites";
@@ -43,15 +47,6 @@ import { QueueBrowser } from "../queue-browser/queue-browser";
 import { type QueueEntryMove } from "../queue-browser/queue-browser.model";
 import { type QueueSort, type QueueStatusChange } from "../queue-order";
 import { type QueueWrite } from "./queue-view.model";
-
-const STATUSES_REPORTED_BY_INTERCEPTOR = new Set([402, 409, 422, 429]);
-
-function isAlreadyReported(error: unknown) {
-	return (
-		error instanceof HttpErrorResponse &&
-		STATUSES_REPORTED_BY_INTERCEPTOR.has(error.status)
-	);
-}
 
 @Component({
 	selector: "app-queue-view",
@@ -70,10 +65,12 @@ function isAlreadyReported(error: unknown) {
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class QueueView implements OnInit {
+	private readonly destroyRef = inject(DestroyRef);
 	private readonly queueService = inject(QueueService);
 	private readonly backlogService = inject(BacklogService);
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly toast = inject(ToastService);
+	private readonly favoriteToggle = injectToggleAction();
 	private readonly dialogs = inject(DialogService);
 	private readonly pendingRemovals = new PendingRemovals<QueueEntry>(
 		entry => entry.backlog.id
@@ -104,7 +101,7 @@ export class QueueView implements OnInit {
 		return `${y}-${m}-${d}`;
 	}
 
-	onOffsetChange(offset: number) {
+	protected onOffsetChange(offset: number) {
 		this.offset.set(offset);
 		this.loadQueue();
 	}
@@ -116,7 +113,7 @@ export class QueueView implements OnInit {
 		}))
 	);
 
-	saveCurrentOrder(orderedEntries: QueueEntry[]) {
+	protected saveCurrentOrder(orderedEntries: QueueEntry[]) {
 		if (this.sortBy() === "manual" || this.savingOrder()) return;
 		this.savingOrder.set(true);
 		this.entries.set(orderedEntries);
@@ -141,7 +138,11 @@ export class QueueView implements OnInit {
 			.pipe(concatMap(write => this.runWrite(write)))
 			.subscribe();
 		this.searchSubject
-			.pipe(debounceTime(300), distinctUntilChanged())
+			.pipe(
+				debounceTime(300),
+				distinctUntilChanged(),
+				takeUntilDestroyed(this.destroyRef)
+			)
 			.subscribe(() => {
 				this.offset.set(0);
 				this.loadQueue();
@@ -150,11 +151,15 @@ export class QueueView implements OnInit {
 		this.loadQueue();
 	}
 
-	toggleFavorite(gameId: string) {
-		this.favoritesService.toggle(gameId).subscribe();
+	protected toggleFavorite(gameId: string) {
+		this.favoriteToggle.run({
+			key: gameId,
+			request: this.favoritesService.toggle(gameId),
+			failureMessage: "Couldn't update your favorites. Try again."
+		});
 	}
 
-	onSearch(query: string) {
+	protected onSearch(query: string) {
 		this.searchQuery.set(query);
 		if (!query.trim()) {
 			this.offset.set(0);
@@ -164,28 +169,31 @@ export class QueueView implements OnInit {
 		this.searchSubject.next(query);
 	}
 
-	openAddModal() {
+	protected openAddModal() {
 		this.dialogs.open<QueueAddModalData>(QueueAddModal, {
 			data: { onAdded: () => this.loadQueue() }
 		});
 	}
 
-	requestStatusChange(entry: QueueEntry, status: QueueStatusChange) {
+	protected requestStatusChange(
+		entry: QueueEntry,
+		status: QueueStatusChange
+	) {
 		if (status === "playing") {
 			this.pendingPlayStartedAt.set(this.today());
 			this.pendingPlayEntry.set(entry);
 		}
 	}
 
-	onPendingPlayStartedAtChange(value: string) {
+	protected onPendingPlayStartedAtChange(value: string) {
 		this.pendingPlayStartedAt.set(value);
 	}
 
-	cancelPlayConfirmation() {
+	protected cancelPlayConfirmation() {
 		this.pendingPlayEntry.set(null);
 	}
 
-	confirmPlay() {
+	protected confirmPlay() {
 		const entry = this.pendingPlayEntry();
 		if (!entry) return;
 		const startedAt = this.pendingPlayStartedAt() || null;
@@ -228,7 +236,7 @@ export class QueueView implements OnInit {
 		});
 	}
 
-	remove(entry: QueueEntry) {
+	protected remove(entry: QueueEntry) {
 		this.entries.set(this.pendingRemovals.hide(entry, this.entries()));
 		this.total.set(Math.max(0, this.total() - 1));
 		this.toast.pending({
@@ -249,21 +257,21 @@ export class QueueView implements OnInit {
 		});
 	}
 
-	moveUp(index: number) {
+	protected moveUp(index: number) {
 		if (index === 0) return;
 		const list = [...this.entries()];
 		[list[index - 1], list[index]] = [list[index], list[index - 1]];
 		this.reorder(list, list[index - 1]);
 	}
 
-	moveDown(index: number) {
+	protected moveDown(index: number) {
 		if (index >= this.entries().length - 1) return;
 		const list = [...this.entries()];
 		[list[index], list[index + 1]] = [list[index + 1], list[index]];
 		this.reorder(list, list[index + 1]);
 	}
 
-	moveToTop(entry: QueueEntry) {
+	protected moveToTop(entry: QueueEntry) {
 		if (this.movingToTop()) return;
 		this.movingToTop.set(true);
 		this.enqueueWrite({
@@ -276,7 +284,7 @@ export class QueueView implements OnInit {
 		});
 	}
 
-	moveEntry({ fromIndex, toIndex }: QueueEntryMove) {
+	protected moveEntry({ fromIndex, toIndex }: QueueEntryMove) {
 		const list = [...this.entries()];
 		moveItemInArray(list, fromIndex, toIndex);
 		this.reorder(list, list[toIndex]);
@@ -334,7 +342,10 @@ export class QueueView implements OnInit {
 			catchError((error: unknown) => {
 				this.pendingWrites--;
 				write.failed?.();
-				if (!isAlreadyReported(error))
+				if (!(
+					error instanceof HttpErrorResponse &&
+					isToastedByErrorInterceptor(error.status)
+				))
 					this.toast.error("Couldn't update your queue.");
 				if (this.pendingWrites === 0) this.loadQueue();
 				return EMPTY;

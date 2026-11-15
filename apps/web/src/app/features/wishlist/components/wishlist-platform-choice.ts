@@ -6,24 +6,27 @@ import {
 	model
 } from "@angular/core";
 
-import { ChipGroup } from "../../../shared/components/chip-group/chip-group";
-import { type ChipOption } from "../../../shared/components/chip-group/chip-group.model";
-import { UiFieldLabel, UiFieldOptional } from "../../../shared/ui";
+import {
+	UiChipGroup,
+	type UiChipOption,
+	UiFieldLabel,
+	UiFieldOptional
+} from "../../../shared/ui";
 import { type WishlistPlatformOption } from "./wishlist-platform-choice.model";
 
 @Component({
 	selector: "app-wishlist-platform-choice",
-	imports: [ChipGroup, UiFieldLabel, UiFieldOptional],
+	imports: [UiChipGroup, UiFieldLabel, UiFieldOptional],
 	template: `
 		@if (platforms().length === 0) {
-			<p class="m-0 text-[0.8125rem] text-fg-muted">
+			<p class="m-0 text-compact text-fg-muted">
 				No platforms available for this game. You can add it without a
 				platform.
 			</p>
 		} @else {
 			<fieldset class="m-0 p-0 border-0">
 				<legend uiFieldLabel>Platform <ui-field-optional /></legend>
-				<app-chip-group
+				<ui-chip-group
 					mode="single"
 					label="Platform (optional)"
 					[allowEmpty]="false"
@@ -40,7 +43,7 @@ export class WishlistPlatformChoice {
 	readonly platforms = input.required<readonly WishlistPlatformOption[]>();
 	readonly selected = model<string | null>(null);
 
-	protected readonly chipOptions = computed<ChipOption[]>(() =>
+	protected readonly chipOptions = computed<UiChipOption[]>(() =>
 		this.platforms().map(platform => ({
 			value: platform.id,
 			label: platform.abbreviation,

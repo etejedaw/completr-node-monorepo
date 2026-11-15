@@ -19,5 +19,13 @@ export function premiumAccessServiceToDomainMapper(
 		return premiumAccessDomainError.premiumPromotionCodeConflict(context);
 	if (error.code === "PREMIUM_GRANT_NOT_ACTIVE")
 		return premiumAccessDomainError.premiumGrantNotActive(context);
+	if (error.code === "PREMIUM_GRANT_NOT_FOUND")
+		return premiumAccessDomainError.premiumGrantNotFound(context);
+	if (error.code === "PREMIUM_GRANT_INVALID_EXPIRATION")
+		return premiumAccessDomainError.premiumGrantInvalidExpiration(context);
+	if (error.code === "GIFT_OFFER_NOT_FOUND")
+		return premiumAccessDomainError.giftOfferNotFound(context);
+	if (error.code === "GIFT_OFFER_NOT_ELIGIBLE")
+		return premiumAccessDomainError.giftOfferNotEligible(context);
 	return premiumAccessDomainError.premiumAccessInternalError(context);
 }

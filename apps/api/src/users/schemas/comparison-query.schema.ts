@@ -1,6 +1,8 @@
 import z from "zod";
 
-export const COMPARISON_DIMENSIONS = [
+import { PaginationQuerySchema } from "../../common/schemas/pagination-query.schema";
+
+const COMPARISON_DIMENSIONS = [
 	"completed",
 	"playing",
 	"not_started",
@@ -9,12 +11,11 @@ export const COMPARISON_DIMENSIONS = [
 	"wishlist"
 ] as const;
 
-export const ComparisonQuerySchema = z
-	.object({
+export const ComparisonQuerySchema = PaginationQuerySchema.unwrap()
+	.extend({
 		by: z.enum(COMPARISON_DIMENSIONS).default("completed"),
 		includeOnlyTarget: z.stringbool().default(false),
 		includeOnlyViewer: z.stringbool().default(false),
-		limit: z.coerce.number().int().min(1).max(100).optional(),
 		offset: z.coerce.number().int().min(0).default(0)
 	})
 	.strict()

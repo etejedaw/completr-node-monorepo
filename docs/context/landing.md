@@ -7,7 +7,8 @@ Estándares de una landing estática con Astro servida por nginx: estructura, co
 ```
 landing/
 ├── astro.config.mjs        # site, sitemap y Tailwind
-├── nginx.conf              # Headers de seguridad, CSP, caché, CORS de los .json públicos
+├── nginx.conf              # Caché, CORS de los .json públicos e include de los headers
+├── security-headers.conf   # Headers de seguridad y CSP, incluidos en cada location
 ├── public/                 # Estáticos servidos tal cual (fuentes, og.png, .well-known)
 └── src/
     ├── assets/             # Imágenes que optimiza astro:assets
@@ -45,9 +46,16 @@ Todas se leen en el build: el sitio es estático y no hay runtime de Node en pro
 - Las que llegan al cliente llevan el prefijo `PUBLIC_` y entran a la imagen como `ARG` del `Dockerfile`.
 - Los tokens de servicios externos (GitHub, por ejemplo) son opcionales: sin ellos la llamada va sin autenticar, con límite de rate. Si la llamada falla, la sección usa valores por defecto y el build no se rompe.
 
-## CSP
+## Headers de seguridad y CSP
 
-`nginx.conf` define una Content-Security-Policy estricta. Si agregas un script, una fuente o un `fetch` a otro dominio, suma ese dominio a la directiva correspondiente o el navegador lo bloquea.
+`security-headers.conf` define la Content-Security-Policy estricta y el resto de los headers de seguridad. Si agregas un script, una fuente o un `fetch` a otro dominio, suma ese dominio a la directiva correspondiente o el navegador lo bloquea.
+
+- `nginx.conf` incluye ese archivo en el `server` y otra vez en cada `location` que declara su propio `add_header`. En nginx, un `add_header` dentro de un `location` anula todos los del `server`: sin el `include`, esos recursos salen sin CSP, HSTS ni `nosniff`.
+- `Cache-Control: immutable` solo va en recursos con hash en el nombre (`/_astro/`, `/fonts/`). Un archivo sin hash (`favicon.svg`, `og.png`) marcado `immutable` no se actualiza en los navegadores que ya lo tienen.
+
+## Accesibilidad
+
+El layout empieza con un enlace "Saltar al contenido" que apunta al `main` de cada página (`id="main-content"`), visible al recibir el foco.
 
 ## Dependencias
 

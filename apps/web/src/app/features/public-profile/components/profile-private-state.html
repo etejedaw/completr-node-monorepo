@@ -1,0 +1,84 @@
+<section
+	class="bleed bleed-top relative isolate overflow-hidden"
+	aria-label="Private profile"
+>
+	<div
+		aria-hidden="true"
+		class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_0%,var(--color-brand-glow),transparent_60%)]"
+	></div>
+	<div
+		class="bleed-inner pt-[calc(var(--topbar-height)+5rem)] pb-16 flex flex-col items-center text-center"
+	>
+		<div class="relative mb-5">
+			<ui-avatar
+				[src]="user().avatarUrl"
+				[name]="user().username || username()"
+				[ring]="avatarRing()"
+				class="w-28 h-28 text-4xl ring-4 ring-canvas shadow-popover"
+			/>
+			<span
+				class="absolute -bottom-1 -right-1 flex items-center justify-center w-9 h-9 rounded-full bg-surface border border-line shadow-card"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-lg text-fg-muted"
+					>lock</span
+				>
+			</span>
+		</div>
+		<h1 class="m-0 font-display text-3xl font-bold tracking-tight">
+			{{ displayName() }}
+		</h1>
+		<p class="m-0 mt-1 text-sm text-fg-muted">{{ handle() }}</p>
+		<p class="m-0 mt-4 flex items-center gap-4 text-sm text-fg-muted">
+			<span
+				><strong class="text-fg tabular-nums"
+					>{{ profile().followerCount }}</strong
+				>
+				followers</span
+			>
+			<span
+				><strong class="text-fg tabular-nums"
+					>{{ profile().followingCount }}</strong
+				>
+				following</span
+			>
+		</p>
+		<p class="m-0 mt-6 mb-6 max-w-sm text-sm text-fg-secondary">
+			This profile is private. Follow them to see their games, lists and
+			activity.
+		</p>
+		@if (!isLoggedIn()) {
+		<a uiButton variant="primary" routerLink="/login">Sign in to follow</a>
+		} @else if (!isSelf() && canFollow()) {
+		<button
+			uiButton
+			type="button"
+			[variant]="isFollowEngaged() ? 'secondary' : 'primary'"
+			[disabled]="togglingFollow()"
+			(click)="followToggled.emit()"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>{{ followIcon() }}</span
+			>
+			{{ followLabel() }}
+		</button>
+		} @if (canManagePremium()) {
+		<button
+			uiButton
+			variant="secondary"
+			type="button"
+			class="mt-3"
+			title="Admin: manage premium grants"
+			(click)="premiumAccessRequested.emit()"
+		>
+			<span
+				aria-hidden="true"
+				class="material-icons text-base text-premium"
+				>workspace_premium</span
+			>
+			Premium access
+		</button>
+		}
+	</div>
+</section>

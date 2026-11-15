@@ -1,11 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import {
-	buildRewindRecapPatterns,
-	daysToFinish,
-	ratingVsCritics
-} from "../../src/rewind-recap/utils/build-rewind-recap-patterns.util";
+import { buildRewindRecapPatterns } from "../../src/rewind-recap/utils/build-rewind-recap-patterns.util";
+import { daysToFinish } from "../../src/rewind-recap/utils/days-to-finish.util";
+import { ratingVsCritics } from "../../src/rewind-recap/utils/rating-vs-critics.util";
 import { buildRun, finishedRun } from "../rewind/rewind-run.builder";
 import { franchiseOf, genreOf } from "./rewind-recap.fixtures";
 

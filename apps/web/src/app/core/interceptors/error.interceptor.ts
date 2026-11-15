@@ -27,6 +27,7 @@ import { AuthService } from "../services/auth";
 import { ToastService } from "../services/toast";
 import { adminErrorMessage } from "../utils/admin-error-message";
 import { planLimitMessage } from "../utils/plan-limit-message";
+import { problemType } from "../utils/problem-details";
 
 let isRefreshing = false;
 const PLAN_LIMIT_TOAST_TITLE = "Free plan limit";
@@ -59,7 +60,7 @@ export function errorInterceptor(
 					}
 
 					if (error.status === 402) {
-						const message = planLimitMessage(error.error?.type);
+						const message = planLimitMessage(problemType(error));
 						if (message)
 							toast.premium(
 								PLAN_LIMIT_TOAST_TITLE,
@@ -111,24 +112,36 @@ export function errorInterceptor(
 
 					isRefreshing = true;
 					refreshSubject.next(null);
-
-					return auth.refresh().pipe(
-						switchMap(() => {
-							const newToken = auth.token();
-							refreshSubject.next(newToken);
-							const retryReq = req.clone({
+					const failedToken = auth.token();
+					const retryWithToken = (token: string | null) => {
+						refreshSubject.next(token);
+						return next(
+							req.clone({
 								headers: req.headers.set(
 									"Authorization",
-									`Bearer ${newToken}`
+									`Bearer ${token}`
 								)
-							});
-							return next(retryReq);
-						}),
+							})
+						);
+					};
+
+					return auth.refresh().pipe(
+						map(() => auth.token()),
 						catchError(refreshError => {
+							const rotatedToken = auth.token();
+							if (
+								isRejectedRefresh(refreshError) &&
+								rotatedToken &&
+								rotatedToken !== failedToken
+							) {
+								return of(rotatedToken);
+							}
 							refreshSubject.next(REFRESH_FAILED);
-							auth.clearSession();
+							if (!keepsSessionOnRefreshFailure(refreshError))
+								auth.clearSession();
 							return throwError(() => refreshError);
 						}),
+						switchMap(retryWithToken),
 						finalize(() => {
 							isRefreshing = false;
 						})
@@ -165,6 +178,20 @@ function parseJsonOrText(text: string): unknown {
 	} catch {
 		return text;
 	}
+}
+
+function isRejectedRefresh(error: unknown): boolean {
+	return (
+		error instanceof HttpErrorResponse &&
+		(error.status === 401 || error.status === 403)
+	);
+}
+
+function keepsSessionOnRefreshFailure(error: unknown): boolean {
+	return (
+		error instanceof HttpErrorResponse &&
+		(error.status === 0 || error.status === 429 || error.status >= 500)
+	);
 }
 
 function isAuthRequest(url: string): boolean {

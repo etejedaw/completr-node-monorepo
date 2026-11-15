@@ -86,6 +86,28 @@ void describe("Rewind share endpoints with the real Rewind", () => {
 		});
 	});
 
+	void it("renders the list of finished games of a public Rewind for a guest", async () => {
+		const response = await api()
+			.get(`/share/rewind/${publicOwner.username}/2025/story-list.png`)
+			.buffer(true)
+			.expect(200);
+
+		assert.equal(response.headers["content-type"], "image/png");
+		assert.equal(response.headers["cache-control"], "public, max-age=3600");
+		assert.deepEqual(pngDimensions(response.body as Buffer), {
+			width: 1080,
+			height: 1920
+		});
+	});
+
+	void it("answers 403 USER_PRIVATE for the list of a private Rewind", async () => {
+		const response = await api()
+			.get(`/share/rewind/${privateOwner.username}/2025/story-list.png`)
+			.expect(403);
+
+		assert.equal(response.body.type, "USER_PRIVATE");
+	});
+
 	void it("answers 404 REWIND_NOT_FOUND for a year without games", async () => {
 		const response = await api()
 			.get(`/share/rewind/${publicOwner.username}/2024/og.png`)
@@ -125,7 +147,7 @@ void describe("Rewind share endpoints with the real Rewind", () => {
 	});
 
 	void it("answers 404 to every share endpoint of a year that is not generated", async () => {
-		for (const path of ["story.png", "og.png"]) {
+		for (const path of ["story.png", "story-list.png", "og.png"]) {
 			const response = await api().get(
 				`/share/rewind/${pendingOwner.username}/2025/${path}`
 			);

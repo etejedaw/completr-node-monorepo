@@ -13,9 +13,6 @@ export function gameShelfServiceToDomainMapper(
 	if (error.code === "GAME_SHELF_NOT_FOUND")
 		return gameShelfDomainError.gameShelfNotFound(context);
 
-	if (error.code === "GAME_SHELF_FORBIDDEN")
-		return gameShelfDomainError.gameShelfForbidden(context);
-
 	if (error.code === "GAME_SHELF_UNIQUE_CONSTRAINT")
 		return gameShelfDomainError.gameShelfUniqueConstraint(context);
 

@@ -7,21 +7,17 @@ import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.
 import { UserIdParamSchema } from "../users/schemas/user-id-params.schema";
 import * as premiumAccessAdminController from "./premium-access-admin.controller";
 import * as premiumPromotionsAdminController from "./premium-promotions-admin.controller";
-import {
-	CreatePremiumGrantSchema,
-	PremiumGrantParamsSchema,
-	UpdatePremiumGrantSchema
-} from "./schemas/premium-grant.schemas";
-import {
-	CreatePremiumPromotionSchema,
-	PremiumPromotionParamsSchema,
-	UpdatePremiumPromotionSchema
-} from "./schemas/premium-promotion.schemas";
+import { CreatePremiumGrantSchema } from "./schemas/create-premium-grant.schema";
+import { CreatePremiumPromotionSchema } from "./schemas/create-premium-promotion.schema";
+import { PremiumGrantParamsSchema } from "./schemas/premium-grant-params.schema";
+import { PremiumPromotionParamsSchema } from "./schemas/premium-promotion-params.schema";
+import { UpdatePremiumGrantSchema } from "./schemas/update-premium-grant.schema";
+import { UpdatePremiumPromotionSchema } from "./schemas/update-premium-promotion.schema";
 
 const router = Router();
 const adminMiddleware = [
-	rateLimiterMiddleware(userLimiter),
-	hiddenRouteMiddleware()
+	hiddenRouteMiddleware(),
+	rateLimiterMiddleware(userLimiter)
 ];
 
 router.get(

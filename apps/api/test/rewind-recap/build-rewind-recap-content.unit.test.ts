@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
-	buildRewindRecapContent,
-	condenseRecapNote,
 	REWIND_RECAP_GAME_COLUMNS,
 	REWIND_RECAP_MAX_GAME_ROWS,
 	REWIND_RECAP_NOTE_MAX_LENGTH
-} from "../../src/rewind-recap/utils/build-rewind-recap-content.util";
+} from "../../src/rewind-recap/rewind-recap.constants";
+import { buildRewindRecapContent } from "../../src/rewind-recap/utils/build-rewind-recap-content.util";
+import { condenseRecapNote } from "../../src/rewind-recap/utils/condense-recap-note.util";
 import { buildRun, finishedRun } from "../rewind/rewind-run.builder";
 import {
 	buildRecapInput,
@@ -328,7 +328,8 @@ void describe("buildRewindRecapContent", () => {
 				topPlatforms: [
 					{ name: "PlayStation 5", abbreviation: "PS5", count: 1 }
 				],
-				longestStreak: { months: 1, fromMonth: 3, toMonth: 3 }
+				longestStreak: { months: 1, fromMonth: 3, toMonth: 3 },
+				classic: null
 			}
 		});
 

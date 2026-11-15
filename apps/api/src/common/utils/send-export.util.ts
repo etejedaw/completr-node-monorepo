@@ -3,13 +3,10 @@ import { type Response } from "express";
 import { type ExportPayload } from "../interfaces/export-payload.interface";
 import { type ExportFormat } from "../types/export-format.types";
 import { serializeCsv } from "./serialize-csv.util";
-
-function todayInUtc() {
-	return new Date().toISOString().slice(0, 10);
-}
+import { toUtcDay } from "./to-utc-day.util";
 
 export function buildExportFilename(resource: string, format: ExportFormat) {
-	return `completr-${resource}-${todayInUtc()}.${format}`;
+	return `completr-${resource}-${toUtcDay(new Date())}.${format}`;
 }
 
 export function sendExport<Column extends string>(

@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
 import { sequelize } from "../database/sequelize.database";
+import { DEFAULT_THEME } from "./constants/theme.constants";
 import {
 	VISIBILITY_LEVELS,
 	type VisibilityLevel
@@ -15,7 +16,7 @@ class User extends Model {
 	declare role: UserRole;
 	declare name: string;
 	declare bio?: string;
-	declare avatarUrl?: string;
+	declare avatarUrl?: string | null;
 	declare profileVisibility: VisibilityLevel;
 	declare queueVisibility: VisibilityLevel;
 	declare wishlistVisibility: VisibilityLevel;
@@ -88,7 +89,7 @@ User.init(
 		},
 		theme: {
 			type: DataTypes.STRING(50),
-			defaultValue: "refined-dark"
+			defaultValue: DEFAULT_THEME
 		},
 		isActive: {
 			type: DataTypes.BOOLEAN,

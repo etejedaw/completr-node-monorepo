@@ -1,4 +1,4 @@
-import { NgClass, NgTemplateOutlet } from "@angular/common";
+import { NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -8,6 +8,7 @@ import {
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import {
 	NavigationCancel,
 	NavigationEnd,
@@ -18,16 +19,17 @@ import {
 	RouterLinkActive,
 	RouterOutlet
 } from "@angular/router";
-import { filter } from "rxjs";
+import { retry, throwError, timer } from "rxjs";
 
 import { AuthService } from "../core/services/auth";
 import { OnboardingService } from "../core/services/onboarding";
+import { StorageService } from "../core/services/storage";
+import { ToastService } from "../core/services/toast";
 import { avatarRing } from "../core/utils/premium";
 import { elevatedRoleBadge } from "../core/utils/role-badge";
 import { AppLogo } from "../shared/components/app-logo/app-logo";
 import { AttributionFooter } from "../shared/components/attribution-footer/attribution-footer";
 import { OnboardingTour } from "../shared/components/onboarding-tour/onboarding-tour";
-import { ToastContainer } from "../shared/components/toast-container/toast-container";
 import {
 	UiAvatar,
 	UiBadge,
@@ -35,13 +37,16 @@ import {
 	UiButton,
 	UiEyebrow,
 	UiIconButton,
-	UiSeparator
+	UiSeparator,
+	UiToastContainer
 } from "../shared/ui";
 import { NAV_ACTIVE_CLASSES, visibleNavSections } from "./nav-sections";
 import { type NavItem } from "./nav-sections.model";
 import { SearchPalette } from "./search-palette/search-palette";
 
 const SIDEBAR_COLLAPSED_KEY = "completr.sidebar.collapsed";
+const USER_LOAD_RETRIES = 2;
+const USER_LOAD_RETRY_DELAY_MS = 1500;
 const TABLET_QUERY = "(min-width: 768px) and (max-width: 1023px)";
 
 const PRIMARY_TABS: readonly NavItem[] = [
@@ -71,14 +76,6 @@ const PRIMARY_TABS: readonly NavItem[] = [
 	}
 ];
 
-function readCollapsedPreference(): boolean {
-	try {
-		return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
-	} catch {
-		return false;
-	}
-}
-
 function matchesRoute(url: string, route: string): boolean {
 	return url === route || url.startsWith(route + "/");
 }
@@ -89,7 +86,6 @@ function matchesRoute(url: string, route: string): boolean {
 		RouterOutlet,
 		RouterLink,
 		RouterLinkActive,
-		NgClass,
 		NgTemplateOutlet,
 		UiSeparator,
 		UiAvatar,
@@ -100,7 +96,7 @@ function matchesRoute(url: string, route: string): boolean {
 		UiIconButton,
 		AppLogo,
 		SearchPalette,
-		ToastContainer,
+		UiToastContainer,
 		OnboardingTour,
 		AttributionFooter
 	],
@@ -112,11 +108,15 @@ export class Layout implements OnInit {
 	private readonly auth = inject(AuthService);
 	private readonly router = inject(Router);
 	private readonly destroyRef = inject(DestroyRef);
+	private readonly storage = inject(StorageService);
+	private readonly toast = inject(ToastService);
 	protected readonly onboarding = inject(OnboardingService);
 
 	protected readonly user = this.auth.user;
 	protected readonly isPremium = this.auth.isPremium;
-	protected readonly collapsed = signal(readCollapsedPreference());
+	protected readonly collapsed = signal(
+		this.storage.get(SIDEBAR_COLLAPSED_KEY) === "1"
+	);
 	protected readonly tablet = signal(false);
 	protected readonly railMode = computed(
 		() => this.collapsed() || this.tablet()
@@ -158,14 +158,14 @@ export class Layout implements OnInit {
 			.filter(section => section.items.length > 0)
 	);
 
-	isNavTargetActive(target: string): boolean {
+	protected isNavTargetActive(target: string): boolean {
 		const pending = this.pendingUrl();
 		if (!pending) return false;
 		if (pending === target) return true;
 		return pending.startsWith(target + "/");
 	}
 
-	pendingNavClasses(target: string): string {
+	protected pendingNavClasses(target: string): string {
 		return this.isNavTargetActive(target) ? NAV_ACTIVE_CLASSES : "";
 	}
 
@@ -180,38 +180,63 @@ export class Layout implements OnInit {
 	);
 
 	ngOnInit() {
-		if (!this.user()) {
-			this.auth.loadUser().subscribe({
-				next: () => this.maybeStartOnboarding(),
-				error: () => undefined
-			});
-		} else {
-			this.maybeStartOnboarding();
-		}
-
-		this.router.events
-			.pipe(filter(e => e instanceof NavigationEnd))
-			.subscribe(event => {
-				this.currentUrl.set(event.urlAfterRedirects.split(/[?#]/)[0]);
-				this.moreOpen.set(false);
-				this.searchOpen.set(false);
-			});
-
+		this.loadCurrentUser();
+		this.watchNavigation();
 		this.watchTabletBreakpoint();
+	}
 
-		this.router.events.subscribe(event => {
-			if (event instanceof NavigationStart) {
-				this.pendingUrl.set(event.url.split("?")[0].split("#")[0]);
-				this.navigating.set(true);
-			} else if (
-				event instanceof NavigationEnd ||
-				event instanceof NavigationCancel ||
-				event instanceof NavigationError
-			) {
-				this.pendingUrl.set(null);
-				this.navigating.set(false);
-			}
-		});
+	private loadCurrentUser() {
+		if (this.user()) {
+			this.maybeStartOnboarding();
+			return;
+		}
+		this.auth
+			.loadUser()
+			.pipe(
+				retry({
+					count: USER_LOAD_RETRIES,
+					delay: error =>
+						error.status === 0 || error.status >= 500
+							? timer(USER_LOAD_RETRY_DELAY_MS)
+							: throwError(() => error)
+				}),
+				takeUntilDestroyed(this.destroyRef)
+			)
+			.subscribe({
+				next: () => this.maybeStartOnboarding(),
+				error: () =>
+					this.toast.warning(
+						"We couldn't load your account. Reload the page to try again."
+					)
+			});
+	}
+
+	private watchNavigation() {
+		this.router.events
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe(event => {
+				if (event instanceof NavigationStart) {
+					this.pendingUrl.set(event.url.split("?")[0].split("#")[0]);
+					this.navigating.set(true);
+				} else if (event instanceof NavigationEnd) {
+					this.currentUrl.set(
+						event.urlAfterRedirects.split(/[?#]/)[0]
+					);
+					this.moreOpen.set(false);
+					this.searchOpen.set(false);
+					this.finishNavigation();
+				} else if (
+					event instanceof NavigationCancel ||
+					event instanceof NavigationError
+				) {
+					this.finishNavigation();
+				}
+			});
+	}
+
+	private finishNavigation() {
+		this.pendingUrl.set(null);
+		this.navigating.set(false);
 	}
 
 	private maybeStartOnboarding() {
@@ -219,20 +244,20 @@ export class Layout implements OnInit {
 		this.onboarding.maybeStartForFirstTime();
 	}
 
-	dismissOnboarding(persist: boolean) {
+	protected dismissOnboarding(persist: boolean) {
 		this.onboarding.dismiss(persist);
 	}
 
-	goToHelp() {
+	protected goToHelp() {
 		this.onboarding.dismiss(true);
 		this.router.navigate(["/help"]);
 	}
 
-	openSearch() {
+	protected openSearch() {
 		this.searchOpen.set(true);
 	}
 
-	onDocumentKeydown(event: KeyboardEvent) {
+	protected onDocumentKeydown(event: KeyboardEvent) {
 		if (event.key !== "/" || this.searchOpen()) return;
 		if (event.metaKey || event.ctrlKey || event.altKey) return;
 		const target = event.target as HTMLElement | null;
@@ -244,17 +269,13 @@ export class Layout implements OnInit {
 		this.openSearch();
 	}
 
-	toggleCollapsed() {
+	protected toggleCollapsed() {
 		const next = !this.collapsed();
 		this.collapsed.set(next);
-		try {
-			localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
-		} catch {
-			void 0;
-		}
+		this.storage.set(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
 	}
 
-	onScroll(scrollTop: number) {
+	protected onScroll(scrollTop: number) {
 		const scrolled = scrollTop > 8;
 		if (scrolled !== this.scrolled()) this.scrolled.set(scrolled);
 	}
@@ -270,7 +291,7 @@ export class Layout implements OnInit {
 		);
 	}
 
-	logout() {
+	protected logout() {
 		this.auth.logout();
 	}
 }

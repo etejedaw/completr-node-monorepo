@@ -1,13 +1,17 @@
 import { isTimeoutError } from "../common/utils/is-timeout-error.util";
 import * as rawgServiceError from "./errors/rawg.service-error";
 import {
+	DEFAULT_SEARCH_PAGE_SIZE,
+	RAWG_BASE_URL,
+	RAWG_REQUEST_TIMEOUT_MS,
+	RAWG_SLUG_PATTERN
+} from "./rawg.constants";
+import {
 	type RawgGameDetail,
 	type RawgGameSearchResult,
 	type RawgSearchFilters,
 	type RawgSearchResponse
 } from "./rawg.interface";
-
-const RAWG_REQUEST_TIMEOUT_MS = 5000;
 
 export abstract class RawgClient {
 	abstract readonly isEnabled: boolean;
@@ -30,8 +34,6 @@ export abstract class RawgClient {
 export class RawgProvider extends RawgClient {
 	readonly isEnabled = true;
 
-	private readonly BASE_URL = "https://api.rawg.io/api";
-
 	constructor(
 		private readonly apiKey: string,
 		private readonly requestTimeoutMs = RAWG_REQUEST_TIMEOUT_MS
@@ -43,12 +45,12 @@ export class RawgProvider extends RawgClient {
 		query: string,
 		filters: RawgSearchFilters = {}
 	): Promise<RawgGameSearchResult[]> {
-		const url = new URL(`${this.BASE_URL}/games`);
+		const url = new URL(`${RAWG_BASE_URL}/games`);
 		url.searchParams.set("key", this.apiKey);
 		url.searchParams.set("search", query);
 		url.searchParams.set("search_precise", "true");
 
-		const { page_size = 5, ...rest } = filters;
+		const { page_size = DEFAULT_SEARCH_PAGE_SIZE, ...rest } = filters;
 		url.searchParams.set("page_size", page_size.toString());
 
 		for (const [key, value] of Object.entries(rest)) {
@@ -57,18 +59,28 @@ export class RawgProvider extends RawgClient {
 		}
 
 		const data = await this.request<RawgSearchResponse>(url);
+		if (!Array.isArray(data?.results))
+			throw rawgServiceError.parseError(
+				"RAWG search response without results"
+			);
 		return data.results;
 	}
 
 	async getGameById(id: number): Promise<RawgGameDetail> {
-		const url = new URL(`${this.BASE_URL}/games/${id}`);
+		if (!Number.isSafeInteger(id) || id <= 0)
+			throw rawgServiceError.notFoundError();
+
+		const url = new URL(`${RAWG_BASE_URL}/games/${id}`);
 		url.searchParams.set("key", this.apiKey);
 
 		return await this.request<RawgGameDetail>(url);
 	}
 
 	async getGameBySlug(slug: string): Promise<RawgGameDetail> {
-		const url = new URL(`${this.BASE_URL}/games/${slug}`);
+		if (!RAWG_SLUG_PATTERN.test(slug))
+			throw rawgServiceError.notFoundError();
+
+		const url = new URL(`${RAWG_BASE_URL}/games/${slug}`);
 		url.searchParams.set("key", this.apiKey);
 
 		return await this.request<RawgGameDetail>(url);

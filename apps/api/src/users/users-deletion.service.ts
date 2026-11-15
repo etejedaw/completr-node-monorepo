@@ -1,6 +1,7 @@
 import { type Transaction } from "sequelize";
 
 import * as activityService from "../activity/activity.service";
+import { AUDIT_ACTIONS, AUDIT_TARGET_TYPES } from "../audit/audit.constants";
 import * as auditService from "../audit/audit.service";
 import { sequelize } from "../database/sequelize.database";
 import * as invitationsService from "../invitations/invitations.service";
@@ -50,6 +51,11 @@ export async function deleteAccount<Result>(
 	});
 
 	clearRewindImagesOf(user.username);
-	auditService.record(actingAdminId, "user_deleted", "user", user.id);
+	auditService.record(
+		actingAdminId,
+		AUDIT_ACTIONS.userDeleted,
+		AUDIT_TARGET_TYPES.user,
+		user.id
+	);
 	return result;
 }

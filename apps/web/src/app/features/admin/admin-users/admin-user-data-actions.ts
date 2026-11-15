@@ -1,5 +1,6 @@
 import { type HttpErrorResponse } from "@angular/common/http";
-import { inject, signal } from "@angular/core";
+import { DestroyRef, inject, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 import { ToastService } from "../../../core/services/toast";
 import { adminErrorMessage } from "../../../core/utils/admin-error-message";
@@ -19,6 +20,7 @@ export function injectAdminUserDataActions(
 ) {
 	const dataRequestAdminService = inject(DataRequestAdminService);
 	const toast = inject(ToastService);
+	const destroyRef = inject(DestroyRef);
 
 	const downloadingUserId = signal<string | null>(null);
 	const accountToDelete = signal<AdminUser | null>(null);
@@ -35,6 +37,7 @@ export function injectAdminUserDataActions(
 		downloadingUserId.set(user.id);
 		dataRequestAdminService
 			.downloadUserData(user.id, user.username)
+			.pipe(takeUntilDestroyed(destroyRef))
 			.subscribe({
 				next: () => downloadingUserId.set(null),
 				error: (error: HttpErrorResponse) => {
@@ -61,22 +64,25 @@ export function injectAdminUserDataActions(
 		const user = accountToDelete();
 		if (!user || deletingAccount()) return;
 		deletingAccount.set(true);
-		dataRequestAdminService.deleteUser(user.id).subscribe({
-			next: () => {
-				deletingAccount.set(false);
-				accountToDelete.set(null);
-				toast.success(`Account ${user.username} deleted.`);
-				callbacks.accountDeleted(user);
-			},
-			error: (error: HttpErrorResponse) => {
-				deletingAccount.set(false);
-				accountToDelete.set(null);
-				notifyFailure(
-					error,
-					`Could not delete the account of ${user.username}.`
-				);
-			}
-		});
+		dataRequestAdminService
+			.deleteUser(user.id)
+			.pipe(takeUntilDestroyed(destroyRef))
+			.subscribe({
+				next: () => {
+					deletingAccount.set(false);
+					accountToDelete.set(null);
+					toast.success(`Account ${user.username} deleted.`);
+					callbacks.accountDeleted(user);
+				},
+				error: (error: HttpErrorResponse) => {
+					deletingAccount.set(false);
+					accountToDelete.set(null);
+					notifyFailure(
+						error,
+						`Could not delete the account of ${user.username}.`
+					);
+				}
+			});
 	}
 
 	return {

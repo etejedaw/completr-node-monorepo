@@ -16,8 +16,8 @@ const router = Router();
 router.get(
 	"/users/me/backlog/:backlogId/coop",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(BacklogIdParamsSchema, "params")
 	],
 	coopController.getMembers
@@ -26,8 +26,8 @@ router.get(
 router.get(
 	"/users/me/backlog/:backlogId/coop/candidates",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(BacklogIdParamsSchema, "params"),
 		validateSchemaMiddleware(CandidatesQuerySchema, "query")
 	],
@@ -37,8 +37,8 @@ router.get(
 router.post(
 	"/users/me/backlog/:backlogId/coop",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(BacklogIdParamsSchema, "params"),
 		validateSchemaMiddleware(AddMemberSchema, "body")
 	],
@@ -48,8 +48,8 @@ router.post(
 router.delete(
 	"/users/me/backlog/:backlogId/coop/:userId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(MemberParamsSchema, "params")
 	],
 	coopController.deleteMember
@@ -58,8 +58,8 @@ router.delete(
 router.post(
 	"/users/me/backlog/:backlogId/coop/sync",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(BacklogIdParamsSchema, "params"),
 		validateSchemaMiddleware(SyncSchema, "body")
 	],

@@ -23,3 +23,10 @@ export const CHALLENGE_BODY_PATTERNS: readonly RegExp[] = [
 	/class="g-recaptcha"/i,
 	/class="h-captcha"/i
 ];
+
+export const NOT_FOUND_STATUSES = new Set([404, 410]);
+
+export const REQUEST_HEADERS = {
+	Accept: "text/html,application/xhtml+xml",
+	"Accept-Language": "en-US,en;q=0.8"
+};

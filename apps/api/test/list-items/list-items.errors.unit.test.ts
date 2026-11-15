@@ -19,12 +19,6 @@ describeModuleErrors({
 			message: "List not found"
 		},
 		{
-			serviceCode: "LIST_ITEM_FORBIDDEN",
-			module: "ListItem Module",
-			code: "LIST_ITEM_FORBIDDEN",
-			message: "You do not have permission to modify items in this list"
-		},
-		{
 			serviceCode: "LIST_ITEM_GAMES_NOT_FOUND",
 			module: "ListItem Module",
 			code: "LIST_ITEM_GAMES_NOT_FOUND",
@@ -50,7 +44,6 @@ describeDomainToHttpMapper({
 	mapper: listItemsDomainToHttpMapper,
 	cases: [
 		{ code: "LIST_ITEM_LIST_NOT_FOUND", status: 404 },
-		{ code: "LIST_ITEM_FORBIDDEN", status: 403 },
 		{ code: "LIST_ITEM_GAMES_NOT_FOUND", status: 404 },
 		{ code: "LIST_ITEM_FROZEN", status: 402 }
 	]

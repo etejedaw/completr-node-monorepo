@@ -11,7 +11,7 @@ import { type PlatinumEntry } from "../../../core/models";
 import { GamePoster } from "../game-poster/game-poster";
 
 const COVER_CLASS =
-	"relative block w-full p-0 border-0 text-left cursor-pointer rounded-lg overflow-hidden bg-surface ring-1 ring-platinum/25 shadow-lg shadow-black/40 transition duration-200 group-hover:-translate-y-1 group-hover:ring-platinum/70 group-hover:shadow-platinum/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-platinum";
+	"relative block w-full p-0 border-0 text-left cursor-pointer rounded-lg overflow-hidden bg-surface ring-1 ring-platinum/25 shadow-card transition duration-200 group-hover:-translate-y-1 group-hover:ring-platinum/70 group-hover:shadow-platinum/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-platinum";
 const TITLE_CLASS =
 	"tap-area p-0 border-0 bg-transparent text-left cursor-pointer text-xs font-medium text-fg-secondary truncate no-underline hover:text-platinum";
 
@@ -36,7 +36,7 @@ const TITLE_CLASS =
 			></span>
 			<span
 				aria-hidden="true"
-				class="absolute top-2 right-2 flex items-center justify-center w-7 h-7 rounded-full bg-black/70 ring-1 ring-platinum/50 backdrop-blur-sm shadow-md shadow-black/40"
+				class="absolute top-2 right-2 flex items-center justify-center w-7 h-7 rounded-full bg-scrim-badge ring-1 ring-platinum/50 backdrop-blur-sm shadow-card"
 			>
 				<span class="material-icons text-[1rem] text-platinum"
 					>emoji_events</span
@@ -44,7 +44,7 @@ const TITLE_CLASS =
 			</span>
 			@if (platinum().platform; as platform) {
 				<span
-					class="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold text-white bg-black/70 backdrop-blur-sm"
+					class="absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-caption font-semibold text-on-image bg-scrim-badge backdrop-blur-sm"
 					[title]="platform.name"
 					>{{ platform.abbreviation }}</span
 				>
@@ -87,7 +87,7 @@ const TITLE_CLASS =
 			}
 			@if (platinum().platinumedAt; as platinumedAt) {
 				<time
-					class="text-[0.6875rem] font-medium text-platinum/85 tabular-nums truncate"
+					class="text-caption font-medium text-platinum/85 tabular-nums truncate"
 					[attr.datetime]="platinumedAt"
 					>{{ platinumedAt | date: "MMM d, y" }}</time
 				>

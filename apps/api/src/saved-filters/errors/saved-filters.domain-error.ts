@@ -11,15 +11,6 @@ export function savedFilterNotFound(context?: Record<string, unknown>) {
 	);
 }
 
-export function savedFilterForbidden(context?: Record<string, unknown>) {
-	return new DomainError(
-		MODULE_NAME,
-		"SAVED_FILTER_FORBIDDEN",
-		"You do not have permission to modify this saved filter",
-		context
-	);
-}
-
 export function savedFilterLimitReached(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

@@ -1,6 +1,6 @@
 <div
 	aria-hidden="true"
-	class="absolute inset-0 bg-black/60 backdrop-blur-sm motion-safe:animate-[uiSheetFade_200ms_ease-out] max-md:hidden"
+	class="absolute inset-0 ui-backdrop max-md:hidden"
 	(click)="close()"
 ></div>
 <section
@@ -53,7 +53,7 @@
 		</button>
 		}
 		<kbd
-			class="hidden md:pointer-fine:inline-flex items-center justify-center h-6 px-2 mr-2 rounded border border-line bg-canvas/60 text-[0.6875rem] font-sans text-fg-muted"
+			class="hidden md:pointer-fine:inline-flex items-center justify-center h-6 px-2 mr-2 rounded border border-line bg-canvas/60 text-caption font-sans text-fg-muted"
 			>esc</kbd
 		>
 		<button
@@ -67,7 +67,7 @@
 		</button>
 	</div>
 
-	<app-chip-group
+	<ui-chip-group
 		class="shrink-0 px-4 py-2.5 pointer-coarse:py-1 border-b border-line"
 		label="Search in"
 		mode="single"

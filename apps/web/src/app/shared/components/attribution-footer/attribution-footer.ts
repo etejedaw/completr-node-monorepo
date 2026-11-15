@@ -16,7 +16,7 @@ const FOOTER_LINK_CLASSES =
 	imports: [RouterLink],
 	template: `
 		<footer
-			class="px-6 lg:px-8 py-4 border-t border-line text-[0.6875rem] text-fg-muted leading-relaxed"
+			class="px-6 lg:px-8 py-4 border-t border-line text-caption text-fg-muted leading-relaxed"
 		>
 			<p class="m-0">
 				Game data and images provided by these services, used per their

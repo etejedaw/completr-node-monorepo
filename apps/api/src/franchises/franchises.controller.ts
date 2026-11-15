@@ -1,6 +1,5 @@
 import { type Request, type Response } from "express";
 
-import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
@@ -9,7 +8,10 @@ import * as gamesService from "../games/games.service";
 import { type RegisterFranchiseDto } from "./dtos/register-franchise.dto";
 import { type UpdateFranchiseDto } from "./dtos/update-franchise.dto";
 import * as franchiseDomainError from "./errors/franchises.domain-error";
-import { franchiseSummarySerializer } from "./franchises.serializer";
+import {
+	franchiseSerializer,
+	franchiseSummarySerializer
+} from "./franchises.serializer";
 import * as franchiseService from "./franchises.service";
 import { type FranchiseCodeParam } from "./schemas/franchise-code-params.schema";
 import { type FranchiseIdParam } from "./schemas/franchise-id-params.schema";
@@ -49,18 +51,18 @@ export async function getFranchiseByCode(request: Request, response: Response) {
 	const franchise = await franchiseService.findFranchiseByCode(code);
 	if (!franchise) throw franchiseDomainError.franchiseNotFound();
 
-	const [{ rows, hasMore }, allGameIds] = await Promise.all([
+	const [{ rows, hasMore }, gameCountByFranchise] = await Promise.all([
 		gamesService.findGamesByFranchiseId(franchise.id, {
 			limit: query.limit,
 			offset: query.offset
 		}),
-		gamesService.findGameIdsByFranchiseId(franchise.id)
+		gamesService.countActiveGamesByFranchiseIds([franchise.id])
 	]);
 
 	const pageGameIds = rows.map(game => game.id);
 	const [statusMap, isTracked] = await Promise.all([
 		viewer
-			? buildStatusMap(viewer.id, pageGameIds)
+			? franchiseService.findBacklogStatusByGameId(viewer.id, pageGameIds)
 			: Promise.resolve(new Map<string, string>()),
 		viewer
 			? franchiseService.isTrackingFranchise(viewer.id, franchise.id)
@@ -73,9 +75,9 @@ export async function getFranchiseByCode(request: Request, response: Response) {
 	}));
 
 	const data = {
-		franchise: franchise.get({ plain: true }),
+		franchise: franchiseSerializer(franchise),
 		games,
-		gameCount: allGameIds.length,
+		gameCount: gameCountByFranchise.get(franchise.id) ?? 0,
 		isTracked,
 		hasMore
 	};
@@ -107,25 +109,12 @@ export async function deleteTrackFranchise(
 	return response.sendStatus(204);
 }
 
-async function buildStatusMap(userId: string, gameIds: string[]) {
-	const rows = await backlogService.findBacklogSummariesByUserAndGameIds(
-		userId,
-		gameIds,
-		false
-	);
-	const map = new Map<string, string>();
-	for (const row of rows) map.set(row.gameId, row.status);
-	return map;
-}
-
 export async function postFranchise(request: Request, response: Response) {
 	const registerFranchiseDto = request.locals.body as RegisterFranchiseDto;
 
 	const franchise =
 		await franchiseService.registerFranchise(registerFranchiseDto);
-	const franchisePlain = franchise.get({ plain: true });
-
-	const data = { franchise: franchisePlain };
+	const data = { franchise: franchiseSerializer(franchise) };
 	return response.status(201).json({ data });
 }
 
@@ -137,9 +126,7 @@ export async function patchFranchise(request: Request, response: Response) {
 		franchiseId,
 		updateFranchiseDto
 	);
-	const franchisePlain = franchise.get({ plain: true });
-
-	const data = { franchise: franchisePlain };
+	const data = { franchise: franchiseSerializer(franchise) };
 	return response.status(200).json({ data });
 }
 

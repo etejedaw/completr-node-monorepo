@@ -5,12 +5,10 @@ import { type ExternalDataSource } from "../../src/games/games.constants";
 import {
 	type ExternalDataCandidate,
 	type ExternalDataGame,
-	type ExternalDataResult
-} from "../../src/games/games-external-data.interface";
-import {
-	createImportEnrichmentQueue,
+	type ExternalDataResult,
 	type ImportEnrichmentQueueDependencies
-} from "../../src/games/services/games-import-enrichment.service";
+} from "../../src/games/games-external-data.interface";
+import { createImportEnrichmentQueue } from "../../src/games/services/games-import-enrichment.service";
 import { deferred } from "./external-data-fakes.helper";
 
 const PAUSE_MS = 600_000;

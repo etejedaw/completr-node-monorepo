@@ -49,7 +49,7 @@ const TONE_CLASSES: Record<UiBadgeTone, string> = {
 		<span class="min-w-0 truncate"><ng-content /></span>
 	`,
 	host: {
-		class: "inline-flex max-w-full items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[0.6875rem] font-semibold leading-4",
+		class: "inline-flex max-w-full items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-caption font-semibold leading-4",
 		"[class]": "toneClass()"
 	},
 	changeDetection: ChangeDetectionStrategy.OnPush

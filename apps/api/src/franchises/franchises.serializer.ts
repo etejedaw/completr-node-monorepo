@@ -20,3 +20,14 @@ export function franchiseSummarySerializer(
 			})) ?? []
 	};
 }
+
+export function franchiseSerializer(franchise: Franchise) {
+	return {
+		id: franchise.id,
+		name: franchise.name,
+		code: franchise.code,
+		description: franchise.description,
+		createdAt: franchise.createdAt,
+		updatedAt: franchise.updatedAt
+	};
+}

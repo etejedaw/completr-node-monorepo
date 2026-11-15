@@ -1,6 +1,8 @@
 import { DomainError } from "./domain-error";
+import { type ValidationIssue } from "./errors.interface";
 
 const MODULE_NAME = "Common Module";
+const INTERNAL_ERROR_MODULE_NAME = "COMMON";
 
 export function commonResourceInUse(context?: Record<string, unknown>) {
 	return new DomainError(
@@ -52,6 +54,40 @@ export function commonPayloadTooLarge(context?: Record<string, unknown>) {
 		MODULE_NAME,
 		"COMMON_PAYLOAD_TOO_LARGE",
 		"Request body is too large",
+		context
+	);
+}
+
+export function commonInternalError(context?: Record<string, unknown>) {
+	return new DomainError(
+		INTERNAL_ERROR_MODULE_NAME,
+		"INTERNAL_ERROR",
+		"Unexpected internal error",
+		context
+	);
+}
+
+export function commonSchemaInvalid(
+	context: Record<string, unknown>,
+	issues: ValidationIssue[]
+) {
+	return new DomainError(
+		MODULE_NAME,
+		"COMMON_SCHEMA_INVALID",
+		"Invalid request schema",
+		context,
+		issues
+	);
+}
+
+export function commonSourceUnavailable(
+	message: string,
+	context?: Record<string, unknown>
+) {
+	return new DomainError(
+		MODULE_NAME,
+		"COMMON_SOURCE_UNAVAILABLE",
+		message,
 		context
 	);
 }

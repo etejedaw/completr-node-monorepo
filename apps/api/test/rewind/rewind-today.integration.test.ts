@@ -12,7 +12,7 @@ import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
 import { useTestDatabase } from "../helpers/database.helper";
 import { createGame, createPlatform } from "../helpers/factories.helper";
-import { storeRewind } from "./rewind-generation.helper";
+import { openRewindEdition2026, storeRewind } from "./rewind-generation.helper";
 
 type Account = Awaited<ReturnType<typeof createUserWithSession>>;
 
@@ -43,6 +43,7 @@ function finishGame(account: Account, game: Game, finishedAt: string) {
 useTestDatabase(async () => {
 	platform = await createPlatform();
 	games = await Promise.all([createGame(), createGame(), createGame()]);
+	await openRewindEdition2026();
 });
 
 void describe("REWIND_TODAY", () => {
@@ -51,7 +52,7 @@ void describe("REWIND_TODAY", () => {
 		assert.notEqual(environmentConfig.NODE_ENV, "prod");
 	});
 
-	void it("opens the current year and its spotlight from the override", async () => {
+	void it("opens the current year and its spotlight from the override and the open edition", async () => {
 		const player = await signUpOn("2025-03-01T00:00:00.000Z");
 		await finishGame(player, games[0]!, "2025-04-04");
 		await finishGame(player, games[1]!, "2026-06-06");
@@ -89,6 +90,12 @@ void describe("REWIND_TODAY", () => {
 			.get(`/users/${newcomer.user.username}/rewinds`)
 			.expect(200);
 		assert.deepEqual(list.body.data, {
+			period: {
+				status: "open",
+				year: 2026,
+				opensAt: "2026-12-01",
+				closesAt: "2027-01-31"
+			},
 			spotlightYear: 2026,
 			years: [list.body.data.years[0]],
 			premiumAccess: null

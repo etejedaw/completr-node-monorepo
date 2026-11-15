@@ -166,6 +166,13 @@ export const NAV_SECTIONS: readonly NavSection[] = [
 				label: "Promotions",
 				iconColorClass: "text-nav-admin",
 				access: "admin"
+			},
+			{
+				route: "/admin/rewind",
+				icon: "fast_rewind",
+				label: "Rewind",
+				iconColorClass: "text-nav-admin",
+				access: "admin"
 			}
 		]
 	},

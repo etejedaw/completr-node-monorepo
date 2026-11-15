@@ -1,13 +1,19 @@
-import { Op, type Transaction } from "sequelize";
+import { type IncludeOptions, Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { USER_CARD_ATTRS } from "./constants/user-attrs.constants";
+import {
+	ADMIN_USERS_DEFAULT_LIMIT,
+	USER_DISCOVER_DEFAULT_LIMIT,
+	USER_SEARCH_DEFAULT_LIMIT
+} from "./constants/user-limits.constants";
 import { type CreateUserDto, type UpdateUserDto } from "./dtos";
 import * as usersServiceError from "./errors/users.service-error";
 import { canUseTheme } from "./helpers/theme.helper";
 import { User } from "./user.model";
+import { type AdminUserFields } from "./users.interface";
 
 export async function createUser(createUserDto: CreateUserDto) {
 	try {
@@ -52,7 +58,10 @@ export async function countActiveUsers() {
 	return User.count({ where: { isActive: true } });
 }
 
-export async function searchUsers(query: string, limit = 20) {
+export async function searchUsers(
+	query: string,
+	limit = USER_SEARCH_DEFAULT_LIMIT
+) {
 	const nameWhere = buildTextSearchWhere(query, [
 		"User.username",
 		"User.name"
@@ -69,6 +78,18 @@ export async function searchUsers(query: string, limit = 20) {
 	});
 }
 
+export async function findUserIdsMatchingSearch(
+	query: string
+): Promise<string[] | null> {
+	const nameWhere = buildTextSearchWhere(query, ["User.username"]);
+	if (!nameWhere) return null;
+	const users = await User.findAll({
+		where: nameWhere,
+		attributes: ["id"]
+	});
+	return users.map(user => user.id);
+}
+
 export async function findUserByExactEmail(email: string) {
 	const user = await User.findOne({
 		where: { email: email.toLowerCase(), isActive: true },
@@ -78,18 +99,15 @@ export async function findUserByExactEmail(email: string) {
 }
 
 export async function findRandomPublicUsers(
-	limit = 12,
+	limit = USER_DISCOVER_DEFAULT_LIMIT,
 	excludeUserId?: string
 ) {
-	const where: Record<string, unknown> = {
-		isActive: true,
-		profileVisibility: "public"
-	};
-	if (excludeUserId) {
-		where.id = { [Op.ne]: excludeUserId };
-	}
 	return User.findAll({
-		where,
+		where: {
+			isActive: true,
+			profileVisibility: "public",
+			...(excludeUserId && { id: { [Op.ne]: excludeUserId } })
+		},
 		attributes: USER_CARD_ATTRS,
 		order: sequelize.literal("RANDOM()"),
 		limit
@@ -114,16 +132,41 @@ export async function updateUser(
 		updateUserDto.acceptFollowRequests === false &&
 		user.acceptFollowRequests === true;
 
-	await user.update(updateUserDto);
+	try {
+		await user.update(updateUserDto);
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			unique: usersServiceError.uniqueConstraintError,
+			validation: usersServiceError.validationError
+		});
+	}
 
 	return { user, disabledFollowRequests };
+}
+
+export async function adminUpdateUser(id: string, fields: AdminUserFields) {
+	const user = await findUserByIdUnfiltered(id);
+	if (!user) throw usersServiceError.notFoundError();
+
+	try {
+		await user.update(fields);
+	} catch (error) {
+		rethrowSequelizeError(error, {
+			validation: usersServiceError.validationError
+		});
+	}
+	return user;
 }
 
 export async function findUserByIdUnfiltered(id: string) {
 	return User.findOne({ where: { id } });
 }
 
-export async function findAllUsers(limit = 50, offset = 0, query?: string) {
+export async function findAllUsers(
+	limit = ADMIN_USERS_DEFAULT_LIMIT,
+	offset = 0,
+	query?: string
+) {
 	const searchWhere = query
 		? buildTextSearchWhere(query, [
 				"User.username",
@@ -158,14 +201,6 @@ export async function deactivateUser(id: string) {
 	return user;
 }
 
-export async function reactivateUser(id: string) {
-	const user = await findUserById(id);
-	if (!user) throw usersServiceError.notFoundError();
-
-	await user.update({ isActive: true });
-	return user;
-}
-
 export async function destroyUser(id: string, transaction: Transaction) {
 	try {
 		return await User.destroy({ where: { id }, transaction });
@@ -174,4 +209,10 @@ export async function destroyUser(id: string, transaction: Transaction) {
 			foreignKey: usersServiceError.deleteForbiddenError
 		});
 	}
+}
+
+export function userInclude(
+	options: Omit<IncludeOptions, "model"> = {}
+): IncludeOptions {
+	return { model: User, ...options };
 }

@@ -2,13 +2,16 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	effect,
 	inject,
 	input,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { form, FormField } from "@angular/forms/signals";
 import { ActivatedRoute } from "@angular/router";
+import { type Subscription } from "rxjs";
 
 import { AuthService } from "../../../../core/services/auth";
 import { RatingDistribution } from "../../../../shared/components/rating-distribution/rating-distribution";
@@ -25,6 +28,7 @@ import { BacklogService } from "../../../backlog/backlog";
 import { ReviewsService } from "../../reviews";
 import { type Review } from "../../reviews.model";
 
+const NOT_FOUND_STATUS = 404;
 const RATING_BUCKETS = [5, 4, 3, 2, 1];
 
 @Component({
@@ -86,7 +90,15 @@ export class GameReviews {
 		});
 	});
 
+	private readonly destroyRef = inject(DestroyRef);
+	private reviewsRequest: Subscription | null = null;
+	private actionRequest: Subscription | null = null;
+
 	constructor() {
+		this.destroyRef.onDestroy(() => {
+			this.reviewsRequest?.unsubscribe();
+			this.actionRequest?.unsubscribe();
+		});
 		effect(() => {
 			const id = this.gameId();
 			this.reset();
@@ -95,6 +107,8 @@ export class GameReviews {
 	}
 
 	private reset() {
+		this.reviewsRequest?.unsubscribe();
+		this.actionRequest?.unsubscribe();
 		this.reviews.set([]);
 		this.myReview.set(null);
 		this.reviewsCount.set(0);
@@ -104,17 +118,20 @@ export class GameReviews {
 	}
 
 	private loadReviews(gameId: string) {
-		this.reviewsService.getReviews(gameId).subscribe(reviews => {
-			this.reviews.set(reviews);
-			this.reviewsCount.set(reviews.length);
-			const userId = this.authService.user()?.id;
-			if (userId) {
-				this.myReview.set(
-					reviews.find(r => r.user?.id === userId) ?? null
-				);
-			}
-			this.autoOpenIfRequested(gameId);
-		});
+		this.reviewsRequest?.unsubscribe();
+		this.reviewsRequest = this.reviewsService
+			.getReviews(gameId)
+			.subscribe(reviews => {
+				this.reviews.set(reviews);
+				this.reviewsCount.set(reviews.length);
+				const userId = this.authService.user()?.id;
+				if (userId) {
+					this.myReview.set(
+						reviews.find(r => r.user?.id === userId) ?? null
+					);
+				}
+				this.autoOpenIfRequested(gameId);
+			});
 	}
 
 	private autoOpenIfRequested(gameId: string) {
@@ -125,21 +142,24 @@ export class GameReviews {
 			this.openForm();
 			return;
 		}
-		this.backlogService.getMyBacklog({ game_id: gameId }).subscribe({
-			next: res => {
-				const entry = res.data.backlog[0];
-				if (entry) {
-					this.reviewModel.set({
-						content: entry.notes ?? "",
-						rating: entry.userRating ?? null
-					});
-					this.show.set(true);
-				} else {
-					this.openForm();
-				}
-			},
-			error: () => this.openForm()
-		});
+		this.backlogService
+			.getMyBacklog({ game_id: gameId })
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: res => {
+					const entry = res.data.backlog[0];
+					if (entry) {
+						this.reviewModel.set({
+							content: entry.notes ?? "",
+							rating: entry.userRating ?? null
+						});
+						this.show.set(true);
+					} else {
+						this.openForm();
+					}
+				},
+				error: () => this.openForm()
+			});
 	}
 
 	openForm() {
@@ -157,7 +177,7 @@ export class GameReviews {
 
 	protected submit() {
 		const gameId = this.gameId();
-		if (!gameId) return;
+		if (!gameId || this.submitting()) return;
 
 		const state = this.reviewForm().value();
 		const content = state.content.trim() || undefined;
@@ -170,22 +190,43 @@ export class GameReviews {
 			? this.reviewsService.updateReview(gameId, { content, rating })
 			: this.reviewsService.createReview(gameId, { content, rating });
 
-		action.subscribe({
+		this.actionRequest = action.subscribe({
 			next: () => {
 				this.submitting.set(false);
 				this.show.set(false);
 				this.loadReviews(gameId);
 			},
-			error: () => this.submitting.set(false)
+			error: err => {
+				this.submitting.set(false);
+				if (err.status === NOT_FOUND_STATUS)
+					this.dropMissingReview(gameId);
+			}
 		});
 	}
 
 	protected deleteReview() {
 		const gameId = this.gameId();
-		if (!gameId) return;
-		this.reviewsService.deleteReview(gameId).subscribe(() => {
-			this.myReview.set(null);
-			this.loadReviews(gameId);
-		});
+		if (!gameId || this.submitting()) return;
+		this.submitting.set(true);
+		this.actionRequest = this.reviewsService
+			.deleteReview(gameId)
+			.subscribe({
+				next: () => {
+					this.submitting.set(false);
+					this.myReview.set(null);
+					this.loadReviews(gameId);
+				},
+				error: err => {
+					this.submitting.set(false);
+					if (err.status === NOT_FOUND_STATUS)
+						this.dropMissingReview(gameId);
+				}
+			});
+	}
+
+	private dropMissingReview(gameId: string) {
+		this.show.set(false);
+		this.myReview.set(null);
+		this.loadReviews(gameId);
 	}
 }

@@ -13,8 +13,8 @@ const router = Router();
 router.put(
 	"/users/me/games/:gameId/platinum",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GamePlatinumParamsSchema, "params"),
 		validateSchemaMiddleware(UpsertGamePlatinumSchema, "body")
 	],
@@ -24,8 +24,8 @@ router.put(
 router.delete(
 	"/users/me/games/:gameId/platinum",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GamePlatinumParamsSchema, "params")
 	],
 	gamePlatinumController.deletePlatinum

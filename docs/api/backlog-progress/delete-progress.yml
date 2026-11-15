@@ -44,4 +44,4 @@ docs: |-
     |--------|---------------------------------------|-------------------------------------|
     | 404    | `BACKLOG_PROGRESS_BACKLOG_NOT_FOUND`  | Backlog id does not exist           |
     | 404    | `BACKLOG_PROGRESS_NOTE_NOT_FOUND`     | Note id does not belong to backlog  |
-    | 403    | `BACKLOG_PROGRESS_FORBIDDEN`          | Backlog belongs to another user     |
+    | 404    | `BACKLOG_PROGRESS_BACKLOG_NOT_FOUND`  | Backlog missing or another user's   |

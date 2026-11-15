@@ -1,14 +1,18 @@
 import { computed, inject, signal } from "@angular/core";
-import { rxResource, takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import {
+	rxResource,
+	takeUntilDestroyed,
+	toSignal
+} from "@angular/core/rxjs-interop";
 import { ActivatedRoute } from "@angular/router";
-import { type Observable } from "rxjs";
+import { map, type Observable } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
 import {
 	countByPlatform,
 	matchesPlatform
 } from "../../../shared/components/platform-filter/platform-filter";
-import { type ProfileAccessError } from "../components/profile-access-state";
+import { hasLoadFailedOf, profileAccessErrorOf } from "./profile-access-error";
 import {
 	type CollectionGame,
 	type CollectionPage,
@@ -33,7 +37,10 @@ export function injectPublicCollection<T>(
 	const route = inject(ActivatedRoute);
 	const authService = inject(AuthService);
 
-	const username = signal(route.snapshot.paramMap.get("username") ?? "");
+	const username = toSignal(
+		route.paramMap.pipe(map(params => params.get("username") ?? "")),
+		{ initialValue: route.snapshot.paramMap.get("username") ?? "" }
+	);
 	const offset = signal(0);
 	const requestVersion = signal(0);
 	const query = signal("");
@@ -60,21 +67,9 @@ export function injectPublicCollection<T>(
 	const total = computed(() => page()?.total ?? 0);
 	const isLoading = computed(() => !viewerReady() || collection.isLoading());
 
-	const errorStatus = computed(() => {
-		const error = collection.error() as { status?: number } | undefined;
-		return error ? (error.status ?? 0) : null;
-	});
+	const error = computed(() => profileAccessErrorOf(collection.error()));
 
-	const error = computed<ProfileAccessError | null>(() => {
-		const status = errorStatus();
-		if (status === 403) return "private";
-		if (status === 404) return "not_found";
-		return null;
-	});
-
-	const hasLoadFailed = computed(
-		() => errorStatus() !== null && error() === null
-	);
+	const hasLoadFailed = computed(() => hasLoadFailedOf(collection.error()));
 
 	const platformCounts = computed(() =>
 		platformOf ? countByPlatform(items(), platformOf) : []
@@ -122,7 +117,7 @@ export function injectPublicCollection<T>(
 	}
 
 	return {
-		username: username.asReadonly(),
+		username,
 		items,
 		visibleItems,
 		posters,

@@ -1,8 +1,4 @@
-import {
-	REWIND_MAX_YEAR,
-	REWIND_MIN_YEAR,
-	REWIND_OPENING_MONTH
-} from "../rewind.constants";
+import { REWIND_MAX_YEAR, REWIND_MIN_YEAR } from "../rewind.constants";
 import { type RewindCalendar } from "../rewind-run.interface";
 
 function isSupportedYear(year: number, calendar: RewindCalendar): boolean {
@@ -12,16 +8,14 @@ function isSupportedYear(year: number, calendar: RewindCalendar): boolean {
 	);
 }
 
+function lastOpenedYear(calendar: RewindCalendar): number {
+	const lastClosedYear = calendar.today.getUTCFullYear() - 1;
+	return Math.max(lastClosedYear, calendar.edition?.year ?? lastClosedYear);
+}
+
 export function isRewindYearOpen(
 	year: number,
 	calendar: RewindCalendar
 ): boolean {
-	if (!isSupportedYear(year, calendar)) return false;
-
-	const { today } = calendar;
-	const currentYear = today.getUTCFullYear();
-	if (year < currentYear) return true;
-	return (
-		year === currentYear && today.getUTCMonth() + 1 >= REWIND_OPENING_MONTH
-	);
+	return isSupportedYear(year, calendar) && year <= lastOpenedYear(calendar);
 }

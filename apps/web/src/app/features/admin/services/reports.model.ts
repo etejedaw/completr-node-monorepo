@@ -1,8 +1,12 @@
+export type GameReportCategory =
+	"general" | "missing_score" | "missing_duration";
+
 export interface GameReport {
 	id: string;
 	gameId: string;
 	userId: string;
 	message: string;
+	category: GameReportCategory;
 	status: "pending" | "approved" | "rejected";
 	createdAt: string;
 	updatedAt: string;

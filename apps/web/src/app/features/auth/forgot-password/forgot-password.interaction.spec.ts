@@ -163,4 +163,15 @@ describe("Forgot password interaction", () => {
 			await screen.findByRole("heading", { name: "Reset link sent" })
 		).toBeInTheDocument();
 	});
+	it("sends one email when Enter is pressed twice before the answer", async () => {
+		const user = userEvent.setup();
+		await renderForgotPassword();
+
+		await user.type(screen.getByLabelText("Email"), "ada@example.com");
+		await user.type(screen.getByLabelText("Email"), "{Enter}{Enter}");
+
+		expect(httpTesting.match(`${api}/auth/forgot-password`)).toHaveLength(
+			1
+		);
+	});
 });

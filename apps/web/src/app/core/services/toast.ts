@@ -14,6 +14,8 @@ import {
 	type PendingEntry,
 	type PendingToastOptions,
 	type Toast,
+	type ToastAction,
+	type ToastOptions,
 	type ToastVariant
 } from "./toast.model";
 
@@ -26,6 +28,7 @@ export const TOAST_CONFIG = {
 	maxToasts: 4,
 	durationMs: 4000,
 	premiumDurationMs: 5000,
+	actionDurationMs: 8000,
 	undoWindowMs: 5000
 } as const;
 
@@ -49,6 +52,15 @@ function toastOffsetBottom(): number {
 	return isMobile
 		? TOAST_CONFIG.mobileTabBarClearance
 		: TOAST_CONFIG.offsetBottom;
+}
+
+function once(task: () => void): () => void {
+	let ran = false;
+	return () => {
+		if (ran) return;
+		ran = true;
+		task();
+	};
 }
 
 function whenIdle(task: () => void) {
@@ -86,44 +98,71 @@ export class ToastService {
 	show(
 		message: string,
 		variant: ToastVariant = "info",
-		durationMs: number = TOAST_CONFIG.durationMs,
-		title?: string
+		durationMs?: number,
+		title?: string,
+		action?: ToastAction
 	) {
 		if (!this.template || this.destroyed) return;
+		const duration =
+			durationMs ??
+			(action ? TOAST_CONFIG.actionDurationMs : TOAST_CONFIG.durationMs);
 		const id = this.nextId++;
 		const ctx: Toast = {
 			id,
 			title,
 			message,
-			variant
+			variant,
+			actionLabel: action?.label
 		};
 		const template = this.template;
-		const contentKey = [variant, title ?? "", message].join("\u0000");
+		const contentKey = [
+			variant,
+			title ?? "",
+			message,
+			action?.label ?? ""
+		].join("\u0000");
 		this.whenReady(manager => {
 			this.shownByContent.get(contentKey)?.dismiss();
 			const ref = manager.show(template, {
-				duration: durationMs,
+				duration,
 				context: ctx
 			});
 			this.shownByContent.set(contentKey, ref);
 			ctx.onDismiss = () => ref.dismiss();
+			if (action)
+				ctx.onAction = once(() => {
+					ref.dismiss();
+					action.run();
+				});
 		});
 	}
 
-	info(message: string, durationMs?: number) {
-		this.show(message, "info", durationMs);
+	private showWith(
+		message: string,
+		variant: ToastVariant,
+		options?: number | ToastOptions
+	) {
+		const { durationMs, action }: ToastOptions =
+			typeof options === "number"
+				? { durationMs: options }
+				: (options ?? {});
+		this.show(message, variant, durationMs, undefined, action);
 	}
 
-	success(message: string, durationMs?: number) {
-		this.show(message, "success", durationMs);
+	info(message: string, options?: number | ToastOptions) {
+		this.showWith(message, "info", options);
 	}
 
-	warning(message: string, durationMs?: number) {
-		this.show(message, "warning", durationMs);
+	success(message: string, options?: number | ToastOptions) {
+		this.showWith(message, "success", options);
 	}
 
-	error(message: string, durationMs?: number) {
-		this.show(message, "error", durationMs);
+	warning(message: string, options?: number | ToastOptions) {
+		this.showWith(message, "warning", options);
+	}
+
+	error(message: string, options?: number | ToastOptions) {
+		this.showWith(message, "error", options);
 	}
 
 	premium(

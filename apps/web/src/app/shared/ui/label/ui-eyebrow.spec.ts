@@ -25,7 +25,7 @@ describe("UiEyebrow", () => {
 		const eyebrow = renderedEyebrow();
 
 		expect(eyebrow.classList).toContain("text-fg-muted");
-		expect(eyebrow.classList).toContain("text-[0.625rem]");
+		expect(eyebrow.classList).toContain("text-tiny");
 		expect(eyebrow.classList).toContain("tracking-[0.16em]");
 	});
 
@@ -33,7 +33,7 @@ describe("UiEyebrow", () => {
 		const eyebrow = renderedEyebrow("brand");
 
 		expect(eyebrow.classList).toContain("text-brand");
-		expect(eyebrow.classList).toContain("text-[0.6875rem]");
+		expect(eyebrow.classList).toContain("text-caption");
 		expect(eyebrow.classList).toContain("tracking-[0.2em]");
 		expect(eyebrow.classList).not.toContain("text-fg-muted");
 	});

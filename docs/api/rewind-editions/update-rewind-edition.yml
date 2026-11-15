@@ -1,0 +1,87 @@
+info:
+    name: Update Rewind Edition
+    type: http
+    seq: 3
+
+http:
+    method: PUT
+    url: "{{BASE_URL}}/admin/rewind/editions/:year"
+    headers:
+        - name: Content-Type
+          value: application/json
+    params:
+        - name: year
+          value: "2026"
+          type: path
+    body:
+        type: json
+        data: |-
+            {
+              "opensAt": "2026-12-01",
+              "closesAt": "2027-01-31",
+              "graceStartsAt": "2027-01-01",
+              "graceEndsAt": "2027-01-07",
+              "design": "2026",
+              "premiumRegenerations": 5,
+              "giftRegenerations": 2,
+              "applyToGenerated": true
+            }
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Update Rewind Edition
+
+    Replaces every field of an edition (all fields are required except `applyToGenerated`). With `applyToGenerated: true`, in the same transaction a single UPDATE adds the quota difference to the rewinds of that year: the difference of `premiumRegenerations` to those with `premium` access and the difference of `giftRegenerations` to those with `gift` access, never going below 0. Rewinds without access are not touched.
+
+    **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
+
+    ### Path params
+
+    - `year` (integer) — edition year
+
+    ### Request Body
+
+    Same fields as Create Rewind Edition without `year`, plus:
+
+    | Field | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | applyToGenerated | boolean | No | Shift the quota of the rewinds already generated. Default false |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "edition": {
+          "year": 2026,
+          "opensAt": "2026-12-01",
+          "closesAt": "2027-01-31",
+          "graceStartsAt": "2027-01-01",
+          "graceEndsAt": "2027-01-07",
+          "design": "2026",
+          "premiumRegenerations": 5,
+          "giftRegenerations": 2,
+          "frozenAt": null,
+          "status": "scheduled",
+          "inProgress": false,
+          "generatedCount": 42
+        },
+        "affectedRewinds": 17
+      }
+    }
+    ```
+
+    `affectedRewinds` counts the rewinds whose quota was shifted; it is 0 without `applyToGenerated` or when the quotas did not change. Records the audit event `rewind_edition_updated`.
+
+    ### Errors
+
+    | Status | Code | Description |
+    |--------|------|-------------|
+    | 404 | REWIND_EDITION_NOT_FOUND | The year has no edition |
+    | 409 | REWIND_EDITION_FROZEN | The edition is already frozen |
+    | 409 | REWIND_EDITION_OVERLAP | The period overlaps another edition |
+    | 422 | COMMON_SCHEMA_INVALID | Invalid year, date, unordered dates, unknown design, invalid quota or extra field |
+    | 422 | REWIND_EDITION_INVALID | The database rejected the edition data |

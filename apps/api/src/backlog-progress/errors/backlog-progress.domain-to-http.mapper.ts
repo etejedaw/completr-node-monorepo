@@ -22,8 +22,5 @@ export function backlogProgressDomainToHttpMapper(
 	if (error.code === "BACKLOG_PROGRESS_NOTE_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
-	if (error.code === "BACKLOG_PROGRESS_FORBIDDEN")
-		return new HttpError({ ...baseOptions, status: 403 });
-
 	return new HttpError({ ...baseOptions, status: 500 });
 }

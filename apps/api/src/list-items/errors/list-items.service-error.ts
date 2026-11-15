@@ -9,13 +9,6 @@ export function listNotFoundError() {
 	});
 }
 
-export function forbiddenError() {
-	return new ServiceError("LIST_ITEM_FORBIDDEN", {
-		...BASE_OPTIONS,
-		raw: undefined
-	});
-}
-
 export function gamesNotFoundError(gameIds: string[]) {
 	return new ServiceError("LIST_ITEM_GAMES_NOT_FOUND", {
 		...BASE_OPTIONS,

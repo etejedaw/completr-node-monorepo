@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -9,195 +10,71 @@ import {
 	signal
 } from "@angular/core";
 
-import { type Rewind } from "../../../../core/models/rewind.model";
-import { UiAlert, UiButton, UiEyebrow } from "../../../../shared/ui";
+import {
+	type Rewind,
+	type RewindLanguage,
+	type RewindRegenerationBlock
+} from "../../../../core/models/rewind.model";
+import { GiftOfferCard } from "../../../../shared/components/gift-offer-card/gift-offer-card";
+import {
+	UiAlert,
+	UiBadge,
+	UiButton,
+	UiEyebrow,
+	UiPremiumBadge
+} from "../../../../shared/ui";
 import { RewindService } from "../../rewind";
+import { rewindCopy } from "../../rewind-copy";
+import { formatRewindDay, formatRewindDayWithYear } from "../../rewind-dates";
 import {
 	type RewindAiRecapError,
 	rewindAiRecapError
 } from "../../rewind-errors";
+import { rewindPremiumAccessKindOf } from "../../rewind-premium-access-kind";
 import { RewindGenerateDialog } from "../rewind-generate-dialog/rewind-generate-dialog";
 import { injectRewindGenerateFlow } from "../rewind-generate-dialog/rewind-generate-flow";
+import { REWIND_OWNER_PANEL_COPY } from "./rewind-owner-panel.copy";
 import {
-	formatPanelDate,
-	REWIND_OWNER_PANEL_COPY
-} from "./rewind-owner-panel.copy";
+	type RewindOwnerAiChip,
+	type RewindOwnerPanelState,
+	type RewindOwnerSeasonChip
+} from "./rewind-owner-panel.model";
+
+const REGENERATION_BLOCKS_SHOWN_ELSEWHERE: readonly RewindRegenerationBlock[] =
+	["period-closed", "no-regenerations-left", "no-ai-access"];
+
+function rewindOwnerPanelState(rewind: Rewind): RewindOwnerPanelState {
+	const periodStatus = rewind.ownerControls?.periodStatus ?? "closed";
+	if (periodStatus !== "open") return periodStatus;
+	return rewind.premiumAccess?.allowed ? "open-with-ai" : "open-without-ai";
+}
+
+const PANEL_LANGUAGE: RewindLanguage = "en";
+
+const STATUS_CHIP_CLASS =
+	"inline-flex h-9 max-w-full items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface/60 px-3.5 text-sm text-fg";
 
 const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 	"exists",
-	"premium_required"
+	"premium_required",
+	"year_requires_premium",
+	"period_closed",
+	"limit"
 ];
 
 @Component({
 	selector: "app-rewind-owner-panel",
-	imports: [UiEyebrow, RewindGenerateDialog, UiAlert, UiButton],
-	template: `
-		@if (rewind().ownerControls; as controls) {
-			<section
-				class="flex flex-col gap-4 rounded-card border border-line bg-surface p-4 sm:p-5"
-				aria-labelledby="rewind-owner-panel-heading"
-				[attr.lang]="rewind().language"
-			>
-				<div
-					class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-				>
-					<div class="flex flex-col gap-1 min-w-0">
-						<h2
-							id="rewind-owner-panel-heading"
-							uiEyebrow
-							tone="brand"
-							class="m-0"
-						>
-							{{ copy().eyebrow }}
-						</h2>
-						<p class="m-0 text-sm text-fg-secondary">
-							{{ copy().onlyYou }}
-						</p>
-						<p class="m-0 text-sm text-fg tabular-nums">
-							{{
-								copy().regenerationsLeft(
-									controls.regenerationsLeft
-								)
-							}}
-						</p>
-						@if (graceLine(); as grace) {
-							<p class="m-0 text-sm text-fg-secondary">
-								{{ grace }}
-							</p>
-						}
-						@if (controls.includesPrivateRuns) {
-							<p
-								class="m-0 inline-flex items-center gap-1 text-sm text-fg-secondary"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-base"
-									>visibility</span
-								>
-								{{ copy().includesPrivateRuns }}
-							</p>
-						}
-						@if (controls.includesNotes) {
-							<p
-								class="m-0 inline-flex items-center gap-1 text-sm text-fg-secondary"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-base"
-									>edit_note</span
-								>
-								{{ copy().usesNotes }}
-							</p>
-						}
-					</div>
-					@if (controls.canRegenerate) {
-						<button
-							uiButton
-							type="button"
-							variant="secondary"
-							class="tap:min-h-[44px] max-sm:!w-full shrink-0"
-							[attr.aria-busy]="generation.isPending()"
-							(click)="generation.open()"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-base"
-								>refresh</span
-							>
-							{{
-								generation.isPending()
-									? copy().regenerating
-									: copy().regenerate
-							}}
-						</button>
-					}
-				</div>
-
-				@if (controls.aiRecapState === "failed") {
-					<div
-						class="flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between"
-					>
-						<p
-							class="m-0 inline-flex items-center gap-1.5 text-sm text-fg"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-base text-warning"
-								>error_outline</span
-							>
-							{{ copy().aiRecapFailed }}
-						</p>
-						<button
-							uiButton
-							type="button"
-							variant="secondary"
-							class="tap:min-h-[44px] max-sm:!w-full shrink-0"
-							[disabled]="aiRecapPending()"
-							(click)="addAiRecap()"
-						>
-							{{ copy().retry }}
-						</button>
-					</div>
-				} @else if (controls.aiRecapState === "available") {
-					<div
-						class="flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between"
-					>
-						<p class="m-0 text-sm text-fg-secondary text-pretty">
-							{{ copy().addAiRecapHint }}
-						</p>
-						<button
-							uiButton
-							type="button"
-							variant="premium"
-							class="tap:min-h-[44px] max-sm:!w-full shrink-0"
-							[disabled]="aiRecapPending()"
-							(click)="addAiRecap()"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-base"
-								>auto_awesome</span
-							>
-							{{ copy().addAiRecap }}
-						</button>
-					</div>
-				}
-
-				@if (aiRecapPending()) {
-					<p
-						role="status"
-						class="m-0 inline-flex items-center gap-2 text-sm text-fg-secondary"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base text-premium motion-safe:animate-spin"
-							>autorenew</span
-						>
-						{{ copy().aiRecapPending }}
-					</p>
-				} @else if (aiRecapErrorMessage(); as message) {
-					<ui-alert
-						[tone]="aiRecapError() === 'exists' ? 'info' : 'danger'"
-						>{{ message }}</ui-alert
-					>
-				}
-			</section>
-		}
-		@if (generation.isOpen()) {
-			<app-rewind-generate-dialog
-				[username]="rewind().user.username"
-				[year]="rewind().year"
-				[rewind]="generation.latestRewind()"
-				[premiumAccess]="
-					generation.latestRewind()?.premiumAccess ?? null
-				"
-				[pending]="generation.isPending()"
-				[error]="generation.error()"
-				(submitted)="generation.submit($event)"
-				(closed)="generation.close()"
-			/>
-		}
-	`,
+	imports: [
+		GiftOfferCard,
+		NgTemplateOutlet,
+		UiEyebrow,
+		RewindGenerateDialog,
+		UiAlert,
+		UiBadge,
+		UiButton,
+		UiPremiumBadge
+	],
+	templateUrl: "./rewind-owner-panel.html",
 	host: { class: "block empty:hidden" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -206,22 +83,78 @@ export class RewindOwnerPanel {
 	readonly rewindChange = output<Rewind>();
 
 	private readonly rewindService = inject(RewindService);
-	private hostDestroyed = false;
+	private readonly destroyRef = inject(DestroyRef);
 
-	protected readonly copy = computed(
-		() => REWIND_OWNER_PANEL_COPY[this.rewind().language]
+	protected readonly copy = REWIND_OWNER_PANEL_COPY;
+	protected readonly panelState = computed(() =>
+		rewindOwnerPanelState(this.rewind())
 	);
-	protected readonly graceLine = computed(() => {
-		const graceEndsAt = this.rewind().ownerControls?.graceEndsAt;
-		if (!graceEndsAt) return null;
-		const copy = this.copy();
-		return copy.graceUntil(formatPanelDate(graceEndsAt, copy.dateLocale));
+	private readonly frozenAt = computed(
+		() => this.rewind().ownerControls?.frozenAt ?? this.rewind().frozenAt
+	);
+	protected readonly seasonChip = computed<RewindOwnerSeasonChip>(() => {
+		const copy = this.copy;
+		const state = this.panelState();
+		if (state === "scheduled")
+			return { value: copy.notOpenYet, detail: null, tone: "closed" };
+		if (state === "closed") {
+			const frozenAt = this.frozenAt();
+			return {
+				value: copy.closed,
+				detail: frozenAt
+					? copy.finalVersion(
+							formatRewindDayWithYear(frozenAt, PANEL_LANGUAGE)
+						)
+					: null,
+				tone: "closed"
+			};
+		}
+		const closesAt = this.rewind().ownerControls?.closesAt;
+		return {
+			value: copy.seasonOpen,
+			detail: closesAt
+				? copy.seasonUntil(formatRewindDay(closesAt, PANEL_LANGUAGE))
+				: null,
+			tone: "open"
+		};
+	});
+	protected readonly statusChipClass = STATUS_CHIP_CLASS;
+	protected readonly aiPremiumLabel = computed(() => {
+		const kind = rewindPremiumAccessKindOf(this.rewind().premiumAccess);
+		return kind
+			? rewindCopy(PANEL_LANGUAGE).premiumStats.premiumLabels[kind]
+			: null;
+	});
+	protected readonly aiChip = computed<RewindOwnerAiChip | null>(() => {
+		if (this.panelState() !== "open-with-ai") return null;
+		const controls = this.rewind().ownerControls;
+		const count = controls?.regenerationsLeft ?? 0;
+		const graceEndsAt = controls?.graceEndsAt;
+		const copy = this.copy;
+		return {
+			count,
+			label: copy.aiGenerationsLabel(count),
+			grace: graceEndsAt
+				? copy.aiGraceExtra(
+						formatRewindDay(graceEndsAt, PANEL_LANGUAGE)
+					)
+				: null
+		};
+	});
+	protected readonly notice = computed(() => {
+		const block = this.rewind().ownerControls?.regenerationBlockedBy;
+		if (block && !REGENERATION_BLOCKS_SHOWN_ELSEWHERE.includes(block))
+			return this.copy.regenerationBlocks[block];
+		const state = this.panelState();
+		if (state === "scheduled") return this.copy.scheduledHint;
+		if (state === "closed" && !this.frozenAt()) return this.copy.closedHint;
+		return null;
 	});
 	protected readonly aiRecapPending = signal(false);
 	protected readonly aiRecapError = signal<RewindAiRecapError | null>(null);
 	protected readonly aiRecapErrorMessage = computed(() => {
 		const error = this.aiRecapError();
-		return error ? this.copy().aiRecapErrors[error] : null;
+		return error ? this.copy.aiRecapErrors[error] : null;
 	});
 	protected readonly generation = injectRewindGenerateFlow({
 		username: () => this.rewind().user.username,
@@ -229,10 +162,6 @@ export class RewindOwnerPanel {
 		rewind: () => this.rewind(),
 		onGenerated: rewind => this.publish(rewind)
 	});
-
-	constructor() {
-		inject(DestroyRef).onDestroy(() => (this.hostDestroyed = true));
-	}
 
 	protected addAiRecap() {
 		if (this.aiRecapPending()) return;
@@ -254,6 +183,11 @@ export class RewindOwnerPanel {
 		});
 	}
 
+	protected reloadRewind() {
+		const { year, user } = this.rewind();
+		this.reload(user.username, year);
+	}
+
 	private reload(username: string, year: number) {
 		this.rewindService.getRewind(username, year).subscribe({
 			next: rewind => this.publish(rewind),
@@ -262,6 +196,6 @@ export class RewindOwnerPanel {
 	}
 
 	private publish(rewind: Rewind) {
-		if (!this.hostDestroyed) this.rewindChange.emit(rewind);
+		if (!this.destroyRef.destroyed) this.rewindChange.emit(rewind);
 	}
 }

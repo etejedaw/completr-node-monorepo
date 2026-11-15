@@ -2,12 +2,14 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	inject,
 	input,
 	type OnInit,
 	output,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { form, FormField, maxLength, validate } from "@angular/forms/signals";
 import { forkJoin, type Subscription } from "rxjs";
 
@@ -21,19 +23,15 @@ import {
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { adminErrorMessage } from "../../../core/utils/admin-error-message";
-import { ChipGroup } from "../../../shared/components/chip-group/chip-group";
-import { type ChipOption } from "../../../shared/components/chip-group/chip-group.model";
 import { FilterSection } from "../../../shared/components/filter-section/filter-section";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
-import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
-import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
 import {
 	UiAlert,
 	UiBadge,
 	UiButton,
+	UiChipGroup,
+	type UiChipOption,
 	UiDatePicker,
 	UiDialog,
 	UiEyebrow,
@@ -42,6 +40,10 @@ import {
 	UiFieldOptional,
 	UiIconButton,
 	UiInput,
+	UiOptionPicker,
+	type UiPickerOption,
+	UiSegmentedControl,
+	type UiSegmentedOption,
 	UiSwitch,
 	UiTextarea
 } from "../../../shared/ui";
@@ -49,13 +51,11 @@ import { FranchisesService } from "../../franchises/franchises";
 import { type Franchise } from "../../franchises/franchises.model";
 import { GamesService } from "../games";
 import {
-	type CompilationItemInput,
 	type CreateGameDto,
 	type ExternalGameDetail,
 	type UpdateGameDto
 } from "../games.model";
 import {
-	type CompilationRow,
 	type CompilationRowMode,
 	type ManualExternalSource
 } from "./admin-game-editor.model";
@@ -66,8 +66,9 @@ import {
 	normalizeHltbId,
 	normalizeMetacriticSlug
 } from "./external-id-input";
-
-const DIACRITICS = /\p{Diacritic}/gu;
+import { injectGameCompilation } from "./game-compilation";
+import { previewSlug } from "./game-slug-preview";
+import { injectGameSplit } from "./game-split";
 
 const CREATE_VARIANT_MISSING_MESSAGE =
 	"Another game already uses this external id. Set a variant label on this game (e.g. Collection) to tell them apart.";
@@ -79,7 +80,7 @@ const HLTB_ID_ERROR =
 const METACRITIC_SLUG_ERROR =
 	"Use lowercase letters, numbers and hyphens (e.g. the-witcher-3-wild-hunt) or paste the Metacritic game URL.";
 
-const LOOKUP_SOURCES: SegmentedOption<OnlineSearchSource>[] = [
+const LOOKUP_SOURCES: UiSegmentedOption<OnlineSearchSource>[] = [
 	{ value: "rawg", label: "RAWG" },
 	{ value: "igdb", label: "IGDB" }
 ];
@@ -94,12 +95,11 @@ const LOOKUP_SLUG_EXAMPLES: Record<OnlineSearchSource, string> = {
 	igdb: "hollow-knight"
 };
 
+const FRANCHISES_PAGE_SIZE = 100;
 const NOT_FOUND_STATUS = 404;
 const SERVICE_UNAVAILABLE_STATUS = 503;
 
-let nextCompilationRowId = 0;
-
-const COMPILATION_ROW_MODES: SegmentedOption<CompilationRowMode>[] = [
+const COMPILATION_ROW_MODES: UiSegmentedOption<CompilationRowMode>[] = [
 	{ value: "link", label: "Link existing", icon: "link" },
 	{ value: "create", label: "Create new", icon: "add_circle_outline" }
 ];
@@ -108,12 +108,12 @@ const COMPILATION_ROW_MODES: SegmentedOption<CompilationRowMode>[] = [
 	selector: "app-admin-game-editor",
 	imports: [
 		CatalogGamePicker,
-		ChipGroup,
+		UiChipGroup,
 		FilterSection,
 		FormField,
 		GamePoster,
-		OptionPicker,
-		SegmentedControl,
+		UiOptionPicker,
+		UiSegmentedControl,
 		SelectedGameRow,
 		UiAlert,
 		UiBadge,
@@ -144,6 +144,7 @@ export class AdminGameEditor implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly franchisesService = inject(FranchisesService);
 	private readonly toast = inject(ToastService);
+	private readonly destroyRef = inject(DestroyRef);
 
 	protected readonly allPlatforms = signal<Platform[]>([]);
 	protected readonly allGenres = signal<Genre[]>([]);
@@ -152,20 +153,20 @@ export class AdminGameEditor implements OnInit {
 	protected readonly compilationRowModes = COMPILATION_ROW_MODES;
 	protected readonly lookupSources = LOOKUP_SOURCES;
 
-	protected readonly platformOptions = computed<ChipOption[]>(() =>
+	protected readonly platformOptions = computed<UiChipOption[]>(() =>
 		this.allPlatforms().map(platform => ({
 			value: platform.code,
 			label: platform.abbreviation,
 			hint: platform.name
 		}))
 	);
-	protected readonly genreOptions = computed<ChipOption[]>(() =>
+	protected readonly genreOptions = computed<UiChipOption[]>(() =>
 		this.allGenres().map(genre => ({
 			value: genre.code,
 			label: genre.name
 		}))
 	);
-	protected readonly franchiseOptions = computed<PickerOption[]>(() => [
+	protected readonly franchiseOptions = computed<UiPickerOption[]>(() => [
 		{ value: "", label: "None", icon: "block" },
 		...this.allFranchises().map(franchise => ({
 			value: franchise.id,
@@ -305,38 +306,47 @@ export class AdminGameEditor implements OnInit {
 	protected readonly saving = signal(false);
 	protected readonly saveError = signal("");
 
-	protected readonly splitOpen = signal(false);
-	protected readonly splitting = signal(false);
-	protected readonly splitError = signal("");
-	protected readonly splitVariants = signal<
-		{ title: string; variant: string }[]
-	>([
-		{ title: "", variant: "" },
-		{ title: "", variant: "" }
-	]);
+	private readonly splitFlow = injectGameSplit(this.game, firstVariant =>
+		this.split.emit(firstVariant)
+	);
+	private readonly compilationFlow = injectGameCompilation(this.game, () =>
+		this.saved.emit()
+	);
+	protected readonly splitOpen = this.splitFlow.open;
+	protected readonly splitting = this.splitFlow.splitting;
+	protected readonly splitError = this.splitFlow.error;
+	protected readonly splitVariants = this.splitFlow.variants;
+	protected readonly openSplitModal = this.splitFlow.openModal;
+	protected readonly closeSplitModal = this.splitFlow.closeModal;
+	protected readonly addSplitVariant = this.splitFlow.addVariant;
+	protected readonly removeSplitVariant = this.splitFlow.removeVariant;
+	protected readonly updateSplitVariantTitle =
+		this.splitFlow.updateVariantTitle;
+	protected readonly updateSplitVariantLabel =
+		this.splitFlow.updateVariantLabel;
+	protected readonly submitSplit = this.splitFlow.submit;
 
-	protected readonly compilationOpen = signal(false);
-	protected readonly compilationSaving = signal(false);
-	protected readonly compilationClearing = signal(false);
-	protected readonly compilationError = signal("");
-	protected readonly compilationRows = signal<CompilationRow[]>([]);
-	protected readonly compilationExcludedIds = computed(() => {
-		const rows = this.compilationRows();
-		const ownId = this.game()?.id;
-		return new Map(
-			rows.map(row => [
-				row.id,
-				[
-					...(ownId ? [ownId] : []),
-					...rows
-						.filter(
-							other => other.id !== row.id && other.linkedGame
-						)
-						.map(other => other.linkedGame!.id)
-				]
-			])
-		);
-	});
+	protected readonly compilationOpen = this.compilationFlow.open;
+	protected readonly compilationSaving = this.compilationFlow.saving;
+	protected readonly compilationClearing = this.compilationFlow.clearing;
+	protected readonly compilationError = this.compilationFlow.error;
+	protected readonly compilationRows = this.compilationFlow.rows;
+	protected readonly compilationExcludedIds =
+		this.compilationFlow.excludedIds;
+	protected readonly openCompilationModal = this.compilationFlow.openModal;
+	protected readonly closeCompilationModal = this.compilationFlow.closeModal;
+	protected readonly addCompilationRow = this.compilationFlow.addRow;
+	protected readonly removeCompilationRow = this.compilationFlow.removeRow;
+	protected readonly setCompilationRowMode = this.compilationFlow.setRowMode;
+	protected readonly updateCompilationRowTitle =
+		this.compilationFlow.updateRowTitle;
+	protected readonly pickCompilationRowGame =
+		this.compilationFlow.pickRowGame;
+	protected readonly clearCompilationRowGame =
+		this.compilationFlow.clearRowGame;
+	protected readonly submitCompilation = this.compilationFlow.submit;
+	protected readonly clearCompilation = this.compilationFlow.clear;
+	protected readonly previewSlug = previewSlug;
 
 	protected readonly newScoreSource = signal("");
 	protected readonly newScoreValue = signal<number | null>(null);
@@ -380,12 +390,16 @@ export class AdminGameEditor implements OnInit {
 		forkJoin([
 			this.gamesService.getPlatforms(),
 			this.gamesService.getGenres(),
-			this.franchisesService.getFranchises({ limit: 100 })
-		]).subscribe(([platforms, genres, franchises]) => {
-			this.allPlatforms.set(platforms);
-			this.allGenres.set(genres);
-			this.allFranchises.set(franchises.franchises);
-		});
+			this.franchisesService.getFranchises({
+				limit: FRANCHISES_PAGE_SIZE
+			})
+		])
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe(([platforms, genres, franchises]) => {
+				this.allPlatforms.set(platforms);
+				this.allGenres.set(genres);
+				this.allFranchises.set(franchises.franchises);
+			});
 	}
 
 	private populateFromGame(g: Game) {
@@ -719,24 +733,27 @@ export class AdminGameEditor implements OnInit {
 		const externalIds = this.externalIdsToSend();
 		if (externalIds.length > 0) dto.externalIds = externalIds;
 
-		this.gamesService.createGame(dto).subscribe({
-			next: game => {
-				this.saving.set(false);
-				this.created.emit(game);
-			},
-			error: err => {
-				this.saving.set(false);
-				this.saveError.set(
-					isVariantRequiredError(err)
-						? createVariantRequiredMessage(variantValue)
-						: this.saveFailureMessage(
-								err,
-								"Rate limit reached. Game was NOT created. Try again in a moment.",
-								"Failed to create game."
-							)
-				);
-			}
-		});
+		this.gamesService
+			.createGame(dto)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: game => {
+					this.saving.set(false);
+					this.created.emit(game);
+				},
+				error: err => {
+					this.saving.set(false);
+					this.saveError.set(
+						isVariantRequiredError(err)
+							? createVariantRequiredMessage(variantValue)
+							: this.saveFailureMessage(
+									err,
+									"Rate limit reached. Game was NOT created. Try again in a moment.",
+									"Failed to create game."
+								)
+					);
+				}
+			});
 	}
 
 	private doUpdate() {
@@ -762,19 +779,22 @@ export class AdminGameEditor implements OnInit {
 		const externalIds = this.externalIdsToSend();
 		if (externalIds.length > 0) dto.externalIds = externalIds;
 
-		this.gamesService.updateGame(g.id, dto).subscribe({
-			next: () => this.saveScoresAndTimes(g.id),
-			error: err => {
-				this.saving.set(false);
-				this.saveError.set(
-					this.saveFailureMessage(
-						err,
-						"Rate limit reached. Changes were NOT saved. Try again in a moment.",
-						"Failed to update game."
-					)
-				);
-			}
-		});
+		this.gamesService
+			.updateGame(g.id, dto)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: () => this.saveScoresAndTimes(g.id),
+				error: err => {
+					this.saving.set(false);
+					this.saveError.set(
+						this.saveFailureMessage(
+							err,
+							"Rate limit reached. Changes were NOT saved. Try again in a moment.",
+							"Failed to update game."
+						)
+					);
+				}
+			});
 	}
 
 	private saveScoresAndTimes(gameId: string) {
@@ -812,28 +832,30 @@ export class AdminGameEditor implements OnInit {
 			return;
 		}
 
-		forkJoin(requests).subscribe({
-			next: () => {
-				this.saving.set(false);
-				this.toast.success("Game saved.");
-				this.saved.emit();
-			},
-			error: err => {
-				this.saving.set(false);
-				if (err.status === 429) {
-					this.saveError.set(
-						"Game info saved but scores/times hit the rate limit. Reopen the editor and try those again."
-					);
-				} else {
-					const reason = adminErrorMessage(err);
-					this.saveError.set(
-						reason
-							? `Game info saved, but scores/times were not: ${reason}`
-							: "Game updated but some scores/times failed to save."
-					);
+		forkJoin(requests)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: () => {
+					this.saving.set(false);
+					this.toast.success("Game saved.");
+					this.saved.emit();
+				},
+				error: err => {
+					this.saving.set(false);
+					if (err.status === 429) {
+						this.saveError.set(
+							"Game info saved but scores/times hit the rate limit. Reopen the editor and try those again."
+						);
+					} else {
+						const reason = adminErrorMessage(err);
+						this.saveError.set(
+							reason
+								? `Game info saved, but scores/times were not: ${reason}`
+								: "Game updated but some scores/times failed to save."
+						);
+					}
 				}
-			}
-		});
+			});
 	}
 
 	private scoresChanged(original: { source: string; score: number }[]) {
@@ -854,340 +876,21 @@ export class AdminGameEditor implements OnInit {
 		return current.some(t => originalBySource.get(t.source) !== t.duration);
 	}
 
-	openSplitModal() {
-		const g = this.game();
-		if (!g || this.splitOpen()) return;
-		this.splitError.set("");
-		this.splitVariants.set([
-			{ title: g.title, variant: g.variant ?? "" },
-			{ title: "", variant: "" }
-		]);
-		this.splitOpen.set(true);
-	}
-
-	closeSplitModal() {
-		if (this.splitting()) return;
-		this.splitOpen.set(false);
-	}
-
-	addSplitVariant() {
-		if (this.splitVariants().length >= 10) return;
-		this.splitError.set("");
-		this.splitVariants.update(arr => [...arr, { title: "", variant: "" }]);
-	}
-
-	removeSplitVariant(index: number) {
-		if (this.splitVariants().length <= 2) return;
-		this.splitError.set("");
-		this.splitVariants.update(arr => arr.filter((_, i) => i !== index));
-	}
-
-	updateSplitVariantTitle(index: number, value: string) {
-		this.splitError.set("");
-		this.splitVariants.update(arr =>
-			arr.map((v, i) => (i === index ? { ...v, title: value } : v))
-		);
-	}
-
-	updateSplitVariantLabel(index: number, value: string) {
-		this.splitError.set("");
-		this.splitVariants.update(arr =>
-			arr.map((v, i) => (i === index ? { ...v, variant: value } : v))
-		);
-	}
-
-	submitSplit() {
-		const g = this.game();
-		if (!g) return;
-		const cleaned = this.splitVariants().map(v => ({
-			title: v.title.trim(),
-			variant: v.variant.trim()
-		}));
-		if (cleaned.some(v => !v.title || !v.variant)) {
-			this.splitError.set(
-				"All variants need a title and a variant label."
-			);
-			return;
+	protected readonly availableScoreSources = computed<UiPickerOption[]>(
+		() => {
+			const used = new Set(this.scores().map(s => s.source));
+			return this.scoreSourcesService
+				.manualSources()
+				.filter(source => !used.has(source.code))
+				.map(source => ({
+					value: source.code,
+					label: source.code,
+					icon: "star_outline"
+				}));
 		}
-		if (cleaned.some(v => !this.previewSlug(v.title))) {
-			this.splitError.set(
-				"Variant titles need letters or numbers to build a slug."
-			);
-			return;
-		}
-		const titles = new Set(cleaned.map(v => this.previewSlug(v.title)));
-		if (titles.size !== cleaned.length) {
-			this.splitError.set("Variant titles must be unique.");
-			return;
-		}
-		const labels = new Set(cleaned.map(v => v.variant.toLowerCase()));
-		if (labels.size !== cleaned.length) {
-			this.splitError.set("Variant labels must be unique.");
-			return;
-		}
+	);
 
-		this.splitting.set(true);
-		this.splitError.set("");
-
-		this.gamesService.splitGame(g.id, { variants: cleaned }).subscribe({
-			next: games => {
-				this.splitting.set(false);
-				this.splitOpen.set(false);
-				if (games.length > 0) {
-					this.toast.success(`Split into ${games.length} variants.`);
-					this.split.emit(games[0]);
-				}
-			},
-			error: err => {
-				this.splitting.set(false);
-				if (err.status === 429) {
-					this.splitError.set(
-						"Rate limit reached. Split was NOT applied. Try again in a moment."
-					);
-				} else if (err?.error?.type === "GAME_UNIQUE_CONSTRAINT") {
-					this.splitError.set(
-						"A target title produces a slug already used by another game, possibly an inactive one. Use unique titles."
-					);
-				} else if (err?.error?.type === "GAME_SPLIT_INVALID") {
-					this.splitError.set("Invalid split request.");
-				} else {
-					this.splitError.set("Failed to split the game.");
-				}
-			}
-		});
-	}
-
-	openCompilationModal() {
-		const g = this.game();
-		if (!g || this.compilationOpen()) return;
-		this.compilationError.set("");
-		const existing = (g.compilationItems ?? [])
-			.filter(item => item.game)
-			.map(item => ({
-				...this.makeEmptyCompilationRow("link"),
-				linkedGame: {
-					id: item.game!.id,
-					title: item.game!.title,
-					code: item.game!.code,
-					backgroundUrl: item.game!.backgroundUrl
-				} as Game
-			}));
-		this.compilationRows.set(
-			existing.length > 0
-				? existing
-				: [
-						this.makeEmptyCompilationRow("link"),
-						this.makeEmptyCompilationRow("link")
-					]
-		);
-		this.compilationOpen.set(true);
-	}
-
-	closeCompilationModal() {
-		if (this.compilationSaving() || this.compilationClearing()) return;
-		this.compilationOpen.set(false);
-	}
-
-	private makeEmptyCompilationRow(mode: CompilationRowMode): CompilationRow {
-		return {
-			id: `compilation-row-${nextCompilationRowId++}`,
-			mode,
-			title: "",
-			linkedGame: null,
-			focus: null
-		};
-	}
-
-	private patchCompilationRow(rowId: string, patch: Partial<CompilationRow>) {
-		this.compilationRows.update(rows =>
-			rows.map(r => (r.id === rowId ? { ...r, ...patch } : r))
-		);
-	}
-
-	addCompilationRow() {
-		if (this.compilationRows().length >= 50) return;
-		this.compilationError.set("");
-		this.compilationRows.update(rows => [
-			...rows,
-			this.makeEmptyCompilationRow("link")
-		]);
-	}
-
-	removeCompilationRow(index: number) {
-		const row = this.compilationRows()[index];
-		if (!row || this.compilationRows().length <= 1) return;
-		this.compilationError.set("");
-		this.compilationRows.update(rows => rows.filter(r => r.id !== row.id));
-	}
-
-	setCompilationRowMode(index: number, mode: CompilationRowMode) {
-		const row = this.compilationRows()[index];
-		if (!row || row.mode === mode) return;
-		this.compilationError.set("");
-		this.patchCompilationRow(row.id, {
-			mode,
-			title: "",
-			linkedGame: null,
-			focus: null
-		});
-	}
-
-	updateCompilationRowTitle(index: number, value: string) {
-		const row = this.compilationRows()[index];
-		if (!row) return;
-		this.compilationError.set("");
-		this.patchCompilationRow(row.id, { title: value });
-	}
-
-	pickCompilationRowGame(index: number, picked: Game) {
-		const row = this.compilationRows()[index];
-		if (!row || row.mode !== "link") return;
-		this.compilationError.set("");
-		this.patchCompilationRow(row.id, {
-			linkedGame: picked,
-			focus: "selected"
-		});
-	}
-
-	clearCompilationRowGame(index: number) {
-		const row = this.compilationRows()[index];
-		if (!row) return;
-		this.compilationError.set("");
-		this.patchCompilationRow(row.id, { linkedGame: null, focus: "search" });
-	}
-
-	previewSlug(title: string): string {
-		return title
-			.normalize("NFD")
-			.replace(DIACRITICS, "")
-			.toLowerCase()
-			.trim()
-			.replace(/[^a-z0-9]+/g, "-")
-			.replace(/^-+|-+$/g, "");
-	}
-
-	submitCompilation() {
-		const g = this.game();
-		if (!g) return;
-		const rows = this.compilationRows();
-		const items: CompilationItemInput[] = [];
-		for (const row of rows) {
-			if (row.mode === "link") {
-				if (!row.linkedGame) {
-					this.compilationError.set(
-						"All linked rows must have a selected game."
-					);
-					return;
-				}
-				if (row.linkedGame.id === g.id) {
-					this.compilationError.set(
-						"A compilation can't contain itself."
-					);
-					return;
-				}
-				items.push({ mode: "link", gameId: row.linkedGame.id });
-			} else {
-				const title = row.title.trim();
-				if (!title) {
-					this.compilationError.set(
-						"All create rows must have a title."
-					);
-					return;
-				}
-				if (!this.previewSlug(title)) {
-					this.compilationError.set(
-						"Created titles need letters or numbers to build a slug."
-					);
-					return;
-				}
-				items.push({ mode: "create", title });
-			}
-		}
-		const linkedIds = items
-			.filter(i => i.mode === "link")
-			.map(i => (i as { gameId: string }).gameId);
-		if (new Set(linkedIds).size !== linkedIds.length) {
-			this.compilationError.set("Linked games must be unique.");
-			return;
-		}
-		const createSlugs = items
-			.filter(i => i.mode === "create")
-			.map(i => this.previewSlug((i as { title: string }).title));
-		if (new Set(createSlugs).size !== createSlugs.length) {
-			this.compilationError.set(
-				"Created titles must produce unique slugs."
-			);
-			return;
-		}
-
-		this.compilationSaving.set(true);
-		this.compilationError.set("");
-
-		this.gamesService.setCompilationItems(g.id, { items }).subscribe({
-			next: () => {
-				this.compilationSaving.set(false);
-				this.compilationOpen.set(false);
-				this.toast.success("Compilation saved.");
-				this.saved.emit();
-			},
-			error: err => {
-				this.compilationSaving.set(false);
-				if (err.status === 429) {
-					this.compilationError.set(
-						"Rate limit reached. Compilation was NOT saved. Try again in a moment."
-					);
-				} else if (err?.error?.type === "GAME_UNIQUE_CONSTRAINT") {
-					this.compilationError.set(
-						"A new title collides with an existing game code."
-					);
-				} else if (err?.error?.type === "GAME_COMPILATION_INVALID") {
-					this.compilationError.set(
-						"Invalid compilation: duplicates or self-reference."
-					);
-				} else if (err?.error?.type === "GAME_NOT_FOUND") {
-					this.compilationError.set(
-						"Parent or a linked game not found."
-					);
-				} else {
-					this.compilationError.set("Failed to save compilation.");
-				}
-			}
-		});
-	}
-
-	clearCompilation() {
-		const g = this.game();
-		if (!g) return;
-		if (this.compilationClearing()) return;
-		this.compilationClearing.set(true);
-		this.compilationError.set("");
-		this.gamesService.clearCompilation(g.id).subscribe({
-			next: () => {
-				this.compilationClearing.set(false);
-				this.compilationOpen.set(false);
-				this.toast.success("Compilation cleared.");
-				this.saved.emit();
-			},
-			error: () => {
-				this.compilationClearing.set(false);
-				this.compilationError.set("Failed to clear compilation.");
-			}
-		});
-	}
-
-	protected readonly availableScoreSources = computed<PickerOption[]>(() => {
-		const used = new Set(this.scores().map(s => s.source));
-		return this.scoreSourcesService
-			.manualSources()
-			.filter(source => !used.has(source.code))
-			.map(source => ({
-				value: source.code,
-				label: source.code,
-				icon: "star_outline"
-			}));
-	});
-
-	protected readonly availableTimeSources = computed<PickerOption[]>(() => {
+	protected readonly availableTimeSources = computed<UiPickerOption[]>(() => {
 		const used = new Set(this.times().map(t => t.source));
 		return this.timeSources
 			.filter(source => !used.has(source))

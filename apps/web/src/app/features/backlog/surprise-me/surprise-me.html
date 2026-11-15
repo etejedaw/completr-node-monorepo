@@ -67,7 +67,7 @@
 			<div class="relative -mt-14 flex items-end gap-3 px-3">
 				<app-game-poster
 					framed
-					class="w-20 shrink-0 aspect-[2/3] rounded-card shadow-[0_12px_30px_-10px_rgba(0,0,0,0.8)]"
+					class="w-20 shrink-0 aspect-[2/3] rounded-card shadow-card"
 					[src]="entry.game.backgroundUrl"
 					[title]="entry.game.title"
 					[width]="420"
@@ -82,7 +82,7 @@
 						class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-secondary"
 					>
 						<span
-							class="px-1.5 py-0.5 rounded bg-input-bg text-fg-secondary text-[0.6875rem] font-semibold tracking-wide"
+							class="px-1.5 py-0.5 rounded bg-input-bg text-fg-secondary text-caption font-semibold tracking-wide"
 							>{{ entry.platform.abbreviation }}</span
 						>
 						@if (entry.duration) {

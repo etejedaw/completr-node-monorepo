@@ -4,8 +4,12 @@ import type { StringValue } from "ms";
 import { literal, Op } from "sequelize";
 
 import { environmentConfig } from "../../common/config/environment.config";
+import { MS_PER_MINUTE } from "../../common/constants/time.constants";
 import { type JwtPayload } from "../../common/interfaces/jwt-payload.interface";
+import { hashOneTimeToken } from "../../common/utils/one-time-token.util";
 import { RefreshToken } from "../refresh-token.model";
+
+const REFRESH_TOKEN_BYTES = 64;
 
 export function signAccessToken(payload: JwtPayload) {
 	return jwt.sign(payload, environmentConfig.ACCESS_TOKEN_SECRET, {
@@ -24,8 +28,8 @@ export async function createRefreshToken(
 	userId: string,
 	deviceInfo?: string
 ): Promise<{ rawToken: string; sessionId: string }> {
-	const rawToken = crypto.randomBytes(64).toString("hex");
-	const hashedToken = hashToken(rawToken);
+	const rawToken = crypto.randomBytes(REFRESH_TOKEN_BYTES).toString("hex");
+	const tokenHash = hashOneTimeToken(rawToken);
 
 	const expiresAt = new Date();
 	expiresAt.setDate(
@@ -34,7 +38,7 @@ export async function createRefreshToken(
 
 	const created = await RefreshToken.create({
 		userId,
-		token: hashedToken,
+		token: tokenHash,
 		expiresAt,
 		deviceInfo: deviceInfo ?? null,
 		lastUsedAt: new Date()
@@ -46,10 +50,8 @@ export async function createRefreshToken(
 export async function verifyRefreshToken(
 	rawToken: string
 ): Promise<RefreshToken | null> {
-	const hashedToken = hashToken(rawToken);
-
 	const refreshToken = await RefreshToken.findOne({
-		where: { token: hashedToken }
+		where: { token: hashOneTimeToken(rawToken) }
 	});
 
 	if (!refreshToken) return null;
@@ -62,12 +64,20 @@ export async function verifyRefreshToken(
 }
 
 const lastUsedUpdateCache = new Map<string, number>();
-const LAST_USED_THROTTLE_MS = 60_000;
+const LAST_USED_THROTTLE_MS = MS_PER_MINUTE;
+
+function forgetStaleLastUsedEntries(now: number) {
+	for (const [sessionId, updatedAt] of lastUsedUpdateCache) {
+		if (now - updatedAt >= LAST_USED_THROTTLE_MS)
+			lastUsedUpdateCache.delete(sessionId);
+	}
+}
 
 export async function touchSessionLastUsed(sessionId: string): Promise<void> {
 	const now = Date.now();
 	const lastUpdate = lastUsedUpdateCache.get(sessionId);
 	if (lastUpdate && now - lastUpdate < LAST_USED_THROTTLE_MS) return;
+	forgetStaleLastUsedEntries(now);
 	lastUsedUpdateCache.set(sessionId, now);
 	await RefreshToken.update(
 		{ lastUsedAt: new Date() },
@@ -81,7 +91,7 @@ export async function findUserSessions(
 ) {
 	const { rows, count } = await RefreshToken.findAndCountAll({
 		where: { userId },
-		order: literal('"lastUsedAt" DESC NULLS LAST'),
+		order: [literal('"lastUsedAt" DESC NULLS LAST'), ["id", "DESC"]],
 		attributes: [
 			"id",
 			"deviceInfo",
@@ -112,17 +122,15 @@ export async function deleteRefreshTokenById(
 	return deleted > 0;
 }
 
-export async function deleteRefreshToken(rawToken: string): Promise<void> {
-	const hashedToken = hashToken(rawToken);
-	await RefreshToken.destroy({ where: { token: hashedToken } });
+export async function deleteRefreshToken(rawToken: string): Promise<boolean> {
+	const deleted = await RefreshToken.destroy({
+		where: { token: hashOneTimeToken(rawToken) }
+	});
+	return deleted > 0;
 }
 
 export async function deleteAllUserRefreshTokens(
 	userId: string
 ): Promise<void> {
 	await RefreshToken.destroy({ where: { userId } });
-}
-
-function hashToken(token: string): string {
-	return crypto.createHash("sha256").update(token).digest("hex");
 }

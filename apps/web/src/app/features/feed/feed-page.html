@@ -10,7 +10,7 @@
 <app-library-toolbar *appPremiumOnly="'activity.feed-filters'">
 	<div class="w-full max-w-3xl mx-auto">
 		<div class="md:hidden flex items-center gap-2">
-			<app-option-picker
+			<ui-option-picker
 				class="flex-1"
 				label="Show"
 				heading="Show in your feed"
@@ -27,7 +27,7 @@
 			/>
 		</div>
 		<div class="max-md:hidden flex items-center gap-2">
-			<app-option-picker
+			<ui-option-picker
 				variant="compact"
 				label="Show"
 				heading="Show in your feed"
@@ -129,6 +129,16 @@
 			}
 		</div>
 	</div>
+	} @else if (loadFailed()) {
+	<ui-plain-empty-state
+		icon="cloud_off"
+		title="Couldn't load your feed"
+		message="Check your connection and try again."
+	>
+		<button uiButton variant="secondary" (click)="retry()">
+			Try again
+		</button>
+	</ui-plain-empty-state>
 	} @else if (activities().length === 0) {
 	<ui-plain-empty-state
 		icon="dynamic_feed"

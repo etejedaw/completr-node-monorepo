@@ -2,10 +2,12 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { RouterLink } from "@angular/router";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
@@ -14,8 +16,6 @@ import { ToastService } from "../../../core/services/toast";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
@@ -28,12 +28,19 @@ import {
 	UiFieldOptional,
 	UiInput,
 	UiNoMatches,
+	UiOptionPicker,
 	UiPagination,
+	type UiPickerOption,
 	UiPremiumBadge,
 	UiSkeleton,
+	UiSwatchButton,
 	UiSwitch,
 	UiTextarea
 } from "../../../shared/ui";
+import {
+	isNotFound,
+	reportHttpFailure
+} from "../../../shared/utils/http-failure";
 import { injectLibraryPosters } from "../library-posters";
 import {
 	SAVED_FILTER_COLORS,
@@ -58,7 +65,7 @@ function isFeatured(view: SavedFilter): boolean {
 	return view.isDefault || view.showInBacklog;
 }
 
-const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: SortMode })[] = [
+const SORT_PICKER_OPTIONS: readonly (UiPickerOption & { value: SortMode })[] = [
 	{ value: "name_asc", label: "Name (A–Z)", icon: "sort_by_alpha" },
 	{ value: "name_desc", label: "Name (Z–A)", icon: "sort_by_alpha" },
 	{ value: "created_desc", label: "Recently created", icon: "schedule" },
@@ -76,12 +83,13 @@ const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: SortMode })[] = [
 		RouterLink,
 		LibraryHero,
 		LibraryToolbar,
-		OptionPicker,
+		UiOptionPicker,
 		SavedViewCard,
 		UiButton,
 		UiEmptyState,
 		UiEyebrow,
 		UiNoMatches,
+		UiSwatchButton,
 		UiPagination,
 		UiPremiumBadge,
 		UiSkeleton,
@@ -97,14 +105,15 @@ const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: SortMode })[] = [
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SavedFiltersView implements OnInit {
+	private readonly destroyRef = inject(DestroyRef);
 	private readonly savedFiltersService = inject(SavedFiltersService);
 	private readonly toast = inject(ToastService);
 	private readonly authService = inject(AuthService);
 
-	protected readonly isPremium = this.authService.isPremium;
 	protected readonly filters = signal<SavedFilter[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
+	protected readonly isPremium = this.authService.isPremium;
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
@@ -115,7 +124,7 @@ export class SavedFiltersView implements OnInit {
 	protected readonly frozen = signal(false);
 	protected readonly sortMode = signal<SortMode>("name_asc");
 
-	onOffsetChange(offset: number) {
+	protected onOffsetChange(offset: number) {
 		this.offset.set(offset);
 		this.loadFilters();
 	}
@@ -161,7 +170,7 @@ export class SavedFiltersView implements OnInit {
 
 	private readonly searchSubject = new Subject<string>();
 
-	onSearch(query: string) {
+	protected onSearch(query: string) {
 		this.searchQuery.set(query);
 		this.searchSubject.next(query);
 	}
@@ -187,7 +196,11 @@ export class SavedFiltersView implements OnInit {
 
 	ngOnInit() {
 		this.searchSubject
-			.pipe(debounceTime(300), distinctUntilChanged())
+			.pipe(
+				debounceTime(300),
+				distinctUntilChanged(),
+				takeUntilDestroyed(this.destroyRef)
+			)
 			.subscribe(() => {
 				this.offset.set(0);
 				this.loadFilters();
@@ -212,11 +225,18 @@ export class SavedFiltersView implements OnInit {
 					this.frozen.set(res.data.frozen ?? false);
 					this.isLoading.set(false);
 				},
-				error: () => this.isLoading.set(false)
+				error: (error: unknown) => {
+					this.isLoading.set(false);
+					reportHttpFailure(
+						this.toast,
+						error,
+						"Couldn't load your views. Try again."
+					);
+				}
 			});
 	}
 
-	shareFilter(filter: SavedFilter) {
+	protected shareFilter(filter: SavedFilter) {
 		const username = this.authService.user()?.username;
 		if (!username) return;
 
@@ -246,18 +266,18 @@ export class SavedFiltersView implements OnInit {
 		);
 	}
 
-	openDuplicate(filter: SavedFilter) {
+	protected openDuplicate(filter: SavedFilter) {
 		this.duplicatingFilter.set(filter);
 		this.duplicateName.set(`${filter.name} (copy)`);
 		this.showDuplicateModal.set(true);
 	}
 
-	closeDuplicateModal() {
+	protected closeDuplicateModal() {
 		this.showDuplicateModal.set(false);
 		this.duplicatingFilter.set(null);
 	}
 
-	confirmDuplicate() {
+	protected confirmDuplicate() {
 		const filter = this.duplicatingFilter();
 		const name = this.duplicateName().trim();
 		if (!filter || !name) return;
@@ -280,13 +300,17 @@ export class SavedFiltersView implements OnInit {
 					this.duplicatingFilter.set(null);
 					this.loadFilters();
 				},
-				error: () => {
+				error: (error: unknown) => {
 					this.duplicating.set(false);
+					this.handleWriteFailure(
+						error,
+						"Couldn't duplicate this view."
+					);
 				}
 			});
 	}
 
-	openEdit(filter: SavedFilter) {
+	protected openEdit(filter: SavedFilter) {
 		this.editingFilter.set(filter);
 		this.editName.set(filter.name);
 		this.editDescription.set(filter.description ?? "");
@@ -297,12 +321,12 @@ export class SavedFiltersView implements OnInit {
 		this.showModal.set(true);
 	}
 
-	closeModal() {
+	protected closeModal() {
 		this.showModal.set(false);
 		this.editingFilter.set(null);
 	}
 
-	saveEdit() {
+	protected saveEdit() {
 		const filter = this.editingFilter();
 		if (!filter) return;
 
@@ -323,13 +347,14 @@ export class SavedFiltersView implements OnInit {
 					this.editingFilter.set(null);
 					this.loadFilters();
 				},
-				error: () => {
+				error: (error: unknown) => {
 					this.saving.set(false);
+					this.handleWriteFailure(error, "Couldn't save this view.");
 				}
 			});
 	}
 
-	deleteFilter() {
+	protected deleteFilter() {
 		const filter = this.editingFilter();
 		if (!filter) return;
 
@@ -341,7 +366,23 @@ export class SavedFiltersView implements OnInit {
 				this.editingFilter.set(null);
 				this.loadFilters();
 			},
-			error: () => this.deleting.set(false)
+			error: (error: unknown) => {
+				this.deleting.set(false);
+				this.handleWriteFailure(error, "Couldn't delete this view.");
+			}
 		});
+	}
+
+	private handleWriteFailure(error: unknown, message: string) {
+		if (isNotFound(error)) {
+			this.toast.error("This view no longer exists.");
+			this.showModal.set(false);
+			this.showDuplicateModal.set(false);
+			this.editingFilter.set(null);
+			this.duplicatingFilter.set(null);
+			this.loadFilters();
+			return;
+		}
+		reportHttpFailure(this.toast, error, message);
 	}
 }

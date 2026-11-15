@@ -12,6 +12,7 @@ import {
 import { ActivatedRoute, RouterLink } from "@angular/router";
 
 import { environment } from "../../../environments/environment";
+import { isSourceUnavailable } from "../../core/utils/problem-details";
 import { InfoPageLinks } from "../../shared/components/info-page-links/info-page-links";
 import { LibraryHero } from "../../shared/components/library-hero/library-hero";
 import {
@@ -77,6 +78,9 @@ export class WhatsNewPage {
 		() => `${environment.apiUrl}/changelog`
 	);
 
+	protected readonly sourceUnavailable = computed(() =>
+		isSourceUnavailable(this.changelog.error())
+	);
 	protected readonly releases = computed(() =>
 		this.changelog.hasValue()
 			? toReleaseViews(this.changelog.value().releases)
@@ -142,9 +146,7 @@ export class WhatsNewPage {
 		});
 	}
 
-	protected monthAnchor(month: string): string {
-		return monthAnchor(month);
-	}
+	protected readonly monthAnchor = monthAnchor;
 
 	private revealRelease(anchor: string): boolean {
 		const index = this.older().findIndex(r => r.anchor === anchor);

@@ -46,7 +46,7 @@
 			@for (group of sourceGroups(); track group.field) {
 			<fieldset class="m-0 mb-4 p-0 border-0 min-w-0">
 				<legend uiFieldLabel>{{ group.label }}</legend>
-				<app-chip-group
+				<ui-chip-group
 					mode="single"
 					[allowEmpty]="false"
 					[label]="group.label"
@@ -68,7 +68,7 @@
 			>
 			<span class="flex-1 min-w-0">
 				<span class="block text-sm text-fg">Public list</span>
-				<span class="block text-[0.6875rem] text-fg-muted"
+				<span class="block text-caption text-fg-muted"
 					>{{ form.isPublic().value() ? 'Anyone can find, follow and
 					duplicate it.' : 'Only you can see it.' }}</span
 				>

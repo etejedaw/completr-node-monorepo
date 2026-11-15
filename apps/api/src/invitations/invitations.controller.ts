@@ -1,12 +1,14 @@
 import { type Request, type Response } from "express";
 
+import { AUDIT_ACTIONS, AUDIT_TARGET_TYPES } from "../audit/audit.constants";
 import * as auditService from "../audit/audit.service";
+import { authTokensSerializer } from "../auth/auth.serializer";
 import * as authService from "../auth/auth.service";
 import { getDeviceInfo } from "../auth/utils/device-info.util";
 import { setRefreshCookie } from "../auth/utils/refresh-cookie.util";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { buildUserMe } from "../users";
 import * as usersService from "../users/users.service";
+import { buildUserMe } from "../users/users-me.service";
 import { type AcceptInvitationDto } from "./dtos/accept-invitation.dto";
 import { type CreateInvitationDto } from "./dtos/create-invitation.dto";
 import * as invitationsDomainError from "./errors/invitations.domain-error";
@@ -23,7 +25,12 @@ export async function postInvitation(request: Request, response: Response) {
 		throw invitationsDomainError.invitationEmailRegistered();
 
 	const invitation = await invitationsService.inviteUser(email, admin.id);
-	auditService.record(admin.id, "user_invited", "invitation", invitation.id);
+	auditService.record(
+		admin.id,
+		AUDIT_ACTIONS.userInvited,
+		AUDIT_TARGET_TYPES.invitation,
+		invitation.id
+	);
 
 	const data = { invitation: invitationSerializer(invitation) };
 	return response.status(201).json({ data });
@@ -45,8 +52,8 @@ export async function deleteInvitation(request: Request, response: Response) {
 
 	auditService.record(
 		admin.id,
-		"invitation_revoked",
-		"invitation",
+		AUDIT_ACTIONS.invitationRevoked,
+		AUDIT_TARGET_TYPES.invitation,
 		invitationId
 	);
 
@@ -75,22 +82,21 @@ export async function postAcceptInvitation(
 	const { token, username, name, password } = request.locals
 		.body as AcceptInvitationDto;
 
-	const invitation = await invitationsService.findUsableInvitation(token);
-	if (!invitation) throw invitationsDomainError.invitationInvalidToken();
-
-	const registration = await authService.register(
-		{ username, name, password, email: invitation.email },
-		getDeviceInfo(request)
+	const registration = await invitationsService.acceptInvitation(
+		token,
+		email =>
+			authService.register(
+				{ username, name, password, email },
+				getDeviceInfo(request)
+			)
 	);
-	await invitationsService.deleteInvitation(invitation.id);
 
 	setRefreshCookie(response, registration.refreshToken);
 
 	const userPlain = registration.user.get({ plain: true });
 	const data = {
 		user: await buildUserMe(userPlain),
-		access_token: registration.accessToken,
-		session_id: registration.sessionId
+		...authTokensSerializer(registration)
 	};
 	return response.status(201).json({ data });
 }

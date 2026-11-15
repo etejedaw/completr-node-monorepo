@@ -1,0 +1,62 @@
+info:
+    name: Get Audit Log
+    type: http
+    seq: 1
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/admin/audit?limit=50&offset=0"
+
+settings:
+    encodeUrl: true
+
+auth:
+    type: bearer
+    token: "{{TOKEN}}"
+
+docs: |-
+    ## Get Audit Log
+
+    Lists the actions admins and moderators performed, from newest to oldest (`createdAt` descending, `id` as tiebreaker). Each entry resolves its target (a game or a user) to a readable label.
+
+    **Auth:** Bearer token, admin only (other roles get 404).
+    **Rate Limit:** 300 requests per minute (user limiter).
+
+    ### Query Parameters
+
+    | Param      | Type   | Required | Description                                  |
+    |------------|--------|----------|----------------------------------------------|
+    | limit      | number | No       | Page size (1-100, default 50).               |
+    | offset     | number | No       | Rows to skip (default 0).                    |
+    | action     | string | No       | Exact action, for example `user_deleted`.    |
+    | targetType | string | No       | Exact target type, for example `user`.       |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "logs": [
+          {
+            "id": "uuid",
+            "user": { "id": "uuid", "username": "admin", "name": "Admin" },
+            "action": "user_edited",
+            "targetType": "user",
+            "targetId": "uuid",
+            "target": { "type": "user", "id": "uuid", "label": "John Doe", "username": "johndoe" },
+            "createdAt": "2026-01-01T00:00:00.000Z"
+          }
+        ],
+        "total": 1
+      }
+    }
+    ```
+
+    `user` is `null` when the author was deleted. For targets that are not a game or a user, `target.label` is the target id.
+
+    ### Errors
+
+    | Status | Type                  | When                           |
+    |--------|-----------------------|--------------------------------|
+    | 404    | AUTH_ROUTE_NOT_FOUND  | Caller is not an admin         |
+    | 422    | COMMON_SCHEMA_INVALID | Invalid query parameters       |

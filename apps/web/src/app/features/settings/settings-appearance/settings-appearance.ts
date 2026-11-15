@@ -55,11 +55,11 @@ export class SettingsAppearance implements OnInit {
 		});
 	}
 
-	canUse(theme: ThemeOption): boolean {
+	protected canUse(theme: ThemeOption): boolean {
 		return theme.tier === "free" || this.canUsePremiumThemes();
 	}
 
-	select(theme: ThemeOption) {
+	protected select(theme: ThemeOption) {
 		if (!this.canUse(theme)) return;
 		if (this.current() === theme.id) return;
 		if (this.saving()) return;

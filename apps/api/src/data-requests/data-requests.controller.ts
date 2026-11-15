@@ -29,10 +29,7 @@ export async function postDataRequest(request: Request, response: Response) {
 		requester.id,
 		type
 	);
-	await dataRequestMailService.notifyAdminOfNewRequest(
-		dataRequest,
-		requester
-	);
+	void dataRequestMailService.notifyAdminOfNewRequest(dataRequest, requester);
 
 	const data = { request: dataRequestSerializer(dataRequest) };
 	return response.status(201).json({ data });

@@ -1,0 +1,63 @@
+<section
+	id="collection"
+	aria-labelledby="collection-title"
+	class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
+	appInView
+	inViewRootMargin="-30% 0px -65% 0px"
+	(inViewChange)="scrollSpy().onSectionInView('collection', $event)"
+>
+	<span uiEyebrow tone="brand">05 · Collection</span>
+	<h2
+		id="collection-title"
+		class="font-display m-0 mt-1 text-2xl sm:text-3xl font-bold tracking-tight"
+	>
+		Everything around My Games
+	</h2>
+	<p
+		class="m-0 mt-4 max-w-[68ch] text-lead leading-relaxed text-fg-secondary"
+	>
+		My Games holds your runs. These spaces keep the rest of your gaming life
+		in order:
+	</p>
+	<ul class="m-0 mt-6 p-0 list-none grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+		@for (entry of collection; track entry.route) {
+		<li>
+			<a
+				[routerLink]="entry.route"
+				class="group flex flex-col gap-2 h-full p-4 rounded-card border border-line bg-surface/40 no-underline transition-colors hover:border-line-hover hover:bg-surface focus-visible:outline-2 focus-visible:outline-brand"
+			>
+				<span class="flex items-center gap-2.5">
+					<span
+						aria-hidden="true"
+						class="material-icons flex items-center justify-center w-9 h-9 rounded-full bg-input-bg text-[1.125rem]"
+						[class]="entry.nav?.iconColorClass ?? 'text-brand'"
+						>{{ entry.nav?.icon }}</span
+					>
+					<span class="flex-1 text-sm font-semibold text-fg"
+						>{{ entry.nav?.label }}</span
+					>
+					<span
+						aria-hidden="true"
+						class="material-icons text-base text-fg-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand"
+						>arrow_forward</span
+					>
+				</span>
+				<span class="text-compact text-fg-secondary leading-relaxed"
+					>{{ entry.text }}</span
+				>
+			</a>
+		</li>
+		}
+	</ul>
+	<p
+		class="m-0 mt-4 flex items-start gap-2 max-w-[68ch] text-sm text-fg-muted leading-relaxed"
+	>
+		<span aria-hidden="true" class="material-icons text-base text-brand"
+			>download</span
+		>
+		My Games, Up Next, My Shelf, Want to Get, Favorites and Platinums can be
+		downloaded as CSV from the Export menu at the end of their toolbar, and
+		your own lists from their ⋯ menu. The file follows the filters, search
+		and sort you have active. JSON is a Premium perk.
+	</p>
+</section>

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
-import * as premiumAccessService from "../../../src/premium-access/premium-access.service";
+import * as premiumAccessService from "../../../src/premium-access/services/premium-access.service";
 import { THEME_CATALOG } from "../../../src/users/constants/theme.constants";
 import {
 	canUseTheme,

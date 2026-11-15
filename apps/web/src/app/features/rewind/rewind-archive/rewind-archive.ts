@@ -65,6 +65,12 @@ export class RewindArchive {
 		return username === this.username() ? premiumAccess : null;
 	});
 
+	protected readonly period = computed(() => {
+		if (!this.archive.hasValue()) return null;
+		const { username, period } = this.archive.value();
+		return username === this.username() ? period : null;
+	});
+
 	protected readonly loadError = computed(() =>
 		rewindLoadError(this.archive.error())
 	);

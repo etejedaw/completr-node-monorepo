@@ -19,15 +19,7 @@ function monthIndex(date: Date) {
 	return date.getFullYear() * 12 + date.getMonth();
 }
 
-export async function pickCalendarDate(
-	user: Pick<UserEvent, "click">,
-	trigger: HTMLElement,
-	value: string
-) {
-	const target = parseDateValue(value, "date");
-	if (!target) throw new Error(`Not a calendar day: ${value}`);
-	await user.click(trigger);
-	const targetHeading = formatMonthLabel(target);
+async function showMonthOf(user: Pick<UserEvent, "click">, target: Date) {
 	for (let step = 0; step < MAX_MONTH_STEPS; step++) {
 		const grid = await screen.findByRole("grid");
 		const distance = monthIndex(target) - monthIndex(shownMonth(grid));
@@ -38,10 +30,38 @@ export async function pickCalendarDate(
 			})
 		);
 	}
-	await screen.findByText(targetHeading);
+	await screen.findByText(formatMonthLabel(target));
+}
+
+async function clickCalendarDay(user: Pick<UserEvent, "click">, value: string) {
+	const target = parseDateValue(value, "date");
+	if (!target) throw new Error(`Not a calendar day: ${value}`);
+	await showMonthOf(user, target);
 	await user.click(
 		within(screen.getByRole("grid")).getByRole("button", {
 			name: new RegExp(`^${formatDayLabel(target)}`)
 		})
 	);
+}
+
+export async function pickCalendarRange(
+	user: Pick<UserEvent, "click">,
+	trigger: HTMLElement,
+	start: string,
+	end: string
+) {
+	await user.click(trigger);
+	await clickCalendarDay(user, start);
+	await clickCalendarDay(user, end);
+}
+
+export async function pickCalendarDate(
+	user: Pick<UserEvent, "click">,
+	trigger: HTMLElement,
+	value: string
+) {
+	if (!parseDateValue(value, "date"))
+		throw new Error(`Not a calendar day: ${value}`);
+	await user.click(trigger);
+	await clickCalendarDay(user, value);
 }

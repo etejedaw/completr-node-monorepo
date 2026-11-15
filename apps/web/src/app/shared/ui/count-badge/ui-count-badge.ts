@@ -7,7 +7,7 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 			<span class="sr-only">&nbsp;{{ srSuffix() }}</span>
 		}`,
 	host: {
-		class: "inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-brand-solid text-white text-[0.625rem] font-bold leading-none tabular-nums"
+		class: "inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-brand-solid text-white text-tiny font-bold leading-none tabular-nums"
 	},
 	changeDetection: ChangeDetectionStrategy.OnPush
 })

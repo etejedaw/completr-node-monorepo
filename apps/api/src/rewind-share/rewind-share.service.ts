@@ -2,23 +2,30 @@ import { Resvg } from "@resvg/resvg-js";
 import satori from "satori";
 
 import { environmentConfig } from "../common/config/environment.config";
+import { DomainError } from "../common/errors/domain-error";
+import { ServiceError } from "../common/errors/service-error";
 import { type Rewind, type RewindGameRef } from "../rewind/rewind.interface";
+import * as rewindService from "../rewind/rewind.service";
 import {
+	MISSING_REWIND_CODES,
 	type RewindImageFormat,
 	SHARE_IMAGE_CACHE_SIZE,
 	SHARE_IMAGE_SIZES
 } from "./rewind-share.constants";
 import {
+	type GuestRewindLookup,
 	type LoadedArtwork,
 	type LoadedCover,
 	type RenderedImage,
 	type ShareArtwork,
 	type SharePageMeta
 } from "./rewind-share.interface";
-import { type SatoriElement } from "./rewind-share-template.interface";
-import { OG_COVER_LIMIT, ogTemplate } from "./templates/og.template";
+import {
+	type SatoriElement,
+	type ShareFormatTemplate
+} from "./rewind-share-template.interface";
+import { shareDesignTemplates } from "./templates/share-designs.template";
 import { sharePageTemplate } from "./templates/share-page.template";
-import { STORY_COVER_LIMIT, storyTemplate } from "./templates/story.template";
 import { fetchImageDataUri } from "./utils/fetch-image.util";
 import { hashRewind } from "./utils/hash-rewind.util";
 import { loadShareFonts } from "./utils/load-share-fonts.util";
@@ -33,11 +40,6 @@ const GENERIC_SHARE_DESCRIPTION =
 const GENERIC_SHARE_COPY = shareCopy("en");
 const LEADING_WWW = /^www\./;
 const TRAILING_SLASHES = /\/+$/;
-
-const COVER_LIMITS: Record<RewindImageFormat, number> = {
-	story: STORY_COVER_LIMIT,
-	og: OG_COVER_LIMIT
-};
 
 const imageCache = new LruCache<Promise<RenderedImage>>(SHARE_IMAGE_CACHE_SIZE);
 
@@ -65,9 +67,9 @@ async function loadCover(game: RewindGameRef): Promise<LoadedCover> {
 
 async function loadArtwork(
 	rewind: Rewind,
-	format: RewindImageFormat
+	template: ShareFormatTemplate
 ): Promise<LoadedArtwork> {
-	const games = selectShareCovers(rewind, COVER_LIMITS[format]);
+	const games = selectShareCovers(rewind, template.coverLimit);
 	const covers = await Promise.all(games.map(loadCover));
 	return {
 		covers,
@@ -78,19 +80,19 @@ async function loadArtwork(
 function imageTemplate(
 	rewind: Rewind,
 	artwork: ShareArtwork,
-	format: RewindImageFormat
+	template: ShareFormatTemplate
 ): SatoriElement {
-	if (format === "og") return ogTemplate({ rewind, artwork });
-	return storyTemplate({ rewind, artwork, host: webAppHost() });
+	return template.render({ rewind, artwork, host: webAppHost() });
 }
 
 export async function renderRewindImage(
 	rewind: Rewind,
 	format: RewindImageFormat
 ): Promise<RenderedImage> {
-	const artwork = await loadArtwork(rewind, format);
+	const template = shareDesignTemplates(rewind.design)[format];
+	const artwork = await loadArtwork(rewind, template);
 	const { width, height } = SHARE_IMAGE_SIZES[format];
-	const svg = await satori(imageTemplate(rewind, artwork, format), {
+	const svg = await satori(imageTemplate(rewind, artwork, template), {
 		width,
 		height,
 		fonts: loadShareFonts()
@@ -104,11 +106,19 @@ export async function renderRewindImage(
 	return { png, hasMissingImages: artwork.hasMissingImages };
 }
 
+export function hasRewindImage(
+	rewind: Rewind,
+	format: RewindImageFormat
+): boolean {
+	return format !== "story-list" || rewind.finishedGames.length > 0;
+}
+
 function imageCacheKey(rewind: Rewind, format: RewindImageFormat): string {
 	return [
 		rewind.user.username,
 		rewind.year,
 		rewind.language,
+		rewind.design,
 		format,
 		hashRewind(rewind)
 	].join(":");
@@ -183,6 +193,34 @@ function sharePageMeta(
 		continueLink: copy.continueLink,
 		redirectUrl
 	};
+}
+
+function isRewindUnavailable(
+	error: unknown
+): error is DomainError | ServiceError {
+	return error instanceof DomainError || error instanceof ServiceError;
+}
+
+export async function findGuestRewind(
+	username: string,
+	year: number
+): Promise<GuestRewindLookup> {
+	try {
+		return {
+			rewind: await rewindService.getRewindForViewer(
+				undefined,
+				username,
+				year
+			),
+			status: 200
+		};
+	} catch (error) {
+		if (!isRewindUnavailable(error)) throw error;
+		return {
+			rewind: null,
+			status: MISSING_REWIND_CODES.has(error.code) ? 404 : 200
+		};
+	}
 }
 
 export function renderSharePage(

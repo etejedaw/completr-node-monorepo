@@ -17,7 +17,7 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type BacklogEntry, type Platform } from "../../../core/models";
-import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
+import { UiToastContainer } from "../../../shared/ui";
 import { pickCalendarDate } from "../../../shared/ui/date-picker/ui-date-picker.testing";
 import { todayLocalDate } from "../../../shared/utils/local-date";
 import { type SavedFilter } from "../saved-filters.model";
@@ -25,8 +25,8 @@ import { BacklogList } from "./backlog-list";
 
 @Component({
 	selector: "app-backlog-host",
-	imports: [BacklogList, ToastContainer],
-	template: `<app-backlog-list /><app-toast-container />`,
+	imports: [BacklogList, UiToastContainer],
+	template: `<app-backlog-list /><ui-toast-container />`,
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 class BacklogHost {}

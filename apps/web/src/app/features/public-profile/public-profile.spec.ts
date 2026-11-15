@@ -134,7 +134,12 @@ describe("PublicProfileComponent", () => {
 	const getRewindYears = vi.fn();
 	const listOffers = vi.fn();
 	const claimOffer = vi.fn();
-	const toast = { success: vi.fn(), warning: vi.fn(), pending: vi.fn() };
+	const toast = {
+		success: vi.fn(),
+		warning: vi.fn(),
+		error: vi.fn(),
+		pending: vi.fn()
+	};
 
 	beforeEach(() => {
 		vi.stubGlobal(
@@ -176,6 +181,7 @@ describe("PublicProfileComponent", () => {
 		toast.success.mockReset();
 		toast.warning.mockReset();
 		toast.pending.mockReset();
+		toast.error.mockReset();
 		getUserFavorites.mockReturnValue(of({ items: [], total: 0 }));
 		getUserPlatinums.mockReturnValue(of({ items: [], total: 0 }));
 		getUserQueue.mockReturnValue(of({ items: [], total: 0 }));

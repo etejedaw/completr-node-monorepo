@@ -425,6 +425,14 @@ export const routes: Routes = [
 					)
 			},
 			{
+				path: "admin/rewind",
+				canActivate: [adminGuard],
+				loadComponent: () =>
+					import("./features/admin/admin-rewind/admin-rewind").then(
+						m => m.AdminRewind
+					)
+			},
+			{
 				path: "403",
 				loadComponent: () =>
 					import("./features/error-pages/forbidden").then(

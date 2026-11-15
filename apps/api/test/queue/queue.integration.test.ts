@@ -183,7 +183,7 @@ void describe("POST /users/me/queue", () => {
 		);
 	});
 
-	void it("rejects another user's backlog entry with 403 QUEUE_BACKLOG_NOT_OWNED", async () => {
+	void it("answers 404 QUEUE_BACKLOG_NOT_FOUND for another user's backlog entry", async () => {
 		const owner = await createUserWithSession();
 		const intruder = await createUserWithSession();
 		const backlog = await createOwnedBacklog(owner.user.id);
@@ -193,8 +193,8 @@ void describe("POST /users/me/queue", () => {
 			backlog.id
 		);
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "QUEUE_BACKLOG_NOT_OWNED");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "QUEUE_BACKLOG_NOT_FOUND");
 	});
 
 	void it("rejects an entry that is not not_started with 409 QUEUE_BACKLOG_NOT_STARTED", async () => {

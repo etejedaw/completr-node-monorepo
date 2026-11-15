@@ -46,7 +46,7 @@
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"
 	/>
-	<app-option-picker
+	<ui-option-picker
 		class="max-md:hidden shrink-0"
 		variant="compact"
 		size="md"
@@ -57,7 +57,7 @@
 		[value]="sortMode()"
 		(valueChange)="sortMode.set($any($event))"
 	/>
-	<app-option-picker
+	<ui-option-picker
 		class="md:hidden basis-full"
 		label="Sort"
 		heading="Sort saved views by"
@@ -191,7 +191,7 @@
 			<div class="flex items-center gap-3 min-h-[52px] py-2">
 				<span class="flex-1 min-w-0">
 					<span class="block text-sm text-fg">Show in My Games</span>
-					<span class="block text-[0.6875rem] text-fg-muted"
+					<span class="block text-caption text-fg-muted"
 						>Pin this view as a quick filter</span
 					>
 				</span>
@@ -207,7 +207,7 @@
 			>
 				<span class="flex-1 min-w-0">
 					<span class="block text-sm text-fg">Default view</span>
-					<span class="block text-[0.6875rem] text-fg-muted"
+					<span class="block text-caption text-fg-muted"
 						>Apply it when opening My Games</span
 					>
 				</span>
@@ -225,25 +225,26 @@
 			<div class="flex flex-wrap gap-1.5">
 				<button
 					type="button"
-					class="size-9 max-md:size-[44px] tap:size-[44px] rounded-card border inline-flex items-center justify-center transition hover:border-brand"
-					[class]="!editIcon() ? 'border-brand text-brand bg-brand-subtle' : 'border-line text-fg-muted'"
+					uiSwatchButton
+					[selected]="!editIcon()"
 					aria-label="No icon"
 					title="No icon"
-					[attr.aria-pressed]="!editIcon()"
 					(click)="editIcon.set(null)"
 				>
-					<span aria-hidden="true" class="material-icons text-base"
+					<span
+						aria-hidden="true"
+						class="material-icons text-base"
+						[class]="!editIcon() ? 'text-brand' : 'text-fg-muted'"
 						>block</span
 					>
 				</button>
 				@for (ic of iconOptions; track ic) {
 				<button
 					type="button"
-					class="size-9 max-md:size-[44px] tap:size-[44px] rounded-card border inline-flex items-center justify-center transition hover:border-brand"
-					[class]="editIcon() === ic ? 'border-brand bg-brand-subtle' : 'border-line'"
+					uiSwatchButton
+					[selected]="editIcon() === ic"
 					[attr.aria-label]="iconLabel(ic)"
 					[title]="iconLabel(ic)"
-					[attr.aria-pressed]="editIcon() === ic"
 					(click)="editIcon.set(ic)"
 				>
 					<span
@@ -262,11 +263,11 @@
 			<div class="flex flex-wrap items-center gap-2">
 				<button
 					type="button"
-					class="size-8 max-md:size-[44px] tap:size-[44px] rounded-full border inline-flex items-center justify-center text-fg-muted transition hover:border-brand"
-					[class]="!editColor() ? 'border-brand ring-2 ring-fg/80 ring-offset-2 ring-offset-sidebar' : 'border-line'"
+					uiSwatchButton
+					shape="circle"
+					[selected]="!editColor()"
 					aria-label="No color"
 					title="No color"
-					[attr.aria-pressed]="!editColor()"
 					(click)="editColor.set(null)"
 				>
 					<span aria-hidden="true" class="material-icons text-sm"
@@ -276,11 +277,11 @@
 				@for (c of colorOptions; track c.key) {
 				<button
 					type="button"
-					class="size-8 max-md:size-[44px] tap:size-[44px] rounded-full transition"
-					[class]="editColor() === c.key ? 'ring-2 ring-fg/80 ring-offset-2 ring-offset-sidebar' : ''"
-					[style.background]="c.hex"
+					uiSwatchButton
+					shape="circle"
+					[color]="c.hex"
+					[selected]="editColor() === c.key"
 					[attr.aria-label]="c.label"
-					[attr.aria-pressed]="editColor() === c.key"
 					[title]="c.label"
 					(click)="editColor.set(c.key)"
 				></button>

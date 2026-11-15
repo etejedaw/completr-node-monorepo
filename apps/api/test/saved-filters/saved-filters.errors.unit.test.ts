@@ -19,12 +19,6 @@ describeModuleErrors({
 			message: "Saved filter not found"
 		},
 		{
-			serviceCode: "SAVED_FILTER_FORBIDDEN",
-			module: "SavedFilter Module",
-			code: "SAVED_FILTER_FORBIDDEN",
-			message: "You do not have permission to modify this saved filter"
-		},
-		{
 			serviceCode: "SAVED_FILTER_LIMIT_REACHED",
 			module: "SavedFilter Module",
 			code: "SAVED_FILTER_LIMIT_REACHED",
@@ -57,7 +51,6 @@ describeDomainToHttpMapper({
 	mapper: savedFiltersDomainToHttpMapper,
 	cases: [
 		{ code: "SAVED_FILTER_NOT_FOUND", status: 404 },
-		{ code: "SAVED_FILTER_FORBIDDEN", status: 403 },
 		{ code: "SAVED_FILTER_LIMIT_REACHED", status: 402 },
 		{ code: "SAVED_FILTER_FROZEN", status: 402 },
 		{ code: "SAVED_FILTER_VALIDATION_ERROR", status: 422 }

@@ -267,6 +267,69 @@ describe("SettingsProfile", () => {
 		).toBeEnabled();
 	});
 
+	it("sends null to clear a saved avatar when going back to the initial", async () => {
+		const typist = userEvent.setup();
+		await renderProfile(
+			buildUser({ avatarUrl: "/avatars/completr_profile_02.png" })
+		);
+		update.mockReturnValue(of(buildUser()));
+
+		await typist.click(
+			screen.getByRole("radio", { name: "Use my initial" })
+		);
+		await typist.click(
+			screen.getByRole("button", { name: "Save changes" })
+		);
+
+		expect(update.mock.calls[0][0].avatarUrl).toBeNull();
+	});
+
+	it("leaves the avatar out of the request when it did not change", async () => {
+		const typist = userEvent.setup();
+		await renderProfile(
+			buildUser({ avatarUrl: "/avatars/completr_profile_02.png" })
+		);
+		update.mockReturnValue(of(buildUser()));
+
+		await typist.type(screen.getByLabelText(/^Display name/), "!");
+		await typist.click(
+			screen.getByRole("button", { name: "Save changes" })
+		);
+
+		expect(update.mock.calls[0][0]).not.toHaveProperty("avatarUrl");
+	});
+
+	it("sends a single request when save is double clicked", async () => {
+		const typist = userEvent.setup();
+		await renderProfile();
+		update.mockReturnValue(new Subject<User>());
+
+		await typist.type(screen.getByLabelText(/^Display name/), "!");
+		await typist.dblClick(
+			screen.getByRole("button", { name: "Save changes" })
+		);
+
+		expect(update).toHaveBeenCalledTimes(1);
+	});
+
+	it("keeps the draft and allows retrying after a 422", async () => {
+		const typist = userEvent.setup();
+		await renderProfile();
+		update.mockReturnValueOnce(throwError(() => ({ status: 422 })));
+		update.mockReturnValueOnce(of(buildUser()));
+
+		await typist.type(screen.getByLabelText(/^Display name/), "!");
+		await typist.click(
+			screen.getByRole("button", { name: "Save changes" })
+		);
+		await typist.click(
+			screen.getByRole("button", { name: "Save changes" })
+		);
+
+		expect(update).toHaveBeenCalledTimes(2);
+		expect(toast.success).toHaveBeenCalledTimes(1);
+	});
+
 	it("limits the inputs with the maximum lengths", async () => {
 		await renderProfile();
 

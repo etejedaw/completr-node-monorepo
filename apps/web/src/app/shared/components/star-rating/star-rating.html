@@ -47,7 +47,7 @@
 	@if (!readonly() && showValue()) {
 	<span class="flex items-center gap-1.5 min-w-[80px]">
 		@if (displayValue() > 0) {
-		<span class="text-[0.8125rem] font-semibold text-rating"
+		<span class="text-compact font-semibold text-rating"
 			>{{ displayValue() }}</span
 		>
 		} @if (label()) {

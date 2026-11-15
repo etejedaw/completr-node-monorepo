@@ -127,15 +127,23 @@ export function gameListSummarySerializer(entry: EnrichedGameList) {
 	};
 }
 
+function activityUserSerializer(entry: Backlog) {
+	const user = entry.User;
+	if (!user) throw new Error("Backlog entry loaded without its user");
+	return {
+		username: user.username,
+		name: user.name,
+		avatarUrl: user.avatarUrl ?? null,
+		role: user.role
+	};
+}
+
 export function gameFriendActivitySerializer(
 	entry: Backlog,
 	hasPremium = false
 ) {
 	return {
-		username: entry.User!.username,
-		name: entry.User!.name,
-		avatarUrl: entry.User!.avatarUrl ?? null,
-		role: entry.User!.role,
+		...activityUserSerializer(entry),
 		hasPremium,
 		status: entry.status,
 		finishedAt: entry.finishedAt ?? null,
@@ -145,10 +153,7 @@ export function gameFriendActivitySerializer(
 
 export function gamePlayerSerializer(entry: Backlog, hasPremium = false) {
 	return {
-		username: entry.User!.username,
-		name: entry.User!.name,
-		avatarUrl: entry.User!.avatarUrl ?? null,
-		role: entry.User!.role,
+		...activityUserSerializer(entry),
 		hasPremium,
 		status: entry.status
 	};

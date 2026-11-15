@@ -1,5 +1,6 @@
 import { type Request, type Response } from "express";
 
+import { AUDIT_ACTIONS, AUDIT_TARGET_TYPES } from "../audit/audit.constants";
 import * as auditService from "../audit/audit.service";
 import * as authService from "../auth/auth.service";
 import { type RegisterDto } from "../auth/dtos";
@@ -24,7 +25,12 @@ export async function postAdminCreateUser(
 	const admin = request.locals.user as RequestUser;
 
 	const { user } = await authService.register(registerDto);
-	auditService.record(admin.id, "user_created", "user", user.id);
+	auditService.record(
+		admin.id,
+		AUDIT_ACTIONS.userCreated,
+		AUDIT_TARGET_TYPES.user,
+		user.id
+	);
 
 	const userPlain = user.get({ plain: true });
 
@@ -38,8 +44,8 @@ export async function getAdminUsers(request: Request, response: Response) {
 	const query = (request.locals.query ?? {}) as AdminUsersQuery;
 
 	const { rows, count } = await usersService.findAllUsers(
-		query.limit ?? 50,
-		query.offset ?? 0,
+		query.limit,
+		query.offset,
 		query.search
 	);
 
@@ -55,26 +61,21 @@ export async function patchAdminUser(request: Request, response: Response) {
 	const dto = request.locals.body as AdminUpdateUserDto;
 	const admin = request.locals.user as RequestUser;
 
-	const user = await usersService.findUserByIdUnfiltered(params.userId);
-	if (!user) throw userDomain.userNotFound();
+	const { password, ...profileFields } = dto;
+	const user = await usersService.adminUpdateUser(params.userId, {
+		...profileFields,
+		...(password && {
+			password: await passwordService.hashPassword(password)
+		})
+	});
 
-	if (dto.password) {
-		const hash = await passwordService.hashPassword(dto.password);
-		await user.update({ password: hash });
-	}
+	auditService.record(
+		admin.id,
+		AUDIT_ACTIONS.userEdited,
+		AUDIT_TARGET_TYPES.user,
+		params.userId
+	);
 
-	const updateData: Record<string, unknown> = {};
-	if (dto.name !== undefined) updateData.name = dto.name;
-	if (dto.role !== undefined) updateData.role = dto.role;
-	if (dto.isActive !== undefined) updateData.isActive = dto.isActive;
-
-	if (Object.keys(updateData).length > 0) {
-		await user.update(updateData);
-	}
-
-	auditService.record(admin.id, "user_edited", "user", params.userId);
-
-	await user.reload();
 	const data = { user: userAdminSerializer(user) };
 	return response.status(200).json({ data });
 }
@@ -100,7 +101,12 @@ export async function getAdminUserDataExport(
 	if (!user) throw userDomain.userNotFound();
 
 	const personalData = await buildPersonalDataExport(user);
-	auditService.record(admin.id, "user_data_exported", "user", user.id);
+	auditService.record(
+		admin.id,
+		AUDIT_ACTIONS.userDataExported,
+		AUDIT_TARGET_TYPES.user,
+		user.id
+	);
 
 	return sendPersonalDataExport(response, user.username, personalData);
 }

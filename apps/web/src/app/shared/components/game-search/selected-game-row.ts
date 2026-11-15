@@ -31,7 +31,7 @@ import { type SelectedGame } from "./selected-game-row.model";
 				current.title
 			}}</span>
 			@if (details(); as text) {
-				<span class="text-[0.6875rem] text-fg-muted truncate">{{
+				<span class="text-caption text-fg-muted truncate">{{
 					text
 				}}</span>
 			}

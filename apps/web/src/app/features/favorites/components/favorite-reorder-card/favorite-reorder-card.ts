@@ -9,6 +9,7 @@ import {
 
 import { type FavoriteEntry } from "../../../../core/models";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
+import { UiIconButton } from "../../../../shared/ui";
 import {
 	type FavoriteReorderAction,
 	type ReorderButton
@@ -16,11 +17,11 @@ import {
 
 @Component({
 	selector: "app-favorite-reorder-card",
-	imports: [CdkDragHandle, GamePoster],
+	imports: [CdkDragHandle, GamePoster, UiIconButton],
 	template: `
 		<div class="flex flex-col gap-1.5">
 			<div
-				class="relative rounded-lg overflow-hidden bg-surface shadow-lg shadow-black/40 transition-shadow duration-200"
+				class="relative rounded-lg overflow-hidden bg-surface shadow-card transition-shadow duration-200"
 				[class]="
 					isFirst() ? 'ring-2 ring-brand' : 'ring-1 ring-line-hover'
 				"
@@ -37,16 +38,14 @@ import {
 				></div>
 				<span
 					aria-hidden="true"
-					class="absolute bottom-1.5 left-2.5 font-display text-4xl font-bold leading-none text-white tabular-nums drop-shadow-lg"
+					class="absolute bottom-1.5 left-2.5 font-display text-4xl font-bold leading-none text-on-image tabular-nums drop-shadow-lg"
 					>{{ position() }}</span
 				>
 				@if (isFirst()) {
 					<span
-						class="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-bold text-white bg-brand-solid shadow-md shadow-black/40"
+						class="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-caption font-bold text-on-image bg-brand-solid shadow-card"
 					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-[0.75rem]"
+						<span aria-hidden="true" class="material-icons text-xs"
 							>person</span
 						>
 						On profile
@@ -56,7 +55,7 @@ import {
 					cdkDragHandle
 					aria-hidden="true"
 					title="Drag to reorder"
-					class="absolute top-1 right-1 w-[32px] h-[32px] tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm cursor-grab active:cursor-grabbing touch-none transition hover:bg-black/80"
+					class="absolute top-1 right-1 w-[32px] h-[32px] tap:w-[44px] tap:h-[44px] inline-flex items-center justify-center rounded-full bg-scrim text-on-image backdrop-blur-sm cursor-grab active:cursor-grabbing touch-none transition hover:bg-scrim-strong"
 				>
 					<span class="material-icons text-lg">drag_indicator</span>
 				</span>
@@ -72,8 +71,8 @@ import {
 					let first = $first
 				) {
 					<button
-						type="button"
-						class="h-[36px] tap:min-h-[44px] inline-flex items-center justify-center bg-transparent border-0 border-line text-fg-muted cursor-pointer transition hover:text-fg hover:bg-surface-hover active:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand disabled:opacity-30 disabled:cursor-default disabled:hover:bg-transparent disabled:hover:text-fg-muted"
+						uiIconButton
+						size="lg"
 						[class.border-l]="!first"
 						[attr.data-reorder-action]="button.id"
 						[disabled]="button.disabled"

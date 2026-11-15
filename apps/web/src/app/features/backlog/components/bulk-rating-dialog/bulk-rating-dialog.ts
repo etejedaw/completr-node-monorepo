@@ -60,7 +60,7 @@ const RATED_NOUN = { one: "run already has", other: "runs already have" };
 							<span class="block text-sm text-fg"
 								>Include not started runs</span
 							>
-							<span class="block text-[0.6875rem] text-fg-muted"
+							<span class="block text-caption text-fg-muted"
 								>{{ notStartedText() }} in your selection</span
 							>
 						</span>

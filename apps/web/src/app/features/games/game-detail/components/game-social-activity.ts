@@ -1,12 +1,14 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	DestroyRef,
 	effect,
 	inject,
 	input,
 	signal
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
+import { type Subscription } from "rxjs";
 
 import { AuthService } from "../../../../core/services/auth";
 import { avatarRing } from "../../../../core/utils/premium";
@@ -41,18 +43,29 @@ export class GameSocialActivity {
 	protected readonly statusFillClass = backlogStatusFillClass;
 	protected readonly avatarRing = avatarRing;
 
+	private requests: Subscription[] = [];
+
 	constructor() {
+		inject(DestroyRef).onDestroy(() => this.cancelRequests());
 		effect(() => {
 			const id = this.gameId();
+			this.cancelRequests();
 			this.friends.set([]);
 			this.players.set([]);
 			if (!id || !this.authService.isLoggedIn()) return;
-			this.gamesService
-				.getFriendsActivity(id)
-				.subscribe(f => this.friends.set(f));
-			this.gamesService
-				.getPlayers(id)
-				.subscribe(p => this.players.set(p));
+			this.requests = [
+				this.gamesService
+					.getFriendsActivity(id)
+					.subscribe(f => this.friends.set(f)),
+				this.gamesService
+					.getPlayers(id)
+					.subscribe(p => this.players.set(p))
+			];
 		});
+	}
+
+	private cancelRequests() {
+		this.requests.forEach(request => request.unsubscribe());
+		this.requests = [];
 	}
 }

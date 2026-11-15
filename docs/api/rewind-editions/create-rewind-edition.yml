@@ -1,0 +1,84 @@
+info:
+    name: Create Rewind Edition
+    type: http
+    seq: 2
+
+http:
+    method: POST
+    url: "{{BASE_URL}}/admin/rewind/editions"
+    headers:
+        - name: Content-Type
+          value: application/json
+    body:
+        type: json
+        data: |-
+            {
+              "year": 2026,
+              "opensAt": "2026-12-01",
+              "closesAt": "2027-01-31",
+              "graceStartsAt": "2027-01-01",
+              "graceEndsAt": "2027-01-07",
+              "design": "2026",
+              "premiumRegenerations": 3,
+              "giftRegenerations": 1
+            }
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Create Rewind Edition
+
+    Creates the edition of a year. The period and the grace window are UTC days, both ends included.
+
+    **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
+
+    ### Request Body
+
+    | Field | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | year | integer | Yes | 2000 to 2100 |
+    | opensAt | string | Yes | `YYYY-MM-DD` |
+    | closesAt | string | Yes | `YYYY-MM-DD` |
+    | graceStartsAt | string | Yes | `YYYY-MM-DD` |
+    | graceEndsAt | string | Yes | `YYYY-MM-DD` |
+    | design | string | Yes | One of the designs listed by `GET /admin/rewind/editions` |
+    | premiumRegenerations | integer | Yes | 0 to 1000 |
+    | giftRegenerations | integer | Yes | 0 to 1000 |
+
+    Dates must satisfy `opensAt <= graceStartsAt <= graceEndsAt <= closesAt`.
+
+    ### Response (201)
+
+    ```json
+    {
+      "data": {
+        "edition": {
+          "year": 2026,
+          "opensAt": "2026-12-01",
+          "closesAt": "2027-01-31",
+          "graceStartsAt": "2027-01-01",
+          "graceEndsAt": "2027-01-07",
+          "design": "2026",
+          "premiumRegenerations": 3,
+          "giftRegenerations": 1,
+          "frozenAt": null,
+          "status": "scheduled",
+          "inProgress": false,
+          "generatedCount": 0
+        }
+      }
+    }
+    ```
+
+    Records the audit event `rewind_edition_created`.
+
+    ### Errors
+
+    | Status | Code | Description |
+    |--------|------|-------------|
+    | 409 | REWIND_EDITION_EXISTS | The year already has an edition |
+    | 409 | REWIND_EDITION_OVERLAP | The period overlaps another edition |
+    | 422 | COMMON_SCHEMA_INVALID | Invalid date, unordered dates, unknown design, negative or non-integer quota, or extra field |
+    | 422 | REWIND_EDITION_INVALID | The database rejected the edition data |

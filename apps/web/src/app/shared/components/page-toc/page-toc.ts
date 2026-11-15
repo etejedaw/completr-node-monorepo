@@ -7,14 +7,12 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { UiEyebrow } from "../../ui";
-import { OptionPicker } from "../option-picker/option-picker";
-import { type PickerOption } from "../option-picker/option-picker.model";
+import { UiEyebrow, UiOptionPicker, type UiPickerOption } from "../../ui";
 import { type PageSection } from "./page-toc.model";
 
 @Component({
 	selector: "app-page-toc",
-	imports: [UiEyebrow, RouterLink, OptionPicker],
+	imports: [UiEyebrow, RouterLink, UiOptionPicker],
 	template: `
 		@if (variant() === "rail") {
 			<nav [attr.aria-label]="label()">
@@ -43,7 +41,7 @@ import { type PageSection } from "./page-toc.model";
 								(click)="selected.emit(section.id)"
 							>
 								<span
-									class="w-5 text-[0.6875rem] tabular-nums"
+									class="w-5 text-caption tabular-nums"
 									[class.text-brand]="section.id === active()"
 									>{{ pad(i + 1) }}</span
 								>
@@ -54,7 +52,7 @@ import { type PageSection } from "./page-toc.model";
 				</ol>
 			</nav>
 		} @else {
-			<app-option-picker
+			<ui-option-picker
 				label="On this page"
 				[heading]="label()"
 				[options]="pickerOptions()"
@@ -75,7 +73,7 @@ export class PageToc {
 
 	readonly selected = output<string>();
 
-	protected readonly pickerOptions = computed<PickerOption[]>(() =>
+	protected readonly pickerOptions = computed<UiPickerOption[]>(() =>
 		this.sections().map((section, index) => ({
 			value: section.id,
 			label: section.label,

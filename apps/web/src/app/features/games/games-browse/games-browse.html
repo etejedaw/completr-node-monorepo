@@ -41,7 +41,7 @@
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"
 		/>
-		<app-option-picker
+		<ui-option-picker
 			class="max-md:hidden shrink-0"
 			variant="compact"
 			size="md"
@@ -64,7 +64,7 @@
 		>
 			Filters
 		</button>
-		<app-option-picker
+		<ui-option-picker
 			class="max-md:hidden shrink-0"
 			variant="compact"
 			size="md"
@@ -77,7 +77,7 @@
 	</div>
 
 	<div class="md:hidden mt-1 grid w-full grid-cols-2 gap-2">
-		<app-option-picker
+		<ui-option-picker
 			label="Genre"
 			heading="Filter by genre"
 			placeholderIcon="category"
@@ -86,7 +86,7 @@
 			[placeholder]="genrePickerPlaceholder()"
 			(valueChange)="pickGenre($event)"
 		/>
-		<app-option-picker
+		<ui-option-picker
 			label="Sort"
 			heading="Sort games by"
 			[options]="sortPickerOptions"

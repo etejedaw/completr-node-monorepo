@@ -1,9 +1,15 @@
+import { type ExternalSource } from "../game-external/game-external.model";
 import { type TimeSource } from "../game-times/game-time.model";
 import { type RegisterGameDto } from "./dtos/register-game.dto";
 import { type Game } from "./game.model";
 import { type OnlineSearchSource } from "./games.types";
 
 export interface GamesPagination {
+	limit?: number;
+	offset?: number;
+}
+
+export interface PagedGamesOptions {
 	limit?: number;
 	offset?: number;
 }
@@ -134,24 +140,20 @@ export interface ExtractedSourceValue<TSource extends string = string> {
 	value: number;
 }
 
-export interface InheritedAssets {
+export interface CatalogAssets {
 	platformIds: string[];
 	genreIds: string[];
-	scores: { source: string; score: number }[];
-	times: { source: TimeSource; duration: number }[];
-	externals: { source: string; externalId: string }[];
+	scores: GameScoreEntry[];
+	times: GameTimeEntry[];
+}
+
+export interface InheritedAssets extends CatalogAssets {
+	externals: { source: ExternalSource; externalId: string }[];
 }
 
 export interface CachedShowcase {
 	games: ShowcaseGameRow[];
 	fetchedAt: number;
-}
-
-export interface InheritedParentAssets {
-	platformIds: string[];
-	genreIds: string[];
-	scores: { source: string; score: number }[];
-	times: { source: TimeSource; duration: number }[];
 }
 
 export interface OnlineSearchCooldown {

@@ -530,6 +530,34 @@ void describe("buildRewind", () => {
 		});
 	});
 
+	void describe("classic", () => {
+		void it("takes the oldest release finished in the year, leaving out abandoned runs and other years", () => {
+			const runs = [
+				finishedRun("hades", "2025-02-02", { releaseYear: 2010 }),
+				finishedRun("doom", "2024-03-03", { releaseYear: 1993 }),
+				finishedRun("myst", "2025-04-04", {
+					status: "abandoned",
+					releaseYear: 1993
+				}),
+				finishedRun("zelda", "2025-05-05", { releaseYear: 1998 })
+			];
+
+			const { classic } = rewindOf(runs).highlights;
+
+			assert.equal(classic?.code, "zelda");
+			assert.equal(classic?.releaseYear, 1998);
+			assert.equal(classic?.finishedAt, "2025-05-05");
+		});
+
+		void it("is null when every game of the year is too recent", () => {
+			const runs = [
+				finishedRun("celeste", "2025-02-02", { releaseYear: 2018 })
+			];
+
+			assert.equal(rewindOf(runs).highlights.classic, null);
+		});
+	});
+
 	void describe("header with the sign-up year", () => {
 		void it("lists only other years from the sign-up year on", () => {
 			const runs = [

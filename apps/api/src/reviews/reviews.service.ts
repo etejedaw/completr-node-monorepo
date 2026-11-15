@@ -2,14 +2,17 @@ import { col, fn, literal, Op, type Transaction } from "sequelize";
 
 import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
-import { Game } from "../games/game.model";
 import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
-import { User } from "../users/user.model";
+import * as usersService from "../users/users.service";
+import { type CreateReviewDto } from "./dtos/create-review.dto";
+import { type UpdateReviewDto } from "./dtos/update-review.dto";
 import * as reviewsServiceError from "./errors/reviews.service-error";
 import { Review } from "./review.model";
 
+const LATEST_REVIEWED_GAMES_LIMIT = 16;
+const DEFAULT_USER_REVIEWS_LIMIT = 50;
 const REVIEW_GAME_ATTRS = ["id", "code", "title", "coverUrl", "backgroundUrl"];
 
 const hasContent = literal(`"content" IS NOT NULL AND btrim("content") <> ''`);
@@ -23,7 +26,7 @@ const hasContentOrRating = literal(
 export async function createReview(
 	userId: string,
 	gameId: string,
-	dto: { content?: string; rating?: number },
+	dto: CreateReviewDto,
 	transaction?: Transaction
 ) {
 	const game = await gamesService.findGameById(gameId);
@@ -57,7 +60,7 @@ export async function findReviewsByGameId(gameId: string) {
 		where: { gameId },
 		include: [
 			{
-				model: User,
+				...usersService.userInclude(),
 				attributes: USER_PUBLIC_ATTRS
 			}
 		],
@@ -71,7 +74,7 @@ export async function findReviewsByGameId(gameId: string) {
 export async function findReviewsByUserId(userId: string) {
 	return Review.findAll({
 		where: { userId, [Op.and]: hasContentOrRating },
-		include: [{ model: Game, attributes: REVIEW_GAME_ATTRS }],
+		include: [{ ...gamesService.gameInclude(), attributes: REVIEW_GAME_ATTRS }],
 		order: [
 			["createdAt", "DESC"],
 			["id", "DESC"]
@@ -83,10 +86,10 @@ export async function findReviewsByUserIdPaginated(
 	userId: string,
 	options: { limit?: number; offset?: number } = {}
 ) {
-	const { limit = 50, offset = 0 } = options;
+	const { limit = DEFAULT_USER_REVIEWS_LIMIT, offset = 0 } = options;
 	return Review.findAndCountAll({
 		where: { userId, [Op.and]: hasContentOrRating },
-		include: [{ model: Game, attributes: REVIEW_GAME_ATTRS }],
+		include: [{ ...gamesService.gameInclude(), attributes: REVIEW_GAME_ATTRS }],
 		order: [
 			["createdAt", "DESC"],
 			["id", "DESC"]
@@ -143,12 +146,15 @@ export async function findAggregatedRatingsByGame() {
 	}[];
 }
 
-export async function findLatestReviewedGameIds(limit = 16) {
+export async function findLatestReviewedGameIds(limit = LATEST_REVIEWED_GAMES_LIMIT) {
 	const rows = (await Review.findAll({
 		where: { [Op.and]: [hasContent, reviewedGameIsActive] },
 		attributes: ["gameId", [fn("MAX", col("createdAt")), "lastReviewedAt"]],
 		group: ["gameId"],
-		order: [[fn("MAX", col("createdAt")), "DESC"]],
+		order: [
+			[fn("MAX", col("createdAt")), "DESC"],
+			["gameId", "DESC"]
+		],
 		limit,
 		raw: true
 	})) as unknown as { gameId: string }[];
@@ -156,24 +162,23 @@ export async function findLatestReviewedGameIds(limit = 16) {
 	return rows.map(r => r.gameId);
 }
 
-export async function updateReview(
-	id: string,
+export async function updateReviewByGame(
 	userId: string,
-	dto: { content?: string | null; rating?: number | null }
+	gameId: string,
+	dto: UpdateReviewDto
 ) {
-	const review = await Review.findByPk(id);
+	const review = await findReviewByUserAndGame(userId, gameId);
 	if (!review) throw reviewsServiceError.notFoundError();
-	if (review.userId !== userId) throw reviewsServiceError.forbiddenError();
 
-	return review.update(dto);
+	review.set(dto);
+	const changed = review.changed() !== false;
+	if (changed) await review.save();
+	return { review, changed };
 }
 
-export async function deleteReview(id: string, userId: string) {
-	const review = await Review.findByPk(id);
-	if (!review) throw reviewsServiceError.notFoundError();
-	if (review.userId !== userId) throw reviewsServiceError.forbiddenError();
-
-	await review.destroy();
+export async function deleteReviewByGame(userId: string, gameId: string) {
+	const deleted = await Review.destroy({ where: { userId, gameId } });
+	if (deleted === 0) throw reviewsServiceError.notFoundError();
 }
 
 export async function existsByGameId(
@@ -192,7 +197,7 @@ export async function existsByGameId(
 export async function findReviewsForDataExport(userId: string) {
 	return Review.findAll({
 		where: { userId },
-		include: [{ model: Game, attributes: GAME_REFERENCE_ATTRS }],
+		include: [{ ...gamesService.gameInclude(), attributes: GAME_REFERENCE_ATTRS }],
 		order: CHRONOLOGICAL_ORDER
 	});
 }

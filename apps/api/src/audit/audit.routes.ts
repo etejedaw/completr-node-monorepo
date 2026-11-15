@@ -12,8 +12,8 @@ const router = Router();
 router.get(
 	"/admin/audit",
 	[
-		rateLimiterMiddleware(userLimiter),
 		hiddenRouteMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(AuditQuerySchema, "query")
 	],
 	auditController.getAuditLog

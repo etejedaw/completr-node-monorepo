@@ -1,10 +1,12 @@
 import {
 	ChangeDetectionStrategy,
 	Component,
+	DestroyRef,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { injectDialogRef } from "ng-primitives/dialog";
 
 import {
@@ -40,6 +42,7 @@ import {
 export class GameAddToListModal implements OnInit {
 	private readonly gamesService = inject(GamesService);
 	private readonly listsService = inject(ListsService);
+	private readonly destroyRef = inject(DestroyRef);
 	private readonly dialogRef = injectDialogRef<GameAddToListModalData>();
 
 	protected readonly gameId = this.dialogRef.data.gameId;
@@ -92,16 +95,10 @@ export class GameAddToListModal implements OnInit {
 				scoreSource: "metacritic",
 				durationSource: "hltb"
 			})
+			.pipe(takeUntilDestroyed(this.destroyRef))
 			.subscribe({
 				next: list => {
-					this.listsService.addItem(list.id, this.gameId).subscribe({
-						next: () => this.refreshAfterCreate(),
-						error: () =>
-							this.update({
-								error: "List created but failed to add game",
-								creatingNew: false
-							})
-					});
+					this.addCreatedList(list.id);
 				},
 				error: () =>
 					this.update({
@@ -111,15 +108,32 @@ export class GameAddToListModal implements OnInit {
 			});
 	}
 
+	private addCreatedList(listId: string) {
+		this.listsService
+			.addItem(listId, this.gameId)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: () => this.refreshAfterCreate(),
+				error: () =>
+					this.update({
+						error: "List created but failed to add game",
+						creatingNew: false
+					})
+			});
+	}
+
 	private refreshAfterCreate() {
-		this.gamesService.getGameLists(this.gameId).subscribe(data => {
-			const selection = new Map(this.state().selection);
-			for (const l of data.myLists) {
-				if (!selection.has(l.id)) selection.set(l.id, l.contains);
-			}
-			this.update({ selection, newListName: "", creatingNew: false });
-			this.dialogRef.data.onListsChanged(data);
-		});
+		this.gamesService
+			.getGameLists(this.gameId)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe(data => {
+				const selection = new Map(this.state().selection);
+				for (const l of data.myLists) {
+					if (!selection.has(l.id)) selection.set(l.id, l.contains);
+				}
+				this.update({ selection, newListName: "", creatingNew: false });
+				this.dialogRef.data.onListsChanged(data);
+			});
 	}
 
 	protected save() {
@@ -138,13 +152,16 @@ export class GameAddToListModal implements OnInit {
 			.map(([listId]) => listId);
 
 		this.update({ saving: true });
-		this.listsService.setGameLists(this.gameId, listIds).subscribe({
-			next: data => {
-				this.update({ saving: false });
-				this.dialogRef.data.onListsChanged(data);
-				this.close();
-			},
-			error: () => this.update({ saving: false })
-		});
+		this.listsService
+			.setGameLists(this.gameId, listIds)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: data => {
+					this.update({ saving: false });
+					this.dialogRef.data.onListsChanged(data);
+					this.close();
+				},
+				error: () => this.update({ saving: false })
+			});
 	}
 }

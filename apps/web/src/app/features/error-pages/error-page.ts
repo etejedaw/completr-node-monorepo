@@ -1,12 +1,13 @@
-import { Location } from "@angular/common";
+import { DOCUMENT, Location } from "@angular/common";
 import {
 	ChangeDetectionStrategy,
 	Component,
 	inject,
 	input
 } from "@angular/core";
-import { RouterLink } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 
+import { AuthService } from "../../core/services/auth";
 import { UiButton, UiEyebrow } from "../../shared/ui";
 
 @Component({
@@ -49,28 +50,48 @@ import { UiButton, UiEyebrow } from "../../shared/ui";
 			<div
 				class="mt-8 flex flex-wrap items-center justify-center gap-2 tap:gap-[8px]"
 			>
-				<a
-					uiButton
-					variant="primary"
-					routerLink="/feed"
-					class="max-sm:min-h-[44px]"
-				>
-					<span aria-hidden="true" class="material-icons text-base"
-						>dynamic_feed</span
+				@if (isLoggedIn()) {
+					<a
+						uiButton
+						variant="primary"
+						routerLink="/feed"
+						class="max-sm:min-h-[44px]"
 					>
-					Go to Feed
-				</a>
-				<a
-					uiButton
-					variant="secondary"
-					routerLink="/games"
-					class="max-sm:min-h-[44px]"
-				>
-					<span aria-hidden="true" class="material-icons text-base"
-						>explore</span
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>dynamic_feed</span
+						>
+						Go to Feed
+					</a>
+					<a
+						uiButton
+						variant="secondary"
+						routerLink="/games"
+						class="max-sm:min-h-[44px]"
 					>
-					Browse games
-				</a>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>explore</span
+						>
+						Browse games
+					</a>
+				} @else {
+					<a
+						uiButton
+						variant="primary"
+						routerLink="/login"
+						class="max-sm:min-h-[44px]"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>login</span
+						>
+						Sign in
+					</a>
+				}
 				<button
 					uiButton
 					variant="ghost"
@@ -91,6 +112,10 @@ import { UiButton, UiEyebrow } from "../../shared/ui";
 })
 export class ErrorPage {
 	private readonly location = inject(Location);
+	private readonly router = inject(Router);
+	private readonly document = inject(DOCUMENT);
+
+	protected readonly isLoggedIn = inject(AuthService).isLoggedIn;
 
 	readonly code = input.required<string>();
 	readonly icon = input.required<string>();
@@ -98,6 +123,8 @@ export class ErrorPage {
 	readonly message = input.required<string>();
 
 	protected goBack() {
-		this.location.back();
+		const history = this.document.defaultView?.history;
+		if (history && history.length > 1) this.location.back();
+		else this.router.navigateByUrl(this.isLoggedIn() ? "/feed" : "/login");
 	}
 }

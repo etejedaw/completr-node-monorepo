@@ -8,7 +8,7 @@
 	emptyMonthHint="No games were played this month with the current filters."
 	(itemSelected)="openEntry($event)"
 >
-	<p calendarSummary class="m-0 text-[0.6875rem] text-fg-muted tabular-nums">
+	<p calendarSummary class="m-0 text-caption text-fg-muted tabular-nums">
 		{{ monthEntries().length }} {{ monthEntries().length === 1 ? "game" :
 		"games" }} this month
 	</p>
@@ -68,9 +68,9 @@
 	>
 		@for (item of legendItems; track item.status) {
 		<button
-			type="button"
-			class="tap-area inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full border text-[0.6875rem] font-medium cursor-pointer transition"
-			[class]="isStatusHidden(item.status) ? 'border-line text-fg-muted opacity-60 hover:opacity-100' : 'border-line-hover bg-surface-hover text-fg-secondary hover:text-fg'"
+			uiFilterChip
+			touchTarget="area"
+			[selected]="!isStatusHidden(item.status)"
 			[attr.aria-pressed]="!isStatusHidden(item.status)"
 			(click)="toggleStatus(item.status)"
 		>

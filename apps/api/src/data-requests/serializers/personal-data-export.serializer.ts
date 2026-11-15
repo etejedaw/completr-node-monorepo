@@ -318,11 +318,12 @@ function rewindEntry(rewind: Rewind) {
 		includesPrivateRuns: rewind.includesPrivateRuns,
 		includesNotes: rewind.includesNotes,
 		generatedAt: rewind.generatedAt,
-		regenerationsUsed: rewind.regenerationsUsed,
+		regenerationsLeft: rewind.regenerationsLeft,
 		aiRecapStatus: rewind.aiRecapStatus,
 		aiRecap: rewind.aiRecap,
 		premiumStats: rewind.premiumStats,
 		premiumAccessKind: rewind.premiumAccessKind,
+		frozenAt: rewind.frozenAt,
 		createdAt: rewind.createdAt,
 		updatedAt: rewind.updatedAt
 	};

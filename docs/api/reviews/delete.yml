@@ -35,5 +35,4 @@ docs: |-
 
     ### Errors
 
-    - 403 `REVIEW_FORBIDDEN` — Caller is not the review owner
     - 404 `REVIEW_NOT_FOUND` — No review exists for this user/game

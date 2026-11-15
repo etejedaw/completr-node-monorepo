@@ -15,8 +15,6 @@ import {
 	type RewindLanguage,
 	type RewindPremiumAccess
 } from "../../../../core/models/rewind.model";
-import { SegmentedControl } from "../../../../shared/components/segmented-control/segmented-control";
-import { type SegmentedOption } from "../../../../shared/components/segmented-control/segmented-control.model";
 import {
 	UiAlert,
 	UiButton,
@@ -24,11 +22,18 @@ import {
 	UiEyebrow,
 	UiFieldLabel,
 	UiIconButton,
+	UiSegmentedControl,
+	type UiSegmentedOption,
 	UiSwitch
 } from "../../../../shared/ui";
-import { type RewindGenerateError } from "../../rewind-errors";
+import { DEFAULT_REWIND_LANGUAGE } from "../../rewind-copy";
+import { formatRewindDay } from "../../rewind-dates";
+import {
+	BLOCKING_GENERATE_ERRORS,
+	type RewindGenerateError
+} from "../../rewind-errors";
 
-const LANGUAGE_OPTIONS: SegmentedOption<RewindLanguage>[] = [
+const LANGUAGE_OPTIONS: UiSegmentedOption<RewindLanguage>[] = [
 	{ value: "en", label: "English" },
 	{ value: "es", label: "Español" }
 ];
@@ -40,23 +45,11 @@ const RETRYABLE_ERRORS: readonly RewindGenerateError[] = [
 	"network"
 ];
 
-const BLOCKING_ERRORS: readonly RewindGenerateError[] = ["limit", "not_found"];
-
-const GRACE_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
-	month: "short",
-	day: "numeric",
-	timeZone: "UTC"
-});
-
-export function formatGraceDate(isoDate: string): string {
-	return GRACE_DATE_FORMAT.format(new Date(`${isoDate}T00:00:00Z`));
-}
-
 @Component({
 	selector: "app-rewind-generate-dialog",
 	imports: [
 		RouterLink,
-		SegmentedControl,
+		UiSegmentedControl,
 		UiAlert,
 		UiButton,
 		UiDialog,
@@ -65,204 +58,7 @@ export function formatGraceDate(isoDate: string): string {
 		UiIconButton,
 		UiSwitch
 	],
-	template: `
-		<ui-dialog
-			size="sm"
-			eyebrow="Rewind"
-			[icon]="isRegeneration() ? 'refresh' : 'auto_awesome'"
-			[heading]="heading()"
-			[subheading]="subheading()"
-			(closed)="closed.emit()"
-		>
-			<form
-				id="rewind-generate-form"
-				class="flex flex-col gap-5"
-				[attr.aria-busy]="pending()"
-				(submit)="$event.preventDefault(); submit()"
-			>
-				@if (controls()) {
-					<div
-						class="flex flex-col gap-1 rounded-card border border-line bg-surface px-3 py-2.5 text-[0.8125rem]"
-					>
-						<p class="m-0 text-fg tabular-nums">
-							{{ regenerationsLine() }}
-						</p>
-						@if (graceLine(); as grace) {
-							<p class="m-0 text-fg-secondary">{{ grace }}</p>
-						}
-						<p class="m-0 text-fg-secondary">
-							{{ replaceWarning() }}
-						</p>
-					</div>
-				}
-
-				<fieldset class="m-0 flex flex-col gap-2 border-0 p-0">
-					<legend uiFieldLabel class="p-0">Language</legend>
-					<app-segmented-control
-						label="Rewind language"
-						[options]="languageOptions"
-						[(value)]="language"
-					/>
-					<p class="m-0 text-[0.8125rem] text-fg-muted">
-						Everyone who opens this Rewind reads it in this
-						language.
-					</p>
-				</fieldset>
-
-				@if (hasPremiumAccess()) {
-					<div class="flex flex-col gap-2">
-						<div class="flex items-center gap-1.5">
-							<span uiEyebrow id="rewind-ai-recap-heading"
-								>AI recap</span
-							>
-							<button
-								uiIconButton
-								type="button"
-								size="sm"
-								class="tap-area"
-								aria-label="Who writes the AI recap"
-								aria-controls="rewind-ai-provider-notice"
-								[attr.aria-expanded]="providerNoticeOpen()"
-								(click)="
-									providerNoticeOpen.set(
-										!providerNoticeOpen()
-									)
-								"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-base"
-									>help_outline</span
-								>
-							</button>
-						</div>
-						@if (providerNoticeOpen()) {
-							<p
-								id="rewind-ai-provider-notice"
-								class="m-0 flex items-start gap-2 rounded-card border border-line bg-surface px-3 py-2.5 text-[0.8125rem] leading-relaxed text-fg-secondary"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons shrink-0 text-base text-fg-muted"
-									>smart_toy</span
-								>
-								<span>
-									Your AI recap is written by DeepSeek, an
-									external AI service. It receives this year's
-									games, ratings, reviews and stats, never
-									your email or username.
-									<a
-										routerLink="/privacy"
-										fragment="sharing"
-										target="_blank"
-										rel="noopener"
-										class="font-semibold text-brand hover:text-brand-hover"
-										>How your data is used</a
-									>
-								</span>
-							</p>
-						}
-					</div>
-					<div class="flex flex-col gap-2">
-						<ui-switch
-							label="Include private runs"
-							[(checked)]="includePrivateRuns"
-							[disabled]="pending()"
-						/>
-						@if (includePrivateRuns()) {
-							<ui-alert tone="warning" icon="visibility">
-								Your AI recap and premium stats may mention
-								private games, and anyone who can see your
-								Rewind will read them.
-							</ui-alert>
-						} @else {
-							<p class="m-0 text-[0.8125rem] text-fg-muted">
-								Off by default. Only your AI recap and premium
-								stats use private runs.
-							</p>
-						}
-					</div>
-					<div class="flex flex-col gap-2">
-						<ui-switch
-							label="Use my notes"
-							[(checked)]="includeNotes"
-							[disabled]="pending()"
-						/>
-						@if (includeNotes()) {
-							<ui-alert tone="info" icon="edit_note">
-								Your AI recap reads your notes to understand you
-								as a player. Anyone who can see your Rewind will
-								read the recap, so it never quotes them word for
-								word or names people.
-							</ui-alert>
-						} @else {
-							<p class="m-0 text-[0.8125rem] text-fg-muted">
-								Off by default. Only your AI recap reads your
-								notes.
-							</p>
-						}
-					</div>
-				}
-
-				@if (pending()) {
-					<div
-						role="status"
-						class="flex items-center gap-3 rounded-card border border-line bg-surface px-3 py-3"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons shrink-0 text-xl text-brand motion-safe:animate-spin"
-							>autorenew</span
-						>
-						<span class="flex flex-col gap-0.5 text-[0.8125rem]">
-							<span class="text-fg">{{ progressLine() }}</span>
-							<span class="text-fg-muted"
-								>You can close this window. We'll let you know
-								when it's ready.</span
-							>
-						</span>
-					</div>
-				} @else if (errorMessage(); as message) {
-					<ui-alert [tone]="isRetryable() ? 'danger' : 'warning'">
-						<span class="block">{{ message }}</span>
-						@if (error() === "conflict") {
-							<a
-								class="mt-1 inline-flex tap:min-h-[44px] items-center font-semibold text-brand hover:text-brand-hover"
-								[routerLink]="[
-									'/user',
-									username(),
-									'rewind',
-									year()
-								]"
-								(click)="closed.emit()"
-								>See your Rewind</a
-							>
-						}
-					</ui-alert>
-				}
-			</form>
-
-			<ng-container dialogFooter>
-				<button
-					uiButton
-					type="button"
-					variant="ghost"
-					(click)="closed.emit()"
-				>
-					{{ pending() ? "Close" : "Cancel" }}
-				</button>
-				<button
-					uiButton
-					type="submit"
-					variant="primary"
-					form="rewind-generate-form"
-					[disabled]="!canSubmit()"
-				>
-					{{ submitLabel() }}
-				</button>
-			</ng-container>
-		</ui-dialog>
-	`,
+	templateUrl: "./rewind-generate-dialog.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RewindGenerateDialog {
@@ -306,15 +102,15 @@ export class RewindGenerateDialog {
 	);
 	protected readonly regenerationsLine = computed(() => {
 		const left = this.controls()?.regenerationsLeft ?? 0;
-		if (left <= 0) return "No regular regenerations left";
+		if (left <= 0) return "No AI generations left";
 		return left === 1
-			? "1 regeneration left"
-			: `${left} regenerations left`;
+			? "1 AI generation left"
+			: `${left} AI generations left`;
 	});
 	protected readonly graceLine = computed(() => {
 		const graceEndsAt = this.controls()?.graceEndsAt;
 		return graceEndsAt
-			? `Extra regeneration available until ${formatGraceDate(graceEndsAt)}`
+			? `Extra AI generation available until ${formatRewindDay(graceEndsAt, DEFAULT_REWIND_LANGUAGE)}`
 			: null;
 	});
 	protected readonly replaceWarning = computed(() =>
@@ -334,7 +130,8 @@ export class RewindGenerateDialog {
 	protected readonly canSubmit = computed(() => {
 		if (this.pending() || this.premiumAccess() === null) return false;
 		const error = this.error();
-		if (error !== null && BLOCKING_ERRORS.includes(error)) return false;
+		if (error !== null && BLOCKING_GENERATE_ERRORS.includes(error))
+			return false;
 		const controls = this.controls();
 		return controls === null || controls.canRegenerate;
 	});
@@ -349,7 +146,13 @@ export class RewindGenerateDialog {
 			case "conflict":
 				return `Your ${year} Rewind was updated from another tab or device. We loaded the latest version.`;
 			case "limit":
-				return `You've used every regeneration for ${year}.`;
+				return `You've used every AI generation for ${year}.`;
+			case "period_closed":
+				return `Rewind ${year} is closed. Your Rewinds stay as they were when it closed.`;
+			case "year_requires_premium":
+				return "Rewinds of previous years can only be generated with Premium.";
+			case "premium_required":
+				return "Regenerating needs Premium or a Rewind gift. Your current Rewind stays as it is.";
 			case "not_found":
 				return `There's nothing to rewind for ${year} yet. A Rewind needs games started or finished that year.`;
 			case "invalid":

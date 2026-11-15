@@ -7,3 +7,10 @@ export type FrozenScoreContext = {
 	timesByGameId: Map<string, GameTime>;
 	scoreSource: ScoreSource | null;
 };
+
+export type CopiedListItem = {
+	gameId: string;
+	position: number;
+	score?: number | null;
+	duration?: number | null;
+};

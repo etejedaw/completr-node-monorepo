@@ -1,4 +1,5 @@
 import { type User } from "../users/user.model";
+import { type ActivityGameReference } from "./activity.interface";
 import { type Activity } from "./activity.model";
 
 export function activitySerializer(
@@ -18,17 +19,11 @@ export function activitySerializer(
 }
 
 function resolveMetadataGame(activity: Activity) {
-	const game = activity.metadata?.game as
-		| {
-				id: string;
-				title: string;
-				code: string;
-				backgroundUrl: string | null;
-		  }
-		| undefined;
+	const game = activity.metadata?.game as ActivityGameReference | undefined;
+	return game ? serializeGameTarget(game) : undefined;
+}
 
-	if (!game) return undefined;
-
+function serializeGameTarget(game: ActivityGameReference) {
 	return {
 		type: "game",
 		id: game.id,
@@ -43,14 +38,7 @@ function resolveTarget(
 	premiumUserIds?: ReadonlySet<string>
 ) {
 	if (activity.ActivityGame?.Game) {
-		const game = activity.ActivityGame.Game;
-		return {
-			type: "game",
-			id: game.id,
-			name: game.title,
-			code: game.code,
-			backgroundUrl: game.backgroundUrl
-		};
+		return serializeGameTarget(activity.ActivityGame.Game);
 	}
 
 	if (activity.ActivityList?.List) {

@@ -61,7 +61,8 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 			lastFinished: null,
 			topGenres: [],
 			topPlatforms: [],
-			longestStreak: null
+			longestStreak: null,
+			classic: null
 		},
 		yearMix: {
 			lengthMix: [],
@@ -71,6 +72,8 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 		},
 		language: "en",
 		generatedAt: "2026-12-02T10:00:00.000Z",
+		design: "2026",
+		frozenAt: null,
 		aiRecap: null,
 		premiumStats: null,
 		premiumAccessKind: null,
@@ -80,7 +83,12 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 			regenerationsLeft: 1,
 			graceEndsAt: null,
 			canRegenerate: true,
-			aiRecapState: "unavailable"
+			regenerationBlockedBy: null,
+			aiRecapState: "unavailable",
+			periodOpen: true,
+			periodStatus: "open",
+			closesAt: "2027-01-31",
+			frozenAt: null
 		},
 		premiumAccess: { allowed: false, source: null, expiresAt: null },
 		...overrides
@@ -129,7 +137,7 @@ class GeneratorHost {
 describe("RewindGenerateDialog", () => {
 	let httpTesting: HttpTestingController;
 	let toast: {
-		pending: ReturnType<typeof vi.fn>;
+		success: ReturnType<typeof vi.fn>;
 		error: ReturnType<typeof vi.fn>;
 	};
 
@@ -164,7 +172,7 @@ describe("RewindGenerateDialog", () => {
 
 	beforeEach(() => {
 		isPremium = signal(false);
-		toast = { pending: vi.fn(), error: vi.fn() };
+		toast = { success: vi.fn(), error: vi.fn() };
 		vi.spyOn(performance, "now").mockReturnValue(10_000);
 		vi.stubGlobal(
 			"matchMedia",
@@ -207,7 +215,7 @@ describe("RewindGenerateDialog", () => {
 		await waitFor(() => expect(dialogNamed()).toBeNull());
 		expect(host.generated).toEqual([rewind]);
 		expect(host.finishedInDialog).toEqual([rewind]);
-		expect(toast.pending).not.toHaveBeenCalled();
+		expect(toast.success).not.toHaveBeenCalled();
 	});
 
 	it("sends a single request on a double or triple click of Generate", async () => {
@@ -274,13 +282,11 @@ describe("RewindGenerateDialog", () => {
 		expect(host.generated).toEqual([rewind]);
 		expect(host.finishedInDialog).toEqual([]);
 		expect(navigate).not.toHaveBeenCalled();
-		expect(toast.pending).toHaveBeenCalledWith(
-			expect.objectContaining({
-				message: "Your 2026 Rewind is ready",
-				undoLabel: "View"
-			})
+		expect(toast.success).toHaveBeenCalledWith(
+			"Your 2026 Rewind is ready",
+			{ action: { label: "View", run: expect.any(Function) } }
 		);
-		toast.pending.mock.calls[0][0].onUndo();
+		toast.success.mock.calls[0][1].action.run();
 		expect(navigate).toHaveBeenCalledWith(["/user", "ada", "rewind", 2026]);
 	});
 
@@ -307,7 +313,7 @@ describe("RewindGenerateDialog", () => {
 		requests[0].flush({ data: rewindFixture() });
 		await waitFor(() => expect(dialogNamed()).toBeNull());
 		expect(host.finishedInDialog).toHaveLength(1);
-		expect(toast.pending).not.toHaveBeenCalled();
+		expect(toast.success).not.toHaveBeenCalled();
 	});
 
 	it("sends the last language picked after quick changes", async () => {
@@ -465,7 +471,12 @@ describe("RewindGenerateDialog", () => {
 					regenerationsLeft: 1,
 					graceEndsAt: null,
 					canRegenerate: true,
-					aiRecapState: "unavailable"
+					regenerationBlockedBy: null,
+					aiRecapState: "unavailable",
+					periodOpen: true,
+					periodStatus: "open",
+					closesAt: "2027-01-31",
+					frozenAt: null
 				}
 			})
 		);
@@ -488,7 +499,12 @@ describe("RewindGenerateDialog", () => {
 					regenerationsLeft: 1,
 					graceEndsAt: null,
 					canRegenerate: true,
-					aiRecapState: "unavailable"
+					regenerationBlockedBy: null,
+					aiRecapState: "unavailable",
+					periodOpen: true,
+					periodStatus: "open",
+					closesAt: "2027-01-31",
+					frozenAt: null
 				}
 			})
 		);
@@ -581,7 +597,12 @@ describe("RewindGenerateDialog", () => {
 					regenerationsLeft: 1,
 					graceEndsAt: null,
 					canRegenerate: true,
-					aiRecapState: "ready"
+					regenerationBlockedBy: null,
+					aiRecapState: "ready",
+					periodOpen: true,
+					periodStatus: "open",
+					closesAt: "2027-01-31",
+					frozenAt: null
 				}
 			})
 		);
@@ -650,7 +671,12 @@ describe("RewindGenerateDialog", () => {
 					regenerationsLeft: 1,
 					graceEndsAt: "2027-01-07",
 					canRegenerate: true,
-					aiRecapState: "ready"
+					regenerationBlockedBy: null,
+					aiRecapState: "ready",
+					periodOpen: true,
+					periodStatus: "open",
+					closesAt: "2027-01-31",
+					frozenAt: null
 				}
 			})
 		);
@@ -663,10 +689,12 @@ describe("RewindGenerateDialog", () => {
 			within(dialog).getByRole("switch", { name: "Include private runs" })
 		).toHaveAttribute("aria-checked", "true");
 		expect(
-			within(dialog).getByText("1 regeneration left")
+			within(dialog).getByText("1 AI generation left")
 		).toBeInTheDocument();
 		expect(
-			within(dialog).getByText("Extra regeneration available until Jan 7")
+			within(dialog).getByText(
+				"Extra AI generation available until Jan 7"
+			)
 		).toBeInTheDocument();
 		expect(
 			within(dialog).getByText(
@@ -696,14 +724,19 @@ describe("RewindGenerateDialog", () => {
 					regenerationsLeft: 0,
 					graceEndsAt: null,
 					canRegenerate: false,
-					aiRecapState: "unavailable"
+					regenerationBlockedBy: "no-regenerations-left",
+					aiRecapState: "unavailable",
+					periodOpen: true,
+					periodStatus: "open",
+					closesAt: "2027-01-31",
+					frozenAt: null
 				}
 			})
 		);
 		const dialog = await openDialog("Regenerate your 2026 Rewind");
 
 		expect(
-			within(dialog).getByText("No regular regenerations left")
+			within(dialog).getByText("No AI generations left")
 		).toBeInTheDocument();
 		const regenerate = within(dialog).getByRole("button", {
 			name: "Regenerate"
@@ -768,12 +801,131 @@ describe("RewindGenerateDialog", () => {
 
 		expect(
 			await within(dialog).findByText(
-				"You've used every regeneration for 2026."
+				"You've used every AI generation for 2026."
 			)
 		).toBeInTheDocument();
 		expect(
 			within(dialog).getByRole("button", { name: "Regenerate" })
 		).toBeDisabled();
+	});
+
+	it.each([
+		[
+			409,
+			"REWIND_PERIOD_CLOSED",
+			"Rewind 2026 is closed. Your Rewinds stay as they were when it closed."
+		],
+		[
+			403,
+			"REWIND_YEAR_REQUIRES_PREMIUM",
+			"Rewinds of previous years can only be generated with Premium."
+		],
+		[
+			402,
+			"REWIND_AI_RECAP_PREMIUM_REQUIRED",
+			"Regenerating needs Premium or a Rewind gift. Your current Rewind stays as it is."
+		]
+	])(
+		"blocks a regeneration refused with %s %s and reloads the owner controls",
+		async (status, type, message) => {
+			const host = await renderHost(rewindFixture());
+			const dialog = await openDialog("Regenerate your 2026 Rewind");
+			await userEvent.dblClick(
+				within(dialog).getByRole("button", { name: "Regenerate" })
+			);
+
+			const requests = pendingGenerations();
+			expect(requests).toHaveLength(1);
+			requests[0].flush({ type }, { status, statusText: "err" });
+			const reloaded = rewindFixture({
+				ownerControls: {
+					...rewindFixture().ownerControls!,
+					canRegenerate: false,
+					regenerationBlockedBy: "no-regenerations-left",
+					periodOpen: type !== "REWIND_PERIOD_CLOSED",
+					periodStatus:
+						type === "REWIND_PERIOD_CLOSED" ? "closed" : "open"
+				}
+			});
+			httpTesting.expectOne(rewindUrl).flush({ data: reloaded });
+
+			expect(
+				await within(dialog).findByText(message)
+			).toBeInTheDocument();
+			expect(
+				within(dialog).getByRole("button", { name: "Regenerate" })
+			).toBeDisabled();
+			expect(host.generated).toEqual([reloaded]);
+			expect(toast.error).not.toHaveBeenCalled();
+		}
+	);
+
+	it("explains a closed period on a first generation without reloading a Rewind that does not exist", async () => {
+		await renderHost();
+		const dialog = await openDialog();
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Generate" })
+		);
+
+		pendingGenerations()[0].flush(
+			{ type: "REWIND_PERIOD_CLOSED" },
+			{ status: 409, statusText: "Conflict" }
+		);
+
+		expect(
+			await within(dialog).findByText(/Rewind 2026 is closed/)
+		).toBeInTheDocument();
+		expect(
+			within(dialog).getByRole("button", { name: "Generate" })
+		).toBeDisabled();
+		httpTesting.expectNone(rewindUrl);
+	});
+
+	it.each([
+		[403, "REWIND_YEAR_REQUIRES_PREMIUM"],
+		[402, "REWIND_AI_RECAP_PREMIUM_REQUIRED"],
+		[409, "REWIND_PERIOD_CLOSED"],
+		[409, "REWIND_REGENERATION_LIMIT"],
+		[429, "AUTH_RATE_LIMITED"]
+	])(
+		"does not toast Try again for a %s %s after the dialog was closed",
+		async (status, type) => {
+			await renderHost(rewindFixture());
+			const dialog = await openDialog("Regenerate your 2026 Rewind");
+			await userEvent.click(
+				within(dialog).getByRole("button", { name: "Regenerate" })
+			);
+			await userEvent.click(
+				within(dialog).getByRole("button", { name: "Close" })
+			);
+
+			pendingGenerations()[0].flush(
+				{ type },
+				{ status, statusText: "err" }
+			);
+			httpTesting
+				.match(rewindUrl)
+				.forEach(req => req.flush({ data: rewindFixture() }));
+
+			expect(toast.error).not.toHaveBeenCalled();
+		}
+	);
+
+	it("toasts Try again when a closed dialog loses its connection", async () => {
+		await renderHost(rewindFixture());
+		const dialog = await openDialog("Regenerate your 2026 Rewind");
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Regenerate" })
+		);
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Close" })
+		);
+
+		pendingGenerations()[0].error(new ProgressEvent("error"));
+
+		expect(toast.error).toHaveBeenCalledWith(
+			"Couldn't generate your 2026 Rewind. Try again."
+		);
 	});
 
 	it("explains a year with nothing to rewind and disables the action", async () => {
@@ -866,7 +1018,7 @@ describe("RewindGenerateDialog", () => {
 		expect(toast.error).toHaveBeenCalledWith(
 			"Couldn't generate your 2026 Rewind. Try again."
 		);
-		expect(toast.pending).not.toHaveBeenCalled();
+		expect(toast.success).not.toHaveBeenCalled();
 	});
 
 	it("clears a previous error when the dialog is opened again", async () => {
@@ -891,5 +1043,44 @@ describe("RewindGenerateDialog", () => {
 		expect(
 			within(dialog).getByRole("button", { name: "Generate" })
 		).toBeEnabled();
+	});
+	describe("premium zone", () => {
+		it("frames the AI recap options in gold with access, and survives a double click on the switches", async () => {
+			isPremium.set(true);
+			await renderHost();
+			const dialog = await openDialog();
+
+			const zone = within(dialog).getByRole("region", {
+				name: "AI recap"
+			});
+			expect(zone).toHaveAttribute("data-premium-zone");
+			expect(zone.className).toContain("border-premium/30");
+			const privateRuns = within(zone).getByRole("switch", {
+				name: "Include private runs"
+			});
+			const notes = within(zone).getByRole("switch", {
+				name: "Use my notes"
+			});
+			await userEvent.dblClick(privateRuns);
+			await userEvent.dblClick(notes);
+			expect(privateRuns).toHaveAttribute("aria-checked", "false");
+			expect(notes).toHaveAttribute("aria-checked", "false");
+			expect(
+				within(zone).queryByRole("radio", { name: "English" })
+			).toBeNull();
+		});
+
+		it("shows no premium zone or AI recap options without access", async () => {
+			await renderHost();
+			const dialog = await openDialog();
+
+			expect(dialog.querySelector("[data-premium-zone]")).toBeNull();
+			expect(
+				within(dialog).queryByRole("switch", {
+					name: "Include private runs"
+				})
+			).toBeNull();
+			expect(within(dialog).queryByText("AI recap")).toBeNull();
+		});
 	});
 });

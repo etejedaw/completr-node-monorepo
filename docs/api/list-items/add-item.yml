@@ -29,7 +29,7 @@ docs: |-
     **Authentication:** Bearer token required (list owner only).
     **Rate Limit:** 300 requests per minute (user).
 
-    Returns 403 if the user isn't the list owner. Returns 423 if the user exceeded the free-tier list limit (frozen).
+    Returns 404 if the list does not exist or the user isn't its owner. Returns 423 if the user exceeded the free-tier list limit (frozen).
 
     ### Path Params
 

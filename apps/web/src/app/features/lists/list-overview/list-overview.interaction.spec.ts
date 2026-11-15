@@ -20,14 +20,14 @@ import { environment } from "../../../../environments/environment";
 import { type List, type ListItem } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { type GiftOffer } from "../../../shared/components/gift-offer-card/gift-offer-card.model";
-import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
+import { UiToastContainer } from "../../../shared/ui";
 import { ListDetail } from "../list-detail/list-detail";
 import { ListOverview } from "./list-overview";
 
 @Component({
 	selector: "app-lists-host",
-	imports: [RouterOutlet, ToastContainer],
-	template: `<router-outlet /><app-toast-container />`,
+	imports: [RouterOutlet, UiToastContainer],
+	template: `<router-outlet /><ui-toast-container />`,
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 class ListsHost {}

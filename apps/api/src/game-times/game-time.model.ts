@@ -1,11 +1,10 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
 import { sequelize } from "../database/sequelize.database";
+import { TIME_SOURCES, TIME_SOURCES_API } from "./game-times.constants";
 
-export const TIME_SOURCES = ["hltb", "rawg", "completr"] as const;
+export { TIME_SOURCES, TIME_SOURCES_API };
 export type TimeSource = (typeof TIME_SOURCES)[number];
-
-export const TIME_SOURCES_API = ["hltb", "rawg"] as const;
 
 class GameTime extends Model {
 	declare id: string;

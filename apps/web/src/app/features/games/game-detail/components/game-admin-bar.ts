@@ -6,9 +6,13 @@ import {
 	output
 } from "@angular/core";
 
-import { ActionMenu } from "../../../../shared/components/action-menu/action-menu";
-import { type ActionMenuItem } from "../../../../shared/components/action-menu/action-menu.model";
-import { UiBadge, UiButton, UiDialog } from "../../../../shared/ui";
+import {
+	UiActionMenu,
+	type UiActionMenuItem,
+	UiBadge,
+	UiButton,
+	UiDialog
+} from "../../../../shared/ui";
 import {
 	type AdminActionsState,
 	type GameAdminAction
@@ -16,7 +20,7 @@ import {
 
 @Component({
 	selector: "app-game-admin-bar",
-	imports: [ActionMenu, UiBadge, UiButton, UiDialog],
+	imports: [UiActionMenu, UiBadge, UiButton, UiDialog],
 	template: `
 		<div
 			class="flex items-center gap-2 py-2 pl-3 pr-2 bg-surface/60 border border-line rounded-card"
@@ -38,7 +42,7 @@ import {
 				{{ state().editor ? "Close editor" : "Edit game" }}
 			</button>
 			@if (isAdmin()) {
-				<app-action-menu
+				<ui-action-menu
 					label="More admin actions"
 					heading="Admin actions"
 					icon="more_vert"
@@ -145,7 +149,7 @@ export class GameAdminBar {
 		() => this.state().deactivating || this.state().deleting
 	);
 
-	protected readonly menuItems = computed<ActionMenuItem[]>(() => {
+	protected readonly menuItems = computed<UiActionMenuItem[]>(() => {
 		const { deactivating, deleting } = this.state();
 		return [
 			{

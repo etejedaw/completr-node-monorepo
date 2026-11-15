@@ -9,7 +9,9 @@ import {
 	type RewindYears
 } from "../../core/models/rewind.model";
 
-export type RewindImageFormat = "story" | "og";
+export type RewindImageFormat = "story" | "story-list" | "og";
+
+export type RewindStoryFormat = Exclude<RewindImageFormat, "og">;
 
 @Injectable({ providedIn: "root" })
 export class RewindService {

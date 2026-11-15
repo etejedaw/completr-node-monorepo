@@ -2,7 +2,8 @@ import { type Request, type Response } from "express";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
-import { buildUserMe } from "../users";
+import { buildUserMe } from "../users/users-me.service";
+import { authTokensSerializer, sessionSerializer } from "./auth.serializer";
 import * as authService from "./auth.service";
 import {
 	type ChangePasswordDto,
@@ -21,11 +22,15 @@ import {
 	setRefreshCookie
 } from "./utils/refresh-cookie.util";
 
-function getRefreshToken(request: Request): string {
+function findRefreshToken(request: Request) {
 	const fromCookie = request.cookies?.[REFRESH_COOKIE_NAME] as
 		string | undefined;
 	const fromBody = (request.locals.body as RefreshTokenDto)?.refresh_token;
-	const token = fromCookie ?? fromBody;
+	return fromCookie ?? fromBody;
+}
+
+function getRefreshToken(request: Request): string {
+	const token = findRefreshToken(request);
 	if (!token) throw authDomainError.invalidRefreshToken();
 	return token;
 }
@@ -44,8 +49,7 @@ export async function postRegister(request: Request, response: Response) {
 
 	const data = {
 		user: await buildUserMe(userPlain),
-		access_token: userRegister.accessToken,
-		session_id: userRegister.sessionId
+		...authTokensSerializer(userRegister)
 	};
 
 	return response.status(201).json({ data });
@@ -58,10 +62,7 @@ export async function postLogin(request: Request, response: Response) {
 
 	setRefreshCookie(response, userLogin.refreshToken);
 
-	const data = {
-		access_token: userLogin.accessToken,
-		session_id: userLogin.sessionId
-	};
+	const data = authTokensSerializer(userLogin);
 
 	return response.status(200).json({ data });
 }
@@ -76,19 +77,13 @@ export async function postRefresh(request: Request, response: Response) {
 
 	setRefreshCookie(response, tokens.refreshToken);
 
-	const data = {
-		access_token: tokens.accessToken,
-		session_id: tokens.sessionId
-	};
+	const data = authTokensSerializer(tokens);
 
 	return response.status(200).json({ data });
 }
 
 export async function postLogout(request: Request, response: Response) {
-	const fromCookie = request.cookies?.[REFRESH_COOKIE_NAME] as
-		string | undefined;
-	const fromBody = (request.locals.body as RefreshTokenDto)?.refresh_token;
-	const refreshToken = fromCookie ?? fromBody;
+	const refreshToken = findRefreshToken(request);
 
 	if (refreshToken) await authService.logout(refreshToken);
 
@@ -136,13 +131,7 @@ export async function getSessions(request: Request, response: Response) {
 	});
 
 	const data = {
-		sessions: sessions.map(s => ({
-			id: s.id,
-			deviceInfo: s.deviceInfo,
-			lastUsedAt: s.lastUsedAt,
-			createdAt: s.createdAt,
-			expiresAt: s.expiresAt
-		})),
+		sessions: sessions.map(sessionSerializer),
 		total
 	};
 

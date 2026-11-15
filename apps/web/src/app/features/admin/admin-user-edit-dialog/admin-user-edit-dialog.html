@@ -1,0 +1,156 @@
+<ui-dialog
+	eyebrow="Users"
+	icon="manage_accounts"
+	heading="Edit user"
+	[subheading]="user().username + ' · ' + user().email"
+	[dismissible]="!isSaving()"
+	(closed)="closed.emit()"
+>
+	@if (visibleError()) {
+	<ui-alert class="mb-4 whitespace-pre-line">{{ visibleError() }}</ui-alert>
+	}
+
+	<form id="edit-user-form" (submit)="submit($event)" novalidate>
+		<div uiFormField class="mb-4">
+			<label uiLabel for="edit-name" uiFieldLabel>Name</label>
+			<input
+				id="edit-name"
+				uiInput
+				type="text"
+				autocomplete="off"
+				[formField]="form.name"
+			/>
+			@if (form.name().touched() && form.name().invalid()) { @for (error
+			of form.name().errors(); track $index) {
+			<ui-field-error uiDescription>{{ error.message }}</ui-field-error>
+			} } @else if (visibleFieldErrors()['name']; as msg) {
+			<ui-field-error uiDescription>{{ msg }}</ui-field-error>
+			}
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-x-3 gap-y-4 mb-4">
+			<div uiFormField>
+				<label uiLabel for="edit-role" uiFieldLabel>Role</label>
+				<ui-option-picker
+					variant="input"
+					triggerId="edit-role"
+					label="Role"
+					heading="Role"
+					placeholderIcon="badge"
+					[options]="roleOptions"
+					[value]="form.role().value()"
+					(valueChange)="setRole($event)"
+				/>
+			</div>
+			<div uiFormField>
+				<label uiLabel for="edit-password" uiFieldLabel
+					>New password <ui-field-optional
+				/></label>
+				<div class="relative">
+					<input
+						id="edit-password"
+						uiInput
+						autocomplete="new-password"
+						[type]="showPassword() ? 'text' : 'password'"
+						[formField]="form.password"
+						placeholder="Leave empty to keep current"
+						class="!pr-12"
+					/>
+					<button
+						uiIconButton
+						type="button"
+						class="absolute right-1 top-1/2 -translate-y-1/2 tap:min-w-[44px]"
+						(click)="toggleShowPassword()"
+						[attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+						[attr.aria-pressed]="showPassword()"
+					>
+						<span
+							aria-hidden="true"
+							class="material-icons text-base"
+							>{{ showPassword() ? "visibility_off" : "visibility"
+							}}</span
+						>
+					</button>
+				</div>
+				@if (form.password().touched() && form.password().invalid()) {
+				@for (error of form.password().errors(); track $index) {
+				<ui-field-error uiDescription
+					>{{ error.message }}</ui-field-error
+				>
+				} } @else if (visibleFieldErrors()['password']; as msg) {
+				<ui-field-error uiDescription>{{ msg }}</ui-field-error>
+				}
+			</div>
+		</div>
+
+		@let isActive = form.isActive().value();
+		<div
+			class="flex items-center gap-3 min-h-[52px] px-3.5 py-2 rounded-card border border-line bg-surface/70"
+		>
+			<span
+				aria-hidden="true"
+				class="material-icons text-xl"
+				[class.text-success]="isActive"
+				[class.text-fg-muted]="!isActive"
+				>{{ isActive ? "check_circle" : "block" }}</span
+			>
+			<span class="flex-1 min-w-0">
+				<span class="block text-sm text-fg"
+					>{{ isActive ? "Active" : "Inactive" }}</span
+				>
+				<span class="block text-caption text-fg-muted"
+					>{{ isActive ? "The account can sign in." : "The account
+					cannot sign in until it is reactivated." }}</span
+				>
+			</span>
+			<ui-switch
+				ariaLabel="Account active"
+				[checked]="isActive"
+				(checkedChange)="setActive($event)"
+			/>
+		</div>
+	</form>
+
+	<ng-container dialogFooter>
+		<button
+			uiButton
+			variant="premium"
+			type="button"
+			class="mr-auto"
+			[attr.title]="premiumAccessHint()"
+			[disabled]="isSaving() || hasPremiumRole()"
+			(click)="premiumAccessRequested.emit()"
+		>
+			<span
+				aria-hidden="true"
+				class="material-icons text-base text-premium"
+				>workspace_premium</span
+			>
+			Premium access
+		</button>
+		<a uiButton variant="ghost" [routerLink]="['/user', user().username]">
+			<span aria-hidden="true" class="material-icons text-base"
+				>account_circle</span
+			>
+			View profile
+		</a>
+		<button
+			uiButton
+			variant="ghost"
+			type="button"
+			[disabled]="isSaving()"
+			(click)="closed.emit()"
+		>
+			Cancel
+		</button>
+		<button
+			uiButton
+			variant="primary"
+			type="submit"
+			form="edit-user-form"
+			[disabled]="isSaving()"
+		>
+			{{ isSaving() ? "Saving..." : "Save Changes" }}
+		</button>
+	</ng-container>
+</ui-dialog>

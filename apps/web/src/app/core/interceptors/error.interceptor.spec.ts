@@ -1,7 +1,7 @@
 import {
 	HttpClient,
 	HttpContext,
-	type HttpErrorResponse,
+	HttpErrorResponse,
 	provideHttpClient,
 	withInterceptors
 } from "@angular/common/http";
@@ -52,6 +52,7 @@ describe("errorInterceptor", () => {
 	});
 
 	afterEach(() => {
+		refresh$.complete();
 		httpTesting.verify();
 	});
 
@@ -361,5 +362,123 @@ describe("errorInterceptor", () => {
 			.flush(null, { status: 401, statusText: "Unauthorized" });
 
 		expect(auth.refresh).toHaveBeenCalledTimes(2);
+	});
+	describe("when the refresh itself fails", () => {
+		function startUnauthorized(url = "/api/thing") {
+			const onError = vi.fn<(error: HttpErrorResponse) => void>();
+			const onNext = vi.fn();
+			http.get(url).subscribe({ next: onNext, error: onError });
+			httpTesting
+				.expectOne(url)
+				.flush(null, { status: 401, statusText: "Unauthorized" });
+			return { onError, onNext };
+		}
+
+		function refreshFailsWith(status: number) {
+			refresh$.error(
+				new HttpErrorResponse({ status, statusText: "err" })
+			);
+		}
+
+		it.each([500, 503, 429, 0])(
+			"keeps the session when the refresh answers %i",
+			status => {
+				const { onError } = startUnauthorized();
+				refreshFailsWith(status);
+
+				expect(auth.clearSession).not.toHaveBeenCalled();
+				expect(onError).toHaveBeenCalledTimes(1);
+				expect(onError.mock.calls[0][0].status).toBe(status);
+			}
+		);
+
+		it.each([401, 403])(
+			"clears the session when the refresh is rejected with %i",
+			status => {
+				const { onError } = startUnauthorized();
+				refreshFailsWith(status);
+
+				expect(auth.clearSession).toHaveBeenCalledTimes(1);
+				expect(onError).toHaveBeenCalledTimes(1);
+			}
+		);
+
+		it("keeps the session for queued requests when the refresh answers 500", () => {
+			const first = startUnauthorized("/api/first");
+			const second = startUnauthorized("/api/second");
+			refreshFailsWith(500);
+
+			expect(auth.clearSession).not.toHaveBeenCalled();
+			expect(first.onError).toHaveBeenCalledTimes(1);
+			expect(second.onError).toHaveBeenCalledTimes(1);
+		});
+
+		it("retries with the token another tab stored when the refresh is rejected", () => {
+			const { onNext, onError } = startUnauthorized();
+			token = "token-from-other-tab";
+			refreshFailsWith(401);
+
+			const retry = httpTesting.expectOne("/api/thing");
+			expect(retry.request.headers.get("Authorization")).toBe(
+				"Bearer token-from-other-tab"
+			);
+			retry.flush({ ok: true });
+			expect(onNext).toHaveBeenCalledWith({ ok: true });
+			expect(onError).not.toHaveBeenCalled();
+			expect(auth.clearSession).not.toHaveBeenCalled();
+		});
+
+		it("does not clear the session when the retry after a good refresh fails with 500", () => {
+			const { onError } = startUnauthorized();
+			token = "fresh";
+			refresh$.next({});
+			refresh$.complete();
+
+			httpTesting
+				.expectOne("/api/thing")
+				.flush(null, { status: 500, statusText: "err" });
+
+			expect(auth.clearSession).not.toHaveBeenCalled();
+			expect(onError.mock.calls[0][0].status).toBe(500);
+		});
+
+		it("lets a request that fails while the refresh is pending ride the same refresh", () => {
+			const first = startUnauthorized("/api/first");
+			const second = startUnauthorized("/api/second");
+			expect(auth.refresh).toHaveBeenCalledTimes(1);
+
+			token = "fresh";
+			refresh$.next({});
+			refresh$.complete();
+			httpTesting.expectOne("/api/second").flush({ id: 2 });
+			httpTesting.expectOne("/api/first").flush({ id: 1 });
+
+			expect(first.onNext).toHaveBeenCalledWith({ id: 1 });
+			expect(second.onNext).toHaveBeenCalledWith({ id: 2 });
+			expect(auth.clearSession).not.toHaveBeenCalled();
+		});
+
+		it("rethrows a 404 problem detail untouched, with no toast and no refresh", () => {
+			const onError = failWith(404, {
+				type: "BACKLOG_NOT_FOUND",
+				status: 404
+			});
+
+			expect(onError.mock.calls[0][0].error.type).toBe(
+				"BACKLOG_NOT_FOUND"
+			);
+			expect(auth.refresh).not.toHaveBeenCalled();
+			expect(toast.warning).not.toHaveBeenCalled();
+		});
+
+		it("rethrows a 503 source-unavailable problem detail untouched", () => {
+			const onError = failWith(503, {
+				type: "COMMON_SOURCE_UNAVAILABLE",
+				status: 503
+			});
+
+			expect(onError.mock.calls[0][0].status).toBe(503);
+			expect(auth.clearSession).not.toHaveBeenCalled();
+		});
 	});
 });

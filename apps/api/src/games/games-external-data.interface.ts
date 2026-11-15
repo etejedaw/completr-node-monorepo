@@ -1,3 +1,4 @@
+import { type Logger } from "../common/logger/logger.interface";
 import { type ExternalDataAttemptStatus } from "../external-data-attempts/external-data-attempt.model";
 import { type IgdbGame, type IgdbSearchOptions } from "../igdb/igdb.interface";
 import { type ExternalDataSource } from "./games.constants";
@@ -136,4 +137,24 @@ export interface ExternalDataAttemptRecord {
 	source: ExternalDataSource;
 	status: ExternalDataAttemptStatus;
 	attemptedAt: Date;
+}
+
+export interface ImportEnrichmentQueueDependencies {
+	findCandidate(gameId: string): Promise<ExternalDataCandidate | null>;
+	refresh(
+		game: ExternalDataGame,
+		sources: readonly ExternalDataSource[]
+	): Promise<ExternalDataResult[]>;
+	availableSources(): ExternalDataSource[];
+	now(): number;
+	logger: Logger;
+	capacity: number;
+	pauseMs: number;
+}
+
+export interface ImportEnrichmentQueue {
+	enqueue(gameIds: readonly string[]): void;
+	whenIdle(): Promise<void>;
+	isPaused(): boolean;
+	size(): number;
 }

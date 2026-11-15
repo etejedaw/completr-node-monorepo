@@ -259,7 +259,7 @@ void describe("PATCH /users/me/game-shelf/:gameShelfId", () => {
 		assert.equal(response.body.data.gameShelf.notes, "Physical copy");
 	});
 
-	void it("rejects editing another user's entry with 403 GAME_SHELF_FORBIDDEN", async () => {
+	void it("answers 404 GAME_SHELF_NOT_FOUND when editing another user's entry", async () => {
 		const owner = await createUserWithSession();
 		const intruder = await createUserWithSession();
 		const { game, platform } = await createGameAndPlatform();
@@ -273,8 +273,8 @@ void describe("PATCH /users/me/game-shelf/:gameShelfId", () => {
 			.set("Authorization", intruder.authorization)
 			.send({ notes: "Mine now" });
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "GAME_SHELF_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "GAME_SHELF_NOT_FOUND");
 	});
 
 	void it("answers 404 GAME_SHELF_NOT_FOUND for an unknown entry", async () => {

@@ -7,6 +7,10 @@ import { listSummarySerializer } from "../lists/lists.serializer";
 import { type PremiumFeature } from "../premium-access/premium-access.constants";
 import { type PremiumStatus } from "../premium-access/premium-access.interface";
 import { userReviewSerializer } from "../reviews/reviews.serializer";
+import {
+	VISIBILITY_FIELDS,
+	type VisibilityLevel
+} from "./constants/visibility.constants";
 import { type User } from "./user.model";
 import {
 	type EnrichedUserList,
@@ -17,6 +21,12 @@ import {
 	type UserHighlightsBundle,
 	type UserReviewsBundle
 } from "./users.interface";
+
+function pickVisibilityLevels(user: User) {
+	return Object.fromEntries(
+		VISIBILITY_FIELDS.map(field => [field, user[field]])
+	) as Record<(typeof VISIBILITY_FIELDS)[number], VisibilityLevel>;
+}
 
 export function userMeSerializer(
 	user: User,
@@ -32,17 +42,7 @@ export function userMeSerializer(
 		name: user.name,
 		bio: user.bio,
 		avatarUrl: user.avatarUrl,
-		profileVisibility: user.profileVisibility,
-		queueVisibility: user.queueVisibility,
-		wishlistVisibility: user.wishlistVisibility,
-		favoriteVisibility: user.favoriteVisibility,
-		feedVisibility: user.feedVisibility,
-		backlogVisibility: user.backlogVisibility,
-		shelfVisibility: user.shelfVisibility,
-		listVisibility: user.listVisibility,
-		platinumVisibility: user.platinumVisibility,
-		franchiseVisibility: user.franchiseVisibility,
-		rewindVisibility: user.rewindVisibility,
+		...pickVisibilityLevels(user),
 		acceptFollowRequests: user.acceptFollowRequests,
 		theme: user.theme,
 		createdAt: user.createdAt
@@ -68,17 +68,7 @@ export function userProfileSerializer(user: User, hasPremium: boolean) {
 		name: user.name,
 		bio: user.bio,
 		avatarUrl: user.avatarUrl,
-		profileVisibility: user.profileVisibility,
-		queueVisibility: user.queueVisibility,
-		wishlistVisibility: user.wishlistVisibility,
-		favoriteVisibility: user.favoriteVisibility,
-		feedVisibility: user.feedVisibility,
-		backlogVisibility: user.backlogVisibility,
-		shelfVisibility: user.shelfVisibility,
-		listVisibility: user.listVisibility,
-		platinumVisibility: user.platinumVisibility,
-		franchiseVisibility: user.franchiseVisibility,
-		rewindVisibility: user.rewindVisibility,
+		...pickVisibilityLevels(user),
 		createdAt: user.createdAt
 	};
 }

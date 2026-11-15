@@ -2,6 +2,7 @@ import { DataTypes, Model, Sequelize } from "sequelize";
 
 import { sequelize } from "../database/sequelize.database";
 import { type Game } from "../games/game.model";
+import { type User } from "../users/user.model";
 
 export const REPORT_STATUSES = ["pending", "approved", "rejected"] as const;
 export type ReportStatus = (typeof REPORT_STATUSES)[number];
@@ -23,6 +24,7 @@ class GameReport extends Model {
 	declare createdAt: Date;
 	declare updatedAt: Date;
 	declare Game?: Pick<Game, "id" | "code" | "title">;
+	declare User?: Pick<User, "id" | "username">;
 }
 
 GameReport.init(

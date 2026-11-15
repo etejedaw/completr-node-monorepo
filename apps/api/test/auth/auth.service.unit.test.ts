@@ -200,7 +200,7 @@ void describe("authService.refresh", () => {
 		const deleteToken = stub(
 			tokenService,
 			"deleteRefreshToken",
-			async () => undefined
+			async () => true
 		);
 		const { createRefreshToken } = stubSessionIssuing();
 
@@ -219,7 +219,7 @@ void describe("authService.refresh", () => {
 			asModel({ userId: "u-1", deviceInfo: "Old device" })
 		);
 		stub(usersService, "findUserById", async () => asModel(activeUser));
-		stub(tokenService, "deleteRefreshToken", async () => undefined);
+		stub(tokenService, "deleteRefreshToken", async () => true);
 		const { createRefreshToken } = stubSessionIssuing();
 
 		await authService.refresh("old-raw", "New device");

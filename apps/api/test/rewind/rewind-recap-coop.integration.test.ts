@@ -17,6 +17,7 @@ import {
 	generate,
 	mockAiRecap,
 	mockPremiumStats,
+	openRewindEdition2026,
 	regenerationOf,
 	signUpOn
 } from "./rewind-generation.helper";
@@ -113,6 +114,7 @@ useTestDatabase(async () => {
 		portal: await createGame({ title: "Portal 2" }),
 		overcooked: await createGame({ title: "Overcooked" })
 	};
+	await openRewindEdition2026();
 });
 
 afterEach(() => {

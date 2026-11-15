@@ -6,7 +6,7 @@
 </app-library-hero>
 
 <app-library-toolbar>
-	<app-option-picker
+	<ui-option-picker
 		class="max-md:hidden shrink-0"
 		variant="compact"
 		size="md"
@@ -17,7 +17,7 @@
 		[value]="actionFilter()"
 		(valueChange)="setActionFilter($event)"
 	/>
-	<app-option-picker
+	<ui-option-picker
 		class="max-md:hidden shrink-0"
 		variant="compact"
 		size="md"
@@ -28,7 +28,7 @@
 		[value]="targetTypeFilter()"
 		(valueChange)="setTargetTypeFilter($event)"
 	/>
-	<app-option-picker
+	<ui-option-picker
 		class="md:hidden flex-1 min-w-[10rem]"
 		label="Action"
 		heading="Filter by action"
@@ -37,7 +37,7 @@
 		[value]="actionFilter()"
 		(valueChange)="setActionFilter($event)"
 	/>
-	<app-option-picker
+	<ui-option-picker
 		class="md:hidden flex-1 min-w-[10rem]"
 		label="Target"
 		heading="Filter by target type"

@@ -44,7 +44,7 @@ import {
 } from "../../../shared/ui";
 import { AuthPage } from "../auth-page/auth-page";
 
-type InvitationStatus = "loading" | "ready" | "invalid";
+type InvitationStatus = "loading" | "ready" | "invalid" | "unavailable";
 
 const UNSAFE_TEXT = /[<>]/;
 
@@ -129,12 +129,22 @@ export class AcceptInvite implements OnInit {
 
 	ngOnInit() {
 		if (!this.token) return;
+		this.loadInvitation();
+	}
+
+	protected retryInvitation() {
+		this.status.set("loading");
+		this.loadInvitation();
+	}
+
+	private loadInvitation() {
 		this.auth.getInvitation(this.token).subscribe({
 			next: invitation => {
 				this.invitedEmail.set(invitation.email);
 				this.status.set("ready");
 			},
-			error: () => this.status.set("invalid")
+			error: err =>
+				this.status.set(err.status === 404 ? "invalid" : "unavailable")
 		});
 	}
 

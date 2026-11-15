@@ -19,12 +19,6 @@ describeModuleErrors({
 			message: "Review not found"
 		},
 		{
-			serviceCode: "REVIEW_FORBIDDEN",
-			module: "Review Module",
-			code: "REVIEW_FORBIDDEN",
-			message: "Cannot modify another user's review"
-		},
-		{
 			serviceCode: "REVIEW_ALREADY_EXISTS",
 			module: "Review Module",
 			code: "REVIEW_ALREADY_EXISTS",
@@ -49,7 +43,6 @@ describeDomainToHttpMapper({
 	mapper: reviewsDomainToHttpMapper,
 	cases: [
 		{ code: "REVIEW_NOT_FOUND", status: 404 },
-		{ code: "REVIEW_FORBIDDEN", status: 403 },
 		{ code: "REVIEW_ALREADY_EXISTS", status: 409 },
 		{ code: "REVIEW_GAME_NOT_FOUND", status: 404 }
 	]

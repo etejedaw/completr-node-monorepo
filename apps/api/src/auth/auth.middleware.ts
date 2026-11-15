@@ -1,12 +1,16 @@
 import { type NextFunction, type Request, type Response } from "express";
+import jwt from "jsonwebtoken";
 import { ZodError } from "zod";
 
-import { DomainError } from "../common/errors/domain-error";
+import { PinoLogger } from "../common/logger/pino.logger";
 import { type UserRole } from "../users/user-role.type";
 import * as userService from "../users/users.service";
 import * as authDomainsErrors from "./errors/auth.domains-error";
 import { HeaderTokenSchema } from "./schemas";
 import * as tokenService from "./services/token.service";
+import { toRequestUser } from "./utils/request-user.util";
+
+const logger = new PinoLogger("Auth Middleware");
 
 export function authMiddleware(...roles: UserRole[]) {
 	return async (
@@ -14,46 +18,41 @@ export function authMiddleware(...roles: UserRole[]) {
 		_response: Response,
 		next: NextFunction
 	) => {
-		try {
-			const headers = HeaderTokenSchema.parse(request.headers);
+		const payload = readAccessToken(request);
 
-			const [_prefix, token] = headers.authorization.split(" ");
-			const payload = tokenService.verifyAccessToken(token!);
+		const user = await userService.findUserById(payload.sub);
+		if (!user) throw authDomainsErrors.authInvalidToken();
 
-			const user = await userService.findUserById(payload.sub);
-			if (!user || !user.isActive)
-				throw authDomainsErrors.authInvalidToken();
+		request.locals = { ...request.locals, user: toRequestUser(user) };
 
-			request.locals = {
-				...request.locals,
-				user: {
-					id: user.id,
-					username: user.username,
-					email: user.email,
-					role: user.role,
-					isActive: user.isActive
-				}
-			};
-
-			if (payload.sid) {
-				tokenService.touchSessionLastUsed(payload.sid).catch(error => {
-					console.warn("touchSessionLastUsed failed", error);
-				});
-			}
-
-			if (!roles.length) return next();
-			if (user.role === "admin") return next();
-			if (!roles.includes(user.role))
-				throw authDomainsErrors.authForbidden();
-
-			return next();
-		} catch (error) {
-			if (error instanceof ZodError)
-				throw authDomainsErrors.authSchemaInvalid({
-					error: JSON.parse(error.message)
-				});
-			if (error instanceof DomainError) throw error;
-			throw authDomainsErrors.authInvalidToken({ error });
+		if (payload.sid) {
+			tokenService.touchSessionLastUsed(payload.sid).catch(error =>
+				logger.warn("touchSessionLastUsed", "failed", {
+					error:
+						error instanceof Error ? error.message : String(error)
+				})
+			);
 		}
+
+		if (roles.length && user.role !== "admin" && !roles.includes(user.role))
+			throw authDomainsErrors.authForbidden();
+
+		return next();
 	};
+}
+
+function readAccessToken(request: Request) {
+	try {
+		const headers = HeaderTokenSchema.parse(request.headers);
+		const [, token] = headers.authorization.split(" ");
+		return tokenService.verifyAccessToken(token!);
+	} catch (error) {
+		if (error instanceof ZodError)
+			throw authDomainsErrors.authSchemaInvalid({
+				error: JSON.parse(error.message)
+			});
+		if (error instanceof jwt.JsonWebTokenError)
+			throw authDomainsErrors.authInvalidToken({ error });
+		throw error;
+	}
 }

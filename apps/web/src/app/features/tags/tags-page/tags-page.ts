@@ -11,10 +11,9 @@ import { Router } from "@angular/router";
 
 import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
+import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
@@ -23,6 +22,8 @@ import {
 	UiDialog,
 	UiEmptyState,
 	UiNoMatches,
+	UiOptionPicker,
+	type UiPickerOption,
 	UiPremiumBadge,
 	UiSkeleton
 } from "../../../shared/ui";
@@ -33,13 +34,12 @@ import {
 	type UserTag
 } from "../../mood-tags/mood-tags.model";
 import { TagCreateDialog } from "../tag-create-dialog/tag-create-dialog";
-import { isCentrallyNotified } from "../tag-errors";
 import { TagRow } from "../tag-row/tag-row";
 import { type TagEdit } from "../tag-row/tag-row.model";
 
 type TagSort = "usage" | "name";
 
-const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: TagSort })[] = [
+const SORT_PICKER_OPTIONS: readonly (UiPickerOption & { value: TagSort })[] = [
 	{ value: "usage", label: "Most used", icon: "trending_up" },
 	{ value: "name", label: "Name (A–Z)", icon: "sort_by_alpha" }
 ];
@@ -49,7 +49,7 @@ const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: TagSort })[] = [
 	imports: [
 		LibraryHero,
 		LibraryToolbar,
-		OptionPicker,
+		UiOptionPicker,
 		TagCreateDialog,
 		TagRow,
 		UiBadge,
@@ -69,8 +69,8 @@ export default class TagsPage implements OnInit {
 	private readonly moodTagsService = inject(MoodTagsService);
 	private readonly toast = inject(ToastService);
 	private readonly router = inject(Router);
-	protected readonly isPremium = inject(AuthService).isPremium;
 
+	protected readonly isPremium = inject(AuthService).isPremium;
 	protected readonly tags = signal<UserTag[]>([]);
 	protected readonly loading = signal(true);
 	protected readonly saving = signal<string | null>(null);
@@ -163,7 +163,7 @@ export default class TagsPage implements OnInit {
 			},
 			error: (err: HttpErrorResponse) => {
 				this.saving.set(null);
-				if (!isCentrallyNotified(err))
+				if (!isToastedByErrorInterceptor(err.status))
 					this.toast.error(err.error?.title ?? "Update failed");
 			}
 		});
@@ -193,7 +193,7 @@ export default class TagsPage implements OnInit {
 			error: (err: HttpErrorResponse) => {
 				this.saving.set(null);
 				this.pendingDelete.set(null);
-				if (!isCentrallyNotified(err))
+				if (!isToastedByErrorInterceptor(err.status))
 					this.toast.error(err.error?.title ?? "Delete failed");
 			}
 		});

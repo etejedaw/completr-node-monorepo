@@ -3,14 +3,14 @@ import {
 	type RewindLanguage
 } from "../rewind/rewind.constants";
 import {
+	REWIND_RECAP_MAX_GAME_ROWS,
+	REWIND_RECAP_NOTE_MAX_LENGTH
+} from "./rewind-recap.constants";
+import {
 	REWIND_AI_RECAP_INSIGHT_COUNT,
 	REWIND_AI_RECAP_LIMITS,
 	REWIND_AI_RECAP_SUMMARY_PARAGRAPHS
 } from "./schemas/rewind-ai-recap.schema";
-import {
-	REWIND_RECAP_MAX_GAME_ROWS,
-	REWIND_RECAP_NOTE_MAX_LENGTH
-} from "./utils/build-rewind-recap-content.util";
 
 const OUTPUT_LANGUAGES: Record<RewindLanguage, string> = {
 	en: "English",

@@ -19,9 +19,6 @@ export function gameShelfDomainToHttpMapper(
 	if (error.code === "GAME_SHELF_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
-	if (error.code === "GAME_SHELF_FORBIDDEN")
-		return new HttpError({ ...baseOptions, status: 403 });
-
 	if (error.code === "GAME_SHELF_UNIQUE_CONSTRAINT")
 		return new HttpError({ ...baseOptions, status: 409 });
 

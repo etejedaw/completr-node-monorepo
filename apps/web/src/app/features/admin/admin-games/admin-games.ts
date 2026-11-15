@@ -29,22 +29,20 @@ import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { ViewportService } from "../../../core/services/viewport";
 import { adminErrorMessage } from "../../../core/utils/admin-error-message";
-import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
-import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
-import { ChipGroup } from "../../../shared/components/chip-group/chip-group";
-import { type ChipOption } from "../../../shared/components/chip-group/chip-group.model";
 import { FilterSection } from "../../../shared/components/filter-section/filter-section";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
-import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
-import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
 import {
+	UiActionMenu,
+	type UiActionMenuItem,
 	UiAlert,
 	UiBadge,
 	UiBottomSheet,
 	UiButton,
+	UiChipGroup,
+	type UiChipOption,
 	UiDialog,
 	UiDrawer,
 	UiEmptyState,
@@ -53,6 +51,8 @@ import {
 	UiIconButton,
 	UiNoMatches,
 	UiPagination,
+	UiSegmentedControl,
+	type UiSegmentedOption,
 	UiSkeleton
 } from "../../../shared/ui";
 import { AdminGameEditor } from "../../games/admin-game-editor/admin-game-editor";
@@ -89,14 +89,14 @@ function sameValues(a: readonly string[], b: readonly string[]): boolean {
 		RouterLink,
 		AdminExternalDataDialog,
 		AdminGameEditor,
-		ActionMenu,
-		ChipGroup,
+		UiActionMenu,
+		UiChipGroup,
 		FilterSection,
 		GamePoster,
 		LibraryHero,
 		LibraryToolbar,
 		NgTemplateOutlet,
-		SegmentedControl,
+		UiSegmentedControl,
 		UiAlert,
 		UiBadge,
 		UiBottomSheet,
@@ -132,7 +132,7 @@ export class AdminGames implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly loadError = signal(false);
 	protected readonly skeletonRange = [0, 1, 2, 3, 4, 5];
-	protected readonly activeFilterOptions: SegmentedOption<
+	protected readonly activeFilterOptions: UiSegmentedOption<
 		"active" | "inactive" | "all"
 	>[] = [
 		{ value: "active", label: "Active" },
@@ -173,10 +173,10 @@ export class AdminGames implements OnInit {
 
 	protected readonly rowMenus = computed(() => {
 		const reported = this.reportedGameIds();
-		const menus = new Map<string, ActionMenuItem[]>();
+		const menus = new Map<string, UiActionMenuItem[]>();
 		for (const game of this.games()) {
 			const isActive = game.isActive !== false;
-			const items: ActionMenuItem[] = [];
+			const items: UiActionMenuItem[] = [];
 			if (reported.has(game.id))
 				items.push({
 					id: "report",
@@ -262,25 +262,24 @@ export class AdminGames implements OnInit {
 			this.noTimeSources().size > 0
 	);
 
-	protected readonly generalMissingOptions: ChipOption[] = [
+	protected readonly generalMissingOptions: UiChipOption[] = [
 		{ value: "noScores", label: "No scores" },
 		{ value: "noTimes", label: "No times" },
 		{ value: "noPlatforms", label: "No platforms" }
 	];
 
-	protected readonly scoreMissingOptions = computed<ChipOption[]>(() =>
+	protected readonly scoreMissingOptions = computed<UiChipOption[]>(() =>
 		this.manualScoreSources().map(source => ({
 			value: `score:${source.code}`,
 			label: source.name
 		}))
 	);
 
-	protected readonly timeMissingOptions: ChipOption[] = this.TIME_SOURCES.map(
-		source => ({
+	protected readonly timeMissingOptions: UiChipOption[] =
+		this.TIME_SOURCES.map(source => ({
 			value: `time:${source.code}`,
 			label: source.name
-		})
-	);
+		}));
 
 	protected readonly missingValue = computed(() => [
 		...(this.noScores() ? ["noScores"] : []),
@@ -341,7 +340,7 @@ export class AdminGames implements OnInit {
 
 	protected onDraftMissingChange(
 		next: readonly string[],
-		group: readonly ChipOption[]
+		group: readonly UiChipOption[]
 	) {
 		const groupValues = new Set(group.map(option => option.value));
 		const outsideGroup = this.draftMissing().filter(

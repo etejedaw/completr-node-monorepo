@@ -13,12 +13,12 @@ import { debounceTime, Subject, type Subscription } from "rxjs";
 
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
-import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
-import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import {
+	UiActionMenu,
+	type UiActionMenuItem,
 	UiAlert,
 	UiButton,
 	UiDialog,
@@ -45,7 +45,7 @@ const PAGE_SIZE = 50;
 	imports: [
 		PageSearch,
 		RouterLink,
-		ActionMenu,
+		UiActionMenu,
 		LibraryHero,
 		LibraryToolbar,
 		UiAlert,
@@ -77,7 +77,7 @@ export class AdminFranchises implements OnInit {
 	protected readonly search = signal("");
 	protected readonly offset = signal(0);
 	protected readonly limit = PAGE_SIZE;
-	protected readonly rowMenuItems: ActionMenuItem[] = [
+	protected readonly rowMenuItems: UiActionMenuItem[] = [
 		{ id: "edit", label: "Edit franchise", icon: "edit" },
 		{
 			id: "delete",

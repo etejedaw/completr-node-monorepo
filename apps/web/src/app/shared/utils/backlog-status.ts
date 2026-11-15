@@ -1,5 +1,5 @@
 import { type BacklogStatus } from "../../core/models";
-import { type PickerOption } from "../components/option-picker/option-picker.model";
+import { type UiPickerOption } from "../ui";
 import { type UiBadgeTone } from "../ui/badge/ui-badge";
 
 const STATUS_TONES: Record<BacklogStatus, UiBadgeTone> = {
@@ -92,7 +92,7 @@ export const BACKLOG_STATUS_FILTERS: readonly {
 	label: STATUS_LABELS[value]
 }));
 
-export const BACKLOG_STATUS_PICKER_OPTIONS: readonly PickerOption[] = [
+export const BACKLOG_STATUS_PICKER_OPTIONS: readonly UiPickerOption[] = [
 	{ value: "", label: "All games", icon: "apps" },
 	...BACKLOG_STATUS_FILTERS.map(filter => ({
 		value: filter.value,

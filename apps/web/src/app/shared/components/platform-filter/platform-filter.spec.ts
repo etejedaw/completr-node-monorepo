@@ -122,7 +122,7 @@ describe("PlatformFilter", () => {
 	it("feeds the mobile picker with the same options", () => {
 		const fixture = render("ps5");
 		const trigger = (fixture.nativeElement as HTMLElement).querySelector(
-			"app-option-picker button"
+			"ui-option-picker button"
 		);
 
 		expect(trigger?.getAttribute("aria-label")).toBe("Platform: PS5");

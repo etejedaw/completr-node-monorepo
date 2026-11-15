@@ -7,6 +7,7 @@ import {
 } from "@angular/core";
 
 import {
+	type RewindPeriod,
 	type RewindPremiumAccess,
 	type RewindYearSummary
 } from "../../../core/models/rewind.model";
@@ -52,6 +53,7 @@ const PROFILE_REWIND_LIMIT = 4;
 								[username]="username()"
 								[summary]="summary"
 								[premiumAccess]="premiumAccess()"
+								[period]="period()"
 							/>
 						</li>
 					}
@@ -66,6 +68,7 @@ export class ProfileRewinds {
 	readonly username = input.required<string>();
 	readonly years = input.required<RewindYearSummary[]>();
 	readonly premiumAccess = input<RewindPremiumAccess | null>(null);
+	readonly period = input<RewindPeriod | null>(null);
 
 	protected readonly isMobile = inject(ViewportService).isMobile;
 	protected readonly limit = PROFILE_REWIND_LIMIT;

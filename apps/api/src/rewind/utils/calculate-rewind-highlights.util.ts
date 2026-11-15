@@ -3,6 +3,7 @@ import { type RewindHighlightsSource } from "../rewind-build.interface";
 import { findBusiestMonth } from "./find-busiest-month.util";
 import { findLongestStreak } from "./find-longest-streak.util";
 import { pickBestRatio } from "./pick-best-ratio.util";
+import { pickClassicGame } from "./pick-classic-game.util";
 import { pickDurationExtremes } from "./pick-duration-extremes.util";
 import { pickFinishedBookends } from "./pick-finished-bookends.util";
 import { pickTopGenres } from "./pick-top-genres.util";
@@ -27,6 +28,7 @@ export function calculateRewindHighlights(
 		...pickFinishedBookends(source.finishedGames),
 		topGenres,
 		topPlatforms,
-		longestStreak: findLongestStreak(source.latestFinishedRuns)
+		longestStreak: findLongestStreak(source.latestFinishedRuns),
+		classic: pickClassicGame(source.latestFinishedRuns, source.year)
 	};
 }

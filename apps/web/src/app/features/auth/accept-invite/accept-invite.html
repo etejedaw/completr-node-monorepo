@@ -33,6 +33,28 @@
 		Already have an account? Sign in
 	</a>
 </app-auth-page>
+} @case ('unavailable') {
+<app-auth-page
+	eyebrow="You're invited"
+	heading="We couldn't check your invitation"
+	subtitle="This is a temporary problem on our side."
+>
+	<ui-alert tone="warning" class="mb-6">
+		The invitation may still be valid. Try again in a moment.
+	</ui-alert>
+
+	<button
+		uiButton
+		variant="primary"
+		size="lg"
+		[block]="true"
+		type="button"
+		class="!py-3.5"
+		(click)="retryInvitation()"
+	>
+		Try again
+	</button>
+</app-auth-page>
 } @default {
 <app-auth-page
 	eyebrow="You're invited"

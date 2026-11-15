@@ -12,15 +12,15 @@ const router = Router();
 
 router.get(
 	"/users/me/follow-requests",
-	[rateLimiterMiddleware(userLimiter), authMiddleware()],
+	[authMiddleware(), rateLimiterMiddleware(userLimiter)],
 	controller.getIncomingRequests
 );
 
 router.post(
 	"/users/me/follow-requests/:requesterId/accept",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(RequesterIdParamSchema, "params")
 	],
 	controller.postAcceptRequest
@@ -29,8 +29,8 @@ router.post(
 router.post(
 	"/users/me/follow-requests/:requesterId/reject",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(RequesterIdParamSchema, "params")
 	],
 	controller.postRejectRequest
@@ -39,8 +39,8 @@ router.post(
 router.delete(
 	"/users/me/follow-requests/sent/:username",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params")
 	],
 	controller.deleteOutgoingRequest

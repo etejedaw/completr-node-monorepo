@@ -33,11 +33,10 @@ const SPANISH_PREMIUM_LABELS: RewindPremiumLabels = {
 
 const ENGLISH: RewindCopy = {
 	locale: LOCALE.en,
+	dayMonthStyle: "short",
 	page: {
 		ownerEyebrow: "Your Rewind",
 		visitorEyebrow: username => `@${username}'s Rewind`,
-		ownerPreviewAlt: year => `Your ${year} Rewind`,
-		visitorPreviewAlt: (username, year) => `@${username}'s ${year} Rewind`,
 		share: "Share",
 		year: "Year",
 		yearHeading: "Rewind year",
@@ -50,7 +49,7 @@ const ENGLISH: RewindCopy = {
 		privateTitle: "This Rewind is private",
 		notAvailableTitle: "This Rewind isn't available",
 		notAvailableMessage:
-			"Rewinds open on December 1 and only exist for years with games started or finished.",
+			"Each Rewind opens with its season and only exists for years with games started or finished.",
 		seeAllRewinds: "See all Rewinds",
 		notGeneratedTitle: "This Rewind hasn't been generated yet",
 		notGeneratedMessage:
@@ -97,19 +96,10 @@ const ENGLISH: RewindCopy = {
 			`${englishPlural(count, "game", "games")} finished`,
 		topGenres: "Top genres",
 		platforms: "Platforms",
+		classic: "The classic",
+		releasedIn: year => `Released in ${year}`,
 		games: count => englishPlural(count, "game", "games"),
 		runs: count => englishPlural(count, "run", "runs")
-	},
-	share: {
-		shareImage: "Share image",
-		downloadImage: "Download image",
-		copyLink: "Copy link",
-		imageFailed: "Couldn't load the image.",
-		tryAgain: "Try again",
-		preparingImage: "Preparing the image",
-		shareFailed: "Couldn't share the image. Download it instead.",
-		linkCopied: "Link copied",
-		copyFailed: "Couldn't copy the link."
 	},
 	aiRecap: {
 		heading: "AI recap",
@@ -186,11 +176,10 @@ const ENGLISH: RewindCopy = {
 
 const SPANISH: RewindCopy = {
 	locale: LOCALE.es,
+	dayMonthStyle: "long",
 	page: {
 		ownerEyebrow: "Tu Rewind",
 		visitorEyebrow: username => `Rewind de @${username}`,
-		ownerPreviewAlt: year => `Tu Rewind ${year}`,
-		visitorPreviewAlt: (username, year) => `Rewind ${year} de @${username}`,
 		share: "Compartir",
 		year: "Año",
 		yearHeading: "Año del Rewind",
@@ -203,7 +192,7 @@ const SPANISH: RewindCopy = {
 		privateTitle: "Este Rewind es privado",
 		notAvailableTitle: "Este Rewind no está disponible",
 		notAvailableMessage:
-			"Los Rewinds se abren el 1 de diciembre y solo existen para años con juegos empezados o terminados.",
+			"Cada Rewind se abre en su temporada y solo existe para años con juegos empezados o terminados.",
 		seeAllRewinds: "Ver todos los Rewinds",
 		notGeneratedTitle: "Este Rewind todavía no se generó",
 		notGeneratedMessage:
@@ -253,19 +242,10 @@ const SPANISH: RewindCopy = {
 				: `${spanishPlural(count, "juego", "juegos")} terminados`,
 		topGenres: "Géneros favoritos",
 		platforms: "Plataformas",
+		classic: "El más clásico",
+		releasedIn: year => `Lanzado en ${year}`,
 		games: count => spanishPlural(count, "juego", "juegos"),
 		runs: count => spanishPlural(count, "partida", "partidas")
-	},
-	share: {
-		shareImage: "Compartir imagen",
-		downloadImage: "Descargar imagen",
-		copyLink: "Copiar enlace",
-		imageFailed: "No pudimos cargar la imagen.",
-		tryAgain: "Reintentar",
-		preparingImage: "Preparando la imagen",
-		shareFailed: "No pudimos compartir la imagen. Mejor descárgala.",
-		linkCopied: "Enlace copiado",
-		copyFailed: "No pudimos copiar el enlace."
 	},
 	aiRecap: {
 		heading: "Resumen con IA",
@@ -505,4 +485,11 @@ export function formatRating(
 
 export function rewindImageFileName(username: string, year: number): string {
 	return `completr-rewind-${username}-${year}.png`;
+}
+
+export function rewindGamesImageFileName(
+	username: string,
+	year: number
+): string {
+	return `completr-rewind-${username}-${year}-games.png`;
 }

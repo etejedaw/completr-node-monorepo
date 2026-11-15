@@ -23,7 +23,7 @@
 					[src]="user().avatarUrl"
 					[name]="user().username"
 					[ring]="avatarRing()"
-					class="relative w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40 text-5xl ring-4 ring-canvas shadow-2xl shadow-black/60"
+					class="relative w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40 text-5xl ring-4 ring-canvas shadow-popover"
 				/>
 			</div>
 
@@ -32,7 +32,7 @@
 					class="flex flex-wrap items-center gap-2 max-sm:justify-center"
 				>
 					<h1
-						class="m-0 font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-none text-white drop-shadow-hero"
+						class="m-0 font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-none text-on-image drop-shadow-hero"
 					>
 						{{ displayName() }}
 					</h1>
@@ -43,10 +43,10 @@
 					}
 				</div>
 				<p
-					class="m-0 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/70 max-sm:justify-center"
+					class="m-0 mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-on-image/70 max-sm:justify-center"
 				>
 					<span>{{ '@' + user().username }}</span>
-					<span aria-hidden="true" class="text-white/30">•</span>
+					<span aria-hidden="true" class="text-on-image/30">•</span>
 					<span class="inline-flex items-center gap-1">
 						<span aria-hidden="true" class="material-icons text-sm"
 							>calendar_today</span
@@ -56,7 +56,7 @@
 				</p>
 				@if (user().bio) {
 				<p
-					class="m-0 mt-3 max-w-2xl text-sm sm:text-base text-white/85 leading-relaxed line-clamp-3 max-sm:mx-auto"
+					class="m-0 mt-3 max-w-2xl text-sm sm:text-base text-on-image/85 leading-relaxed line-clamp-3 max-sm:mx-auto"
 				>
 					{{ user().bio }}
 				</p>

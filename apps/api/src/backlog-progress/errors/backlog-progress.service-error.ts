@@ -9,13 +9,6 @@ export function backlogNotFoundError() {
 	});
 }
 
-export function forbiddenError() {
-	return new ServiceError("BACKLOG_PROGRESS_FORBIDDEN", {
-		...BASE_OPTIONS,
-		raw: undefined
-	});
-}
-
 export function noteNotFoundError() {
 	return new ServiceError("BACKLOG_PROGRESS_NOTE_NOT_FOUND", {
 		...BASE_OPTIONS,

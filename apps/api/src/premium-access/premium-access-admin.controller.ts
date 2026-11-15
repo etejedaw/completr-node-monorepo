@@ -5,14 +5,12 @@ import { type RequestUser } from "../common/interfaces/request-user.interface";
 import * as userDomain from "../users/errors/users.domain-error";
 import { type UserIdParam } from "../users/schemas/user-id-params.schema";
 import * as usersService from "../users/users.service";
+import { type CreatePremiumGrantDto } from "./dtos/create-premium-grant.dto";
+import { type UpdatePremiumGrantDto } from "./dtos/update-premium-grant.dto";
 import { PREMIUM_FEATURE_DEFINITIONS } from "./premium-access.constants";
 import { premiumGrantSerializer } from "./premium-access.serializer";
-import * as premiumGrantsAdminService from "./premium-grants-admin.service";
-import {
-	type CreatePremiumGrantDto,
-	type PremiumGrantParams,
-	type UpdatePremiumGrantDto
-} from "./schemas/premium-grant.schemas";
+import { type PremiumGrantParams } from "./schemas/premium-grant-params.schema";
+import * as premiumGrantsAdminService from "./services/premium-grants-admin.service";
 
 export async function getPremiumFeatures(
 	_request: Request,

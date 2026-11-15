@@ -1,13 +1,13 @@
-import { type Logger } from "../../common/logger/logger.interface";
 import { PinoLogger } from "../../common/logger/pino.logger";
 import {
 	EXTERNAL_DATA_SOURCES,
-	type ExternalDataSource
+	IMPORT_ENRICHMENT_OPERATION,
+	IMPORT_ENRICHMENT_PAUSE_MS,
+	IMPORT_ENRICHMENT_QUEUE_CAPACITY
 } from "../games.constants";
 import {
-	type ExternalDataCandidate,
-	type ExternalDataGame,
-	type ExternalDataResult
+	type ImportEnrichmentQueue,
+	type ImportEnrichmentQueueDependencies
 } from "../games-external-data.interface";
 import { isExternalDataThrottled } from "../utils/is-external-data-throttled.util";
 import { findUnavailableSources } from "./external-data-sources.service";
@@ -15,31 +15,6 @@ import {
 	findExternalDataCandidate,
 	refreshExternalDataForGame
 } from "./games-external-data.service";
-
-export const IMPORT_ENRICHMENT_QUEUE_CAPACITY = 50;
-export const IMPORT_ENRICHMENT_PAUSE_MS = 10 * 60 * 1000;
-
-export interface ImportEnrichmentQueueDependencies {
-	findCandidate(gameId: string): Promise<ExternalDataCandidate | null>;
-	refresh(
-		game: ExternalDataGame,
-		sources: readonly ExternalDataSource[]
-	): Promise<ExternalDataResult[]>;
-	availableSources(): ExternalDataSource[];
-	now(): number;
-	logger: Logger;
-	capacity: number;
-	pauseMs: number;
-}
-
-export interface ImportEnrichmentQueue {
-	enqueue(gameIds: readonly string[]): void;
-	whenIdle(): Promise<void>;
-	isPaused(): boolean;
-	size(): number;
-}
-
-const OPERATION = "importEnrichment";
 
 export function createImportEnrichmentQueue(
 	dependencies: ImportEnrichmentQueueDependencies
@@ -59,10 +34,14 @@ export function createImportEnrichmentQueue(
 			if (gameIds.length === 0) return;
 			if (dependencies.availableSources().length === 0) return;
 			if (isPaused()) {
-				logger.warn(OPERATION, "paused: imported games ignored", {
-					gameIds,
-					pausedUntil: new Date(pausedUntil).toISOString()
-				});
+				logger.warn(
+					IMPORT_ENRICHMENT_OPERATION,
+					"paused: imported games ignored",
+					{
+						gameIds,
+						pausedUntil: new Date(pausedUntil).toISOString()
+					}
+				);
 				return;
 			}
 
@@ -71,10 +50,14 @@ export function createImportEnrichmentQueue(
 			const accepted = fresh.slice(0, room);
 			const dropped = fresh.slice(room);
 			if (dropped.length > 0)
-				logger.warn(OPERATION, "queue full: imported games dropped", {
-					gameIds: dropped,
-					capacity: dependencies.capacity
-				});
+				logger.warn(
+					IMPORT_ENRICHMENT_OPERATION,
+					"queue full: imported games dropped",
+					{
+						gameIds: dropped,
+						capacity: dependencies.capacity
+					}
+				);
 
 			for (const gameId of accepted) {
 				pending.push(gameId);
@@ -82,7 +65,11 @@ export function createImportEnrichmentQueue(
 			}
 			if (accepted.length > 0) startDraining();
 		} catch (error) {
-			logger.error(OPERATION, "enqueue failed", describeError(error));
+			logger.error(
+				IMPORT_ENRICHMENT_OPERATION,
+				"enqueue failed",
+				describeError(error)
+			);
 		}
 	}
 
@@ -90,7 +77,11 @@ export function createImportEnrichmentQueue(
 		if (draining) return;
 		draining = drain()
 			.catch(error =>
-				logger.error(OPERATION, "drain failed", describeError(error))
+				logger.error(
+					IMPORT_ENRICHMENT_OPERATION,
+					"drain failed",
+					describeError(error)
+				)
 			)
 			.finally(() => {
 				draining = null;
@@ -104,10 +95,14 @@ export function createImportEnrichmentQueue(
 			try {
 				if (await enrichGame(gameId)) pause(gameId);
 			} catch (error) {
-				logger.error(OPERATION, "game enrichment failed", {
-					gameId,
-					...describeError(error)
-				});
+				logger.error(
+					IMPORT_ENRICHMENT_OPERATION,
+					"game enrichment failed",
+					{
+						gameId,
+						...describeError(error)
+					}
+				);
 			} finally {
 				tracked.delete(gameId);
 			}
@@ -125,7 +120,7 @@ export function createImportEnrichmentQueue(
 		if (sources.length === 0) return false;
 
 		const results = await dependencies.refresh(candidate.game, sources);
-		logger.info(OPERATION, "game enriched", {
+		logger.info(IMPORT_ENRICHMENT_OPERATION, "game enriched", {
 			gameId,
 			results: results.map(({ source, status, errorCode }) => ({
 				source,
@@ -140,11 +135,15 @@ export function createImportEnrichmentQueue(
 		pausedUntil = dependencies.now() + dependencies.pauseMs;
 		const discarded = pending.splice(0);
 		for (const discardedId of discarded) tracked.delete(discardedId);
-		logger.warn(OPERATION, "provider throttled: queue paused", {
-			gameId,
-			discarded,
-			pausedUntil: new Date(pausedUntil).toISOString()
-		});
+		logger.warn(
+			IMPORT_ENRICHMENT_OPERATION,
+			"provider throttled: queue paused",
+			{
+				gameId,
+				discarded,
+				pausedUntil: new Date(pausedUntil).toISOString()
+			}
+		);
 	}
 
 	async function whenIdle() {

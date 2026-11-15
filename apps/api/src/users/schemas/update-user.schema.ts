@@ -1,5 +1,6 @@
 import z from "zod";
 
+import { AvatarUrlSchema } from "../../common/schemas/avatar-url.schema";
 import { SafeTextSchema } from "../../common/schemas/safe-text.schema";
 import { THEME_IDS } from "../constants/theme.constants";
 import { VISIBILITY_LEVELS } from "../constants/visibility.constants";
@@ -10,7 +11,7 @@ export const UpdateUserSchema = z
 	.object({
 		name: SafeTextSchema.min(1).max(80).nonempty().optional(),
 		bio: SafeTextSchema.min(1).max(250).nonempty().optional(),
-		avatarUrl: z.string().nonempty().optional(),
+		avatarUrl: AvatarUrlSchema.nullable().optional(),
 		profileVisibility: visibility,
 		queueVisibility: visibility,
 		wishlistVisibility: visibility,

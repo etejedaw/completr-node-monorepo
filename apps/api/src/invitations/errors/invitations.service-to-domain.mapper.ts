@@ -10,6 +10,9 @@ export function invitationsServiceToDomainMapper(
 
 	const context = { ...error.serviceError, correlationId };
 
+	if (error.code === "INVITATION_INVALID_TOKEN")
+		return invitationsDomainError.invitationInvalidToken(context);
+
 	if (error.code === "INVITATION_UNIQUE_CONSTRAINT")
 		return invitationsDomainError.invitationUniqueConstraint(context);
 

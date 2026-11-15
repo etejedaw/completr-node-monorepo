@@ -5,7 +5,7 @@ import helmet from "helmet";
 
 import activityRouter from "./activity/activity.routes";
 import auditRouter from "./audit/audit.routes";
-import authRouter from "./auth/auth.router";
+import authRouter from "./auth/auth.routes";
 import backlogProgressRouter from "./backlog-progress/backlog-progress.routes";
 import changelogRouter from "./changelog/changelog.routes";
 import { corsConfig } from "./common/config/cors.config";
@@ -33,6 +33,8 @@ import giftOffersRouter from "./premium-access/gift-offers.routes";
 import premiumAccessAdminRouter from "./premium-access/premium-access-admin.routes";
 import privacyRouter from "./privacy/privacy.routes";
 import rewindRouter from "./rewind/rewind.routes";
+import rewindAdminRouter from "./rewind/rewind-admin.routes";
+import rewindEditionsAdminRouter from "./rewind-editions/rewind-editions-admin.routes";
 import rewindShareRouter from "./rewind-share/rewind-share.routes";
 import scoreSourcesRouter from "./score-sources/score-sources.routes";
 import userFollowRequestsRouter from "./user-follow-requests/user-follow-requests.routes";
@@ -81,6 +83,8 @@ export function createApp() {
 	app.use(giftOffersRouter);
 	app.use(premiumAccessAdminRouter);
 	app.use(rewindRouter);
+	app.use(rewindAdminRouter);
+	app.use(rewindEditionsAdminRouter);
 	app.use(rewindShareRouter);
 	app.use(errorHandlerMiddleware);
 

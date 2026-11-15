@@ -124,7 +124,9 @@ export default defineConfig(
 		// selector (e.g. <button uiButton>) follow the camelCase attribute convention.
 		files: [
 			"apps/web/src/app/shared/ui/button/**/*.ts",
-			"apps/web/src/app/shared/ui/icon-button/**/*.ts"
+			"apps/web/src/app/shared/ui/icon-button/**/*.ts",
+			"apps/web/src/app/shared/ui/swatch-button/**/*.ts",
+			"apps/web/src/app/shared/ui/selectable-row/**/*.ts"
 		],
 		rules: {
 			"@angular-eslint/component-selector": [

@@ -246,4 +246,62 @@ describe("UserBacklog", () => {
 			"hardcore"
 		);
 	});
+
+	it("ignores a slow answer for the previous filter that arrives after the newer one", async () => {
+		const user = userEvent.setup();
+		const slowFirstPage = new Subject<{
+			items: ReturnType<typeof entry>[];
+			total: number;
+		}>();
+		getUserBacklog.mockReturnValueOnce(slowFirstPage);
+		getUserBacklog.mockReturnValue(
+			of({ items: [entry("celeste", "Celeste")], total: 1 })
+		);
+		await renderPage();
+
+		await user.click(
+			await screen.findByRole("button", { name: /Completed/ })
+		);
+		slowFirstPage.next({ items: [entry("hades", "Hades")], total: 1 });
+		slowFirstPage.complete();
+
+		expect(await screen.findAllByText("Celeste")).not.toHaveLength(0);
+		expect(screen.queryByText("Hades")).not.toBeInTheDocument();
+	});
+
+	it("empties the list instead of keeping stale games when the server fails", async () => {
+		const user = userEvent.setup();
+		getUserBacklog.mockReturnValueOnce(
+			of({ items: [entry("hades", "Hades")], total: 1 })
+		);
+		getUserBacklog.mockReturnValue(throwError(() => ({ status: 500 })));
+		await renderPage();
+		await screen.findAllByText("Hades");
+
+		await user.click(
+			await screen.findByRole("button", { name: /Completed/ })
+		);
+
+		await waitFor(() =>
+			expect(screen.queryByText("Hades")).not.toBeInTheDocument()
+		);
+	});
+
+	it("keeps working when the browser refuses to store the view mode", async () => {
+		const user = userEvent.setup();
+		getUserBacklog.mockReturnValue(
+			of({ items: [entry("hades", "Hades")], total: 1 })
+		);
+		vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+			throw new DOMException("full", "QuotaExceededError");
+		});
+		await renderPage();
+
+		await user.click(
+			await screen.findByRole("button", { name: /Hardcore/ })
+		);
+
+		expect(await screen.findAllByText("Hades")).not.toHaveLength(0);
+		vi.restoreAllMocks();
+	});
 });

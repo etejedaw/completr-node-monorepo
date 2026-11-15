@@ -1,7 +1,8 @@
 import { type VisibilityLevel } from "../../../core/models/user.model";
 import { NAV_SECTIONS } from "../../../layout/nav-sections";
-import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
+import { type UiSegmentedOption } from "../../../shared/ui";
 import {
+	type PrivacyDraft,
 	type PrivacyMode,
 	type PrivacyPreset,
 	type PrivacySection,
@@ -11,7 +12,7 @@ import {
 	type SectionVisibilityKey
 } from "./privacy-options.model";
 
-export const VISIBILITY_OPTIONS: SegmentedOption<VisibilityLevel>[] = [
+export const VISIBILITY_OPTIONS: UiSegmentedOption<VisibilityLevel>[] = [
 	{
 		value: "public",
 		label: "Everyone",
@@ -62,7 +63,7 @@ export const PRIVACY_PRESETS: PrivacyPreset[] = [
 export const PROFILE_GATE = {
 	title: "Profile",
 	description:
-		"The front door. People who can't open it see nothing else, whatever each section says.",
+		"The front door. People who can't open it see nothing else, unless you choose to show your Rewind anyway.",
 	icon: "account_circle",
 	iconColor: "text-brand"
 };
@@ -187,6 +188,14 @@ export function effectiveVisibility(
 	return VISIBILITY_RANK[section] <= VISIBILITY_RANK[profile]
 		? section
 		: profile;
+}
+
+export function effectiveSectionVisibility(
+	draft: PrivacyDraft,
+	key: SectionVisibilityKey
+): VisibilityLevel {
+	if (key === "rewindVisibility") return draft.rewindVisibility;
+	return effectiveVisibility(draft[key], draft.profileVisibility);
 }
 
 export function derivePrivacyMode(

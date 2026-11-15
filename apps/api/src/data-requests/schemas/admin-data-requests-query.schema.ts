@@ -1,16 +1,15 @@
 import z from "zod";
 
+import { PaginationQuerySchema } from "../../common/schemas/pagination-query.schema";
 import {
 	DATA_REQUEST_STATUSES,
 	DATA_REQUEST_TYPES
 } from "../data-requests.constants";
 
-export const AdminDataRequestsQuerySchema = z
-	.object({
+export const AdminDataRequestsQuerySchema = PaginationQuerySchema.unwrap()
+	.extend({
 		status: z.enum(DATA_REQUEST_STATUSES).optional(),
-		type: z.enum(DATA_REQUEST_TYPES).optional(),
-		limit: z.coerce.number().int().min(1).max(100).optional(),
-		offset: z.coerce.number().int().min(0).optional()
+		type: z.enum(DATA_REQUEST_TYPES).optional()
 	})
 	.readonly();
 

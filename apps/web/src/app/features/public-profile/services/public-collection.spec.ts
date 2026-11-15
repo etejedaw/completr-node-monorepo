@@ -37,7 +37,8 @@ describe("injectPublicCollection", () => {
 				{
 					provide: ActivatedRoute,
 					useValue: {
-						snapshot: { paramMap: { get: () => "ada" } }
+						snapshot: { paramMap: { get: () => "ada" } },
+						paramMap: of({ get: () => "ada" })
 					}
 				},
 				{

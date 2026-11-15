@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
+import { type RewindGenerationAccess } from "../../src/rewind/rewind-build.interface";
 import { type RewindYearVisibility } from "../../src/rewind/rewind-record.interface";
 import {
 	type RewindCalendar,
@@ -30,6 +31,7 @@ function yearsOf(
 		genres?: RewindGameGenre[];
 		platinumsByYear?: Map<number, number | null>;
 		visibility?: RewindYearVisibility;
+		generationAccess?: RewindGenerationAccess | null;
 	} = {}
 ) {
 	return buildRewindYears({
@@ -37,13 +39,22 @@ function yearsOf(
 		calendar,
 		genres: options.genres ?? [],
 		platinumsByYear: options.platinumsByYear ?? new Map(),
-		visibility: options.visibility ?? ownerVisibility()
+		visibility: options.visibility ?? ownerVisibility(),
+		generationAccess: options.generationAccess ?? null,
+		frozenViews: new Map(),
+		platinumsVisible: true
 	});
 }
 
 void describe("buildRewindYears", () => {
 	void it("returns no years and no spotlight without runs", () => {
 		assert.deepEqual(yearsOf([], calendarOn(DECEMBER_2026)), {
+			period: {
+				status: "open",
+				year: 2026,
+				opensAt: "2026-12-01",
+				closesAt: "2027-01-31"
+			},
 			spotlightYear: null,
 			years: []
 		});
@@ -284,7 +295,16 @@ void describe("buildRewindYears", () => {
 			calendarOn(new Date("2027-01-15T00:00:00.000Z"), 2027)
 		);
 
-		assert.deepEqual(result, { spotlightYear: null, years: [] });
+		assert.deepEqual(result, {
+			period: {
+				status: "open",
+				year: 2026,
+				opensAt: "2026-12-01",
+				closesAt: "2027-01-31"
+			},
+			spotlightYear: null,
+			years: []
+		});
 	});
 
 	void describe("persona", () => {

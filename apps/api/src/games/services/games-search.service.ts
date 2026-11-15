@@ -1,44 +1,42 @@
-import { col, fn, type Includeable, Op, type Transaction } from "sequelize";
+import {
+	col,
+	fn,
+	type Includeable,
+	Op,
+	type Order,
+	type Transaction,
+	type WhereOptions
+} from "sequelize";
 
-import { apiKeysConfig } from "../../common/config/api-keys.config";
 import {
 	buildTextSearchRelevanceOrder,
 	buildTextSearchWhere
 } from "../../common/utils/text-search.util";
 import { sequelize } from "../../database/sequelize.database";
-import * as igdbServiceError from "../../igdb/errors/igdb.service-error";
-import { RawgClient } from "../../rawg/rawg.provider";
 import * as reviewsService from "../../reviews/reviews.service";
-import * as scoreSourcesService from "../../score-sources/score-sources.service";
 import { Game } from "../game.model";
 import {
-	type ExternalGameDetail,
+	DEFAULT_GAMES_PAGE_SIZE,
+	DEFAULT_LATEST_REVIEWED_LIMIT,
+	LOCAL_SEARCH_LIMIT
+} from "../games.constants";
+import {
 	type GamesFilters,
 	type GamesQueryOptions,
-	type RawgMappedData
+	type PagedGamesOptions
 } from "../games.interface";
-import { type OnlineSearchSource } from "../games.types";
-import { igdbToGameMapper } from "../mappers/igdb-to-game.mapper";
-import { rawgToGameMapper } from "../mappers/rawg-to-game.mapper";
-import {
-	buildActiveFlagWhere,
-	buildAggregateCondition,
-	buildCanonicalScoreCondition,
-	buildCompilationFlagsWhere,
-	buildGenreCondition,
-	buildMissingRelationCondition,
-	buildOrder,
-	buildPlatformCondition,
-	buildReleaseDateRangeWhere,
-	buildSourceExclusionCondition
-} from "../utils/search-filters.util";
-import {
-	getIgdbRequestPacer,
-	getIgdbSource
-} from "./external-data-sources.service";
-
-const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
-
+import { buildActiveFlagWhere } from "../utils/build-active-flag-where.util";
+import { buildAggregateCondition } from "../utils/build-aggregate-condition.util";
+import { buildCanonicalScoreCondition } from "../utils/build-canonical-score-condition.util";
+import { buildCatalogIncludes } from "../utils/build-catalog-includes.util";
+import { buildCompilationFlagsWhere } from "../utils/build-compilation-flags-where.util";
+import { buildGenreCondition } from "../utils/build-genre-condition.util";
+import { buildMissingRelationCondition } from "../utils/build-missing-relation-condition.util";
+import { buildOrder } from "../utils/build-order.util";
+import { buildPlatformCondition } from "../utils/build-platform-condition.util";
+import { buildReleaseDateRangeWhere } from "../utils/build-release-date-range-where.util";
+import { buildSourceExclusionCondition } from "../utils/build-source-exclusion-condition.util";
+import { withIdTieBreaker } from "../utils/with-id-tie-breaker.util";
 export const GAME_TITLE_COLUMN = "Game.title";
 
 const GAME_SUMMARY_ATTRS = ["id", "code", "title", "backgroundUrl", "coverUrl"];
@@ -182,35 +180,27 @@ export async function findActiveGamesForExternalData() {
 export async function findGameById(id: string) {
 	return await Game.findOne({
 		where: { id, isActive: true },
-		include: [
-			{ association: "Platforms" },
-			{ association: "Genres" },
-			{ association: "GameScores" },
-			{ association: "GameTimes" },
-			{ association: "Franchise" }
-		]
+		include: [...buildCatalogIncludes(), { association: "Franchise" }]
 	});
 }
 
 export async function findAll(options: GamesQueryOptions = {}) {
-	const { limit = 50, offset = 0 } = options.pagination ?? {};
+	const { limit = DEFAULT_GAMES_PAGE_SIZE, offset = 0 } =
+		options.pagination ?? {};
 	const { by: sortBy = "createdAt", order: sortOrder = "desc" } =
 		options.sort ?? {};
 	const filters = options.filters ?? {};
 
-	const where: Record<string, unknown> = {
+	const andConditions = collectAndConditions(options.search, filters);
+	const where: WhereOptions = {
 		...buildActiveFlagWhere(filters.status),
 		...buildCompilationFlagsWhere(filters.flags),
 		...buildReleaseDateRangeWhere(
 			filters.releaseYear?.from,
 			filters.releaseYear?.to
-		)
+		),
+		...(andConditions.length > 0 && { [Op.and]: andConditions })
 	};
-
-	const andConditions = collectAndConditions(options.search, filters);
-	if (andConditions.length > 0) {
-		where[Op.and as unknown as string] = andConditions;
-	}
 
 	const include: Includeable[] = [
 		{ association: "Genres", attributes: GENRE_ATTRS },
@@ -225,7 +215,7 @@ export async function findAll(options: GamesQueryOptions = {}) {
 		where,
 		attributes: options.detailed ? GAME_ADMIN_LIST_ATTRS : GAME_LIST_ATTRS,
 		include,
-		order: buildOrder(sortBy, sortOrder),
+		order: withIdTieBreaker(buildOrder(sortBy, sortOrder), sortOrder),
 		limit,
 		offset,
 		distinct: true
@@ -280,7 +270,9 @@ function collectAndConditions(
 	return conditions.filter((c): c is object => c !== null);
 }
 
-export async function findLatestReviewed(limit = 16) {
+export async function findLatestReviewed(
+	limit = DEFAULT_LATEST_REVIEWED_LIMIT
+) {
 	const gameIds = await reviewsService.findLatestReviewedGameIds(limit);
 	if (gameIds.length === 0) return [];
 
@@ -300,7 +292,7 @@ export async function findLatestReviewed(limit = 16) {
 		.filter((g): g is Game => g !== undefined);
 }
 
-export async function searchGamesLocal(query: string) {
+export async function findGamesByTitle(query: string, limit?: number) {
 	const titleWhere = buildTextSearchWhere(query, [GAME_TITLE_COLUMN]);
 	if (!titleWhere) return [];
 	return Game.findAll({
@@ -309,111 +301,57 @@ export async function searchGamesLocal(query: string) {
 			...titleWhere
 		},
 		order: buildTextSearchRelevanceOrder(query, GAME_TITLE_COLUMN),
-		include: [
-			{ association: "Platforms" },
-			{ association: "Genres" },
-			{ association: "GameScores" },
-			{ association: "GameTimes" }
-		],
-		limit: 10
+		include: buildCatalogIncludes(),
+		limit
 	});
 }
 
-export async function rawgDetailBySlug(
-	slug: string
-): Promise<ExternalGameDetail> {
-	const detail = await rawg.getGameBySlug(slug);
-	return toExternalGameDetail(
-		"rawg",
-		String(detail.id),
-		rawgToGameMapper(detail)
-	);
+export async function searchGamesLocal(query: string) {
+	return findGamesByTitle(query, LOCAL_SEARCH_LIMIT);
 }
 
-export async function igdbDetailBySlug(
-	slug: string
-): Promise<ExternalGameDetail> {
-	const igdb = getIgdbSource();
-	if (!igdb) throw igdbServiceError.disabledError();
-	await getIgdbRequestPacer().waitForTurn();
-	const detail = await igdb.getGameBySlug(slug);
-	return toExternalGameDetail(
-		"igdb",
-		String(detail.id),
-		igdbToGameMapper(detail)
-	);
-}
-
-async function toExternalGameDetail(
-	source: OnlineSearchSource,
-	externalId: string,
-	mapped: RawgMappedData
-): Promise<ExternalGameDetail> {
-	const scores = mapped.enrichment.scores ?? [];
-	const catalogedSources = await scoreSourcesService.findExistingCodes(
-		scores.map(score => score.source)
-	);
-	return {
-		source,
-		externalId,
-		title: mapped.game.title,
-		description: mapped.game.description ?? null,
-		coverUrl: mapped.game.coverUrl ?? null,
-		backgroundUrl: mapped.game.backgroundUrl ?? null,
-		releaseAt: mapped.game.releaseAt ?? null,
-		platforms: mapped.game.platforms ?? [],
-		genres: mapped.enrichment.genreSlugs ?? [],
-		scores: scores.filter(score => catalogedSources.has(score.source)),
-		times: mapped.enrichment.times ?? []
-	};
+async function findPagedGames(
+	where: WhereOptions,
+	order: Order,
+	{ limit = DEFAULT_GAMES_PAGE_SIZE, offset = 0 }: PagedGamesOptions
+) {
+	const rows = await Game.findAll({
+		where: { isActive: true, ...where },
+		include: buildCatalogIncludes(),
+		order,
+		limit: limit + 1,
+		offset
+	});
+	const hasMore = rows.length > limit;
+	return { rows: hasMore ? rows.slice(0, limit) : rows, hasMore };
 }
 
 export async function findGamesByGenreCode(
 	genreCode: string,
-	options: { limit?: number; offset?: number } = {}
+	options: PagedGamesOptions = {}
 ) {
-	const { limit = 50, offset = 0 } = options;
-	const rows = await Game.findAll({
-		where: { isActive: true, ...buildGenreCondition([genreCode]) },
-		include: [
-			{ association: "Platforms" },
-			{ association: "Genres" },
-			{ association: "GameScores" },
-			{ association: "GameTimes" }
-		],
-		order: [
+	return findPagedGames(
+		(buildGenreCondition([genreCode]) ?? {}) as WhereOptions,
+		[
 			["title", "ASC"],
 			["id", "ASC"]
 		],
-		limit: limit + 1,
-		offset
-	});
-	const hasMore = rows.length > limit;
-	return { rows: hasMore ? rows.slice(0, limit) : rows, hasMore };
+		options
+	);
 }
 
 export async function findGamesByFranchiseId(
 	franchiseId: string,
-	options: { limit?: number; offset?: number } = {}
+	options: PagedGamesOptions = {}
 ) {
-	const { limit = 50, offset = 0 } = options;
-	const rows = await Game.findAll({
-		where: { isActive: true, franchiseId },
-		include: [
-			{ association: "Platforms" },
-			{ association: "Genres" },
-			{ association: "GameScores" },
-			{ association: "GameTimes" }
-		],
-		order: [
+	return findPagedGames(
+		{ franchiseId },
+		[
 			["releaseAt", "ASC"],
 			["id", "ASC"]
 		],
-		limit: limit + 1,
-		offset
-	});
-	const hasMore = rows.length > limit;
-	return { rows: hasMore ? rows.slice(0, limit) : rows, hasMore };
+		options
+	);
 }
 
 export async function findGameIdsByFranchiseId(franchiseId: string) {

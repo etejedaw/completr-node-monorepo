@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { before, describe, it } from "node:test";
+import { describe, it } from "node:test";
 
 import { sequelize } from "../../src/database/sequelize.database";
 import { ListFollower } from "../../src/list-followers/list-follower.model";
@@ -12,10 +12,6 @@ import { useTestDatabase } from "../helpers/database.helper";
 import { createList, createScoreSource } from "../helpers/factories.helper";
 
 let scoreSource: string;
-
-useTestDatabase(async () => {
-	scoreSource = (await createScoreSource()).code;
-});
 
 type Account = Awaited<ReturnType<typeof createUserWithSession>>;
 
@@ -168,7 +164,8 @@ async function seedFollowedLists(owner: Account) {
 	return { followedLists, hiddenFollowedList, invisibleFollow };
 }
 
-before(async () => {
+async function seedFixture() {
+	scoreSource = (await createScoreSource()).code;
 	const owner = await createUserWithSession();
 	const viewer = await createUserWithSession();
 	const publicLists = await seedCreatedLists(owner);
@@ -187,7 +184,9 @@ before(async () => {
 		tiedLists,
 		...followed
 	};
-});
+}
+
+useTestDatabase(seedFixture);
 
 function newestFirstPublicIds() {
 	const tiedById = [...fixture.tiedLists]

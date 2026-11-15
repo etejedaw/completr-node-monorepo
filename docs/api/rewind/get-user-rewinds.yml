@@ -20,11 +20,11 @@ docs: |-
 
     Lists the yearly Rewinds of `:username`: one summary per year with data, newest first, plus the year in the spotlight window. Powers the Rewind spotlight and the Rewind row of a profile, and the `/user/:username/rewind` archive.
 
-    A year is listed when it is open and has data. It is open when it is a past year, or the current year from December 1 (UTC), and it is not earlier than the year the user signed up (`createdAt`, UTC): years before the sign-up (imported history) are never listed. It has data when at least one run has `startedAt` in the year, or is `completed` / `abandoned` with `finishedAt` in the year. Years outside 2000-2100 are never listed. Outside production, the `REWIND_TODAY` environment variable (`YYYY-MM-DD`) replaces today in every Rewind calculation.
+    A year is listed when it is open and has data. A year is open when it is a past year, or the year of the latest Rewind edition that has already opened (`RewindEditions.opensAt` on or before today, UTC), and it is not earlier than the year the user signed up (`createdAt`, UTC): years before the sign-up (imported history) are never listed. It has data when at least one run has `startedAt` in the year, or is `completed` / `abandoned` with `finishedAt` in the year. Years outside 2000-2100 are never listed. Outside production, the `REWIND_TODAY` environment variable (`YYYY-MM-DD`) replaces today in every Rewind calculation.
 
     **Activation:** the owner sees every open year with data, each with `isGenerated`. Everyone else only sees the years the owner generated with `POST /users/me/rewinds/:year`.
 
-    The owner sees every run. Everyone else gets the summaries built from public runs only (`isPublic = true`), so a year that only has private runs is not listed for them. For non-self viewers the target's `profile` and `rewind` sections must be visible (`profileVisibility` and `rewindVisibility`): `friends` only for mutual followers, `private` only for the owner.
+    The owner sees every run. Everyone else gets the summaries built from public runs only (`isPublic = true`), so a year that only has private runs is not listed for them. A frozen year (see `GET /users/:username/rewinds/:year`) is listed as it was at the close of its period: its summary (`persona`, counts, hours and `covers`) comes from the snapshot view of the viewer, so later runs or privacy changes do not move it, and a year that had no public runs at the close is not listed for visitors. Its `persona` follows the current access of the viewer to the platinums section, as for live years. The rest of the years are computed live. For non-self viewers the target's `rewind` section must be visible (`rewindVisibility`: `friends` only for mutual followers, `private` only for the owner) and so must the `profile` section (`profileVisibility`): the archive is not reachable when the profile is hidden, so the Rewind cannot be discovered by browsing (the detail of a year, reached by link, only follows `rewindVisibility`). The persona of a year that would need the platinums is replaced for viewers without access to both the profile and the platinums section.
 
     **Authentication:** optional (Bearer token). Required to see a Rewind whose privacy needs it.
     **Rate Limit:** 300 requests per minute (public).
@@ -43,6 +43,12 @@ docs: |-
     {
       "data": {
         "spotlightYear": 2026,
+        "period": {
+          "status": "open",
+          "year": 2026,
+          "opensAt": "2026-12-01",
+          "closesAt": "2027-01-31"
+        },
         "premiumAccess": {
           "allowed": true,
           "source": "feature-grant",
@@ -52,6 +58,7 @@ docs: |-
           {
             "year": 2026,
             "isGenerated": true,
+            "generationBlockedBy": null,
             "persona": "marathoner",
             "finishedCount": 18,
             "startedCount": 23,
@@ -71,9 +78,11 @@ docs: |-
     }
     ```
 
-    - `spotlightYear`: the year whose spotlight window (December 1 of that year to January 31 of the next, UTC) contains today, only if that year is in `years`; `null` otherwise. For visitors it is `null` until the owner generates that year.
+    - `spotlightYear`: the year of the edition whose period (`opensAt` to `closesAt`, both included, UTC days) contains today, only if that year is in `years`; `null` otherwise, also when no edition is open. For visitors it is `null` until the owner generates that year.
+    - `period`: the Rewind period, the same for every viewer, computed with the server date (`REWIND_TODAY` outside production). `status` is `open` when an edition is open today (that edition), else `scheduled` (the next edition, even if an earlier one already closed), else `closed` (the last edition that closed). `null` when no edition exists. `year`, `opensAt` and `closesAt` (`YYYY-MM-DD`, UTC days) describe the edition it refers to.
     - `premiumAccess`: only for the owner, `null` for everyone else. The owner's current access to `rewind.premium`, with `allowed`, `source` (`role`, `full-grant`, `feature-grant` or null) and `expiresAt`. It lets the client configure the first generation before a Rewind row exists.
     - `isGenerated`: whether the owner generated the year. Always `true` for visitors, who never get ungenerated years.
+    - `generationBlockedBy`: why the owner cannot generate that year now. Only computed for the owner and for years not generated yet; `null` for generated years and for every visitor. `period-closed` when no edition is open today; `requires-premium` when an edition is open, the year is before the edition year and the owner has no full premium (a specific Rewind grant does not count); `null` when the year can be generated.
     - `persona`: the title of the year, computed with the same rules as `persona` in `GET /users/:username/rewinds/:year` and the same data the viewer gets there (platinums only count for viewers who can see them).
     - `finishedCount` / `startedCount`: distinct games finished (`completed` with `finishedAt` in the year) and started (`startedAt` in the year).
     - `hoursPlayed`: sum of `realDuration` of the `completed` and `abandoned` runs with `finishedAt` in the year, rounded to 1 decimal.
@@ -84,6 +93,6 @@ docs: |-
 
     | Status | Code                  | Description                                     |
     |--------|-----------------------|-------------------------------------------------|
-    | 403    | USER_PRIVATE          | Profile or its rewind section is not visible    |
+    | 403    | USER_PRIVATE          | Rewind section not visible, or profile not visible |
     | 404    | USER_NOT_FOUND        | No active user with that username               |
     | 422    | COMMON_SCHEMA_INVALID | `username` fails validation                     |

@@ -155,7 +155,7 @@
 					<ui-badge>{{ item.platform.abbreviation }}</ui-badge>
 					@if (item.coopMembers && item.coopMembers.length > 0) {
 					<span
-						class="inline-flex items-center gap-1.5 text-[0.6875rem] text-fg-muted"
+						class="inline-flex items-center gap-1.5 text-caption text-fg-muted"
 					>
 						with
 						<span class="flex -space-x-1.5">
@@ -373,7 +373,7 @@
 	@if (!readonly()) {
 	<button
 		type="button"
-		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 text-[0.6875rem] font-medium text-fg-muted cursor-pointer active:bg-surface-hover"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 text-caption font-medium text-fg-muted cursor-pointer active:bg-surface-hover"
 		[class.!text-nav-favorites]="favorite()"
 		[attr.aria-pressed]="favorite()"
 		(click)="favoriteToggled.emit($event)"
@@ -385,7 +385,7 @@
 	</button>
 	<button
 		type="button"
-		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-fg-muted cursor-pointer active:bg-surface-hover"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-caption font-medium text-fg-muted cursor-pointer active:bg-surface-hover"
 		[class.!text-nav-queue]="inQueue()"
 		[attr.aria-pressed]="inQueue()"
 		(click)="queueToggled.emit($event)"
@@ -399,7 +399,7 @@
 	<button
 		type="button"
 		[class.border-l]="!readonly()"
-		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-line/60 text-[0.6875rem] font-medium text-brand cursor-pointer active:bg-surface-hover"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-line/60 text-caption font-medium text-brand cursor-pointer active:bg-surface-hover"
 		[class.bg-brand-subtle]="flipped()"
 		[attr.aria-pressed]="flipped()"
 		(click)="flipToggled.emit($event)"
@@ -415,7 +415,7 @@
 	} @if (item.status === 'not_started' && !readonly()) {
 	<button
 		type="button"
-		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-playing cursor-pointer active:bg-surface-hover disabled:opacity-50"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-caption font-medium text-playing cursor-pointer active:bg-surface-hover disabled:opacity-50"
 		[disabled]="statusUpdating()"
 		(click)="startPlayingRequested.emit($event)"
 	>
@@ -427,7 +427,7 @@
 	} @else if (item.status === 'playing' && !readonly()) {
 	<button
 		type="button"
-		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-[0.6875rem] font-medium text-success cursor-pointer active:bg-surface-hover disabled:opacity-50"
+		class="h-12 flex flex-col tap:min-h-[44px] items-center justify-center gap-0.5 bg-transparent border-0 border-l border-line/60 text-caption font-medium text-success cursor-pointer active:bg-surface-hover disabled:opacity-50"
 		[disabled]="statusUpdating()"
 		(click)="completeRequested.emit($event)"
 	>

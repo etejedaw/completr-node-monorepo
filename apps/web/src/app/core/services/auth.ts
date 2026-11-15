@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { computed, inject, Injectable, signal } from "@angular/core";
 import { Router } from "@angular/router";
-import { map, type Observable, tap } from "rxjs";
+import { firstValueFrom, from, map, type Observable, tap } from "rxjs";
 
 import { environment } from "../../../environments/environment";
 import { type PremiumFeature, type User } from "../models";
@@ -20,6 +20,7 @@ import { type ThemeId } from "./theme.model";
 
 const TOKEN_KEY = "access_token";
 const SESSION_ID_KEY = "session_id";
+const REFRESH_LOCK_NAME = "completr-refresh";
 
 @Injectable({ providedIn: "root" })
 export class AuthService {
@@ -103,8 +104,19 @@ export class AuthService {
 		);
 	}
 
-	refresh(): Observable<AuthResponse> {
-		return this.postAuth("/auth/refresh", {});
+	refresh(): Observable<AuthResponse | null> {
+		const staleToken = this.token();
+		const locks =
+			typeof navigator === "undefined" ? undefined : navigator.locks;
+		if (!locks) return this.postAuth("/auth/refresh", {});
+		return from(
+			locks.request(REFRESH_LOCK_NAME, () => {
+				const current = this.token();
+				if (staleToken && current && current !== staleToken)
+					return Promise.resolve(null);
+				return firstValueFrom(this.postAuth("/auth/refresh", {}));
+			})
+		);
 	}
 
 	private postAuth(path: string, body: unknown): Observable<AuthResponse> {
@@ -155,6 +167,12 @@ export class AuthService {
 				data: { sessions: AuthSession[]; total: number };
 			}>(`${environment.apiUrl}/auth/sessions`, { params: query })
 			.pipe(map(res => res.data));
+	}
+
+	changePassword(password: string) {
+		return this.http.patch(`${environment.apiUrl}/auth/password`, {
+			password
+		});
 	}
 
 	revokeSession(sessionId: string) {

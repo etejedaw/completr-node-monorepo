@@ -47,7 +47,7 @@ export class FollowRequestsService {
 			.pipe(tap(() => this.removeLocally(requesterId)));
 	}
 
-	private removeLocally(requesterId: string) {
+	removeLocally(requesterId: string) {
 		const current = this._incoming();
 		if (!current) return;
 		const next = current.filter(r => r.requesterId !== requesterId);

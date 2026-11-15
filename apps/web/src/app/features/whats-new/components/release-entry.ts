@@ -82,7 +82,7 @@ import {
 					>
 					<span aria-hidden="true" class="text-fg-muted">·</span>
 					<span
-						class="text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-fg-secondary"
+						class="text-caption font-semibold uppercase tracking-[0.16em] text-fg-secondary"
 						>{{ entry.tag }}</span
 					>
 				</div>

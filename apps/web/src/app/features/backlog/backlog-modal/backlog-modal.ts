@@ -1,5 +1,5 @@
 import { DatePipe } from "@angular/common";
-import { HttpClient } from "@angular/common/http";
+import { HttpErrorResponse } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -13,9 +13,8 @@ import {
 import { form, FormField, max, min, required } from "@angular/forms/signals";
 import { RouterLink } from "@angular/router";
 import { injectDialogRef } from "ng-primitives/dialog";
-import { type Observable, of } from "rxjs";
+import { type Observable, of, switchMap } from "rxjs";
 
-import { environment } from "../../../../environments/environment";
 import { type GamePlatinum } from "../../../core/models";
 import { type Game } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
@@ -27,11 +26,6 @@ import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
 import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import {
-	type PickerAction,
-	type PickerOption
-} from "../../../shared/components/option-picker/option-picker.model";
 import { PlatinumTrophy } from "../../../shared/components/platinum-trophy/platinum-trophy";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import {
@@ -46,6 +40,9 @@ import {
 	UiFieldOptional,
 	UiIconButton,
 	UiInput,
+	UiOptionPicker,
+	type UiPickerOption,
+	UiSelectableRow,
 	UiSwitch,
 	UiTab,
 	UiTabList,
@@ -58,23 +55,17 @@ import {
 	backlogStatusIcon,
 	backlogStatusIconColor
 } from "../../../shared/utils/backlog-status";
-import { BacklogProgressService } from "../../backlog-progress/backlog-progress";
-import { type ProgressNote } from "../../backlog-progress/backlog-progress.model";
-import { CoopRunsService, type SyncField } from "../../coop-runs/coop-runs";
 import {
-	type CoopCandidate,
-	type CoopMember
-} from "../../coop-runs/coop-runs.model";
+	isNotFound,
+	problemTitle,
+	reportHttpFailure
+} from "../../../shared/utils/http-failure";
 import { injectGameSearch } from "../../games/game-search";
 import { GamesService } from "../../games/games";
 import { ReviewsService } from "../../games/reviews";
 import { type Review } from "../../games/reviews.model";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
 import { PlatinumService } from "../../platinum/platinum";
-import {
-	PublicSocialService,
-	type PublicSocialUser
-} from "../../public-profile/services/public-social.service";
 import { QueueService } from "../../queue/queue";
 import { BacklogService } from "../backlog";
 import {
@@ -89,6 +80,8 @@ import {
 	type MissingReferenceCategory
 } from "./components/backlog-reference-fields";
 import { scrollIntoViewAndFocus } from "./focus-field";
+import { injectCoopRun } from "./inject-coop-run";
+import { injectProgressNotes } from "./inject-progress-notes";
 import {
 	MAX_CRITIC_SCORE,
 	MIN_REFERENCE_VALUE,
@@ -101,7 +94,7 @@ import { type ReferencePick } from "./reference-values.model";
 
 export type BacklogModalResult = "saved" | "newRun";
 
-const BACKLOG_FORM_STATUS_OPTIONS: readonly PickerOption[] =
+const BACKLOG_FORM_STATUS_OPTIONS: readonly UiPickerOption[] =
 	BACKLOG_STATUS_FILTERS.map(filter => ({
 		value: filter.value,
 		label: filter.label,
@@ -142,7 +135,7 @@ const MISSING_FIELD_LABELS: Record<MissingField, string> = {
 		DialogDeleteAction,
 		GamePoster,
 		GameSearchStep,
-		OptionPicker,
+		UiOptionPicker,
 		PlatinumTrophy,
 		SelectedGameRow,
 		UiAvatar,
@@ -155,6 +148,7 @@ const MISSING_FIELD_LABELS: Record<MissingField, string> = {
 		UiFieldOptional,
 		UiIconButton,
 		UiInput,
+		UiSelectableRow,
 		UiSwitch,
 		UiTabs,
 		UiTabList,
@@ -172,13 +166,9 @@ export class BacklogModal implements OnInit {
 	private readonly queueService = inject(QueueService);
 	private readonly reviewsService = inject(ReviewsService);
 	private readonly moodTagsService = inject(MoodTagsService);
-	private readonly progressService = inject(BacklogProgressService);
-	private readonly coopService = inject(CoopRunsService);
-	private readonly publicSocial = inject(PublicSocialService);
 	private readonly authService = inject(AuthService);
 	private readonly toast = inject(ToastService);
 	private readonly platinumService = inject(PlatinumService);
-	private readonly http = inject(HttpClient);
 
 	private readonly compilationOptions =
 		viewChild<ElementRef<HTMLElement>>("compilationOptions");
@@ -207,24 +197,27 @@ export class BacklogModal implements OnInit {
 			category === "missing_score"
 				? "Missing critic score data for this game."
 				: "Missing duration estimate for this game.";
-		this.http
-			.post(`${environment.apiUrl}/games/${game.id}/reports`, {
-				message,
-				category
-			})
-			.subscribe({
-				next: () => {
-					this.reportFeedback.set("Thanks! Report sent.");
-					this.toast.success("Missing data reported.");
-				},
-				error: err => {
-					if (err.status === 409) {
-						this.reportFeedback.set("Already reported.");
-					} else {
-						this.reportFeedback.set("");
-					}
+		this.gamesService.reportGame(game.id, message, category).subscribe({
+			next: () => {
+				this.reportFeedback.set("Thanks! Report sent.");
+				this.toast.success("Missing data reported.");
+			},
+			error: (error: unknown) => {
+				if (
+					error instanceof HttpErrorResponse &&
+					error.status === 409
+				) {
+					this.reportFeedback.set("Already reported.");
+					return;
 				}
-			});
+				this.reportFeedback.set("");
+				reportHttpFailure(
+					this.toast,
+					error,
+					"Couldn't send the report. Try again."
+				);
+			}
+		});
 	}
 
 	private readonly dialogRef = injectDialogRef<
@@ -249,7 +242,7 @@ export class BacklogModal implements OnInit {
 	);
 	protected readonly returnedToSearch = signal(false);
 	protected readonly statusOptions = BACKLOG_FORM_STATUS_OPTIONS;
-	protected readonly platformOptions = computed<PickerOption[]>(() =>
+	protected readonly platformOptions = computed<UiPickerOption[]>(() =>
 		(this.selectedGame()?.platforms ?? []).map(platform => ({
 			value: platform.id,
 			label: platform.name,
@@ -273,7 +266,7 @@ export class BacklogModal implements OnInit {
 	protected readonly gameTimes = computed(
 		() => this.selectedGame()?.times ?? []
 	);
-	protected readonly compilationParentOptions = computed<PickerOption[]>(
+	protected readonly compilationParentOptions = computed<UiPickerOption[]>(
 		() => [
 			{
 				value: STANDALONE_RUN,
@@ -309,7 +302,7 @@ export class BacklogModal implements OnInit {
 	protected readonly activeFormTab = signal<"tracking" | "notes">("tracking");
 	protected readonly referenceExpanded = signal(false);
 
-	switchToEdit() {
+	protected switchToEdit() {
 		this.viewMode.set("edit");
 	}
 
@@ -326,7 +319,7 @@ export class BacklogModal implements OnInit {
 		notes: ""
 	});
 
-	readonly form = form(this.model, path => {
+	protected readonly form = form(this.model, path => {
 		required(path.gameId, { message: "Pick a game" });
 		required(path.platformId, { message: "Pick a platform" });
 		required(path.score, { message: "Required to compute the ratio" });
@@ -378,202 +371,17 @@ export class BacklogModal implements OnInit {
 	});
 
 	protected readonly existingReview = signal<Review | null>(null);
-	protected readonly coopMembers = signal<CoopMember[]>([]);
-	protected readonly myFollowing = signal<PublicSocialUser[]>([]);
-	protected readonly coopAdding = signal(false);
-	protected readonly coopRemovingId = signal<string | null>(null);
-	protected readonly syncMember = signal<CoopMember | null>(null);
-	protected readonly syncFields = signal<Record<SyncField, boolean>>({
-		status: true,
-		startedAt: true,
-		finishedAt: true,
-		realDuration: true
-	});
-	protected readonly syncing = signal(false);
-
-	protected readonly coopFriendActions = computed<PickerAction[]>(() => {
-		const taken = new Set(this.coopMembers().map(m => m.userId));
-		return this.myFollowing()
-			.filter(friend => !taken.has(friend.id))
-			.map(friend => ({
-				id: friend.id,
-				label:
-					friend.name && friend.name !== friend.username
-						? `${friend.name} (@${friend.username})`
-						: `@${friend.username}`,
-				icon: "person_add"
-			}));
+	protected readonly coop = injectCoopRun({
+		entryId: () => this.entry?.id,
+		onSynced: () => this.dialogRef.close("saved")
 	});
 
-	protected readonly pickerCandidates = signal<CoopCandidate[]>([]);
-	protected readonly pickerUserId = signal<string | null>(null);
-	protected readonly pickerUserName = signal<string>("");
-
-	addCoopMember(userId: string) {
-		const e = this.entry;
-		if (!e || !userId) return;
-		this.coopAdding.set(true);
-		this.coopService.getCandidates(e.id, userId).subscribe({
-			next: res => {
-				if (res.accessible && res.candidates.length >= 2) {
-					this.pickerCandidates.set(res.candidates);
-					this.pickerUserId.set(userId);
-					const friend = this.myFollowing().find(
-						f => f.id === userId
-					);
-					this.pickerUserName.set(
-						friend?.name || friend?.username || ""
-					);
-					this.coopAdding.set(false);
-					return;
-				}
-				this.commitCoopAdd(userId);
-			},
-			error: () => {
-				this.coopAdding.set(false);
-			}
-		});
-	}
-
-	chooseCandidate(targetBacklogId: string | null) {
-		const userId = this.pickerUserId();
-		if (!userId) return;
-		const id = targetBacklogId ?? undefined;
-		this.pickerCandidates.set([]);
-		this.pickerUserId.set(null);
-		this.commitCoopAdd(userId, id);
-	}
-
-	cancelPicker() {
-		this.pickerCandidates.set([]);
-		this.pickerUserId.set(null);
-	}
-
-	private commitCoopAdd(userId: string, targetBacklogId?: string) {
-		const e = this.entry;
-		if (!e) return;
-		this.coopAdding.set(true);
-		this.coopService.addMember(e.id, userId, targetBacklogId).subscribe({
-			next: () => {
-				this.coopAdding.set(false);
-				this.refreshCoopMembers();
-			},
-			error: () => this.coopAdding.set(false)
-		});
-	}
-
-	removeCoopMember(member: CoopMember) {
-		const e = this.entry;
-		if (!e) return;
-		this.coopRemovingId.set(member.userId);
-		this.coopService.removeMember(e.id, member.userId).subscribe({
-			next: () => {
-				this.coopRemovingId.set(null);
-				this.refreshCoopMembers();
-			},
-			error: () => this.coopRemovingId.set(null)
-		});
-	}
-
-	openSyncDialog(member: CoopMember) {
-		this.syncMember.set(member);
-		this.syncFields.set({
-			status: true,
-			startedAt: true,
-			finishedAt: true,
-			realDuration: true
-		});
-	}
-
-	closeSyncDialog() {
-		this.syncMember.set(null);
-	}
-
-	toggleSyncField(field: SyncField) {
-		const current = this.syncFields();
-		this.syncFields.set({ ...current, [field]: !current[field] });
-	}
-
-	hasAnySyncFieldSelected(): boolean {
-		const f = this.syncFields();
-		return f.status || f.startedAt || f.finishedAt || f.realDuration;
-	}
-
-	commitSync() {
-		const e = this.entry;
-		const member = this.syncMember();
-		if (!e || !member) return;
-		const fields: SyncField[] = (
-			Object.keys(this.syncFields()) as SyncField[]
-		).filter(k => this.syncFields()[k]);
-		if (fields.length === 0) return;
-		this.syncing.set(true);
-		this.coopService.sync(e.id, member.backlogId, fields).subscribe({
-			next: () => {
-				this.syncing.set(false);
-				this.syncMember.set(null);
-				this.dialogRef.close("saved");
-			},
-			error: () => this.syncing.set(false)
-		});
-	}
-
-	private refreshCoopMembers() {
-		const e = this.entry;
-		if (!e) return;
-		this.coopService
-			.getMembers(e.id)
-			.subscribe(members => this.coopMembers.set(members));
-	}
-
-	protected readonly progressNotes = signal<ProgressNote[]>([]);
-	protected readonly progressDraft = signal("");
-	protected readonly progressLoading = signal(false);
-	protected readonly progressHistoryOpen = signal(false);
-	protected readonly progressSavingId = signal<string | null>(null);
-
-	updateProgressDraft(value: string) {
-		this.progressDraft.set(value);
-	}
-
-	toggleProgressHistory() {
-		this.progressHistoryOpen.update(v => !v);
-	}
-
-	addProgressNote() {
-		const note = this.progressDraft().trim();
-		const e = this.entry;
-		if (!note || !e) return;
-		this.progressLoading.set(true);
-		this.progressService.addProgress(e.id, note).subscribe({
-			next: created => {
-				this.progressNotes.update(list => [created, ...list]);
-				this.progressDraft.set("");
-				this.progressLoading.set(false);
-			},
-			error: () => this.progressLoading.set(false)
-		});
-	}
-
-	deleteProgressNote(note: ProgressNote) {
-		const e = this.entry;
-		if (!e) return;
-		this.progressSavingId.set(note.id);
-		this.progressService.deleteProgress(e.id, note.id).subscribe({
-			next: () => {
-				this.progressNotes.update(list =>
-					list.filter(n => n.id !== note.id)
-				);
-				this.progressSavingId.set(null);
-			},
-			error: () => this.progressSavingId.set(null)
-		});
-	}
+	protected readonly progress = injectProgressNotes(() => this.entry?.id);
 
 	protected readonly moodTags = signal<string[]>([]);
 	protected readonly moodTagsSuggestions = signal<string[]>([]);
 
-	updateMoodTags(tags: string[]) {
+	protected updateMoodTags(tags: string[]) {
 		this.moodTags.set(tags);
 	}
 
@@ -601,7 +409,7 @@ export class BacklogModal implements OnInit {
 			(this.statusValue() === "completed" || this.platinumIsThisRun())
 	);
 
-	setPlatinumInRun(checked: boolean) {
+	protected setPlatinumInRun(checked: boolean) {
 		this.platinumInRun.set(checked);
 		if (checked && !this.platinumDate()) {
 			this.platinumDate.set(
@@ -650,16 +458,8 @@ export class BacklogModal implements OnInit {
 			this.moodTagsService
 				.getGameTags(e.game.id)
 				.subscribe(tags => this.moodTags.set(tags));
-			this.progressService
-				.getProgress(e.id)
-				.subscribe(notes => this.progressNotes.set(notes));
-			this.refreshCoopMembers();
-			const currentUser = this.authService.user();
-			if (currentUser?.username) {
-				this.publicSocial
-					.getAllFollowing(currentUser.username)
-					.subscribe(users => this.myFollowing.set(users));
-			}
+			this.progress.load();
+			this.coop.load();
 			this.selectedGame.set({
 				id: e.game.id,
 				code: e.game.code,
@@ -729,13 +529,17 @@ export class BacklogModal implements OnInit {
 		this.availableCompilationParents.set(parents);
 	}
 
-	pickCompilationChild(child: { id: string; code: string; title: string }) {
+	protected pickCompilationChild(child: {
+		id: string;
+		code: string;
+		title: string;
+	}) {
 		this.gamesService.getByCode(child.code).subscribe({
 			next: game => this.selectGame(game)
 		});
 	}
 
-	selectWholeCompilation() {
+	protected selectWholeCompilation() {
 		const parent = this.compilationParent();
 		if (!parent) return;
 		this.gamesService.getByCode(parent.code).subscribe({
@@ -768,7 +572,7 @@ export class BacklogModal implements OnInit {
 		this.prefillScoreOnceSourcesLoad(game);
 	}
 
-	clearCompilationChild() {
+	private clearCompilationChild() {
 		this.selectedGame.set(null);
 		this.existingReview.set(null);
 		this.model.update(m => ({ ...m, gameId: "", platformId: "" }));
@@ -789,12 +593,12 @@ export class BacklogModal implements OnInit {
 		});
 	}
 
-	clearCompilationParent() {
+	protected clearCompilationParent() {
 		this.compilationParent.set(null);
 		if (!this.selectedGame()) this.returnedToSearch.set(true);
 	}
 
-	onCompilationParentChange(parentId: string) {
+	protected onCompilationParentChange(parentId: string) {
 		if (!parentId) {
 			this.compilationParent.set(null);
 			return;
@@ -810,7 +614,7 @@ export class BacklogModal implements OnInit {
 		} as Game);
 	}
 
-	selectGame(game: Game) {
+	protected selectGame(game: Game) {
 		if (game.isCompilation && !this.isEdit()) {
 			this.selectedGame.set(null);
 			this.model.update(m => ({ ...m, gameId: "", platformId: "" }));
@@ -872,22 +676,22 @@ export class BacklogModal implements OnInit {
 		return NO_REFERENCE_PICK;
 	}
 
-	clearGame() {
+	protected clearGame() {
 		this.selectedGame.set(null);
 		this.existingReview.set(null);
 		this.model.update(m => ({ ...m, gameId: "", platformId: "" }));
 		if (!this.compilationParent()) this.returnedToSearch.set(true);
 	}
 
-	setPlatform(platformId: string) {
+	protected setPlatform(platformId: string) {
 		this.model.update(m => ({ ...m, platformId }));
 	}
 
-	setStatus(status: string) {
+	protected setStatus(status: string) {
 		this.model.update(m => ({ ...m, status }));
 	}
 
-	onSubmit(event: Event) {
+	protected onSubmit(event: Event) {
 		event.preventDefault();
 		if (this.form().invalid()) {
 			this.revealMissingFields();
@@ -939,9 +743,13 @@ export class BacklogModal implements OnInit {
 						}
 					});
 				},
-				error: err => {
+				error: (err: unknown) => {
+					if (isNotFound(err)) {
+						this.closeBecauseRunIsGone();
+						return;
+					}
 					this.isLoading.set(false);
-					this.error.set(err.error?.title ?? "Update failed");
+					this.error.set(problemTitle(err) ?? "Update failed");
 				}
 			});
 		} else {
@@ -962,13 +770,13 @@ export class BacklogModal implements OnInit {
 				addToShelf: this.addToShelf() || undefined,
 				moodTags: this.moodTags(),
 				review: this.pendingReview() ?? undefined,
-				progressNote: this.progressDraft().trim() || undefined
+				progressNote: this.progress.draft().trim() || undefined
 			};
 			this.backlogService.create(dto).subscribe({
 				next: () => this.dialogRef.close("saved"),
-				error: err => {
+				error: (err: unknown) => {
 					this.isLoading.set(false);
-					this.error.set(err.error?.title ?? "Creation failed");
+					this.error.set(problemTitle(err) ?? "Creation failed");
 				}
 			});
 		}
@@ -979,52 +787,93 @@ export class BacklogModal implements OnInit {
 		const was = this.isInQueue();
 
 		if (want && !was) {
-			this.queueService
-				.addFromBacklog(backlogId)
-				.subscribe(() => this.dialogRef.close("saved"));
-		} else if (!want && was) {
-			this.queueService.getMyQueue().subscribe(queue => {
-				const remaining = queue
-					.filter(w => w.backlog.id !== backlogId)
-					.map(w => w.backlog.id);
-				this.queueService
-					.reorder(remaining)
-					.subscribe(() => this.dialogRef.close("saved"));
+			this.queueService.addFromBacklog(backlogId).subscribe({
+				next: () => this.dialogRef.close("saved"),
+				error: (error: unknown) => this.closeAfterQueueFailure(error)
 			});
+		} else if (!want && was) {
+			this.queueService
+				.getMyQueue()
+				.pipe(
+					switchMap(queue =>
+						this.queueService.reorder(
+							queue
+								.filter(w => w.backlog.id !== backlogId)
+								.map(w => w.backlog.id)
+						)
+					)
+				)
+				.subscribe({
+					next: () => this.dialogRef.close("saved"),
+					error: (error: unknown) =>
+						this.closeAfterQueueFailure(error)
+				});
 		} else {
 			this.dialogRef.close("saved");
 		}
 	}
 
-	onDelete() {
+	private closeAfterQueueFailure(error: unknown) {
+		reportHttpFailure(
+			this.toast,
+			error,
+			"The run was saved, but Up Next could not be updated."
+		);
+		this.dialogRef.close("saved");
+	}
+
+	private closeBecauseRunIsGone() {
+		this.toast.error("This run no longer exists.");
+		this.dialogRef.close("saved");
+	}
+
+	protected onDelete() {
 		this.isLoading.set(true);
 		this.backlogService.delete(this.entry!.id).subscribe({
 			next: () => this.dialogRef.close("saved"),
-			error: err => {
+			error: (err: unknown) => {
+				if (isNotFound(err)) {
+					this.closeBecauseRunIsGone();
+					return;
+				}
 				this.isLoading.set(false);
-				this.error.set(err.error?.title ?? "Delete failed");
+				this.error.set(problemTitle(err) ?? "Delete failed");
 			}
 		});
 	}
 
-	onClose() {
+	protected onClose() {
 		this.dialogRef.close();
 	}
 
-	onNewRun() {
+	protected onNewRun() {
 		this.dialogRef.close("newRun");
 	}
 
 	private persistMoodTagsIfChanged(gameId: string) {
 		this.moodTagsService
 			.replaceGameTags(gameId, this.moodTags())
-			.subscribe();
+			.subscribe({
+				error: (error: unknown) =>
+					reportHttpFailure(
+						this.toast,
+						error,
+						"The run was saved, but the mood tags could not be updated."
+					)
+			});
 	}
 
 	private submitReviewIfNeeded(gameId: string) {
 		const review = this.pendingReview();
 		if (review)
-			this.reviewsService.createReview(gameId, review).subscribe();
+			this.reviewsService.createReview(gameId, review).subscribe({
+				error: (error: unknown) =>
+					reportHttpFailure(
+						this.toast,
+						error,
+						"The run was saved, but the review could not be posted."
+					)
+			});
 	}
 
 	private pendingReview(): BacklogReviewDraft | null {

@@ -3,10 +3,8 @@ import { describe, it } from "node:test";
 
 import { type RewindRun } from "../../src/rewind/rewind-run.interface";
 import { type RewindGameGenre } from "../../src/rewind/rewind-run.interface";
-import {
-	buildRewindPremiumStats,
-	REWIND_TASTE_VS_CRITICS_LIMIT
-} from "../../src/rewind-recap/utils/build-rewind-premium-stats.util";
+import { REWIND_TASTE_VS_CRITICS_LIMIT } from "../../src/rewind-recap/rewind-recap.constants";
+import { buildRewindPremiumStats } from "../../src/rewind-recap/utils/build-rewind-premium-stats.util";
 import { buildRun, finishedRun } from "../rewind/rewind-run.builder";
 import { genreOf, RECAP_YEAR } from "./rewind-recap.fixtures";
 

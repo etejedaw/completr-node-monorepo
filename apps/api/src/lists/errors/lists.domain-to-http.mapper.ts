@@ -19,9 +19,6 @@ export function listsDomainToHttpMapper(
 	if (error.code === "LIST_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
-	if (error.code === "LIST_FORBIDDEN")
-		return new HttpError({ ...baseOptions, status: 403 });
-
 	if (error.code === "LIST_UNIQUE_CONSTRAINT")
 		return new HttpError({ ...baseOptions, status: 409 });
 

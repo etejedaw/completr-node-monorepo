@@ -21,8 +21,8 @@ const router = Router();
 router.get(
 	"/franchises",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],
 	franchiseController.getAllFranchises
@@ -31,8 +31,8 @@ router.get(
 router.get(
 	"/franchises/:code",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(FranchiseCodeParamsSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -42,8 +42,8 @@ router.get(
 router.post(
 	"/franchises/:code/track",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(FranchiseCodeParamsSchema, "params")
 	],
 	franchiseController.postTrackFranchise
@@ -52,8 +52,8 @@ router.post(
 router.delete(
 	"/franchises/:code/track",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(FranchiseCodeParamsSchema, "params")
 	],
 	franchiseController.deleteTrackFranchise
@@ -62,8 +62,8 @@ router.delete(
 router.post(
 	"/franchises",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(RegisterFranchiseSchema, "body")
 	],
 	franchiseController.postFranchise
@@ -72,8 +72,8 @@ router.post(
 router.patch(
 	"/franchises/:franchiseId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(FranchiseIdParamSchema, "params"),
 		validateSchemaMiddleware(UpdateFranchiseSchema, "body")
 	],
@@ -83,8 +83,8 @@ router.patch(
 router.delete(
 	"/franchises/:franchiseId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(FranchiseIdParamSchema, "params")
 	],
 	franchiseController.deleteFranchise

@@ -19,9 +19,6 @@ export function queueDomainToHttpMapper(
 	if (error.code === "QUEUE_BACKLOG_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
-	if (error.code === "QUEUE_BACKLOG_NOT_OWNED")
-		return new HttpError({ ...baseOptions, status: 403 });
-
 	if (error.code === "QUEUE_GAME_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 

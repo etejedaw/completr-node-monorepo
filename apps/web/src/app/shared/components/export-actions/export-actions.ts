@@ -7,16 +7,16 @@ import {
 
 import { type ExportParams } from "../../../core/services/export";
 import { type ExportResource } from "../../../core/services/export.model";
+import { UiActionMenu } from "../../ui";
 import { UiPremiumBadge } from "../../ui/premium-badge/ui-premium-badge";
-import { ActionMenu } from "../action-menu/action-menu";
 import { GiftOfferCard } from "../gift-offer-card/gift-offer-card";
 import { injectExportDownload } from "./export-download";
 
 @Component({
 	selector: "app-export-actions",
-	imports: [ActionMenu, GiftOfferCard, UiPremiumBadge],
+	imports: [UiActionMenu, GiftOfferCard, UiPremiumBadge],
 	template: `
-		<app-action-menu
+		<ui-action-menu
 			icon="download"
 			label="Export"
 			[heading]="'Export ' + label()"

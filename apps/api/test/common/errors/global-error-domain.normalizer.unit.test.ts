@@ -67,9 +67,9 @@ void describe("globalErrorDomainNormalizer", () => {
 		],
 		[
 			"Backlog Service",
-			"BACKLOG_FORBIDDEN",
+			"BACKLOG_NOT_FOUND",
 			"Backlog Module",
-			"BACKLOG_FORBIDDEN"
+			"BACKLOG_NOT_FOUND"
 		],
 		[
 			"SavedFilter Service",

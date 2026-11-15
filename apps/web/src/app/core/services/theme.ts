@@ -2,6 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 
 import { environment } from "../../../environments/environment";
+import { StorageService } from "./storage";
 import { type ThemeId, type ThemeOption } from "./theme.model";
 
 const STORAGE_KEY = "completr.theme";
@@ -37,14 +38,11 @@ export const THEME_CATALOG: ThemeOption[] = [
 @Injectable({ providedIn: "root" })
 export class ThemeService {
 	private readonly http = inject(HttpClient);
+	private readonly storage = inject(StorageService);
 	readonly catalog = THEME_CATALOG;
 
 	currentId(): ThemeId {
-		const stored = (
-			typeof localStorage !== "undefined"
-				? localStorage.getItem(STORAGE_KEY)
-				: null
-		) as ThemeId | null;
+		const stored = this.storage.get(STORAGE_KEY) as ThemeId | null;
 		return stored && this.isKnown(stored) ? stored : DEFAULT_THEME;
 	}
 
@@ -69,11 +67,7 @@ export class ThemeService {
 
 	setLocal(id: ThemeId) {
 		if (!this.isKnown(id)) return;
-		try {
-			localStorage.setItem(STORAGE_KEY, id);
-		} catch {
-			void 0;
-		}
+		this.storage.set(STORAGE_KEY, id);
 		this.apply(id);
 	}
 
@@ -92,11 +86,7 @@ export class ThemeService {
 
 export function applyInitialTheme() {
 	if (typeof document === "undefined") return;
-	const stored = (
-		typeof localStorage !== "undefined"
-			? localStorage.getItem(STORAGE_KEY)
-			: null
-	) as ThemeId | null;
+	const stored = new StorageService().get(STORAGE_KEY) as ThemeId | null;
 	const id =
 		stored && THEME_CATALOG.some(t => t.id === stored)
 			? stored

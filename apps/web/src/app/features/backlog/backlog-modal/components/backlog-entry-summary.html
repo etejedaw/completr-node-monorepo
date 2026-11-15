@@ -32,7 +32,7 @@
 	<div class="flex items-end gap-4 sm:gap-5">
 		<app-game-poster
 			framed
-			class="w-24 sm:w-28 aspect-[2/3] shrink-0 rounded-lg shadow-[0_20px_40px_-16px_rgba(0,0,0,0.9)]"
+			class="w-24 sm:w-28 aspect-[2/3] shrink-0 rounded-lg shadow-card"
 			[src]="e.game.backgroundUrl"
 			[title]="e.game.title"
 			[width]="420"
@@ -44,7 +44,7 @@
 			</div>
 			<h3
 				id="summary-game-heading"
-				class="m-0 font-display text-xl sm:text-2xl font-bold tracking-tight leading-tight text-fg text-balance break-words drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]"
+				class="m-0 font-display text-xl sm:text-2xl font-bold tracking-tight leading-tight text-fg text-balance break-words drop-shadow-hero"
 			>
 				<a
 					class="group inline rounded-sm text-inherit no-underline hover:underline decoration-brand decoration-2 underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
@@ -192,11 +192,11 @@
 				Where I am
 			</h3>
 			<p
-				class="m-0 mt-1 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap break-words"
+				class="m-0 mt-1 text-compact text-fg-secondary whitespace-pre-wrap break-words"
 			>
 				{{ progress.note }}
 			</p>
-			<p class="m-0 mt-1.5 text-[0.6875rem] text-fg-muted tabular-nums">
+			<p class="m-0 mt-1.5 text-caption text-fg-muted tabular-nums">
 				{{ progress.createdAt | date: "MMM d, y · HH:mm" }}
 			</p>
 		</div>
@@ -205,7 +205,7 @@
 	<figure class="m-0 border-l-2 border-line-hover pl-3">
 		<figcaption uiEyebrow class="mb-1">Notes</figcaption>
 		<div
-			class="text-[0.8125rem] leading-relaxed text-fg-secondary whitespace-pre-wrap break-words"
+			class="text-compact leading-relaxed text-fg-secondary whitespace-pre-wrap break-words"
 		>
 			<app-expandable-text [text]="notes" [lines]="4" />
 		</div>
@@ -222,7 +222,7 @@
 			Review
 		</figcaption>
 		<blockquote
-			class="m-0 text-[0.8125rem] leading-relaxed text-fg-secondary whitespace-pre-wrap break-words"
+			class="m-0 text-compact leading-relaxed text-fg-secondary whitespace-pre-wrap break-words"
 		>
 			<app-expandable-text [text]="e.reviewContent" [lines]="4" />
 		</blockquote>
@@ -252,7 +252,7 @@
 				(click)="navigated.emit()"
 			>
 				<ui-avatar
-					class="w-7 h-7 text-[0.625rem]"
+					class="w-7 h-7 text-tiny"
 					[src]="member.avatarUrl"
 					[name]="memberName(member)"
 				/>

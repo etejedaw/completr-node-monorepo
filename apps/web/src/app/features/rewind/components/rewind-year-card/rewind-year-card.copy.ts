@@ -9,7 +9,8 @@ export const REWIND_YEAR_CARD_COPY: Record<RewindLanguage, RewindYearCardCopy> =
 			readyToRewind: "Ready to rewind",
 			generate: "Generate",
 			rewinding: "Rewinding…",
-			generateLabel: year => `Generate your ${year} Rewind`
+			generateLabel: year => `Generate your ${year} Rewind`,
+			notAvailable: "Can't be generated now"
 		},
 		es: {
 			finished: count =>
@@ -19,6 +20,7 @@ export const REWIND_YEAR_CARD_COPY: Record<RewindLanguage, RewindYearCardCopy> =
 			readyToRewind: "Listo para rebobinar",
 			generate: "Generar",
 			rewinding: "Rebobinando…",
-			generateLabel: year => `Generar tu Rewind ${year}`
+			generateLabel: year => `Generar tu Rewind ${year}`,
+			notAvailable: "No se puede generar ahora"
 		}
 	};

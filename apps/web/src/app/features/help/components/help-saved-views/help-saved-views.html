@@ -1,0 +1,59 @@
+<section
+	id="saved-views"
+	aria-labelledby="saved-views-title"
+	class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
+	appInView
+	inViewRootMargin="-30% 0px -65% 0px"
+	(inViewChange)="scrollSpy().onSectionInView('saved-views', $event)"
+>
+	<span uiEyebrow tone="brand">06 · Saved Views</span>
+	<h2
+		id="saved-views-title"
+		class="font-display m-0 mt-1 text-2xl sm:text-3xl font-bold tracking-tight"
+	>
+		Filters you use every day, one tap away
+	</h2>
+	<p
+		class="m-0 mt-4 max-w-[68ch] text-lead leading-relaxed text-fg-secondary"
+	>
+		Set up My Games the way you like (status, platform, dates, rating, sort)
+		and save it with a name. Two options make a view even quicker to reach:
+	</p>
+	<dl class="m-0 mt-6 grid gap-3 sm:grid-cols-2 max-w-3xl">
+		<div class="p-4 rounded-card border border-line bg-surface/40">
+			<dt class="flex items-center gap-2 text-sm font-semibold text-fg">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-rating"
+					>star</span
+				>
+				Default
+			</dt>
+			<dd class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed">
+				Opens automatically every time you visit My Games.
+			</dd>
+		</div>
+		<div class="p-4 rounded-card border border-line bg-surface/40">
+			<dt class="flex items-center gap-2 text-sm font-semibold text-fg">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-brand"
+					>push_pin</span
+				>
+				Pinned
+			</dt>
+			<dd class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed">
+				Listed in the View menu next to the filter in My Games, so you
+				can switch to it from there.
+			</dd>
+		</div>
+	</dl>
+	<a uiButton variant="secondary" routerLink="/saved-views" class="mt-5">
+		<span
+			aria-hidden="true"
+			class="material-icons text-base text-nav-saved-views"
+			>bookmark</span
+		>
+		Open Saved Views
+	</a>
+</section>

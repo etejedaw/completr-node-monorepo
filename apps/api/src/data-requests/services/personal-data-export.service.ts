@@ -1,5 +1,5 @@
 import * as activityService from "../../activity/activity.service";
-import * as tokenService from "../../auth/services/token.service";
+import * as authService from "../../auth/auth.service";
 import * as backlogService from "../../backlog/backlog.service";
 import * as backlogProgressService from "../../backlog-progress/backlog-progress.service";
 import * as coopRunsService from "../../coop-runs/coop-runs.service";
@@ -12,8 +12,8 @@ import * as gamesService from "../../games/games.service";
 import * as listFollowersService from "../../list-followers/list-followers.service";
 import * as listsService from "../../lists/lists.service";
 import * as moodTagsService from "../../mood-tags/mood-tags.service";
-import { resolvePremiumStatus } from "../../premium-access/premium-access.service";
-import * as premiumGrantsService from "../../premium-access/premium-grants-admin.service";
+import { resolvePremiumStatus } from "../../premium-access/services/premium-access.service";
+import * as premiumGrantsService from "../../premium-access/services/premium-grants-admin.service";
 import * as queueService from "../../queue/queue.service";
 import * as reviewsService from "../../reviews/reviews.service";
 import * as rewindService from "../../rewind/rewind.service";
@@ -91,7 +91,7 @@ async function collectPersonalData(user: User): Promise<PersonalDataBundle> {
 		franchisesService.findTrackedFranchisesForDataExport(userId),
 		gamePlatinumService.findPlatinumsForDataExport(userId),
 		rewindService.findRewindsForDataExport(userId),
-		tokenService.findUserSessions(userId),
+		authService.listSessions(userId),
 		gameReportsService.findReportsForDataExport(userId),
 		dataRequestsService.findDataRequestsByUserId(userId)
 	]);
