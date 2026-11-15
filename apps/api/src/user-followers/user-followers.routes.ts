@@ -17,8 +17,8 @@ const router = Router();
 router.post(
 	"/users/:username/follow",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params")
 	],
 	controller.postFollow
@@ -27,8 +27,8 @@ router.post(
 router.delete(
 	"/users/:username/follow",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params")
 	],
 	controller.deleteFollow
@@ -37,8 +37,8 @@ router.delete(
 router.get(
 	"/users/:username/followers",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],
@@ -48,8 +48,8 @@ router.get(
 router.get(
 	"/users/:username/following",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],

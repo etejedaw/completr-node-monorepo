@@ -19,8 +19,8 @@ const router = Router();
 router.post(
 	"/admin/invitations",
 	[
-		rateLimiterMiddleware(registerLimiter),
 		hiddenRouteMiddleware(),
+		rateLimiterMiddleware(registerLimiter),
 		validateSchemaMiddleware(CreateInvitationSchema, "body")
 	],
 	invitationsController.postInvitation
@@ -28,15 +28,15 @@ router.post(
 
 router.get(
 	"/admin/invitations",
-	[rateLimiterMiddleware(userLimiter), hiddenRouteMiddleware()],
+	[hiddenRouteMiddleware(), rateLimiterMiddleware(userLimiter)],
 	invitationsController.getInvitations
 );
 
 router.delete(
 	"/admin/invitations/:invitationId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		hiddenRouteMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(InvitationIdParamSchema, "params")
 	],
 	invitationsController.deleteInvitation

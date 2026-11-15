@@ -5,7 +5,7 @@ import helmet from "helmet";
 
 import activityRouter from "./activity/activity.routes";
 import auditRouter from "./audit/audit.routes";
-import authRouter from "./auth/auth.router";
+import authRouter from "./auth/auth.routes";
 import backlogProgressRouter from "./backlog-progress/backlog-progress.routes";
 import changelogRouter from "./changelog/changelog.routes";
 import { corsConfig } from "./common/config/cors.config";

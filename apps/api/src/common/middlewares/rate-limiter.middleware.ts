@@ -2,11 +2,15 @@ import { type NextFunction, type Request, type Response } from "express";
 import { type RateLimiterMemory } from "rate-limiter-flexible";
 
 import * as authDomainsErrors from "../../auth/errors/auth.domains-error";
+import { type UserRole } from "../../users/user-role.type";
 import { environmentConfig } from "../config/environment.config";
 import { type RequestUser } from "../interfaces/request-user.interface";
 import { resolveClientIp } from "../utils/client-ip.util";
 
-const PRIVILEGED_ROLES = new Set(["admin", "moderator"]);
+const PRIVILEGED_ROLES: ReadonlySet<string> = new Set<UserRole>([
+	"admin",
+	"moderator"
+]);
 
 function skipRateLimit(
 	_request: Request,

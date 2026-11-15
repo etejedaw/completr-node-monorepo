@@ -24,7 +24,7 @@ docs: |-
     Downloads the JSON file with all the user's personal data for a completed `export` request. The file is generated at the moment of the download, so it reflects the current data. Available for 7 days after the request was completed (`downloadableUntil`). No premium gating.
 
     **Authentication:** Bearer token required.
-    **Rate Limit:** 300 requests per minute (user limiter).
+    **Rate Limit:** 3 requests per 15 minutes (data export limiter), because every download builds the whole file.
 
     ### Path params
 

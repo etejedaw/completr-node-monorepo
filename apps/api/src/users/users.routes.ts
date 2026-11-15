@@ -57,8 +57,8 @@ const router = Router();
 router.post(
 	"/admin/users",
 	[
-		rateLimiterMiddleware(registerLimiter),
 		hiddenRouteMiddleware(),
+		rateLimiterMiddleware(registerLimiter),
 		validateSchemaMiddleware(RegisterSchema, "body")
 	],
 	usersAdminController.postAdminCreateUser
@@ -67,8 +67,8 @@ router.post(
 router.get(
 	"/admin/users",
 	[
-		rateLimiterMiddleware(userLimiter),
 		hiddenRouteMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(AdminUsersQuerySchema, "query")
 	],
 	usersAdminController.getAdminUsers
@@ -77,8 +77,8 @@ router.get(
 router.patch(
 	"/admin/users/:userId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		hiddenRouteMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(UserIdParamSchema, "params"),
 		validateSchemaMiddleware(AdminUpdateUserSchema, "body")
 	],
@@ -88,8 +88,8 @@ router.patch(
 router.delete(
 	"/admin/users/:userId",
 	[
-		rateLimiterMiddleware(userLimiter),
 		hiddenRouteMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(UserIdParamSchema, "params")
 	],
 	usersAdminController.deleteAdminUser
@@ -98,8 +98,8 @@ router.delete(
 router.get(
 	"/admin/users/:userId/data-export",
 	[
-		rateLimiterMiddleware(userLimiter),
 		hiddenRouteMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(UserIdParamSchema, "params")
 	],
 	usersAdminController.getAdminUserDataExport
@@ -107,15 +107,15 @@ router.get(
 
 router.get(
 	"/users/me",
-	[rateLimiterMiddleware(userLimiter), authMiddleware()],
+	[authMiddleware(), rateLimiterMiddleware(userLimiter)],
 	usersController.getUserMe
 );
 
 router.get(
 	"/users/search",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UserSearchQuerySchema, "query")
 	],
 	usersController.searchUsers
@@ -124,8 +124,8 @@ router.get(
 router.get(
 	"/users/discover",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UserDiscoverQuerySchema, "query")
 	],
 	usersController.getDiscoverUsers
@@ -134,8 +134,8 @@ router.get(
 router.get(
 	"/users/:username",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params")
 	],
 	usersController.getUserByUsername
@@ -144,8 +144,8 @@ router.get(
 router.patch(
 	"/users/me",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(UpdateUserSchema, "body")
 	],
 	usersController.patchUser
@@ -153,7 +153,7 @@ router.patch(
 
 router.delete(
 	"/users/me/deactivate",
-	[rateLimiterMiddleware(userLimiter), authMiddleware()],
+	[authMiddleware(), rateLimiterMiddleware(userLimiter)],
 	usersController.deleteUser
 );
 
@@ -162,8 +162,8 @@ router.use("/users/me/game-shelf", gameShelfRouter);
 router.get(
 	"/users/:username/game-shelf",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -175,8 +175,8 @@ router.use("/users/me/backlog", backlogRouter);
 router.get(
 	"/users/:username/backlog",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(BacklogQuerySchema, "query")
 	],
@@ -190,8 +190,8 @@ router.use("/users/me/queue", queueRouter);
 router.get(
 	"/users/:username/queue",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -203,8 +203,8 @@ router.use("/users/me/wishlist", wishlistRouter);
 router.get(
 	"/users/:username/wishlist",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -216,8 +216,8 @@ router.use("/users/me/favorites", favoritesRouter);
 router.get(
 	"/users/:username/favorites",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -227,8 +227,8 @@ router.get(
 router.post(
 	"/users/me/platinums/bulk",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(PlatinumsBulkQuerySchema, "query"),
 		validateBulkBodyMiddleware({
 			delete: BulkDeletePlatinumsSchema
@@ -240,8 +240,8 @@ router.post(
 router.get(
 	"/users/me/platinums",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],
 	gamePlatinumController.getMyPlatinums
@@ -250,8 +250,8 @@ router.get(
 router.get(
 	"/users/me/platinums/export",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ExportPlatformSearchQuerySchema, "query"),
 		exportFormatNegotiationMiddleware,
 		exportFormatAccessMiddleware
@@ -262,8 +262,8 @@ router.get(
 router.get(
 	"/users/:username/platinums",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],
@@ -273,8 +273,8 @@ router.get(
 router.get(
 	"/users/:username/lists",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(UserListsQuerySchema, "query")
 	],
@@ -284,8 +284,8 @@ router.get(
 router.get(
 	"/users/:username/following-lists",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(UserListsQuerySchema, "query")
 	],
@@ -295,8 +295,8 @@ router.get(
 router.get(
 	"/users/:username/reviews",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -316,8 +316,8 @@ router.get(
 router.get(
 	"/users/:username/highlights",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(HighlightsQuerySchema, "query")
 	],
@@ -327,8 +327,8 @@ router.get(
 router.get(
 	"/users/:username/completions",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
@@ -338,8 +338,8 @@ router.get(
 router.get(
 	"/users/:username/franchises",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params")
 	],
 	usersController.getUserFranchises
@@ -348,8 +348,8 @@ router.get(
 router.get(
 	"/users/:username/comparison",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(UsernameParamSchema, "params"),
 		validateSchemaMiddleware(ComparisonQuerySchema, "query")
 	],

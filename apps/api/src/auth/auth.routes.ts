@@ -3,7 +3,9 @@ import { Router } from "express";
 import {
 	authLimiter,
 	passwordResetLimiter,
-	registerLimiter
+	publicLimiter,
+	registerLimiter,
+	userLimiter
 } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
@@ -25,8 +27,8 @@ const router = Router();
 router.post(
 	"/auth/register",
 	[
-		rateLimiterMiddleware(registerLimiter),
 		authMiddleware("admin"),
+		rateLimiterMiddleware(registerLimiter),
 		validateSchemaMiddleware(RegisterSchema, "body")
 	],
 	authController.postRegister
@@ -52,15 +54,18 @@ router.post(
 
 router.post(
 	"/auth/logout",
-	[validateSchemaMiddleware(RefreshTokenSchema, "body")],
+	[
+		rateLimiterMiddleware(publicLimiter),
+		validateSchemaMiddleware(RefreshTokenSchema, "body")
+	],
 	authController.postLogout
 );
 
 router.patch(
 	"/auth/password",
 	[
-		rateLimiterMiddleware(authLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(authLimiter),
 		validateSchemaMiddleware(ChangePasswordSchema, "body")
 	],
 	authController.patchChangePassword
@@ -88,6 +93,7 @@ router.get(
 	"/auth/sessions",
 	[
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(PaginationQuerySchema, "query")
 	],
 	authController.getSessions
@@ -97,6 +103,7 @@ router.delete(
 	"/auth/sessions/others/:sessionId",
 	[
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(SessionIdParamsSchema, "params")
 	],
 	authController.deleteOtherSessions
@@ -106,6 +113,7 @@ router.delete(
 	"/auth/sessions/:sessionId",
 	[
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(SessionIdParamsSchema, "params")
 	],
 	authController.deleteSession
