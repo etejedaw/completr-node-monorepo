@@ -1,12 +1,15 @@
 import {
 	derivePrivacyMode,
+	effectiveSectionVisibility,
 	effectiveVisibility,
 	PRIVACY_PRESETS,
 	PRIVACY_SECTION_GROUPS,
+	rewindBypassesProfile,
 	SECTION_KEYS,
 	VISIBILITY_OPTIONS,
 	visibilityLabel
 } from "./privacy-options";
+import { type PrivacyDraft } from "./privacy-options.model";
 
 describe("privacy options", () => {
 	const allAt = (level: "public" | "friends" | "private") =>
@@ -166,6 +169,63 @@ describe("privacy options", () => {
 			["private", "Only you"]
 		] as const)("labels %s as %s", (level, label) => {
 			expect(visibilityLabel(level)).toBe(label);
+		});
+	});
+	describe("effectiveSectionVisibility", () => {
+		const privateProfile = (
+			overrides: Partial<PrivacyDraft> = {}
+		): PrivacyDraft => ({
+			...allAt("public"),
+			profileVisibility: "private",
+			rewindIgnoresProfileVisibility: false,
+			acceptFollowRequests: true,
+			...overrides
+		});
+
+		it("caps the Rewind by the profile while the switch is off", () => {
+			expect(
+				effectiveSectionVisibility(privateProfile(), "rewindVisibility")
+			).toBe("private");
+		});
+
+		it.each(["public", "friends"] as const)(
+			"lets a %s Rewind keep its own level once the switch is on",
+			level => {
+				const draft = privateProfile({
+					rewindVisibility: level,
+					rewindIgnoresProfileVisibility: true
+				});
+
+				expect(rewindBypassesProfile(draft)).toBe(true);
+				expect(
+					effectiveSectionVisibility(draft, "rewindVisibility")
+				).toBe(level);
+			}
+		);
+
+		it("keeps every other section capped by the profile", () => {
+			const draft = privateProfile({
+				rewindIgnoresProfileVisibility: true
+			});
+
+			expect(
+				effectiveSectionVisibility(draft, "platinumVisibility")
+			).toBe("private");
+			expect(effectiveSectionVisibility(draft, "queueVisibility")).toBe(
+				"private"
+			);
+		});
+
+		it("does nothing for a Rewind set to Only you", () => {
+			const draft = privateProfile({
+				rewindVisibility: "private",
+				rewindIgnoresProfileVisibility: true
+			});
+
+			expect(rewindBypassesProfile(draft)).toBe(false);
+			expect(effectiveSectionVisibility(draft, "rewindVisibility")).toBe(
+				"private"
+			);
 		});
 	});
 });

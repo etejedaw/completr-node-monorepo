@@ -149,6 +149,25 @@ describe("RewindArchive", () => {
 		expect(screen.queryByRole("button", { name: /Generate/ })).toBeNull();
 	});
 
+	it("opens a signed-out visitor's archive from the Rewind endpoint alone, without asking for the profile", async () => {
+		await renderArchive(null, {
+			spotlightYear: null,
+			period: null,
+			years: [year(2025, true)],
+			premiumAccess: null
+		});
+
+		expect(
+			await screen.findByRole("link", { name: /2025/ })
+		).toHaveAttribute("href", "/user/ada/rewind/2025");
+		expect(
+			screen.queryByText("These Rewinds are private")
+		).not.toBeInTheDocument();
+		TestBed.inject(HttpTestingController).expectNone(
+			`${environment.apiUrl}/users/ada`
+		);
+	});
+
 	it("tells a visitor the user hasn't shared a Rewind yet", async () => {
 		await renderArchive(null, {
 			spotlightYear: null,
