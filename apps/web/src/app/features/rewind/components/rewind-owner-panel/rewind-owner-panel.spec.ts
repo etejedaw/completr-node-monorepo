@@ -155,8 +155,10 @@ describe("RewindOwnerPanel", () => {
 				"Generación con IA extra disponible hasta el 7 de enero"
 			)
 		).toBeInTheDocument();
+		expect(screen.getByText("En español")).toBeInTheDocument();
 		expect(screen.getByText("Incluye runs privadas")).toBeInTheDocument();
 		expect(screen.getByText("Usa tus notas")).toBeInTheDocument();
+		expect(screen.queryByText("Solo runs públicas")).toBeNull();
 		expect(
 			screen.getByText("No se pudo generar el resumen con IA")
 		).toBeInTheDocument();
@@ -175,6 +177,8 @@ describe("RewindOwnerPanel", () => {
 
 		expect(screen.queryByText("Uses your notes")).toBeNull();
 		expect(screen.queryByText("Includes private runs")).toBeNull();
+		expect(screen.getByText("In English")).toBeInTheDocument();
+		expect(screen.getByText("Public runs only")).toBeInTheDocument();
 
 		fixture.componentRef.setInput(
 			"rewind",
@@ -460,6 +464,54 @@ describe("RewindOwnerPanel", () => {
 			};
 		}
 
+		it("marks the AI generations as premium with the label of the owner's access", async () => {
+			const { fixture } = await renderPanel(rewindFixture());
+
+			expect(
+				screen.getByRole("button", { name: "Premium" })
+			).toBeInTheDocument();
+
+			fixture.componentRef.setInput(
+				"rewind",
+				rewindFixture({
+					language: "es",
+					premiumAccess: {
+						allowed: true,
+						source: "feature-grant",
+						expiresAt: "2027-01-31T23:59:59.999Z"
+					}
+				})
+			);
+			fixture.detectChanges();
+
+			expect(
+				await screen.findByRole("button", { name: "Regalo" })
+			).toBeInTheDocument();
+			expect(
+				screen.queryByRole("button", { name: "Premium" })
+			).toBeNull();
+		});
+
+		it("keeps the AI generations neutral without AI access", async () => {
+			await renderPanel(
+				rewindFixture({
+					premiumAccess: noAccess,
+					ownerControls: controls({
+						canRegenerate: false,
+						regenerationBlockedBy: "no-ai-access"
+					})
+				})
+			);
+			http()
+				.expectOne(giftOffersUrl)
+				.flush({ data: { offers: [] } });
+
+			expect(
+				screen.queryByRole("button", { name: "Premium" })
+			).toBeNull();
+			expect(screen.queryByRole("button", { name: "Gift" })).toBeNull();
+		});
+
 		it("hides Regenerate and the AI generations without AI access and shows the Rewind gift instead", async () => {
 			await renderPanel(
 				rewindFixture({
@@ -506,8 +558,9 @@ describe("RewindOwnerPanel", () => {
 					"Generación con IA extra disponible hasta el 7 de enero"
 				)
 			).toBeInTheDocument();
+			expect(screen.getByText("Abierta")).toBeInTheDocument();
 			expect(
-				screen.getByText("Abierto hasta el 31 de enero")
+				screen.getByText("hasta el 31 de enero")
 			).toBeInTheDocument();
 			http().expectNone(giftOffersUrl);
 		});
@@ -603,7 +656,7 @@ describe("RewindOwnerPanel", () => {
 			expect(await screen.findByText("Aún no abre")).toBeInTheDocument();
 		});
 
-		it("explains why there is no Regenerate with the reason the API sends", async () => {
+		it("explains in the AI tile why there is no Regenerate without repeating it below", async () => {
 			await renderPanel(
 				rewindFixture({
 					premiumAccess: noAccess,
@@ -618,8 +671,13 @@ describe("RewindOwnerPanel", () => {
 				.flush({ data: { offers: [] } });
 
 			expect(
-				screen.getByText("Regenerating needs Premium or a Rewind gift.")
+				screen.getByText("With Premium or a gift")
 			).toBeInTheDocument();
+			expect(
+				screen.queryByText(
+					"Regenerating needs Premium or a Rewind gift."
+				)
+			).toBeNull();
 			expect(
 				screen.queryByRole("button", { name: "Regenerate" })
 			).toBeNull();
