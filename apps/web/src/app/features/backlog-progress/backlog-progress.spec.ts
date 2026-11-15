@@ -62,14 +62,36 @@ describe("BacklogProgressService", () => {
 		req.flush(null);
 	});
 
-	it("propagates a server error when adding fails", () => {
+	it("propagates the not found of a run that is not yours when adding fails", () => {
+		const onError = vi.fn();
+
+		service.addProgress("b1", "x").subscribe({ error: onError });
+		httpTesting.expectOne(`${api}/users/me/backlog/b1/progress`).flush(
+			{
+				type: "BACKLOG_PROGRESS_BACKLOG_NOT_FOUND",
+				title: "Run not found",
+				status: 404
+			},
+			{ status: 404, statusText: "Not Found" }
+		);
+
+		expect(onError.mock.calls[0][0].status).toBe(404);
+	});
+
+	it("propagates a server error and a lost connection when adding fails", () => {
 		const onError = vi.fn();
 
 		service.addProgress("b1", "x").subscribe({ error: onError });
 		httpTesting
 			.expectOne(`${api}/users/me/backlog/b1/progress`)
-			.flush(null, { status: 403, statusText: "Forbidden" });
+			.flush(null, { status: 500, statusText: "Server Error" });
+		service.addProgress("b1", "y").subscribe({ error: onError });
+		httpTesting
+			.expectOne(`${api}/users/me/backlog/b1/progress`)
+			.error(new ProgressEvent("error"));
 
-		expect(onError.mock.calls[0][0].status).toBe(403);
+		expect(onError.mock.calls.map(call => call[0].status)).toEqual([
+			500, 0
+		]);
 	});
 });
