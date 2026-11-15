@@ -93,3 +93,8 @@ export interface StoryTemplateInput {
 	artwork: ShareArtwork;
 	host: string;
 }
+
+export interface ShareFormatTemplate {
+	coverLimit: number;
+	render: (input: StoryTemplateInput) => SatoriElement;
+}
