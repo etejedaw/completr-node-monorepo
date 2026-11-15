@@ -169,6 +169,12 @@ export class AuthService {
 			.pipe(map(res => res.data));
 	}
 
+	changePassword(password: string) {
+		return this.http.patch(`${environment.apiUrl}/auth/password`, {
+			password
+		});
+	}
+
 	revokeSession(sessionId: string) {
 		return this.http.delete(
 			`${environment.apiUrl}/auth/sessions/${sessionId}`,

@@ -1,4 +1,3 @@
-import { HttpClient } from "@angular/common/http";
 import {
 	ChangeDetectionStrategy,
 	Component,
@@ -9,7 +8,6 @@ import {
 } from "@angular/core";
 import { form, FormField, maxLength, validate } from "@angular/forms/signals";
 
-import { environment } from "../../../../environments/environment";
 import { AuthService } from "../../../core/services/auth";
 import { type AuthSession } from "../../../core/services/auth.model";
 import { ToastService } from "../../../core/services/toast";
@@ -57,7 +55,6 @@ const EMPTY_PASSWORDS = { newPassword: "", confirmPassword: "" };
 })
 export class SettingsSecurity implements OnInit {
 	private readonly authService = inject(AuthService);
-	private readonly http = inject(HttpClient);
 	private readonly toast = inject(ToastService);
 
 	protected readonly describeDevice = describeDevice;
@@ -112,15 +109,14 @@ export class SettingsSecurity implements OnInit {
 	}
 
 	protected changePassword() {
+		if (this.changingPassword()) return;
 		if (this.passwordForm().invalid()) {
 			this.passwordForm().markAsTouched();
 			return;
 		}
 		this.changingPassword.set(true);
-		this.http
-			.patch(`${environment.apiUrl}/auth/password`, {
-				password: this.passwords().newPassword
-			})
+		this.authService
+			.changePassword(this.passwords().newPassword)
 			.subscribe({
 				next: () => {
 					this.changingPassword.set(false);

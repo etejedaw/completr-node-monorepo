@@ -3,7 +3,7 @@ import { type VisibilityLevel } from "../../core/models";
 export interface UpdateProfileDto {
 	name?: string;
 	bio?: string;
-	avatarUrl?: string;
+	avatarUrl?: string | null;
 	profileVisibility?: VisibilityLevel;
 	queueVisibility?: VisibilityLevel;
 	wishlistVisibility?: VisibilityLevel;

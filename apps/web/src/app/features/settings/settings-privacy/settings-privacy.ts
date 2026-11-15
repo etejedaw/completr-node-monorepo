@@ -27,6 +27,7 @@ import {
 	UiSkeleton,
 	UiSwitch
 } from "../../../shared/ui";
+import { injectFollowRequestActions } from "../../../shared/utils/inject-follow-request-actions";
 import { ProfileService } from "../../profile/profile";
 import { SettingsPanel } from "../components/settings-panel";
 import { SettingsRow } from "../components/settings-row";
@@ -128,7 +129,10 @@ export class SettingsPrivacy implements OnInit {
 
 	protected readonly incomingRequests = this.followRequestsService.incoming;
 	protected readonly requestsLoading = signal(false);
-	protected readonly resolvingRequest = signal<string | null>(null);
+	private readonly requestActions = injectFollowRequestActions();
+	protected readonly resolvingRequest = this.requestActions.resolvingId;
+	protected readonly acceptRequest = this.requestActions.accept;
+	protected readonly rejectRequest = this.requestActions.reject;
 	protected readonly showRequests = computed(
 		() =>
 			this.saved().profileVisibility === "private" &&
@@ -187,6 +191,7 @@ export class SettingsPrivacy implements OnInit {
 	}
 
 	protected save() {
+		if (this.saving()) return;
 		const draft = this.draft();
 		this.saving.set(true);
 		this.profileService.update(draft).subscribe({
@@ -200,33 +205,6 @@ export class SettingsPrivacy implements OnInit {
 			error: () => {
 				this.saving.set(false);
 				this.toast.warning("Could not update privacy settings.");
-			}
-		});
-	}
-
-	protected acceptRequest(requesterId: string) {
-		if (this.resolvingRequest()) return;
-		this.resolvingRequest.set(requesterId);
-		this.followRequestsService.accept(requesterId).subscribe({
-			next: () => {
-				this.resolvingRequest.set(null);
-				this.toast.success("Follow request accepted.");
-			},
-			error: () => {
-				this.resolvingRequest.set(null);
-				this.toast.warning("Could not accept the request.");
-			}
-		});
-	}
-
-	protected rejectRequest(requesterId: string) {
-		if (this.resolvingRequest()) return;
-		this.resolvingRequest.set(requesterId);
-		this.followRequestsService.reject(requesterId).subscribe({
-			next: () => this.resolvingRequest.set(null),
-			error: () => {
-				this.resolvingRequest.set(null);
-				this.toast.warning("Could not reject the request.");
 			}
 		});
 	}
