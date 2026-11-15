@@ -27,8 +27,8 @@ export async function getFeed(request: Request, response: Response) {
 
 	const { rows, total } = await activityService.getFeed(
 		user.id,
-		query.limit ?? 25,
-		query.offset ?? 0,
+		query.limit,
+		query.offset,
 		{ category: query.category, types: query.types }
 	);
 
@@ -53,7 +53,7 @@ export async function deleteActivity(request: Request, response: Response) {
 	const { activityId } = request.locals.params as ActivityIdParams;
 
 	const deleted = await activityService.deleteActivity(activityId, user.id);
-	if (!deleted) return response.sendStatus(404);
+	if (!deleted) throw activityDomainError.activityNotFound();
 
 	return response.sendStatus(204);
 }

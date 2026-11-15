@@ -10,3 +10,12 @@ export function feedFilterPremiumRequired(context?: Record<string, unknown>) {
 		context
 	);
 }
+
+export function activityNotFound(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"ACTIVITY_NOT_FOUND",
+		"Activity not found",
+		context
+	);
+}

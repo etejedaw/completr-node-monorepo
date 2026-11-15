@@ -23,7 +23,7 @@ docs: |-
 
     **Auth:** Bearer token (any authenticated user).
 
-    **Rate Limit:** 50 requests per minute.
+    **Rate Limit:** 300 requests per minute (user limiter).
 
     ### Query Parameters
 
@@ -68,6 +68,8 @@ docs: |-
       }
     }
     ```
+
+    Activities that point at a list are hidden once that list is no longer public, so a list made private disappears from other people's feeds. Your own feed still shows your own.
 
     Each activity user includes `hasPremium`, true for a premium role or temporary full premium without changing `role`; individual feature grants do not change it.
 
