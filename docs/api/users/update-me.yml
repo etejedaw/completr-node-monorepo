@@ -49,7 +49,7 @@ docs: |-
     |-----------------------|-------------------------------------|----------|-------------------------------------------------------------------|
     | name                  | string                              | No       | 1-80 characters, must not contain `<` or `>`                      |
     | bio                   | string                              | No       | 1-250 characters, must not contain `<` or `>`                     |
-    | avatarUrl             | string \| null                      | No       | Valid http(s) URL up to 255 characters, or a preset path `/avatars/completr_profile_NN.png` (two digits). `null` clears the avatar |
+    | avatarUrl             | string \| null                      | No       | One of the 15 preset avatars, `/avatars/completr_profile_01.png` to `/avatars/completr_profile_15.png`. Any other value, including an external URL, responds 422. `null` clears the avatar |
     | profileVisibility     | `private` \| `friends` \| `public`  | No       | Whole-profile gate                                                |
     | queueVisibility       | `private` \| `friends` \| `public`  | No       | Queue (Up Next) visibility                                        |
     | wishlistVisibility    | `private` \| `friends` \| `public`  | No       | Wishlist visibility                                               |
