@@ -23,7 +23,7 @@ import * as gamesService from "../games/games.service";
 import { type ExternalDataResult } from "../games/games-external-data.interface";
 import * as reviewsService from "../reviews/reviews.service";
 import * as rewindFreezeService from "../rewind/services/rewind-freeze.service";
-import * as usersService from "../users/users.service";
+import * as usersService from "../users/services/users.service";
 import * as jobsServiceError from "./errors/jobs.service-error";
 import { Job } from "./job.model";
 import {

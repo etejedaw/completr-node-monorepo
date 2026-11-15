@@ -5,7 +5,7 @@ import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
-import * as usersService from "../users/users.service";
+import * as usersService from "../users/services/users.service";
 import { type CreateReviewDto } from "./dtos/create-review.dto";
 import { type UpdateReviewDto } from "./dtos/update-review.dto";
 import * as reviewsServiceError from "./errors/reviews.service-error";

@@ -6,8 +6,8 @@ import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-qu
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { USER_CARD_ATTRS } from "../users/constants/user-attrs.constants";
+import * as usersService from "../users/services/users.service";
 import { User } from "../users/user.model";
-import * as usersService from "../users/users.service";
 import * as serviceError from "./errors/user-followers.service-error";
 import { UserFollower } from "./user-follower.model";
 import { type ConnectionKind } from "./user-followers.types";

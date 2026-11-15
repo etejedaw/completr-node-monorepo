@@ -1,10 +1,10 @@
-import * as backlogStatsService from "../backlog/services/backlog-stats.service";
-import * as favoritesService from "../favorites/favorites.service";
-import { findFullPremiumUserIds } from "../premium-access/services/premium-access.service";
-import * as userFollowersService from "../user-followers/user-followers.service";
-import { isSectionVisible } from "./helpers/visibility.helper";
-import { type User } from "./user.model";
-import { type UserCardInsights } from "./users.interface";
+import * as backlogStatsService from "../../backlog/services/backlog-stats.service";
+import * as favoritesService from "../../favorites/favorites.service";
+import { findFullPremiumUserIds } from "../../premium-access/services/premium-access.service";
+import * as userFollowersService from "../../user-followers/user-followers.service";
+import { isSectionVisible } from "../helpers/visibility.helper";
+import { type User } from "../user.model";
+import { type UserCardInsights } from "../users.interface";
 
 export async function buildUserCards(
 	viewerId: string | undefined,

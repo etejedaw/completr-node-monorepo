@@ -1,13 +1,13 @@
 import { type Transaction } from "sequelize";
 
-import * as activityService from "../activity/activity.service";
-import { AUDIT_ACTIONS, AUDIT_TARGET_TYPES } from "../audit/audit.constants";
-import * as auditService from "../audit/audit.service";
-import { sequelize } from "../database/sequelize.database";
-import * as invitationsService from "../invitations/invitations.service";
-import { clearRewindImagesOf } from "../rewind-share/rewind-share.service";
-import * as usersServiceError from "./errors/users.service-error";
-import { type User } from "./user.model";
+import * as activityService from "../../activity/activity.service";
+import { AUDIT_ACTIONS, AUDIT_TARGET_TYPES } from "../../audit/audit.constants";
+import * as auditService from "../../audit/audit.service";
+import { sequelize } from "../../database/sequelize.database";
+import * as invitationsService from "../../invitations/invitations.service";
+import { clearRewindImagesOf } from "../../rewind-share/rewind-share.service";
+import * as usersServiceError from "../errors/users.service-error";
+import { type User } from "../user.model";
 import * as usersService from "./users.service";
 
 export async function findDeletableUser(userId: string, actingAdminId: string) {

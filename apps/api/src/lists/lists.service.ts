@@ -13,7 +13,7 @@ import * as listItemsService from "../list-items/list-items.service";
 import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import * as scoreSourcesService from "../score-sources/score-sources.service";
 import { visibleListsCondition } from "../users/helpers/visibility.helper";
-import * as usersService from "../users/users.service";
+import * as usersService from "../users/services/users.service";
 import { type DuplicateListDto } from "./dtos/duplicate-list.dto";
 import { type RegisterListDto } from "./dtos/register-list.dto";
 import { type UpdateListDto } from "./dtos/update-list.dto";

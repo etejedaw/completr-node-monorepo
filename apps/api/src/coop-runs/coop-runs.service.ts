@@ -7,7 +7,7 @@ import * as backlogCoopService from "../backlog/services/backlog-coop.service";
 import { sequelize } from "../database/sequelize.database";
 import * as userFollowersService from "../user-followers/user-followers.service";
 import { canView } from "../users/helpers/visibility.helper";
-import * as usersService from "../users/users.service";
+import * as usersService from "../users/services/users.service";
 import { CoopRun } from "./coop-run.model";
 import {
 	type CoopCandidatesResult,

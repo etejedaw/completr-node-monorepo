@@ -12,10 +12,10 @@ import { type AdminUpdateUserDto } from "./dtos";
 import * as userDomain from "./errors/users.domain-error";
 import { type AdminUsersQuery } from "./schemas/admin-users-query.schema";
 import { type UserIdParam } from "./schemas/user-id-params.schema";
+import * as usersService from "./services/users.service";
+import * as usersDeletionService from "./services/users-deletion.service";
+import { buildUserMe } from "./services/users-me.service";
 import { userAdminSerializer } from "./users.serializer";
-import * as usersService from "./users.service";
-import * as usersDeletionService from "./users-deletion.service";
-import { buildUserMe } from "./users-me.service";
 
 export async function postAdminCreateUser(
 	request: Request,

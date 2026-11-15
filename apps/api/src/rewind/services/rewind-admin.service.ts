@@ -3,8 +3,8 @@ import { Op } from "sequelize";
 import { sequelize } from "../../database/sequelize.database";
 import { type PremiumAccessUser } from "../../premium-access/premium-access.interface";
 import { resolvePremiumAccess } from "../../premium-access/services/premium-access.service";
+import * as usersService from "../../users/services/users.service";
 import { type User } from "../../users/user.model";
-import * as usersService from "../../users/users.service";
 import * as rewindServiceError from "../errors/rewind.service-error";
 import {
 	DEFAULT_ADMIN_REWINDS_PAGE_SIZE,

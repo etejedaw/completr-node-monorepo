@@ -1,6 +1,6 @@
 import { Op, type Transaction } from "sequelize";
 
-import * as usersService from "../../users/users.service";
+import * as usersService from "../../users/services/users.service";
 import { Backlog } from "../backlog.model";
 
 function coopPeerUserInclude() {

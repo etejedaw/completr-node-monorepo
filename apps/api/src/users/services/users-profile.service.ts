@@ -1,33 +1,31 @@
-import * as activityService from "../activity/activity.service";
-import * as backlogService from "../backlog/backlog.service";
-import * as backlogProfileService from "../backlog/services/backlog-profile.service";
-import * as backlogStatsService from "../backlog/services/backlog-stats.service";
-import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
-import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
-import * as favoritesService from "../favorites/favorites.service";
-import * as franchiseService from "../franchises/franchises.service";
-import * as gameShelfService from "../game-shelf/game-shelf.service";
-import * as listFollowersService from "../list-followers/list-followers.service";
-import * as listDomainError from "../lists/errors/lists.domain-error";
-import * as listsService from "../lists/lists.service";
-import { findFullPremiumUserIds } from "../premium-access/services/premium-access.service";
-import * as reviewsService from "../reviews/reviews.service";
-import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
-import * as userFollowersService from "../user-followers/user-followers.service";
-import { type ConnectionKind } from "../user-followers/user-followers.types";
-import * as wishlistService from "../wishlist/wishlist.service";
+import * as activityService from "../../activity/activity.service";
+import * as backlogService from "../../backlog/backlog.service";
+import * as backlogProfileService from "../../backlog/services/backlog-profile.service";
+import * as backlogStatsService from "../../backlog/services/backlog-stats.service";
+import { type RequestUser } from "../../common/interfaces/request-user.interface";
+import { type PaginatedSearchQuery } from "../../common/schemas/paginated-search-query.schema";
+import { type PaginationQuery } from "../../common/schemas/pagination-query.schema";
+import * as favoritesService from "../../favorites/favorites.service";
+import * as franchiseService from "../../franchises/franchises.service";
+import * as gameShelfService from "../../game-shelf/game-shelf.service";
+import * as listFollowersService from "../../list-followers/list-followers.service";
+import * as listsService from "../../lists/lists.service";
+import { findFullPremiumUserIds } from "../../premium-access/services/premium-access.service";
+import * as reviewsService from "../../reviews/reviews.service";
+import * as userFollowRequestsService from "../../user-follow-requests/user-follow-requests.service";
+import * as userFollowersService from "../../user-followers/user-followers.service";
+import { type ConnectionKind } from "../../user-followers/user-followers.types";
+import * as wishlistService from "../../wishlist/wishlist.service";
 import {
 	PROFILE_ACTIVITY_LIMIT,
 	PROFILE_BACKLOG_PREVIEW_LIMIT
-} from "./constants/user-limits.constants";
-import { type VisibilitySection } from "./constants/visibility.constants";
-import * as userDomain from "./errors/users.domain-error";
-import { canView, resolveSectionAccess } from "./helpers/visibility.helper";
-import { type ComparisonDimension } from "./schemas/comparison-query.schema";
-import { type UserListsQuery } from "./schemas/user-lists-query.schema";
-import { type User } from "./user.model";
-import * as userCardsService from "./user-cards.service";
+} from "../constants/user-limits.constants";
+import { type VisibilitySection } from "../constants/visibility.constants";
+import * as usersServiceError from "../errors/users.service-error";
+import { canView, resolveSectionAccess } from "../helpers/visibility.helper";
+import { type ComparisonDimension } from "../schemas/comparison-query.schema";
+import { type UserListsQuery } from "../schemas/user-lists-query.schema";
+import { type User } from "../user.model";
 import {
 	type BacklogStatusCounts,
 	type ComparisonGameEntry,
@@ -43,13 +41,14 @@ import {
 	type UserListDetailBundle,
 	type UserListsBundle,
 	type UserReviewsBundle
-} from "./users.interface";
-import * as usersService from "./users.service";
+} from "../users.interface";
 import {
 	type GameEntryRow,
 	type SectionAccess,
 	type UserProfileResult
-} from "./users.types";
+} from "../users.types";
+import * as userCardsService from "./user-cards.service";
+import * as usersService from "./users.service";
 
 const EMPTY_BACKLOG_STATS: BacklogStatusCounts = {
 	not_started: 0,
@@ -65,7 +64,7 @@ export async function getProfileByUsername(
 	username: string
 ): Promise<UserProfileResult> {
 	const user = await usersService.findUserByUsername(username);
-	if (!user) throw userDomain.userNotFound();
+	if (!user) throw usersServiceError.notFoundError();
 
 	const isSelf = viewerId === user.id;
 	const access = await resolveSectionAccess(viewerId, user);
@@ -192,17 +191,17 @@ async function loadBacklogStats(
 	return backlogStatsService.countBacklogByStatus(userId, !isSelf);
 }
 
-async function requireVisibleUser(
+export async function requireVisibleUser(
 	viewerId: string | undefined,
 	username: string,
 	sections: VisibilitySection[]
 ): Promise<User> {
 	const user = await usersService.findUserByUsername(username);
-	if (!user) throw userDomain.userNotFound();
+	if (!user) throw usersServiceError.notFoundError();
 
 	for (const section of sections) {
 		if (!(await canView(viewerId, user, section)))
-			throw userDomain.userPrivate();
+			throw usersServiceError.privateError();
 	}
 	return user;
 }
@@ -269,7 +268,7 @@ export async function getListDetailForUsername(
 		list.userId !== user.id ||
 		!(isSelf || (list.isPublic && (await canView(viewerId, user, "list"))))
 	)
-		throw listDomainError.listNotFound();
+		throw usersServiceError.listNotFoundError();
 
 	const listPlain = list.get({ plain: true });
 	const canSeeProgress = await canView(viewerId, user, "backlog");
@@ -332,10 +331,14 @@ export async function getCompletionsForUsername(
 	const isSelf = viewerId === user.id;
 
 	const { rows, total } =
-		await backlogProfileService.findCompletionsByUserIdPaginated(user.id, isSelf, {
-			limit: pagination.limit,
-			offset: pagination.offset
-		});
+		await backlogProfileService.findCompletionsByUserIdPaginated(
+			user.id,
+			isSelf,
+			{
+				limit: pagination.limit,
+				offset: pagination.offset
+			}
+		);
 
 	const plainRows = rows.map(r => r.get({ plain: true }));
 	const gameIds = plainRows
@@ -428,7 +431,7 @@ export async function getComparisonForUsername(
 	options: ComparisonOptions
 ): Promise<UserComparisonBundle> {
 	const user = await usersService.findUserByUsername(username);
-	if (!user) throw userDomain.userNotFound();
+	if (!user) throw usersServiceError.notFoundError();
 
 	if (user.id === viewer.id) return buildEmptyComparison(by);
 
@@ -437,7 +440,7 @@ export async function getComparisonForUsername(
 		canView(viewer.id, user, "profile"),
 		canView(viewer.id, user, section)
 	]);
-	if (!okProfile || !okSection) throw userDomain.userPrivate();
+	if (!okProfile || !okSection) throw usersServiceError.privateError();
 
 	const viewerMap = toEntryMap(
 		await loadComparisonEntries(viewer.id, by, false)

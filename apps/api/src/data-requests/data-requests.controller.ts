@@ -1,7 +1,7 @@
 import { type Request, type Response } from "express";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import * as usersService from "../users/users.service";
+import * as usersService from "../users/services/users.service";
 import { type DataRequest } from "./data-request.model";
 import { type CreateDataRequestDto } from "./dtos/create-data-request.dto";
 import * as dataRequestsDomainError from "./errors/data-requests.domain-error";

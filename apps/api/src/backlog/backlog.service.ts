@@ -26,7 +26,7 @@ import * as platformsService from "../platforms/platforms.service";
 import * as queueService from "../queue/queue.service";
 import * as reviewsService from "../reviews/reviews.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
-import * as usersService from "../users/users.service";
+import * as usersService from "../users/services/users.service";
 import { BACKLOG_GAME_ATTRS, BACKLOG_PLATFORM_ATTRS, DEFAULT_BACKLOG_PAGE_SIZE, RANDOM_PLAYERS_DEFAULT_LIMIT } from "./backlog.constants";
 import { type BacklogSummary, type CreatedBacklog } from "./backlog.interface";
 import { Backlog } from "./backlog.model";

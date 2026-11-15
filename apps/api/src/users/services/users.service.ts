@@ -1,19 +1,19 @@
 import { type IncludeOptions, Op, type Transaction } from "sequelize";
 
-import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
-import { buildTextSearchWhere } from "../common/utils/text-search.util";
-import { sequelize } from "../database/sequelize.database";
-import { USER_CARD_ATTRS } from "./constants/user-attrs.constants";
+import { rethrowSequelizeError } from "../../common/errors/sequelize-error.mapper";
+import { buildTextSearchWhere } from "../../common/utils/text-search.util";
+import { sequelize } from "../../database/sequelize.database";
+import { USER_CARD_ATTRS } from "../constants/user-attrs.constants";
 import {
 	ADMIN_USERS_DEFAULT_LIMIT,
 	USER_DISCOVER_DEFAULT_LIMIT,
 	USER_SEARCH_DEFAULT_LIMIT
-} from "./constants/user-limits.constants";
-import { type CreateUserDto, type UpdateUserDto } from "./dtos";
-import * as usersServiceError from "./errors/users.service-error";
-import { canUseTheme } from "./helpers/theme.helper";
-import { User } from "./user.model";
-import { type AdminUserFields } from "./users.interface";
+} from "../constants/user-limits.constants";
+import { type CreateUserDto, type UpdateUserDto } from "../dtos";
+import * as usersServiceError from "../errors/users.service-error";
+import { canUseTheme } from "../helpers/theme.helper";
+import { User } from "../user.model";
+import { type AdminUserFields } from "../users.interface";
 
 export async function createUser(createUserDto: CreateUserDto) {
 	try {
@@ -185,11 +185,29 @@ export async function findAllUsers(
 	});
 }
 
-export async function updatePassword(id: string, hashPassword: string) {
-	const user = await findUserById(id);
+export async function findUserByIdForUpdate(
+	id: string,
+	transaction: Transaction
+) {
+	return User.findOne({
+		where: { id, isActive: true },
+		transaction,
+		lock: transaction.LOCK.UPDATE
+	});
+}
+
+export async function updatePassword(
+	id: string,
+	hashPassword: string,
+	transaction?: Transaction
+) {
+	const user = await User.findOne({
+		where: { id, isActive: true },
+		transaction
+	});
 	if (!user) throw usersServiceError.notFoundError();
 
-	await user.update({ password: hashPassword });
+	await user.update({ password: hashPassword }, { transaction });
 	return user;
 }
 

@@ -1,7 +1,7 @@
 import { type Request, type Response } from "express";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import * as usersService from "../users/users.service";
+import * as usersService from "../users/services/users.service";
 import { type RejectDataRequestDto } from "./dtos/reject-data-request.dto";
 import { type AdminDataRequestsQuery } from "./schemas/admin-data-requests-query.schema";
 import { type DataRequestIdParam } from "./schemas/data-request-id-params.schema";
