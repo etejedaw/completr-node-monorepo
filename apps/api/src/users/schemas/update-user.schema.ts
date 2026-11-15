@@ -11,7 +11,7 @@ export const UpdateUserSchema = z
 	.object({
 		name: SafeTextSchema.min(1).max(80).nonempty().optional(),
 		bio: SafeTextSchema.min(1).max(250).nonempty().optional(),
-		avatarUrl: AvatarUrlSchema.optional(),
+		avatarUrl: AvatarUrlSchema.nullable().optional(),
 		profileVisibility: visibility,
 		queueVisibility: visibility,
 		wishlistVisibility: visibility,

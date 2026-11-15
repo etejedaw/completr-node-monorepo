@@ -16,7 +16,7 @@ class User extends Model {
 	declare role: UserRole;
 	declare name: string;
 	declare bio?: string;
-	declare avatarUrl?: string;
+	declare avatarUrl?: string | null;
 	declare profileVisibility: VisibilityLevel;
 	declare queueVisibility: VisibilityLevel;
 	declare wishlistVisibility: VisibilityLevel;
