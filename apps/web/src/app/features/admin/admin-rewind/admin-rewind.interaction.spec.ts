@@ -66,6 +66,7 @@ function rewind(
 		year: 2026,
 		user: { id: `user-${username}`, username },
 		accessKind: "premium",
+		aiAccess: "premium",
 		regenerationsLeft: 2,
 		graceUsed: false,
 		generatedAt: "2026-12-03T10:00:00.000Z",
@@ -195,6 +196,11 @@ describe("AdminRewind interaction", () => {
 			return fail(req, {
 				status: 404,
 				body: { type: "REWIND_NOT_FOUND" }
+			});
+		if (target.aiAccess === "none")
+			return fail(req, {
+				status: 409,
+				body: { type: "REWIND_NO_AI_ACCESS" }
 			});
 		const left = body.regenerationsLeft;
 		if (typeof left !== "number" || left < 0 || left > 1000)
@@ -342,6 +348,7 @@ describe("AdminRewind interaction", () => {
 				id: "r-grace",
 				username: "grace",
 				accessKind: "gift",
+				aiAccess: "gift",
 				regenerationsLeft: 0,
 				graceUsed: true
 			}),
@@ -349,7 +356,22 @@ describe("AdminRewind interaction", () => {
 				id: "r-linus",
 				username: "linus",
 				accessKind: "none",
+				aiAccess: "none",
 				regenerationsLeft: 0
+			}),
+			rewind({
+				id: "r-alan",
+				username: "alan",
+				accessKind: "none",
+				aiAccess: "gift",
+				regenerationsLeft: 0
+			}),
+			rewind({
+				id: "r-barbara",
+				username: "barbara",
+				accessKind: "premium",
+				aiAccess: "none",
+				regenerationsLeft: 1
 			}),
 			rewind({
 				id: "r-old",
@@ -672,7 +694,7 @@ describe("AdminRewind interaction", () => {
 				}
 			});
 			expect(toastSuccess).toHaveBeenCalledWith(
-				"Rewind 2026 saved. 2 generated Rewinds were updated."
+				"Rewind 2026 saved. 3 generated Rewinds were updated."
 			);
 			expect(editionRow(2026)).toHaveTextContent("5");
 		});
@@ -797,6 +819,9 @@ describe("AdminRewind interaction", () => {
 			expect(rewindRow("grace")).toHaveTextContent("Used");
 			expect(rewindRow("linus")).toHaveTextContent("No AI");
 			expect(rewindRow("ada")).toHaveTextContent("Live");
+			expect(rewindRow("alan")).toHaveTextContent("Gift");
+			expect(rewindRow("barbara")).toHaveTextContent("No AI");
+			expect(rewindRow("barbara")).not.toHaveTextContent("Premium");
 			expect(
 				within(within(rewindsSection()).getByRole("table")).queryByText(
 					"margaret"
@@ -928,27 +953,109 @@ describe("AdminRewind interaction", () => {
 			const user = userEvent.setup();
 			await renderLoaded();
 			await user.click(
-				within(rewindRow("linus")).getByRole("button", {
-					name: "Edit AI generations left for linus"
+				within(rewindRow("alan")).getByRole("button", {
+					name: "Edit AI generations left for alan"
 				})
 			);
-			rewinds = rewinds.filter(item => item.id !== "r-linus");
-			const field = within(rewindRow("linus")).getByRole("textbox");
+			rewinds = rewinds.filter(item => item.id !== "r-alan");
+			const field = within(rewindRow("alan")).getByRole("textbox");
 			fireEvent.input(field, { target: { value: "1" } });
 			fireEvent.keyDown(field, { key: "Enter" });
 
 			await untilVisible(() =>
 				expect(
-					screen.getByText("The Rewind of linus no longer exists.")
+					screen.getByText("The Rewind of alan no longer exists.")
 				).toBeInTheDocument()
 			);
 			await untilVisible(() =>
 				expect(
 					within(
 						within(rewindsSection()).getByRole("table")
-					).queryByText("linus")
+					).queryByText("alan")
 				).toBeNull()
 			);
+		});
+
+		it("shows a dash without the edit pencil for owners without AI access, in the table and in the cards", async () => {
+			await renderLoaded();
+			const section = rewindsSection();
+			const cards = within(section).getAllByRole("listitem");
+			const cardOf = (username: string) => {
+				const card = cards.find(item =>
+					within(item).queryByText(username)
+				);
+				if (!card) throw new Error(`No card for ${username}`);
+				return card;
+			};
+
+			for (const username of ["linus", "barbara"]) {
+				for (const place of [rewindRow(username), cardOf(username)]) {
+					expect(place).toHaveTextContent("—");
+					expect(
+						within(place).getByText(
+							"Not available without AI access"
+						)
+					).toBeInTheDocument();
+					expect(within(place).queryByRole("button")).toBeNull();
+				}
+				expect(rewindRow(username)).not.toHaveTextContent("1");
+			}
+			for (const username of ["ada", "grace", "alan"]) {
+				for (const place of [rewindRow(username), cardOf(username)]) {
+					expect(
+						within(place).getByRole("button", {
+							name: `Edit AI generations left for ${username}`
+						})
+					).toBeInTheDocument();
+					expect(place).not.toHaveTextContent("—");
+				}
+			}
+			expect(patched).toEqual([]);
+		});
+
+		it("reports an owner who lost the AI access while the admin was editing and reloads the row", async () => {
+			const user = userEvent.setup();
+			await renderLoaded();
+			await user.click(
+				within(rewindRow("grace")).getByRole("button", {
+					name: "Edit AI generations left for grace"
+				})
+			);
+			rewinds = rewinds.map(item =>
+				item.id === "r-grace" ? { ...item, aiAccess: "none" } : item
+			);
+			const listsBeforeSave = listed.length;
+			const field = within(rewindRow("grace")).getByRole("textbox");
+			fireEvent.input(field, { target: { value: "3" } });
+			hold.add("patch");
+			await user.dblClick(
+				within(rewindRow("grace")).getByRole("button", {
+					name: "Save AI generations left for grace"
+				})
+			);
+			fireEvent.keyDown(field, { key: "Enter" });
+			release("patch");
+
+			await untilVisible(() =>
+				expect(
+					screen.getByText(
+						"grace no longer has access to the AI, so their AI generations can't be changed."
+					)
+				).toBeInTheDocument()
+			);
+			await untilVisible(() =>
+				expect(rewindRow("grace")).toHaveTextContent("No AI")
+			);
+			expect(patched).toEqual([
+				{ id: "r-grace", body: { regenerationsLeft: 3 } }
+			]);
+			expect(listed.length).toBe(listsBeforeSave + 1);
+			expect(
+				within(rewindRow("grace")).queryByRole("textbox")
+			).toBeNull();
+			expect(within(rewindRow("grace")).queryByRole("button")).toBeNull();
+			expect(rewindRow("grace")).toHaveTextContent("—");
+			expect(toastSuccess).not.toHaveBeenCalled();
 		});
 
 		it("searches by username once the typing settles and switches year", async () => {
