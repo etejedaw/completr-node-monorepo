@@ -9,6 +9,7 @@ import {
 
 import { type Rewind } from "../../../../core/models/rewind.model";
 import { ProfileBackdrop } from "../../../../shared/components/profile-backdrop/profile-backdrop";
+import { ProfileSectionHeader } from "../../../../shared/components/profile-section-header/profile-section-header";
 import {
 	UiButton,
 	UiDialog,
@@ -17,7 +18,6 @@ import {
 	type UiPickerOption,
 	UiSkeleton
 } from "../../../../shared/ui";
-import { ProfileSectionHeader } from "../../../public-profile/components/profile-section-header";
 import { rewindCopy, rewindSummarySentence } from "../../rewind-copy";
 import { type RewindDesignComponent } from "../../rewind-designs.model";
 import { RewindReveal } from "../../rewind-reveal";

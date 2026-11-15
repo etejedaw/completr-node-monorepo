@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { Subject } from "rxjs";
 
 import { type Game } from "../../../core/models";
-import { GamesService } from "../games";
+import { GamesService } from "../../../core/services/games";
 import { CatalogGamePicker } from "./catalog-game-picker";
 
 const DEBOUNCE_WAIT = { timeout: 2000 };

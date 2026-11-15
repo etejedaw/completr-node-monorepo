@@ -3,9 +3,9 @@ import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
 import { catchError, map, type Observable, of, switchMap, timer } from "rxjs";
 
 import { type Game, type OnlineSearchSource } from "../../core/models";
-import { type GameSearchStatus } from "../../shared/components/game-search/game-search-step";
-import { GamesService } from "./games";
-import { type OnlineGameSearchResult } from "./games.model";
+import { GamesService } from "../../core/services/games";
+import { type OnlineGameSearchResult } from "../../core/services/games.model";
+import { type GameSearchStatus } from "../components/game-search/game-search-step";
 
 export const GAME_SEARCH_MIN_LENGTH = 2;
 export const GAME_SEARCH_DEBOUNCE_MS = 400;

@@ -14,6 +14,7 @@ import { type WishlistEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { type ExportParams } from "../../../core/services/export";
+import { FavoritesService } from "../../../core/services/favorites";
 import { ToastService } from "../../../core/services/toast";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { ExportActions } from "../../../shared/components/export-actions/export-actions";
@@ -38,7 +39,6 @@ import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { UiButton, UiPremiumBadge } from "../../../shared/ui";
 import { isNotFound } from "../../../shared/utils/http-failure";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
-import { FavoritesService } from "../../favorites/favorites";
 import { WishlistService } from "../wishlist";
 import {
 	WishlistAddModal,

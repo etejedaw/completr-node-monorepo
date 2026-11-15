@@ -7,11 +7,11 @@ import { TestBed } from "@angular/core/testing";
 import { type Observable } from "rxjs";
 
 import { environment } from "../../../environments/environment";
+import { PublicSocialService } from "../../core/services/public-social";
 import { PublicProfileService } from "./public-profile.service";
 import { PublicLibraryService } from "./services/public-library.service";
 import { PublicListsService } from "./services/public-lists.service";
 import { PublicReviewsService } from "./services/public-reviews.service";
-import { PublicSocialService } from "./services/public-social.service";
 
 describe("public profile services", () => {
 	const users = `${environment.apiUrl}/users`;

@@ -1,4 +1,4 @@
-import { type UserResult } from "../../../core/services/users.model";
+import { type UserResult } from "./users.model";
 
 export type ConnectionsQuery = {
 	limit?: number;

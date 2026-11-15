@@ -6,7 +6,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
-import { UiButton, UiPlainEmptyState } from "../../../shared/ui";
+import { UiButton, UiPlainEmptyState } from "../../ui";
 
 export type ProfileAccessError = "not_found" | "private";
 

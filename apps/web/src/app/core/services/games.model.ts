@@ -3,8 +3,8 @@ import {
 	type Genre,
 	type OnlineSearchSource,
 	type Platform
-} from "../../core/models";
-import { type Appendable } from "../../core/utils/http-params";
+} from "../models";
+import { type Appendable } from "../utils/http-params";
 
 export interface GamesResponse {
 	data: { games: Game[]; total: number; limit: number; offset: number };

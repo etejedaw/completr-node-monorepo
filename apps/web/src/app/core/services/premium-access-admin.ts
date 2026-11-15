@@ -2,11 +2,11 @@ import { HttpClient, HttpContext } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
-import { environment } from "../../../../environments/environment";
+import { environment } from "../../../environments/environment";
 import {
 	SUPPRESS_CONFLICT_TOAST,
 	SUPPRESS_VALIDATION_TOAST
-} from "../../../shared/utils/validation-errors";
+} from "../../shared/utils/validation-errors";
 import {
 	type CreatePremiumGrantRequest,
 	type PremiumFeatureDefinition,

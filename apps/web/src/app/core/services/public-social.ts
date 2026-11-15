@@ -2,14 +2,14 @@ import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { EMPTY, expand, map, reduce } from "rxjs";
 
-import { environment } from "../../../../environments/environment";
-import { type UserResult } from "../../../core/services/users.model";
-import { buildHttpParams } from "../../../core/utils/http-params";
+import { environment } from "../../../environments/environment";
+import { buildHttpParams } from "../utils/http-params";
 import {
 	type ConnectionsPage,
 	type ConnectionsQuery,
 	type FollowResult
 } from "./public-social.model";
+import { type UserResult } from "./users.model";
 
 export type PublicSocialUser = UserResult;
 

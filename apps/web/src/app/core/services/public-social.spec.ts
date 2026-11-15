@@ -5,7 +5,7 @@ import {
 } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
 
-import { PublicSocialService } from "./public-social.service";
+import { PublicSocialService } from "./public-social";
 
 describe("PublicSocialService", () => {
 	let service: PublicSocialService;

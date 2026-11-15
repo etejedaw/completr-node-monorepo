@@ -16,6 +16,7 @@ import { debounceTime, Subject, type Subscription } from "rxjs";
 import { avatarRing, isPremiumRole } from "../../../core/utils/premium";
 import { elevatedRoleBadge } from "../../../core/utils/role-badge";
 import { type RoleBadge } from "../../../core/utils/role-badge.model";
+import { AdminPremiumAccess } from "../../../shared/components/admin-premium-access/admin-premium-access";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
@@ -37,7 +38,6 @@ import {
 import { AdminAccountDeletionDialog } from "../admin-account-deletion-dialog/admin-account-deletion-dialog";
 import { AdminDataRequests } from "../admin-data-requests/admin-data-requests";
 import { AdminInvitations } from "../admin-invitations/admin-invitations";
-import { AdminPremiumAccess } from "../admin-premium-access/admin-premium-access";
 import { AdminUserCreateDialog } from "../admin-user-create-dialog/admin-user-create-dialog";
 import { AdminUserEditDialog } from "../admin-user-edit-dialog/admin-user-edit-dialog";
 import { type AdminUser } from "../services/user-admin.model";

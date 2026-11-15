@@ -1,7 +1,7 @@
 import { inject, signal } from "@angular/core";
 
+import { PublicSocialService } from "../../core/services/public-social";
 import { ToastService } from "../../core/services/toast";
-import { PublicSocialService } from "../../features/public-profile/services/public-social.service";
 import {
 	type FollowState,
 	type FollowSubject

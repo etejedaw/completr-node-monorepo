@@ -19,10 +19,10 @@ import {
 	type Platform
 } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
+import { GamesService } from "../../../core/services/games";
+import { type OnlineGameSearchResult } from "../../../core/services/games.model";
 import { ViewportService } from "../../../core/services/viewport";
 import { ListsService } from "../../lists/lists";
-import { GamesService } from "../games";
-import { type OnlineGameSearchResult } from "../games.model";
 import { GamesBrowse } from "./games-browse";
 
 const game = (id: string, overrides: Partial<Game> = {}) =>

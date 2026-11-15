@@ -30,6 +30,7 @@ import {
 import { type FavoriteEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { type ExportParams } from "../../../core/services/export";
+import { FavoritesService } from "../../../core/services/favorites";
 import { ToastService } from "../../../core/services/toast";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { ExportActions } from "../../../shared/components/export-actions/export-actions";
@@ -50,7 +51,6 @@ import { UiButton, UiPremiumBadge } from "../../../shared/ui";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { FavoriteReorderCard } from "../components/favorite-reorder-card/favorite-reorder-card";
 import { type FavoriteReorderAction } from "../components/favorite-reorder-card/favorite-reorder-card.model";
-import { FavoritesService } from "../favorites";
 
 @Component({
 	selector: "app-favorites-view",

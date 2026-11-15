@@ -11,6 +11,7 @@ import { catchError, forkJoin, of } from "rxjs";
 
 import { ViewportService } from "../../../core/services/viewport";
 import { ListCard } from "../../../shared/components/list-card/list-card";
+import { ProfileSectionHeader } from "../../../shared/components/profile-section-header/profile-section-header";
 import { UiEyebrow, UiSkeleton } from "../../../shared/ui";
 import {
 	type PublicList,
@@ -18,7 +19,6 @@ import {
 } from "../services/public-lists.model";
 import { PublicListsService } from "../services/public-lists.service";
 import { type ListGroup } from "./profile-lists.model";
-import { ProfileSectionHeader } from "./profile-section-header";
 
 const COLLAPSED_LIST_COUNT = 6;
 const COLLAPSED_LIST_COUNT_MOBILE = 3;

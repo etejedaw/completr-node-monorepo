@@ -3,8 +3,8 @@ import { inject, Injectable } from "@angular/core";
 import { map } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type BulkResponse, type BulkResult } from "../../core/models";
-import { buildHttpParams } from "../../core/utils/http-params";
+import { type BulkResponse, type BulkResult } from "../models";
+import { buildHttpParams } from "../utils/http-params";
 import {
 	type PlatinumBulkAction,
 	type PlatinumBulkRequest,

@@ -1,5 +1,5 @@
-import { type QueueEntry } from "../../core/models";
-import { type Appendable } from "../../core/utils/http-params";
+import { type QueueEntry } from "../models";
+import { type Appendable } from "../utils/http-params";
 
 export interface QueueListResponse {
 	data: { queue: QueueEntry[]; total?: number };

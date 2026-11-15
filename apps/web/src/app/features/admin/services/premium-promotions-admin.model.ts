@@ -1,4 +1,4 @@
-import { type PremiumGrantFeature } from "./premium-access-admin.model";
+import { type PremiumGrantFeature } from "../../../core/services/premium-access-admin.model";
 
 export interface PremiumPromotion {
 	id: string;

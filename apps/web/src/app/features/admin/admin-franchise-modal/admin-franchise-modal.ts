@@ -19,6 +19,7 @@ import { injectDialogRef } from "ng-primitives/dialog";
 import { catchError, debounceTime, of, Subject, switchMap } from "rxjs";
 
 import { type Game } from "../../../core/models";
+import { GamesService } from "../../../core/services/games";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import {
 	UiAlert,
@@ -40,7 +41,6 @@ import {
 } from "../../../shared/ui";
 import { FranchisesService } from "../../franchises/franchises";
 import { type FranchiseDto } from "../../franchises/franchises.model";
-import { GamesService } from "../../games/games";
 import {
 	type AdminFranchiseModalData,
 	type SelectedGame

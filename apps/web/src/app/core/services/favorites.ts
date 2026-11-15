@@ -15,10 +15,9 @@ import {
 	type BulkResponse,
 	type BulkResult,
 	type FavoriteEntry
-} from "../../core/models";
-import { AuthService } from "../../core/services/auth";
-import { ToastService } from "../../core/services/toast";
-import { buildHttpParams } from "../../core/utils/http-params";
+} from "../models";
+import { buildHttpParams } from "../utils/http-params";
+import { AuthService } from "./auth";
 import {
 	type FavoriteGameIdsResponse,
 	type FavoritesBulkAction,
@@ -26,6 +25,7 @@ import {
 	type FavoritesPagination,
 	type FavoritesResponse
 } from "./favorites.model";
+import { ToastService } from "./toast";
 
 const MAX_FAVORITES = 100;
 

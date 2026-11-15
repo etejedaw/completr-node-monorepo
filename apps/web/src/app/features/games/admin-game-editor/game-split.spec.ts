@@ -3,8 +3,8 @@ import { TestBed } from "@angular/core/testing";
 import { of, Subject, throwError } from "rxjs";
 
 import { type Game } from "../../../core/models";
+import { GamesService } from "../../../core/services/games";
 import { ToastService } from "../../../core/services/toast";
-import { GamesService } from "../games";
 import { injectGameSplit } from "./game-split";
 
 const game = { id: "g1", title: "Collection", variant: null } as Game;

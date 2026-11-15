@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { type Params, RouterLink } from "@angular/router";
 
-import { UiEyebrow } from "../../../shared/ui";
+import { UiEyebrow } from "../../ui";
 
 @Component({
 	selector: "app-profile-section-header",

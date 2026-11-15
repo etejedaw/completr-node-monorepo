@@ -8,6 +8,7 @@ import {
 import { injectDialogRef } from "ng-primitives/dialog";
 
 import { type BacklogEntry } from "../../../core/models";
+import { QueueService } from "../../../core/services/queue";
 import { BacklogStatusBadge } from "../../../shared/components/backlog-status-badge/backlog-status-badge";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import {
@@ -18,7 +19,6 @@ import {
 	UiSkeleton
 } from "../../../shared/ui";
 import { BacklogService } from "../../backlog/backlog";
-import { QueueService } from "../queue";
 import { type QueueAddModalData } from "./queue-add-modal.model";
 
 @Component({

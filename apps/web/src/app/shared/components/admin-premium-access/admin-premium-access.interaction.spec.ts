@@ -11,21 +11,12 @@ import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
-import { type UiDatePicker } from "../../../shared/ui";
-import { type AdminUser } from "../services/user-admin.model";
+import { type UiDatePicker } from "../../ui";
 import { AdminPremiumAccess } from "./admin-premium-access";
+import { type PremiumAccessUser } from "./admin-premium-access.model";
 
 const api = environment.apiUrl;
-const USER: AdminUser = {
-	id: "u1",
-	username: "ada",
-	email: "ada@example.com",
-	name: "Ada Lovelace",
-	role: "user",
-	isActive: true,
-	profileVisibility: "public",
-	createdAt: "2026-01-01T00:00:00.000Z"
-};
+const USER: PremiumAccessUser = { id: "u1", username: "ada" };
 const FEATURES = [
 	{
 		feature: "lists.unlimited",

@@ -38,7 +38,11 @@ import {
 	type Platform
 } from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
+import { FavoritesService } from "../../../core/services/favorites";
+import { GamesService } from "../../../core/services/games";
+import { PlatinumService } from "../../../core/services/platinum";
 import { PointerService } from "../../../core/services/pointer";
+import { QueueService } from "../../../core/services/queue";
 import { ToastService } from "../../../core/services/toast";
 import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
 import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
@@ -74,12 +78,8 @@ import {
 	reportHttpFailure
 } from "../../../shared/utils/http-failure";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
-import { FavoritesService } from "../../favorites/favorites";
-import { GamesService } from "../../games/games";
 import { ReviewsService } from "../../games/reviews";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
-import { PlatinumService } from "../../platinum/platinum";
-import { QueueService } from "../../queue/queue";
 import { BacklogService } from "../backlog";
 import { type BacklogFilters } from "../backlog.model";
 import {

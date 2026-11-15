@@ -1,5 +1,5 @@
-import { type GamePlatinum, type PlatinumEntry } from "../../core/models";
-import { type Appendable } from "../../core/utils/http-params";
+import { type GamePlatinum, type PlatinumEntry } from "../models";
+import { type Appendable } from "../utils/http-params";
 
 export interface PlatinumListResponse {
 	data: { platinums: PlatinumEntry[]; total: number };

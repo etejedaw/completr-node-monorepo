@@ -1,6 +1,8 @@
 import { computed, inject, signal } from "@angular/core";
 
 import { type BacklogEntry, type BulkResult } from "../../core/models";
+import { FavoritesService } from "../../core/services/favorites";
+import { QueueService } from "../../core/services/queue";
 import { type BulkAction } from "../../shared/components/bulk-action-bar/bulk-action-bar.model";
 import {
 	canAddToQueue,
@@ -12,8 +14,6 @@ import { countOf } from "../../shared/utils/bulk-feedback";
 import { injectBulkRemoval } from "../../shared/utils/bulk-removal";
 import { injectBulkRunner } from "../../shared/utils/bulk-runner";
 import { injectRowSelection } from "../../shared/utils/row-selection";
-import { FavoritesService } from "../favorites/favorites";
-import { QueueService } from "../queue/queue";
 import { BacklogService } from "./backlog";
 import { type BacklogBulkChanges } from "./backlog.model";
 import {

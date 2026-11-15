@@ -7,15 +7,14 @@ import { inject, Injectable } from "@angular/core";
 import { catchError, map, type Observable, throwError } from "rxjs";
 
 import { environment } from "../../../environments/environment";
+import { SUPPRESS_VALIDATION_TOAST } from "../../shared/utils/validation-errors";
 import {
 	type BacklogStatus,
 	type Game,
 	type OnlineSearchSource,
 	type UserRole
-} from "../../core/models";
-import { ToastService } from "../../core/services/toast";
-import { buildHttpParams } from "../../core/utils/http-params";
-import { SUPPRESS_VALIDATION_TOAST } from "../../shared/utils/validation-errors";
+} from "../models";
+import { buildHttpParams } from "../utils/http-params";
 import {
 	type CompilationItemResponse,
 	type CreateGameDto,
@@ -34,6 +33,7 @@ import {
 	type SplitGameDto,
 	type UpdateGameDto
 } from "./games.model";
+import { ToastService } from "./toast";
 
 const RATE_LIMITED_STATUS = 429;
 const ONLINE_SEARCH_FAILED_MESSAGE =

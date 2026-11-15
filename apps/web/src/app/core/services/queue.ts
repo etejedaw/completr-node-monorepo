@@ -3,9 +3,9 @@ import { inject, Injectable } from "@angular/core";
 import { map, switchMap } from "rxjs";
 
 import { environment } from "../../../environments/environment";
-import { type BulkResponse, type BulkResult } from "../../core/models";
-import { buildHttpParams } from "../../core/utils/http-params";
 import { moveIntoFullOrder } from "../../shared/utils/full-order";
+import { type BulkResponse, type BulkResult } from "../models";
+import { buildHttpParams } from "../utils/http-params";
 import {
 	type QueueBacklogIdsResponse,
 	type QueueBulkAction,

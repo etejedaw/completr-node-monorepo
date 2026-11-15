@@ -18,6 +18,9 @@ import {
 } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
+import { FavoritesService } from "../../../core/services/favorites";
+import { GamesService } from "../../../core/services/games";
+import { QueueService } from "../../../core/services/queue";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { ExpandableText } from "../../../shared/components/expandable-text/expandable-text";
@@ -42,7 +45,6 @@ import {
 	type BacklogModalResult
 } from "../../backlog/backlog-modal/backlog-modal";
 import { type BacklogModalData } from "../../backlog/backlog-modal/backlog-modal.model";
-import { FavoritesService } from "../../favorites/favorites";
 import { injectFranchiseTracking } from "../../franchises/franchise-tracking";
 import { GameShelfService } from "../../game-shelf/game-shelf";
 import {
@@ -55,7 +57,6 @@ import {
 	type PlatinumDialogData,
 	type PlatinumDialogResult
 } from "../../platinum/platinum-dialog/platinum-dialog.model";
-import { QueueService } from "../../queue/queue";
 import { WishlistService } from "../../wishlist/wishlist";
 import {
 	WishlistPlatformModal,
@@ -63,7 +64,6 @@ import {
 } from "../../wishlist/wishlist-platform-modal/wishlist-platform-modal";
 import { type WishlistPlatformModalData } from "../../wishlist/wishlist-platform-modal/wishlist-platform-modal.model";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
-import { GamesService } from "../games";
 import { GameAddToListModal } from "./components/game-add-to-list-modal";
 import {
 	type GameAddToListModalData,

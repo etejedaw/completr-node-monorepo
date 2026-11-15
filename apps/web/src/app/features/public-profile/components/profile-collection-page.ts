@@ -24,11 +24,11 @@ import {
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PlatformFilter } from "../../../shared/components/platform-filter/platform-filter";
 import { type PlatformCount } from "../../../shared/components/platform-filter/platform-filter.model";
-import { UiButton, UiEmptyState } from "../../../shared/ui";
 import {
 	type ProfileAccessError,
 	ProfileAccessState
-} from "./profile-access-state";
+} from "../../../shared/components/profile-access-state/profile-access-state";
+import { UiButton, UiEmptyState } from "../../../shared/ui";
 
 @Component({
 	selector: "app-profile-collection-page",

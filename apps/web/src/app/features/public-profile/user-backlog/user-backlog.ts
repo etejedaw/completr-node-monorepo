@@ -21,6 +21,10 @@ import { LibraryHero } from "../../../shared/components/library-hero/library-her
 import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
+import {
+	type ProfileAccessError,
+	ProfileAccessState
+} from "../../../shared/components/profile-access-state/profile-access-state";
 import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
 import { type ViewModeOption } from "../../../shared/components/view-mode-toggle/view-mode-toggle.model";
 import {
@@ -35,10 +39,6 @@ import {
 	BACKLOG_STATUS_PICKER_OPTIONS
 } from "../../../shared/utils/backlog-status";
 import { BacklogTable } from "../../backlog/components/backlog-table/backlog-table";
-import {
-	type ProfileAccessError,
-	ProfileAccessState
-} from "../components/profile-access-state";
 import { profileAccessErrorOf } from "../services/profile-access-error";
 import { PublicLibraryService } from "../services/public-library.service";
 

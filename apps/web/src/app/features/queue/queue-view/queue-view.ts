@@ -23,6 +23,8 @@ import {
 import { type QueueEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
+import { FavoritesService } from "../../../core/services/favorites";
+import { QueueService } from "../../../core/services/queue";
 import { ToastService } from "../../../core/services/toast";
 import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
@@ -39,8 +41,6 @@ import { arrangeIntoFullOrder } from "../../../shared/utils/full-order";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { PendingRemovals } from "../../../shared/utils/pending-removals";
 import { BacklogService } from "../../backlog/backlog";
-import { FavoritesService } from "../../favorites/favorites";
-import { QueueService } from "../queue";
 import { QueueAddModal } from "../queue-add-modal/queue-add-modal";
 import { type QueueAddModalData } from "../queue-add-modal/queue-add-modal.model";
 import { QueueBrowser } from "../queue-browser/queue-browser";

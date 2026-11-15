@@ -25,6 +25,12 @@ import {
 } from "rxjs";
 
 import { type Game } from "../../../core/models";
+import { GamesService } from "../../../core/services/games";
+import {
+	type ExternalDataRefreshResponse,
+	type ExternalDataSource,
+	type GamesQuery
+} from "../../../core/services/games.model";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { ViewportService } from "../../../core/services/viewport";
@@ -56,12 +62,6 @@ import {
 	UiSkeleton
 } from "../../../shared/ui";
 import { AdminGameEditor } from "../../games/admin-game-editor/admin-game-editor";
-import { GamesService } from "../../games/games";
-import {
-	type ExternalDataRefreshResponse,
-	type ExternalDataSource,
-	type GamesQuery
-} from "../../games/games.model";
 import { AdminExternalDataDialog } from "../admin-external-data-dialog/admin-external-data-dialog";
 import { type ExternalDataRefreshState } from "../admin-external-data-dialog/admin-external-data-dialog.model";
 import { externalDataRefreshErrorMessage } from "../admin-external-data-dialog/external-data-refresh-error";

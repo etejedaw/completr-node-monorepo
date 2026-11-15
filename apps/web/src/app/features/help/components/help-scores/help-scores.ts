@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 
-import { GameScoreCard } from "../../../../features/games/game-detail/components/game-score-card";
 import { type SectionScrollSpy } from "../../../../shared/components/page-toc/section-scroll-spy";
 import { InView } from "../../../../shared/directives/in-view";
 import { UiEyebrow } from "../../../../shared/ui";
 import { type CanonicalScore } from "../../../../shared/utils/canonical-score.model";
+import { GameScoreCard } from "../../../games/game-detail/components/game-score-card";
 
 const SCORE_EXAMPLES: readonly CanonicalScore[] = [
 	{ type: "completr", score: 4.4, scoreScale: 5, duration: 9.5, ratio: 9.26 },

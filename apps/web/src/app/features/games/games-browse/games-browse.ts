@@ -31,6 +31,8 @@ import {
 	type Platform
 } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
+import { GamesService } from "../../../core/services/games";
+import { type OnlineGameSearchResult } from "../../../core/services/games.model";
 import { ViewportService } from "../../../core/services/viewport";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
@@ -55,11 +57,9 @@ import {
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
+import { catalogOnlyResult } from "../../../shared/utils/inject-game-search";
 import { ListsService } from "../../lists/lists";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
-import { catalogOnlyResult } from "../game-search";
-import { GamesService } from "../games";
-import { type OnlineGameSearchResult } from "../games.model";
 import { BrowseFilters } from "./components/browse-filters";
 import { type BrowseSortOption } from "./components/browse-filters.model";
 import { BrowseHero } from "./components/browse-hero";

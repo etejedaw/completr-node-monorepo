@@ -7,9 +7,9 @@ import { of, Subject } from "rxjs";
 
 import { type PlatinumEntry } from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
+import { PlatinumService } from "../../../core/services/platinum";
 import { ToastService } from "../../../core/services/toast";
 import { GiftOffersService } from "../../../shared/components/gift-offer-card/gift-offers.service";
-import { PlatinumService } from "../platinum";
 import { PlatinumDialog } from "../platinum-dialog/platinum-dialog";
 import { PlatinumList } from "./platinum-list";
 

@@ -9,9 +9,9 @@ import {
 import { TestBed } from "@angular/core/testing";
 
 import { environment } from "../../../environments/environment";
-import { ToastService } from "../../core/services/toast";
 import { SUPPRESS_VALIDATION_TOAST } from "../../shared/utils/validation-errors";
 import { GamesService } from "./games";
+import { ToastService } from "./toast";
 
 describe("GamesService", () => {
 	const api = environment.apiUrl;
@@ -120,13 +120,15 @@ describe("GamesService", () => {
 
 				service.search("zelda").subscribe(r => (result = r));
 
-				httpTesting.expectOne(`${api}/games/search?search=zelda`).flush({
-					data: {
-						games: [{ id: "g1", justImported: true }],
-						onlineSearchAvailable: true,
-						onlineSearchSource: source
-					}
-				});
+				httpTesting
+					.expectOne(`${api}/games/search?search=zelda`)
+					.flush({
+						data: {
+							games: [{ id: "g1", justImported: true }],
+							onlineSearchAvailable: true,
+							onlineSearchSource: source
+						}
+					});
 				expect(result?.onlineSearchSource).toBe(source);
 			}
 		);

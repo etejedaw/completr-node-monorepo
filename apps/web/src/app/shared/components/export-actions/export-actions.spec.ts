@@ -20,7 +20,6 @@ import {
 } from "../../../core/services/export";
 import { type ExportResource } from "../../../core/services/export.model";
 import { ToastService } from "../../../core/services/toast";
-import { QueueBrowser } from "../../../features/queue/queue-browser/queue-browser";
 import { type GiftOffer } from "../gift-offer-card/gift-offer-card.model";
 import { GiftOffersService } from "../gift-offer-card/gift-offers.service";
 import { ExportActions } from "./export-actions";
@@ -520,47 +519,5 @@ describe("ExportActions", () => {
 		} finally {
 			vi.useRealTimers();
 		}
-	});
-
-	describe("in Up Next", () => {
-		async function renderQueue(inputs: Record<string, unknown>) {
-			return render(QueueBrowser, {
-				inputs: {
-					noMatchesScope: "Up Next",
-					entries: [],
-					queueIsEmpty: false,
-					searchQuery: "",
-					offset: 0,
-					limit: 20,
-					total: 0,
-					...inputs
-				},
-				providers: providers()
-			});
-		}
-
-		it("offers the export on the own queue once it has loaded", async () => {
-			await renderQueue({ isLoading: false });
-
-			expect(
-				screen.getByRole("button", { name: "Export" })
-			).toBeInTheDocument();
-		});
-
-		it("hides the export while the queue loads", async () => {
-			await renderQueue({ isLoading: true });
-
-			expect(
-				screen.queryByRole("button", { name: "Export" })
-			).not.toBeInTheDocument();
-		});
-
-		it("hides the export on a public queue", async () => {
-			await renderQueue({ isLoading: false, readonly: true });
-
-			expect(
-				screen.queryByRole("button", { name: "Export" })
-			).not.toBeInTheDocument();
-		});
 	});
 });

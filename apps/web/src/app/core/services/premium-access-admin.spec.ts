@@ -5,12 +5,12 @@ import {
 } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
 
-import { environment } from "../../../../environments/environment";
+import { environment } from "../../../environments/environment";
 import {
 	SUPPRESS_CONFLICT_TOAST,
 	SUPPRESS_VALIDATION_TOAST
-} from "../../../shared/utils/validation-errors";
-import { PremiumAccessAdminService } from "./premium-access-admin.service";
+} from "../../shared/utils/validation-errors";
+import { PremiumAccessAdminService } from "./premium-access-admin";
 
 describe("PremiumAccessAdminService", () => {
 	const api = environment.apiUrl;

@@ -1,5 +1,5 @@
-import { type FavoriteEntry } from "../../core/models";
-import { type Appendable } from "../../core/utils/http-params";
+import { type FavoriteEntry } from "../models";
+import { type Appendable } from "../utils/http-params";
 
 export interface FavoritesResponse {
 	data: { favorites: FavoriteEntry[]; total?: number };

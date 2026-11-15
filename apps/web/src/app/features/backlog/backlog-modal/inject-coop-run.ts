@@ -1,6 +1,10 @@
 import { computed, inject, signal } from "@angular/core";
 
 import { AuthService } from "../../../core/services/auth";
+import {
+	PublicSocialService,
+	type PublicSocialUser
+} from "../../../core/services/public-social";
 import { ToastService } from "../../../core/services/toast";
 import { type UiPickerAction } from "../../../shared/ui";
 import { reportHttpFailure } from "../../../shared/utils/http-failure";
@@ -9,10 +13,6 @@ import {
 	type CoopCandidate,
 	type CoopMember
 } from "../../coop-runs/coop-runs.model";
-import {
-	PublicSocialService,
-	type PublicSocialUser
-} from "../../public-profile/services/public-social.service";
 import { type CoopRunOptions } from "./inject-coop-run.model";
 
 const MIN_CANDIDATES_TO_PICK = 2;

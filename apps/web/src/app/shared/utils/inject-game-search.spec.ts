@@ -3,14 +3,14 @@ import { TestBed } from "@angular/core/testing";
 import { of, Subject, throwError } from "rxjs";
 
 import { type Game, type OnlineSearchSource } from "../../core/models";
+import { GamesService } from "../../core/services/games";
+import { type OnlineGameSearchResult } from "../../core/services/games.model";
 import {
 	GAME_SEARCH_DEBOUNCE_MS,
 	GAME_SEARCH_MIN_LENGTH,
 	injectGameSearch,
 	isSearchableQuery
-} from "./game-search";
-import { GamesService } from "./games";
-import { type OnlineGameSearchResult } from "./games.model";
+} from "./inject-game-search";
 
 const game = (id: string) => ({ id, code: id, title: id }) as Game;
 const onlineResult = (

@@ -8,6 +8,7 @@ import userEvent from "@testing-library/user-event";
 import { BehaviorSubject, of, Subject, throwError } from "rxjs";
 
 import { AuthService } from "../../core/services/auth";
+import { PublicSocialService } from "../../core/services/public-social";
 import { ToastService } from "../../core/services/toast";
 import { GiftOffersService } from "../../shared/components/gift-offer-card/gift-offers.service";
 import { FeedService } from "../feed/feed";
@@ -21,7 +22,6 @@ import { PublicProfileService } from "./public-profile.service";
 import { PublicLibraryService } from "./services/public-library.service";
 import { PublicListsService } from "./services/public-lists.service";
 import { PublicReviewsService } from "./services/public-reviews.service";
-import { PublicSocialService } from "./services/public-social.service";
 
 const openAccess: ProfileSectionAccess = {
 	profile: true,

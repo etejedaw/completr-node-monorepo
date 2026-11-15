@@ -9,6 +9,10 @@ import {
 } from "@angular/core";
 
 import { type Game } from "../../../core/models";
+import {
+	type ExternalDataRefreshResult,
+	type ExternalDataSource
+} from "../../../core/services/games.model";
 import { FilterSection } from "../../../shared/components/filter-section/filter-section";
 import {
 	UiAlert,
@@ -18,10 +22,6 @@ import {
 	UiDialog,
 	UiEyebrow
 } from "../../../shared/ui";
-import {
-	type ExternalDataRefreshResult,
-	type ExternalDataSource
-} from "../../games/games.model";
 import {
 	type ExternalDataRefreshState,
 	type ExternalDataResultView,

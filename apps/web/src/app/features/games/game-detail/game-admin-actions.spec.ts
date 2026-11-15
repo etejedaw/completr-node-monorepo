@@ -4,8 +4,8 @@ import { Router } from "@angular/router";
 import { of, Subject, throwError } from "rxjs";
 
 import { type Game } from "../../../core/models";
+import { GamesService } from "../../../core/services/games";
 import { ToastService } from "../../../core/services/toast";
-import { GamesService } from "../games";
 import { injectGameAdminActions } from "./game-admin-actions";
 
 const game = { id: "g1" } as Game;

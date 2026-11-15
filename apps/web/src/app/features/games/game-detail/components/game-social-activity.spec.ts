@@ -6,7 +6,7 @@ import { render, screen, within } from "@testing-library/angular";
 import { of, Subject } from "rxjs";
 
 import { AuthService } from "../../../../core/services/auth";
-import { GamesService } from "../../games";
+import { GamesService } from "../../../../core/services/games";
 import { GameSocialActivity } from "./game-social-activity";
 
 const friend = {

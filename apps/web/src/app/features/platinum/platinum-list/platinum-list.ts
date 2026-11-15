@@ -14,6 +14,7 @@ import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 import { type PlatinumEntry } from "../../../core/models";
 import { DialogService } from "../../../core/services/dialog";
 import { type ExportParams } from "../../../core/services/export";
+import { PlatinumService } from "../../../core/services/platinum";
 import { ToastService } from "../../../core/services/toast";
 import { BulkActionBar } from "../../../shared/components/bulk-action-bar/bulk-action-bar";
 import { type BulkAction } from "../../../shared/components/bulk-action-bar/bulk-action-bar.model";
@@ -45,7 +46,6 @@ import {
 	type PlatinumViewMode,
 	readStoredPlatinumViewMode
 } from "../components/platinum-collection/platinum-collection";
-import { PlatinumService } from "../platinum";
 import { PlatinumDialog } from "../platinum-dialog/platinum-dialog";
 import {
 	type PlatinumDialogData,

@@ -13,6 +13,12 @@ import {
 import { form, FormField, required } from "@angular/forms/signals";
 import { forkJoin } from "rxjs";
 
+import { PremiumAccessAdminService } from "../../../core/services/premium-access-admin";
+import {
+	type PremiumFeatureDefinition,
+	type PremiumGrant,
+	type PremiumGrantFeature
+} from "../../../core/services/premium-access-admin.model";
 import {
 	UiAlert,
 	UiBadge,
@@ -28,14 +34,8 @@ import {
 	type UiPickerOption,
 	UiPlainEmptyState,
 	UiSkeleton
-} from "../../../shared/ui";
-import {
-	type PremiumFeatureDefinition,
-	type PremiumGrant,
-	type PremiumGrantFeature
-} from "../services/premium-access-admin.model";
-import { PremiumAccessAdminService } from "../services/premium-access-admin.service";
-import { type AdminUser } from "../services/user-admin.model";
+} from "../../ui";
+import { type PremiumAccessUser } from "./admin-premium-access.model";
 
 function toLocalInput(value: string | Date) {
 	const date = value instanceof Date ? value : new Date(value);
@@ -88,7 +88,7 @@ const GRANT_NOT_ACTIVE_MESSAGE =
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminPremiumAccess implements OnInit {
-	readonly user = input.required<Pick<AdminUser, "id" | "username">>();
+	readonly user = input.required<PremiumAccessUser>();
 	readonly closed = output<void>();
 
 	private readonly premiumAccessService = inject(PremiumAccessAdminService);

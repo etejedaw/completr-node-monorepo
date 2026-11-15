@@ -12,7 +12,7 @@ import {
 	type RewindLanguage,
 	type RewindYears
 } from "../../../../core/models/rewind.model";
-import { ProfileSectionHeader } from "../../../public-profile/components/profile-section-header";
+import { ProfileSectionHeader } from "../../../../shared/components/profile-section-header/profile-section-header";
 import { RewindService } from "../../rewind";
 import { rewindCopy } from "../../rewind-copy";
 import { RewindYearCard } from "../rewind-year-card/rewind-year-card";

@@ -7,10 +7,10 @@ import { signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 
 import { environment } from "../../../environments/environment";
-import { type FavoriteEntry, type User } from "../../core/models";
-import { AuthService } from "../../core/services/auth";
-import { ToastService } from "../../core/services/toast";
+import { type FavoriteEntry, type User } from "../models";
+import { AuthService } from "./auth";
 import { FavoritesService } from "./favorites";
+import { ToastService } from "./toast";
 
 function entry(gameId: string): FavoriteEntry {
 	return { id: `f-${gameId}`, game: { id: gameId } } as FavoriteEntry;
