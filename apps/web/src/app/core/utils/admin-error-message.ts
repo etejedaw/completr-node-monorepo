@@ -11,8 +11,10 @@ import { problemType } from "./problem-details";
 const SCORE_PATH = /^scores?(\.|$)/;
 const DURATION_PATH = /^(times|duration)(\.|$)/;
 
-const ADMIN_ERROR_MESSAGES: Record<string, string> = {
+export const ADMIN_ERROR_MESSAGES: Readonly<Record<string, string>> = {
 	...DATA_REQUEST_ERROR_MESSAGES,
+	USER_DELETE_FORBIDDEN:
+		"Admin accounts, including your own, can't be deleted. Change the role first if this account must go.",
 	GAME_SCORE_OUT_OF_RANGE:
 		"A score is above the maximum of its source. Scores go from 0 up to the scale of the source.",
 	GAME_IN_USE:

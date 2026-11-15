@@ -9,8 +9,6 @@ export const DATA_REQUEST_ERROR_MESSAGES: Readonly<Record<string, string>> = {
 		"This download has expired. Request a new copy of your data to get a fresh file.",
 	DATA_REQUEST_NOT_PENDING:
 		"This request was already resolved. Refresh the list to see its current state.",
-	USER_DELETE_FORBIDDEN:
-		"Admin accounts, including your own, can't be deleted. Change the role first if this account must go.",
 	USER_NOT_FOUND:
 		"This account no longer exists. Refresh the list to see the current users."
 };

@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from "@angular/common/http";
 
-import { adminErrorMessage } from "./admin-error-message";
-import { DATA_REQUEST_ERROR_MESSAGES } from "./data-request-error-message";
+import { ADMIN_ERROR_MESSAGES, adminErrorMessage } from "./admin-error-message";
 
 function apiError(status: number, body: object | null) {
 	return new HttpErrorResponse({ status, error: body });
@@ -192,6 +191,6 @@ describe("adminErrorMessage for data requests", () => {
 			adminErrorMessage(
 				new HttpErrorResponse({ status, error: { type } })
 			)
-		).toBe(DATA_REQUEST_ERROR_MESSAGES[type]);
+		).toBe(ADMIN_ERROR_MESSAGES[type]);
 	});
 });

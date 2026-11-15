@@ -15,6 +15,7 @@ import { environment } from "../../../../environments/environment";
 import { errorInterceptor } from "../../../core/interceptors/error.interceptor";
 import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
+import { ADMIN_ERROR_MESSAGES } from "../../../core/utils/admin-error-message";
 import { DATA_REQUEST_ERROR_MESSAGES } from "../../../core/utils/data-request-error-message";
 import { type AdminDataRequest } from "../services/data-request-admin.model";
 import { AdminDataRequests } from "./admin-data-requests";
@@ -83,7 +84,9 @@ describe("Admin data requests interaction", () => {
 		vi.unstubAllGlobals();
 	});
 
-	async function renderQueue(requests: AdminDataRequest[] = [ADA_EXPORT, BOB_DELETION]) {
+	async function renderQueue(
+		requests: AdminDataRequest[] = [ADA_EXPORT, BOB_DELETION]
+	) {
 		const accountDeleted = vi.fn();
 		const view = await render(AdminDataRequests, {
 			providers: [
@@ -134,10 +137,18 @@ describe("Admin data requests interaction", () => {
 			"Copy of data request from ada"
 		]);
 		const bob = row("Account deletion request from bob");
-		expect(within(bob).getByText("3 days left").closest("ui-badge")).toHaveClass("text-warning");
+		expect(
+			within(bob).getByText("3 days left").closest("ui-badge")
+		).toHaveClass("text-warning");
 		expect(within(bob).getByText("bob@example.com")).toBeInTheDocument();
-		expect(within(bob).getByText(/Requested Nov 1, 2026/)).toBeInTheDocument();
-		expect(within(row("Copy of data request from ada")).getByText("26 days left")).toBeInTheDocument();
+		expect(
+			within(bob).getByText(/Requested Nov 1, 2026/)
+		).toBeInTheDocument();
+		expect(
+			within(row("Copy of data request from ada")).getByText(
+				"26 days left"
+			)
+		).toBeInTheDocument();
 	});
 
 	it("asks for pending requests by default and switches the status filter", async () => {
@@ -169,8 +180,12 @@ describe("Admin data requests interaction", () => {
 			name: "Copy of data request from ada"
 		});
 		expect(within(item).getByText("Rejected")).toBeInTheDocument();
-		expect(within(item).getByText("Reason: Not the owner.")).toBeInTheDocument();
-		expect(within(item).queryByRole("button", { name: /Complete/ })).not.toBeInTheDocument();
+		expect(
+			within(item).getByText("Reason: Not the owner.")
+		).toBeInTheDocument();
+		expect(
+			within(item).queryByRole("button", { name: /Complete/ })
+		).not.toBeInTheDocument();
 
 		await user.click(screen.getByRole("radio", { name: "All" }));
 		const [all] = queueRequests();
@@ -182,7 +197,9 @@ describe("Admin data requests interaction", () => {
 		await renderQueue([OVERDUE_ORPHAN]);
 
 		const item = row("Account deletion request from Deleted account");
-		expect(within(item).getByText("Overdue by 2 days").closest("ui-badge")).toHaveClass("text-danger");
+		expect(
+			within(item).getByText("Overdue by 2 days").closest("ui-badge")
+		).toHaveClass("text-danger");
 		expect(within(item).getByText("Deleted account")).toBeInTheDocument();
 	});
 
@@ -237,7 +254,10 @@ describe("Admin data requests interaction", () => {
 		expect(confirm).toBeDisabled();
 		http.expectNone(`${QUEUE_URL}/r2/complete`);
 
-		await user.type(within(dialog).getByLabelText("Type bob to confirm"), "bob");
+		await user.type(
+			within(dialog).getByLabelText("Type bob to confirm"),
+			"bob"
+		);
 		await user.click(confirm);
 		http.expectOne(`${QUEUE_URL}/r2/complete`).flush({
 			data: { request: { ...BOB_DELETION, status: "completed" } }
@@ -258,7 +278,9 @@ describe("Admin data requests interaction", () => {
 		await renderQueue();
 
 		const dialog = await openDeletionConfirmation(user);
-		await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+		await user.click(
+			within(dialog).getByRole("button", { name: "Cancel" })
+		);
 
 		await waitFor(() =>
 			expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
@@ -271,8 +293,13 @@ describe("Admin data requests interaction", () => {
 		const { accountDeleted } = await renderQueue();
 
 		const dialog = await openDeletionConfirmation(user);
-		await user.type(within(dialog).getByLabelText("Type bob to confirm"), "bob");
-		await user.click(within(dialog).getByRole("button", { name: "Delete account" }));
+		await user.type(
+			within(dialog).getByLabelText("Type bob to confirm"),
+			"bob"
+		);
+		await user.click(
+			within(dialog).getByRole("button", { name: "Delete account" })
+		);
 		http.expectOne(`${QUEUE_URL}/r2/complete`).flush(
 			{ type: "USER_DELETE_FORBIDDEN" },
 			{ status: 409, statusText: "Conflict" }
@@ -280,7 +307,7 @@ describe("Admin data requests interaction", () => {
 
 		await waitFor(() =>
 			expect(toast.warning).toHaveBeenCalledWith(
-				DATA_REQUEST_ERROR_MESSAGES["USER_DELETE_FORBIDDEN"]
+				ADMIN_ERROR_MESSAGES["USER_DELETE_FORBIDDEN"]
 			)
 		);
 		expect(toast.error).not.toHaveBeenCalled();
@@ -370,7 +397,9 @@ describe("Admin data requests interaction", () => {
 		queueRequests()[0]!.flush(null, { status: 500, statusText: "Error" });
 		view.fixture.detectChanges();
 
-		await user.click(await screen.findByRole("button", { name: "Try again" }));
+		await user.click(
+			await screen.findByRole("button", { name: "Try again" })
+		);
 		flushQueue([ADA_EXPORT]);
 
 		expect(
