@@ -1,0 +1,63 @@
+info:
+    name: Get Rewind Story List Image
+    type: http
+    seq: 2
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/share/rewind/:username/:year/story-list.png"
+    params:
+        - name: username
+          type: path
+          value: ""
+        - name: year
+          type: path
+          value: "2026"
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Rewind Story List Image
+
+    Renders the second story of the Rewind (1080×1920 PNG, marked `2 / 2`): a film-poster list of the games finished in the year, in the order they were finished. Under the brand band it shows a duotone strip of covers, `@USERNAME PRESENTS`, the count as `21 ENDINGS` and `SEASON 2026`, then the titles after `STARRING`, and a stats row (games finished, hours played and finish rate, each left out when it is zero or missing). Titles are uppercased, lose a trailing release year such as `(2013)`, have emoji removed and are cut to 60 characters.
+
+    How many titles fit:
+
+    - Up to 6 short titles are stacked in large type, two lines each at most.
+    - Otherwise they are billed in small type, separated by diamonds. A year with more than 21 games shows 20 titles and closes with `AND 5 MORE GAMES`. When the titles are so long that they would run into the stats row, fewer are listed and the closing line counts the rest.
+
+    The data, privacy, frozen snapshot, language, fonts and cache are the same as `GET /share/rewind/:username/:year/story.png`: the list comes from the `finishedGames` of the Rewind the viewer can see, including the frozen snapshot of a closed season, and the cache keeps it apart from the first story. A Rewind without finished games for this viewer has no list: it answers 404 `REWIND_NOT_FOUND`, like a Rewind the viewer cannot see.
+
+    The web app requests it with `HttpClient` as a `Blob` because the token travels in the `Authorization` header.
+
+    **Authentication:** Bearer token optional. When absent or invalid the viewer is treated as a guest.
+    **Rate Limit:** 300 requests per minute (public).
+
+    ### Path Params
+
+    | Param    | Type   | Required | Description                 |
+    |----------|--------|----------|-----------------------------|
+    | username | string | Yes      | Profile username            |
+    | year     | int    | Yes      | Rewind year, 2000 to 2100   |
+
+    ### Response (200)
+
+    Binary PNG body.
+
+    | Header                       | Value                                                                 |
+    |------------------------------|-----------------------------------------------------------------------|
+    | Content-Type                 | `image/png`                                                           |
+    | Cache-Control                | `private, max-age=300` with a signed-in viewer, `public, max-age=3600` for guests |
+    | Vary                         | `Authorization`                                                       |
+    | Cross-Origin-Resource-Policy | `cross-origin`                                                        |
+
+    ### Errors
+
+    | Status | Code                  | Description                                                        |
+    |--------|-----------------------|--------------------------------------------------------------------|
+    | 404    | USER_NOT_FOUND        | Username does not exist                                            |
+    | 403    | USER_PRIVATE          | The viewer cannot see the rewind section, or the profile while `rewindIgnoresProfileVisibility` is off |
+    | 404    | REWIND_NOT_FOUND      | The year is not open yet, has no data or no finished games for this viewer, or (for anyone but the owner) is not generated |
+    | 404    | REWIND_NOT_GENERATED  | The owner requests a year they have not generated                  |
+    | 422    | COMMON_SCHEMA_INVALID | `year` is not an integer between 2000 and 2100                     |
