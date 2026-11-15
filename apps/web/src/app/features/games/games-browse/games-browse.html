@@ -283,6 +283,11 @@
 		</header>
 		@if (isLoadingFiltered()) {
 		<ng-container *ngTemplateOutlet="gridSkeleton" />
+		} @else if (filteredLoader.failed()) {
+		<ui-load-error
+			title="Couldn't load the catalog"
+			(retried)="loadFiltered()"
+		/>
 		} @else if (filteredGames().length === 0) {
 		<ng-container
 			*ngTemplateOutlet="emptyResults; context: { $implicit: 'No games match these filters', hint: 'Loosen a filter or two — or reset and start over.' }"

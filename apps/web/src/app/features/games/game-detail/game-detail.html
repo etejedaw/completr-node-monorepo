@@ -17,6 +17,8 @@
 		</div>
 	</div>
 </div>
+} @else if (loadFailed()) {
+<ui-load-error title="Couldn't load this game" (retried)="retryLoadGame()" />
 } @else if (!game()) {
 <ui-plain-empty-state
 	icon="sports_esports"

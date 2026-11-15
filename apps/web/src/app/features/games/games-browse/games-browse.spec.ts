@@ -987,7 +987,7 @@ describe("GamesBrowse", () => {
 			).not.toHaveTextContent("1");
 		});
 
-		it("shows the empty state when the filtered request fails", async () => {
+		it("shows a retryable error, never the empty state, when the filtered request fails", async () => {
 			await renderBrowse();
 			getGames.mockReturnValue(throwError(() => new Error("boom")));
 			await openFilters();
@@ -995,11 +995,58 @@ describe("GamesBrowse", () => {
 			await userEvent.click(chip("RPG"));
 
 			expect(
-				await screen.findByText("No games match these filters")
+				await screen.findByText("Couldn't load the catalog")
 			).toBeInTheDocument();
+			expect(
+				screen.queryByText("No games match these filters")
+			).not.toBeInTheDocument();
 			expect(screen.getByRole("status")).not.toHaveTextContent(
 				"Loading results"
 			);
+		});
+
+		it("recovers from a failed filtered request when retry succeeds", async () => {
+			await renderBrowse();
+			getGames.mockReturnValue(throwError(() => new Error("boom")));
+			await openFilters();
+			await userEvent.click(chip("RPG"));
+			await screen.findByText("Couldn't load the catalog");
+
+			getGames.mockReturnValue(of({ data: { games: [], total: 0 } }));
+			await userEvent.click(
+				screen.getByRole("button", { name: "Try again" })
+			);
+
+			expect(
+				await screen.findByText("No games match these filters")
+			).toBeInTheDocument();
+			expect(
+				screen.queryByText("Couldn't load the catalog")
+			).not.toBeInTheDocument();
+		});
+
+		it("drops a response that lands after the filters were cleared", async () => {
+			await renderBrowse();
+			const inFlight = new Subject<{
+				data: { games: unknown[]; total: number };
+			}>();
+			getGames.mockReturnValue(inFlight);
+			await openFilters();
+			await userEvent.click(chip("RPG"));
+			await screen.findByRole("heading", { name: "RPG games" });
+
+			await userEvent.click(
+				screen.getByRole("button", { name: "Reset" })
+			);
+			inFlight.next({ data: { games: [], total: 0 } });
+
+			expect(
+				await screen.findByRole("heading", { name: "Just added" })
+			).toBeInTheDocument();
+			expect(
+				screen.queryByRole("heading", { name: "RPG games" })
+			).not.toBeInTheDocument();
+			expect(inFlight.observed).toBe(false);
 		});
 
 		it("resets every filter and the sort from the Reset button", async () => {

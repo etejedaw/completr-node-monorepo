@@ -51,6 +51,7 @@ import {
 	UiButton,
 	UiEmptyState,
 	UiFiltersButton,
+	UiLoadError,
 	UiOptionPicker,
 	UiPagination,
 	type UiPickerOption,
@@ -58,6 +59,7 @@ import {
 	UiSkeleton
 } from "../../../shared/ui";
 import { catalogOnlyResult } from "../../../shared/utils/inject-game-search";
+import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { ListsService } from "../../lists/lists";
 import { AdminGameEditor } from "../admin-game-editor/admin-game-editor";
 import { BrowseFilters } from "./components/browse-filters";
@@ -89,6 +91,7 @@ const SORT_ICONS: Record<string, string> = {
 		UiButton,
 		UiEmptyState,
 		UiFiltersButton,
+		UiLoadError,
 		UiPagination,
 		UiSkeleton,
 		BrowseFilters,
@@ -105,6 +108,7 @@ const SORT_ICONS: Record<string, string> = {
 })
 export class GamesBrowse implements OnInit {
 	private readonly gamesService = inject(GamesService);
+	protected readonly filteredLoader = injectLatestLoader();
 	private readonly listsService = inject(ListsService);
 	private readonly authService = inject(AuthService);
 	private readonly router = inject(Router);
@@ -471,15 +475,17 @@ export class GamesBrowse implements OnInit {
 		this.loadFiltered();
 	}
 
-	private loadFiltered() {
+	protected loadFiltered() {
 		if (!this.inSearchOrFilterMode()) {
+			this.filteredLoader.cancel();
 			this.filteredGames.set([]);
 			this.filteredTotal.set(0);
+			this.isLoadingFiltered.set(false);
 			return;
 		}
 		this.isLoadingFiltered.set(true);
 		const params = this.buildQuery();
-		this.gamesService.getGames(params).subscribe({
+		this.filteredLoader.load(this.gamesService.getGames(params), {
 			next: res => {
 				this.filteredGames.set(res.data.games);
 				this.filteredTotal.set(res.data.total);
