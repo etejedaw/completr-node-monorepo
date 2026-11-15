@@ -63,4 +63,4 @@ docs: |-
     | 404    | `COOP_BACKLOG_NOT_FOUND`        | Your backlogId does not exist                   |
     | 404    | `COOP_MEMBER_NOT_FOUND`         | Your backlog is not part of any co-op run       |
     | 404    | `COOP_SOURCE_NOT_IN_RUN`        | The fromBacklogId is not in the same coop run   |
-    | 403    | `COOP_FORBIDDEN`                | The backlog is not yours                        |
+    | 404    | `COOP_BACKLOG_NOT_FOUND`        | The backlog is missing or not yours             |

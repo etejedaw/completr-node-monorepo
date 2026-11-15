@@ -45,5 +45,5 @@ docs: |-
     ### Errors
 
     - 402 `LIST_FROZEN` — User has >5 lists (downgraded), cannot edit
-    - 403 `LIST_FORBIDDEN` — Not the owner
+    - 404 `LIST_NOT_FOUND` — The list does not exist or is not yours
     - 404 `LIST_NOT_FOUND`

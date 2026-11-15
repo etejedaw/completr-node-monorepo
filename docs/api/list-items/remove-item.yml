@@ -26,7 +26,7 @@ docs: |-
     **Authentication:** Bearer token required (list owner only).
     **Rate Limit:** 300 requests per minute (user).
 
-    Returns 403 if the user isn't the list owner. Returns 204 on success.
+    Returns 404 if the list does not exist or the user isn't its owner. Returns 204 on success.
 
     ### Path Params
 

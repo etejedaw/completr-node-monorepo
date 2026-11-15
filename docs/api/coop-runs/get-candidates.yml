@@ -1,0 +1,62 @@
+info:
+    name: Get Co-op Candidates
+    type: http
+    seq: 5
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/users/me/backlog/:backlogId/coop/candidates?userId="
+    params:
+        - name: userId
+          value: ""
+          type: query
+        - name: backlogId
+          value: ""
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Co-op Candidates
+
+    Lists the runs of another user that could be linked to your backlog entry: same game and platform. Use it before tagging a user to pick which of their runs joins the co-op run.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 100 requests per minute.
+
+    ### Query
+
+    - `userId` (uuid, required): the user to tag. You must follow them.
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "accessible": true,
+        "candidates": [
+          {
+            "id": "uuid",
+            "status": "playing",
+            "startedAt": "2026-06-01T00:00:00.000Z",
+            "finishedAt": null,
+            "realDuration": null,
+            "coopRunId": null
+          }
+        ]
+      }
+    }
+    ```
+
+    `accessible` is `false` and `candidates` is empty when the target's backlog is hidden from you.
+
+    ### Errors
+
+    | Status | Type                         | Reason                                      |
+    |--------|------------------------------|---------------------------------------------|
+    | 404    | `COOP_BACKLOG_NOT_FOUND`     | The backlog is missing or not yours         |
+    | 404    | `COOP_TARGET_USER_NOT_FOUND` | The target user does not exist              |
+    | 422    | `COOP_TARGET_NOT_FOLLOWED`   | You do not follow the target user           |
+    | 422    | `COOP_SELF_TAG`              | The target user is you                      |

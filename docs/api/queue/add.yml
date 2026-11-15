@@ -76,6 +76,6 @@ docs: |-
     - 404 `QUEUE_GAME_NOT_FOUND`
     - 404 `QUEUE_PLATFORM_NOT_FOUND`
     - 404 `QUEUE_BACKLOG_NOT_FOUND`
-    - 403 `QUEUE_BACKLOG_NOT_OWNED`
+    - 404 `QUEUE_BACKLOG_NOT_FOUND` — The backlog entry does not exist or is not yours
     - 409 `QUEUE_ALREADY_EXISTS`
     - 409 `QUEUE_BACKLOG_NOT_STARTED` — backlog status must be `not_started`

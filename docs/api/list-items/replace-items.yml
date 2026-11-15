@@ -60,7 +60,7 @@ docs: |-
     ### Errors
 
     - 402 `LIST_ITEM_FROZEN` — User has >5 lists (downgraded)
-    - 403 `LIST_ITEM_FORBIDDEN` — Not the owner
+    - 404 `LIST_ITEM_LIST_NOT_FOUND` — The list does not exist or is not yours
     - 404 `LIST_ITEM_LIST_NOT_FOUND`
     - 404 `LIST_ITEM_GAMES_NOT_FOUND` — One or more gameIds not found (includes missing IDs in context)
 

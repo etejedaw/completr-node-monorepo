@@ -58,5 +58,4 @@ docs: |-
 
     | Status | Type                     | Reason                                                  |
     |--------|--------------------------|---------------------------------------------------------|
-    | 404    | `COOP_BACKLOG_NOT_FOUND` | The backlogId does not exist                            |
-    | 403    | `COOP_FORBIDDEN`         | The caller is neither the owner nor a member of the run |
+    | 404    | `COOP_BACKLOG_NOT_FOUND` | The backlog does not exist, or the caller is neither its owner nor a member of the run |

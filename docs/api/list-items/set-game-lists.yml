@@ -69,7 +69,7 @@ docs: |-
     | Status | Code                       | When                                                                                  |
     |--------|----------------------------|---------------------------------------------------------------------------------------|
     | 402    | LIST_ITEM_FROZEN           | The game has to be added to a list and the free user is over the list limit (frozen)  |
-    | 403    | LIST_ITEM_FORBIDDEN        | A list in `listIds` belongs to another user                                           |
+    | 404    | LIST_ITEM_LIST_NOT_FOUND   | A list in `listIds` does not exist or belongs to another user                         |
     | 404    | LIST_ITEM_LIST_NOT_FOUND   | A list in `listIds` does not exist                                                    |
     | 404    | LIST_ITEM_GAMES_NOT_FOUND  | The game does not exist                                                               |
     | 422    | COMMON_SCHEMA_INVALID      | `gameId` or a `listIds` entry is not a uuid, or `listIds` has duplicates              |
