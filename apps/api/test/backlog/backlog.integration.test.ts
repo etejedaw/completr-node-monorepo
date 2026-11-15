@@ -520,7 +520,7 @@ void describe("PATCH /users/me/backlog/:backlogId", () => {
 		);
 	});
 
-	void it("rejects editing another user's entry with 403 BACKLOG_FORBIDDEN", async () => {
+	void it("answers 404 BACKLOG_NOT_FOUND when editing another user's entry and leaves it untouched", async () => {
 		const owner = await createUserWithSession();
 		const intruder = await createUserWithSession();
 		const { game, platform } = await createGameAndPlatform();
@@ -535,8 +535,8 @@ void describe("PATCH /users/me/backlog/:backlogId", () => {
 			.set("Authorization", intruder.authorization)
 			.send({ status: "abandoned" });
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "BACKLOG_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "BACKLOG_NOT_FOUND");
 	});
 
 	void it("answers 404 BACKLOG_NOT_FOUND for an unknown entry", async () => {
@@ -591,7 +591,7 @@ void describe("DELETE /users/me/backlog/:backlogId", () => {
 		);
 	});
 
-	void it("rejects deleting another user's entry with 403 BACKLOG_FORBIDDEN", async () => {
+	void it("answers 404 BACKLOG_NOT_FOUND when deleting another user's entry and keeps it", async () => {
 		const owner = await createUserWithSession();
 		const intruder = await createUserWithSession();
 		const { game, platform } = await createGameAndPlatform();
@@ -605,8 +605,8 @@ void describe("DELETE /users/me/backlog/:backlogId", () => {
 			.delete(`${BACKLOG_PATH}/${backlog.id}`)
 			.set("Authorization", intruder.authorization);
 
-		assert.equal(response.status, 403);
-		assert.equal(response.body.type, "BACKLOG_FORBIDDEN");
+		assert.equal(response.status, 404);
+		assert.equal(response.body.type, "BACKLOG_NOT_FOUND");
 	});
 
 	void it("answers 404 BACKLOG_NOT_FOUND for an unknown entry", async () => {

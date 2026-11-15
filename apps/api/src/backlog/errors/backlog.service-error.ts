@@ -9,13 +9,6 @@ export function notFoundError() {
 	});
 }
 
-export function forbiddenError() {
-	return new ServiceError("BACKLOG_FORBIDDEN", {
-		...BASE_OPTIONS,
-		raw: undefined
-	});
-}
-
 export function validationError(rawError: unknown) {
 	return new ServiceError("BACKLOG_VALIDATION_ERROR", {
 		...BASE_OPTIONS,

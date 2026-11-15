@@ -13,9 +13,6 @@ export function backlogServiceToDomainMapper(
 	if (error.code === "BACKLOG_NOT_FOUND")
 		return backlogDomainError.backlogNotFound(context);
 
-	if (error.code === "BACKLOG_FORBIDDEN")
-		return backlogDomainError.backlogForbidden(context);
-
 	if (error.code === "BACKLOG_VALIDATION_ERROR")
 		return backlogDomainError.backlogValidation(context);
 

@@ -19,9 +19,6 @@ export function backlogDomainToHttpMapper(
 	if (error.code === "BACKLOG_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
-	if (error.code === "BACKLOG_FORBIDDEN")
-		return new HttpError({ ...baseOptions, status: 403 });
-
 	if (error.code === "BACKLOG_VALIDATION_ERROR")
 		return new HttpError({ ...baseOptions, status: 400 });
 

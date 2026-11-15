@@ -311,16 +311,22 @@ void describe("backlogService.createBacklog extras", () => {
 });
 
 void describe("backlogService.updateBacklog", () => {
+	beforeEach(() => {
+		stubTransaction();
+		stub(queueService, "lockUserQueue", async () => undefined);
+	});
+
 	afterEach(() => {
 		mock.restoreAll();
 	});
 
-	function stubOwnedEntry(ownerId = "owner") {
+	function stubOwnedEntry(ownerId = "owner", status = "not_started") {
 		const update = spy();
 		const entry = asModel<Backlog>({
 			id: "b-1",
 			userId: ownerId,
 			gameId: "game-1",
+			status,
 			update
 		});
 		stub(Backlog, "findOne", async () => entry);
@@ -337,7 +343,7 @@ void describe("backlogService.updateBacklog", () => {
 		assert.equal(errorCode(error), "BACKLOG_NOT_FOUND");
 	});
 
-	void it("fails with BACKLOG_FORBIDDEN when the entry belongs to someone else", async () => {
+	void it("answers BACKLOG_NOT_FOUND when the entry belongs to someone else", async () => {
 		const { update } = stubOwnedEntry("owner");
 
 		const error = await captureRejection(
@@ -346,8 +352,32 @@ void describe("backlogService.updateBacklog", () => {
 			})
 		);
 
-		assert.equal(errorCode(error), "BACKLOG_FORBIDDEN");
+		assert.equal(errorCode(error), "BACKLOG_NOT_FOUND");
 		assert.equal(update.mock.callCount(), 0);
+	});
+
+	void it("locks the queue before reading and reports the previous status", async () => {
+		const steps: string[] = [];
+		stub(queueService, "lockUserQueue", async () => {
+			steps.push("lock");
+		});
+		stub(Backlog, "findOne", async () => {
+			steps.push("read");
+			return asModel<Backlog>({
+				id: "b-1",
+				userId: "owner",
+				gameId: "game-1",
+				status: "not_started",
+				update: spy()
+			});
+		});
+
+		const result = await backlogService.updateBacklog("b-1", "owner", {
+			notes: "x"
+		});
+
+		assert.deepEqual(steps, ["lock", "read"]);
+		assert.equal(result.previousStatus, "not_started");
 	});
 
 	for (const status of [
@@ -356,26 +386,30 @@ void describe("backlogService.updateBacklog", () => {
 		"abandoned",
 		"endless"
 	] as const) {
-		void it(`removes the queue entry and reports queueRemoved when moving to ${status}`, async () => {
+		void it(`removes the queue entry inside the transaction and reports queueRemoved when moving to ${status}`, async () => {
 			stubOwnedEntry();
 			const remove = stub(
 				queueService,
-				"removeByBacklogId",
-				async () => true
+				"removeByBacklogIds",
+				async () => ["b-1"]
 			);
 
 			const result = await backlogService.updateBacklog("b-1", "owner", {
 				status
 			});
 
-			assert.deepEqual(remove.mock.calls[0]?.arguments, ["b-1", "owner"]);
+			assert.deepEqual(remove.mock.calls[0]?.arguments, [
+				["b-1"],
+				"owner",
+				{ id: "tx" }
+			]);
 			assert.equal(result.queueRemoved, true);
 		});
 	}
 
 	void it("reports queueRemoved false when the entry was not queued", async () => {
 		stubOwnedEntry();
-		stub(queueService, "removeByBacklogId", async () => false);
+		stub(queueService, "removeByBacklogIds", async () => []);
 
 		const result = await backlogService.updateBacklog("b-1", "owner", {
 			status: "playing"
@@ -386,11 +420,9 @@ void describe("backlogService.updateBacklog", () => {
 
 	void it("keeps the queue entry when the status is not_started or not changed", async () => {
 		stubOwnedEntry();
-		const remove = stub(
-			queueService,
-			"removeByBacklogId",
-			async () => true
-		);
+		const remove = stub(queueService, "removeByBacklogIds", async () => [
+			"b-1"
+		]);
 
 		const toNotStarted = await backlogService.updateBacklog(
 			"b-1",
@@ -455,6 +487,8 @@ void describe("backlogService.removeBacklog", () => {
 	});
 
 	void it("fails with BACKLOG_NOT_FOUND for a missing entry", async () => {
+		stubTransaction();
+		stub(queueService, "lockUserQueue", async () => undefined);
 		stub(Backlog, "findOne", async () => null);
 
 		const error = await captureRejection(
@@ -464,28 +498,37 @@ void describe("backlogService.removeBacklog", () => {
 		assert.equal(errorCode(error), "BACKLOG_NOT_FOUND");
 	});
 
-	void it("fails with BACKLOG_FORBIDDEN and keeps the entry of another user", async () => {
-		stub(Backlog, "findOne", async () =>
-			asModel({ id: "b-1", userId: "owner" })
-		);
+	void it("looks the entry up scoped to its owner so another user's entry looks missing and is kept", async () => {
+		stubTransaction();
+		stub(queueService, "lockUserQueue", async () => undefined);
+		const findOne = stub(Backlog, "findOne", async () => null);
 		const destroy = stub(Backlog, "destroy", async () => 0);
 
 		const error = await captureRejection(
 			backlogService.removeBacklog("b-1", "intruder")
 		);
 
-		assert.equal(errorCode(error), "BACKLOG_FORBIDDEN");
+		assert.equal(errorCode(error), "BACKLOG_NOT_FOUND");
+		assert.deepEqual(
+			(
+				findOne.mock.calls[0]?.arguments[0] as {
+					where: unknown;
+				}
+			).where,
+			{ id: "b-1", userId: "intruder" }
+		);
 		assert.equal(destroy.mock.callCount(), 0);
 	});
 
 	void it("locks the queue, deletes the entry and compacts the queue in that order inside one transaction", async () => {
-		stub(Backlog, "findOne", async () =>
-			asModel({ id: "b-1", userId: "owner" })
-		);
 		const { transaction } = stubTransaction();
 		const steps: string[] = [];
 		const lock = stub(queueService, "lockUserQueue", async () => {
 			steps.push("lock");
+		});
+		stub(Backlog, "findOne", async () => {
+			steps.push("read");
+			return asModel({ id: "b-1" });
 		});
 		const destroy = stub(Backlog, "destroy", async () => {
 			steps.push("destroy");
@@ -496,7 +539,7 @@ void describe("backlogService.removeBacklog", () => {
 		});
 
 		assert.equal(await backlogService.removeBacklog("b-1", "owner"), true);
-		assert.deepEqual(steps, ["lock", "destroy", "compact"]);
+		assert.deepEqual(steps, ["lock", "read", "lock", "destroy", "compact"]);
 		assert.deepEqual(lock.mock.calls[0]?.arguments, ["owner", transaction]);
 		assert.deepEqual(destroy.mock.calls[0]?.arguments, [
 			{ where: { id: ["b-1"], userId: "owner" }, transaction }

@@ -154,9 +154,12 @@ export async function getUserBacklog(request: Request, response: Response) {
 		: await backlogService.findPublicBacklogByUserId(user.id, visibleQuery);
 	const backlogPlain = rows.map(backlog => backlog.get({ plain: true }));
 
-	const reviews = await reviewsService.findReviewsByUserId(user.id);
-	const reviewByGameId = new Map(reviews.map(r => [r.gameId, r]));
 	const gameIds = backlogPlain.map(entry => entry.gameId);
+	const reviewByGameId =
+		await reviewsService.findReviewContentByUserAndGameIds(
+			user.id,
+			gameIds
+		);
 	const moodTagsByGameId = await moodTagsService.findTagsForGames(
 		user.id,
 		gameIds
@@ -205,23 +208,21 @@ export async function patchBacklog(request: Request, response: Response) {
 	const updateBacklog = request.locals.body as UpdateBacklogDto;
 	const user = request.locals.user as RequestUser;
 
-	const previous = await backlogService.findBacklogById(params.backlogId);
-	const previousStatus = previous?.status;
-
-	const { backlog: backlogEntry, queueRemoved } =
-		await backlogService.updateBacklog(
-			params.backlogId,
-			user.id,
-			updateBacklog
-		);
+	const {
+		backlog: backlogEntry,
+		queueRemoved,
+		previousStatus
+	} = await backlogService.updateBacklog(
+		params.backlogId,
+		user.id,
+		updateBacklog
+	);
 	const backlogPlain = backlogEntry.get({ plain: true });
 
 	if (updateBacklog.status && updateBacklog.status !== previousStatus) {
 		activityService.record(
 			user.id,
-			`backlog_${updateBacklog.status}` as Parameters<
-				typeof activityService.record
-			>[1],
+			`backlog_${updateBacklog.status}`,
 			backlogEntry.gameId
 		);
 	}

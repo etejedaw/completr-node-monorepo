@@ -19,12 +19,6 @@ describeModuleErrors({
 			message: "Backlog entry not found"
 		},
 		{
-			serviceCode: "BACKLOG_FORBIDDEN",
-			module: "Backlog Module",
-			code: "BACKLOG_FORBIDDEN",
-			message: "You do not have permission to modify this backlog entry"
-		},
-		{
 			serviceCode: "BACKLOG_VALIDATION_ERROR",
 			module: "Backlog Module",
 			code: "BACKLOG_VALIDATION_ERROR",
@@ -55,7 +49,6 @@ describeDomainToHttpMapper({
 	mapper: backlogDomainToHttpMapper,
 	cases: [
 		{ code: "BACKLOG_NOT_FOUND", status: 404 },
-		{ code: "BACKLOG_FORBIDDEN", status: 403 },
 		{ code: "BACKLOG_VALIDATION_ERROR", status: 400 },
 		{ code: "BACKLOG_UNIQUE_CONSTRAINT", status: 409 },
 		{ code: "BACKLOG_COMPILATION_CONTEXT_INVALID", status: 400 }
