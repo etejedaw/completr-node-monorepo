@@ -454,32 +454,152 @@ void describe("POST /auth/logout", () => {
 });
 
 void describe("PATCH /auth/password", () => {
+	function changePassword(authorization: string, body: unknown) {
+		return api()
+			.patch("/auth/password")
+			.set("Authorization", authorization)
+			.send(body as object);
+	}
+
+	async function refreshWith(refreshToken: string) {
+		return api()
+			.post("/auth/refresh")
+			.send({ refresh_token: refreshToken });
+	}
+
 	void it("changes the password and revokes every session", async () => {
 		const { user, session, authorization } = await createUserWithSession();
 
-		const response = await api()
-			.patch("/auth/password")
-			.set("Authorization", authorization)
-			.send({ password: NEW_PASSWORD });
+		const response = await changePassword(authorization, {
+			currentPassword: DEFAULT_PASSWORD,
+			password: NEW_PASSWORD
+		});
 
 		assert.equal(response.status, 204);
 		await login(user.email, NEW_PASSWORD);
-		const refreshed = await api()
-			.post("/auth/refresh")
-			.send({ refresh_token: session.refreshToken });
-		assert.equal(refreshed.status, 401);
+		assert.equal((await refreshWith(session.refreshToken)).status, 401);
+	});
+
+	void it("rejects a wrong current password with 400 and keeps the password and sessions", async () => {
+		const { user, session, authorization } = await createUserWithSession();
+
+		const response = await changePassword(authorization, {
+			currentPassword: "Wr0ngPass!",
+			password: NEW_PASSWORD
+		});
+
+		assert.equal(response.status, 400);
+		assert.equal(response.body.type, "AUTH_INVALID_CURRENT_PASSWORD");
+		await login(user.email, DEFAULT_PASSWORD);
+		const newPassword = await api()
+			.post("/auth/login")
+			.send({ email: user.email, password: NEW_PASSWORD });
+		assert.equal(newPassword.status, 401);
+		assert.equal((await refreshWith(session.refreshToken)).status, 200);
+	});
+
+	void it("rejects a body without the current password with 422", async () => {
+		const { user, authorization } = await createUserWithSession();
+
+		const response = await changePassword(authorization, {
+			password: NEW_PASSWORD
+		});
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		await login(user.email, DEFAULT_PASSWORD);
+	});
+
+	void it("rejects garbage bodies with 422 and leaves the password untouched", async () => {
+		const { user, authorization } = await createUserWithSession();
+		const garbageBodies = [
+			{ currentPassword: "", password: NEW_PASSWORD },
+			{ currentPassword: 12345678, password: NEW_PASSWORD },
+			{ currentPassword: ["Passw0rd!"], password: NEW_PASSWORD },
+			{ currentPassword: "x".repeat(500), password: NEW_PASSWORD },
+			{ currentPassword: DEFAULT_PASSWORD, password: null },
+			{
+				currentPassword: DEFAULT_PASSWORD,
+				password: NEW_PASSWORD,
+				role: "admin"
+			}
+		];
+
+		for (const body of garbageBodies) {
+			const response = await changePassword(authorization, body);
+			assert.equal(response.status, 422, JSON.stringify(body));
+			assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		}
+		await login(user.email, DEFAULT_PASSWORD);
 	});
 
 	void it("rejects a password that breaks the policy with 422", async () => {
 		const { authorization } = await createUserWithSession();
 
-		const response = await api()
-			.patch("/auth/password")
-			.set("Authorization", authorization)
-			.send({ password: "alllowercase1!" });
+		const response = await changePassword(authorization, {
+			currentPassword: DEFAULT_PASSWORD,
+			password: "alllowercase1!"
+		});
 
 		assert.equal(response.status, 422);
 		assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+	});
+
+	void it("lets only one of two simultaneous changes with the same current password win", async () => {
+		const { user, authorization } = await createUserWithSession();
+		const otherNewPassword = "0therPass!";
+
+		const responses = await Promise.all([
+			changePassword(authorization, {
+				currentPassword: DEFAULT_PASSWORD,
+				password: NEW_PASSWORD
+			}),
+			changePassword(authorization, {
+				currentPassword: DEFAULT_PASSWORD,
+				password: otherNewPassword
+			})
+		]);
+
+		const statuses = responses.map(response => response.status).sort();
+		assert.deepEqual(statuses, [204, 400]);
+		const winner =
+			responses[0]?.status === 204 ? NEW_PASSWORD : otherNewPassword;
+		const loser = winner === NEW_PASSWORD ? otherNewPassword : NEW_PASSWORD;
+		await login(user.email, winner);
+		for (const password of [DEFAULT_PASSWORD, loser]) {
+			const attempt = await api()
+				.post("/auth/login")
+				.send({ email: user.email, password });
+			assert.equal(attempt.status, 401);
+		}
+	});
+
+	void it("answers a double submit after success with 400, because the current password already changed", async () => {
+		const { user, authorization } = await createUserWithSession();
+		const body = {
+			currentPassword: DEFAULT_PASSWORD,
+			password: NEW_PASSWORD
+		};
+
+		const first = await changePassword(authorization, body);
+		const second = await changePassword(authorization, body);
+
+		assert.equal(first.status, 204);
+		assert.equal(second.status, 400);
+		assert.equal(second.body.type, "AUTH_INVALID_CURRENT_PASSWORD");
+		await login(user.email, NEW_PASSWORD);
+	});
+
+	void it("rejects an anonymous request with 422 AUTH_SCHEMA_INVALID", async () => {
+		const response = await api()
+			.patch("/auth/password")
+			.send({
+				currentPassword: DEFAULT_PASSWORD,
+				password: NEW_PASSWORD
+			});
+
+		assert.equal(response.status, 422);
+		assert.equal(response.body.type, "AUTH_SCHEMA_INVALID");
 	});
 });
 

@@ -6,9 +6,9 @@ import * as passwordService from "../../src/auth/services/password.service";
 import * as passwordResetService from "../../src/auth/services/password-reset.service";
 import * as tokenService from "../../src/auth/services/token.service";
 import { InMemoryMailModel } from "../../src/mail/in-memory/in-memory.provider";
-import * as usersService from "../../src/users/users.service";
+import * as usersService from "../../src/users/services/users.service";
 import { asModel } from "../unit-helpers/as-model";
-import { captureRejection, stub } from "../unit-helpers/mocks";
+import { captureRejection, stub, stubTransaction } from "../unit-helpers/mocks";
 
 const registerDto = {
 	username: "player",
@@ -236,8 +236,7 @@ void describe("authService.changePassword", () => {
 		mock.restoreAll();
 	});
 
-	void it("stores the hash and revokes every session", async () => {
-		stub(passwordService, "hashPassword", async () => "new-hash");
+	function stubPasswordWrites() {
 		const updatePassword = stub(
 			usersService,
 			"updatePassword",
@@ -248,13 +247,75 @@ void describe("authService.changePassword", () => {
 			"deleteAllUserRefreshTokens",
 			async () => undefined
 		);
+		return { updatePassword, deleteAll };
+	}
 
-		assert.equal(await authService.changePassword("u-1", "Abcdef1!"), true);
+	void it("checks the current password, stores the new hash and revokes every session in one transaction", async () => {
+		const { transaction } = stubTransaction();
+		const findForUpdate = stub(
+			usersService,
+			"findUserByIdForUpdate",
+			async () => asModel(activeUser)
+		);
+		const verify = stub(
+			passwordService,
+			"verifyPassword",
+			async () => true
+		);
+		stub(passwordService, "hashPassword", async () => "new-hash");
+		const { updatePassword, deleteAll } = stubPasswordWrites();
+
+		await authService.changePassword("u-1", "Old-pass1!", "Abcdef1!");
+
+		assert.deepEqual(findForUpdate.mock.calls[0]?.arguments, [
+			"u-1",
+			transaction
+		]);
+		assert.deepEqual(verify.mock.calls[0]?.arguments, [
+			"Old-pass1!",
+			"stored-hash"
+		]);
 		assert.deepEqual(updatePassword.mock.calls[0]?.arguments, [
 			"u-1",
-			"new-hash"
+			"new-hash",
+			transaction
 		]);
-		assert.deepEqual(deleteAll.mock.calls[0]?.arguments, ["u-1"]);
+		assert.deepEqual(deleteAll.mock.calls[0]?.arguments, [
+			"u-1",
+			transaction
+		]);
+	});
+
+	void it("rejects a wrong current password without writing anything", async () => {
+		stubTransaction();
+		stub(usersService, "findUserByIdForUpdate", async () =>
+			asModel(activeUser)
+		);
+		stub(passwordService, "verifyPassword", async () => false);
+		stub(passwordService, "hashPassword", async () => "new-hash");
+		const { updatePassword, deleteAll } = stubPasswordWrites();
+
+		const error = await captureRejection(
+			authService.changePassword("u-1", "wrong", "Abcdef1!")
+		);
+
+		assert.equal(errorCode(error), "AUTH_INVALID_CURRENT_PASSWORD");
+		assert.equal(updatePassword.mock.callCount(), 0);
+		assert.equal(deleteAll.mock.callCount(), 0);
+	});
+
+	void it("rejects with AUTH_INVALID_TOKEN when the account is gone", async () => {
+		stubTransaction();
+		stub(usersService, "findUserByIdForUpdate", async () => null);
+		stub(passwordService, "hashPassword", async () => "new-hash");
+		const { updatePassword } = stubPasswordWrites();
+
+		const error = await captureRejection(
+			authService.changePassword("u-1", "Old-pass1!", "Abcdef1!")
+		);
+
+		assert.equal(errorCode(error), "AUTH_INVALID_TOKEN");
+		assert.equal(updatePassword.mock.callCount(), 0);
 	});
 });
 
@@ -324,6 +385,7 @@ void describe("authService.resetPassword", () => {
 		);
 		stub(usersService, "findUserById", async () => asModel(activeUser));
 		stub(passwordService, "hashPassword", async () => "new-hash");
+		const { transaction } = stubTransaction();
 		const updatePassword = stub(
 			usersService,
 			"updatePassword",
@@ -339,9 +401,13 @@ void describe("authService.resetPassword", () => {
 
 		assert.deepEqual(updatePassword.mock.calls[0]?.arguments, [
 			"u-1",
-			"new-hash"
+			"new-hash",
+			transaction
 		]);
-		assert.deepEqual(deleteAll.mock.calls[0]?.arguments, ["u-1"]);
+		assert.deepEqual(deleteAll.mock.calls[0]?.arguments, [
+			"u-1",
+			transaction
+		]);
 	});
 });
 

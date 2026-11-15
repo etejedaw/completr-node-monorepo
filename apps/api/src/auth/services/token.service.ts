@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import type { StringValue } from "ms";
-import { literal, Op } from "sequelize";
+import { literal, Op, type Transaction } from "sequelize";
 
 import { environmentConfig } from "../../common/config/environment.config";
 import { MS_PER_MINUTE } from "../../common/constants/time.constants";
@@ -130,7 +130,8 @@ export async function deleteRefreshToken(rawToken: string): Promise<boolean> {
 }
 
 export async function deleteAllUserRefreshTokens(
-	userId: string
+	userId: string,
+	transaction?: Transaction
 ): Promise<void> {
-	await RefreshToken.destroy({ where: { userId } });
+	await RefreshToken.destroy({ where: { userId }, transaction });
 }
