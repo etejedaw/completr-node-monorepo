@@ -81,7 +81,8 @@
 			Your profile is set to
 			<strong class="text-fg"
 				>{{ visibilityLabel(draft().profileVisibility) }}</strong
-			>, so {{ profileCapScope() }} can be seen by more people than that.
+			>, so no section except your Rewind can be seen by more people than
+			that.
 		</ui-alert>
 		}
 		<app-settings-row
@@ -123,35 +124,7 @@
 				}
 			</div>
 		</app-settings-row>
-		@if (section.key === 'rewindVisibility') {
-		<app-settings-row
-			[label]="rewindProfileBypass.label"
-			[hint]="rewindProfileBypass.hint"
-			[icon]="rewindProfileBypass.icon"
-			[iconColor]="rewindProfileBypass.iconColor"
-		>
-			<div class="flex flex-col gap-2 md:items-end">
-				<ui-switch
-					[ariaLabel]="rewindProfileBypass.label"
-					[ariaDescribedBy]="rewindBypassUnavailable() ? rewindProfileBypass.unavailableHintId : ''"
-					[disabled]="rewindBypassUnavailable()"
-					[checked]="draft().rewindIgnoresProfileVisibility"
-					(checkedChange)="setRewindIgnoresProfileVisibility($event)"
-				/>
-				@if (rewindBypassUnavailable()) {
-				<p
-					[id]="rewindProfileBypass.unavailableHintId"
-					class="m-0 flex items-start gap-1.5 text-xs text-fg-muted md:text-right md:justify-end"
-				>
-					<span aria-hidden="true" class="material-icons text-sm"
-						>lock</span
-					>
-					<span>{{ rewindProfileBypass.unavailableHint }}</span>
-				</p>
-				}
-			</div>
-		</app-settings-row>
-		} } } } @else {
+		} } } @else {
 		<ul
 			class="list-none m-0 py-4 grid gap-2 sm:grid-cols-2"
 			aria-label="Section visibility"

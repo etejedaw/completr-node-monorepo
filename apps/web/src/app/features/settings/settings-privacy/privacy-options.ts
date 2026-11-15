@@ -68,16 +68,6 @@ export const PROFILE_GATE = {
 	iconColor: "text-brand"
 };
 
-export const REWIND_PROFILE_BYPASS = {
-	label: "Show my Rewind even if my profile is private",
-	hint: "Your Rewind follows its own level, even for people who can't open your profile. Your profile, platinums and other sections stay hidden.",
-	unavailableHint:
-		"Your Rewind is set to Only you, so nobody else sees it either way.",
-	unavailableHintId: "rewind-profile-bypass-unavailable",
-	icon: "lock_open",
-	iconColor: "text-brand"
-};
-
 const PRIVACY_SECTION_CONFIG: PrivacySectionGroup<PrivacySectionConfig>[] = [
 	{
 		title: "Library",
@@ -200,24 +190,11 @@ export function effectiveVisibility(
 		: profile;
 }
 
-export function rewindBypassesProfile(
-	draft: Pick<
-		PrivacyDraft,
-		"rewindVisibility" | "rewindIgnoresProfileVisibility"
-	>
-): boolean {
-	return (
-		draft.rewindIgnoresProfileVisibility &&
-		draft.rewindVisibility !== "private"
-	);
-}
-
 export function effectiveSectionVisibility(
 	draft: PrivacyDraft,
 	key: SectionVisibilityKey
 ): VisibilityLevel {
-	if (key === "rewindVisibility" && rewindBypassesProfile(draft))
-		return draft.rewindVisibility;
+	if (key === "rewindVisibility") return draft.rewindVisibility;
 	return effectiveVisibility(draft[key], draft.profileVisibility);
 }
 

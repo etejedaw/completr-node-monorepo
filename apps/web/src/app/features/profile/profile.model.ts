@@ -15,6 +15,5 @@ export interface UpdateProfileDto {
 	platinumVisibility?: VisibilityLevel;
 	franchiseVisibility?: VisibilityLevel;
 	rewindVisibility?: VisibilityLevel;
-	rewindIgnoresProfileVisibility?: boolean;
 	acceptFollowRequests?: boolean;
 }
