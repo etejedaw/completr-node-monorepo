@@ -13,14 +13,15 @@ import { findFullPremiumUserIds } from "../premium-access/premium-access.service
 import * as reviewsService from "../reviews/reviews.service";
 import * as userFollowRequestsService from "../user-follow-requests/user-follow-requests.service";
 import * as userFollowersService from "../user-followers/user-followers.service";
+import { type ConnectionKind } from "../user-followers/user-followers.types";
 import * as wishlistService from "../wishlist/wishlist.service";
+import {
+	PROFILE_ACTIVITY_LIMIT,
+	PROFILE_BACKLOG_PREVIEW_LIMIT
+} from "./constants/user-limits.constants";
 import { type VisibilitySection } from "./constants/visibility.constants";
 import * as userDomain from "./errors/users.domain-error";
-import {
-	canView,
-	canViewList,
-	resolveSectionAccess
-} from "./helpers/visibility.helper";
+import { canView, resolveSectionAccess } from "./helpers/visibility.helper";
 import { type ComparisonDimension } from "./schemas/comparison-query.schema";
 import { type UserListsQuery } from "./schemas/user-lists-query.schema";
 import { type User } from "./user.model";
@@ -42,7 +43,11 @@ import {
 	type UserReviewsBundle
 } from "./users.interface";
 import * as usersService from "./users.service";
-import { type GameEntryRow, type UserProfileResult } from "./users.types";
+import {
+	type GameEntryRow,
+	type SectionAccess,
+	type UserProfileResult
+} from "./users.types";
 
 const EMPTY_BACKLOG_STATS: BacklogStatusCounts = {
 	not_started: 0,
@@ -61,11 +66,11 @@ export async function getProfileByUsername(
 	if (!user) throw userDomain.userNotFound();
 
 	const isSelf = viewerId === user.id;
-	const canViewProfile = await canView(viewerId, user, "profile");
+	const access = await resolveSectionAccess(viewerId, user);
 
-	if (!canViewProfile) return buildRestrictedProfile(viewerId, user);
+	if (!access.profile) return buildRestrictedProfile(viewerId, user);
 
-	return buildFullProfile(viewerId, user, isSelf);
+	return buildFullProfile(viewerId, user, isSelf, access);
 }
 
 async function buildRestrictedProfile(
@@ -100,10 +105,10 @@ async function buildRestrictedProfile(
 async function buildFullProfile(
 	viewerId: string | undefined,
 	user: User,
-	isSelf: boolean
+	isSelf: boolean,
+	access: SectionAccess
 ): Promise<FullUserProfile> {
 	const userId = user.id;
-	const access = await resolveSectionAccess(viewerId, user);
 	const {
 		backlog: canViewBacklog,
 		list: canViewLists,
@@ -125,7 +130,8 @@ async function buildFullProfile(
 			? listsService.countListsByUserId(userId, !isSelf)
 			: Promise.resolve(0),
 		canViewFeed
-			? activityService.getUserActivity(userId, 10, {
+			? activityService.getUserActivity(userId, PROFILE_ACTIVITY_LIMIT, {
+					viewerId,
 					includeSocial: isSelf,
 					includePlatinums: access.platinum
 				})
@@ -163,14 +169,12 @@ async function buildFullProfile(
 	};
 }
 
-const PROFILE_BACKLOG_PREVIEW = 6;
-
 async function loadBacklog(
 	userId: string,
 	isSelf: boolean,
 	canViewBacklog: boolean
 ) {
-	const filters = { limit: PROFILE_BACKLOG_PREVIEW };
+	const filters = { limit: PROFILE_BACKLOG_PREVIEW_LIMIT };
 	if (isSelf) return backlogService.findBacklogByUserId(userId, filters);
 	if (canViewBacklog)
 		return backlogService.findPublicBacklogByUserId(userId, filters);
@@ -261,7 +265,7 @@ export async function getListDetailForUsername(
 	if (
 		!list ||
 		list.userId !== user.id ||
-		!(await canViewList(viewerId, user, list))
+		!(isSelf || (list.isPublic && (await canView(viewerId, user, "list"))))
 	)
 		throw listDomainError.listNotFound();
 
@@ -395,7 +399,9 @@ function toEntryMap(rows: GameEntryRow[]): Map<string, ComparisonGameEntry> {
 	return map;
 }
 
-const EMPTY_COMPARISON = (by: ComparisonDimension): UserComparisonBundle => ({
+const buildEmptyComparison = (
+	by: ComparisonDimension
+): UserComparisonBundle => ({
 	by,
 	inCommon: [],
 	onlyViewer: [],
@@ -422,7 +428,7 @@ export async function getComparisonForUsername(
 	const user = await usersService.findUserByUsername(username);
 	if (!user) throw userDomain.userNotFound();
 
-	if (user.id === viewer.id) return EMPTY_COMPARISON(by);
+	if (user.id === viewer.id) return buildEmptyComparison(by);
 
 	const section = COMPARISON_SECTION[by];
 	const [okProfile, okSection] = await Promise.all([
@@ -516,33 +522,18 @@ export async function getReviewsForUsername(
 	return { user, reviewsPlain, durationMap, total: count };
 }
 
-async function findConnectionUsers(
-	userId: string,
-	kind: "followers" | "following",
-	query: PaginatedSearchQuery
-) {
-	if (kind === "followers") {
-		const { rows, total } = await userFollowersService.getFollowers(
-			userId,
-			query
-		);
-		return { users: rows.map(row => row.Follower), total };
-	}
-	const { rows, total } = await userFollowersService.getFollowing(
-		userId,
-		query
-	);
-	return { users: rows.map(row => row.Following), total };
-}
-
 export async function getConnectionCardsForUsername(
 	viewerId: string | undefined,
 	username: string,
-	kind: "followers" | "following",
+	kind: ConnectionKind,
 	query: PaginatedSearchQuery
 ): Promise<UserConnectionCardsBundle> {
 	const user = await requireVisibleUser(viewerId, username, ["profile"]);
-	const { users, total } = await findConnectionUsers(user.id, kind, query);
+	const { users, total } = await userFollowersService.getConnections(
+		user.id,
+		kind,
+		query
+	);
 	const cards = await userCardsService.buildUserCards(viewerId, users);
 	return { cards, total };
 }

@@ -5,6 +5,7 @@ import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { findFullPremiumUserIds } from "../premium-access/premium-access.service";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
 import { type RequesterIdParam } from "./schemas/requester-id-params.schema";
+import { incomingFollowRequestSerializer } from "./user-follow-requests.serializer";
 import * as service from "./user-follow-requests.service";
 
 export async function getIncomingRequests(
@@ -16,16 +17,9 @@ export async function getIncomingRequests(
 	const premiumUserIds = await findFullPremiumUserIds(
 		rows.flatMap(row => (row.Requester ? [row.Requester] : []))
 	);
-	const data = rows.map(row => ({
-		requesterId: row.requesterId,
-		createdAt: row.createdAt,
-		user: row.Requester
-			? {
-					...row.Requester.get({ plain: true }),
-					hasPremium: premiumUserIds.has(row.requesterId)
-				}
-			: row.Requester
-	}));
+	const data = rows.map(row =>
+		incomingFollowRequestSerializer(row, premiumUserIds)
+	);
 	return response.status(200).json({ data: { requests: data } });
 }
 
@@ -33,10 +27,12 @@ export async function postAcceptRequest(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
 	const { requesterId } = request.locals.params as RequesterIdParam;
 
-	await service.acceptRequest(user.id, requesterId);
+	const { followCreated } = await service.acceptRequest(user.id, requesterId);
 
-	activityService.record(requesterId, "user_followed", user.id);
-	activityService.record(user.id, "user_followed_by", requesterId);
+	if (followCreated) {
+		activityService.record(requesterId, "user_followed", user.id);
+		activityService.record(user.id, "user_followed_by", requesterId);
+	}
 
 	return response.sendStatus(204);
 }

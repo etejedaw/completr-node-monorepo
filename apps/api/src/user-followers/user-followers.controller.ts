@@ -8,6 +8,7 @@ import { type UsernameParam } from "../users/schemas/username-params.schema";
 import { userCardSerializer } from "../users/users.serializer";
 import * as usersProfileService from "../users/users-profile.service";
 import * as userFollowersService from "./user-followers.service";
+import { type ConnectionKind } from "./user-followers.types";
 
 export async function postFollow(request: Request, response: Response) {
 	const { username } = request.locals.params as UsernameParam;
@@ -36,38 +37,26 @@ export async function deleteFollow(request: Request, response: Response) {
 	return response.sendStatus(204);
 }
 
-export async function getFollowers(request: Request, response: Response) {
-	const { username } = request.locals.params as UsernameParam;
-	const query = request.locals.query as PaginatedSearchQuery;
-	const viewer = request.locals.user as RequestUser | undefined;
+function getConnections(kind: ConnectionKind) {
+	return async (request: Request, response: Response) => {
+		const { username } = request.locals.params as UsernameParam;
+		const query = request.locals.query as PaginatedSearchQuery;
+		const viewer = request.locals.user as RequestUser | undefined;
 
-	const { cards, total } =
-		await usersProfileService.getConnectionCardsForUsername(
-			viewer?.id,
-			username,
-			"followers",
-			query
-		);
+		const { cards, total } =
+			await usersProfileService.getConnectionCardsForUsername(
+				viewer?.id,
+				username,
+				kind,
+				query
+			);
 
-	return response
-		.status(200)
-		.json({ data: { users: cards.map(userCardSerializer), total } });
+		return response
+			.status(200)
+			.json({ data: { users: cards.map(userCardSerializer), total } });
+	};
 }
 
-export async function getFollowing(request: Request, response: Response) {
-	const { username } = request.locals.params as UsernameParam;
-	const query = request.locals.query as PaginatedSearchQuery;
-	const viewer = request.locals.user as RequestUser | undefined;
+export const getFollowers = getConnections("followers");
 
-	const { cards, total } =
-		await usersProfileService.getConnectionCardsForUsername(
-			viewer?.id,
-			username,
-			"following",
-			query
-		);
-
-	return response
-		.status(200)
-		.json({ data: { users: cards.map(userCardSerializer), total } });
-}
+export const getFollowing = getConnections("following");

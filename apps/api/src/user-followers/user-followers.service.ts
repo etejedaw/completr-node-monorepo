@@ -1,4 +1,4 @@
-import { Op, type Order, type WhereOptions } from "sequelize";
+import { Op, type Order, type Transaction, type WhereOptions } from "sequelize";
 
 import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
@@ -10,6 +10,7 @@ import { User } from "../users/user.model";
 import * as usersService from "../users/users.service";
 import * as serviceError from "./errors/user-followers.service-error";
 import { UserFollower } from "./user-follower.model";
+import { type ConnectionKind } from "./user-followers.types";
 
 const DEFAULT_CONNECTIONS_LIMIT = 24;
 
@@ -52,9 +53,16 @@ export async function unfollow(followerId: string, username: string) {
 	await existing.destroy();
 }
 
-export async function createFollow(followerId: string, followingId: string) {
+export async function createFollow(
+	followerId: string,
+	followingId: string,
+	transaction?: Transaction
+) {
 	try {
-		return await UserFollower.create({ followerId, followingId });
+		return await UserFollower.create(
+			{ followerId, followingId },
+			{ transaction }
+		);
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: () => serviceError.alreadyFollowingError(),
@@ -63,38 +71,37 @@ export async function createFollow(followerId: string, followingId: string) {
 	}
 }
 
-export async function findFollow(followerId: string, followingId: string) {
-	return UserFollower.findOne({ where: { followerId, followingId } });
+export async function findFollow(
+	followerId: string,
+	followingId: string,
+	transaction?: Transaction
+) {
+	return UserFollower.findOne({
+		where: { followerId, followingId },
+		transaction
+	});
 }
 
-export async function getFollowers(
+const CONNECTION_KINDS = {
+	followers: { ownerColumn: "followingId", as: "Follower" },
+	following: { ownerColumn: "followerId", as: "Following" }
+} as const;
+
+export async function getConnections(
 	userId: string,
+	kind: ConnectionKind,
 	pagination: PaginatedSearchQuery = {}
 ) {
+	const { ownerColumn, as } = CONNECTION_KINDS[kind];
 	const { rows, count } = await UserFollower.findAndCountAll({
-		where: { followingId: userId },
-		include: [connectionUserInclude("Follower", pagination.search)],
+		where: { [ownerColumn]: userId },
+		include: [connectionUserInclude(as, pagination.search)],
 		order: CONNECTIONS_ORDER,
 		limit: pagination.limit ?? DEFAULT_CONNECTIONS_LIMIT,
 		offset: pagination.offset ?? 0,
 		distinct: true
 	});
-	return { rows, total: count };
-}
-
-export async function getFollowing(
-	userId: string,
-	pagination: PaginatedSearchQuery = {}
-) {
-	const { rows, count } = await UserFollower.findAndCountAll({
-		where: { followerId: userId },
-		include: [connectionUserInclude("Following", pagination.search)],
-		order: CONNECTIONS_ORDER,
-		limit: pagination.limit ?? DEFAULT_CONNECTIONS_LIMIT,
-		offset: pagination.offset ?? 0,
-		distinct: true
-	});
-	return { rows, total: count };
+	return { users: rows.map(row => row[as]), total: count };
 }
 
 export async function getFollowerCount(userId: string) {
@@ -159,10 +166,7 @@ export async function getMutualFollowerIds(
 }
 
 export async function isFollowing(followerId: string, followingId: string) {
-	const existing = await UserFollower.findOne({
-		where: { followerId, followingId }
-	});
-	return !!existing;
+	return (await findFollow(followerId, followingId)) !== null;
 }
 
 export async function areMutualFollowers(a: string, b: string) {
