@@ -11,15 +11,6 @@ export function queueBacklogNotFound(context?: Record<string, unknown>) {
 	);
 }
 
-export function queueBacklogNotOwned(context?: Record<string, unknown>) {
-	return new DomainError(
-		MODULE_NAME,
-		"QUEUE_BACKLOG_NOT_OWNED",
-		"Backlog entry does not belong to you",
-		context
-	);
-}
-
 export function queueGameNotFound(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

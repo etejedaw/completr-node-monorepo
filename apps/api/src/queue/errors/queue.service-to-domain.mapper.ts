@@ -13,9 +13,6 @@ export function queueServiceToDomainMapper(
 	if (error.code === "QUEUE_BACKLOG_NOT_FOUND")
 		return queueDomainError.queueBacklogNotFound(context);
 
-	if (error.code === "QUEUE_BACKLOG_NOT_OWNED")
-		return queueDomainError.queueBacklogNotOwned(context);
-
 	if (error.code === "QUEUE_GAME_NOT_FOUND")
 		return queueDomainError.queueGameNotFound(context);
 

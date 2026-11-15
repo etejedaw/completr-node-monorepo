@@ -19,12 +19,6 @@ describeModuleErrors({
 			message: "Backlog entry not found"
 		},
 		{
-			serviceCode: "QUEUE_BACKLOG_NOT_OWNED",
-			module: "Queue Module",
-			code: "QUEUE_BACKLOG_NOT_OWNED",
-			message: "Backlog entry does not belong to you"
-		},
-		{
 			serviceCode: "QUEUE_GAME_NOT_FOUND",
 			module: "Queue Module",
 			code: "QUEUE_GAME_NOT_FOUND",
@@ -86,7 +80,6 @@ describeDomainToHttpMapper({
 	mapper: queueDomainToHttpMapper,
 	cases: [
 		{ code: "QUEUE_BACKLOG_NOT_FOUND", status: 404 },
-		{ code: "QUEUE_BACKLOG_NOT_OWNED", status: 403 },
 		{ code: "QUEUE_GAME_NOT_FOUND", status: 404 },
 		{ code: "QUEUE_PLATFORM_NOT_FOUND", status: 404 },
 		{ code: "QUEUE_ALREADY_EXISTS", status: 409 },

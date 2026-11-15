@@ -13,25 +13,28 @@ import * as gamesService from "../games/games.service";
 import * as platformsService from "../platforms/platforms.service";
 import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import * as queueServiceError from "./errors/queue.service-error";
-import { moveInOrder } from "./move-in-order.util";
+import { FREE_QUEUE_LIMIT, QUEUE_ORDER } from "./queue.constants";
 import { Queue } from "./queue.model";
 import { type QueueExportQuery } from "./schemas/queue-export-query.schema";
-import { sortQueueExport } from "./sort-queue-export.util";
+import { moveInOrder } from "./utils/move-in-order.util";
+import { sortQueueExport } from "./utils/sort-queue-export.util";
 
-const FREE_QUEUE_LIMIT = 10;
+async function hasUnlimitedQueue(user: RequestUser) {
+	const premiumAccess = await resolvePremiumAccess(user, "queue.unlimited");
+	return premiumAccess.allowed;
+}
 
 async function checkLimit(
-	userId: string,
-	role: string,
-	transaction?: Transaction,
+	user: RequestUser,
+	unlimited: boolean,
+	transaction: Transaction,
 	incomingCount = 1
 ) {
-	const premiumAccess = await resolvePremiumAccess(
-		{ id: userId, role },
-		"queue.unlimited"
-	);
-	if (premiumAccess.allowed) return;
-	const count = await Queue.count({ where: { userId }, transaction });
+	if (unlimited) return;
+	const count = await Queue.count({
+		where: { userId: user.id },
+		transaction
+	});
 	if (count + incomingCount > FREE_QUEUE_LIMIT)
 		throw queueServiceError.limitReachedError();
 }
@@ -57,43 +60,34 @@ export async function addFromGame(
 	platformId: string,
 	user: RequestUser
 ) {
-	await checkLimit(user.id, user.role);
-
 	const game = await gamesService.findGameById(gameId);
 	if (!game) throw queueServiceError.gameNotFoundError();
 
 	const platform = await platformsService.findPlatformById(platformId);
 	if (!platform) throw queueServiceError.platformNotFoundError();
 
-	const transaction = await sequelize.transaction();
+	const unlimited = await hasUnlimitedQueue(user);
 
 	try {
-		const backlogEntry = await backlogService.createNotStartedBacklog(
-			user.id,
-			gameId,
-			platformId,
-			transaction
-		);
+		return await sequelize.transaction(async transaction => {
+			await lockUserQueue(user.id, transaction);
+			await checkLimit(user, unlimited, transaction);
 
-		const position = await findNextPosition(user.id, transaction);
+			const backlogEntry = await backlogService.createNotStartedBacklog(
+				user.id,
+				gameId,
+				platformId,
+				transaction
+			);
+			await appendToQueue(user.id, backlogEntry.id, transaction);
 
-		await Queue.create(
-			{
-				userId: user.id,
-				backlogId: backlogEntry.id,
-				position
-			},
-			{ transaction }
-		);
-
-		await transaction.commit();
-
-		return Queue.findOne({
-			where: { backlogId: backlogEntry.id, userId: user.id },
-			include: backlogService.buildQueueBacklogInclude()
+			return Queue.findOne({
+				where: { backlogId: backlogEntry.id, userId: user.id },
+				include: backlogService.buildQueueBacklogInclude(),
+				transaction
+			});
 		});
 	} catch (error) {
-		await transaction.rollback();
 		rethrowSequelizeError(error, {
 			unique: () => queueServiceError.alreadyInQueueError(),
 			validation: backlogServiceError.validationError
@@ -110,20 +104,21 @@ async function appendToQueue(
 	await Queue.create({ userId, backlogId, position }, { transaction });
 }
 
-export async function addFromBacklog(
+async function addBacklogToQueue(
 	backlogId: string,
 	user: RequestUser,
-	transaction?: Transaction
+	unlimited: boolean,
+	transaction: Transaction
 ) {
-	await checkLimit(user.id, user.role, transaction);
+	await lockUserQueue(user.id, transaction);
+	await checkLimit(user, unlimited, transaction);
 
 	const backlog = await backlogService.findBacklogBasicById(
 		backlogId,
 		transaction
 	);
-	if (!backlog) throw queueServiceError.backlogNotFoundError();
-	if (backlog.userId !== user.id)
-		throw queueServiceError.backlogNotOwnedError();
+	if (!backlog || backlog.userId !== user.id)
+		throw queueServiceError.backlogNotFoundError();
 	if (backlog.status !== "not_started")
 		throw queueServiceError.backlogNotStartedError([backlogId]);
 
@@ -133,17 +128,32 @@ export async function addFromBacklog(
 	});
 	if (existing) throw queueServiceError.alreadyInQueueError();
 
+	await appendToQueue(user.id, backlogId, transaction);
+	return Queue.findOne({
+		where: { backlogId, userId: user.id },
+		include: backlogService.buildQueueBacklogInclude(),
+		transaction
+	});
+}
+
+export async function addFromBacklog(
+	backlogId: string,
+	user: RequestUser,
+	transaction?: Transaction
+) {
+	const unlimited = await hasUnlimitedQueue(user);
+
 	try {
-		if (transaction) await appendToQueue(user.id, backlogId, transaction);
-		else
-			await sequelize.transaction(queueTransaction =>
-				appendToQueue(user.id, backlogId, queueTransaction)
+		if (transaction)
+			return await addBacklogToQueue(
+				backlogId,
+				user,
+				unlimited,
+				transaction
 			);
-		return Queue.findOne({
-			where: { backlogId, userId: user.id },
-			include: backlogService.buildQueueBacklogInclude(),
-			transaction
-		});
+		return await sequelize.transaction(queueTransaction =>
+			addBacklogToQueue(backlogId, user, unlimited, queueTransaction)
+		);
 	} catch (error) {
 		rethrowSequelizeError(error, {
 			unique: () => queueServiceError.alreadyInQueueError()
@@ -151,19 +161,19 @@ export async function addFromBacklog(
 	}
 }
 
-export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
-	if (backlogIds.length === 0) {
-		await Queue.destroy({ where: { userId: user.id } });
-		return [];
-	}
-
+async function validateReplacement(
+	user: RequestUser,
+	backlogIds: string[],
+	transaction: Transaction
+) {
 	const premiumAccess = await resolvePremiumAccess(user, "queue.unlimited");
 	if (!premiumAccess.allowed && backlogIds.length > FREE_QUEUE_LIMIT)
 		throw queueServiceError.limitReachedError();
 
 	const backlogs = await backlogService.findBacklogsByUserAndIds(
 		user.id,
-		backlogIds
+		backlogIds,
+		transaction
 	);
 	if (backlogs.length !== backlogIds.length) {
 		const foundIds = new Set(backlogs.map(b => b.id));
@@ -175,26 +185,27 @@ export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
 		.map(b => b.id);
 	if (invalid.length > 0)
 		throw queueServiceError.backlogNotStartedError(invalid);
+}
 
-	const entries = backlogIds.map((backlogId, index) => ({
-		userId: user.id,
-		backlogId,
-		position: index + 1
-	}));
+export async function replaceQueue(user: RequestUser, backlogIds: string[]) {
 	await sequelize.transaction(async transaction => {
 		await lockUserQueue(user.id, transaction);
+		if (backlogIds.length > 0)
+			await validateReplacement(user, backlogIds, transaction);
+
 		await Queue.destroy({ where: { userId: user.id }, transaction });
-		await Queue.bulkCreate(entries, { transaction });
+		await Queue.bulkCreate(
+			backlogIds.map((backlogId, index) => ({
+				userId: user.id,
+				backlogId,
+				position: index + 1
+			})),
+			{ transaction }
+		);
 	});
 
-	return Queue.findAll({
-		where: { userId: user.id },
-		include: backlogService.buildQueueBacklogInclude(),
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
-	});
+	if (backlogIds.length === 0) return [];
+	return findQueueByUserId(user.id);
 }
 
 async function applyOrder(
@@ -224,10 +235,7 @@ export async function moveQueueEntry(
 		const entries = await Queue.findAll({
 			where: { userId: user.id },
 			attributes: ["id", "backlogId"],
-			order: [
-				["position", "ASC"],
-				["id", "ASC"]
-			],
+			order: QUEUE_ORDER,
 			transaction
 		});
 		const queueIdByBacklogId = new Map(
@@ -253,10 +261,7 @@ export async function findQueueBacklogIdsByUserId(userId: string) {
 	return Queue.findAll({
 		where: { userId },
 		attributes: ["backlogId"],
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
+		order: QUEUE_ORDER
 	});
 }
 
@@ -264,10 +269,7 @@ export async function findQueueByUserId(userId: string) {
 	return Queue.findAll({
 		where: { userId },
 		include: backlogService.buildQueueBacklogInclude(),
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
+		order: QUEUE_ORDER
 	});
 }
 
@@ -284,10 +286,7 @@ export async function findQueueByUserIdPaginated(
 	const query: Record<string, unknown> = {
 		where: { userId },
 		include,
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
+		order: QUEUE_ORDER
 	};
 	if (pagination.limit) query.limit = pagination.limit;
 	if (pagination.offset) query.offset = pagination.offset;
@@ -343,6 +342,8 @@ export async function removeByBacklogId(backlogId: string, userId: string) {
 }
 
 export async function bulkAddToQueue(user: RequestUser, backlogIds: string[]) {
+	const unlimited = await hasUnlimitedQueue(user);
+
 	return sequelize.transaction(async transaction => {
 		await lockUserQueue(user.id, transaction);
 		const owned = await backlogService.findBacklogsByUserAndIds(
@@ -371,7 +372,7 @@ export async function bulkAddToQueue(user: RequestUser, backlogIds: string[]) {
 		);
 
 		if (toAdd.length > 0) {
-			await checkLimit(user.id, user.role, transaction, toAdd.length);
+			await checkLimit(user, unlimited, transaction, toAdd.length);
 			const firstPosition = await findNextPosition(user.id, transaction);
 			await Queue.bulkCreate(
 				toAdd.map((backlogId, index) => ({
@@ -424,10 +425,7 @@ export async function findQueueForExport(
 	const entries = await Queue.findAll({
 		where: { userId },
 		include: backlogService.buildQueueExportBacklogInclude(filters.search),
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
+		order: QUEUE_ORDER
 	});
 	return sortQueueExport(entries, filters.sort);
 }

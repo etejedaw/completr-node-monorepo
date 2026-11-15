@@ -9,13 +9,6 @@ export function backlogNotFoundError() {
 	});
 }
 
-export function backlogNotOwnedError() {
-	return new ServiceError("QUEUE_BACKLOG_NOT_OWNED", {
-		...BASE_OPTIONS,
-		raw: undefined
-	});
-}
-
 export function gameNotFoundError() {
 	return new ServiceError("QUEUE_GAME_NOT_FOUND", {
 		...BASE_OPTIONS,
