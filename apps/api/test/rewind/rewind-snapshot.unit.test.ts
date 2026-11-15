@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { rewindViewToRewind } from "../../src/rewind/mappers/rewind-view-to-rewind.mapper";
-import { type RewindOwner } from "../../src/rewind/rewind.interface";
+import {
+	type RewindOwner,
+	type RewindStoredHighlights
+} from "../../src/rewind/rewind.interface";
 import { type RewindViewSource } from "../../src/rewind/rewind-freeze.interface";
 import { type RewindRecord } from "../../src/rewind/rewind-record.interface";
 import { type RewindRun } from "../../src/rewind/rewind-run.interface";
@@ -199,7 +202,7 @@ void describe("rewindViewToRewind", () => {
 	const view = buildRewindView(
 		viewSource(
 			[
-				finishedRun("hades", "2026-03-10"),
+				finishedRun("hades", "2026-03-10", { releaseYear: 1998 }),
 				finishedRun("celeste", "2025-04-04")
 			],
 			{ platinums: 3 }
@@ -238,6 +241,29 @@ void describe("rewindViewToRewind", () => {
 			"personaWithoutPlatinums"
 		])
 			assert.equal(key in rewind, false);
+	});
+
+	void it("serves the classic stored in the photo", () => {
+		assert.equal(view.highlights.classic?.code, "hades");
+		assert.equal(
+			rewindViewToRewind(view, live).highlights.classic?.releaseYear,
+			1998
+		);
+	});
+
+	void it("reads a photo frozen before the classic existed as one without it", () => {
+		const highlightsBeforeClassic: RewindStoredHighlights = {
+			...view.highlights
+		};
+		delete highlightsBeforeClassic.classic;
+
+		const rewind = rewindViewToRewind(
+			{ ...view, highlights: highlightsBeforeClassic },
+			live
+		);
+
+		assert.equal(rewind.highlights.classic, null);
+		assert.equal(rewind.highlights.topRated, view.highlights.topRated);
 	});
 
 	void it("serves the persona and totals without platinums to a viewer without access to them", () => {

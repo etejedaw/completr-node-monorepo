@@ -371,6 +371,16 @@ void describe("GET /users/:username/rewinds/:year", () => {
 			[2, 1]
 		);
 		assert.equal(data.highlights.longestStreak, null);
+		assert.deepEqual(data.highlights.classic, {
+			gameId: games.secret.id,
+			code: games.secret.code,
+			title: "Secret Game",
+			coverUrl: `https://img.test/${games.secret.code}.jpg`,
+			backgroundUrl: `https://img.test/${games.secret.code}-bg.jpg`,
+			finishedAt: "2025-05-01",
+			platformAbbreviation: playstation.abbreviation,
+			releaseYear: 1998
+		});
 		assert.deepEqual(data.yearMix, {
 			lengthMix: [
 				{ range: "under-5", count: 0 },
@@ -434,6 +444,7 @@ void describe("GET /users/:username/rewinds/:year", () => {
 				name: "Action",
 				count: 2
 			});
+			assert.equal(data.highlights.classic, null);
 			assert.deepEqual(data.yearMix, {
 				lengthMix: [
 					{ range: "under-5", count: 0 },

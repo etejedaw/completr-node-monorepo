@@ -12,6 +12,10 @@ import {
 	startRewindFreezeScheduler
 } from "../../src/jobs/rewind-freeze.scheduler";
 import { type Platform } from "../../src/platforms/platform.model";
+import {
+	type RewindStoredHighlights,
+	type RewindView
+} from "../../src/rewind/rewind.interface";
 import { Rewind } from "../../src/rewind/rewind.model";
 import * as rewindFreezeService from "../../src/rewind/services/rewind-freeze.service";
 import { RewindEdition } from "../../src/rewind-editions/rewind-edition.model";
@@ -104,6 +108,12 @@ async function generateAndClose(player: Account) {
 function finishedTitles(response: { body: { data: unknown } }) {
 	const data = response.body.data as { finishedGames: { title: string }[] };
 	return data.finishedGames.map(game => game.title);
+}
+
+function withoutClassic(view: RewindView): RewindView {
+	const highlights: RewindStoredHighlights = { ...view.highlights };
+	delete highlights.classic;
+	return { ...view, highlights };
 }
 
 async function requireEdition(year: number) {
@@ -455,6 +465,46 @@ void describe("reading a frozen Rewind", () => {
 		assert.equal(ownerView.body.data.totals.platinums, 1);
 		assert.equal(hidden.status, 403);
 		assert.equal(hidden.body.type, "USER_PRIVATE");
+	});
+
+	void it("freezes the classic into the photo and reads a photo frozen before it existed as one without it", async () => {
+		const player = await signUpOn("2025-01-15T00:00:00.000Z", "user");
+		const doom = await createGame({ title: "Doom" });
+		await doom.update({ releaseAt: new Date("1993-12-10") });
+		await addRun(player, doom, platform, { finishedAt: "2026-03-10" });
+		await generateAndClose(player);
+		await freezeClosedRewindEditions();
+
+		const row = await findRewindRow(player, 2026);
+		assert.ok(row?.snapshot?.public);
+		assert.equal(row.snapshot.owner.highlights.classic?.releaseYear, 1993);
+		for (const read of [
+			await readRewind(player.user.username, 2026),
+			await readRewind(player.user.username, 2026, player.authorization)
+		]) {
+			assert.equal(read.status, 200);
+			assert.equal(read.body.data.highlights.classic.title, "Doom");
+			assert.equal(read.body.data.highlights.classic.releaseYear, 1993);
+		}
+
+		const { owner, public: visitor } = row.snapshot;
+		await row.update({
+			snapshot: {
+				...row.snapshot,
+				owner: withoutClassic(owner),
+				public: withoutClassic(visitor)
+			}
+		});
+		const reads = await Promise.all([
+			readRewind(player.user.username, 2026),
+			readRewind(player.user.username, 2026, player.authorization)
+		]);
+
+		for (const read of reads) {
+			assert.equal(read.status, 200);
+			assert.equal(read.body.data.highlights.classic, null);
+			assert.deepEqual(finishedTitles(read), ["Doom"]);
+		}
 	});
 
 	void it("answers 404 to garbage years on a frozen account and keeps the other years live", async () => {

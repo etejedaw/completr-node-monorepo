@@ -83,7 +83,8 @@ export function buildRewind(overrides: Partial<Rewind> = {}): Rewind {
 				{ name: "PC", abbreviation: "PC", count: 12 },
 				{ name: "PlayStation 5", abbreviation: "PS5", count: 4 }
 			],
-			longestStreak: { months: 5, fromMonth: 3, toMonth: 7 }
+			longestStreak: { months: 5, fromMonth: 3, toMonth: 7 },
+			classic: null
 		},
 		yearMix: {
 			lengthMix: [
@@ -139,7 +140,8 @@ export function emptyRewind(): Rewind {
 			lastFinished: null,
 			topGenres: [],
 			topPlatforms: [],
-			longestStreak: null
+			longestStreak: null,
+			classic: null
 		}
 	});
 }

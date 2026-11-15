@@ -328,7 +328,8 @@ void describe("buildRewindRecapContent", () => {
 				topPlatforms: [
 					{ name: "PlayStation 5", abbreviation: "PS5", count: 1 }
 				],
-				longestStreak: { months: 1, fromMonth: 3, toMonth: 3 }
+				longestStreak: { months: 1, fromMonth: 3, toMonth: 3 },
+				classic: null
 			}
 		});
 
