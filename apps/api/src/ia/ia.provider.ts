@@ -14,6 +14,8 @@ import { parseJsonOutput } from "./utils/parse-json-output.util";
 
 const MAX_TEMPERATURE = 2;
 const JSON_ATTEMPTS = 3;
+const JSON_TOTAL_BUDGET_MS = 45_000;
+const MIN_RETRY_BUDGET_MS = 5_000;
 const SCHEMA_NAME_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
 
 export class IaProvider {
@@ -56,10 +58,17 @@ export class IaProvider {
 		};
 
 		const failures: string[] = [];
+		const deadline = Date.now() + JSON_TOTAL_BUDGET_MS;
 		for (let attempt = 1; attempt <= JSON_ATTEMPTS; attempt++) {
-			const result = await this.model.generateJson(
-				this.withRetryFeedback(modelRequest, failures)
-			);
+			const remainingMs = deadline - Date.now();
+			if (attempt > 1 && remainingMs < MIN_RETRY_BUDGET_MS) break;
+			const result = await this.model.generateJson({
+				...this.withRetryFeedback(modelRequest, failures),
+				timeoutMs: Math.min(
+					modelRequest.timeoutMs ?? remainingMs,
+					remainingMs
+				)
+			});
 			const outcome = this.readJsonOutput(schema, result);
 			if (outcome.ok) return outcome.data;
 			failures.push(outcome.reason);
