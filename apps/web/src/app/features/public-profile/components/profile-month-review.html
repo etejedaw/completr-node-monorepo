@@ -88,11 +88,11 @@
 				[width]="420"
 				[compact]="true"
 				framed
-				class="w-14 aspect-[2/3] shrink-0 rounded-md shadow-lg shadow-black/60"
+				class="w-14 aspect-[2/3] shrink-0 rounded-md shadow-card"
 			/>
 			<span class="flex-1 min-w-0 flex flex-col gap-1">
 				<span
-					class="inline-flex items-center gap-1 text-[0.625rem] font-semibold uppercase tracking-[0.16em]"
+					class="inline-flex items-center gap-1 text-tiny font-semibold uppercase tracking-[0.16em]"
 					[class]="highlight.labelClass"
 				>
 					<span aria-hidden="true" class="material-icons text-sm"
@@ -101,10 +101,10 @@
 					{{ highlight.label }}
 				</span>
 				<span
-					class="font-display text-base font-semibold text-white leading-tight line-clamp-2"
+					class="font-display text-base font-semibold text-on-image leading-tight line-clamp-2"
 					>{{ entry.game.title }}</span
 				>
-				<span class="text-xs text-white/70 tabular-nums"
+				<span class="text-xs text-on-image/70 tabular-nums"
 					>{{ highlight.value ?? entry.platform.abbreviation }}</span
 				>
 			</span>

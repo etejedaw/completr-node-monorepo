@@ -2,16 +2,19 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { ActivatedRoute } from "@angular/router";
 import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
 import { type BacklogEntry } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { PointerService } from "../../../core/services/pointer";
+import { StorageService } from "../../../core/services/storage";
 import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
 import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
@@ -36,6 +39,7 @@ import {
 	type ProfileAccessError,
 	ProfileAccessState
 } from "../components/profile-access-state";
+import { profileAccessErrorOf } from "../services/profile-access-error";
 import { PublicLibraryService } from "../services/public-library.service";
 
 const PAGE_SIZE = 50;
@@ -64,6 +68,7 @@ const SHAREABLE_FILTER_KEYS = [
 type PublicBacklogViewMode = "diary" | "hardcore";
 type SortOrder = "asc" | "desc";
 
+const SEARCH_DEBOUNCE_MS = 300;
 const VIEW_MODE_STORAGE_KEY = "completr.publicBacklog.viewMode";
 
 const PUBLIC_BACKLOG_VIEW_MODES: readonly ViewModeOption<PublicBacklogViewMode>[] =
@@ -82,10 +87,8 @@ const PUBLIC_BACKLOG_VIEW_MODES: readonly ViewModeOption<PublicBacklogViewMode>[
 		}
 	];
 
-function readStoredViewMode(): PublicBacklogViewMode {
-	return localStorage.getItem(VIEW_MODE_STORAGE_KEY) === "hardcore"
-		? "hardcore"
-		: "diary";
+function parseStoredViewMode(saved: string | null): PublicBacklogViewMode {
+	return saved === "hardcore" ? "hardcore" : "diary";
 }
 
 function defaultSortForStatus(status: string): {
@@ -128,6 +131,9 @@ export class UserBacklog implements OnInit {
 	private readonly route = inject(ActivatedRoute);
 	private readonly libraryService = inject(PublicLibraryService);
 	private readonly authService = inject(AuthService);
+	private readonly storage = inject(StorageService);
+	private readonly destroyRef = inject(DestroyRef);
+	private latestLoadId = 0;
 
 	protected readonly username = signal("");
 	protected readonly backLink = computed(() =>
@@ -163,8 +169,9 @@ export class UserBacklog implements OnInit {
 			: defaultSortForStatus(this.activeStatus())
 	);
 	protected readonly viewModes = PUBLIC_BACKLOG_VIEW_MODES;
-	protected readonly viewMode =
-		signal<PublicBacklogViewMode>(readStoredViewMode());
+	protected readonly viewMode = signal<PublicBacklogViewMode>(
+		parseStoredViewMode(this.storage.get(VIEW_MODE_STORAGE_KEY))
+	);
 	protected readonly viewName = signal("");
 	protected readonly viewDescription = signal("");
 
@@ -210,7 +217,11 @@ export class UserBacklog implements OnInit {
 
 	ngOnInit() {
 		this.searchSubject
-			.pipe(debounceTime(300), distinctUntilChanged())
+			.pipe(
+				debounceTime(SEARCH_DEBOUNCE_MS),
+				distinctUntilChanged(),
+				takeUntilDestroyed(this.destroyRef)
+			)
 			.subscribe(query => {
 				this.searchQuery.set(query);
 				this.offset.set(0);
@@ -218,10 +229,13 @@ export class UserBacklog implements OnInit {
 			});
 
 		if (this.authService.token() && !this.authService.user()) {
-			this.authService.loadUser().subscribe({
-				next: () => this.init(),
-				error: () => this.init()
-			});
+			this.authService
+				.loadUser()
+				.pipe(takeUntilDestroyed(this.destroyRef))
+				.subscribe({
+					next: () => this.init(),
+					error: () => this.init()
+				});
 		} else {
 			this.init();
 		}
@@ -248,24 +262,24 @@ export class UserBacklog implements OnInit {
 		this.load();
 	}
 
-	onSearch(query: string) {
+	protected onSearch(query: string) {
 		this.searchSubject.next(query);
 	}
 
-	filterByStatus(status: string) {
+	protected filterByStatus(status: string) {
 		this.activeStatus.set(status);
 		this.offset.set(0);
 		this.load();
 	}
 
-	goToOffset(offset: number) {
+	protected goToOffset(offset: number) {
 		this.offset.set(offset);
 		this.load();
 	}
 
 	protected setViewMode(mode: PublicBacklogViewMode) {
 		this.viewMode.set(mode);
-		localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+		this.storage.set(VIEW_MODE_STORAGE_KEY, mode);
 	}
 
 	protected sortByColumn(column: string) {
@@ -293,17 +307,24 @@ export class UserBacklog implements OnInit {
 		if (this.activeStatus()) filters["status"] = this.activeStatus();
 		if (this.searchQuery()) filters["search"] = this.searchQuery();
 
-		this.libraryService.getUserBacklog(this.username(), filters).subscribe({
-			next: result => {
-				this.entries.set(result.items);
-				this.total.set(result.total);
-				this.isLoading.set(false);
-			},
-			error: err => {
-				if (err.status === 403) this.error.set("private");
-				else if (err.status === 404) this.error.set("not_found");
-				this.isLoading.set(false);
-			}
-		});
+		const loadId = ++this.latestLoadId;
+		this.libraryService
+			.getUserBacklog(this.username(), filters)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: result => {
+					if (loadId !== this.latestLoadId) return;
+					this.entries.set(result.items);
+					this.total.set(result.total);
+					this.isLoading.set(false);
+				},
+				error: failure => {
+					if (loadId !== this.latestLoadId) return;
+					this.error.set(profileAccessErrorOf(failure));
+					this.entries.set([]);
+					this.total.set(0);
+					this.isLoading.set(false);
+				}
+			});
 	}
 }

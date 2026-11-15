@@ -32,13 +32,14 @@ import {
 	UiPagination,
 	UiSkeleton
 } from "../../../shared/ui";
-import { injectFollowActions } from "../../users-discover/follow-actions";
+import { injectFollowActions } from "../../../shared/utils/inject-follow-actions";
 import { UserCard } from "../../users-discover/user-card/user-card";
-import {
-	type ProfileAccessError,
-	ProfileAccessState
-} from "../components/profile-access-state";
+import { ProfileAccessState } from "../components/profile-access-state";
 import { PublicProfileService } from "../public-profile.service";
+import {
+	hasLoadFailedOf,
+	profileAccessErrorOf
+} from "../services/profile-access-error";
 import { type ConnectionsPage } from "../services/public-social.model";
 import { PublicSocialService } from "../services/public-social.service";
 
@@ -144,21 +145,12 @@ export class UserConnections {
 		() => this.connections.isLoading() || this.inRangeOffset() !== null
 	);
 
-	private readonly errorStatus = computed(() => {
-		const error = this.connections.error() as
-			{ status?: number } | undefined;
-		return error ? (error.status ?? 0) : null;
-	});
+	protected readonly error = computed(() =>
+		profileAccessErrorOf(this.connections.error())
+	);
 
-	protected readonly error = computed<ProfileAccessError | null>(() => {
-		const status = this.errorStatus();
-		if (status === 403) return "private";
-		if (status === 404) return "not_found";
-		return null;
-	});
-
-	protected readonly hasLoadFailed = computed(
-		() => this.errorStatus() !== null && this.error() === null
+	protected readonly hasLoadFailed = computed(() =>
+		hasLoadFailedOf(this.connections.error())
 	);
 
 	protected readonly users = computed(() => this.page()?.users ?? []);
