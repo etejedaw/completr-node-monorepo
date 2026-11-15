@@ -94,13 +94,16 @@ describe("HelpPage", () => {
 		await renderHelp();
 
 		const section = document.getElementById("rewind")!;
-		const text = section.textContent ?? "";
+		const text = (section.textContent ?? "").replace(/\s+/g, " ");
 
-		expect(text).toContain("1 December");
-		expect(text).toContain("31 January");
-		expect(text).toContain("1 to 7 January");
+		expect(text).toContain("opens for a season");
+		expect(text).toContain("with Premium or a Rewind gift");
+		expect(text).toContain("spends one AI generation");
+		expect(text).toContain("grace window");
+		expect(text).toContain("kept as it was at that moment");
 		expect(text).toContain("English or Spanish");
 		expect(text).toContain("Generate your Rewind");
+		expect(text).not.toMatch(/\b\d{1,2} (December|January)\b/);
 	});
 
 	it("links to the user's own Rewind archive when signed in", async () => {
