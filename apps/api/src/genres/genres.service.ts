@@ -1,5 +1,3 @@
-import { Sequelize } from "sequelize";
-
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { titleToSlug } from "../common/utils/title-to-slug.util";
 import { type RegisterGenreDto } from "./dtos/register-genre.dto";
@@ -29,12 +27,17 @@ export async function findGenreByCode(code: string) {
 	return await Genre.findOne({ where: { code } });
 }
 
-export async function findGenreById(id: string) {
+async function findGenreById(id: string) {
 	return await Genre.findOne({ where: { id } });
 }
 
 export async function findAllGenres() {
-	return await Genre.findAll();
+	return Genre.findAll({
+		order: [
+			["name", "ASC"],
+			["id", "ASC"]
+		]
+	});
 }
 
 export async function findGenresByCode(codes: string[]) {
@@ -57,12 +60,6 @@ export async function updateGenre(id: string, updateGenreDto: UpdateGenreDto) {
 			validation: genreServiceError.validationError
 		});
 	}
-}
-
-export async function findRandomGenre() {
-	return await Genre.findOne({
-		order: Sequelize.literal("RANDOM()")
-	});
 }
 
 export async function removeGenre(id: string) {
