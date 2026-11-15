@@ -100,6 +100,10 @@ void describe("GET /admin/users/:userId/data-export", () => {
 
 		assert.equal(body.account.email, owner.email);
 		assert.equal(body.privacySettings.profileVisibility, "public");
+		assert.equal(
+			body.privacySettings.rewindIgnoresProfileVisibility,
+			false
+		);
 		assert.equal(body.premium.grants.length, 1);
 		assert.equal(body.backlog.length, 1);
 		assert.deepEqual(body.backlog[0].game, {
