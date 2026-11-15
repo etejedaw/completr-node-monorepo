@@ -175,7 +175,7 @@
 					>
 					<kbd
 						aria-hidden="true"
-						class="hidden lg:inline-flex items-center justify-center min-w-5 h-5 px-1.5 mr-1.5 rounded border border-line bg-canvas/60 text-[0.6875rem] font-sans text-fg-muted"
+						class="hidden lg:inline-flex items-center justify-center min-w-5 h-5 px-1.5 mr-1.5 rounded border border-line bg-canvas/60 text-caption font-sans text-fg-muted"
 						>/</kbd
 					>
 				</button>
@@ -274,7 +274,7 @@
 						>{{ tab.icon }}</span
 					>
 				</span>
-				<span class="text-[0.6875rem] font-medium leading-none"
+				<span class="text-caption font-medium leading-none"
 					>{{ tab.label }}</span
 				>
 			</a>
@@ -296,9 +296,7 @@
 				>
 					<span class="material-icons text-[1.375rem]">apps</span>
 				</span>
-				<span class="text-[0.6875rem] font-medium leading-none"
-					>More</span
-				>
+				<span class="text-caption font-medium leading-none">More</span>
 			</button>
 		</li>
 	</ul>
@@ -408,7 +406,7 @@
 			<li>
 				<a
 					[routerLink]="item.route"
-					[ngClass]="pendingNavClasses(item.route)"
+					[class]="pendingNavClasses(item.route)"
 					[routerLinkActive]="navActiveClasses"
 					ariaCurrentWhenActive="page"
 					[attr.title]="railMode() ? item.label : (item.tooltip ?? null)"
