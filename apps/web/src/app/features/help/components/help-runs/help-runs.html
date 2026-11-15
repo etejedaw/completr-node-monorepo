@@ -1,0 +1,62 @@
+<section
+	id="runs"
+	aria-labelledby="runs-title"
+	class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
+	appInView
+	inViewRootMargin="-30% 0px -65% 0px"
+	(inViewChange)="scrollSpy().onSectionInView('runs', $event)"
+>
+	<span uiEyebrow tone="brand">01 · My Games</span>
+	<h2
+		id="runs-title"
+		class="font-display m-0 mt-1 text-2xl sm:text-3xl font-bold tracking-tight"
+	>
+		Every game you track is a run
+	</h2>
+	<div
+		class="mt-4 max-w-[68ch] flex flex-col gap-3 text-lead leading-relaxed text-fg-secondary"
+	>
+		<p class="m-0">
+			A <strong class="text-fg">run</strong> is one playthrough: its
+			status, platform, dates, your rating, the hours it really took and
+			your notes or review. One game can have several runs, like PS5 now
+			and a replay on Switch years later.
+		</p>
+	</div>
+
+	<figure class="m-0 mt-6 max-w-2xl">
+		<div
+			class="grid grid-cols-[auto_minmax(0,1fr)] sm:grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 p-4 sm:p-5 rounded-card border border-line bg-surface"
+		>
+			<app-game-poster
+				[src]="null"
+				title="Florence"
+				[width]="420"
+				[compact]="true"
+				class="w-16 sm:w-20 aspect-[2/3] rounded-md overflow-hidden shadow-lg shadow-black/40"
+			/>
+			<div class="min-w-0 flex flex-col gap-2">
+				<p class="m-0 font-display text-lg font-semibold text-fg">
+					Florence
+				</p>
+				<div
+					class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-fg-muted"
+				>
+					<app-backlog-status-badge status="completed" />
+					<span>PC</span>
+					<span aria-hidden="true">·</span>
+					<span>1.2 h played</span>
+				</div>
+				<app-star-rating [value]="4.5" [readonly]="true" size="sm" />
+			</div>
+			<app-ratio-summary
+				class="col-span-2 sm:col-span-1 justify-self-start sm:justify-self-end"
+				[ratio]="82"
+				[personalRatio]="75"
+			/>
+		</div>
+		<figcaption class="mt-2 text-xs text-fg-muted">
+			A finished run: rated 4.5 stars, played in 1.2 hours on PC.
+		</figcaption>
+	</figure>
+</section>

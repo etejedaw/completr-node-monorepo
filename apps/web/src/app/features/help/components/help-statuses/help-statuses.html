@@ -1,0 +1,42 @@
+<section
+	id="statuses"
+	aria-labelledby="statuses-title"
+	class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
+	appInView
+	inViewRootMargin="-30% 0px -65% 0px"
+	(inViewChange)="scrollSpy().onSectionInView('statuses', $event)"
+>
+	<span uiEyebrow tone="brand">04 · Statuses</span>
+	<h2
+		id="statuses-title"
+		class="font-display m-0 mt-1 text-2xl sm:text-3xl font-bold tracking-tight"
+	>
+		Where each run stands
+	</h2>
+	<dl
+		class="m-0 mt-6 grid gap-px rounded-card border border-line bg-line overflow-hidden sm:grid-cols-2 lg:grid-cols-5"
+	>
+		@for (entry of statuses; track entry.status; let last = $last) {
+		<div
+			class="flex flex-col gap-2 p-4 bg-canvas lg:col-span-1"
+			[class.sm:col-span-2]="last"
+		>
+			<dt>
+				<app-backlog-status-badge [status]="entry.status" />
+			</dt>
+			<dd class="m-0 text-sm text-fg-secondary leading-relaxed">
+				{{ entry.text }}
+			</dd>
+		</div>
+		}
+	</dl>
+	<p
+		class="m-0 mt-4 flex items-start gap-2 max-w-[68ch] text-sm text-fg-muted leading-relaxed"
+	>
+		<span aria-hidden="true" class="material-icons text-base text-nav-queue"
+			>playlist_remove</span
+		>
+		Starting, finishing, dropping or marking a run as endless takes it out
+		of Up Next on its own.
+	</p>
+</section>

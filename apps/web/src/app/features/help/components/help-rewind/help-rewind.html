@@ -1,0 +1,144 @@
+<section
+	id="rewind"
+	aria-labelledby="rewind-title"
+	class="scroll-mt-[calc(var(--topbar-height)+5.5rem)] lg:scroll-mt-[calc(var(--topbar-height)+1.5rem)]"
+	appInView
+	inViewRootMargin="-30% 0px -65% 0px"
+	(inViewChange)="scrollSpy().onSectionInView('rewind', $event)"
+>
+	<span uiEyebrow tone="brand">07 · Rewind</span>
+	<h2
+		id="rewind-title"
+		class="font-display m-0 mt-1 text-2xl sm:text-3xl font-bold tracking-tight"
+	>
+		Your year in games, once a year
+	</h2>
+	<p
+		class="m-0 mt-4 max-w-[68ch] text-lead leading-relaxed text-fg-secondary"
+	>
+		Rewind is a summary of one calendar year of your runs: the games you
+		<strong class="text-fg">finished, dropped and started</strong>, the
+		hours you played, your highlights, a persona that sums up how you
+		played, a month-by-month timeline and a few charts. You get one Rewind
+		per year.
+	</p>
+	<dl class="m-0 mt-6 grid gap-3 sm:grid-cols-2 max-w-3xl">
+		<div class="p-4 rounded-card border border-line bg-surface/40">
+			<dt class="flex items-center gap-2 text-sm font-semibold text-fg">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-brand"
+					>auto_awesome</span
+				>
+				You generate it
+			</dt>
+			<dd class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed">
+				Nothing happens on its own. From your profile, press
+				<strong class="text-fg">Generate your Rewind</strong>. Until
+				then nobody else can see that year.
+			</dd>
+		</div>
+		<div class="p-4 rounded-card border border-line bg-surface/40">
+			<dt class="flex items-center gap-2 text-sm font-semibold text-fg">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-brand"
+					>event</span
+				>
+				Open for a season
+			</dt>
+			<dd class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed">
+				Each year's Rewind opens for a season. Generating, regenerating
+				and adding an AI recap only work while it's open, and meanwhile
+				that year's Rewind is featured on your profile. A year you
+				didn't generate during its season can't be generated later. With
+				Premium you can also generate earlier years, from the year you
+				joined and with games started or finished in them.
+			</dd>
+		</div>
+		<div class="p-4 rounded-card border border-line bg-surface/40">
+			<dt class="flex items-center gap-2 text-sm font-semibold text-fg">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-brand"
+					>translate</span
+				>
+				Language
+			</dt>
+			<dd class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed">
+				Pick English or Spanish when you generate it. Everyone who opens
+				your Rewind reads it in that language.
+			</dd>
+		</div>
+		<div class="p-4 rounded-card border border-line bg-surface/40">
+			<dt class="flex items-center gap-2 text-sm font-semibold text-fg">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-brand"
+					>workspace_premium</span
+				>
+				AI recap
+			</dt>
+			<dd class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed">
+				An AI-written summary and extra charts, with Premium or a Rewind
+				gift. When generating, two switches decide whether it includes
+				your private runs and uses your notes. Without either, your
+				Rewind is generated once and its options stay as they are.
+			</dd>
+		</div>
+		<div class="p-4 rounded-card border border-line bg-surface/40">
+			<dt class="flex items-center gap-2 text-sm font-semibold text-fg">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-brand"
+					>autorenew</span
+				>
+				AI generations
+			</dt>
+			<dd class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed">
+				Every use of the AI spends one AI generation of that year's
+				Rewind, the first one too: generating with the recap,
+				regenerating to change the options or adding the recap later.
+				How many you get depends on your access. During a short grace
+				window inside the season you get one extra for the current year,
+				and if the AI fails the generation is given back.
+			</dd>
+		</div>
+		<div class="p-4 rounded-card border border-line bg-surface/40">
+			<dt class="flex items-center gap-2 text-sm font-semibold text-fg">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-brand"
+					>ac_unit</span
+				>
+				Frozen when it closes
+			</dt>
+			<dd class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed">
+				When the season ends, every Rewind generated during it is kept
+				as it was at that moment: games you add later or a run that
+				changes privacy don't change it anymore. Hiding your Rewind or
+				your Platinums still applies right away.
+			</dd>
+		</div>
+		<div
+			class="p-4 rounded-card border border-line bg-surface/40 sm:col-span-2"
+		>
+			<dt class="flex items-center gap-2 text-sm font-semibold text-fg">
+				<span
+					aria-hidden="true"
+					class="material-icons text-base text-brand"
+					>ios_share</span
+				>
+				Sharing
+			</dt>
+			<dd class="m-0 mt-1.5 text-sm text-fg-secondary leading-relaxed">
+				Every Rewind has an image made for stories and a link preview.
+				Use Share, Download or Copy link from the Rewind page.
+			</dd>
+		</div>
+	</dl>
+	<a uiButton variant="secondary" [routerLink]="rewindLink()" class="mt-5">
+		<span aria-hidden="true" class="material-icons text-base">history</span>
+		Open my Rewinds
+	</a>
+</section>
