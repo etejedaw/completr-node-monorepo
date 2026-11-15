@@ -44,20 +44,6 @@ export function backlogsNotFoundError(missing: string[]) {
 	});
 }
 
-export function sourceGameMismatchError() {
-	return new ServiceError("QUEUE_SOURCE_GAME_MISMATCH", {
-		...BASE_OPTIONS,
-		raw: undefined
-	});
-}
-
-export function sourceBacklogMismatchError() {
-	return new ServiceError("QUEUE_SOURCE_BACKLOG_MISMATCH", {
-		...BASE_OPTIONS,
-		raw: undefined
-	});
-}
-
 export function backlogNotStartedError(backlogIds?: string[]) {
 	return new ServiceError("QUEUE_BACKLOG_NOT_STARTED", {
 		...BASE_OPTIONS,

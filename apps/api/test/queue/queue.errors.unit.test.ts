@@ -49,18 +49,6 @@ describeModuleErrors({
 			message: "One or more backlog entries not found"
 		},
 		{
-			serviceCode: "QUEUE_SOURCE_GAME_MISMATCH",
-			module: "Queue Module",
-			code: "QUEUE_SOURCE_MISMATCH",
-			message: "Body field does not match source query param"
-		},
-		{
-			serviceCode: "QUEUE_SOURCE_BACKLOG_MISMATCH",
-			module: "Queue Module",
-			code: "QUEUE_SOURCE_MISMATCH",
-			message: "Body field does not match source query param"
-		},
-		{
 			serviceCode: "QUEUE_BACKLOG_NOT_STARTED",
 			module: "Queue Module",
 			code: "QUEUE_BACKLOG_NOT_STARTED",

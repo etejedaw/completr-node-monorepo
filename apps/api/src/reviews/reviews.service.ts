@@ -71,17 +71,6 @@ export async function findReviewsByGameId(gameId: string) {
 	});
 }
 
-export async function findReviewsByUserId(userId: string) {
-	return Review.findAll({
-		where: { userId, [Op.and]: hasContentOrRating },
-		include: [{ ...gamesService.gameInclude(), attributes: REVIEW_GAME_ATTRS }],
-		order: [
-			["createdAt", "DESC"],
-			["id", "DESC"]
-		]
-	});
-}
-
 export async function findReviewsByUserIdPaginated(
 	userId: string,
 	options: { limit?: number; offset?: number } = {}
@@ -89,7 +78,9 @@ export async function findReviewsByUserIdPaginated(
 	const { limit = DEFAULT_USER_REVIEWS_LIMIT, offset = 0 } = options;
 	return Review.findAndCountAll({
 		where: { userId, [Op.and]: hasContentOrRating },
-		include: [{ ...gamesService.gameInclude(), attributes: REVIEW_GAME_ATTRS }],
+		include: [
+			{ ...gamesService.gameInclude(), attributes: REVIEW_GAME_ATTRS }
+		],
 		order: [
 			["createdAt", "DESC"],
 			["id", "DESC"]
@@ -146,7 +137,9 @@ export async function findAggregatedRatingsByGame() {
 	}[];
 }
 
-export async function findLatestReviewedGameIds(limit = LATEST_REVIEWED_GAMES_LIMIT) {
+export async function findLatestReviewedGameIds(
+	limit = LATEST_REVIEWED_GAMES_LIMIT
+) {
 	const rows = (await Review.findAll({
 		where: { [Op.and]: [hasContent, reviewedGameIsActive] },
 		attributes: ["gameId", [fn("MAX", col("createdAt")), "lastReviewedAt"]],
@@ -197,7 +190,9 @@ export async function existsByGameId(
 export async function findReviewsForDataExport(userId: string) {
 	return Review.findAll({
 		where: { userId },
-		include: [{ ...gamesService.gameInclude(), attributes: GAME_REFERENCE_ATTRS }],
+		include: [
+			{ ...gamesService.gameInclude(), attributes: GAME_REFERENCE_ATTRS }
+		],
 		order: CHRONOLOGICAL_ORDER
 	});
 }

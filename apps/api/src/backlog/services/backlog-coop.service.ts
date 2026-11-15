@@ -143,20 +143,6 @@ export async function findBacklogsOfCoopRunsWithUser(coopRunIds: string[]) {
 	});
 }
 
-export async function findCoopBacklogsOfUsersForGame(
-	gameId: string,
-	userIds: string[]
-) {
-	return Backlog.findAll({
-		where: {
-			gameId,
-			coopRunId: { [Op.ne]: null },
-			userId: { [Op.in]: userIds }
-		},
-		include: coopPeerUserInclude()
-	});
-}
-
 export async function clearCoopRunFromBacklogs(coopRunIds: string[]) {
 	await Backlog.update(
 		{ coopRunId: null },

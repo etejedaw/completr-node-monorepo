@@ -98,7 +98,6 @@ describeDomainToHttpMapper({
 		{ code: "GAME_GENRE_NOT_FOUND", status: 404 },
 		{ code: "GAME_UNIQUE_CONSTRAINT", status: 409 },
 		{ code: "GAME_VALIDATION_ERROR", status: 400 },
-		{ code: "GAME_FORBIDDEN", status: 403 },
 		{ code: "GAME_VARIANT_REQUIRED", status: 422 },
 		{ code: "GAME_SPLIT_INVALID", status: 400 },
 		{ code: "GAME_COMPILATION_INVALID", status: 400 },

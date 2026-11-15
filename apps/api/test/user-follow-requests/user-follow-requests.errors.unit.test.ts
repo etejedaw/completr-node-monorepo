@@ -41,12 +41,6 @@ describeModuleErrors({
 			module: "UserFollowRequest Module",
 			code: "USER_FOLLOW_REQUEST_NOT_FOUND",
 			message: "Follow request not found"
-		},
-		{
-			serviceCode: "USER_FOLLOW_REQUEST_NOT_ACCEPTING",
-			module: "UserFollowRequest Module",
-			code: "USER_FOLLOW_REQUEST_NOT_ACCEPTING",
-			message: "This user is not accepting follow requests"
 		}
 	],
 	fallback: {
@@ -64,7 +58,6 @@ describeDomainToHttpMapper({
 		{ code: "USER_FOLLOW_REQUEST_CANNOT_REQUEST_SELF", status: 400 },
 		{ code: "USER_FOLLOW_REQUEST_ALREADY_REQUESTED", status: 409 },
 		{ code: "USER_FOLLOW_REQUEST_ALREADY_FOLLOWING", status: 409 },
-		{ code: "USER_FOLLOW_REQUEST_NOT_FOUND", status: 404 },
-		{ code: "USER_FOLLOW_REQUEST_NOT_ACCEPTING", status: 403 }
+		{ code: "USER_FOLLOW_REQUEST_NOT_FOUND", status: 404 }
 	]
 });

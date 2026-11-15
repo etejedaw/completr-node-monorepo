@@ -47,15 +47,6 @@ export function notFound(context?: Record<string, unknown>) {
 	);
 }
 
-export function notAcceptingRequests(context?: Record<string, unknown>) {
-	return new DomainError(
-		MODULE_NAME,
-		"USER_FOLLOW_REQUEST_NOT_ACCEPTING",
-		"This user is not accepting follow requests",
-		context
-	);
-}
-
 export function internalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,
