@@ -26,6 +26,9 @@ docs: |-
     | limit  | integer | No       | Page size (default 50, max 100) |
     | offset | integer | No       | Pagination offset (default 0)|
     | search | string  | No       | Filter by game title. Accent-, case- and punctuation-insensitive; every word must match, in any order; `%`, `_` and `\` are matched literally. A value without letters or digits does not filter |
+    | game_id | uuid   | No       | Only the entries of that game (any platform). Combines with `limit`, `offset` and `search`; `total` counts the filtered entries. A game that is not on the shelf returns an empty list |
+
+    Any other query parameter, or a `game_id` that is not a UUID, answers 422 `COMMON_SCHEMA_INVALID`.
 
     ### Response (200)
 
