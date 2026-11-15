@@ -1,7 +1,6 @@
-import { type Transaction } from "sequelize";
+import { Op, type Transaction } from "sequelize";
 
 import * as backlogService from "../backlog/backlog.service";
-import { environmentConfig } from "../common/config/environment.config";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { ServiceError } from "../common/errors/service-error";
 import { PinoLogger } from "../common/logger/pino.logger";
@@ -23,8 +22,8 @@ import { buildRewindPremiumStats } from "../rewind-recap/utils/build-rewind-prem
 import { resolveSectionAccess } from "../users/helpers/visibility.helper";
 import { type User } from "../users/user.model";
 import * as usersService from "../users/users.service";
+import { type GenerateRewindDto } from "./dtos/generate-rewind.dto";
 import * as rewindServiceError from "./errors/rewind.service-error";
-import { type GenerateRewindDto } from "./generate-rewind.dto";
 import { backlogToRewindRun } from "./mappers/backlog-to-rewind-run.mapper";
 import { userToRewindOwner } from "./mappers/user-to-rewind-owner.mapper";
 import { type RewindPremiumAccessKind } from "./rewind.constants";
@@ -72,22 +71,16 @@ import { listRewindYears } from "./utils/list-rewind-years.util";
 import { listVisibleRewindYears } from "./utils/list-visible-rewind-years.util";
 import { nextGeneratedAt } from "./utils/next-generated-at.util";
 import { planRewindGeneration } from "./utils/plan-rewind-generation.util";
+import { resolveCurrentRewindDay } from "./utils/resolve-current-rewind-day.util";
 import { resolveOpenRewindEdition } from "./utils/resolve-open-rewind-edition.util";
 import { resolveRewindAiBudget } from "./utils/resolve-rewind-ai-budget.util";
 import { resolveRewindAiUseChanges } from "./utils/resolve-rewind-ai-use-changes.util";
 import { resolveRewindPremiumAccessKind } from "./utils/resolve-rewind-premium-access-kind.util";
-import { resolveRewindToday } from "./utils/resolve-rewind-today.util";
 
 const logger = new PinoLogger("Rewind Service");
 
-function rewindTodayOverride(): string | undefined {
-	return environmentConfig.NODE_ENV === "prod"
-		? undefined
-		: environmentConfig.REWIND_TODAY;
-}
-
 async function buildRewindCalendar(owner: User): Promise<RewindCalendar> {
-	const today = resolveRewindToday(rewindTodayOverride(), new Date());
+	const today = resolveCurrentRewindDay();
 	return {
 		today,
 		firstYear: owner.createdAt.getUTCFullYear(),
@@ -816,4 +809,22 @@ export async function findRewindsForDataExport(userId: string) {
 			["id", "ASC"]
 		]
 	});
+}
+
+export async function countRewindsByYear(
+	years: number[]
+): Promise<Map<number, number>> {
+	if (years.length === 0) return new Map();
+	const counts = (await RewindModel.count({
+		where: { year: { [Op.in]: years } },
+		group: ["year"]
+	})) as unknown as { year: number; count: number }[];
+	return new Map(counts.map(row => [row.year, row.count]));
+}
+
+export function countRewindsOfYear(
+	year: number,
+	transaction?: Transaction
+): Promise<number> {
+	return RewindModel.count({ where: { year }, transaction });
 }

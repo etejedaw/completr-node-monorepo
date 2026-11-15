@@ -2,7 +2,7 @@ import { type Request, type Response } from "express";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
-import { type GenerateRewindDto } from "./generate-rewind.dto";
+import { type GenerateRewindDto } from "./dtos/generate-rewind.dto";
 import { rewindSerializer, rewindYearsSerializer } from "./rewind.serializer";
 import * as rewindService from "./rewind.service";
 import { type OwnRewindYearParams } from "./schemas/own-rewind-year-params.schema";

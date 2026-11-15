@@ -22,8 +22,8 @@ export function rewindEditionsServiceToDomainMapper(
 	if (error.code === "REWIND_EDITION_FROZEN")
 		return rewindEditionsDomainError.editionFrozen(context);
 
-	if (error.code === "REWIND_NOT_FOUND")
-		return rewindEditionsDomainError.rewindNotFound(context);
+	if (error.code === "REWIND_EDITION_INVALID")
+		return rewindEditionsDomainError.editionInvalid(context);
 
 	return rewindEditionsDomainError.rewindEditionsInternalError(context);
 }

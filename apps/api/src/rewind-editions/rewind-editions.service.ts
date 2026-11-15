@@ -1,6 +1,5 @@
 import { Op, type WhereOptions } from "sequelize";
 
-import { isUtcDayBetween } from "../common/utils/is-utc-day-between.util";
 import { toUtcDay } from "../common/utils/to-utc-day.util";
 import { RewindEdition } from "./rewind-edition.model";
 import { type RewindEditionRecord } from "./rewind-editions.interface";
@@ -18,7 +17,9 @@ const REWIND_EDITION_ATTRS = [
 	"frozenAt"
 ];
 
-function toEditionRecord(edition: RewindEdition): RewindEditionRecord {
+export function toRewindEditionRecord(
+	edition: RewindEdition
+): RewindEditionRecord {
 	return {
 		year: edition.year,
 		opensAt: edition.opensAt,
@@ -43,21 +44,7 @@ async function findLatestEditionWhere(
 			["id", "DESC"]
 		]
 	});
-	return edition ? toEditionRecord(edition) : null;
-}
-
-export function isRewindEditionOpenOn(
-	edition: Pick<RewindEditionRecord, "opensAt" | "closesAt">,
-	today: Date
-): boolean {
-	return isUtcDayBetween(today, edition.opensAt, edition.closesAt);
-}
-
-export function isRewindGraceOpenOn(
-	edition: Pick<RewindEditionRecord, "graceStartsAt" | "graceEndsAt">,
-	today: Date
-): boolean {
-	return isUtcDayBetween(today, edition.graceStartsAt, edition.graceEndsAt);
+	return edition ? toRewindEditionRecord(edition) : null;
 }
 
 export function findCurrentRewindEdition(
@@ -83,5 +70,5 @@ export async function findRewindEditionByYear(
 		attributes: REWIND_EDITION_ATTRS,
 		where: { year }
 	});
-	return edition ? toEditionRecord(edition) : null;
+	return edition ? toRewindEditionRecord(edition) : null;
 }

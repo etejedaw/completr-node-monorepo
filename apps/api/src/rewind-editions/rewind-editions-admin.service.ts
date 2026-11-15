@@ -2,56 +2,24 @@ import { Op, QueryTypes, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { sequelize } from "../database/sequelize.database";
-import { Rewind } from "../rewind/rewind.model";
+import * as rewindService from "../rewind/rewind.service";
+import { type CreateRewindEditionDto } from "./dtos/create-rewind-edition.dto";
+import { type UpdateRewindEditionDto } from "./dtos/update-rewind-edition.dto";
 import * as rewindEditionsServiceError from "./errors/rewind-editions.service-error";
 import { RewindEdition } from "./rewind-edition.model";
-import { type RewindEditionRecord } from "./rewind-editions.interface";
+import { REWIND_EDITIONS_WRITE_LOCK_KEY } from "./rewind-editions.constants";
+import { toRewindEditionRecord } from "./rewind-editions.service";
 import {
 	type RewindEditionUpdateResult,
 	type RewindEditionWithStats
 } from "./rewind-editions-admin.interface";
-import {
-	type CreateRewindEditionDto,
-	type UpdateRewindEditionDto
-} from "./schemas/rewind-editions-admin.schemas";
-
-const EDITIONS_WRITE_LOCK_KEY = 726_001;
-
-function toRecord(edition: RewindEdition): RewindEditionRecord {
-	return {
-		year: edition.year,
-		opensAt: edition.opensAt,
-		closesAt: edition.closesAt,
-		graceStartsAt: edition.graceStartsAt,
-		graceEndsAt: edition.graceEndsAt,
-		design: edition.design,
-		premiumRegenerations: edition.premiumRegenerations,
-		giftRegenerations: edition.giftRegenerations,
-		frozenAt: edition.frozenAt
-	};
-}
 
 async function lockEditionsWrites(transaction: Transaction) {
 	await sequelize.query("SELECT pg_advisory_xact_lock(:key)", {
-		replacements: { key: EDITIONS_WRITE_LOCK_KEY },
+		replacements: { key: REWIND_EDITIONS_WRITE_LOCK_KEY },
 		type: QueryTypes.SELECT,
 		transaction
 	});
-}
-
-async function countGeneratedByYear(
-	years: number[]
-): Promise<Map<number, number>> {
-	if (years.length === 0) return new Map();
-	const counts = (await Rewind.count({
-		where: { year: { [Op.in]: years } },
-		group: ["year"]
-	})) as unknown as { year: number; count: number }[];
-	return new Map(counts.map(row => [row.year, row.count]));
-}
-
-async function countGenerated(year: number, transaction?: Transaction) {
-	return Rewind.count({ where: { year }, transaction });
 }
 
 async function requireNoOverlap(
@@ -80,11 +48,11 @@ export async function findRewindEditionsWithStats(): Promise<
 			["id", "DESC"]
 		]
 	});
-	const generatedByYear = await countGeneratedByYear(
+	const generatedByYear = await rewindService.countRewindsByYear(
 		editions.map(edition => edition.year)
 	);
 	return editions.map(edition => ({
-		edition: toRecord(edition),
+		edition: toRewindEditionRecord(edition),
 		generatedCount: generatedByYear.get(edition.year) ?? 0
 	}));
 }
@@ -116,12 +84,16 @@ export async function createRewindEdition(
 				{ transaction }
 			);
 			return {
-				edition: toRecord(edition),
-				generatedCount: await countGenerated(dto.year, transaction)
+				edition: toRewindEditionRecord(edition),
+				generatedCount: await rewindService.countRewindsOfYear(
+					dto.year,
+					transaction
+				)
 			};
 		} catch (error) {
 			rethrowSequelizeError(error, {
-				unique: rewindEditionsServiceError.editionExistsError
+				unique: rewindEditionsServiceError.editionExistsError,
+				validation: rewindEditionsServiceError.editionInvalidError
 			});
 		}
 	});
@@ -163,45 +135,55 @@ export async function updateRewindEdition(
 	dto: UpdateRewindEditionDto
 ): Promise<RewindEditionUpdateResult> {
 	return sequelize.transaction(async transaction => {
-		await lockEditionsWrites(transaction);
-		const edition = await RewindEdition.findOne({
-			where: { year },
-			lock: transaction.LOCK.UPDATE,
-			transaction
-		});
-		if (!edition) throw rewindEditionsServiceError.editionNotFoundError();
-		if (edition.frozenAt)
-			throw rewindEditionsServiceError.editionFrozenError();
-		await requireNoOverlap(dto, year, transaction);
+		try {
+			await lockEditionsWrites(transaction);
+			const edition = await RewindEdition.findOne({
+				where: { year },
+				lock: transaction.LOCK.UPDATE,
+				transaction
+			});
+			if (!edition)
+				throw rewindEditionsServiceError.editionNotFoundError();
+			if (edition.frozenAt)
+				throw rewindEditionsServiceError.editionFrozenError();
+			await requireNoOverlap(dto, year, transaction);
 
-		const premiumDelta =
-			dto.premiumRegenerations - edition.premiumRegenerations;
-		const giftDelta = dto.giftRegenerations - edition.giftRegenerations;
+			const premiumDelta =
+				dto.premiumRegenerations - edition.premiumRegenerations;
+			const giftDelta = dto.giftRegenerations - edition.giftRegenerations;
 
-		await edition.update(
-			{
-				opensAt: dto.opensAt,
-				closesAt: dto.closesAt,
-				graceStartsAt: dto.graceStartsAt,
-				graceEndsAt: dto.graceEndsAt,
-				design: dto.design,
-				premiumRegenerations: dto.premiumRegenerations,
-				giftRegenerations: dto.giftRegenerations
-			},
-			{ transaction }
-		);
-		const affectedRewinds = dto.applyToGenerated
-			? await shiftGeneratedQuotas(
+			await edition.update(
+				{
+					opensAt: dto.opensAt,
+					closesAt: dto.closesAt,
+					graceStartsAt: dto.graceStartsAt,
+					graceEndsAt: dto.graceEndsAt,
+					design: dto.design,
+					premiumRegenerations: dto.premiumRegenerations,
+					giftRegenerations: dto.giftRegenerations
+				},
+				{ transaction }
+			);
+			const affectedRewinds = dto.applyToGenerated
+				? await shiftGeneratedQuotas(
+						year,
+						premiumDelta,
+						giftDelta,
+						transaction
+					)
+				: 0;
+			return {
+				edition: toRewindEditionRecord(edition),
+				generatedCount: await rewindService.countRewindsOfYear(
 					year,
-					premiumDelta,
-					giftDelta,
 					transaction
-				)
-			: 0;
-		return {
-			edition: toRecord(edition),
-			generatedCount: await countGenerated(year, transaction),
-			affectedRewinds
-		};
+				),
+				affectedRewinds
+			};
+		} catch (error) {
+			rethrowSequelizeError(error, {
+				validation: rewindEditionsServiceError.editionInvalidError
+			});
+		}
 	});
 }

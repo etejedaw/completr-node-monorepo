@@ -1,6 +1,6 @@
 import { toIsoDateTime } from "../common/utils/to-iso-date-time.util";
-import { isRewindEditionOpenOn } from "./rewind-editions.service";
 import { type RewindEditionWithStats } from "./rewind-editions-admin.interface";
+import { isRewindEditionOpenOn } from "./utils/is-rewind-edition-open-on.util";
 
 export function rewindEditionAdminSerializer(
 	{ edition, generatedCount }: RewindEditionWithStats,

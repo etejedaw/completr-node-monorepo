@@ -19,8 +19,8 @@ export function rewindEditionsDomainToHttpMapper(
 	if (error.code === "REWIND_EDITION_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
-	if (error.code === "REWIND_NOT_FOUND")
-		return new HttpError({ ...baseOptions, status: 404 });
+	if (error.code === "REWIND_EDITION_INVALID")
+		return new HttpError({ ...baseOptions, status: 422 });
 
 	if (error.code === "REWIND_EDITION_EXISTS")
 		return new HttpError({ ...baseOptions, status: 409 });

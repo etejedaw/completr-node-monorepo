@@ -38,11 +38,11 @@ export function editionFrozen(context?: Record<string, unknown>) {
 	);
 }
 
-export function rewindNotFound(context?: Record<string, unknown>) {
+export function editionInvalid(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,
-		"REWIND_NOT_FOUND",
-		"Rewind not found",
+		"REWIND_EDITION_INVALID",
+		"The Rewind edition data is invalid",
 		context
 	);
 }

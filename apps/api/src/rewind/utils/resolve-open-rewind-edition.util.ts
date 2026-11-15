@@ -1,5 +1,5 @@
-import { isUtcDayBetween } from "../../common/utils/is-utc-day-between.util";
 import { type RewindEditionRecord } from "../../rewind-editions/rewind-editions.interface";
+import { isRewindEditionOpenOn } from "../../rewind-editions/utils/is-rewind-edition-open-on.util";
 import { type RewindCalendar } from "../rewind-run.interface";
 
 export function resolveOpenRewindEdition(
@@ -7,7 +7,5 @@ export function resolveOpenRewindEdition(
 ): RewindEditionRecord | null {
 	const { edition, today } = calendar;
 	if (!edition) return null;
-	return isUtcDayBetween(today, edition.opensAt, edition.closesAt)
-		? edition
-		: null;
+	return isRewindEditionOpenOn(edition, today) ? edition : null;
 }

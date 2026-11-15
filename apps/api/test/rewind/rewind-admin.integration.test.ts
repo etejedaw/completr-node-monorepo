@@ -609,7 +609,10 @@ void describe("GET /admin/rewinds", () => {
 		await storeRewindFor(2026, null, 0, "otro_jugador");
 		await storeRewindFor(2025, null, 0, "marta_2025");
 
-		const response = await listRewinds(admin, "year=2026&q=%20MARTA%20");
+		const response = await listRewinds(
+			admin,
+			"year=2026&search=%20MARTA%20"
+		);
 
 		assert.equal(response.status, 200);
 		assert.equal(response.body.data.total, 1);
@@ -617,9 +620,9 @@ void describe("GET /admin/rewinds", () => {
 			response.body.data.rewinds[0].user.username,
 			"Marta_Plays"
 		);
-		const allYears = await listRewinds(admin, "q=marta");
+		const allYears = await listRewinds(admin, "search=marta");
 		assert.equal(allYears.body.data.total, 2);
-		const nothing = await listRewinds(admin, "year=2026&q=zzzz");
+		const nothing = await listRewinds(admin, "year=2026&search=zzzz");
 		assert.equal(nothing.body.data.total, 0);
 		assert.deepEqual(nothing.body.data.rewinds, []);
 	});
@@ -633,7 +636,7 @@ void describe("GET /admin/rewinds", () => {
 			"_"
 		];
 		for (const q of hostile) {
-			const response = await listRewinds(admin, `year=2026&q=${q}`);
+			const response = await listRewinds(admin, `year=2026&search=${q}`);
 			assert.equal(response.status, 200, q);
 		}
 		assert.equal(await Rewind.count(), 1);
@@ -683,7 +686,7 @@ void describe("GET /admin/rewinds", () => {
 			"year=2026&limit=101",
 			"year=2026&limit=abc",
 			"year=2026&page=2",
-			"year=2026&q=" + "x".repeat(101),
+			"year=2026&search=" + "x".repeat(101),
 			"year=2026&year=2025&year=2024"
 		];
 		for (const query of garbage) {

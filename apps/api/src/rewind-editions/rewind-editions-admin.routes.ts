@@ -5,11 +5,9 @@ import { userLimiter } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import * as rewindEditionsAdminController from "./rewind-editions-admin.controller";
-import {
-	CreateRewindEditionSchema,
-	RewindEditionYearParamsSchema,
-	UpdateRewindEditionSchema
-} from "./schemas/rewind-editions-admin.schemas";
+import { CreateRewindEditionSchema } from "./schemas/create-rewind-edition.schema";
+import { RewindEditionYearParamsSchema } from "./schemas/rewind-edition-year-params.schema";
+import { UpdateRewindEditionSchema } from "./schemas/update-rewind-edition.schema";
 
 const router = Router();
 const adminMiddleware = [

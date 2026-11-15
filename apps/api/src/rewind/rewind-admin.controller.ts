@@ -2,13 +2,11 @@ import { type Request, type Response } from "express";
 
 import * as auditService from "../audit/audit.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type UpdateAdminRewindDto } from "./dtos/update-admin-rewind.dto";
 import { rewindAdminSerializer } from "./rewind-admin.serializer";
 import * as rewindAdminService from "./rewind-admin.service";
-import {
-	type AdminRewindParams,
-	type AdminRewindsQuery,
-	type UpdateAdminRewindDto
-} from "./schemas/rewind-admin.schemas";
+import { type AdminRewindIdParam } from "./schemas/admin-rewind-id-params.schema";
+import { type AdminRewindsQuery } from "./schemas/admin-rewinds-query.schema";
 
 export async function getAdminRewinds(request: Request, response: Response) {
 	const query = request.locals.query as AdminRewindsQuery;
@@ -22,7 +20,7 @@ export async function getAdminRewinds(request: Request, response: Response) {
 }
 
 export async function patchAdminRewind(request: Request, response: Response) {
-	const { rewindId } = request.locals.params as AdminRewindParams;
+	const { rewindId } = request.locals.params as AdminRewindIdParam;
 	const dto = request.locals.body as UpdateAdminRewindDto;
 	const admin = request.locals.user as RequestUser;
 	const item = await rewindAdminService.updateAdminRewindRegenerations(

@@ -27,9 +27,6 @@ export function editionFrozenError() {
 	});
 }
 
-export function rewindNotFoundError() {
-	return new ServiceError("REWIND_NOT_FOUND", {
-		...BASE_OPTIONS,
-		raw: undefined
-	});
+export function editionInvalidError(raw?: unknown) {
+	return new ServiceError("REWIND_EDITION_INVALID", { ...BASE_OPTIONS, raw });
 }

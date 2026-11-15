@@ -69,6 +69,18 @@ export async function searchUsers(query: string, limit = 20) {
 	});
 }
 
+export async function findUserIdsMatchingSearch(
+	query: string
+): Promise<string[] | null> {
+	const nameWhere = buildTextSearchWhere(query, ["User.username"]);
+	if (!nameWhere) return null;
+	const users = await User.findAll({
+		where: nameWhere,
+		attributes: ["id"]
+	});
+	return users.map(user => user.id);
+}
+
 export async function findUserByExactEmail(email: string) {
 	const user = await User.findOne({
 		where: { email: email.toLowerCase(), isActive: true },

@@ -1,3 +1,4 @@
+export const DEFAULT_ADMIN_REWINDS_PAGE_SIZE = 50;
 export const REWIND_COVERS_LIMIT = 5;
 export const REWIND_MIN_YEAR = 2000;
 export const REWIND_MAX_YEAR = 2100;
