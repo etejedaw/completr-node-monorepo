@@ -74,6 +74,15 @@ export function rewindYearRequiresPremium(context?: Record<string, unknown>) {
 	);
 }
 
+export function rewindNoAiAccess(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"REWIND_NO_AI_ACCESS",
+		"The owner of this Rewind has no access to the AI",
+		context
+	);
+}
+
 export function rewindAiRecapPremiumRequired(
 	context?: Record<string, unknown>
 ) {

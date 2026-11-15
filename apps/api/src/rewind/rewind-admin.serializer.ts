@@ -7,6 +7,7 @@ export function rewindAdminSerializer(item: AdminRewindItem) {
 		year: item.year,
 		user: item.user,
 		accessKind: item.premiumAccessKind ?? "none",
+		aiAccess: item.aiAccess ?? "none",
 		regenerationsLeft: item.regenerationsLeft,
 		graceUsed: item.graceUsed,
 		generatedAt: toIsoDateTime(item.generatedAt),

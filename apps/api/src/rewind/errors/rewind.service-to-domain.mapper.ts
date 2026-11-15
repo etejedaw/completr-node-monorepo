@@ -34,6 +34,9 @@ export function rewindServiceToDomainMapper(
 	if (error.code === "REWIND_YEAR_REQUIRES_PREMIUM")
 		return rewindDomainError.rewindYearRequiresPremium(context);
 
+	if (error.code === "REWIND_NO_AI_ACCESS")
+		return rewindDomainError.rewindNoAiAccess(context);
+
 	if (error.code === "REWIND_AI_RECAP_PREMIUM_REQUIRED")
 		return rewindDomainError.rewindAiRecapPremiumRequired(context);
 

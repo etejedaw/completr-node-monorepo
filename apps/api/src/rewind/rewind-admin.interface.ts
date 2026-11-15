@@ -5,6 +5,7 @@ export interface AdminRewindItem {
 	year: number;
 	user: { id: string; username: string };
 	premiumAccessKind: RewindPremiumAccessKind | null;
+	aiAccess: RewindPremiumAccessKind | null;
 	regenerationsLeft: number;
 	graceUsed: boolean;
 	generatedAt: Date;

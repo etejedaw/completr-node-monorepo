@@ -1,31 +1,54 @@
 import { Op } from "sequelize";
 
 import { sequelize } from "../database/sequelize.database";
+import { type PremiumAccessUser } from "../premium-access/premium-access.interface";
+import { resolvePremiumAccess } from "../premium-access/premium-access.service";
+import { type User } from "../users/user.model";
 import * as usersService from "../users/users.service";
 import * as rewindServiceError from "./errors/rewind.service-error";
-import { DEFAULT_ADMIN_REWINDS_PAGE_SIZE } from "./rewind.constants";
+import {
+	DEFAULT_ADMIN_REWINDS_PAGE_SIZE,
+	type RewindPremiumAccessKind
+} from "./rewind.constants";
 import { Rewind } from "./rewind.model";
 import { type AdminRewindItem } from "./rewind-admin.interface";
 import { type AdminRewindsQuery } from "./schemas/admin-rewinds-query.schema";
+import { resolveRewindPremiumAccessKind } from "./utils/resolve-rewind-premium-access-kind.util";
 
-async function findUsernamesById(
-	userIds: string[]
-): Promise<Map<string, { id: string; username: string }>> {
-	const users = await usersService.findUsersByIds(userIds);
-	return new Map(
-		users.map(user => [user.id, { id: user.id, username: user.username }])
+async function findOwnersById(userIds: string[]): Promise<Map<string, User>> {
+	const users = await usersService.findUsersByIds([...new Set(userIds)]);
+	return new Map(users.map(user => [user.id, user]));
+}
+
+async function resolveAiAccess(
+	owner: PremiumAccessUser
+): Promise<RewindPremiumAccessKind | null> {
+	const access = await resolvePremiumAccess(owner, "rewind.premium");
+	return resolveRewindPremiumAccessKind(access);
+}
+
+async function resolveAiAccessByOwnerId(
+	owners: User[]
+): Promise<Map<string, RewindPremiumAccessKind | null>> {
+	const entries = await Promise.all(
+		owners.map(
+			async owner => [owner.id, await resolveAiAccess(owner)] as const
+		)
 	);
+	return new Map(entries);
 }
 
 function toItem(
 	rewind: Rewind,
-	user: { id: string; username: string }
+	owner: User,
+	aiAccess: RewindPremiumAccessKind | null
 ): AdminRewindItem {
 	return {
 		id: rewind.id,
 		year: rewind.year,
-		user,
+		user: { id: owner.id, username: owner.username },
 		premiumAccessKind: rewind.premiumAccessKind,
+		aiAccess,
 		regenerationsLeft: rewind.regenerationsLeft,
 		graceUsed: rewind.graceUsed,
 		generatedAt: rewind.generatedAt,
@@ -49,11 +72,16 @@ export async function findAdminRewinds(query: AdminRewindsQuery) {
 		limit: query.limit ?? DEFAULT_ADMIN_REWINDS_PAGE_SIZE,
 		offset: query.offset ?? 0
 	});
-	const users = await findUsernamesById(rows.map(row => row.userId));
+	const owners = await findOwnersById(rows.map(row => row.userId));
+	const aiAccessByOwnerId = await resolveAiAccessByOwnerId([
+		...owners.values()
+	]);
 	return {
 		items: rows.flatMap(row => {
-			const user = users.get(row.userId);
-			return user ? [toItem(row, user)] : [];
+			const owner = owners.get(row.userId);
+			return owner
+				? [toItem(row, owner, aiAccessByOwnerId.get(owner.id) ?? null)]
+				: [];
 		}),
 		total: count
 	};
@@ -69,13 +97,15 @@ export async function updateAdminRewindRegenerations(
 			transaction
 		});
 		if (!locked) throw rewindServiceError.notFoundError();
-		const users = await findUsernamesById([locked.userId]);
-		const user = users.get(locked.userId);
-		if (!user) throw rewindServiceError.userNotFoundError();
+		const owners = await findOwnersById([locked.userId]);
+		const owner = owners.get(locked.userId);
+		if (!owner) throw rewindServiceError.userNotFoundError();
+		const aiAccess = await resolveAiAccess(owner);
+		if (!aiAccess) throw rewindServiceError.noAiAccessError();
 		const updated = await locked.update(
 			{ regenerationsLeft },
 			{ transaction }
 		);
-		return toItem(updated, user);
+		return toItem(updated, owner, aiAccess);
 	});
 }

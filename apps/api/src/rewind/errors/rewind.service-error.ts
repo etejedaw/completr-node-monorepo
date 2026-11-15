@@ -58,6 +58,13 @@ export function yearRequiresPremiumError() {
 	});
 }
 
+export function noAiAccessError() {
+	return new ServiceError("REWIND_NO_AI_ACCESS", {
+		...BASE_OPTIONS,
+		raw: undefined
+	});
+}
+
 export function aiRecapPremiumRequiredError() {
 	return new ServiceError("REWIND_AI_RECAP_PREMIUM_REQUIRED", {
 		...BASE_OPTIONS,
