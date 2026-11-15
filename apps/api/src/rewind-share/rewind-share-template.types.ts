@@ -11,6 +11,8 @@ export type SatoriChild = SatoriElement | string;
 
 export type FallbackContent = (title: string, width: number) => SatoriChild[];
 
+export type CreditsArrangement = "stacked" | "billed";
+
 export type CoverMarkerSide = "flex-start" | "center" | "flex-end";
 
 export type ShareDesignTemplates = Record<

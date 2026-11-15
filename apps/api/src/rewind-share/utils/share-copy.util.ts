@@ -47,6 +47,17 @@ const ENGLISH_COPY: ShareCopy = {
 		averageRating: "avg. rating",
 		genres: { one: "genre", other: "genres" }
 	},
+	gamesList: {
+		presents: username => `${username} PRESENTS`,
+		endings: { one: "ENDING", other: "ENDINGS" },
+		season: year => `SEASON ${year}`,
+		starring: "STARRING",
+		and: "AND",
+		moreGames: { one: "MORE GAME", other: "MORE GAMES" },
+		finished: { one: "FINISHED", other: "FINISHED" },
+		hours: { one: "HOUR", other: "HOURS" },
+		finishRate: "FINISH RATE"
+	},
 	summary: {
 		emptyYear: "A year in games.",
 		games: { one: "game", other: "games" },
@@ -102,6 +113,17 @@ const SPANISH_COPY: ShareCopy = {
 		leftBehind: "abandonados",
 		averageRating: "nota media",
 		genres: { one: "género", other: "géneros" }
+	},
+	gamesList: {
+		presents: username => `${username} PRESENTA`,
+		endings: { one: "FINAL", other: "FINALES" },
+		season: year => `TEMPORADA ${year}`,
+		starring: "PROTAGONIZADO POR",
+		and: "Y",
+		moreGames: { one: "JUEGO MÁS", other: "JUEGOS MÁS" },
+		finished: { one: "TERMINADO", other: "TERMINADOS" },
+		hours: { one: "HORA", other: "HORAS" },
+		finishRate: "ACABADOS"
 	},
 	summary: {
 		emptyYear: "Un año de juegos.",

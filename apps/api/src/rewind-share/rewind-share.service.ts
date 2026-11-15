@@ -101,6 +101,13 @@ export async function renderRewindImage(
 	return { png, hasMissingImages: artwork.hasMissingImages };
 }
 
+export function hasRewindImage(
+	rewind: Rewind,
+	format: RewindImageFormat
+): boolean {
+	return format !== "story-list" || rewind.finishedGames.length > 0;
+}
+
 function imageCacheKey(rewind: Rewind, format: RewindImageFormat): string {
 	return [
 		rewind.user.username,

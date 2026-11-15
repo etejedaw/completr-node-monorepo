@@ -1,6 +1,7 @@
 import { type Rewind } from "../rewind/rewind.interface";
 import { type ShareArtwork, type ShareCover } from "./rewind-share.interface";
 import {
+	type CreditsArrangement,
 	type SatoriChild,
 	type SatoriStyle
 } from "./rewind-share-template.types";
@@ -65,6 +66,16 @@ export interface CoverMosaicLayout {
 	top: number;
 	left: number;
 	tiltDegrees: number;
+}
+
+export interface CreditLine {
+	text: string;
+	isOverflow: boolean;
+}
+
+export interface StoryListCredits {
+	arrangement: CreditsArrangement;
+	lines: CreditLine[];
 }
 
 export interface FanSlot {

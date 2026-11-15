@@ -20,6 +20,16 @@ router.get(
 );
 
 router.get(
+	"/share/rewind/:username/:year/story-list.png",
+	[
+		rateLimiterMiddleware(publicLimiter),
+		authOptionalMiddleware,
+		validateSchemaMiddleware(RewindYearParamsSchema, "params")
+	],
+	rewindShareController.getRewindStoryListImage
+);
+
+router.get(
 	"/share/rewind/:username/:year/og.png",
 	[
 		rateLimiterMiddleware(publicLimiter),

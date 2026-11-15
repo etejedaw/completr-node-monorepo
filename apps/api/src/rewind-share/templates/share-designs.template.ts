@@ -8,10 +8,18 @@ import {
 } from "../rewind-share-template.types";
 import { OG_COVER_LIMIT, ogTemplate } from "./og.template";
 import { STORY_COVER_LIMIT, storyTemplate } from "./story.template";
+import {
+	STORY_LIST_COVER_LIMIT,
+	storyListTemplate
+} from "./story-list.template";
 
 const SHARE_DESIGNS: ShareDesignCatalog = {
 	"2026": {
 		story: { coverLimit: STORY_COVER_LIMIT, render: storyTemplate },
+		"story-list": {
+			coverLimit: STORY_LIST_COVER_LIMIT,
+			render: storyListTemplate
+		},
 		og: { coverLimit: OG_COVER_LIMIT, render: ogTemplate }
 	}
 };

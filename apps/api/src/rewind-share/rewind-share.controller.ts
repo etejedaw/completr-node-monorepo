@@ -3,6 +3,7 @@ import { type Request, type Response } from "express";
 import { DomainError } from "../common/errors/domain-error";
 import { ServiceError } from "../common/errors/service-error";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import * as rewindDomainError from "../rewind/errors/rewind.domain-error";
 import * as rewindService from "../rewind/rewind.service";
 import { type RewindYearParams } from "../rewind/schemas/rewind-year-params.schema";
 import { type RewindImageFormat } from "./rewind-share.constants";
@@ -57,6 +58,8 @@ async function sendRewindImage(
 		username,
 		year
 	);
+	if (!rewindShareService.hasRewindImage(rewind, format))
+		throw rewindDomainError.rewindNotFound({ username, year, format });
 	const png = await rewindShareService.getRewindImage(rewind, format);
 
 	return response
@@ -74,6 +77,10 @@ async function sendRewindImage(
 
 export function getRewindStoryImage(request: Request, response: Response) {
 	return sendRewindImage(request, response, "story");
+}
+
+export function getRewindStoryListImage(request: Request, response: Response) {
+	return sendRewindImage(request, response, "story-list");
 }
 
 export function getRewindOgImage(request: Request, response: Response) {

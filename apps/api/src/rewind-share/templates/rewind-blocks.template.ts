@@ -14,7 +14,7 @@ import { box, diamond, text, wordmark } from "./elements.template";
 import { leadTile, supportingTiles } from "./stat-tiles.template";
 
 const BAND_GRADIENT = `linear-gradient(90deg, ${SHARE_COLORS.brandDeep} 0%, ${SHARE_COLORS.brand} 60%, ${SHARE_COLORS.brandLight} 100%)`;
-const COUNT_GRADIENT = `linear-gradient(180deg, #ffffff 0%, ${SHARE_COLORS.brandPale} 100%)`;
+export const COUNT_GRADIENT = `linear-gradient(180deg, #ffffff 0%, ${SHARE_COLORS.brandPale} 100%)`;
 const USERNAME_MAX_LENGTH = 22;
 const INLINE_STAT_LIMIT = 3;
 

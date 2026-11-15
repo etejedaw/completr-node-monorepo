@@ -4,6 +4,7 @@ export const SHARE_COLORS = {
 	foreground: "#f5f5f7",
 	secondary: "#d4d4d8",
 	muted: "#a1a1aa",
+	faint: "#71717a",
 	brand: "#8b5cf6",
 	brandLight: "#a78bfa",
 	brandPale: "#c4b5fd",
@@ -17,6 +18,7 @@ export const SHARE_FONT_FAMILY = {
 
 export const SHARE_IMAGE_SIZES = {
 	story: { width: 1080, height: 1920 },
+	"story-list": { width: 1080, height: 1920 },
 	og: { width: 1200, height: 630 }
 } as const;
 
