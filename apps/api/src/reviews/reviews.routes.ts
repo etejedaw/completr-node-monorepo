@@ -14,8 +14,8 @@ const router = Router({ mergeParams: true });
 router.post(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameIdParamSchema, "params"),
 		validateSchemaMiddleware(CreateReviewSchema, "body")
 	],
@@ -25,8 +25,8 @@ router.post(
 router.get(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameIdParamSchema, "params")
 	],
 	reviewsController.getReviews
@@ -35,8 +35,8 @@ router.get(
 router.patch(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameIdParamSchema, "params"),
 		validateSchemaMiddleware(UpdateReviewSchema, "body")
 	],
@@ -46,8 +46,8 @@ router.patch(
 router.delete(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameIdParamSchema, "params")
 	],
 	reviewsController.deleteReview

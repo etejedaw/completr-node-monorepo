@@ -23,8 +23,8 @@ const router = Router({ mergeParams: true });
 router.post(
 	"/bulk",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(FavoritesBulkQuerySchema, "query"),
 		validateBulkBodyMiddleware({
 			add: BulkFavoritesSchema,
@@ -37,8 +37,8 @@ router.post(
 router.put(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ReplaceFavoritesSchema, "body")
 	],
 	favoritesController.putFavorites
@@ -47,8 +47,8 @@ router.put(
 router.get(
 	"/game-ids",
 	[
-		rateLimiterMiddleware(userLimiter),
-		authMiddleware("user", "premium", "moderator")
+		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter)
 	],
 	favoritesController.getMeFavoriteGameIds
 );
@@ -56,8 +56,8 @@ router.get(
 router.get(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],
 	favoritesController.getMeFavorites
@@ -66,8 +66,8 @@ router.get(
 router.get(
 	"/export",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ExportSearchQuerySchema, "query"),
 		exportFormatNegotiationMiddleware,
 		exportFormatAccessMiddleware

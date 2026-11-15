@@ -9,15 +9,15 @@ import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middle
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
 import { ListIdParamsSchema } from "../lists/schemas/list-id-params.schema";
 import * as listFollowersController from "./list-followers.controller";
-import { UpdateFollowVisibilitySchema } from "./schemas/update-follow-visibility.schema";
+import { UpdateFollowVisibilitySchema } from "./update-follow-visibility.schema";
 
 const router = Router();
 
 router.post(
 	"/lists/:listId/follow",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ListIdParamsSchema, "params")
 	],
 	listFollowersController.postFollow
@@ -26,8 +26,8 @@ router.post(
 router.delete(
 	"/lists/:listId/follow",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ListIdParamsSchema, "params")
 	],
 	listFollowersController.deleteFollow
@@ -36,8 +36,8 @@ router.delete(
 router.get(
 	"/lists/:listId/followers",
 	[
-		rateLimiterMiddleware(publicLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(publicLimiter),
 		validateSchemaMiddleware(ListIdParamsSchema, "params")
 	],
 	listFollowersController.getFollowers
@@ -52,8 +52,8 @@ router.get(
 router.patch(
 	"/lists/:listId/follow",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware(),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ListIdParamsSchema, "params"),
 		validateSchemaMiddleware(UpdateFollowVisibilitySchema, "body")
 	],

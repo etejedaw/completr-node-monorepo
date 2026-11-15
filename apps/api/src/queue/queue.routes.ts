@@ -27,8 +27,8 @@ const router = Router({ mergeParams: true });
 router.post(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(AddQueueQuerySchema, "query"),
 		validateSchemaMiddleware(AddQueueBodySchema, "body")
 	],
@@ -38,8 +38,8 @@ router.post(
 router.post(
 	"/bulk",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(QueueBulkQuerySchema, "query"),
 		validateBulkBodyMiddleware({
 			add: BulkQueueSchema,
@@ -52,8 +52,8 @@ router.post(
 router.put(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(ReplaceQueueSchema, "body")
 	],
 	queueController.putQueue
@@ -62,8 +62,8 @@ router.put(
 router.patch(
 	"/:backlogId/position",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(QueueBacklogIdParamsSchema, "params"),
 		validateSchemaMiddleware(MoveQueueEntryBodySchema, "body")
 	],
@@ -73,8 +73,8 @@ router.patch(
 router.get(
 	"/backlog-ids",
 	[
-		rateLimiterMiddleware(userLimiter),
-		authMiddleware("user", "premium", "moderator")
+		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter)
 	],
 	queueController.getMeQueueBacklogIds
 );
@@ -82,8 +82,8 @@ router.get(
 router.get(
 	"/",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
 	],
 	queueController.getMeQueue
@@ -92,8 +92,8 @@ router.get(
 router.get(
 	"/export",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(QueueExportQuerySchema, "query"),
 		exportFormatNegotiationMiddleware,
 		exportFormatAccessMiddleware

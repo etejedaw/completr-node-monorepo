@@ -16,8 +16,8 @@ const router = Router();
 router.get(
 	"/users/me/mood-tags",
 	[
-		rateLimiterMiddleware(userLimiter),
-		authMiddleware("user", "premium", "moderator")
+		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter)
 	],
 	moodTagsController.getMyTags
 );
@@ -25,8 +25,8 @@ router.get(
 router.post(
 	"/users/me/mood-tags",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(CreateTagSchema, "body")
 	],
 	moodTagsController.postTag
@@ -35,8 +35,8 @@ router.post(
 router.get(
 	"/users/me/games/:gameId/mood-tags",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameIdParamsSchema, "params")
 	],
 	moodTagsController.getGameTags
@@ -45,8 +45,8 @@ router.get(
 router.put(
 	"/users/me/games/:gameId/mood-tags",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(GameIdParamsSchema, "params"),
 		validateSchemaMiddleware(ReplaceTagsSchema, "body")
 	],
@@ -56,8 +56,8 @@ router.put(
 router.patch(
 	"/users/me/mood-tags/:tag",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(TagNameParamsSchema, "params"),
 		validateSchemaMiddleware(UpdateTagSchema, "body")
 	],
@@ -67,8 +67,8 @@ router.patch(
 router.delete(
 	"/users/me/mood-tags/:tag",
 	[
-		rateLimiterMiddleware(userLimiter),
 		authMiddleware("user", "premium", "moderator"),
+		rateLimiterMiddleware(userLimiter),
 		validateSchemaMiddleware(TagNameParamsSchema, "params")
 	],
 	moodTagsController.deleteTag
