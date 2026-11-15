@@ -14,6 +14,11 @@ import { ActivatedRoute } from "@angular/router";
 import { type Subscription } from "rxjs";
 
 import { AuthService } from "../../../../core/services/auth";
+import {
+	REVIEWS_PAGE_SIZE,
+	ReviewsService
+} from "../../../../core/services/reviews";
+import { type Review } from "../../../../core/services/reviews.model";
 import { RatingDistribution } from "../../../../shared/components/rating-distribution/rating-distribution";
 import { ReviewCard } from "../../../../shared/components/review-card/review-card";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
@@ -25,8 +30,6 @@ import {
 	UiTextarea
 } from "../../../../shared/ui";
 import { BacklogService } from "../../../backlog/backlog";
-import { REVIEWS_PAGE_SIZE, ReviewsService } from "../../reviews";
-import { type Review } from "../../reviews.model";
 
 const NOT_FOUND_STATUS = 404;
 const RATING_BUCKETS = [5, 4, 3, 2, 1];

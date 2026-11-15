@@ -43,6 +43,7 @@ import { GamesService } from "../../../core/services/games";
 import { PlatinumService } from "../../../core/services/platinum";
 import { PointerService } from "../../../core/services/pointer";
 import { QueueService } from "../../../core/services/queue";
+import { ReviewsService } from "../../../core/services/reviews";
 import { StorageService } from "../../../core/services/storage";
 import { ToastService } from "../../../core/services/toast";
 import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
@@ -81,7 +82,6 @@ import {
 } from "../../../shared/utils/http-failure";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
-import { ReviewsService } from "../../games/reviews";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
 import { BacklogService } from "../backlog";
 import { type BacklogFilters } from "../backlog.model";

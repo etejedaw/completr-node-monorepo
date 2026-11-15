@@ -23,6 +23,8 @@ import { AuthService } from "../../../core/services/auth";
 import { GamesService } from "../../../core/services/games";
 import { PlatinumService } from "../../../core/services/platinum";
 import { QueueService } from "../../../core/services/queue";
+import { ReviewsService } from "../../../core/services/reviews";
+import { type Review } from "../../../core/services/reviews.model";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { BacklogStatusBadge } from "../../../shared/components/backlog-status-badge/backlog-status-badge";
@@ -66,8 +68,6 @@ import {
 	reportHttpFailure
 } from "../../../shared/utils/http-failure";
 import { injectGameSearch } from "../../../shared/utils/inject-game-search";
-import { ReviewsService } from "../../games/reviews";
-import { type Review } from "../../games/reviews.model";
 import { MoodTagsService } from "../../mood-tags/mood-tags";
 import { BacklogService } from "../backlog";
 import {

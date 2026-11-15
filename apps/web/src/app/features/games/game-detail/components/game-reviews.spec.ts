@@ -11,9 +11,9 @@ import userEvent from "@testing-library/user-event";
 import { of, throwError } from "rxjs";
 
 import { AuthService } from "../../../../core/services/auth";
+import { ReviewsService } from "../../../../core/services/reviews";
+import { type Review } from "../../../../core/services/reviews.model";
 import { BacklogService } from "../../../backlog/backlog";
-import { ReviewsService } from "../../reviews";
-import { type Review } from "../../reviews.model";
 import { GameReviews } from "./game-reviews";
 
 const review = (overrides: Partial<Review>): Review => ({

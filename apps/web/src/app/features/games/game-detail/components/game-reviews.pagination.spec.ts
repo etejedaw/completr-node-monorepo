@@ -11,9 +11,12 @@ import userEvent from "@testing-library/user-event";
 import { NEVER, of, throwError } from "rxjs";
 
 import { AuthService } from "../../../../core/services/auth";
+import {
+	REVIEWS_PAGE_SIZE,
+	ReviewsService
+} from "../../../../core/services/reviews";
+import { type Review } from "../../../../core/services/reviews.model";
 import { BacklogService } from "../../../backlog/backlog";
-import { REVIEWS_PAGE_SIZE, ReviewsService } from "../../reviews";
-import { type Review } from "../../reviews.model";
 import { GameReviews } from "./game-reviews";
 
 const reviewOf = (id: string, userId = `user-${id}`): Review => ({
