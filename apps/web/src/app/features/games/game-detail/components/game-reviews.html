@@ -146,6 +146,18 @@
 			</li>
 			}
 		</ul>
+		@if (hasMoreReviews()) {
+		<button
+			uiButton
+			variant="secondary"
+			size="sm"
+			class="mt-3"
+			[disabled]="loadingMore()"
+			(click)="loadMoreReviews()"
+		>
+			{{ loadingMore() ? 'Loading...' : 'Load more reviews' }}
+		</button>
+		}
 	</section>
 	} @else if (!myReview()) {
 	<ui-plain-empty-state

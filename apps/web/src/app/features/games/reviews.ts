@@ -5,15 +5,19 @@ import { map } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { type Review } from "./reviews.model";
 
+export const REVIEWS_PAGE_SIZE = 100;
+
 @Injectable({ providedIn: "root" })
 export class ReviewsService {
 	private readonly http = inject(HttpClient);
 
-	getReviews(gameId: string) {
+	getReviews(gameId: string, offset = 0) {
 		return this.http
 			.get<{
 				data: { reviews: Review[] };
-			}>(`${environment.apiUrl}/games/${gameId}/reviews`)
+			}>(`${environment.apiUrl}/games/${gameId}/reviews`, {
+				params: offset > 0 ? { offset } : {}
+			})
 			.pipe(map(res => res.data.reviews));
 	}
 
