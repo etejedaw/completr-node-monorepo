@@ -1245,7 +1245,9 @@ describe("Rewind interaction", () => {
 		it("takes a regenerated Rewind from the owner panel without reloading", async () => {
 			const fixture = await renderRewind();
 			const page = fixture.debugElement.query(By.directive(RewindDetail))
-				.componentInstance as RewindDetail;
+				.componentInstance as unknown as {
+				replaceRewind(rewind: Rewind): void;
+			};
 			const regenerated: Rewind = {
 				...rewindFor(2026, [2025, 2024]),
 				language: "es",

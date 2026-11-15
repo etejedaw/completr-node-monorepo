@@ -26,9 +26,9 @@ const rewindUrl = `${api}/users/ada/rewinds/2026`;
 
 function chipText(element: Element) {
 	const copy = element.cloneNode(true) as Element;
-	copy.querySelectorAll("[aria-hidden='true'], button").forEach(hidden =>
-		hidden.remove()
-	);
+	copy.querySelectorAll(
+		"[aria-hidden='true'], button, [data-access-label]"
+	).forEach(hidden => hidden.remove());
 	return copy.textContent?.replace(/\s+/g, " ").trim();
 }
 
@@ -476,9 +476,7 @@ describe("RewindOwnerPanel", () => {
 		it("marks the AI generations as premium with the label of the owner's access, in English for any Rewind language", async () => {
 			const { fixture } = await renderPanel(rewindFixture());
 
-			expect(
-				screen.getByRole("button", { name: "Premium" })
-			).toBeInTheDocument();
+			expect(screen.getByText("Premium")).toBeInTheDocument();
 
 			fixture.componentRef.setInput(
 				"rewind",
@@ -493,13 +491,9 @@ describe("RewindOwnerPanel", () => {
 			);
 			fixture.detectChanges();
 
-			expect(
-				await screen.findByRole("button", { name: "Gift" })
-			).toBeInTheDocument();
-			expect(
-				screen.queryByRole("button", { name: "Premium" })
-			).toBeNull();
-			expect(screen.queryByRole("button", { name: "Regalo" })).toBeNull();
+			expect(await screen.findByText("Gift")).toBeInTheDocument();
+			expect(screen.queryByText("Premium")).toBeNull();
+			expect(screen.queryByText("Regalo")).toBeNull();
 		});
 
 		it("does not show the AI generations tile without AI access", async () => {
@@ -516,10 +510,8 @@ describe("RewindOwnerPanel", () => {
 				.expectOne(giftOffersUrl)
 				.flush({ data: { offers: [] } });
 
-			expect(
-				screen.queryByRole("button", { name: "Premium" })
-			).toBeNull();
-			expect(screen.queryByRole("button", { name: "Gift" })).toBeNull();
+			expect(screen.queryByText("Premium")).toBeNull();
+			expect(screen.queryByText("Gift")).toBeNull();
 			expect(screen.queryByText("AI generations")).toBeNull();
 			expect(screen.queryByText(/AI generations?: /)).toBeNull();
 			expect(chip("Open until Jan 31")).toBeInTheDocument();

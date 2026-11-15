@@ -130,3 +130,47 @@ describe("RewindShareActions layout", () => {
 		).toBeInTheDocument();
 	});
 });
+
+describe("RewindShareActions failed downloads", () => {
+	it("warns once when a download waits for an image that fails, and ignores a double click", async () => {
+		const toast = { success: vi.fn(), error: vi.fn() };
+		const blob = signal<Blob | null>(null);
+		const hasError = signal(false);
+		const gamesImage: RewindStoryImage = {
+			...storyImage("blob:games"),
+			blob,
+			hasError,
+			request: vi.fn()
+		};
+		const { fixture } = await render(RewindShareActions, {
+			inputs: {
+				image: storyImage(),
+				gamesImage,
+				previewAlt: "Rewind 2026 story"
+			},
+			providers: [
+				{ provide: ToastService, useValue: toast },
+				{ provide: ExportService, useValue: { saveFile: vi.fn() } }
+			]
+		});
+
+		const requestsBefore = vi.mocked(gamesImage.request).mock.calls.length;
+		const button = screen.getByRole("button", { name: "Download games" });
+		button.click();
+		button.click();
+		fixture.detectChanges();
+		expect(gamesImage.request).toHaveBeenCalledTimes(requestsBefore + 1);
+
+		hasError.set(true);
+		fixture.detectChanges();
+		await fixture.whenStable();
+
+		expect(toast.error).toHaveBeenCalledTimes(1);
+		expect(toast.error).toHaveBeenCalledWith(
+			"Couldn't download the image. Try again."
+		);
+		expect(
+			screen.getByRole("button", { name: "Download games" })
+		).toBeEnabled();
+	});
+});
