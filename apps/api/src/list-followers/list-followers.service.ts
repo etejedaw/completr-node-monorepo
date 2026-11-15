@@ -7,6 +7,7 @@ import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { Game } from "../games/game.model";
 import { ListItem } from "../list-items/list-item.model";
 import { List } from "../lists/list.model";
+import { LIST_PREVIEW_SIZE } from "../lists/lists.constants";
 import * as listsService from "../lists/lists.service";
 import { USER_PUBLIC_ATTRS } from "../users/constants/user-attrs.constants";
 import { visibleListsCondition } from "../users/helpers/visibility.helper";
@@ -24,7 +25,7 @@ const FOLLOWED_LIST_PREVIEW_INCLUDE = {
 		{
 			model: ListItem,
 			separate: true,
-			limit: listsService.LIST_PREVIEW_SIZE,
+			limit: LIST_PREVIEW_SIZE,
 			order: [
 				["position", "ASC"],
 				["id", "ASC"]
@@ -46,11 +47,11 @@ const FOLLOWED_LIST_PREVIEW_INCLUDE = {
 };
 
 export async function followList(listId: string, userId: string) {
-	const list = await listsService.findListById(listId);
-	if (!list) throw listFollowersServiceError.listNotFoundError();
-	if (!list.isPublic) throw listFollowersServiceError.notPublicError();
 	if (!(await listsService.isListVisibleToViewer(listId, userId)))
 		throw listFollowersServiceError.listNotFoundError();
+	const list = await listsService.findListBasicById(listId);
+	if (!list) throw listFollowersServiceError.listNotFoundError();
+	if (!list.isPublic) throw listFollowersServiceError.notPublicError();
 
 	const existing = await ListFollower.findOne({
 		where: { listId, userId }

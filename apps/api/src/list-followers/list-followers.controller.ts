@@ -5,6 +5,7 @@ import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { listSummarySerializer } from "../lists/lists.serializer";
 import * as listsService from "../lists/lists.service";
 import { type ListIdParams } from "../lists/schemas/list-id-params.schema";
+import { listFollowerUserSerializer } from "./list-followers.serializer";
 import * as listFollowersService from "./list-followers.service";
 import { type UpdateFollowVisibilityDto } from "./update-follow-visibility.dto";
 
@@ -33,7 +34,7 @@ export async function getFollowers(request: Request, response: Response) {
 		params.listId,
 		user.id
 	);
-	const users = followers.map(f => f.User);
+	const users = followers.map(listFollowerUserSerializer);
 
 	return response.status(200).json({ data: { users } });
 }
