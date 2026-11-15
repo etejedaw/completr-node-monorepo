@@ -15,12 +15,12 @@
 		} @else {
 		<span
 			aria-hidden="true"
-			class="flex items-center justify-center w-6 h-6 rounded-md font-display font-extrabold text-[0.6875rem] text-white bg-gradient-to-br from-brand to-brand-deep"
+			class="flex items-center justify-center w-6 h-6 rounded-md font-display font-extrabold text-caption text-white bg-gradient-to-br from-brand to-brand-deep"
 			>C</span
 		>
 		}
 		<h2
-			class="m-0 text-[0.625rem] font-bold uppercase tracking-[0.18em]"
+			class="m-0 text-tiny font-bold uppercase tracking-[0.18em]"
 			[class]="v.accentClass"
 		>
 			{{ v.title }}
@@ -52,7 +52,7 @@
 				/>
 				@if (row.value) {
 				<span
-					class="text-[0.625rem] font-bold uppercase tracking-[0.16em]"
+					class="text-tiny font-bold uppercase tracking-[0.16em]"
 					[class]="row.valueClass ?? ''"
 					>{{ row.value }}</span
 				>
@@ -61,7 +61,7 @@
 					class="text-lg font-semibold text-fg tabular-nums leading-none"
 					[class]="row.valueClass ?? ''"
 					>{{ row.value }}@if (row.unit) {<span
-						class="ml-0.5 text-[0.6875rem] font-normal text-fg-muted"
+						class="ml-0.5 text-caption font-normal text-fg-muted"
 						>{{ row.unit }}</span
 					>}</span
 				>
@@ -79,7 +79,7 @@
 	<header class="flex items-center gap-2 mb-3">
 		<span
 			aria-hidden="true"
-			class="flex items-center justify-center w-6 h-6 rounded-md font-display font-extrabold text-[0.6875rem] text-white bg-gradient-to-br from-brand to-brand-deep"
+			class="flex items-center justify-center w-6 h-6 rounded-md font-display font-extrabold text-caption text-white bg-gradient-to-br from-brand to-brand-deep"
 			>C</span
 		>
 		<h2 uiEyebrow class="m-0">Completr Score</h2>

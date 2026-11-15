@@ -32,7 +32,7 @@ import { type PosterGridGame } from "./game-poster-grid.model";
 								[title]="game.title"
 								[width]="420"
 								framed
-								class="w-full aspect-[2/3] rounded-lg shadow-lg shadow-black/40 transition duration-200 group-hover:-translate-y-1 group-hover:ring-brand/60 group-focus-visible:ring-brand"
+								class="w-full aspect-[2/3] rounded-lg shadow-card transition duration-200 group-hover:-translate-y-1 group-hover:ring-brand/60 group-focus-visible:ring-brand"
 							/>
 							@if (game.ratio) {
 								<span

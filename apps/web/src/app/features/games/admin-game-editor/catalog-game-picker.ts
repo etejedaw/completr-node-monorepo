@@ -82,12 +82,12 @@ const RESULT_STEP: Record<string, number> = { ArrowDown: 1, ArrowUp: -1 };
 							/>
 							<div class="flex flex-col gap-0.5 min-w-0 flex-1">
 								<span
-									class="text-[0.8125rem] font-medium text-fg truncate"
+									class="text-compact font-medium text-fg truncate"
 									>{{ game.title }}</span
 								>
 								<span class="flex items-center gap-1.5 min-w-0">
 									<span
-										class="text-[0.6875rem] text-fg-muted truncate"
+										class="text-caption text-fg-muted truncate"
 										>{{ resultMeta(game) }}</span
 									>
 									@if (game.isDlc) {

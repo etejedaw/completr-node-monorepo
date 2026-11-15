@@ -43,7 +43,7 @@
 				>
 				@for (genre of game.genres.slice(0, 3); track genre.id) {
 				<a
-					class="tap-area px-2 py-0.5 rounded-full text-[0.625rem] font-semibold uppercase tracking-[0.16em] bg-white/10 text-white/85 backdrop-blur-sm no-underline transition hover:bg-white/25 hover:text-white"
+					class="tap:min-h-[44px] tap:inline-flex tap:items-center px-2 py-0.5 rounded-full text-tiny font-semibold uppercase tracking-[0.16em] bg-on-image/10 text-on-image/85 backdrop-blur-sm no-underline transition hover:bg-on-image/25 hover:text-on-image"
 					routerLink="/games"
 					[queryParams]="{ genres: genre.code }"
 					>{{ genre.name }}</a
@@ -51,10 +51,10 @@
 				}
 			</div>
 			<h1
-				class="m-0 font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.02] text-white drop-shadow-hero line-clamp-2 [text-wrap:balance]"
+				class="m-0 font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.02] text-on-image drop-shadow-hero line-clamp-2 [text-wrap:balance]"
 			>
 				<a
-					class="text-inherit no-underline hover:text-white"
+					class="text-inherit no-underline hover:text-on-image"
 					[routerLink]="['/games', game.code]"
 					>{{ game.title }}</a
 				>
@@ -73,14 +73,14 @@
 				</a>
 				@if (game.ratio) {
 				<span
-					class="inline-flex items-center gap-2 h-11 pl-3 pr-4 rounded-card bg-canvas/50 border border-white/10 backdrop-blur-md"
+					class="inline-flex items-center gap-2 h-11 pl-3 pr-4 rounded-card bg-canvas/50 border border-on-image/10 backdrop-blur-md"
 				>
 					<span
 						class="font-display text-2xl font-bold text-brand tabular-nums leading-none"
 						>{{ game.ratio }}</span
 					>
 					<span
-						class="text-[0.5625rem] font-semibold uppercase tracking-[0.16em] text-white/60"
+						class="text-micro font-semibold uppercase tracking-[0.16em] text-on-image/60"
 						>Ratio</span
 					>
 				</span>
@@ -102,7 +102,7 @@
 					<span
 						aria-hidden="true"
 						class="block h-2 rounded-full transition-all"
-						[class]="i === index() ? 'w-6 bg-white' : 'w-2 bg-white/40 group-hover/dot:bg-white/70'"
+						[class]="i === index() ? 'w-6 bg-on-image' : 'w-2 bg-on-image/40 group-hover/dot:bg-on-image/70'"
 					></span>
 				</button>
 				}
