@@ -100,6 +100,16 @@ export async function upsertScore(
 	);
 }
 
+export async function upsertScores(
+	entries: { gameId: string; source: string; score: number }[]
+) {
+	if (entries.length === 0) return;
+	await GameScore.bulkCreate(entries, {
+		updateOnDuplicate: ["score", "updatedAt"],
+		conflictAttributes: ["gameId", "source"]
+	});
+}
+
 export async function replaceGameScores(
 	gameId: string,
 	scores: { source: string; score: number }[]

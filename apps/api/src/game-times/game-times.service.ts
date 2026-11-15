@@ -95,6 +95,16 @@ export async function upsertTime(
 	);
 }
 
+export async function upsertTimes(
+	entries: { gameId: string; source: TimeSource; duration: number }[]
+) {
+	if (entries.length === 0) return;
+	await GameTime.bulkCreate(entries, {
+		updateOnDuplicate: ["duration", "updatedAt"],
+		conflictAttributes: ["gameId", "source"]
+	});
+}
+
 export async function replaceGameTimes(
 	gameId: string,
 	times: { source: TimeSource; duration: number }[]
