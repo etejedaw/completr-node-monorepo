@@ -17,13 +17,24 @@
 	/>
 </app-library-toolbar>
 
-@if (searchQuery().trim().length >= 2) {
+@if (isSearchActive()) {
 <section class="mb-10" aria-labelledby="player-search-heading">
 	<h2 id="player-search-heading" uiEyebrow class="m-0 mb-3">
 		Players matching “{{ searchQuery().trim() }}”
 	</h2>
 	@if (isSearching()) {
 	<ng-container *ngTemplateOutlet="cardsSkeleton" />
+	} @else if (searchFailed()) {
+	<ui-plain-empty-state
+		icon="cloud_off"
+		title="Couldn't search players"
+		message="Check your connection and try again."
+		[compact]="true"
+	>
+		<button uiButton variant="secondary" (click)="retrySearch()">
+			Try again
+		</button>
+	</ui-plain-empty-state>
 	} @else if (searchResults().length === 0) {
 	<ui-empty-state
 		icon="person_search"
@@ -37,11 +48,11 @@
 		@for (user of searchResults(); track user.id) {
 		<li>
 			<app-user-card
-				[user]="withLiveCounts(user)"
-				[followState]="followStateOf(user)"
+				[user]="followActions.withLiveCounts(user)"
+				[followState]="followActions.followStateOf(user)"
 				[canFollow]="isLoggedIn()"
-				[busy]="isBusy(user)"
-				(followToggled)="toggleFollow(user)"
+				[busy]="followActions.isBusy(user)"
+				(followToggled)="followActions.toggleFollow(user)"
 			/>
 		</li>
 		}
@@ -54,6 +65,17 @@
 	<h2 id="discover-heading" uiEyebrow class="m-0 mb-3">Discover</h2>
 	@if (isLoadingDiscover()) {
 	<ng-container *ngTemplateOutlet="cardsSkeleton" />
+	} @else if (discoverFailed()) {
+	<ui-plain-empty-state
+		icon="cloud_off"
+		title="Couldn't load players"
+		message="Check your connection and try again."
+		[compact]="true"
+	>
+		<button uiButton variant="secondary" (click)="retryDiscover()">
+			Try again
+		</button>
+	</ui-plain-empty-state>
 	} @else if (discoverUsers().length === 0) {
 	<ui-empty-state
 		icon="groups"
@@ -67,11 +89,11 @@
 		@for (user of discoverUsers(); track user.id) {
 		<li>
 			<app-user-card
-				[user]="withLiveCounts(user)"
-				[followState]="followStateOf(user)"
+				[user]="followActions.withLiveCounts(user)"
+				[followState]="followActions.followStateOf(user)"
 				[canFollow]="isLoggedIn()"
-				[busy]="isBusy(user)"
-				(followToggled)="toggleFollow(user)"
+				[busy]="followActions.isBusy(user)"
+				(followToggled)="followActions.toggleFollow(user)"
 			/>
 		</li>
 		}
@@ -98,11 +120,11 @@
 	</div>
 </ng-template>
 
-@if (unfollowTarget(); as target) {
+@if (followActions.unfollowTarget(); as target) {
 <app-unfollow-confirm-dialog
 	[username]="target.username"
-	[busy]="isBusy(target)"
-	(confirmed)="confirmUnfollow()"
-	(cancelled)="cancelUnfollow()"
+	[busy]="followActions.isBusy(target)"
+	(confirmed)="followActions.confirmUnfollow()"
+	(cancelled)="followActions.cancelUnfollow()"
 />
 }
