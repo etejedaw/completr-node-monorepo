@@ -22,6 +22,7 @@ import { createUser } from "../helpers/factories.helper";
 import {
 	AI_RECAP_TEXT,
 	PRIVATE_BACKLOG_NOTE,
+	REWIND_FROZEN_AT,
 	seedPersonalData
 } from "./personal-data.fixture";
 
@@ -153,6 +154,9 @@ void describe("GET /admin/users/:userId/data-export", () => {
 		assert.equal(body.platinums[0].notes, "Finally");
 		assert.equal(body.rewinds[0].aiRecap.text, AI_RECAP_TEXT);
 		assert.equal(body.rewinds[0].premiumStats.longestStreakDays, 12);
+		assert.equal(body.rewinds[0].regenerationsLeft, 2);
+		assert.equal(body.rewinds[0].frozenAt, REWIND_FROZEN_AT.toISOString());
+		assert.equal("regenerationsUsed" in body.rewinds[0], false);
 		assert.equal(body.sessions.length, 1);
 		assert.deepEqual(Object.keys(body.sessions[0]).sort(), [
 			"createdAt",

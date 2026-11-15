@@ -121,6 +121,8 @@ async function seedActivity(owner: User, partner: User, gameId: string) {
 	return { partnerActivityAboutOwner, partnerUnrelatedActivity };
 }
 
+export const REWIND_FROZEN_AT = new Date("2026-02-01T00:05:00.000Z");
+
 async function seedPremiumAndRewind(owner: User) {
 	await PremiumGrant.create({
 		userId: owner.id,
@@ -134,7 +136,10 @@ async function seedPremiumAndRewind(owner: User) {
 		generatedAt: new Date(),
 		aiRecap: { text: AI_RECAP_TEXT },
 		aiRecapStatus: "ready",
-		premiumStats: { longestStreakDays: 12 }
+		premiumStats: { longestStreakDays: 12 },
+		premiumAccessKind: "premium",
+		regenerationsLeft: 2,
+		frozenAt: REWIND_FROZEN_AT
 	});
 }
 
