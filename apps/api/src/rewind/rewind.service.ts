@@ -75,7 +75,6 @@ import { nextGeneratedAt } from "./utils/next-generated-at.util";
 import { planRewindGeneration } from "./utils/plan-rewind-generation.util";
 import { resolveClosedRewindEdition } from "./utils/resolve-closed-rewind-edition.util";
 import { resolveCurrentRewindDay } from "./utils/resolve-current-rewind-day.util";
-import { resolveOpenRewindEdition } from "./utils/resolve-open-rewind-edition.util";
 import { resolveRewindAiBudget } from "./utils/resolve-rewind-ai-budget.util";
 import { resolveRewindAiUseChanges } from "./utils/resolve-rewind-ai-use-changes.util";
 import { resolveRewindGenerationBlocker } from "./utils/resolve-rewind-generation-blocker.util";
