@@ -49,6 +49,15 @@ export const REWIND_GENERATION_BLOCKERS = [
 export type RewindGenerationBlocker =
 	(typeof REWIND_GENERATION_BLOCKERS)[number];
 
+export const REWIND_REGENERATION_BLOCKERS = [
+	...REWIND_GENERATION_BLOCKERS,
+	"no-ai-access",
+	"no-regenerations-left"
+] as const;
+
+export type RewindRegenerationBlocker =
+	(typeof REWIND_REGENERATION_BLOCKERS)[number];
+
 export const REWIND_INSIGHT_KINDS = [
 	"taste-vs-critics",
 	"genre-pattern",

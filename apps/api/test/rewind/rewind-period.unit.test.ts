@@ -6,7 +6,9 @@ import { buildRewindOwnerControls } from "../../src/rewind/utils/build-rewind-ow
 import { buildRewindYears } from "../../src/rewind/utils/build-rewind-years.util";
 import { resolveRewindGenerationBlocker } from "../../src/rewind/utils/resolve-rewind-generation-blocker.util";
 import { resolveRewindPeriod } from "../../src/rewind/utils/resolve-rewind-period.util";
+import { resolveRewindRegenerationBlocker } from "../../src/rewind/utils/resolve-rewind-regeneration-blocker.util";
 import { type RewindEditionRecord } from "../../src/rewind-editions/rewind-editions.interface";
+import { resolveRewindEditionStatus } from "../../src/rewind-editions/utils/resolve-rewind-edition-status.util";
 import {
 	calendarOn,
 	editionOf,
@@ -232,5 +234,69 @@ void describe("owner controls periodStatus", () => {
 		assert.equal(statusOn(AFTER_CLOSING, edition2026), "closed");
 		assert.equal(statusOn(BEFORE_OPENING, null, edition2026), "scheduled");
 		assert.equal(statusOn(OPEN_DAY, null), "closed");
+	});
+});
+
+void describe("resolveRewindEditionStatus", () => {
+	void it("is scheduled until the opening day, open through the closing day and closed after", () => {
+		assert.equal(
+			resolveRewindEditionStatus(edition2026, BEFORE_OPENING),
+			"scheduled"
+		);
+		assert.equal(resolveRewindEditionStatus(edition2026, OPEN_DAY), "open");
+		assert.equal(
+			resolveRewindEditionStatus(edition2026, CLOSING_DAY),
+			"open"
+		);
+		assert.equal(
+			resolveRewindEditionStatus(edition2026, AFTER_CLOSING),
+			"closed"
+		);
+	});
+});
+
+void describe("resolveRewindRegenerationBlocker", () => {
+	const open = calendarOn(OPEN_DAY, 2000, edition2026);
+	const closed = calendarOn(AFTER_CLOSING, 2000, edition2026);
+	const withRolls = { spend: "regeneration" } as const;
+	const noRolls = { spend: null } as const;
+
+	void it("is null when a spend is available", () => {
+		assert.equal(
+			resolveRewindRegenerationBlocker(2026, open, "premium", withRolls),
+			null
+		);
+	});
+
+	void it("answers period-closed first, even without access or rolls", () => {
+		assert.equal(
+			resolveRewindRegenerationBlocker(2026, closed, null, noRolls),
+			"period-closed"
+		);
+	});
+
+	void it("answers requires-premium before the missing access", () => {
+		assert.equal(
+			resolveRewindRegenerationBlocker(2025, open, null, noRolls),
+			"requires-premium"
+		);
+		assert.equal(
+			resolveRewindRegenerationBlocker(2025, open, "gift", noRolls),
+			"requires-premium"
+		);
+	});
+
+	void it("answers no-ai-access before the missing rolls", () => {
+		assert.equal(
+			resolveRewindRegenerationBlocker(2026, open, null, noRolls),
+			"no-ai-access"
+		);
+	});
+
+	void it("answers no-regenerations-left when only the rolls are missing", () => {
+		assert.equal(
+			resolveRewindRegenerationBlocker(2026, open, "gift", noRolls),
+			"no-regenerations-left"
+		);
 	});
 });

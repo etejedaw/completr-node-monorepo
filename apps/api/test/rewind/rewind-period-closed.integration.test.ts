@@ -11,6 +11,7 @@ import {
 	playerWithTwoYears,
 	readControlsPeriodStatus,
 	readPeriod,
+	readRegenerationBlocker,
 	readYearBlocks,
 	seedRewindPeriodWorld
 } from "./rewind-period.helper";
@@ -76,5 +77,24 @@ void describe("period after the 2026 edition closed (2027-03-01)", () => {
 		const period = await readPeriod(owner);
 		assert.equal(period.status, "scheduled");
 		assert.equal(period.year, 2027);
+	});
+
+	void it("answers period-closed over every other reason", async () => {
+		const free = await playerWithTwoYears(world);
+		await storeRewind(free, 2026);
+		const premium = await playerWithTwoYears(world, "premium");
+		await storeRewind(premium, 2025, {
+			premiumAccessKind: "premium",
+			regenerationsLeft: 3
+		});
+
+		assert.equal(
+			await readRegenerationBlocker(free, 2026),
+			"period-closed"
+		);
+		assert.equal(
+			await readRegenerationBlocker(premium, 2025),
+			"period-closed"
+		);
 	});
 });

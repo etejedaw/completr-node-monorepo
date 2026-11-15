@@ -90,3 +90,15 @@ export async function readControlsPeriodStatus(
 	).expect(200);
 	return response.body.data.ownerControls.periodStatus;
 }
+
+export async function readRegenerationBlocker(
+	owner: Account,
+	year: number
+): Promise<string | null> {
+	const response = await readRewind(
+		owner.user.username,
+		year,
+		owner.authorization
+	).expect(200);
+	return response.body.data.ownerControls.regenerationBlockedBy;
+}

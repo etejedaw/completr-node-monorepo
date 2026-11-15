@@ -161,6 +161,7 @@ void describe("the period of the edition", () => {
 			regenerationsLeft: 1,
 			graceEndsAt: null,
 			canRegenerate: false,
+			regenerationBlockedBy: "period-closed",
 			aiRecapState: "unavailable",
 			periodOpen: false,
 			periodStatus: "closed",

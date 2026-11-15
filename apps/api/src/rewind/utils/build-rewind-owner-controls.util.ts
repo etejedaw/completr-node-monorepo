@@ -5,6 +5,7 @@ import { type RewindCalendar } from "../rewind-run.interface";
 import { resolveAiRecapState } from "./resolve-ai-recap-state.util";
 import { resolveRewindAiBudget } from "./resolve-rewind-ai-budget.util";
 import { resolveRewindPeriod } from "./resolve-rewind-period.util";
+import { resolveRewindRegenerationBlocker } from "./resolve-rewind-regeneration-blocker.util";
 
 export function buildRewindOwnerControls(
 	record: RewindRecord,
@@ -20,6 +21,12 @@ export function buildRewindOwnerControls(
 		regenerationsLeft: budget.regenerationsLeft,
 		graceEndsAt: budget.graceEndsAt,
 		canRegenerate: canUseAi,
+		regenerationBlockedBy: resolveRewindRegenerationBlocker(
+			record.year,
+			calendar,
+			accessKind,
+			budget
+		),
 		aiRecapState: resolveAiRecapState(record, canUseAi),
 		periodOpen: budget.edition !== null,
 		periodStatus: resolveRewindPeriod(calendar)?.status ?? "closed",

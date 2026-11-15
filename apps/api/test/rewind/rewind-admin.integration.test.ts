@@ -129,6 +129,7 @@ void describe("GET /admin/rewind/editions", () => {
 			graceEndsAt: "2026-01-07"
 		});
 		await createRewindEdition(2026, { premiumRegenerations: 4 });
+		await createRewindEdition(2027);
 		await storeRewindFor(2026, null, 0);
 		await storeRewindFor(2026, "gift", 1);
 		await storeRewindFor(2025, "premium", 2);
@@ -139,16 +140,21 @@ void describe("GET /admin/rewind/editions", () => {
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.designs, ["2026"]);
-		const [latest, previous] = response.body.data.editions;
+		const [upcoming, latest, previous] = response.body.data.editions;
+		assert.equal(upcoming.year, 2027);
+		assert.equal(upcoming.status, "scheduled");
+		assert.equal(upcoming.inProgress, false);
 		assert.deepEqual(latest, {
 			...EDITION_PAYLOAD,
 			premiumRegenerations: 4,
 			giftRegenerations: 0,
 			frozenAt: null,
+			status: "open",
 			inProgress: true,
 			generatedCount: 2
 		});
 		assert.equal(previous.year, 2025);
+		assert.equal(previous.status, "closed");
 		assert.equal(previous.inProgress, false);
 		assert.equal(previous.generatedCount, 1);
 	});
@@ -173,6 +179,7 @@ void describe("POST /admin/rewind/editions", () => {
 		assert.deepEqual(response.body.data.edition, {
 			...EDITION_PAYLOAD,
 			frozenAt: null,
+			status: "open",
 			inProgress: true,
 			generatedCount: 0
 		});

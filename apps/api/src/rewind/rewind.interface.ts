@@ -8,7 +8,8 @@ import {
 	type RewindLengthRange,
 	type RewindPeriodStatus,
 	type RewindPersonaCode,
-	type RewindPremiumAccessKind
+	type RewindPremiumAccessKind,
+	type RewindRegenerationBlocker
 } from "./rewind.constants";
 
 export interface RewindGameRef {
@@ -228,6 +229,7 @@ export interface RewindOwnerControls {
 	regenerationsLeft: number;
 	graceEndsAt: string | null;
 	canRegenerate: boolean;
+	regenerationBlockedBy: RewindRegenerationBlocker | null;
 	aiRecapState: RewindAiRecapState;
 	periodOpen: boolean;
 	periodStatus: RewindPeriodStatus;

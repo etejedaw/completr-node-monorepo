@@ -211,6 +211,7 @@ void describe("POST /users/me/rewinds/:year", () => {
 			regenerationsLeft: 0,
 			graceEndsAt: null,
 			canRegenerate: false,
+			regenerationBlockedBy: "no-ai-access",
 			aiRecapState: "unavailable",
 			periodOpen: true,
 			periodStatus: "open",
