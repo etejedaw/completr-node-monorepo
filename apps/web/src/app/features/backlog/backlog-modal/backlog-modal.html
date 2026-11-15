@@ -14,8 +14,8 @@
 	<app-backlog-entry-summary
 		[entry]="entry!"
 		[moodTags]="moodTags()"
-		[progressNotes]="progressNotes()"
-		[coopMembers]="coopMembers()"
+		[progressNotes]="progress.notes()"
+		[coopMembers]="coop.members()"
 		[platinum]="existingPlatinum()"
 		(navigated)="onClose()"
 	/>
@@ -169,7 +169,7 @@
 			} } @else {
 			<p
 				tabindex="-1"
-				class="m-0 px-3 py-2.5 rounded-card border border-dashed border-line text-[0.8125rem] text-fg-muted"
+				class="m-0 px-3 py-2.5 rounded-card border border-dashed border-line text-compact text-fg-muted"
 			>
 				This game has no platforms in the catalog yet, so it can't be
 				added.
@@ -202,7 +202,7 @@
 					<span class="block text-sm text-fg"
 						>{{ isEdit() ? "In Up Next" : "Add to Up Next" }}</span
 					>
-					<span class="block text-[0.6875rem] text-fg-muted"
+					<span class="block text-caption text-fg-muted"
 						>Queue it among the games to play next</span
 					>
 				</span>
@@ -221,7 +221,7 @@
 				>
 				<span class="flex-1 min-w-0">
 					<span class="block text-sm text-fg">Add to My Shelf</span>
-					<span class="block text-[0.6875rem] text-fg-muted"
+					<span class="block text-caption text-fg-muted"
 						>You own it on the platform above</span
 					>
 				</span>
@@ -240,7 +240,7 @@
 				>
 				<span class="flex-1 min-w-0">
 					<span class="block text-sm text-fg">Public run</span>
-					<span class="block text-[0.6875rem] text-fg-muted"
+					<span class="block text-caption text-fg-muted"
 						>{{ isPublic() ? "Others can see it in your library" :
 						"Only you can see this run" }}</span
 					>
@@ -278,7 +278,7 @@
 			<div uiTabPanel value="tracking" class="pt-1">
 				<div class="flex items-baseline justify-between mb-3">
 					<h3 uiEyebrow class="m-0">Your tracking</h3>
-					<span class="text-[0.6875rem] text-fg-muted italic"
+					<span class="text-caption text-fg-muted italic"
 						>personal data</span
 					>
 				</div>
@@ -405,7 +405,7 @@
 								>{{ platinumElsewhere() ? "Move the platinum to
 								this run" : "Platinumed in this run" }}</span
 							>
-							<span class="block text-[0.6875rem] text-fg-muted"
+							<span class="block text-caption text-fg-muted"
 								>Saved together with the run</span
 							>
 						</span>
@@ -426,23 +426,21 @@
 				</div>
 				} @if (tooltipText()) {
 				<p
-					class="mt-1 mb-4 text-[0.75rem] text-fg-muted bg-input-bg border border-line rounded px-2.5 py-2 leading-snug"
+					class="mt-1 mb-4 text-xs text-fg-muted bg-input-bg border border-line rounded px-2.5 py-2 leading-snug"
 				>
 					{{ tooltipText() }}
 				</p>
 				} @if (isEdit()) {
 				<div class="mb-4 pt-3 border-t border-line">
 					<span uiEyebrow class="mb-1.5">Played with</span>
-					<p
-						class="text-[0.6875rem] text-fg-muted m-0 mb-2 leading-snug"
-					>
+					<p class="text-caption text-fg-muted m-0 mb-2 leading-snug">
 						Tag friends you played this with. Each tag auto-creates
 						a backlog for them if they don't have one. You can only
 						tag users you follow.
 					</p>
-					@if (coopMembers().length > 0) {
+					@if (coop.members().length > 0) {
 					<ul class="list-none p-0 m-0 flex flex-col gap-1.5 mb-2">
-						@for (member of coopMembers(); track member.userId) {
+						@for (member of coop.members(); track member.userId) {
 						<li
 							class="flex items-center gap-2 rounded-card border border-line bg-input-bg pl-2.5 pr-1 py-1"
 						>
@@ -452,7 +450,7 @@
 								(click)="onClose()"
 							>
 								<ui-avatar
-									class="w-7 h-7 text-[0.625rem] shrink-0"
+									class="w-7 h-7 text-tiny shrink-0"
 									[src]="member.avatarUrl"
 									[name]="member.name || member.username"
 								/>
@@ -464,8 +462,7 @@
 											>, view profile</span
 										></span
 									>
-									<span
-										class="block text-[0.625rem] text-fg-muted"
+									<span class="block text-tiny text-fg-muted"
 										>{{ member.status }} · {{
 										member.realDuration ?
 										member.realDuration + 'h' : '—' }}</span
@@ -479,7 +476,7 @@
 								type="button"
 								class="max-md:min-h-[44px]"
 								title="Compare and sync from this peer"
-								(click)="openSyncDialog(member)"
+								(click)="coop.openSyncDialog(member)"
 							>
 								Sync
 							</button>
@@ -489,8 +486,8 @@
 								tone="danger"
 								type="button"
 								[attr.aria-label]="'Remove ' + (member.name || member.username)"
-								[disabled]="coopRemovingId() === member.userId"
-								(click)="removeCoopMember(member)"
+								[disabled]="coop.removingId() === member.userId"
+								(click)="coop.removeMember(member)"
 							>
 								<span
 									aria-hidden="true"
@@ -501,7 +498,7 @@
 						</li>
 						}
 					</ul>
-					} @if (coopFriendActions().length > 0) {
+					} @if (coop.friendActions().length > 0) {
 					<label uiFieldLabel for="backlog-coop-add"
 						>Add a friend <ui-field-optional
 					/></label>
@@ -511,13 +508,13 @@
 						label="Played with"
 						heading="Add a friend you follow"
 						placeholderIcon="person_add"
-						[placeholder]="coopAdding() ? 'Adding…' : 'Add a friend you follow…'"
+						[placeholder]="coop.adding() ? 'Adding…' : 'Add a friend you follow…'"
 						[options]="[]"
-						[actions]="coopFriendActions()"
-						(actionSelected)="addCoopMember($event)"
+						[actions]="coop.friendActions()"
+						(actionSelected)="coop.addMember($event)"
 					/>
-					} @else if (coopMembers().length === 0) {
-					<p class="text-[0.6875rem] text-fg-muted italic m-0">
+					} @else if (coop.members().length === 0) {
+					<p class="text-caption text-fg-muted italic m-0">
 						You're not following anyone yet. Follow a friend to tag
 						them here.
 					</p>
@@ -529,7 +526,7 @@
 			<div uiTabPanel value="notes" class="pt-1">
 				<div class="flex items-baseline justify-between mb-3">
 					<h3 uiEyebrow class="m-0">Your annotations</h3>
-					<span class="text-[0.6875rem] text-fg-muted italic"
+					<span class="text-caption text-fg-muted italic"
 						>tags, progress, notes</span
 					>
 				</div>
@@ -545,7 +542,7 @@
 						placeholder="e.g. relajante, podcast game…"
 						(tagsChange)="updateMoodTags($event)"
 					/>
-					<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted">
+					<p class="m-0 mt-1 text-caption text-fg-muted">
 						Personal labels you can later use to filter the backlog.
 						Up to 10.
 					</p>
@@ -560,9 +557,9 @@
 							uiInput
 							id="progress-note"
 							placeholder="e.g. Cap 3, stuck en el puzzle del agua"
-							[value]="progressDraft()"
-							(input)="updateProgressDraft($any($event.target).value)"
-							(keyup.enter)="isEdit() ? addProgressNote() : null"
+							[value]="progress.draft()"
+							(input)="progress.updateDraft($any($event.target).value)"
+							(keyup.enter)="isEdit() ? progress.addNote() : null"
 							maxlength="500"
 							class="flex-1"
 						/>
@@ -572,14 +569,14 @@
 							variant="primary"
 							type="button"
 							class="shrink-0 min-w-[56px]"
-							(click)="addProgressNote()"
-							[disabled]="progressLoading() || !progressDraft().trim()"
+							(click)="progress.addNote()"
+							[disabled]="progress.loading() || !progress.draft().trim()"
 						>
-							{{ progressLoading() ? '…' : 'Add' }}
+							{{ progress.loading() ? '…' : 'Add' }}
 						</button>
 						}
 					</div>
-					@if (isEdit() && progressNotes().length > 0) {
+					@if (isEdit() && progress.notes().length > 0) {
 					<div
 						class="mt-2 flex items-start gap-2 text-xs text-fg-secondary"
 					>
@@ -590,10 +587,10 @@
 						>
 						<div class="flex-1 min-w-0">
 							<p class="m-0 whitespace-pre-wrap break-words">
-								{{ progressNotes()[0].note }}
+								{{ progress.notes()[0].note }}
 							</p>
-							<p class="m-0 text-[0.625rem] text-fg-muted mt-0.5">
-								{{ progressNotes()[0].createdAt |
+							<p class="m-0 text-tiny text-fg-muted mt-0.5">
+								{{ progress.notes()[0].createdAt |
 								date:'yyyy-MM-dd HH:mm' }}
 							</p>
 						</div>
@@ -603,8 +600,8 @@
 							tone="danger"
 							type="button"
 							aria-label="Delete progress note"
-							[disabled]="progressSavingId() === progressNotes()[0].id"
-							(click)="deleteProgressNote(progressNotes()[0])"
+							[disabled]="progress.savingId() === progress.notes()[0].id"
+							(click)="progress.deleteNote(progress.notes()[0])"
 						>
 							<span
 								aria-hidden="true"
@@ -613,22 +610,22 @@
 							>
 						</button>
 					</div>
-					@if (progressNotes().length > 1) {
+					@if (progress.notes().length > 1) {
 					<button
 						type="button"
 						uiButton
 						variant="link"
 						class="mt-1.5"
-						(click)="toggleProgressHistory()"
+						(click)="progress.toggleHistory()"
 					>
-						{{ progressHistoryOpen() ? 'Hide history' : 'Show
-						history (' + (progressNotes().length - 1) + ')' }}
+						{{ progress.historyOpen() ? 'Hide history' : 'Show
+						history (' + (progress.notes().length - 1) + ')' }}
 					</button>
-					} @if (progressHistoryOpen()) {
+					} @if (progress.historyOpen()) {
 					<ul
 						class="mt-2 list-none p-0 m-0 flex flex-col gap-1.5 max-h-44 overflow-y-auto border-t border-line pt-2"
 					>
-						@for (n of progressNotes().slice(1); track n.id) {
+						@for (n of progress.notes().slice(1); track n.id) {
 						<li class="flex items-start gap-2 text-xs">
 							<div class="flex-1 min-w-0">
 								<p
@@ -636,9 +633,7 @@
 								>
 									{{ n.note }}
 								</p>
-								<p
-									class="m-0 text-[0.625rem] text-fg-muted mt-0.5"
-								>
+								<p class="m-0 text-tiny text-fg-muted mt-0.5">
 									{{ n.createdAt | date:'yyyy-MM-dd HH:mm' }}
 								</p>
 							</div>
@@ -648,8 +643,8 @@
 								tone="danger"
 								type="button"
 								aria-label="Delete progress note"
-								[disabled]="progressSavingId() === n.id"
-								(click)="deleteProgressNote(n)"
+								[disabled]="progress.savingId() === n.id"
+								(click)="progress.deleteNote(n)"
 							>
 								<span
 									aria-hidden="true"
@@ -661,7 +656,7 @@
 						}
 					</ul>
 					} }
-					<p class="m-0 mt-1 text-[0.6875rem] text-fg-muted">
+					<p class="m-0 mt-1 text-caption text-fg-muted">
 						@if (isEdit()) { Short notes to remember where you left
 						off. Each add creates a new entry; history is preserved.
 						} @else { Saved with the backlog so you can pick up
@@ -815,36 +810,36 @@
 	</ng-container>
 </ui-dialog>
 
-@if (pickerUserId()) {
+@if (coop.pickerUserId()) {
 <ui-dialog
 	eyebrow="Co-op"
 	icon="group_add"
 	size="sm"
-	[heading]="'Pick a run for ' + pickerUserName()"
-	(closed)="cancelPicker()"
+	[heading]="'Pick a run for ' + coop.pickerUserName()"
+	(closed)="coop.cancelPicker()"
 >
 	<p class="text-sm text-fg-secondary m-0 mb-4">
-		{{ pickerUserName() }} already has runs for this game. Pick one to annex
-		into your co-op session, or create a new entry for them.
+		{{ coop.pickerUserName() }} already has runs for this game. Pick one to
+		annex into your co-op session, or create a new entry for them.
 	</p>
 	<ul class="list-none p-0 m-0 flex flex-col gap-2">
-		@for (c of pickerCandidates(); track c.id) {
+		@for (c of coop.pickerCandidates(); track c.id) {
 		<li>
 			<button
 				type="button"
 				class="w-full min-h-[44px] bg-input-bg border border-line rounded-card p-3 text-left cursor-pointer hover:border-brand transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-line"
-				(click)="chooseCandidate(c.id)"
+				(click)="coop.chooseCandidate(c.id)"
 				[disabled]="!!c.coopRunId"
 			>
 				<div class="flex items-center justify-between mb-1">
 					<app-backlog-status-badge [status]="c.status" />
 					@if (c.coopRunId) {
-					<span class="text-[0.625rem] text-warning"
+					<span class="text-tiny text-warning"
 						>Already in another co-op</span
 					>
 					}
 				</div>
-				<div class="text-[0.6875rem] text-fg-muted tabular-nums">
+				<div class="text-caption text-fg-muted tabular-nums">
 					Started: {{ c.startedAt ?? '—' }} · Finished: {{
 					c.finishedAt ?? '—' }} · Real: {{ c.realDuration ?? '—' }}h
 				</div>
@@ -853,84 +848,89 @@
 		}
 	</ul>
 	<ng-container dialogFooter>
-		<button uiButton variant="ghost" type="button" (click)="cancelPicker()">
+		<button
+			uiButton
+			variant="ghost"
+			type="button"
+			(click)="coop.cancelPicker()"
+		>
 			Cancel
 		</button>
 		<button
 			uiButton
 			variant="primary"
 			type="button"
-			(click)="chooseCandidate(null)"
+			(click)="coop.chooseCandidate(null)"
 		>
 			Create new entry
 		</button>
 	</ng-container>
 </ui-dialog>
-} @if (syncMember(); as m) {
+} @if (coop.syncMember(); as m) {
 <ui-dialog
 	eyebrow="Co-op"
 	icon="sync"
 	size="sm"
 	subheading="Pick which fields to copy. Your personal data (score, rating, notes) is never synced."
 	[heading]="'Sync from ' + (m.name || m.username)"
-	[dismissible]="!syncing()"
-	(closed)="closeSyncDialog()"
+	[dismissible]="!coop.syncing()"
+	(closed)="coop.closeSyncDialog()"
 >
 	@let mine = entry;
 	<div class="flex flex-col gap-1">
 		<div class="flex items-center gap-3 min-h-[52px] py-2">
 			<div class="flex-1 min-w-0">
 				<span class="block text-sm text-fg">Status</span>
-				<span class="block text-[0.6875rem] text-fg-muted tabular-nums"
+				<span class="block text-caption text-fg-muted tabular-nums"
 					>{{ mine?.status ?? '—' }} → {{ m.status }}</span
 				>
 			</div>
 			<ui-switch
 				ariaLabel="Sync Status"
-				[checked]="syncFields().status"
-				(checkedChange)="toggleSyncField('status')"
+				[checked]="coop.syncFields().status"
+				(checkedChange)="coop.toggleSyncField('status')"
 			/>
 		</div>
 		<div class="flex items-center gap-3 min-h-[52px] py-2">
 			<div class="flex-1 min-w-0">
 				<span class="block text-sm text-fg">Started At</span>
-				<span class="block text-[0.6875rem] text-fg-muted tabular-nums"
+				<span class="block text-caption text-fg-muted tabular-nums"
 					>{{ mine?.startedAt ?? '—' }} → {{ m.startedAt ?? '—'
 					}}</span
 				>
 			</div>
 			<ui-switch
 				ariaLabel="Sync Started At"
-				[checked]="syncFields().startedAt"
-				(checkedChange)="toggleSyncField('startedAt')"
+				[checked]="coop.syncFields().startedAt"
+				(checkedChange)="coop.toggleSyncField('startedAt')"
 			/>
 		</div>
 		<div class="flex items-center gap-3 min-h-[52px] py-2">
 			<div class="flex-1 min-w-0">
 				<span class="block text-sm text-fg">Finished At</span>
-				<span class="block text-[0.6875rem] text-fg-muted tabular-nums"
+				<span class="block text-caption text-fg-muted tabular-nums"
 					>{{ mine?.finishedAt ?? '—' }} → {{ m.finishedAt ?? '—'
 					}}</span
 				>
 			</div>
 			<ui-switch
 				ariaLabel="Sync Finished At"
-				[checked]="syncFields().finishedAt"
-				(checkedChange)="toggleSyncField('finishedAt')"
+				[checked]="coop.syncFields().finishedAt"
+				(checkedChange)="coop.toggleSyncField('finishedAt')"
 			/>
 		</div>
 		<div class="flex items-center gap-3 min-h-[52px] py-2">
 			<div class="flex-1 min-w-0">
 				<span class="block text-sm text-fg">Real Duration</span>
-				<span class="block text-[0.6875rem] text-fg-muted tabular-nums"
+				<span class="block text-caption text-fg-muted tabular-nums"
 					>{{ mine?.realDuration ?? '—' }}h → {{ m.realDuration ?? '—'
 					}}h</span
 				>
 			</div>
 			<ui-switch
 				ariaLabel="Sync Real Duration"
-				[checked]="syncFields().realDuration"
-				(checkedChange)="toggleSyncField('realDuration')"
+				[checked]="coop.syncFields().realDuration"
+				(checkedChange)="coop.toggleSyncField('realDuration')"
 			/>
 		</div>
 	</div>
@@ -939,8 +939,8 @@
 			uiButton
 			variant="ghost"
 			type="button"
-			[disabled]="syncing()"
-			(click)="closeSyncDialog()"
+			[disabled]="coop.syncing()"
+			(click)="coop.closeSyncDialog()"
 		>
 			Cancel
 		</button>
@@ -948,10 +948,10 @@
 			uiButton
 			variant="primary"
 			type="button"
-			[disabled]="syncing() || !hasAnySyncFieldSelected()"
-			(click)="commitSync()"
+			[disabled]="coop.syncing() || !coop.hasAnySyncFieldSelected()"
+			(click)="coop.commitSync()"
 		>
-			{{ syncing() ? "Syncing…" : "Apply" }}
+			{{ coop.syncing() ? "Syncing…" : "Apply" }}
 		</button>
 	</ng-container>
 </ui-dialog>
