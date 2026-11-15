@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
 import { UniqueConstraintError } from "sequelize";
 
+import { sequelize } from "../../src/database/sequelize.database";
 import { Game } from "../../src/games/game.model";
 import { Platform } from "../../src/platforms/platform.model";
 import { Wishlist } from "../../src/wishlist/wishlist.model";
@@ -25,6 +26,8 @@ function errorCode(error: unknown) {
 
 beforeEach(() => {
 	stubPremiumAccess();
+	stub(sequelize, "query", async () => []);
+	stubTransaction();
 });
 
 function gameIds(count: number) {
@@ -38,13 +41,15 @@ void describe("wishlistService.replaceWishlist", () => {
 
 	void it("clears the wishlist when the new list is empty", async () => {
 		const destroy = stub(Wishlist, "destroy", async () => 2);
+		stub(Wishlist, "findAll", async () => []);
+		stub(Wishlist, "bulkCreate", async () => []);
 
 		assert.deepEqual(
 			await wishlistService.replaceWishlist(FREE_USER, []),
 			[]
 		);
 		assert.deepEqual(destroy.mock.calls[0]?.arguments, [
-			{ where: { userId: "user-1" } }
+			{ where: { userId: "user-1" }, transaction: { id: "tx" } }
 		]);
 	});
 
@@ -60,6 +65,7 @@ void describe("wishlistService.replaceWishlist", () => {
 		assert.equal(findGames.mock.callCount(), 0);
 		mock.restoreAll();
 		stubPremiumAccess();
+		stub(sequelize, "query", async () => []);
 
 		stub(Game, "findAll", async () =>
 			gameIds(FREE_WISHLIST_LIMIT).map(id => ({ id }))
@@ -167,6 +173,7 @@ void describe("wishlistService.addToWishlist", () => {
 		stub(Platform, "findOne", async () => asModel({ id: "p-1" }));
 		const findWishlist = stub(Wishlist, "findOne", async () => null);
 		stub(Wishlist, "count", async () => count);
+		stub(Wishlist, "max", async () => count);
 		const create = stub(Wishlist, "create", async () => ({}));
 		return { findWishlist, create };
 	}
@@ -219,6 +226,8 @@ void describe("wishlistService.addToWishlist", () => {
 		);
 		assert.equal(errorCode(error), "WISHLIST_LIMIT_REACHED");
 		mock.restoreAll();
+		stub(sequelize, "query", async () => []);
+		stubTransaction();
 
 		const { create } = stubHappyPath(FREE_WISHLIST_LIMIT);
 		await wishlistService.addToWishlist(
@@ -245,6 +254,7 @@ void describe("wishlistService.addToWishlist", () => {
 		stub(Game, "findOne", async () => asModel({ id: "g-1" }));
 		stub(Wishlist, "findOne", async () => null);
 		stub(Wishlist, "count", async () => 0);
+		stub(Wishlist, "max", async () => null);
 		stub(Wishlist, "create", async () => {
 			throw new UniqueConstraintError({});
 		});
@@ -278,7 +288,10 @@ void describe("wishlistService.removeFromWishlist", () => {
 		await wishlistService.removeFromWishlist(FREE_USER, "g-1");
 
 		assert.deepEqual(destroy.mock.calls[0]?.arguments, [
-			{ where: { userId: "user-1", gameId: "g-1" } }
+			{
+				where: { userId: "user-1", gameId: "g-1" },
+				transaction: { id: "tx" }
+			}
 		]);
 	});
 });
