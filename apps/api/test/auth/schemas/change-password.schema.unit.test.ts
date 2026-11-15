@@ -6,18 +6,39 @@ import { ChangePasswordSchema } from "../../../src/auth/schemas/change-password.
 void describe("ChangePasswordSchema", () => {
 	void it("applies the password policy", () => {
 		assert.equal(
-			ChangePasswordSchema.safeParse({ password: "weak" }).success,
+			ChangePasswordSchema.safeParse({
+				currentPassword: "Current1!",
+				password: "weak"
+			}).success,
 			false
 		);
 		assert.equal(
-			ChangePasswordSchema.safeParse({ password: "Abcdef1!" }).success,
+			ChangePasswordSchema.safeParse({
+				currentPassword: "Current1!",
+				password: "Abcdef1!"
+			}).success,
 			true
+		);
+	});
+
+	void it("requires the current password", () => {
+		assert.equal(
+			ChangePasswordSchema.safeParse({ password: "Abcdef1!" }).success,
+			false
+		);
+		assert.equal(
+			ChangePasswordSchema.safeParse({
+				currentPassword: "",
+				password: "Abcdef1!"
+			}).success,
+			false
 		);
 	});
 
 	void it("rejects unknown fields", () => {
 		assert.equal(
 			ChangePasswordSchema.safeParse({
+				currentPassword: "Current1!",
 				password: "Abcdef1!",
 				role: "admin"
 			}).success,

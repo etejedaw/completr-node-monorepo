@@ -189,15 +189,13 @@ void describe("globalErrorDomainNormalizer", () => {
 		});
 	}
 
-	void it("maps an Auth Service ServiceError to COMMON INTERNAL_ERROR through the auth normalizer", () => {
+	void it("maps an unknown Auth Service ServiceError to AUTH_INTERNAL_ERROR through the auth normalizer", () => {
 		const raw = serviceError("Auth Service", "AUTH_ANYTHING");
 
 		const domainError = globalErrorDomainNormalizer(raw, "corr");
 
-		assert.equal(domainError.module, "COMMON");
-		assert.equal(domainError.code, "INTERNAL_ERROR");
-		assert.equal(domainError.message, "Unexpected internal error");
-		assert.equal(domainError.context?.raw, raw);
+		assert.equal(domainError.module, "Auth Module");
+		assert.equal(domainError.code, "AUTH_INTERNAL_ERROR");
 		assert.equal(domainError.context?.correlationId, "corr");
 	});
 
