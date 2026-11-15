@@ -13,9 +13,6 @@ export function listItemsServiceToDomainMapper(
 	if (error.code === "LIST_ITEM_LIST_NOT_FOUND")
 		return listItemDomainError.listItemListNotFound(context);
 
-	if (error.code === "LIST_ITEM_FORBIDDEN")
-		return listItemDomainError.listItemForbidden(context);
-
 	if (error.code === "LIST_ITEM_GAMES_NOT_FOUND")
 		return listItemDomainError.listItemGamesNotFound(context);
 

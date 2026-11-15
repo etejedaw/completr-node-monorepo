@@ -39,6 +39,7 @@ function stubList(overrides: Record<string, unknown> = {}) {
 
 beforeEach(() => {
 	stubPremiumAccess();
+	stub(sequelize, "query", async () => []);
 });
 
 function stubOwnedListCount(count: number) {
@@ -94,7 +95,7 @@ void describe("listItemsService access rules", () => {
 		}
 	});
 
-	void it("fails with LIST_ITEM_FORBIDDEN when the list belongs to someone else", async () => {
+	void it("fails with LIST_ITEM_LIST_NOT_FOUND when the list belongs to someone else", async () => {
 		stubList({ userId: "owner" });
 
 		for (const action of [
@@ -105,7 +106,7 @@ void describe("listItemsService access rules", () => {
 		]) {
 			assert.equal(
 				errorCode(await captureRejection(action())),
-				"LIST_ITEM_FORBIDDEN"
+				"LIST_ITEM_LIST_NOT_FOUND"
 			);
 		}
 	});

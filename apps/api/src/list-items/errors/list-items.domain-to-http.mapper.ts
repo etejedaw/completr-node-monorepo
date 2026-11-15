@@ -19,9 +19,6 @@ export function listItemsDomainToHttpMapper(
 	if (error.code === "LIST_ITEM_LIST_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
-	if (error.code === "LIST_ITEM_FORBIDDEN")
-		return new HttpError({ ...baseOptions, status: 403 });
-
 	if (error.code === "LIST_ITEM_GAMES_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 

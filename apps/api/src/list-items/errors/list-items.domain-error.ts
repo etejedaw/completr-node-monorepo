@@ -11,15 +11,6 @@ export function listItemListNotFound(context?: Record<string, unknown>) {
 	);
 }
 
-export function listItemForbidden(context?: Record<string, unknown>) {
-	return new DomainError(
-		MODULE_NAME,
-		"LIST_ITEM_FORBIDDEN",
-		"You do not have permission to modify items in this list",
-		context
-	);
-}
-
 export function listItemGamesNotFound(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,
