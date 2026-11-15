@@ -41,8 +41,8 @@ docs: |-
 
     | Field    | Type   | Required | Description                                        |
     |----------|--------|----------|----------------------------------------------------|
-    | email    | string | Yes      | Valid email format                                  |
-    | password | string | Yes      | 8-15 chars, uppercase, lowercase, number, special  |
+    | email    | string | Yes      | Valid email format, matched in lowercase            |
+    | password | string | Yes      | Any non-empty string up to 128 characters (the password policy applies when it is set, not when logging in) |
 
     ### Response (200)
 
