@@ -7,10 +7,7 @@ import { type ExportPlatformSearchQuery } from "../common/schemas/export-platfor
 import { type ExportFormat } from "../common/types/export-format.types";
 import { sendExport } from "../common/utils/send-export.util";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
-import * as userDomainError from "../users/errors/users.domain-error";
-import { canView } from "../users/helpers/visibility.helper";
-import { type UsernameParam } from "../users/schemas/username-params.schema";
-import * as usersService from "../users/users.service";
+import { type User } from "../users/user.model";
 import { type BulkDeleteGameShelfDto } from "./dtos/bulk-delete-game-shelf.dto";
 import { type RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import { type UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
@@ -72,20 +69,12 @@ export async function getMeGameShelf(request: Request, response: Response) {
 }
 
 export async function getUserGameShelf(request: Request, response: Response) {
-	const params = request.locals.params as UsernameParam;
-	const { username } = params;
 	const query = request.locals.query ?? {};
 
-	const user = await usersService.findUserByUsername(username);
-	if (!user) throw userDomainError.userNotFound();
+	const user = request.locals.profileOwner as User;
 
 	const currentUser = request.locals.user as RequestUser | undefined;
 	const isSelf = currentUser?.id === user.id;
-
-	if (!(await canView(currentUser?.id, user, "profile")))
-		throw userDomainError.userPrivate();
-	if (!(await canView(currentUser?.id, user, "shelf")))
-		throw userDomainError.userPrivate();
 
 	const { rows, total } = isSelf
 		? await gameShelfService.findGameShelfByUserIdPaginated(user.id, query)

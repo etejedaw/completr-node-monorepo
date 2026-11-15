@@ -7,10 +7,7 @@ import { type ExportSearchQuery } from "../common/schemas/export-search-query.sc
 import { type ExportFormat } from "../common/types/export-format.types";
 import { sendExport } from "../common/utils/send-export.util";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
-import * as userDomainError from "../users/errors/users.domain-error";
-import { canView } from "../users/helpers/visibility.helper";
-import { type UsernameParam } from "../users/schemas/username-params.schema";
-import * as usersService from "../users/users.service";
+import { type User } from "../users/user.model";
 import { type BulkFavoritesDto } from "./dtos/bulk-favorites.dto";
 import { type ReplaceFavoritesDto } from "./dtos/replace-favorites.dto";
 import {
@@ -93,18 +90,11 @@ export async function getMeFavorites(request: Request, response: Response) {
 }
 
 export async function getUserFavorites(request: Request, response: Response) {
-	const params = request.locals.params as UsernameParam;
 	const query = request.locals.query ?? {};
 
-	const user = await usersService.findUserByUsername(params.username);
-	if (!user) throw userDomainError.userNotFound();
+	const user = request.locals.profileOwner as User;
 
 	const currentUser = request.locals.user as RequestUser | undefined;
-
-	if (!(await canView(currentUser?.id, user, "profile")))
-		throw userDomainError.userPrivate();
-	if (!(await canView(currentUser?.id, user, "favorite")))
-		throw userDomainError.userPrivate();
 
 	const { rows, total } =
 		await favoritesService.findFavoritesByUserIdPaginated(user.id, query);
