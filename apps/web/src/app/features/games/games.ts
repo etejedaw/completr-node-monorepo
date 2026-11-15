@@ -203,43 +203,35 @@ export class GamesService {
 	}
 
 	createScore(gameId: string, source: string, score: number) {
-		return this.http
-			.post<{
-				data: { gameScore: GameScoreEntry };
-			}>(`${environment.apiUrl}/game-scores`, { gameId, source, score })
-			.pipe(map(res => res.data.gameScore));
+		return this.http.post<{
+			data: { gameScore: GameScoreEntry };
+		}>(`${environment.apiUrl}/game-scores`, { gameId, source, score });
 	}
 
 	updateScore(gameId: string, source: string, score: number) {
-		return this.http
-			.patch<{
-				data: { gameScore: GameScoreEntry };
-			}>(`${environment.apiUrl}/game-scores/${gameId}/${source}`, {
-				score
-			})
-			.pipe(map(res => res.data.gameScore));
+		return this.http.patch<{
+			data: { gameScore: GameScoreEntry };
+		}>(`${environment.apiUrl}/game-scores/${gameId}/${source}`, {
+			score
+		});
 	}
 
 	createTime(gameId: string, source: string, duration: number) {
-		return this.http
-			.post<{
-				data: { gameTime: GameTimeEntry };
-			}>(`${environment.apiUrl}/game-times`, {
-				gameId,
-				source,
-				duration
-			})
-			.pipe(map(res => res.data.gameTime));
+		return this.http.post<{
+			data: { gameTime: GameTimeEntry };
+		}>(`${environment.apiUrl}/game-times`, {
+			gameId,
+			source,
+			duration
+		});
 	}
 
 	updateTime(gameId: string, source: string, duration: number) {
-		return this.http
-			.patch<{
-				data: { gameTime: GameTimeEntry };
-			}>(`${environment.apiUrl}/game-times/${gameId}/${source}`, {
-				duration
-			})
-			.pipe(map(res => res.data.gameTime));
+		return this.http.patch<{
+			data: { gameTime: GameTimeEntry };
+		}>(`${environment.apiUrl}/game-times/${gameId}/${source}`, {
+			duration
+		});
 	}
 
 	deleteScore(gameId: string, source: string) {
