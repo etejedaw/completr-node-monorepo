@@ -8,7 +8,13 @@ import {
 	output
 } from "@angular/core";
 
-import { UiEmptyState, UiNoMatches, UiPagination, UiSkeleton } from "../../ui";
+import {
+	UiEmptyState,
+	UiLoadError,
+	UiNoMatches,
+	UiPagination,
+	UiSkeleton
+} from "../../ui";
 import { CoverGrid } from "../cover-grid/cover-grid";
 import { LibraryToolbar } from "../library-toolbar/library-toolbar";
 import {
@@ -17,7 +23,8 @@ import {
 	LibraryPageToolbar
 } from "./library-page-slots";
 
-export type LibraryPageState = "loading" | "empty" | "no-matches" | "ready";
+export type LibraryPageState =
+	"loading" | "error" | "empty" | "no-matches" | "ready";
 export type LibraryPageSkeleton = "posters" | "cards";
 
 @Component({
@@ -27,6 +34,7 @@ export type LibraryPageSkeleton = "posters" | "cards";
 		CoverGrid,
 		LibraryToolbar,
 		UiEmptyState,
+		UiLoadError,
 		UiNoMatches,
 		UiPagination,
 		UiSkeleton
@@ -52,6 +60,7 @@ export class LibraryPage {
 	readonly total = input(0);
 
 	readonly cleared = output();
+	readonly retried = output();
 	readonly offsetChange = output<number>();
 
 	protected readonly toolbarSlot = contentChild(LibraryPageToolbar);
@@ -59,7 +68,10 @@ export class LibraryPage {
 	protected readonly contentSlot = contentChild.required(LibraryPageContent);
 
 	protected readonly paginationVisible = computed(
-		() => this.state() !== "loading" && this.showPagination()
+		() =>
+			this.state() !== "loading" &&
+			this.state() !== "error" &&
+			this.showPagination()
 	);
 
 	protected readonly cardSkeletonRange = [0, 1, 2, 3];

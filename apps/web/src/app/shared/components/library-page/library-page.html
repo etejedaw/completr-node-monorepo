@@ -29,7 +29,9 @@
 </div>
 } @else {
 <app-cover-grid [loading]="true" [loadingLabel]="loadingLabel()" />
-} } @case ('no-matches') {
+} } @case ('error') {
+<ui-load-error (retried)="retried.emit()" />
+} @case ('no-matches') {
 <ui-no-matches
 	[hint]="noMatchesHint()"
 	[clearLabel]="noMatchesClearLabel()"
