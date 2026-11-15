@@ -9,13 +9,6 @@ export function notFoundError() {
 	});
 }
 
-export function forbiddenError() {
-	return new ServiceError("REVIEW_FORBIDDEN", {
-		...BASE_OPTIONS,
-		raw: undefined
-	});
-}
-
 export function alreadyExistsError() {
 	return new ServiceError("REVIEW_ALREADY_EXISTS", {
 		...BASE_OPTIONS,

@@ -19,9 +19,6 @@ export function reviewsDomainToHttpMapper(
 	if (error.code === "REVIEW_NOT_FOUND")
 		return new HttpError({ ...baseOptions, status: 404 });
 
-	if (error.code === "REVIEW_FORBIDDEN")
-		return new HttpError({ ...baseOptions, status: 403 });
-
 	if (error.code === "REVIEW_ALREADY_EXISTS")
 		return new HttpError({ ...baseOptions, status: 409 });
 

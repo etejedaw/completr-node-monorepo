@@ -13,9 +13,6 @@ export function reviewsServiceToDomainMapper(
 	if (error.code === "REVIEW_NOT_FOUND")
 		return reviewDomainError.reviewNotFound(context);
 
-	if (error.code === "REVIEW_FORBIDDEN")
-		return reviewDomainError.reviewForbidden(context);
-
 	if (error.code === "REVIEW_ALREADY_EXISTS")
 		return reviewDomainError.reviewAlreadyExists(context);
 
