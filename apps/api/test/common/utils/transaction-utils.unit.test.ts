@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
 import { acquireAdvisoryLock } from "../../../src/common/utils/acquire-advisory-lock.util";
+import { acquireAdvisoryLocks } from "../../../src/common/utils/acquire-advisory-locks.util";
 import { compactPositions } from "../../../src/common/utils/compact-positions.util";
 import { sequelize } from "../../../src/database/sequelize.database";
 import { stub } from "../../unit-helpers/mocks";
@@ -24,6 +25,38 @@ void describe("acquireAdvisoryLock", () => {
 			replacements: { lockKey: "queue:user-1" },
 			transaction
 		});
+	});
+});
+
+void describe("acquireAdvisoryLocks", () => {
+	afterEach(() => {
+		mock.restoreAll();
+	});
+
+	void it("takes every lock in one ordered query", async () => {
+		const query = stub(sequelize, "query", async () => []);
+
+		await acquireAdvisoryLocks(
+			["list-items:b", "list-items:a"],
+			transaction
+		);
+
+		assert.equal(query.mock.callCount(), 1);
+		const [sql, options] = query.mock.calls[0]!.arguments;
+		assert.match(String(sql), /pg_advisory_xact_lock\(hashtext\(/);
+		assert.match(String(sql), /ORDER BY 1/);
+		assert.deepEqual(options, {
+			replacements: { lockKeys: ["list-items:b", "list-items:a"] },
+			transaction
+		});
+	});
+
+	void it("does not query without keys", async () => {
+		const query = stub(sequelize, "query", async () => []);
+
+		await acquireAdvisoryLocks([], transaction);
+
+		assert.equal(query.mock.callCount(), 0);
 	});
 });
 

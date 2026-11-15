@@ -9,6 +9,7 @@ import {
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
+import { acquireAdvisoryLocks } from "../common/utils/acquire-advisory-locks.util";
 import { compactPositions as compactPositionsOf } from "../common/utils/compact-positions.util";
 import { sequelize } from "../database/sequelize.database";
 import * as gameScoresService from "../game-scores/game-scores.service";
@@ -319,8 +320,12 @@ export async function addItem(
 	}
 }
 
+function listItemsLockKey(listId: string) {
+	return `list-items:${listId}`;
+}
+
 async function lockListItems(listId: string, transaction: Transaction) {
-	await acquireAdvisoryLock(`list-items:${listId}`, transaction);
+	await acquireAdvisoryLock(listItemsLockKey(listId), transaction);
 }
 
 async function compactPositionsInLists(
@@ -420,8 +425,10 @@ export async function setGameLists(
 
 	await wrapListItemWrite(() =>
 		sequelize.transaction(async (transaction: Transaction) => {
-			for (const ownedListId of lockOrder)
-				await lockListItems(ownedListId, transaction);
+			await acquireAdvisoryLocks(
+				lockOrder.map(ownedListId => listItemsLockKey(ownedListId)),
+				transaction
+			);
 
 			const currentItems = await ListItem.findAll({
 				where: { gameId, listId: lockOrder },
