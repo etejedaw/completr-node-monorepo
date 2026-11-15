@@ -22,6 +22,7 @@ import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import {
 	UiAlert,
 	UiButton,
+	UiLoadError,
 	UiPagination,
 	UiPlainEmptyState
 } from "../../../shared/ui";
@@ -53,6 +54,7 @@ import { type QueueEntryMove } from "./queue-browser.model";
 		SwipeActions,
 		UiAlert,
 		UiButton,
+		UiLoadError,
 		UiPagination,
 		UiPlainEmptyState,
 		PageSearch
@@ -65,6 +67,7 @@ export class QueueBrowser {
 	readonly entries = input.required<QueueEntry[]>();
 	readonly queueIsEmpty = input.required<boolean>();
 	readonly isLoading = input.required<boolean>();
+	readonly loadFailed = input(false);
 	readonly searchQuery = input.required<string>();
 	readonly noMatchesScope = input.required<string>();
 	readonly offset = input.required<number>();
@@ -84,6 +87,7 @@ export class QueueBrowser {
 
 	readonly searchChange = output<string>();
 	readonly offsetChange = output<number>();
+	readonly retried = output();
 	readonly saveOrder = output<QueueEntry[]>();
 	readonly startPlaying = output<QueueEntry>();
 	readonly favoriteToggle = output<string>();
