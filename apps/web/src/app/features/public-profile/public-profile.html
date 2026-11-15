@@ -144,6 +144,7 @@
 	[summary]="spotlight"
 	[isSelf]="isSelf()"
 	[premiumAccess]="rewindYears()?.premiumAccess ?? null"
+	[period]="rewindYears()?.period ?? null"
 />
 @if (isSelf()) {
 <app-gift-offer-card

@@ -27,6 +27,7 @@ function year(value: number, isGenerated: boolean): RewindYearSummary {
 	return {
 		year: value,
 		isGenerated,
+		generationBlockedBy: null,
 		finishedCount: 5,
 		startedCount: 6,
 		hoursPlayed: 40,
@@ -80,9 +81,40 @@ describe("RewindArchive", () => {
 		TestBed.inject(HttpTestingController).verify();
 	});
 
+	it("shows the owner why an unpublished year can't be generated, with the date of the next season", async () => {
+		await renderArchive("Ada", {
+			spotlightYear: null,
+			period: {
+				status: "scheduled",
+				year: 2026,
+				opensAt: "2026-12-01",
+				closesAt: "2027-01-31"
+			},
+			years: [
+				{ ...year(2025, false), generationBlockedBy: "period-closed" },
+				{
+					...year(2024, false),
+					generationBlockedBy: "requires-premium"
+				}
+			],
+			premiumAccess: { allowed: false, source: null, expiresAt: null }
+		});
+
+		expect(
+			await screen.findByText("Rewind generation opens on Dec 1, 2026.")
+		).toBeInTheDocument();
+		expect(
+			screen.getByText(
+				"Rewinds of previous years can only be generated with Premium."
+			)
+		).toBeInTheDocument();
+		expect(screen.queryByRole("button", { name: /Generate/ })).toBeNull();
+	});
+
 	it("shows the owner a Generate card for each year still unpublished", async () => {
 		await renderArchive("Ada", {
 			spotlightYear: 2026,
+			period: null,
 			years: [year(2026, false), year(2025, true)],
 			premiumAccess: {
 				allowed: true,
@@ -106,6 +138,7 @@ describe("RewindArchive", () => {
 	it("shows a visitor only the published years the API sends, with no Generate action", async () => {
 		await renderArchive("grace", {
 			spotlightYear: null,
+			period: null,
 			years: [year(2025, true)],
 			premiumAccess: { allowed: false, source: null, expiresAt: null }
 		});
@@ -119,6 +152,7 @@ describe("RewindArchive", () => {
 	it("tells a visitor the user hasn't shared a Rewind yet", async () => {
 		await renderArchive(null, {
 			spotlightYear: null,
+			period: null,
 			years: [],
 			premiumAccess: { allowed: false, source: null, expiresAt: null }
 		});

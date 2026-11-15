@@ -21,6 +21,8 @@ import { environment } from "../../../environments/environment";
 import {
 	type Rewind,
 	type RewindAiRecap,
+	type RewindGenerationBlock,
+	type RewindPeriod,
 	type RewindPersonaCode,
 	type RewindPremiumStats,
 	type RewindYearSummary
@@ -127,6 +129,8 @@ function rewindFor(year: number, otherYears: number[]): Rewind {
 		},
 		language: "en",
 		generatedAt: `${year}-12-02T10:00:00.000Z`,
+		design: "2026",
+		frozenAt: null,
 		aiRecap: null,
 		premiumStats: null,
 		premiumAccessKind: null,
@@ -160,6 +164,7 @@ function summaryFor(year: number): RewindYearSummary {
 	return {
 		year,
 		isGenerated: true,
+		generationBlockedBy: null,
 		finishedCount: 18,
 		startedCount: 23,
 		hoursPlayed: 212.5,
@@ -176,6 +181,8 @@ describe("Rewind interaction", () => {
 	let parked: TestRequest[];
 	let availableYears: number[];
 	let rewindFailures: Map<number, { status: number; type?: string }>;
+	let generationBlocks: Map<number, RewindGenerationBlock>;
+	let yearsPeriod: RewindPeriod | null;
 	let rewindOverrides: Map<number, Partial<Rewind>>;
 	let storyFailures: number[];
 	let holdRewinds: boolean;
@@ -219,7 +226,12 @@ describe("Rewind interaction", () => {
 			return req.flush({
 				data: {
 					spotlightYear: null,
-					years: availableYears.map(summaryFor),
+					period: yearsPeriod,
+					years: availableYears.map(year => ({
+						...summaryFor(year),
+						isGenerated: !generationBlocks.has(year),
+						generationBlockedBy: generationBlocks.get(year) ?? null
+					})),
 					premiumAccess: {
 						allowed: true,
 						source: "feature-grant",
@@ -344,6 +356,8 @@ describe("Rewind interaction", () => {
 		availableYears = [2026, 2025, 2024];
 		parked = [];
 		rewindFailures = new Map();
+		generationBlocks = new Map();
+		yearsPeriod = null;
 		rewindOverrides = new Map();
 		storyFailures = [];
 		holdRewinds = false;
@@ -1019,7 +1033,12 @@ describe("Rewind interaction", () => {
 					regenerationsLeft: 1,
 					graceEndsAt: null,
 					canRegenerate: true,
-					aiRecapState: "unavailable"
+					regenerationBlockedBy: null,
+					aiRecapState: "unavailable",
+					periodOpen: true,
+					periodStatus: "open",
+					closesAt: "2027-01-31",
+					frozenAt: null
 				}
 			});
 			await renderRewind();
@@ -1062,7 +1081,7 @@ describe("Rewind interaction", () => {
 			await untilVisible(() =>
 				expect(
 					screen.getByText(
-						"Rewinds open on December 1 and only exist for years with games started or finished."
+						"Each Rewind opens with its season and only exists for years with games started or finished."
 					)
 				).toBeInTheDocument()
 			);
@@ -1091,6 +1110,83 @@ describe("Rewind interaction", () => {
 			expect(
 				screen.queryByText("This Rewind isn't available")
 			).not.toBeInTheDocument();
+		});
+
+		it.each([
+			[
+				"requires-premium" as const,
+				null,
+				"Rewinds of previous years can only be generated with Premium."
+			],
+			[
+				"period-closed" as const,
+				{
+					status: "scheduled" as const,
+					year: 2027,
+					opensAt: "2027-12-01",
+					closesAt: "2028-01-31"
+				},
+				"Rewind generation opens on Dec 1, 2027."
+			],
+			[
+				"period-closed" as const,
+				{
+					status: "closed" as const,
+					year: 2026,
+					opensAt: "2026-12-01",
+					closesAt: "2027-01-31"
+				},
+				"The Rewind season is closed. Years that weren't generated during it can't be generated anymore."
+			]
+		])(
+			"hides Generate on a Rewind blocked by %s and says why",
+			async (block, period, message) => {
+				rewindFailures.set(2025, {
+					status: 404,
+					type: "REWIND_NOT_GENERATED"
+				});
+				generationBlocks.set(2025, block);
+				yearsPeriod = period;
+				await renderAt("/user/ada/rewind/2025");
+
+				await untilVisible(() =>
+					expect(screen.getByText(message)).toBeInTheDocument()
+				);
+				expect(
+					screen.queryByRole("button", {
+						name: "Generate your Rewind"
+					})
+				).toBeNull();
+				expect(
+					screen.getByRole("link", { name: "Go to your profile" })
+				).toBeInTheDocument();
+			}
+		);
+
+		it("keeps Generate disabled until it knows the year can be generated", async () => {
+			rewindFailures.set(2026, {
+				status: 404,
+				type: "REWIND_NOT_GENERATED"
+			});
+			const yearsUrl = `${api}/users/ada/rewinds`;
+			await renderAt("/user/ada/rewind/2026");
+			await waitFor(() => {
+				pendingRequests()
+					.filter(req => rewindUrlPattern.test(req.request.url))
+					.forEach(req => answer(release(req)));
+				expect(
+					screen.getByRole("button", { name: "Generate your Rewind" })
+				).toBeDisabled();
+			});
+			expect(
+				pendingRequests().filter(req => req.request.url === yearsUrl)
+			).toHaveLength(1);
+
+			await untilVisible(() =>
+				expect(
+					screen.getByRole("button", { name: "Generate your Rewind" })
+				).toBeEnabled()
+			);
 		});
 
 		it("says the player does not exist", async () => {

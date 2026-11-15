@@ -22,6 +22,7 @@ function summary(
 ): RewindYearSummary {
 	return {
 		isGenerated: true,
+		generationBlockedBy: null,
 		year: 2025,
 		finishedCount: 18,
 		startedCount: 23,
@@ -102,6 +103,60 @@ describe("RewindYearCard", () => {
 		expect(button.textContent).toContain("Generate");
 		expect(button.textContent).not.toContain("Trophy Hunter");
 		expect(button.textContent).not.toContain("18 finished");
+	});
+
+	it("replaces Generate with the reason when the API blocks the year", () => {
+		const element = render(
+			summary({
+				isGenerated: false,
+				generationBlockedBy: "requires-premium"
+			})
+		);
+
+		expect(element.querySelector("button")).toBeNull();
+		expect(element.querySelector("a")).toBeNull();
+		expect(element.textContent).toContain("Can't be generated now");
+		expect(element.textContent).toContain(
+			"Rewinds of previous years can only be generated with Premium."
+		);
+	});
+
+	it("tells when generation opens for a closed year in Spanish", () => {
+		const fixture = TestBed.createComponent(RewindYearCard);
+		fixture.componentRef.setInput("username", "ada");
+		fixture.componentRef.setInput(
+			"summary",
+			summary({
+				isGenerated: false,
+				generationBlockedBy: "period-closed"
+			})
+		);
+		fixture.componentRef.setInput("period", {
+			status: "scheduled",
+			year: 2026,
+			opensAt: "2026-12-01",
+			closesAt: "2027-01-31"
+		});
+		fixture.componentRef.setInput("language", "es");
+		fixture.detectChanges();
+		const element = fixture.nativeElement as HTMLElement;
+
+		expect(element.querySelector("button")).toBeNull();
+		expect(element.textContent).toContain("No se puede generar ahora");
+		expect(element.textContent).toContain(
+			"La generación de Rewinds abre el 1 de diciembre de 2026."
+		);
+	});
+
+	it("ignores a block on a year that is already generated", () => {
+		const element = render(
+			summary({ isGenerated: true, generationBlockedBy: "period-closed" })
+		);
+
+		expect(element.querySelector("a")?.getAttribute("href")).toBe(
+			"/user/ada/rewind/2025"
+		);
+		expect(element.textContent).not.toContain("Can't be generated now");
 	});
 
 	it("speaks Spanish on the Spanish Rewind page", () => {

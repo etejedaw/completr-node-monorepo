@@ -146,6 +146,7 @@ export interface RewindPageCopy {
 
 export interface RewindCopy {
 	locale: string;
+	dayMonthStyle: "long" | "short";
 	page: RewindPageCopy;
 	summary: RewindSummaryCopy;
 	tally: RewindTallyCopy;

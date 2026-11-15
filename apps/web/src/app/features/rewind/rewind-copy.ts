@@ -33,6 +33,7 @@ const SPANISH_PREMIUM_LABELS: RewindPremiumLabels = {
 
 const ENGLISH: RewindCopy = {
 	locale: LOCALE.en,
+	dayMonthStyle: "short",
 	page: {
 		ownerEyebrow: "Your Rewind",
 		visitorEyebrow: username => `@${username}'s Rewind`,
@@ -50,7 +51,7 @@ const ENGLISH: RewindCopy = {
 		privateTitle: "This Rewind is private",
 		notAvailableTitle: "This Rewind isn't available",
 		notAvailableMessage:
-			"Rewinds open on December 1 and only exist for years with games started or finished.",
+			"Each Rewind opens with its season and only exists for years with games started or finished.",
 		seeAllRewinds: "See all Rewinds",
 		notGeneratedTitle: "This Rewind hasn't been generated yet",
 		notGeneratedMessage:
@@ -186,6 +187,7 @@ const ENGLISH: RewindCopy = {
 
 const SPANISH: RewindCopy = {
 	locale: LOCALE.es,
+	dayMonthStyle: "long",
 	page: {
 		ownerEyebrow: "Tu Rewind",
 		visitorEyebrow: username => `Rewind de @${username}`,
@@ -203,7 +205,7 @@ const SPANISH: RewindCopy = {
 		privateTitle: "Este Rewind es privado",
 		notAvailableTitle: "Este Rewind no está disponible",
 		notAvailableMessage:
-			"Los Rewinds se abren el 1 de diciembre y solo existen para años con juegos empezados o terminados.",
+			"Cada Rewind se abre en su temporada y solo existe para años con juegos empezados o terminados.",
 		seeAllRewinds: "Ver todos los Rewinds",
 		notGeneratedTitle: "Este Rewind todavía no se generó",
 		notGeneratedMessage:

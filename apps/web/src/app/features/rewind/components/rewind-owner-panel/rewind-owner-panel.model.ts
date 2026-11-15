@@ -1,3 +1,4 @@
+import { type RewindRegenerationBlock } from "../../../../core/models/rewind.model";
 import { type RewindAiRecapError } from "../../rewind-errors";
 
 export interface RewindOwnerPanelCopy {
@@ -7,6 +8,13 @@ export interface RewindOwnerPanelCopy {
 	regenerating: string;
 	regenerationsLeft: (count: number) => string;
 	graceUntil: (date: string) => string;
+	openUntil: (date: string) => string;
+	closed: string;
+	notOpenYet: string;
+	closedHint: string;
+	scheduledHint: string;
+	finalVersion: (date: string) => string;
+	regenerationBlocks: Record<RewindRegenerationBlock, string>;
 	includesPrivateRuns: string;
 	usesNotes: string;
 	aiRecapFailed: string;
@@ -15,5 +23,7 @@ export interface RewindOwnerPanelCopy {
 	addAiRecapHint: string;
 	aiRecapPending: string;
 	aiRecapErrors: Record<RewindAiRecapError, string>;
-	dateLocale: string;
 }
+
+export type RewindOwnerPanelState =
+	"closed" | "scheduled" | "open-with-ai" | "open-without-ai";

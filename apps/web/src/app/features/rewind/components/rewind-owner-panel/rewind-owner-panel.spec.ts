@@ -33,7 +33,12 @@ function controls(
 		regenerationsLeft: 1,
 		graceEndsAt: null,
 		canRegenerate: true,
+		regenerationBlockedBy: null,
 		aiRecapState: "unavailable",
+		periodOpen: true,
+		periodStatus: "open",
+		closesAt: "2027-01-31",
+		frozenAt: null,
 		...overrides
 	};
 }
@@ -118,9 +123,9 @@ describe("RewindOwnerPanel", () => {
 			})
 		);
 
-		expect(screen.getByText("1 regeneration left")).toBeInTheDocument();
+		expect(screen.getByText("1 AI generation left")).toBeInTheDocument();
 		expect(
-			screen.getByText("Extra regeneration available until Jan 7")
+			screen.getByText("Extra AI generation available until Jan 7")
 		).toBeInTheDocument();
 		expect(
 			screen.getByRole("button", { name: "Regenerate" })
@@ -143,11 +148,11 @@ describe("RewindOwnerPanel", () => {
 
 		expect(screen.getByRole("region")).toHaveAttribute("lang", "es");
 		expect(
-			screen.getByText("No te quedan regeneraciones")
+			screen.getByText("No te quedan generaciones con IA")
 		).toBeInTheDocument();
 		expect(
 			screen.getByText(
-				"Regeneración extra disponible hasta el 7 de enero"
+				"Generación con IA extra disponible hasta el 7 de enero"
 			)
 		).toBeInTheDocument();
 		expect(screen.getByText("Incluye runs privadas")).toBeInTheDocument();
@@ -186,14 +191,13 @@ describe("RewindOwnerPanel", () => {
 			rewindFixture({
 				ownerControls: controls({
 					regenerationsLeft: 0,
-					canRegenerate: false
+					canRegenerate: false,
+					regenerationBlockedBy: "no-regenerations-left"
 				})
 			})
 		);
 
-		expect(
-			screen.getByText("No regular regenerations left")
-		).toBeInTheDocument();
+		expect(screen.getByText("No AI generations left")).toBeInTheDocument();
 		expect(screen.queryByRole("button", { name: "Regenerate" })).toBeNull();
 	});
 
@@ -438,5 +442,385 @@ describe("RewindOwnerPanel", () => {
 			).toBeNull()
 		);
 		expect(changes).toEqual([regenerated]);
+	});
+	describe("edition period and AI access", () => {
+		const giftOffersUrl = `${api}/users/me/gift-offers`;
+		const noAccess = { allowed: false, source: null, expiresAt: null };
+
+		function giftOffer() {
+			return {
+				code: "rewind-gift",
+				feature: "rewind.premium",
+				availableFrom: "2026-12-01T00:00:00.000Z",
+				availableUntil: "2099-01-31T23:59:59.999Z",
+				status: "available",
+				expiresAt: null,
+				canActivate: true,
+				hasAccess: false
+			};
+		}
+
+		it("hides Regenerate and the AI generations without AI access and shows the Rewind gift instead", async () => {
+			await renderPanel(
+				rewindFixture({
+					premiumAccess: noAccess,
+					ownerControls: controls({
+						regenerationsLeft: 2,
+						canRegenerate: false,
+						regenerationBlockedBy: "no-ai-access",
+						aiRecapState: "failed"
+					})
+				})
+			);
+
+			http()
+				.expectOne(giftOffersUrl)
+				.flush({ data: { offers: [giftOffer()] } });
+
+			expect(
+				screen.queryByRole("button", { name: "Regenerate" })
+			).toBeNull();
+			expect(screen.queryByText(/AI generations? left/)).toBeNull();
+			expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+			expect(
+				await screen.findByRole("button", { name: /Claim|Activate/ })
+			).toBeInTheDocument();
+		});
+
+		it("shows how many AI generations are left and the grace in Spanish with access", async () => {
+			await renderPanel(
+				rewindFixture({
+					language: "es",
+					ownerControls: controls({
+						regenerationsLeft: 3,
+						graceEndsAt: "2027-01-07"
+					})
+				})
+			);
+
+			expect(
+				screen.getByText("Te quedan 3 generaciones con IA")
+			).toBeInTheDocument();
+			expect(
+				screen.getByText(
+					"Generación con IA extra disponible hasta el 7 de enero"
+				)
+			).toBeInTheDocument();
+			expect(
+				screen.getByText("Abierto hasta el 31 de enero")
+			).toBeInTheDocument();
+			http().expectNone(giftOffersUrl);
+		});
+
+		it("says Closed and the date of the final version once the period is over", async () => {
+			await renderPanel(
+				rewindFixture({
+					frozenAt: "2027-02-01T00:03:00.000Z",
+					ownerControls: controls({
+						periodOpen: false,
+						periodStatus: "closed",
+						closesAt: null,
+						frozenAt: "2027-02-01T00:03:00.000Z",
+						canRegenerate: false,
+						regenerationBlockedBy: "period-closed",
+						aiRecapState: "failed",
+						regenerationsLeft: 2
+					})
+				})
+			);
+
+			expect(screen.getByText("Closed")).toBeInTheDocument();
+			expect(
+				screen.getByText("Final version from Feb 1, 2027")
+			).toBeInTheDocument();
+			expect(screen.queryByText(/AI generations? left/)).toBeNull();
+			expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+			expect(
+				screen.queryByRole("button", { name: "Regenerate" })
+			).toBeNull();
+			http().expectNone(giftOffersUrl);
+		});
+
+		it("says Cerrado without a date while the Rewind waits to be frozen", async () => {
+			await renderPanel(
+				rewindFixture({
+					language: "es",
+					premiumAccess: noAccess,
+					ownerControls: controls({
+						periodOpen: false,
+						periodStatus: "closed",
+						closesAt: null,
+						canRegenerate: false,
+						regenerationBlockedBy: "period-closed"
+					})
+				})
+			);
+
+			expect(screen.getByText("Cerrado")).toBeInTheDocument();
+			expect(
+				screen.getByText(
+					"Este Rewind ya no se puede generar ni regenerar."
+				)
+			).toBeInTheDocument();
+			http().expectNone(giftOffersUrl);
+		});
+
+		it("says the next season is not open yet while it is scheduled, in both languages", async () => {
+			const { fixture } = await renderPanel(
+				rewindFixture({
+					ownerControls: controls({
+						periodOpen: false,
+						periodStatus: "scheduled",
+						closesAt: null,
+						canRegenerate: false,
+						regenerationBlockedBy: "period-closed"
+					})
+				})
+			);
+
+			expect(screen.getByText("Not open yet")).toBeInTheDocument();
+			expect(
+				screen.getByText(/The next Rewind season hasn't opened yet/)
+			).toBeInTheDocument();
+			expect(
+				screen.queryByRole("button", { name: "Regenerate" })
+			).toBeNull();
+
+			fixture.componentRef.setInput(
+				"rewind",
+				rewindFixture({
+					language: "es",
+					ownerControls: controls({
+						periodOpen: false,
+						periodStatus: "scheduled",
+						closesAt: null,
+						canRegenerate: false,
+						regenerationBlockedBy: "period-closed"
+					})
+				})
+			);
+			fixture.detectChanges();
+			expect(await screen.findByText("Aún no abre")).toBeInTheDocument();
+		});
+
+		it("explains why there is no Regenerate with the reason the API sends", async () => {
+			await renderPanel(
+				rewindFixture({
+					premiumAccess: noAccess,
+					ownerControls: controls({
+						canRegenerate: false,
+						regenerationBlockedBy: "no-ai-access"
+					})
+				})
+			);
+			http()
+				.expectOne(giftOffersUrl)
+				.flush({ data: { offers: [] } });
+
+			expect(
+				screen.getByText("Regenerating needs Premium or a Rewind gift.")
+			).toBeInTheDocument();
+			expect(
+				screen.queryByRole("button", { name: "Regenerate" })
+			).toBeNull();
+		});
+
+		it("does not repeat the reason when the panel already says it", async () => {
+			const { fixture } = await renderPanel(
+				rewindFixture({
+					ownerControls: controls({
+						regenerationsLeft: 0,
+						canRegenerate: false,
+						regenerationBlockedBy: "no-regenerations-left"
+					})
+				})
+			);
+
+			expect(
+				screen.getByText("No AI generations left")
+			).toBeInTheDocument();
+			expect(
+				screen.queryByText(
+					"You've used every AI generation for this Rewind."
+				)
+			).toBeNull();
+
+			fixture.componentRef.setInput(
+				"rewind",
+				rewindFixture({
+					ownerControls: controls({
+						periodOpen: false,
+						periodStatus: "closed",
+						canRegenerate: false,
+						regenerationBlockedBy: "period-closed"
+					})
+				})
+			);
+			fixture.detectChanges();
+			expect(screen.getByText("Closed")).toBeInTheDocument();
+			expect(
+				screen.queryByText(
+					"Regenerating only works during the Rewind season."
+				)
+			).toBeNull();
+		});
+
+		it("shows only the latest reason when the Rewind changes quickly, in its language", async () => {
+			const { fixture } = await renderPanel(rewindFixture());
+			const sequence = [
+				controls({
+					canRegenerate: false,
+					regenerationBlockedBy: "requires-premium"
+				}),
+				controls(),
+				controls({
+					canRegenerate: false,
+					regenerationBlockedBy: "requires-premium"
+				})
+			];
+			for (const ownerControls of sequence) {
+				fixture.componentRef.setInput(
+					"rewind",
+					rewindFixture({ language: "es", ownerControls })
+				);
+				fixture.detectChanges();
+			}
+
+			expect(
+				screen.getAllByText(
+					"Los Rewinds de años anteriores solo se regeneran con Premium."
+				)
+			).toHaveLength(1);
+			expect(
+				screen.queryByRole("button", { name: "Regenerar" })
+			).toBeNull();
+
+			fixture.componentRef.setInput("rewind", rewindFixture());
+			fixture.detectChanges();
+			expect(
+				screen.getByRole("button", { name: "Regenerate" })
+			).toBeInTheDocument();
+			expect(
+				screen.queryByText(/only be regenerated with Premium/)
+			).toBeNull();
+		});
+
+		it("does not guess a Premium reason from the counters when the API sends none", async () => {
+			await renderPanel(
+				rewindFixture({
+					ownerControls: controls({
+						regenerationsLeft: 2,
+						graceEndsAt: null,
+						canRegenerate: true,
+						regenerationBlockedBy: null
+					})
+				})
+			);
+
+			expect(
+				screen.queryByText(/only be regenerated with Premium/)
+			).toBeNull();
+			expect(
+				screen.getByRole("button", { name: "Regenerate" })
+			).toBeInTheDocument();
+		});
+
+		it("trusts periodStatus over the older periodOpen flag", async () => {
+			await renderPanel(
+				rewindFixture({
+					ownerControls: controls({
+						periodOpen: true,
+						periodStatus: "closed",
+						aiRecapState: "available",
+						canRegenerate: false,
+						regenerationBlockedBy: "period-closed"
+					})
+				})
+			);
+
+			expect(screen.getByText("Closed")).toBeInTheDocument();
+			expect(
+				screen.queryByRole("button", { name: "Add AI recap" })
+			).toBeNull();
+		});
+
+		it("explains that a previous year needs Premium when a gift cannot regenerate it", async () => {
+			await renderPanel(
+				rewindFixture({
+					year: 2025,
+					premiumAccess: {
+						allowed: true,
+						source: "feature-grant",
+						expiresAt: null
+					},
+					ownerControls: controls({
+						regenerationsLeft: 1,
+						canRegenerate: false,
+						regenerationBlockedBy: "requires-premium"
+					})
+				})
+			);
+
+			expect(
+				screen.getByText(
+					"Rewinds of previous years can only be regenerated with Premium."
+				)
+			).toBeInTheDocument();
+			expect(
+				screen.queryByRole("button", { name: "Regenerate" })
+			).toBeNull();
+		});
+
+		it.each([
+			[
+				409,
+				"REWIND_PERIOD_CLOSED",
+				"This Rewind is closed, so its AI recap can't be added anymore."
+			],
+			[
+				403,
+				"REWIND_YEAR_REQUIRES_PREMIUM",
+				"AI recaps for previous years need Premium."
+			],
+			[
+				409,
+				"REWIND_REGENERATION_LIMIT",
+				"You've used every AI generation for this Rewind."
+			]
+		])(
+			"explains a %s %s on Add AI recap and reloads the Rewind",
+			async (status, type, message) => {
+				await renderPanel(
+					rewindFixture({
+						ownerControls: controls({ aiRecapState: "available" })
+					})
+				);
+				await userEvent.dblClick(
+					screen.getByRole("button", { name: "Add AI recap" })
+				);
+
+				const requests = http().match(aiRecapUrl);
+				expect(requests).toHaveLength(1);
+				requests[0].flush({ type }, { status, statusText: "err" });
+				const reloaded = rewindFixture({
+					ownerControls: controls({
+						periodOpen: type !== "REWIND_PERIOD_CLOSED",
+						periodStatus:
+							type === "REWIND_PERIOD_CLOSED" ? "closed" : "open",
+						canRegenerate: false,
+						regenerationBlockedBy:
+							type === "REWIND_PERIOD_CLOSED"
+								? "period-closed"
+								: type === "REWIND_YEAR_REQUIRES_PREMIUM"
+									? "requires-premium"
+									: "no-regenerations-left"
+					})
+				});
+				http().expectOne(rewindUrl).flush({ data: reloaded });
+
+				expect(await screen.findByText(message)).toBeInTheDocument();
+				expect(changes).toEqual([reloaded]);
+			}
+		);
 	});
 });

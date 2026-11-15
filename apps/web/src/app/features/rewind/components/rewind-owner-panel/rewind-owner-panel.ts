@@ -9,195 +9,56 @@ import {
 	signal
 } from "@angular/core";
 
-import { type Rewind } from "../../../../core/models/rewind.model";
-import { UiAlert, UiButton, UiEyebrow } from "../../../../shared/ui";
+import {
+	type Rewind,
+	type RewindRegenerationBlock
+} from "../../../../core/models/rewind.model";
+import { GiftOfferCard } from "../../../../shared/components/gift-offer-card/gift-offer-card";
+import { UiAlert, UiBadge, UiButton, UiEyebrow } from "../../../../shared/ui";
 import { RewindService } from "../../rewind";
+import { formatRewindDay, formatRewindDayWithYear } from "../../rewind-dates";
 import {
 	type RewindAiRecapError,
 	rewindAiRecapError
 } from "../../rewind-errors";
 import { RewindGenerateDialog } from "../rewind-generate-dialog/rewind-generate-dialog";
 import { injectRewindGenerateFlow } from "../rewind-generate-dialog/rewind-generate-flow";
-import {
-	formatPanelDate,
-	REWIND_OWNER_PANEL_COPY
-} from "./rewind-owner-panel.copy";
+import { REWIND_OWNER_PANEL_COPY } from "./rewind-owner-panel.copy";
+import { type RewindOwnerPanelState } from "./rewind-owner-panel.model";
+
+const REGENERATION_BLOCKS_SHOWN_ELSEWHERE: readonly RewindRegenerationBlock[] =
+	["period-closed", "no-regenerations-left"];
+
+const CLOSED_PANEL_STATES: readonly RewindOwnerPanelState[] = [
+	"closed",
+	"scheduled"
+];
+
+function rewindOwnerPanelState(rewind: Rewind): RewindOwnerPanelState {
+	const periodStatus = rewind.ownerControls?.periodStatus ?? "closed";
+	if (periodStatus !== "open") return periodStatus;
+	return rewind.premiumAccess?.allowed ? "open-with-ai" : "open-without-ai";
+}
 
 const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 	"exists",
-	"premium_required"
+	"premium_required",
+	"year_requires_premium",
+	"period_closed",
+	"limit"
 ];
 
 @Component({
 	selector: "app-rewind-owner-panel",
-	imports: [UiEyebrow, RewindGenerateDialog, UiAlert, UiButton],
-	template: `
-		@if (rewind().ownerControls; as controls) {
-			<section
-				class="flex flex-col gap-4 rounded-card border border-line bg-surface p-4 sm:p-5"
-				aria-labelledby="rewind-owner-panel-heading"
-				[attr.lang]="rewind().language"
-			>
-				<div
-					class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-				>
-					<div class="flex flex-col gap-1 min-w-0">
-						<h2
-							id="rewind-owner-panel-heading"
-							uiEyebrow
-							tone="brand"
-							class="m-0"
-						>
-							{{ copy().eyebrow }}
-						</h2>
-						<p class="m-0 text-sm text-fg-secondary">
-							{{ copy().onlyYou }}
-						</p>
-						<p class="m-0 text-sm text-fg tabular-nums">
-							{{
-								copy().regenerationsLeft(
-									controls.regenerationsLeft
-								)
-							}}
-						</p>
-						@if (graceLine(); as grace) {
-							<p class="m-0 text-sm text-fg-secondary">
-								{{ grace }}
-							</p>
-						}
-						@if (controls.includesPrivateRuns) {
-							<p
-								class="m-0 inline-flex items-center gap-1 text-sm text-fg-secondary"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-base"
-									>visibility</span
-								>
-								{{ copy().includesPrivateRuns }}
-							</p>
-						}
-						@if (controls.includesNotes) {
-							<p
-								class="m-0 inline-flex items-center gap-1 text-sm text-fg-secondary"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-base"
-									>edit_note</span
-								>
-								{{ copy().usesNotes }}
-							</p>
-						}
-					</div>
-					@if (controls.canRegenerate) {
-						<button
-							uiButton
-							type="button"
-							variant="secondary"
-							class="tap:min-h-[44px] max-sm:!w-full shrink-0"
-							[attr.aria-busy]="generation.isPending()"
-							(click)="generation.open()"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-base"
-								>refresh</span
-							>
-							{{
-								generation.isPending()
-									? copy().regenerating
-									: copy().regenerate
-							}}
-						</button>
-					}
-				</div>
-
-				@if (controls.aiRecapState === "failed") {
-					<div
-						class="flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between"
-					>
-						<p
-							class="m-0 inline-flex items-center gap-1.5 text-sm text-fg"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-base text-warning"
-								>error_outline</span
-							>
-							{{ copy().aiRecapFailed }}
-						</p>
-						<button
-							uiButton
-							type="button"
-							variant="secondary"
-							class="tap:min-h-[44px] max-sm:!w-full shrink-0"
-							[disabled]="aiRecapPending()"
-							(click)="addAiRecap()"
-						>
-							{{ copy().retry }}
-						</button>
-					</div>
-				} @else if (controls.aiRecapState === "available") {
-					<div
-						class="flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between"
-					>
-						<p class="m-0 text-sm text-fg-secondary text-pretty">
-							{{ copy().addAiRecapHint }}
-						</p>
-						<button
-							uiButton
-							type="button"
-							variant="premium"
-							class="tap:min-h-[44px] max-sm:!w-full shrink-0"
-							[disabled]="aiRecapPending()"
-							(click)="addAiRecap()"
-						>
-							<span
-								aria-hidden="true"
-								class="material-icons text-base"
-								>auto_awesome</span
-							>
-							{{ copy().addAiRecap }}
-						</button>
-					</div>
-				}
-
-				@if (aiRecapPending()) {
-					<p
-						role="status"
-						class="m-0 inline-flex items-center gap-2 text-sm text-fg-secondary"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base text-premium motion-safe:animate-spin"
-							>autorenew</span
-						>
-						{{ copy().aiRecapPending }}
-					</p>
-				} @else if (aiRecapErrorMessage(); as message) {
-					<ui-alert
-						[tone]="aiRecapError() === 'exists' ? 'info' : 'danger'"
-						>{{ message }}</ui-alert
-					>
-				}
-			</section>
-		}
-		@if (generation.isOpen()) {
-			<app-rewind-generate-dialog
-				[username]="rewind().user.username"
-				[year]="rewind().year"
-				[rewind]="generation.latestRewind()"
-				[premiumAccess]="
-					generation.latestRewind()?.premiumAccess ?? null
-				"
-				[pending]="generation.isPending()"
-				[error]="generation.error()"
-				(submitted)="generation.submit($event)"
-				(closed)="generation.close()"
-			/>
-		}
-	`,
+	imports: [
+		GiftOfferCard,
+		UiEyebrow,
+		RewindGenerateDialog,
+		UiAlert,
+		UiBadge,
+		UiButton
+	],
+	templateUrl: "./rewind-owner-panel.html",
 	host: { class: "block empty:hidden" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -211,11 +72,50 @@ export class RewindOwnerPanel {
 	protected readonly copy = computed(
 		() => REWIND_OWNER_PANEL_COPY[this.rewind().language]
 	);
+	protected readonly panelState = computed(() =>
+		rewindOwnerPanelState(this.rewind())
+	);
+	protected readonly isClosedState = computed(() =>
+		CLOSED_PANEL_STATES.includes(this.panelState())
+	);
+	protected readonly periodBadge = computed(() => {
+		const state = this.panelState();
+		if (state === "scheduled") return this.copy().notOpenYet;
+		return state === "closed" ? this.copy().closed : null;
+	});
+	protected readonly regenerationBlockMessage = computed(() => {
+		const block = this.rewind().ownerControls?.regenerationBlockedBy;
+		if (!block || REGENERATION_BLOCKS_SHOWN_ELSEWHERE.includes(block))
+			return null;
+		return this.copy().regenerationBlocks[block];
+	});
+	protected readonly closesLine = computed(() => {
+		const closesAt = this.rewind().ownerControls?.closesAt;
+		if (!closesAt) return null;
+		const copy = this.copy();
+		return copy.openUntil(
+			formatRewindDay(closesAt, this.rewind().language)
+		);
+	});
+	protected readonly closedLine = computed(() => {
+		const copy = this.copy();
+		const frozenAt =
+			this.rewind().ownerControls?.frozenAt ?? this.rewind().frozenAt;
+		if (frozenAt)
+			return copy.finalVersion(
+				formatRewindDayWithYear(frozenAt, this.rewind().language)
+			);
+		return this.panelState() === "scheduled"
+			? copy.scheduledHint
+			: copy.closedHint;
+	});
 	protected readonly graceLine = computed(() => {
 		const graceEndsAt = this.rewind().ownerControls?.graceEndsAt;
 		if (!graceEndsAt) return null;
 		const copy = this.copy();
-		return copy.graceUntil(formatPanelDate(graceEndsAt, copy.dateLocale));
+		return copy.graceUntil(
+			formatRewindDay(graceEndsAt, this.rewind().language)
+		);
 	});
 	protected readonly aiRecapPending = signal(false);
 	protected readonly aiRecapError = signal<RewindAiRecapError | null>(null);
@@ -252,6 +152,11 @@ export class RewindOwnerPanel {
 					this.reload(user.username, year);
 			}
 		});
+	}
+
+	protected reloadRewind() {
+		const { year, user } = this.rewind();
+		this.reload(user.username, year);
 	}
 
 	private reload(username: string, year: number) {

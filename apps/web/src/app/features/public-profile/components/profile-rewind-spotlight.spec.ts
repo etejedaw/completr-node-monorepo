@@ -33,6 +33,7 @@ function summary(
 ): RewindYearSummary {
 	return {
 		isGenerated: true,
+		generationBlockedBy: null,
 		year: 2026,
 		finishedCount: 18,
 		startedCount: 23,
@@ -229,11 +230,17 @@ describe("ProfileRewindSpotlight", () => {
 			error: ReturnType<typeof vi.fn>;
 		};
 
-		async function renderInvitation({ isSelf = true } = {}) {
+		async function renderInvitation({
+			isSelf = true,
+			generationBlockedBy = null as RewindYearSummary["generationBlockedBy"]
+		} = {}) {
 			const result = await render(ProfileRewindSpotlight, {
 				inputs: {
 					username: "ada",
-					summary: summary({ isGenerated: false }),
+					summary: summary({
+						isGenerated: false,
+						generationBlockedBy
+					}),
 					isSelf,
 					hasMoreYears: false,
 					premiumAccess: {
@@ -306,6 +313,19 @@ describe("ProfileRewindSpotlight", () => {
 			const teaser = container.querySelector("[data-rewind-teaser]")!;
 			expect(teaser).toHaveAttribute("aria-hidden", "true");
 			expect(teaser.querySelectorAll("app-game-poster")).toHaveLength(5);
+		});
+
+		it("swaps Generate for the reason when the API blocks the year", async () => {
+			await renderInvitation({ generationBlockedBy: "requires-premium" });
+
+			expect(
+				screen.queryByRole("button", { name: "Generate your Rewind" })
+			).toBeNull();
+			expect(
+				screen.getByText(
+					"Rewinds of previous years can only be generated with Premium."
+				)
+			).toBeInTheDocument();
 		});
 
 		it("renders nothing for a visitor if an unpublished year ever reaches the page", async () => {

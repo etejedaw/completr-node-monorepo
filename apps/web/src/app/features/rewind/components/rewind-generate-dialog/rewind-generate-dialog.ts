@@ -26,7 +26,12 @@ import {
 	UiIconButton,
 	UiSwitch
 } from "../../../../shared/ui";
-import { type RewindGenerateError } from "../../rewind-errors";
+import { DEFAULT_REWIND_LANGUAGE } from "../../rewind-copy";
+import { formatRewindDay } from "../../rewind-dates";
+import {
+	BLOCKING_GENERATE_ERRORS,
+	type RewindGenerateError
+} from "../../rewind-errors";
 
 const LANGUAGE_OPTIONS: SegmentedOption<RewindLanguage>[] = [
 	{ value: "en", label: "English" },
@@ -39,18 +44,6 @@ const RETRYABLE_ERRORS: readonly RewindGenerateError[] = [
 	"failed",
 	"network"
 ];
-
-const BLOCKING_ERRORS: readonly RewindGenerateError[] = ["limit", "not_found"];
-
-const GRACE_DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
-	month: "short",
-	day: "numeric",
-	timeZone: "UTC"
-});
-
-export function formatGraceDate(isoDate: string): string {
-	return GRACE_DATE_FORMAT.format(new Date(`${isoDate}T00:00:00Z`));
-}
 
 @Component({
 	selector: "app-rewind-generate-dialog",
@@ -306,15 +299,15 @@ export class RewindGenerateDialog {
 	);
 	protected readonly regenerationsLine = computed(() => {
 		const left = this.controls()?.regenerationsLeft ?? 0;
-		if (left <= 0) return "No regular regenerations left";
+		if (left <= 0) return "No AI generations left";
 		return left === 1
-			? "1 regeneration left"
-			: `${left} regenerations left`;
+			? "1 AI generation left"
+			: `${left} AI generations left`;
 	});
 	protected readonly graceLine = computed(() => {
 		const graceEndsAt = this.controls()?.graceEndsAt;
 		return graceEndsAt
-			? `Extra regeneration available until ${formatGraceDate(graceEndsAt)}`
+			? `Extra AI generation available until ${formatRewindDay(graceEndsAt, DEFAULT_REWIND_LANGUAGE)}`
 			: null;
 	});
 	protected readonly replaceWarning = computed(() =>
@@ -334,7 +327,8 @@ export class RewindGenerateDialog {
 	protected readonly canSubmit = computed(() => {
 		if (this.pending() || this.premiumAccess() === null) return false;
 		const error = this.error();
-		if (error !== null && BLOCKING_ERRORS.includes(error)) return false;
+		if (error !== null && BLOCKING_GENERATE_ERRORS.includes(error))
+			return false;
 		const controls = this.controls();
 		return controls === null || controls.canRegenerate;
 	});
@@ -349,7 +343,13 @@ export class RewindGenerateDialog {
 			case "conflict":
 				return `Your ${year} Rewind was updated from another tab or device. We loaded the latest version.`;
 			case "limit":
-				return `You've used every regeneration for ${year}.`;
+				return `You've used every AI generation for ${year}.`;
+			case "period_closed":
+				return `Rewind ${year} is closed. Your Rewinds stay as they were when it closed.`;
+			case "year_requires_premium":
+				return "Rewinds of previous years can only be generated with Premium.";
+			case "premium_required":
+				return "Regenerating needs Premium or a Rewind gift. Your current Rewind stays as it is.";
 			case "not_found":
 				return `There's nothing to rewind for ${year} yet. A Rewind needs games started or finished that year.`;
 			case "invalid":

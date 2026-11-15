@@ -1,3 +1,4 @@
+import { type HttpErrorResponse } from "@angular/common/http";
 import { DestroyRef, inject, linkedSignal, signal } from "@angular/core";
 import { Router } from "@angular/router";
 
@@ -6,23 +7,24 @@ import {
 	type Rewind
 } from "../../../../core/models/rewind.model";
 import { ToastService } from "../../../../core/services/toast";
+import { isToastedByErrorInterceptor } from "../../../../core/utils/toasted-error-statuses";
 import { RewindService } from "../../rewind";
 import {
+	BLOCKING_GENERATE_ERRORS,
 	type RewindGenerateError,
 	rewindGenerateError
 } from "../../rewind-errors";
 import { type RewindGenerateFlowOptions } from "./rewind-generate-flow.model";
 
-const ERRORS_ANNOUNCED_BY_INTERCEPTOR: readonly RewindGenerateError[] = [
-	"conflict",
-	"limit",
-	"rate_limited",
-	"invalid"
-];
-
 const ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindGenerateError[] = [
 	"conflict",
 	"limit"
+];
+
+const ERRORS_THAT_CHANGE_THE_OWNER_CONTROLS: readonly RewindGenerateError[] = [
+	"period_closed",
+	"year_requires_premium",
+	"premium_required"
 ];
 
 export function injectRewindGenerateFlow(options: RewindGenerateFlowOptions) {
@@ -84,17 +86,29 @@ export function injectRewindGenerateFlow(options: RewindGenerateFlowOptions) {
 				isPending.set(false);
 				const kind = rewindGenerateError(failure);
 				error.set(kind);
-				if (ERRORS_THAT_CHANGE_THE_REWIND.includes(kind))
-					reloadAfterChange(username, year);
+				const controlsChanged =
+					ERRORS_THAT_CHANGE_THE_OWNER_CONTROLS.includes(kind) &&
+					latestRewind() !== null;
 				if (
-					!isOpen() &&
-					!ERRORS_ANNOUNCED_BY_INTERCEPTOR.includes(kind)
+					ERRORS_THAT_CHANGE_THE_REWIND.includes(kind) ||
+					controlsChanged
 				)
+					reloadAfterChange(username, year);
+				if (shouldToastFailure(failure, kind))
 					toast.error(
 						`Couldn't generate your ${year} Rewind. Try again.`
 					);
 			}
 		});
+	}
+
+	function shouldToastFailure(failure: unknown, kind: RewindGenerateError) {
+		const status = (failure as HttpErrorResponse | undefined)?.status ?? 0;
+		return (
+			!isOpen() &&
+			!isToastedByErrorInterceptor(status) &&
+			!BLOCKING_GENERATE_ERRORS.includes(kind)
+		);
 	}
 
 	function open() {

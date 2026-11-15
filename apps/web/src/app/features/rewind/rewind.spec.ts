@@ -33,6 +33,7 @@ describe("RewindService", () => {
 	it("gets the years of a user and unwraps the data", () => {
 		const years: RewindYears = {
 			spotlightYear: 2026,
+			period: null,
 			years: [],
 			premiumAccess: { allowed: false, source: null, expiresAt: null }
 		};

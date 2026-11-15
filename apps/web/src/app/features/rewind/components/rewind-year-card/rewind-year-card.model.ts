@@ -5,4 +5,5 @@ export interface RewindYearCardCopy {
 	generate: string;
 	rewinding: string;
 	generateLabel: (year: number) => string;
+	notAvailable: string;
 }

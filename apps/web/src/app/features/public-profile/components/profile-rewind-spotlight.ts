@@ -10,6 +10,7 @@ import {
 import { Router, RouterLink } from "@angular/router";
 
 import {
+	type RewindPeriod,
 	type RewindPremiumAccess,
 	type RewindYearSummary
 } from "../../../core/models/rewind.model";
@@ -19,7 +20,8 @@ import { UiButton, UiEyebrow } from "../../../shared/ui";
 import { RewindGenerateDialog } from "../../rewind/components/rewind-generate-dialog/rewind-generate-dialog";
 import { injectRewindGenerateFlow } from "../../rewind/components/rewind-generate-dialog/rewind-generate-flow";
 import { RewindPersonaRank } from "../../rewind/components/rewind-persona-rank/rewind-persona-rank";
-import { formatHours } from "../../rewind/rewind-copy";
+import { DEFAULT_REWIND_LANGUAGE, formatHours } from "../../rewind/rewind-copy";
+import { generationBlockMessageOf } from "../../rewind/rewind-generation-block";
 import { canAnimateRewind } from "../../rewind/rewind-motion";
 import { REWIND_YEAR_FILL_CLASS } from "../../rewind/rewind-tone";
 
@@ -202,25 +204,38 @@ const FAN_STAGGER_MS = 60;
 						<div
 							class="flex flex-col gap-2 sm:flex-row sm:flex-wrap"
 						>
-							<button
-								uiButton
-								type="button"
-								variant="primary"
-								class="max-sm:!w-full max-sm:min-h-[44px] tap:min-h-[44px]"
-								[attr.aria-busy]="generation.isPending()"
-								(click)="generation.open()"
-							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-base"
-									>fast_rewind</span
+							@if (blockMessage(); as message) {
+								<p
+									class="m-0 inline-flex items-start gap-1.5 text-sm text-fg-secondary text-pretty"
 								>
-								{{
-									generation.isPending()
-										? "Rewinding…"
-										: "Generate your Rewind"
-								}}
-							</button>
+									<span
+										aria-hidden="true"
+										class="material-icons text-base"
+										>lock_clock</span
+									>
+									{{ message }}
+								</p>
+							} @else {
+								<button
+									uiButton
+									type="button"
+									variant="primary"
+									class="max-sm:!w-full max-sm:min-h-[44px] tap:min-h-[44px]"
+									[attr.aria-busy]="generation.isPending()"
+									(click)="generation.open()"
+								>
+									<span
+										aria-hidden="true"
+										class="material-icons text-base"
+										>fast_rewind</span
+									>
+									{{
+										generation.isPending()
+											? "Rewinding…"
+											: "Generate your Rewind"
+									}}
+								</button>
+							}
 							@if (hasMoreYears()) {
 								<a
 									uiButton
@@ -301,6 +316,7 @@ export class ProfileRewindSpotlight {
 	readonly isSelf = input(false);
 	readonly hasMoreYears = input(false);
 	readonly premiumAccess = input<RewindPremiumAccess | null>(null);
+	readonly period = input<RewindPeriod | null>(null);
 
 	private readonly router = inject(Router);
 	private readonly generatedHere = signal<ReadonlySet<string>>(new Set());
@@ -311,6 +327,13 @@ export class ProfileRewindSpotlight {
 			this.generatedHere().has(
 				generationKey(this.username(), this.summary().year)
 			)
+	);
+	protected readonly blockMessage = computed(() =>
+		generationBlockMessageOf(
+			{ ...this.summary(), isGenerated: this.isGenerated() },
+			this.period(),
+			DEFAULT_REWIND_LANGUAGE
+		)
 	);
 	protected readonly generation = injectRewindGenerateFlow({
 		username: () => this.username(),
