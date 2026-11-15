@@ -104,6 +104,70 @@ describe("AuthService", () => {
 			expect(service.token()).toBe("access-1");
 		});
 
+		describe("with cross-tab refresh locks", () => {
+			const request = vi.fn(
+				(_name: string, callback: () => Promise<unknown>) =>
+					Promise.resolve().then(callback)
+			);
+
+			beforeEach(() => {
+				request.mockClear();
+				vi.stubGlobal("navigator", { locks: { request } });
+			});
+
+			afterEach(() => {
+				vi.unstubAllGlobals();
+			});
+
+			it("skips the request when another tab already stored a newer token", async () => {
+				localStorage.setItem("access_token", "stale");
+				const done = new Promise<void>(resolve =>
+					service.refresh().subscribe({ complete: resolve })
+				);
+				localStorage.setItem("access_token", "from-other-tab");
+				await done;
+
+				httpTesting.expectNone(`${api}/auth/refresh`);
+				expect(service.token()).toBe("from-other-tab");
+			});
+
+			it("refreshes inside the lock when the token did not change", async () => {
+				localStorage.setItem("access_token", "stale");
+				const done = new Promise<void>(resolve =>
+					service.refresh().subscribe({ complete: resolve })
+				);
+				await Promise.resolve();
+				await Promise.resolve();
+				httpTesting
+					.expectOne(`${api}/auth/refresh`)
+					.flush(authResponse);
+				await done;
+
+				expect(request).toHaveBeenCalledWith(
+					"completr-refresh",
+					expect.any(Function)
+				);
+				expect(service.token()).toBe("access-1");
+			});
+
+			it("propagates a failed refresh without touching the stored tokens", async () => {
+				localStorage.setItem("access_token", "stale");
+				const failed = new Promise<number>(resolve =>
+					service.refresh().subscribe({
+						error: error => resolve(error.status)
+					})
+				);
+				await Promise.resolve();
+				await Promise.resolve();
+				httpTesting
+					.expectOne(`${api}/auth/refresh`)
+					.flush(null, { status: 500, statusText: "err" });
+
+				expect(await failed).toBe(500);
+				expect(service.token()).toBe("stale");
+			});
+		});
+
 		it("keeps the old tokens when login fails", () => {
 			localStorage.setItem("access_token", "old");
 
