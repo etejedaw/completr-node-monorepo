@@ -31,7 +31,7 @@
 			[width]="420"
 			[compact]="true"
 			framed
-			class="w-11 sm:w-14 aspect-[2/3] rounded shadow-md shadow-black/40"
+			class="w-11 sm:w-14 aspect-[2/3] rounded shadow-card"
 		/>
 	</a>
 
@@ -54,9 +54,7 @@
 				} @if (entry.backlogStatus === 'completed' &&
 				entry.realDuration) {
 				<span class="inline-flex items-center gap-0.5 text-success">
-					<span
-						aria-hidden="true"
-						class="material-icons text-[0.8125rem]"
+					<span aria-hidden="true" class="material-icons text-compact"
 						>schedule</span
 					>
 					{{ entry.realDuration }}h played

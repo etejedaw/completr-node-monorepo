@@ -32,7 +32,7 @@ export class WishlistPlatformModal {
 	protected readonly selectedPlatformId = signal<string | null>(null);
 	protected readonly saving = signal(false);
 
-	confirm(skipPlatform = false) {
+	protected confirm(skipPlatform = false) {
 		if (this.saving()) return;
 		this.saving.set(true);
 		const platformId = skipPlatform
@@ -47,7 +47,7 @@ export class WishlistPlatformModal {
 		});
 	}
 
-	onClose() {
+	protected onClose() {
 		this.dialogRef.close();
 	}
 }

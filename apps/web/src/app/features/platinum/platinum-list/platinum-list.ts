@@ -174,7 +174,7 @@ export class PlatinumList implements OnInit {
 		this.loadPlatinums();
 	}
 
-	onSearch(query: string) {
+	protected onSearch(query: string) {
 		this.searchQuery.set(query);
 		if (!query.trim()) {
 			this.offset.set(0);
@@ -184,23 +184,23 @@ export class PlatinumList implements OnInit {
 		this.searchSubject.next(query);
 	}
 
-	clearSearchAndFilter() {
+	protected clearSearchAndFilter() {
 		this.searchQuery.set("");
 		this.selectedPlatform.set("");
 		this.offset.set(0);
 		this.loadPlatinums();
 	}
 
-	onOffsetChange(offset: number) {
+	protected onOffsetChange(offset: number) {
 		this.offset.set(offset);
 		this.loadPlatinums();
 	}
 
-	openAdd() {
+	protected openAdd() {
 		this.openDialog({});
 	}
 
-	openEdit(platinum: PlatinumEntry) {
+	protected openEdit(platinum: PlatinumEntry) {
 		this.openDialog({
 			game: { id: platinum.game.id, code: platinum.game.code }
 		});

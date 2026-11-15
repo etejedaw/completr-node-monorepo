@@ -16,7 +16,7 @@ import { type WishlistPlatformOption } from "./wishlist-platform-choice.model";
 	imports: [ChipGroup, UiFieldLabel, UiFieldOptional],
 	template: `
 		@if (platforms().length === 0) {
-			<p class="m-0 text-[0.8125rem] text-fg-muted">
+			<p class="m-0 text-compact text-fg-muted">
 				No platforms available for this game. You can add it without a
 				platform.
 			</p>

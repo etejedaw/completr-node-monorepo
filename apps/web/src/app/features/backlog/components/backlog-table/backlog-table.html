@@ -107,11 +107,11 @@
 						>
 						} @if (showsProgress(entry)) {
 						<div
-							class="flex items-start gap-1 mt-1 text-[0.6875rem] text-fg-muted"
+							class="flex items-start gap-1 mt-1 text-caption text-fg-muted"
 						>
 							<span
 								aria-hidden="true"
-								class="material-icons text-[0.75rem] text-brand mt-px"
+								class="material-icons text-xs text-brand mt-px"
 								>bookmark</span
 							>
 							<span class="line-clamp-1"
@@ -133,7 +133,7 @@
 								}
 							</div>
 							@if (entry.coopMembers.length > 3) {
-							<span class="text-[0.5625rem] text-fg-muted"
+							<span class="text-micro text-fg-muted"
 								>+{{ entry.coopMembers.length - 3 }}</span
 							>
 							}

@@ -65,7 +65,7 @@ export class QueueAddModal implements OnInit {
 		);
 	}
 
-	addToQueue(entry: BacklogEntry) {
+	protected addToQueue(entry: BacklogEntry) {
 		if (this.adding()) return;
 		this.adding.set(entry.id);
 		this.queueService.addFromBacklog(entry.id).subscribe({
@@ -79,7 +79,7 @@ export class QueueAddModal implements OnInit {
 		});
 	}
 
-	onClose() {
+	protected onClose() {
 		this.dialogRef.close();
 	}
 }

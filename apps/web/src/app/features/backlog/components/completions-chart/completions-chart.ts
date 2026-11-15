@@ -54,14 +54,14 @@ function tooltipAlignClass(index: number, total: number): string {
 					>
 						@if (column.isPeak) {
 							<span
-								class="absolute bottom-full inset-x-0 mb-1 text-center text-[0.6875rem] font-semibold text-fg tabular-nums leading-none"
+								class="absolute bottom-full inset-x-0 mb-1 text-center text-caption font-semibold text-fg tabular-nums leading-none"
 								>{{ column.count }}</span
 							>
 						}
 					</span>
 					<span
 						aria-hidden="true"
-						class="pointer-events-none absolute bottom-full mb-1.5 z-10 whitespace-nowrap rounded-md border border-line-hover bg-canvas px-2 py-1 text-[0.6875rem] text-fg shadow-lg opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus:opacity-100"
+						class="pointer-events-none absolute bottom-full mb-1.5 z-10 whitespace-nowrap rounded-md border border-line-hover bg-canvas px-2 py-1 text-caption text-fg shadow-lg opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus:opacity-100"
 						[class]="column.tooltipAlignClass"
 					>
 						<span class="text-fg-muted">{{
@@ -79,7 +79,7 @@ function tooltipAlignClass(index: number, total: number): string {
 		<div class="flex gap-1 sm:gap-1.5" aria-hidden="true">
 			@for (column of columns(); track column.month) {
 				<span
-					class="flex-1 min-w-0 flex flex-col items-center gap-0.5 text-[0.625rem] leading-none text-fg-muted"
+					class="flex-1 min-w-0 flex flex-col items-center gap-0.5 text-tiny leading-none text-fg-muted"
 					[class.max-sm:invisible]="column.hideTickOnMobile"
 				>
 					<span>{{ column.shortLabel }}</span>

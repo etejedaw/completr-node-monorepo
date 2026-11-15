@@ -55,12 +55,12 @@ export class DuplicateListModal {
 		isPublic: false
 	});
 
-	readonly form = form(this.model, path => {
+	protected readonly form = form(this.model, path => {
 		required(path.name);
 		maxLength(path.name, 100);
 	});
 
-	onSubmit(event: Event) {
+	protected onSubmit(event: Event) {
 		event.preventDefault();
 		if (this.form().invalid()) return;
 		this.isLoading.set(true);
@@ -81,7 +81,7 @@ export class DuplicateListModal {
 			});
 	}
 
-	onClose() {
+	protected onClose() {
 		this.dialogRef.close(null);
 	}
 }

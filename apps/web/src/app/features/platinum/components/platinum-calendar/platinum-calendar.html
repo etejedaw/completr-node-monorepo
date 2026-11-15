@@ -8,7 +8,7 @@
 	[emptyMonthHint]="emptyMonthHint()"
 	(itemSelected)="openPlatinum($event)"
 >
-	<p calendarSummary class="m-0 text-[0.6875rem] text-fg-muted tabular-nums">
+	<p calendarSummary class="m-0 text-caption text-fg-muted tabular-nums">
 		{{ monthPlatinums().length }} platinumed
 	</p>
 
@@ -20,7 +20,7 @@
 			[title]="platinum.game.title"
 			(pressed)="platinumClick.emit(platinum)"
 		>
-			<span aria-hidden="true" class="material-icons text-[0.75rem]"
+			<span aria-hidden="true" class="material-icons text-xs"
 				>emoji_events</span
 			>
 		</app-calendar-event-chip>

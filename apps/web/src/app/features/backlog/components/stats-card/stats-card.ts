@@ -17,7 +17,7 @@ let nextStatsCardId = 0;
 					{{ label() }}
 				</h3>
 				@if (meta()) {
-					<span class="text-[0.6875rem] text-fg-muted tabular-nums">{{
+					<span class="text-caption text-fg-muted tabular-nums">{{
 						meta()
 					}}</span>
 				}

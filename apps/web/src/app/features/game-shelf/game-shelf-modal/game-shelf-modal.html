@@ -14,12 +14,12 @@
 	<div class="flex items-start gap-4">
 		<app-game-poster
 			framed
-			class="w-24 aspect-[2/3] shrink-0 rounded-md shadow-lg shadow-black/40"
+			class="w-24 aspect-[2/3] shrink-0 rounded-md shadow-card"
 			[src]="e.game.backgroundUrl"
 			[title]="e.game.title"
 			[width]="420"
 		/>
-		<dl class="m-0 flex-1 min-w-0 grid grid-cols-1 gap-3 text-[0.8125rem]">
+		<dl class="m-0 flex-1 min-w-0 grid grid-cols-1 gap-3 text-compact">
 			<div>
 				<dt uiEyebrow>Platform</dt>
 				<dd class="m-0 mt-0.5 text-fg">
@@ -44,7 +44,7 @@
 	@if (e.notes) {
 	<figure class="m-0 mt-5 border-l-2 border-nav-shelf/60 pl-3">
 		<figcaption uiEyebrow class="mb-1">Notes</figcaption>
-		<p class="m-0 text-[0.8125rem] text-fg-secondary whitespace-pre-wrap">
+		<p class="m-0 text-compact text-fg-secondary whitespace-pre-wrap">
 			{{ e.notes }}
 		</p>
 	</figure>
@@ -91,7 +91,7 @@
 		</div>
 		} @else {
 		<p
-			class="m-0 px-3 py-2.5 rounded-card border border-dashed border-line text-[0.8125rem] text-fg-muted"
+			class="m-0 px-3 py-2.5 rounded-card border border-dashed border-line text-compact text-fg-muted"
 		>
 			This game has no platforms in the catalog yet, so it can't be added
 			to My Shelf.

@@ -27,7 +27,7 @@
 		</div>
 
 		<ui-checkbox
-			class="min-h-[44px] w-full gap-3 px-3 py-2 rounded-card border border-line bg-input-bg text-[0.8125rem] text-fg-secondary"
+			class="min-h-[44px] w-full gap-3 px-3 py-2 rounded-card border border-line bg-input-bg text-compact text-fg-secondary"
 			[label]="form.isPublic().value() ? 'Public list' : 'Private list'"
 			[checked]="form.isPublic().value()"
 			(checkedChange)="form.isPublic().value.set($event)"

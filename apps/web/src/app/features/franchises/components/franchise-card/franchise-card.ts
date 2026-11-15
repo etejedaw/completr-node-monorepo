@@ -16,7 +16,7 @@ import { type FranchiseSummary } from "../../franchises.model";
 	imports: [RouterLink, GamePoster, UiButton],
 	template: `
 		<article
-			class="group relative isolate flex flex-col justify-end aspect-[16/10] rounded-card overflow-hidden bg-surface ring-1 ring-line shadow-lg shadow-black/40 transition duration-200 hover:-translate-y-1 hover:ring-brand/60 has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-brand motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+			class="group relative isolate flex flex-col justify-end aspect-[16/10] rounded-card overflow-hidden bg-surface ring-1 ring-line shadow-card transition duration-200 hover:-translate-y-1 hover:ring-brand/60 has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-brand motion-reduce:transition-none motion-reduce:hover:translate-y-0"
 			[attr.aria-labelledby]="headingId()"
 		>
 			<div aria-hidden="true" class="absolute inset-0 -z-10 flex">
@@ -45,14 +45,14 @@ import { type FranchiseSummary } from "../../franchises.model";
 
 			<div class="p-4">
 				<p
-					class="m-0 text-[0.625rem] font-bold uppercase tracking-[0.18em] text-white/70 tabular-nums"
+					class="m-0 text-tiny font-bold uppercase tracking-[0.18em] text-on-image/70 tabular-nums"
 				>
 					{{ franchise().gameCount }}
 					{{ franchise().gameCount === 1 ? "game" : "games" }}
 				</p>
 				<h3
 					[id]="headingId()"
-					class="m-0 mt-1 font-display text-lg font-bold text-white leading-tight line-clamp-1 drop-shadow-cover"
+					class="m-0 mt-1 font-display text-lg font-bold text-on-image leading-tight line-clamp-1 drop-shadow-cover"
 				>
 					<a
 						class="text-inherit no-underline outline-none after:absolute after:inset-0 after:content-['']"
@@ -62,7 +62,7 @@ import { type FranchiseSummary } from "../../franchises.model";
 				</h3>
 				@if (franchise().description) {
 					<p
-						class="m-0 mt-1 text-xs text-white/75 line-clamp-2 leading-snug"
+						class="m-0 mt-1 text-xs text-on-image/75 line-clamp-2 leading-snug"
 					>
 						{{ franchise().description }}
 					</p>

@@ -116,7 +116,7 @@ export class GameShelfModal implements OnInit {
 			: null;
 	});
 
-	switchToEdit() {
+	protected switchToEdit() {
 		this.viewMode.set("edit");
 	}
 
@@ -128,7 +128,7 @@ export class GameShelfModal implements OnInit {
 		notes: ""
 	});
 
-	readonly form = form(this.model, path => {
+	protected readonly form = form(this.model, path => {
 		required(path.gameId);
 		required(path.platformId);
 	});
@@ -139,7 +139,7 @@ export class GameShelfModal implements OnInit {
 			label: suggestion
 		}));
 
-	applyEditionSuggestion(value: string | undefined) {
+	protected applyEditionSuggestion(value: string | undefined) {
 		if (value) this.model.update(m => ({ ...m, edition: value }));
 	}
 
@@ -168,7 +168,7 @@ export class GameShelfModal implements OnInit {
 		}
 	}
 
-	selectGame(game: Game) {
+	protected selectGame(game: Game) {
 		this.selectedGame.set(game);
 		const platforms = game.platforms ?? [];
 		this.model.update(m => ({
@@ -178,17 +178,17 @@ export class GameShelfModal implements OnInit {
 		}));
 	}
 
-	setPlatform(platformId: string) {
+	protected setPlatform(platformId: string) {
 		this.model.update(m => ({ ...m, platformId }));
 	}
 
-	clearGame() {
+	protected clearGame() {
 		this.selectedGame.set(null);
 		this.model.update(m => ({ ...m, gameId: "", platformId: "" }));
 		this.returnedToSearch.set(true);
 	}
 
-	onSubmit(event: Event) {
+	protected onSubmit(event: Event) {
 		event.preventDefault();
 		if (this.form().invalid()) return;
 		this.isLoading.set(true);
@@ -227,7 +227,7 @@ export class GameShelfModal implements OnInit {
 		}
 	}
 
-	onDelete() {
+	protected onDelete() {
 		this.isLoading.set(true);
 		this.shelfService.delete(this.entry!.id).subscribe({
 			next: () => this.dialogRef.close("saved"),
@@ -238,7 +238,7 @@ export class GameShelfModal implements OnInit {
 		});
 	}
 
-	onClose() {
+	protected onClose() {
 		this.dialogRef.close();
 	}
 }
