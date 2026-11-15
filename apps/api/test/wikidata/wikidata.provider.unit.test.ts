@@ -1,12 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import {
-	buildHltbCandidatesQuery,
-	escapeSparqlString,
-	WIKIDATA_HTTP_OPTIONS,
-	WikidataClient
-} from "../../src/wikidata/wikidata.provider";
+import { buildHltbCandidatesQuery } from "../../src/wikidata/utils/build-hltb-candidates-query.util";
+import { escapeSparqlString } from "../../src/wikidata/utils/escape-sparql-string.util";
+import { WIKIDATA_HTTP_OPTIONS } from "../../src/wikidata/wikidata.constants";
+import { WikidataClient } from "../../src/wikidata/wikidata.provider";
 import {
 	assertServiceError,
 	buildClient,

@@ -1,11 +1,12 @@
 import { isTimeoutError } from "../common/utils/is-timeout-error.util";
 import * as igdbServiceError from "./errors/igdb.service-error";
+import {
+	REJECTED_CREDENTIALS_STATUSES,
+	TOKEN_REFRESH_MARGIN_MS,
+	TOKEN_REQUEST_TIMEOUT_MS,
+	TWITCH_TOKEN_URL
+} from "./igdb.constants";
 import { type IgdbTokenResponse } from "./igdb.interface";
-
-const TWITCH_TOKEN_URL = "https://id.twitch.tv/oauth2/token";
-const TOKEN_REFRESH_MARGIN_MS = 5 * 60 * 1000;
-const REJECTED_CREDENTIALS_STATUSES = new Set([400, 401, 403]);
-const TOKEN_REQUEST_TIMEOUT_MS = 5000;
 
 export class IgdbTokenClient {
 	private accessToken?: string;

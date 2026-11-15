@@ -1,42 +1,15 @@
 import { isTimeoutError } from "../common/utils/is-timeout-error.util";
 import * as igdbServiceError from "./errors/igdb.service-error";
+import {
+	GAME_FIELDS,
+	IGDB_GAMES_URL,
+	IGDB_REQUEST_TIMEOUT_MS,
+	MAIN_GAME_TYPE_ID
+} from "./igdb.constants";
 import { type IgdbGame, type IgdbSearchOptions } from "./igdb.interface";
 import { IgdbTokenClient } from "./igdb-token.client";
-
-const IGDB_GAMES_URL = "https://api.igdb.com/v4/games";
-const IGDB_REQUEST_TIMEOUT_MS = 5000;
-const DEFAULT_SEARCH_LIMIT = 10;
-const MAX_SEARCH_LIMIT = 500;
-const MAIN_GAME_TYPE_ID = 0;
-const GAME_FIELDS = [
-	"id",
-	"name",
-	"slug",
-	"summary",
-	"first_release_date",
-	"rating",
-	"rating_count",
-	"url",
-	"game_type.id",
-	"game_type.type",
-	"cover.id",
-	"cover.image_id",
-	"platforms.id",
-	"platforms.slug",
-	"genres.id",
-	"genres.slug",
-	"themes.id",
-	"themes.slug",
-	"artworks.id",
-	"artworks.image_id",
-	"artworks.width",
-	"artworks.height",
-	"artworks.image_type",
-	"screenshots.id",
-	"screenshots.image_id",
-	"screenshots.width",
-	"screenshots.height"
-].join(",");
+import { escapeApicalypseString } from "./utils/escape-apicalypse-string.util";
+import { normalizeSearchLimit } from "./utils/normalize-search-limit.util";
 
 export abstract class IgdbClient {
 	abstract readonly isEnabled: boolean;
@@ -83,7 +56,7 @@ export class IgdbProvider extends IgdbClient {
 		];
 		if (options.mainGamesOnly)
 			clauses.push(`where game_type = ${MAIN_GAME_TYPE_ID};`);
-		clauses.push(`limit ${normalizeLimit(options.limit)};`);
+		clauses.push(`limit ${normalizeSearchLimit(options.limit)};`);
 
 		return await this.request(clauses.join(" "));
 	}
@@ -198,14 +171,4 @@ export class DisabledIgdbProvider extends IgdbClient {
 	getGameBySlug(): Promise<IgdbGame> {
 		return Promise.reject(igdbServiceError.disabledError());
 	}
-}
-
-function escapeApicalypseString(value: string): string {
-	return value.replace(/[\\"]/g, character => `\\${character}`);
-}
-
-function normalizeLimit(limit: number | undefined): number {
-	if (limit === undefined || !Number.isInteger(limit) || limit <= 0)
-		return DEFAULT_SEARCH_LIMIT;
-	return Math.min(limit, MAX_SEARCH_LIMIT);
 }

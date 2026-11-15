@@ -1,6 +1,13 @@
 import { ScrapingRequestError } from "./errors/scraping-request.error";
-import { SCRAPING_DEFAULTS, SCRAPING_USER_AGENT } from "./scraping.constants";
 import {
+	NOT_FOUND_STATUSES,
+	REQUEST_HEADERS,
+	SCRAPING_DEFAULTS,
+	SCRAPING_USER_AGENT
+} from "./scraping.constants";
+import {
+	type HostQueue,
+	type QueuedRequest,
 	type ScrapingHttpClientOptions,
 	type ScrapingRequestOptions
 } from "./scraping.interface";
@@ -12,31 +19,6 @@ import {
 import { interruptibleSleep } from "./utils/interruptible-sleep.util";
 import { isChallengePage } from "./utils/is-challenge-page.util";
 import { parseRetryAfter } from "./utils/parse-retry-after.util";
-
-const NOT_FOUND_STATUSES = new Set([404, 410]);
-
-const REQUEST_HEADERS = {
-	Accept: "text/html,application/xhtml+xml",
-	"Accept-Language": "en-US,en;q=0.8"
-};
-
-interface QueuedRequest {
-	url: URL;
-	headers: Record<string, string>;
-	priority: ScrapingPriority;
-	signal?: AbortSignal;
-	sequence: number;
-	attempts: number;
-	notBefore: number;
-	resolve(body: string): void;
-	reject(error: unknown): void;
-}
-
-interface HostQueue {
-	waiting: QueuedRequest[];
-	draining: boolean;
-	wake?: AbortController;
-}
 
 export class ScrapingHttpClient {
 	private static sharedInstance?: ScrapingHttpClient;
