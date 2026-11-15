@@ -142,4 +142,52 @@ void describe("admin password changes follow the password policy", () => {
 		assert.equal(tooLong.status, 422);
 		assert.equal(notAUrl.status, 422);
 	});
+
+	void it("accepts a preset avatar path and lets the user clear it with null", async () => {
+		const account = await createUserWithSession();
+		const preset = "/avatars/completr_profile_04.png";
+
+		const set = await api()
+			.patch("/users/me")
+			.set("Authorization", account.authorization)
+			.send({ avatarUrl: preset });
+		const cleared = await api()
+			.patch("/users/me")
+			.set("Authorization", account.authorization)
+			.send({ avatarUrl: null });
+
+		assert.equal(set.status, 200);
+		assert.equal(set.body.data.user.avatarUrl, preset);
+		assert.equal(cleared.status, 200);
+		assert.equal(cleared.body.data.user.avatarUrl ?? null, null);
+	});
+
+	void it("rejects junk avatar paths on profile updates and null on register", async () => {
+		const account = await createUserWithSession();
+		const admin = await createUserWithSession("admin");
+
+		for (const avatarUrl of [
+			"../avatars/completr_profile_01.png",
+			"/other/completr_profile_01.png",
+			"javascript:alert(1)",
+			"a".repeat(256)
+		]) {
+			const response = await api()
+				.patch("/users/me")
+				.set("Authorization", account.authorization)
+				.send({ avatarUrl });
+			assert.equal(response.status, 422, avatarUrl);
+		}
+		const registered = await api()
+			.post("/auth/register")
+			.set("Authorization", admin.authorization)
+			.send({
+				username: "avatar_null",
+				email: "avatar_null@completr.test",
+				password: DEFAULT_PASSWORD,
+				name: "Avatar Null",
+				avatarUrl: null
+			});
+		assert.equal(registered.status, 422);
+	});
 });
