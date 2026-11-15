@@ -1,5 +1,5 @@
 import * as activityService from "../../activity/activity.service";
-import * as tokenService from "../../auth/services/token.service";
+import * as authService from "../../auth/auth.service";
 import * as backlogService from "../../backlog/backlog.service";
 import * as backlogProgressService from "../../backlog-progress/backlog-progress.service";
 import * as coopRunsService from "../../coop-runs/coop-runs.service";
@@ -91,7 +91,7 @@ async function collectPersonalData(user: User): Promise<PersonalDataBundle> {
 		franchisesService.findTrackedFranchisesForDataExport(userId),
 		gamePlatinumService.findPlatinumsForDataExport(userId),
 		rewindService.findRewindsForDataExport(userId),
-		tokenService.findUserSessions(userId),
+		authService.listSessions(userId),
 		gameReportsService.findReportsForDataExport(userId),
 		dataRequestsService.findDataRequestsByUserId(userId)
 	]);
