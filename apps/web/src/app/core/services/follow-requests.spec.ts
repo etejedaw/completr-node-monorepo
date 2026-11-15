@@ -6,6 +6,7 @@ import {
 import { TestBed } from "@angular/core/testing";
 
 import { environment } from "../../../environments/environment";
+import { AuthService } from "./auth";
 import { FollowRequestsService } from "./follow-requests";
 import { type IncomingFollowRequest } from "./follow-requests.model";
 
@@ -96,5 +97,65 @@ describe("FollowRequestsService", () => {
 			.flush(null, { status: 500, statusText: "Server Error" });
 
 		expect(service.pendingCount()).toBe(1);
+	});
+	describe("when the account changes", () => {
+		function signInAs(id: string) {
+			TestBed.inject(AuthService).loadUser().subscribe();
+			httpTesting
+				.expectOne(`${environment.apiUrl}/users/me`)
+				.flush({ data: { user: { id, username: id } } });
+			TestBed.tick();
+		}
+
+		it("forgets the previous account's requests and count", () => {
+			signInAs("user-a");
+			loadRequests("a", "b");
+
+			signInAs("user-b");
+
+			expect(service.incoming()).toBeNull();
+			expect(service.pendingCount()).toBe(0);
+		});
+
+		it("keeps what loaded before the first account resolved", () => {
+			loadRequests("a");
+
+			signInAs("user-a");
+
+			expect(service.pendingCount()).toBe(1);
+		});
+
+		it("keeps the requests when the same account reloads", () => {
+			signInAs("user-a");
+			loadRequests("a");
+
+			signInAs("user-a");
+
+			expect(service.pendingCount()).toBe(1);
+		});
+
+		it("ignores a late response that belongs to the previous account", () => {
+			signInAs("user-a");
+			service.list().subscribe();
+			const staleRequest = httpTesting.expectOne(base);
+
+			signInAs("user-b");
+			staleRequest.flush({ data: { requests: [incoming("a")] } });
+
+			expect(service.incoming()).toBeNull();
+			expect(service.pendingCount()).toBe(0);
+			loadRequests("b1", "b2");
+			expect(service.pendingCount()).toBe(2);
+		});
+
+		it("still applies responses of the current account after switching twice quickly", () => {
+			signInAs("user-a");
+			signInAs("user-b");
+			signInAs("user-c");
+
+			loadRequests("c1");
+
+			expect(service.incoming()?.map(r => r.requesterId)).toEqual(["c1"]);
+		});
 	});
 });
