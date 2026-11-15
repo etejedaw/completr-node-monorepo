@@ -13,9 +13,6 @@ export function backlogProgressServiceToDomainMapper(
 	if (error.code === "BACKLOG_PROGRESS_BACKLOG_NOT_FOUND")
 		return backlogProgressDomainError.backlogNotFound(context);
 
-	if (error.code === "BACKLOG_PROGRESS_FORBIDDEN")
-		return backlogProgressDomainError.forbidden(context);
-
 	if (error.code === "BACKLOG_PROGRESS_NOTE_NOT_FOUND")
 		return backlogProgressDomainError.noteNotFound(context);
 

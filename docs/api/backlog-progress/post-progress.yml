@@ -65,5 +65,5 @@ docs: |-
     | Status | Type                                  | Reason                              |
     |--------|---------------------------------------|-------------------------------------|
     | 404    | `BACKLOG_PROGRESS_BACKLOG_NOT_FOUND`  | Backlog id does not exist           |
-    | 403    | `BACKLOG_PROGRESS_FORBIDDEN`          | Backlog belongs to another user     |
+    | 404    | `BACKLOG_PROGRESS_BACKLOG_NOT_FOUND`  | Backlog missing or another user's   |
     | 422    | `COMMON_SCHEMA_INVALID`               | Note empty or > 500 chars           |

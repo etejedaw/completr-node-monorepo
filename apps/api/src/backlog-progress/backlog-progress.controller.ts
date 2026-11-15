@@ -1,9 +1,9 @@
 import { type Request, type Response } from "express";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
+import { type AddProgressDto } from "./add-progress.dto";
 import { backlogProgressSerializer } from "./backlog-progress.serializer";
 import * as backlogProgressService from "./backlog-progress.service";
-import { type AddProgressDto } from "./dtos/add-progress.dto";
 import { type BacklogIdParams } from "./schemas/backlog-id-params.schema";
 import { type NoteIdParams } from "./schemas/note-id-params.schema";
 
