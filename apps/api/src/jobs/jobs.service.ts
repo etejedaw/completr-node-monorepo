@@ -4,6 +4,7 @@ import * as backlogService from "../backlog/backlog.service";
 import { apiKeysConfig } from "../common/config/api-keys.config";
 import { ServiceError } from "../common/errors/service-error";
 import { PinoLogger } from "../common/logger/pino.logger";
+import { describeFailure } from "../common/utils/describe-failure.util";
 import * as coopRunsService from "../coop-runs/coop-runs.service";
 import * as gameExternalService from "../game-external/game-external.service";
 import * as gamePopularityService from "../game-popularity/game-popularity.service";
@@ -21,7 +22,6 @@ import { type ExternalDataResult } from "../games/games-external-data.interface"
 import * as rawgServiceError from "../rawg/errors/rawg.service-error";
 import { RawgClient } from "../rawg/rawg.provider";
 import * as reviewsService from "../reviews/reviews.service";
-import { type RewindFreezeReport } from "../rewind/rewind-freeze.interface";
 import * as rewindFreezeService from "../rewind/services/rewind-freeze.service";
 import * as usersService from "../users/users.service";
 import { Job } from "./job.model";
@@ -30,6 +30,7 @@ import {
 	type ExternalDataJobReport,
 	type ExternalDataSourceTally
 } from "./jobs.interface";
+import { describeRewindFreezeReport } from "./utils/describe-rewind-freeze-report.util";
 
 const rawg = RawgClient.create(apiKeysConfig.RAWG_API_KEY);
 const logger = new PinoLogger("Jobs");
@@ -124,14 +125,6 @@ export async function startPopulateRawg(limit?: number) {
 
 function isRawgNotFound(error: unknown) {
 	return error instanceof ServiceError && error.code === "RAWG_NOT_FOUND";
-}
-
-export function describeFailure(error: unknown) {
-	if (error instanceof ServiceError) {
-		const { raw } = error.serviceError;
-		return typeof raw === "string" ? `${error.code}: ${raw}` : error.code;
-	}
-	return error instanceof Error ? error.message : String(error);
 }
 
 async function runPopulateRawg(jobId: string, limit?: number) {
@@ -528,16 +521,6 @@ async function runCalculateDurations(jobId: string) {
 
 export async function startRewindFreeze() {
 	return startJob("rewind_freeze", runRewindFreeze);
-}
-
-function describeYears(years: number[]) {
-	return years.length > 0 ? years.join(", ") : "none";
-}
-
-export function describeRewindFreezeReport(report: RewindFreezeReport) {
-	if (!report.locked)
-		return "Skipped: another rewind freeze run holds the lock";
-	return `Closed editions: ${describeYears(report.closedEditions)}, Frozen editions: ${describeYears(report.frozenEditions)}, Rewinds frozen: ${report.frozen}, Pending AI recap: ${report.pending}, Failed: ${report.failed}`;
 }
 
 async function runRewindFreeze(jobId: string) {
