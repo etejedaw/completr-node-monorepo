@@ -75,6 +75,10 @@ export interface RewindDurationGame extends RewindFinishedGame {
 	isEstimate: boolean;
 }
 
+export interface RewindClassicGame extends RewindFinishedGame {
+	releaseYear: number;
+}
+
 export interface RewindGenre {
 	code: string;
 	name: string;
@@ -111,6 +115,14 @@ export interface RewindHighlights {
 	topGenres: RewindGenre[];
 	topPlatforms: RewindPlatform[];
 	longestStreak: RewindStreak | null;
+	classic: RewindClassicGame | null;
+}
+
+export interface RewindStoredHighlights extends Omit<
+	RewindHighlights,
+	"classic"
+> {
+	classic?: RewindClassicGame | null;
 }
 
 export interface RewindLengthBucket {
@@ -170,9 +182,10 @@ export interface RewindViewOptions {
 
 export interface RewindView extends Omit<
 	Rewind,
-	"finishedGames" | "ownerControls" | "premiumAccess"
+	"finishedGames" | "highlights" | "ownerControls" | "premiumAccess"
 > {
 	finishedGames: RewindViewGame[];
+	highlights: RewindStoredHighlights;
 	personaWithoutPlatinums: RewindPersonaCode;
 	covers: RewindGameRef[];
 	previousYearTotals: RewindTotals | null;

@@ -38,6 +38,7 @@ export function buildRewind(
 		totals,
 		finishedGames,
 		highlights: calculateRewindHighlights({
+			year,
 			finishedRuns: yearRuns.finished,
 			latestFinishedRuns,
 			finishedGames,

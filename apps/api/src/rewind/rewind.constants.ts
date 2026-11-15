@@ -4,6 +4,7 @@ export const REWIND_MIN_YEAR = 2000;
 export const REWIND_MAX_YEAR = 2100;
 export const REWIND_TOP_LIMIT = 3;
 export const REWIND_MIN_STREAK_MONTHS = 2;
+export const REWIND_CLASSIC_MIN_AGE_YEARS = 10;
 export const TROPHY_HUNTER_MIN_PLATINUMS = 3;
 export const MARATHONER_MIN_FINISHED = 3;
 export const MARATHONER_MIN_AVERAGE_HOURS = 30;

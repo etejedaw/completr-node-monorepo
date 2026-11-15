@@ -57,6 +57,7 @@ export interface DurationExtremes {
 }
 
 export interface RewindHighlightsSource {
+	year: number;
 	finishedRuns: ClosedRewindRun[];
 	latestFinishedRuns: ClosedRewindRun[];
 	finishedGames: RewindFinishedGame[];

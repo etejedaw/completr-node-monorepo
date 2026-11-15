@@ -39,7 +39,10 @@ export function rewindViewToRewind(
 		otherYears: live.otherYears,
 		totals: visibleTotals(view.totals, live.platinumsVisible),
 		finishedGames: view.finishedGames.map(toFinishedGame),
-		highlights: view.highlights,
+		highlights: {
+			...view.highlights,
+			classic: view.highlights.classic ?? null
+		},
 		yearMix: view.yearMix,
 		language: view.language,
 		generatedAt: view.generatedAt,
