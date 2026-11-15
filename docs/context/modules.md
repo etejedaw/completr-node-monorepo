@@ -180,7 +180,7 @@ Pero **solo para `include`, asociaciones y `order`**. Nunca para CRUD (`find*`, 
 
 1. Crear la carpeta `apps/api/src/<nombre>/`.
 2. Crear `<recurso>.model.ts` con el modelo Sequelize (PK UUID, soft delete si aplica).
-3. Registrar el modelo en `apps/api/src/database/init.database.ts` y sus asociaciones en `apps/api/src/database/associations.database.ts`.
+3. Registrar el modelo en `apps/api/src/database/models.database.ts` (el único punto de registro; un test lo compara contra los `*.model.ts` de `src`) y sus asociaciones en `apps/api/src/database/associations.database.ts`.
 4. Crear la migración Sequelize en `apps/api/migrations/`. Cada FK lleva en la migración el mismo `ON DELETE` que declara su asociación.
 5. Crear `<modulo>.service.ts` con funciones que lancen `ServiceError`.
 6. Crear los errores del módulo en `errors/` siguiendo [`errors.md`](./errors.md).
