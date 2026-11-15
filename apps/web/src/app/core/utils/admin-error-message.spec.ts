@@ -10,6 +10,22 @@ function apiError(status: number, body: object | null) {
 describe("adminErrorMessage", () => {
 	it.each([
 		[
+			"REWIND_EDITION_EXISTS",
+			409,
+			"There is already an edition for that year."
+		],
+		[
+			"REWIND_EDITION_OVERLAP",
+			409,
+			"The period overlaps another edition. Choose other dates."
+		],
+		[
+			"REWIND_EDITION_FROZEN",
+			409,
+			"That edition was frozen in the meantime, so it can no longer be edited."
+		],
+		["REWIND_EDITION_NOT_FOUND", 404, "That edition no longer exists."],
+		[
 			"GAME_IN_USE",
 			409,
 			"This game can't be deleted because users have data on it (backlog, lists, reviews, etc.) or it has variants or DLC. Deactivate it instead to hide it without losing data."

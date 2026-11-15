@@ -1,0 +1,215 @@
+@if (step() === 'confirm') {
+<app-admin-rewind-edition-confirm
+	[year]="edition()?.year ?? 0"
+	[generatedCount]="edition()?.generatedCount ?? 0"
+	[saving]="isSaving()"
+	[error]="dialogError()"
+	[(applyToGenerated)]="applyToGenerated"
+	(confirmed)="confirm()"
+	(back)="backToForm()"
+/>
+} @else {
+<ui-dialog
+	eyebrow="Rewind"
+	[icon]="isReadOnly() ? 'lock' : edition() ? 'edit_calendar' : 'event'"
+	size="sm"
+	[heading]="heading()"
+	[subheading]="subheading()"
+	[dismissible]="!isSaving()"
+	(closed)="close()"
+>
+	@if (dialogError()) {
+	<ui-alert class="mb-4">{{ dialogError() }}</ui-alert>
+	} @if (isReadOnly() && edition(); as frozen) {
+	<app-admin-rewind-edition-summary [edition]="frozen" />
+	} @else {
+	<form
+		id="rewind-edition-form"
+		class="flex flex-col gap-4"
+		novalidate
+		(submit)="submit($event)"
+	>
+		@if (!edition()) {
+		<div uiFormField>
+			<label uiLabel uiFieldLabel for="rewind-edition-year">Year</label>
+			<input
+				id="rewind-edition-year"
+				uiInput
+				type="text"
+				inputmode="numeric"
+				autocomplete="off"
+				[formField]="editionForm.year"
+			/>
+			@if (fieldErrors().year; as message) {
+			<ui-field-error uiDescription id="rewind-edition-year-error"
+				>{{ message }}</ui-field-error
+			>
+			}
+		</div>
+		}
+
+		<p
+			id="rewind-edition-time-zone"
+			class="m-0 inline-flex items-center gap-1.5 text-xs text-fg-secondary"
+		>
+			<span aria-hidden="true" class="material-icons text-base"
+				>schedule</span
+			>
+			{{ datesTimeZoneLabel }}
+		</p>
+
+		<div>
+			<label uiFieldLabel for="rewind-edition-period">Period</label>
+			<ui-date-range-picker
+				triggerId="rewind-edition-period"
+				label="Period"
+				heading="Choose the period"
+				[start]="model().opensAt"
+				[end]="model().closesAt"
+				[invalid]="!!fieldErrors().period"
+				[describedBy]="
+					fieldErrors().period
+						? 'rewind-edition-time-zone rewind-edition-period-error'
+						: 'rewind-edition-time-zone'
+				"
+				(startChange)="setDateField('opensAt', $event)"
+				(endChange)="setDateField('closesAt', $event)"
+				(touch)="touchField('closesAt')"
+			/>
+			@if (fieldErrors().period; as message) {
+			<ui-field-error id="rewind-edition-period-error"
+				>{{ message }}</ui-field-error
+			>
+			}
+		</div>
+
+		<div>
+			<label uiFieldLabel for="rewind-edition-grace">Grace window</label>
+			<ui-date-range-picker
+				triggerId="rewind-edition-grace"
+				label="Grace window"
+				heading="Choose the grace window"
+				[start]="model().graceStartsAt"
+				[end]="model().graceEndsAt"
+				[minDate]="model().opensAt"
+				[maxDate]="model().closesAt"
+				[invalid]="!!fieldErrors().grace"
+				[describedBy]="
+					fieldErrors().grace
+						? 'rewind-edition-time-zone rewind-edition-grace-error'
+						: 'rewind-edition-time-zone rewind-edition-grace-hint'
+				"
+				(startChange)="setDateField('graceStartsAt', $event)"
+				(endChange)="setDateField('graceEndsAt', $event)"
+				(touch)="touchField('graceEndsAt')"
+			/>
+			@if (fieldErrors().grace; as message) {
+			<ui-field-error id="rewind-edition-grace-error"
+				>{{ message }}</ui-field-error
+			>
+			} @else {
+			<p
+				id="rewind-edition-grace-hint"
+				class="m-0 mt-1.5 text-[0.8125rem] text-fg-muted"
+			>
+				One extra AI generation for this year's Rewind, inside the
+				period.
+			</p>
+			}
+		</div>
+
+		<div>
+			<label uiFieldLabel for="rewind-edition-design">Design</label>
+			<app-option-picker
+				variant="input"
+				triggerId="rewind-edition-design"
+				label="Design"
+				heading="Choose a design"
+				placeholder="Pick a design"
+				placeholderIcon="palette"
+				[options]="designOptions()"
+				[value]="model().design"
+				[invalid]="!!fieldErrors().design"
+				[describedBy]="fieldErrors().design ? 'rewind-edition-design-error' : null"
+				(valueChange)="setDesign($event)"
+			/>
+			@if (fieldErrors().design; as message) {
+			<ui-field-error id="rewind-edition-design-error"
+				>{{ message }}</ui-field-error
+			>
+			}
+		</div>
+
+		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+			<div uiFormField>
+				<label uiLabel uiFieldLabel for="rewind-edition-premium"
+					>Premium AI generations</label
+				>
+				<input
+					id="rewind-edition-premium"
+					uiInput
+					type="text"
+					inputmode="numeric"
+					autocomplete="off"
+					class="tabular-nums"
+					[formField]="editionForm.premiumRegenerations"
+				/>
+				@if (fieldErrors().premiumRegenerations; as message) {
+				<ui-field-error uiDescription id="rewind-edition-premium-error"
+					>{{ message }}</ui-field-error
+				>
+				}
+			</div>
+			<div uiFormField>
+				<label uiLabel uiFieldLabel for="rewind-edition-gift"
+					>Gift AI generations</label
+				>
+				<input
+					id="rewind-edition-gift"
+					uiInput
+					type="text"
+					inputmode="numeric"
+					autocomplete="off"
+					class="tabular-nums"
+					[formField]="editionForm.giftRegenerations"
+				/>
+				@if (fieldErrors().giftRegenerations; as message) {
+				<ui-field-error uiDescription id="rewind-edition-gift-error"
+					>{{ message }}</ui-field-error
+				>
+				}
+			</div>
+		</div>
+		<p class="m-0 -mt-2 text-[0.8125rem] text-fg-muted text-pretty">
+			Each Rewind gets its quota the first time it uses the AI: premium
+			for full Premium, gift for a Rewind gift.
+		</p>
+	</form>
+	}
+
+	<ng-container dialogFooter>
+		<button
+			uiButton
+			type="button"
+			variant="ghost"
+			[disabled]="isSaving()"
+			(click)="close()"
+		>
+			{{ isReadOnly() ? "Close" : "Cancel" }}
+		</button>
+		@if (!isReadOnly()) {
+		<button
+			uiButton
+			variant="primary"
+			type="submit"
+			form="rewind-edition-form"
+			[disabled]="isSaving()"
+			[attr.aria-busy]="isSaving() || null"
+		>
+			@if (isSaving()) { Saving... } @else if (edition()) { Save edition }
+			@else { Create edition }
+		</button>
+		}
+	</ng-container>
+</ui-dialog>
+}

@@ -1,0 +1,236 @@
+<section aria-labelledby="admin-rewinds-heading">
+	<div class="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+		<h2 id="admin-rewinds-heading" uiEyebrow class="m-0">Rewinds</h2>
+		<p class="m-0 text-xs text-fg-muted tabular-nums">
+			@if (search() && !isLoading() && !loadFailed()) { {{ total() }} {{
+			total() === 1 ? "match" : "matches" }} for “{{ search() }}” }
+		</p>
+	</div>
+
+	@if (year() !== null) {
+	<app-library-toolbar>
+		<app-page-search
+			size="sm"
+			noun="Rewind"
+			filterBy="username"
+			class="flex-1 max-w-2xl"
+			[count]="total()"
+			[loading]="isLoading()"
+			[value]="query()"
+			(valueChange)="onSearch($event)"
+		/>
+		<app-option-picker
+			variant="compact"
+			size="md"
+			label="Year"
+			heading="Rewinds of"
+			[options]="yearOptions()"
+			[value]="'' + year()"
+			(valueChange)="setYear($event)"
+		/>
+	</app-library-toolbar>
+	} @if (pageError()) {
+	<ui-alert class="mb-4">{{ pageError() }}</ui-alert>
+	} @if (year() === null) {
+	<ui-empty-state
+		icon="history"
+		title="No editions yet"
+		hint="Create an edition to see the Rewinds generated for its year."
+	/>
+	} @else if (isLoading()) {
+	<div
+		class="rounded-card border border-line bg-surface/60 divide-y divide-line overflow-hidden"
+		aria-busy="true"
+		aria-label="Loading Rewinds"
+	>
+		@for (i of skeletonRows; track i) {
+		<div class="flex items-center gap-4 px-4 py-3">
+			<ui-skeleton variant="text" class="block w-32" />
+			<ui-skeleton variant="rect" class="block h-5 w-16 rounded-full" />
+			<ui-skeleton variant="text" class="block w-10" />
+			<ui-skeleton variant="text" class="block flex-1 max-sm:hidden" />
+		</div>
+		}
+	</div>
+	} @else if (loadFailed()) {
+	<ui-empty-state
+		icon="cloud_off"
+		title="Couldn't load the Rewinds"
+		hint="Something went wrong while fetching the Rewinds."
+	>
+		<button uiButton variant="secondary" (click)="reload()">
+			Try again
+		</button>
+	</ui-empty-state>
+	} @else if (rewinds().length === 0 && search()) {
+	<ui-no-matches
+		[hint]="'No Rewind of ' + year() + ' belongs to a username with “' + search() + '”.'"
+		(cleared)="clearSearch()"
+	/>
+	} @else if (rewinds().length === 0) {
+	<ui-empty-state
+		icon="history"
+		[title]="'No Rewinds generated for ' + year()"
+		hint="They show up here once users generate their Rewind of this year."
+	/>
+	} @else {
+	<div class="max-md:hidden overflow-x-auto">
+		<table uiTable>
+			<thead>
+				<tr>
+					<th scope="col">User</th>
+					<th scope="col">Type</th>
+					<th scope="col">AI generations left</th>
+					<th scope="col">Grace</th>
+					<th scope="col">Frozen</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (rewind of rewinds(); track rewind.id) {
+				<tr>
+					<td class="font-medium text-fg">
+						{{ rewind.user.username }}
+					</td>
+					<td>
+						<ui-badge
+							[tone]="accessBadge(rewind.accessKind).tone"
+							[icon]="accessBadge(rewind.accessKind).icon"
+							>{{ accessBadge(rewind.accessKind).label
+							}}</ui-badge
+						>
+					</td>
+					<td>
+						<ng-container
+							*ngTemplateOutlet="left; context: { $implicit: rewind, place: 'table' }"
+						/>
+					</td>
+					<td class="text-fg-secondary">{{ graceLabel(rewind) }}</td>
+					<td
+						class="text-fg-secondary tabular-nums whitespace-nowrap"
+					>
+						{{ frozenLabel(rewind) }}
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+
+	<ul class="md:hidden list-none m-0 p-0 flex flex-col gap-3">
+		@for (rewind of rewinds(); track rewind.id) {
+		<li
+			class="p-4 bg-surface border border-line rounded-card flex flex-col gap-3"
+		>
+			<div class="flex items-center justify-between gap-3">
+				<span class="font-medium text-sm text-fg break-all"
+					>{{ rewind.user.username }}</span
+				>
+				<ui-badge
+					[tone]="accessBadge(rewind.accessKind).tone"
+					[icon]="accessBadge(rewind.accessKind).icon"
+					>{{ accessBadge(rewind.accessKind).label }}</ui-badge
+				>
+			</div>
+			<div>
+				<p uiEyebrow class="m-0 mb-1">AI generations left</p>
+				<ng-container
+					*ngTemplateOutlet="left; context: { $implicit: rewind, place: 'card' }"
+				/>
+			</div>
+			<dl class="m-0 grid grid-cols-2 gap-3 text-xs">
+				<div>
+					<dt uiEyebrow>Grace</dt>
+					<dd class="m-0 mt-0.5 text-fg-secondary">
+						{{ graceLabel(rewind) }}
+					</dd>
+				</div>
+				<div>
+					<dt uiEyebrow>Frozen</dt>
+					<dd class="m-0 mt-0.5 text-fg-secondary tabular-nums">
+						{{ frozenLabel(rewind) }}
+					</dd>
+				</div>
+			</dl>
+		</li>
+		}
+	</ul>
+
+	<ui-pagination
+		[offset]="offset()"
+		[limit]="limit"
+		[total]="total()"
+		(offsetChange)="goToOffset($event)"
+	/>
+	}
+</section>
+
+<ng-template #left let-rewind let-place="place">
+	@let editorId = 'rewind-left-' + place + '-' + rewind.id; @if
+	(isEditing(rewind) && draft(); as current) { @let showError =
+	current.touched && !!draftError();
+	<div class="flex flex-col gap-1">
+		<div class="flex items-center gap-2">
+			<input
+				uiInput
+				type="text"
+				inputmode="numeric"
+				autocomplete="off"
+				#editor
+				data-regenerations-editor
+				class="!w-20 tabular-nums"
+				[id]="editorId"
+				[attr.aria-label]="'AI generations left for ' + rewind.user.username"
+				[attr.aria-invalid]="showError || null"
+				[attr.aria-describedby]="showError ? editorId + '-error' : null"
+				[value]="current.value"
+				[disabled]="savingId() === rewind.id"
+				(input)="updateDraft(editor.value)"
+				(keydown)="handleEditorKeydown($event, rewind)"
+			/>
+			<button
+				uiIconButton
+				type="button"
+				[attr.aria-label]="'Save AI generations left for ' + rewind.user.username"
+				[attr.aria-busy]="savingId() === rewind.id || null"
+				[disabled]="savingId() !== null"
+				(click)="saveEdit(rewind)"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>check</span
+				>
+			</button>
+			<button
+				uiIconButton
+				type="button"
+				[attr.aria-label]="'Cancel editing ' + rewind.user.username"
+				[disabled]="savingId() !== null"
+				(click)="cancelEdit()"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>close</span
+				>
+			</button>
+		</div>
+		@if (showError) {
+		<ui-field-error [id]="editorId + '-error'" [announce]="true"
+			>{{ draftError() }}</ui-field-error
+		>
+		}
+	</div>
+	} @else {
+	<div class="flex items-center gap-2">
+		<span class="text-fg tabular-nums min-w-[2ch]"
+			>{{ rewind.regenerationsLeft }}</span
+		>
+		<button
+			uiIconButton
+			type="button"
+			[attr.aria-label]="'Edit AI generations left for ' + rewind.user.username"
+			[disabled]="savingId() !== null"
+			(click)="startEdit(rewind)"
+		>
+			<span aria-hidden="true" class="material-icons text-lg">edit</span>
+		</button>
+	</div>
+	}
+</ng-template>

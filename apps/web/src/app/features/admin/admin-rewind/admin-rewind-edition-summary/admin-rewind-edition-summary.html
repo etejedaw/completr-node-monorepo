@@ -1,0 +1,41 @@
+@let frozen = edition();
+<dl class="m-0 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+	<div class="sm:col-span-2">
+		<dt uiFieldLabel>Period</dt>
+		<dd class="m-0 mt-1 text-fg tabular-nums">{{ periodLabel(frozen) }}</dd>
+	</div>
+	<div class="sm:col-span-2">
+		<dt uiFieldLabel>Grace window</dt>
+		<dd class="m-0 mt-1 text-fg tabular-nums">{{ graceLabel(frozen) }}</dd>
+	</div>
+	<div>
+		<dt uiFieldLabel>Design</dt>
+		<dd class="m-0 mt-1 text-fg">Design {{ frozen.design }}</dd>
+	</div>
+	<div>
+		<dt uiFieldLabel>Generated</dt>
+		<dd class="m-0 mt-1 text-fg tabular-nums">
+			{{ frozen.generatedCount }}
+		</dd>
+	</div>
+	<div>
+		<dt uiFieldLabel>Premium AI generations</dt>
+		<dd class="m-0 mt-1 text-fg tabular-nums">
+			{{ frozen.premiumRegenerations }}
+		</dd>
+	</div>
+	<div>
+		<dt uiFieldLabel>Gift AI generations</dt>
+		<dd class="m-0 mt-1 text-fg tabular-nums">
+			{{ frozen.giftRegenerations }}
+		</dd>
+	</div>
+	<p
+		class="m-0 sm:col-span-2 inline-flex items-center gap-1.5 text-xs text-fg-muted"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>schedule</span
+		>
+		{{ datesTimeZoneLabel }}
+	</p>
+</dl>

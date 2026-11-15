@@ -1,0 +1,217 @@
+<app-library-hero heading="Rewind" eyebrow="Admin">
+	<p heroSubtitle class="m-0 mt-2 text-sm text-fg-secondary">
+		<span class="font-semibold text-fg tabular-nums"
+			>{{ editions().length }}</span
+		>
+		{{ editions().length === 1 ? "edition" : "editions" }}
+	</p>
+	<div heroActions class="flex items-center gap-2">
+		<button
+			uiButton
+			variant="glass"
+			class="min-w-[44px] !px-2"
+			aria-label="Refresh"
+			title="Refresh"
+			[disabled]="isLoading()"
+			(click)="refresh()"
+		>
+			<span aria-hidden="true" class="material-icons text-xl"
+				>refresh</span
+			>
+		</button>
+		<button
+			uiButton
+			variant="primary"
+			[disabled]="isLoading() || loadFailed()"
+			(click)="openCreate()"
+		>
+			<span aria-hidden="true" class="material-icons text-base">add</span>
+			New edition
+		</button>
+	</div>
+</app-library-hero>
+
+@if (pageError()) {
+<ui-alert class="mb-4">{{ pageError() }}</ui-alert>
+}
+
+<section aria-labelledby="admin-rewind-editions-heading" class="mb-10">
+	<div class="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+		<h2 id="admin-rewind-editions-heading" uiEyebrow class="m-0">
+			Editions
+		</h2>
+		<p class="m-0 inline-flex items-center gap-1 text-xs text-fg-muted">
+			<span aria-hidden="true" class="material-icons text-sm"
+				>schedule</span
+			>
+			{{ datesTimeZoneLabel }}
+		</p>
+	</div>
+
+	@if (isLoading()) {
+	<div
+		aria-busy="true"
+		aria-label="Loading editions"
+		class="flex flex-col divide-y divide-line"
+	>
+		@for (i of skeletonRows; track i) {
+		<div class="flex items-center gap-4 py-3">
+			<ui-skeleton variant="text" class="block w-14 h-4" />
+			<ui-skeleton variant="text" class="block w-24 h-5 rounded-full" />
+			<ui-skeleton variant="text" class="block flex-1 h-4" />
+			<ui-skeleton variant="text" class="block w-20 max-sm:hidden" />
+		</div>
+		}
+	</div>
+	} @else if (loadFailed()) {
+	<ui-empty-state
+		icon="cloud_off"
+		title="Couldn't load the editions"
+		hint="Something went wrong while fetching the Rewind editions."
+	>
+		<button uiButton variant="secondary" (click)="refresh()">
+			Try again
+		</button>
+	</ui-empty-state>
+	} @else if (rows().length === 0) {
+	<ui-empty-state
+		icon="history"
+		title="No editions yet"
+		hint="Create one to open the Rewind of a year."
+	/>
+	} @else {
+	<div class="max-md:hidden overflow-x-auto">
+		<table uiTable>
+			<thead>
+				<tr>
+					<th scope="col">Year</th>
+					<th scope="col">Status</th>
+					<th scope="col">Period</th>
+					<th scope="col">Grace</th>
+					<th scope="col">Design</th>
+					<th scope="col" class="text-right">Premium</th>
+					<th scope="col" class="text-right">Gift</th>
+					<th scope="col" class="text-right">Generated</th>
+					<th scope="col"><span class="sr-only">Actions</span></th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (row of rows(); track row.edition.year) {
+				<tr>
+					<td class="font-display font-semibold text-fg tabular-nums">
+						{{ row.edition.year }}
+					</td>
+					<td>
+						<ui-badge
+							[tone]="statusStyle(row.status).tone"
+							[icon]="statusStyle(row.status).icon"
+							>{{ statusStyle(row.status).label }}</ui-badge
+						>
+					</td>
+					<td
+						class="text-fg-secondary tabular-nums whitespace-nowrap"
+					>
+						{{ periodLabel(row.edition) }}
+					</td>
+					<td
+						class="text-fg-secondary tabular-nums whitespace-nowrap"
+					>
+						{{ graceLabel(row.edition) }}
+					</td>
+					<td class="text-fg-secondary">{{ row.edition.design }}</td>
+					<td class="text-fg tabular-nums text-right">
+						{{ row.edition.premiumRegenerations }}
+					</td>
+					<td class="text-fg tabular-nums text-right">
+						{{ row.edition.giftRegenerations }}
+					</td>
+					<td class="text-fg tabular-nums text-right">
+						{{ row.edition.generatedCount }}
+					</td>
+					<td class="text-right">
+						<button
+							uiButton
+							variant="secondary"
+							size="sm"
+							[attr.aria-label]="(row.edition.frozenAt ? 'View Rewind ' : 'Edit Rewind ') + row.edition.year"
+							(click)="openEdition(row.edition)"
+						>
+							{{ row.edition.frozenAt ? "View" : "Edit" }}
+						</button>
+					</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+
+	<ul class="md:hidden list-none m-0 p-0 flex flex-col gap-3">
+		@for (row of rows(); track row.edition.year) {
+		<li
+			class="p-4 bg-surface border border-line rounded-card flex flex-col gap-3"
+		>
+			<div class="flex items-center justify-between gap-3">
+				<span
+					class="font-display text-lg font-semibold text-fg tabular-nums"
+					>{{ row.edition.year }}</span
+				>
+				<ui-badge
+					[tone]="statusStyle(row.status).tone"
+					[icon]="statusStyle(row.status).icon"
+					>{{ statusStyle(row.status).label }}</ui-badge
+				>
+			</div>
+			<dl class="m-0 grid grid-cols-2 gap-3 text-xs">
+				<div class="col-span-2">
+					<dt uiEyebrow>Period</dt>
+					<dd class="m-0 mt-0.5 text-fg-secondary tabular-nums">
+						{{ periodLabel(row.edition) }}
+					</dd>
+				</div>
+				<div class="col-span-2">
+					<dt uiEyebrow>Grace</dt>
+					<dd class="m-0 mt-0.5 text-fg-secondary tabular-nums">
+						{{ graceLabel(row.edition) }}
+					</dd>
+				</div>
+				<div>
+					<dt uiEyebrow>Premium · Gift</dt>
+					<dd class="m-0 mt-0.5 text-fg tabular-nums">
+						{{ row.edition.premiumRegenerations }} · {{
+						row.edition.giftRegenerations }}
+					</dd>
+				</div>
+				<div>
+					<dt uiEyebrow>Generated</dt>
+					<dd class="m-0 mt-0.5 text-fg tabular-nums">
+						{{ row.edition.generatedCount }}
+					</dd>
+				</div>
+			</dl>
+			<button
+				uiButton
+				variant="secondary"
+				class="w-full"
+				[attr.aria-label]="(row.edition.frozenAt ? 'View Rewind ' : 'Edit Rewind ') + row.edition.year"
+				(click)="openEdition(row.edition)"
+			>
+				{{ row.edition.frozenAt ? "View" : "Edit" }}
+			</button>
+		</li>
+		}
+	</ul>
+	}
+</section>
+
+@if (!isLoading() && !loadFailed()) {
+<app-admin-rewind-table [years]="years()" [defaultYear]="defaultYear()" />
+} @if (dialog(); as mode) {
+<app-admin-rewind-edition-dialog
+	[mode]="mode"
+	[editions]="editions()"
+	[designs]="designs()"
+	(saved)="showSavedEdition($event)"
+	(gone)="showEditionGone($event)"
+	(closed)="closeDialog()"
+/>
+}

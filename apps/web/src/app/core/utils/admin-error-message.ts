@@ -32,6 +32,12 @@ const ADMIN_ERROR_MESSAGES: Record<string, string> = {
 	PLATFORM_UNIQUE_CONSTRAINT: "A platform with this name already exists.",
 	PLATFORM_NOT_FOUND:
 		"This platform no longer exists. Refresh the list and try again.",
+	REWIND_EDITION_EXISTS: "There is already an edition for that year.",
+	REWIND_EDITION_OVERLAP:
+		"The period overlaps another edition. Choose other dates.",
+	REWIND_EDITION_FROZEN:
+		"That edition was frozen in the meantime, so it can no longer be edited.",
+	REWIND_EDITION_NOT_FOUND: "That edition no longer exists.",
 	PLATFORM_IN_USE:
 		"This platform is used by games, shelves, backlogs or wishlist entries. Remove those references before deleting it."
 };

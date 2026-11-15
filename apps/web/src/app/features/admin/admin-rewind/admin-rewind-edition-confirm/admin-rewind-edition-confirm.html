@@ -1,0 +1,52 @@
+<ui-dialog
+	eyebrow="Rewind"
+	icon="warning_amber"
+	tone="warning"
+	size="sm"
+	[heading]="'Save Rewind ' + year() + '?'"
+	[dismissible]="!saving()"
+	(closed)="goBack()"
+>
+	<div class="flex flex-col gap-4">
+		<p class="m-0 text-sm text-fg-secondary text-pretty">
+			{{ confirmMessage() }}
+		</p>
+		<ui-checkbox
+			class="min-h-[44px] w-full px-3 py-2 rounded-card border border-line bg-surface/60 transition hover:border-line-hover"
+			label="Also apply to the Rewinds already generated"
+			[checked]="applyToGenerated()"
+			[disabled]="saving()"
+			(checkedChange)="applyToGenerated.set($event)"
+		/>
+		<p class="m-0 text-[0.8125rem] text-fg-muted text-pretty">
+			Adds the quota difference to every generated Rewind that already got
+			a quota, never going below 0. Rewinds without AI use are not
+			changed.
+		</p>
+		@if (error()) {
+		<ui-alert>{{ error() }}</ui-alert>
+		}
+	</div>
+
+	<ng-container dialogFooter>
+		<button
+			uiButton
+			type="button"
+			variant="ghost"
+			[disabled]="saving()"
+			(click)="goBack()"
+		>
+			Back
+		</button>
+		<button
+			uiButton
+			type="button"
+			variant="primary"
+			[disabled]="saving()"
+			[attr.aria-busy]="saving() || null"
+			(click)="confirm()"
+		>
+			{{ saving() ? "Saving..." : "Save changes" }}
+		</button>
+	</ng-container>
+</ui-dialog>
