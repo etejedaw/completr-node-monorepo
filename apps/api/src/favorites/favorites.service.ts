@@ -1,4 +1,4 @@
-import { Op, type Transaction } from "sequelize";
+import { Op, QueryTypes, type Transaction } from "sequelize";
 
 import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
@@ -14,6 +14,8 @@ import * as gamesService from "../games/games.service";
 import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import * as favoritesServiceError from "./errors/favorites.service-error";
 import { Favorite } from "./favorite.model";
+import { type FeaturedFavoriteRow } from "./favorites.interface";
+import { type FeaturedFavorite } from "./favorites.types";
 
 const FREE_FAVORITE_LIMIT = 10;
 
@@ -280,4 +282,27 @@ export async function findFavoritesForDataExport(userId: string) {
 			["id", "ASC"]
 		]
 	});
+}
+
+export async function findFeaturedFavoritesByUserIds(userIds: string[]) {
+	const featured = new Map<string, FeaturedFavorite>();
+	if (userIds.length === 0) return featured;
+
+	const rows = await sequelize.query<FeaturedFavoriteRow>(
+		`SELECT DISTINCT ON (f."userId") f."userId", g.title, g."backgroundUrl"
+		 FROM "Favorites" AS f
+		 LEFT JOIN "Games" AS g ON g.id = f."gameId"
+		 WHERE f."userId" IN (:userIds)
+		 ORDER BY f."userId", f.position ASC, f.id ASC`,
+		{ replacements: { userIds }, type: QueryTypes.SELECT }
+	);
+	for (const row of rows) {
+		featured.set(
+			row.userId,
+			row.title === null
+				? null
+				: { title: row.title, backgroundUrl: row.backgroundUrl ?? null }
+		);
+	}
+	return featured;
 }

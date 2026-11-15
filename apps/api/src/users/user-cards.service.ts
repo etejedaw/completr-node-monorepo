@@ -1,16 +1,10 @@
-import { QueryTypes } from "sequelize";
-
 import * as backlogService from "../backlog/backlog.service";
-import { sequelize } from "../database/sequelize.database";
+import * as favoritesService from "../favorites/favorites.service";
 import { findFullPremiumUserIds } from "../premium-access/premium-access.service";
 import * as userFollowersService from "../user-followers/user-followers.service";
 import { isSectionVisible } from "./helpers/visibility.helper";
 import { type User } from "./user.model";
-import {
-	type FeaturedFavoriteRow,
-	type UserCardInsights
-} from "./users.interface";
-import { type FeaturedGame } from "./users.types";
+import { type UserCardInsights } from "./users.interface";
 
 export async function buildUserCards(
 	viewerId: string | undefined,
@@ -39,7 +33,7 @@ export async function buildUserCards(
 				visibleUsers.map(user => user.id)
 			),
 			backlogService.countBacklogByStatusForUsers(backlogOwners),
-			findFeaturedFavorites(favoriteOwnerIds),
+			favoritesService.findFeaturedFavoritesByUserIds(favoriteOwnerIds),
 			findFullPremiumUserIds(users)
 		]);
 
@@ -75,27 +69,4 @@ export async function buildUserCards(
 			featuredGame: featuredGames.get(user.id) ?? null
 		};
 	});
-}
-
-async function findFeaturedFavorites(userIds: string[]) {
-	const featured = new Map<string, FeaturedGame>();
-	if (userIds.length === 0) return featured;
-
-	const rows = await sequelize.query<FeaturedFavoriteRow>(
-		`SELECT DISTINCT ON (f."userId") f."userId", g.title, g."backgroundUrl"
-		 FROM "Favorites" AS f
-		 LEFT JOIN "Games" AS g ON g.id = f."gameId"
-		 WHERE f."userId" IN (:userIds)
-		 ORDER BY f."userId", f.position ASC`,
-		{ replacements: { userIds }, type: QueryTypes.SELECT }
-	);
-	for (const row of rows) {
-		featured.set(
-			row.userId,
-			row.title === null
-				? null
-				: { title: row.title, backgroundUrl: row.backgroundUrl ?? null }
-		);
-	}
-	return featured;
 }

@@ -28,14 +28,14 @@ export async function canView(
 	owner: User,
 	section: VisibilitySection
 ): Promise<boolean> {
-	if (viewerId && viewerId === owner.id) return true;
-
-	const level = owner[SECTION_TO_FIELD[section]];
-	if (level === "public") return true;
-	if (level === "private") return false;
-
-	if (!viewerId) return false;
-	return userFollowersService.areMutualFollowers(viewerId, owner.id);
+	const needsMutualCheck =
+		!!viewerId &&
+		viewerId !== owner.id &&
+		owner[SECTION_TO_FIELD[section]] === "friends";
+	const isMutual = needsMutualCheck
+		? await userFollowersService.areMutualFollowers(viewerId, owner.id)
+		: false;
+	return isSectionVisible(viewerId, owner, section, isMutual);
 }
 
 export function isSectionVisible(

@@ -1,6 +1,7 @@
 import { DataTypes, Model, Sequelize } from "sequelize";
 
 import { sequelize } from "../database/sequelize.database";
+import { DEFAULT_THEME } from "./constants/theme.constants";
 import {
 	VISIBILITY_LEVELS,
 	type VisibilityLevel
@@ -94,7 +95,7 @@ User.init(
 		},
 		theme: {
 			type: DataTypes.STRING(50),
-			defaultValue: "refined-dark"
+			defaultValue: DEFAULT_THEME
 		},
 		isActive: {
 			type: DataTypes.BOOLEAN,

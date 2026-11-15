@@ -1,3 +1,5 @@
+import { VISIBILITY_FIELDS } from "./visibility.constants";
+
 export const USER_PUBLIC_ATTRS = [
 	"id",
 	"username",
@@ -6,17 +8,4 @@ export const USER_PUBLIC_ATTRS = [
 	"role"
 ];
 
-export const USER_CARD_ATTRS = [
-	...USER_PUBLIC_ATTRS,
-	"profileVisibility",
-	"queueVisibility",
-	"wishlistVisibility",
-	"favoriteVisibility",
-	"feedVisibility",
-	"backlogVisibility",
-	"shelfVisibility",
-	"listVisibility",
-	"platinumVisibility",
-	"franchiseVisibility",
-	"rewindVisibility"
-];
+export const USER_CARD_ATTRS = [...USER_PUBLIC_ATTRS, ...VISIBILITY_FIELDS];
