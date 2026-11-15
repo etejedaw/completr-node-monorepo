@@ -1,7 +1,7 @@
 import { computed, effect, inject, linkedSignal, signal } from "@angular/core";
 import { rxResource } from "@angular/core/rxjs-interop";
 
-import { RewindService } from "./rewind";
+import { RewindService, type RewindStoryFormat } from "./rewind";
 import {
 	type RewindShareTarget,
 	type RewindStoryImage
@@ -19,7 +19,8 @@ function sameTarget(
 }
 
 export function injectRewindStoryImage(
-	target: () => RewindShareTarget | null
+	target: () => RewindShareTarget | null,
+	format: RewindStoryFormat = "story"
 ): RewindStoryImage {
 	const rewindService = inject(RewindService);
 	const currentTarget = computed(target, { equal: sameTarget });
@@ -32,7 +33,7 @@ export function injectRewindStoryImage(
 		params: () =>
 			requested() ? (currentTarget() ?? undefined) : undefined,
 		stream: ({ params }) =>
-			rewindService.getImage(params.username, params.year, "story")
+			rewindService.getImage(params.username, params.year, format)
 	});
 
 	const blob = computed(() => (image.hasValue() ? image.value() : null));

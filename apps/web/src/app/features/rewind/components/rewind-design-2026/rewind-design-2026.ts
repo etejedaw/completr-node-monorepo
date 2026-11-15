@@ -21,6 +21,7 @@ import { ProfileSectionHeader } from "../../../public-profile/components/profile
 import { rewindCopy, rewindSummarySentence } from "../../rewind-copy";
 import { type RewindDesignComponent } from "../../rewind-designs.model";
 import { RewindReveal } from "../../rewind-reveal";
+import { REWIND_SHARE_COPY } from "../../rewind-share-copy";
 import { injectRewindStoryImage } from "../../rewind-story-image";
 import { RewindAiRecap } from "../rewind-ai-recap/rewind-ai-recap";
 import { RewindFinishedGames } from "../rewind-finished-games/rewind-finished-games";
@@ -131,7 +132,7 @@ export class RewindDesign2026 implements RewindDesignComponent {
 			}));
 	});
 
-	protected readonly storyImage = injectRewindStoryImage(() => {
+	private readonly shareTarget = computed(() => {
 		const rewind = this.rewind();
 		return {
 			username: this.username(),
@@ -140,11 +141,24 @@ export class RewindDesign2026 implements RewindDesignComponent {
 		};
 	});
 
+	protected readonly hasFinishedGames = computed(
+		() => this.rewind().finishedGames.length > 0
+	);
+
+	protected readonly storyImage = injectRewindStoryImage(() =>
+		this.shareTarget()
+	);
+
+	protected readonly gamesImage = injectRewindStoryImage(
+		() => (this.hasFinishedGames() ? this.shareTarget() : null),
+		"story-list"
+	);
+
 	protected readonly previewAlt = computed(() => {
 		const year = this.rewind().year;
 		return this.isOwner()
-			? this.text().ownerPreviewAlt(year)
-			: this.text().visitorPreviewAlt(this.username(), year);
+			? this.shareCopy.ownerPreviewAlt(year)
+			: this.shareCopy.visitorPreviewAlt(this.username(), year);
 	});
 
 	protected readonly sectionAreas = computed(() => {
@@ -164,6 +178,7 @@ export class RewindDesign2026 implements RewindDesignComponent {
 			.join(" ");
 	});
 
+	protected readonly shareCopy = REWIND_SHARE_COPY;
 	protected readonly shareOpen = signal(false);
 	protected readonly skeletonMonths = [0, 1];
 	protected readonly skeletonPosters = [0, 1, 2, 3, 4, 5];

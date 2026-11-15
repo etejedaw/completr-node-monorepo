@@ -42,7 +42,7 @@
 				<span aria-hidden="true" class="material-icons text-base"
 					>ios_share</span
 				>
-				{{ page.share }}
+				{{ shareCopy.share }}
 			</button>
 			@if (yearOptions().length > 1) {
 			<app-option-picker
@@ -176,8 +176,8 @@
 				class="lg:flex lg:min-h-0 lg:flex-1 lg:flex-col"
 				previewSize="fit-row"
 				[image]="storyImage"
+				[gamesImage]="hasFinishedGames() ? gamesImage : null"
 				[previewAlt]="previewAlt()"
-				[language]="data.language"
 			/>
 		</div>
 	</section>
@@ -201,14 +201,14 @@
 <ui-dialog
 	icon="ios_share"
 	size="lg"
-	[heading]="page.share"
+	[heading]="shareCopy.share"
 	[subheading]="previewAlt()"
 	(closed)="shareOpen.set(false)"
 >
 	<app-rewind-share-actions
 		[image]="storyImage"
+		[gamesImage]="hasFinishedGames() ? gamesImage : null"
 		[previewAlt]="previewAlt()"
-		[language]="data.language"
 	/>
 </ui-dialog>
 }

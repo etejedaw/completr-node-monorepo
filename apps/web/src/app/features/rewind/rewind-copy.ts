@@ -37,8 +37,6 @@ const ENGLISH: RewindCopy = {
 	page: {
 		ownerEyebrow: "Your Rewind",
 		visitorEyebrow: username => `@${username}'s Rewind`,
-		ownerPreviewAlt: year => `Your ${year} Rewind`,
-		visitorPreviewAlt: (username, year) => `@${username}'s ${year} Rewind`,
 		share: "Share",
 		year: "Year",
 		yearHeading: "Rewind year",
@@ -102,17 +100,6 @@ const ENGLISH: RewindCopy = {
 		releasedIn: year => `Released in ${year}`,
 		games: count => englishPlural(count, "game", "games"),
 		runs: count => englishPlural(count, "run", "runs")
-	},
-	share: {
-		shareImage: "Share image",
-		downloadImage: "Download image",
-		copyLink: "Copy link",
-		imageFailed: "Couldn't load the image.",
-		tryAgain: "Try again",
-		preparingImage: "Preparing the image",
-		shareFailed: "Couldn't share the image. Download it instead.",
-		linkCopied: "Link copied",
-		copyFailed: "Couldn't copy the link."
 	},
 	aiRecap: {
 		heading: "AI recap",
@@ -193,8 +180,6 @@ const SPANISH: RewindCopy = {
 	page: {
 		ownerEyebrow: "Tu Rewind",
 		visitorEyebrow: username => `Rewind de @${username}`,
-		ownerPreviewAlt: year => `Tu Rewind ${year}`,
-		visitorPreviewAlt: (username, year) => `Rewind ${year} de @${username}`,
 		share: "Compartir",
 		year: "Año",
 		yearHeading: "Año del Rewind",
@@ -261,17 +246,6 @@ const SPANISH: RewindCopy = {
 		releasedIn: year => `Lanzado en ${year}`,
 		games: count => spanishPlural(count, "juego", "juegos"),
 		runs: count => spanishPlural(count, "partida", "partidas")
-	},
-	share: {
-		shareImage: "Compartir imagen",
-		downloadImage: "Descargar imagen",
-		copyLink: "Copiar enlace",
-		imageFailed: "No pudimos cargar la imagen.",
-		tryAgain: "Reintentar",
-		preparingImage: "Preparando la imagen",
-		shareFailed: "No pudimos compartir la imagen. Mejor descárgala.",
-		linkCopied: "Enlace copiado",
-		copyFailed: "No pudimos copiar el enlace."
 	},
 	aiRecap: {
 		heading: "Resumen con IA",
@@ -511,4 +485,11 @@ export function formatRating(
 
 export function rewindImageFileName(username: string, year: number): string {
 	return `completr-rewind-${username}-${year}.png`;
+}
+
+export function rewindGamesImageFileName(
+	username: string,
+	year: number
+): string {
+	return `completr-rewind-${username}-${year}-games.png`;
 }
