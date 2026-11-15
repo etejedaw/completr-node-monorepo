@@ -79,6 +79,7 @@ import { resolveRewindAiBudget } from "./utils/resolve-rewind-ai-budget.util";
 import { resolveRewindAiUseChanges } from "./utils/resolve-rewind-ai-use-changes.util";
 import { resolveRewindGenerationBlocker } from "./utils/resolve-rewind-generation-blocker.util";
 import { resolveRewindPremiumAccessKind } from "./utils/resolve-rewind-premium-access-kind.util";
+import { resolveRewindViewerAccess } from "./utils/resolve-rewind-viewer-access.util";
 import { resolveSpotlightYear } from "./utils/resolve-spotlight-year.util";
 import { toRewindStoredView } from "./utils/to-rewind-stored-view.util";
 
@@ -184,9 +185,11 @@ async function buildViewerContext(
 	owner: User,
 	providedPremiumAccess?: PremiumAccess
 ): Promise<RewindViewerContext> {
-	const access = await resolveSectionAccess(viewerId, owner);
-	if (!access.profile || !access.rewind)
-		throw rewindServiceError.userPrivateError();
+	const access = resolveRewindViewerAccess(
+		await resolveSectionAccess(viewerId, owner),
+		owner
+	);
+	if (!access.rewind) throw rewindServiceError.userPrivateError();
 
 	const isOwner = viewerId === owner.id;
 	const calendar = await buildRewindCalendar(owner);

@@ -1,6 +1,5 @@
 import { type PremiumAccess } from "../premium-access/premium-access.interface";
 import { type User } from "../users/user.model";
-import { type SectionAccess } from "../users/users.types";
 import {
 	type RewindLanguage,
 	type RewindPremiumAccessKind
@@ -43,9 +42,14 @@ export interface RewindYearVisibility {
 	frozenYearListing: ReadonlyMap<number, boolean>;
 }
 
+export interface RewindViewerAccess {
+	rewind: boolean;
+	platinum: boolean;
+}
+
 export interface RewindViewerContext {
 	owner: User;
-	access: SectionAccess;
+	access: RewindViewerAccess;
 	premiumAccess: PremiumAccess | null;
 	isOwner: boolean;
 	runs: RewindRun[];
