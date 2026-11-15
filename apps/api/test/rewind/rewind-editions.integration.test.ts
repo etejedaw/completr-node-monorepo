@@ -142,7 +142,7 @@ void describe("the period of the edition", () => {
 		assert.equal(aiMock.mock.callCount(), 0);
 	});
 
-	void it("keeps showing a generated Rewind after closing, with the controls closed", async () => {
+	void it("keeps showing a generated Rewind after closing, frozen on the first read, with the controls closed", async () => {
 		await replaceEdition(CLOSED_YESTERDAY);
 		const player = await playerWithTwoYears("premium");
 		await storeRewind(player, 2026, {
@@ -155,6 +155,8 @@ void describe("the period of the edition", () => {
 			2026,
 			player.authorization
 		).expect(200);
+		const { frozenAt } = own.body.data;
+		assert.ok(typeof frozenAt === "string");
 		assert.deepEqual(own.body.data.ownerControls, {
 			includesPrivateRuns: false,
 			includesNotes: false,
@@ -166,11 +168,10 @@ void describe("the period of the edition", () => {
 			periodOpen: false,
 			periodStatus: "closed",
 			closesAt: null,
-			frozenAt: null
+			frozenAt
 		});
 		assert.equal(own.body.data.isSpotlight, false);
 		assert.equal(own.body.data.design, "2026");
-		assert.equal(own.body.data.frozenAt, null);
 
 		const visitor = await readRewind(player.user.username, 2026).expect(
 			200

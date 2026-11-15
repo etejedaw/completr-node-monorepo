@@ -91,7 +91,8 @@ export function ownerVisibility(
 ): RewindYearVisibility {
 	return {
 		generatedYears: new Set(generatedYears),
-		includeUngenerated: true
+		includeUngenerated: true,
+		frozenYearListing: new Map()
 	};
 }
 
@@ -100,7 +101,8 @@ export function visitorVisibility(
 ): RewindYearVisibility {
 	return {
 		generatedYears: new Set(generatedYears),
-		includeUngenerated: false
+		includeUngenerated: false,
+		frozenYearListing: new Map()
 	};
 }
 

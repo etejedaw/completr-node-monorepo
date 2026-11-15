@@ -40,7 +40,9 @@ function yearsOf(
 		genres: options.genres ?? [],
 		platinumsByYear: options.platinumsByYear ?? new Map(),
 		visibility: options.visibility ?? ownerVisibility(),
-		generationAccess: options.generationAccess ?? null
+		generationAccess: options.generationAccess ?? null,
+		frozenViews: new Map(),
+		platinumsVisible: true
 	});
 }
 
