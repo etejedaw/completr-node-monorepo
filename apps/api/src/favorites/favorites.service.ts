@@ -8,54 +8,50 @@ import { splitByPresence } from "../common/utils/split-by-presence.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
-import { Game } from "../games/game.model";
 import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
 import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import * as favoritesServiceError from "./errors/favorites.service-error";
 import { Favorite } from "./favorite.model";
+import { FAVORITES_ORDER, FREE_FAVORITE_LIMIT } from "./favorites.constants";
 import { type FeaturedFavoriteRow } from "./favorites.interface";
 import { type FeaturedFavorite } from "./favorites.types";
 
-const FREE_FAVORITE_LIMIT = 10;
-
 export async function replaceFavorites(user: RequestUser, gameIds: string[]) {
-	if (gameIds.length === 0) {
-		await Favorite.destroy({ where: { userId: user.id } });
-		return [];
+	if (gameIds.length > 0) {
+		const premiumAccess = await resolvePremiumAccess(
+			user,
+			"favorites.unlimited"
+		);
+		if (!premiumAccess.allowed && gameIds.length > FREE_FAVORITE_LIMIT)
+			throw favoritesServiceError.limitReachedError();
+
+		const games = await gamesService.findGamesByIds(gameIds);
+		if (games.length !== gameIds.length) {
+			const foundIds = new Set(games.map(g => g.id));
+			const missing = gameIds.filter(id => !foundIds.has(id));
+			throw favoritesServiceError.gamesNotFoundError(missing);
+		}
 	}
 
-	const premiumAccess = await resolvePremiumAccess(
-		user,
-		"favorites.unlimited"
-	);
-	if (!premiumAccess.allowed && gameIds.length > FREE_FAVORITE_LIMIT)
-		throw favoritesServiceError.limitReachedError();
-
-	const games = await gamesService.findGamesByIds(gameIds);
-	if (games.length !== gameIds.length) {
-		const foundIds = new Set(games.map(g => g.id));
-		const missing = gameIds.filter(id => !foundIds.has(id));
-		throw favoritesServiceError.gamesNotFoundError(missing);
-	}
-
-	const entries = gameIds.map((gameId, index) => ({
-		userId: user.id,
-		gameId,
-		position: index + 1
-	}));
 	await sequelize.transaction(async transaction => {
+		await lockUserFavorites(user.id, transaction);
 		await Favorite.destroy({ where: { userId: user.id }, transaction });
-		await Favorite.bulkCreate(entries, { transaction });
+		await Favorite.bulkCreate(
+			gameIds.map((gameId, index) => ({
+				userId: user.id,
+				gameId,
+				position: index + 1
+			})),
+			{ transaction }
+		);
 	});
 
+	if (gameIds.length === 0) return [];
 	return Favorite.findAll({
 		where: { userId: user.id },
-		include: [{ model: Game }],
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
+		include: [{ ...gamesService.gameInclude() }],
+		order: FAVORITES_ORDER
 	});
 }
 
@@ -197,14 +193,11 @@ export async function findGameEntriesByUserId(
 		attributes: ["gameId"],
 		include: [
 			{
-				model: Game,
+				...gamesService.gameInclude(),
 				attributes: ["id", "code", "title", "backgroundUrl"]
 			}
 		],
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
+		order: FAVORITES_ORDER
 	});
 }
 
@@ -212,7 +205,7 @@ export async function findFavoritesByUserIdPaginated(
 	userId: string,
 	pagination: PaginatedSearchQuery = {}
 ) {
-	const gameInclude: Record<string, unknown> = { model: Game };
+	const gameInclude: Record<string, unknown> = { ...gamesService.gameInclude() };
 	const titleWhere = pagination.search
 		? buildTextSearchWhere(pagination.search, ["Game.title"])
 		: null;
@@ -224,10 +217,7 @@ export async function findFavoritesByUserIdPaginated(
 	const query: Record<string, unknown> = {
 		where: { userId },
 		include: [gameInclude],
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
+		order: FAVORITES_ORDER
 	};
 	if (pagination.limit) query.limit = pagination.limit;
 	if (pagination.offset) query.offset = pagination.offset;
@@ -248,15 +238,12 @@ export async function findFavoritesForExport(
 		where: { userId },
 		include: [
 			{
-				model: Game,
+				...gamesService.gameInclude(),
 				attributes: ["id", "title"],
 				...(titleWhere && { required: true, where: titleWhere })
 			}
 		],
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
+		order: FAVORITES_ORDER
 	});
 }
 
@@ -276,11 +263,8 @@ export async function existsByGameId(
 export async function findFavoritesForDataExport(userId: string) {
 	return Favorite.findAll({
 		where: { userId },
-		include: [{ model: Game, attributes: GAME_REFERENCE_ATTRS }],
-		order: [
-			["position", "ASC"],
-			["id", "ASC"]
-		]
+		include: [{ ...gamesService.gameInclude(), attributes: GAME_REFERENCE_ATTRS }],
+		order: FAVORITES_ORDER
 	});
 }
 

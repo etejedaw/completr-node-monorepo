@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
+import { sequelize } from "../../src/database/sequelize.database";
 import { Favorite } from "../../src/favorites/favorite.model";
 import * as favoritesService from "../../src/favorites/favorites.service";
 import { Game } from "../../src/games/game.model";
@@ -23,6 +24,11 @@ beforeEach(() => {
 	stubPremiumAccess();
 });
 
+function stubTransactionWithLock() {
+	stub(sequelize, "query", async () => []);
+	return stubTransaction();
+}
+
 function stubGamesExist(ids: string[]) {
 	stub(Game, "findAll", async () => ids.map(id => ({ id })));
 }
@@ -33,14 +39,16 @@ void describe("favoritesService.replaceFavorites", () => {
 	});
 
 	void it("clears the favorites when the new list is empty", async () => {
+		const { transaction } = stubTransactionWithLock();
 		const destroy = stub(Favorite, "destroy", async () => 3);
+		stub(Favorite, "bulkCreate", async () => []);
 
 		assert.deepEqual(
 			await favoritesService.replaceFavorites(FREE_USER, []),
 			[]
 		);
 		assert.deepEqual(destroy.mock.calls[0]?.arguments, [
-			{ where: { userId: "user-1" } }
+			{ where: { userId: "user-1" }, transaction }
 		]);
 	});
 
@@ -67,7 +75,7 @@ void describe("favoritesService.replaceFavorites", () => {
 			[buildRequestUser({ role: "admin" }), 40]
 		] as const) {
 			stubGamesExist(gameIds(count));
-			stubTransaction();
+			stubTransactionWithLock();
 			stub(Favorite, "destroy", async () => 0);
 			const bulkCreate = stub(Favorite, "bulkCreate", async () => []);
 			stub(Favorite, "findAll", async () => []);
@@ -91,7 +99,7 @@ void describe("favoritesService.replaceFavorites", () => {
 		] as const) {
 			stubPremiumAccess(access);
 			stubGamesExist(gameIds(FREE_FAVORITE_LIMIT + 1));
-			stubTransaction();
+			stubTransactionWithLock();
 			stub(Favorite, "destroy", async () => 0);
 			stub(Favorite, "bulkCreate", async () => []);
 			stub(Favorite, "findAll", async () => []);
@@ -127,7 +135,7 @@ void describe("favoritesService.replaceFavorites", () => {
 
 	void it("rebuilds positions from 1 in the given order inside a transaction", async () => {
 		stubGamesExist(["g-2", "g-1"]);
-		const { transaction } = stubTransaction();
+		const { transaction } = stubTransactionWithLock();
 		const destroy = stub(Favorite, "destroy", async () => 0);
 		const bulkCreate = stub(Favorite, "bulkCreate", async () => []);
 		stub(Favorite, "findAll", async () => []);
