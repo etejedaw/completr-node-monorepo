@@ -16,5 +16,11 @@ export function userFollowersServiceToDomainMapper(
 	if (error.code === "USER_FOLLOWER_NOT_FOLLOWING")
 		return domainError.notFollowing(context);
 
+	if (error.code === "USER_FOLLOWER_ALREADY_FOLLOWING")
+		return domainError.alreadyFollowing(context);
+
+	if (error.code === "USER_FOLLOWER_VALIDATION_ERROR")
+		return domainError.validationError(context);
+
 	return domainError.internalError(context);
 }

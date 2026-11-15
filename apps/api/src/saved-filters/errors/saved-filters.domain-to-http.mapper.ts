@@ -25,6 +25,9 @@ export function savedFiltersDomainToHttpMapper(
 	if (error.code === "SAVED_FILTER_FROZEN")
 		return new HttpError({ ...baseOptions, status: 402 });
 
+	if (error.code === "SAVED_FILTER_UNIQUE_CONSTRAINT")
+		return new HttpError({ ...baseOptions, status: 409 });
+
 	if (error.code === "SAVED_FILTER_VALIDATION_ERROR")
 		return new HttpError({ ...baseOptions, status: 422 });
 

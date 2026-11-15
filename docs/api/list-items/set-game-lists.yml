@@ -72,4 +72,6 @@ docs: |-
     | 404    | LIST_ITEM_LIST_NOT_FOUND   | A list in `listIds` does not exist or belongs to another user                         |
     | 404    | LIST_ITEM_LIST_NOT_FOUND   | A list in `listIds` does not exist                                                    |
     | 404    | LIST_ITEM_GAMES_NOT_FOUND  | The game does not exist                                                               |
+    | 409    | LIST_ITEM_UNIQUE_CONSTRAINT | A concurrent request already put the game in one of the lists                        |
+    | 422    | LIST_ITEM_VALIDATION_ERROR | A list item failed validation                                                         |
     | 422    | COMMON_SCHEMA_INVALID      | `gameId` or a `listIds` entry is not a uuid, or `listIds` has duplicates              |

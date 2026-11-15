@@ -19,6 +19,9 @@ export function savedFiltersServiceToDomainMapper(
 	if (error.code === "SAVED_FILTER_FROZEN")
 		return savedFilterDomainError.savedFilterFrozen(context);
 
+	if (error.code === "SAVED_FILTER_UNIQUE_CONSTRAINT")
+		return savedFilterDomainError.savedFilterAlreadyExists(context);
+
 	if (error.code === "SAVED_FILTER_VALIDATION_ERROR")
 		return savedFilterDomainError.savedFilterValidationError(context);
 

@@ -61,4 +61,5 @@ docs: |-
     | 400    | USER_FOLLOW_REQUEST_CANNOT_REQUEST_SELF    | Cannot follow yourself            |
     | 404    | USER_FOLLOW_REQUEST_USER_NOT_FOUND         | User not found                    |
     | 409    | USER_FOLLOW_REQUEST_ALREADY_FOLLOWING      | Already following                 |
+    | 409    | USER_FOLLOWER_ALREADY_FOLLOWING            | A concurrent request created the follow first |
     | 409    | USER_FOLLOW_REQUEST_ALREADY_REQUESTED      | Already requested (pending)       |
