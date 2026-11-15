@@ -26,9 +26,9 @@ const rewindUrl = `${api}/users/ada/rewinds/2026`;
 
 function chipText(element: Element) {
 	const copy = element.cloneNode(true) as Element;
-	copy.querySelectorAll(
-		"[aria-hidden='true'], button, [data-access-label]"
-	).forEach(hidden => hidden.remove());
+	copy.querySelectorAll("[aria-hidden='true'], button").forEach(hidden =>
+		hidden.remove()
+	);
 	return copy.textContent?.replace(/\s+/g, " ").trim();
 }
 
@@ -91,7 +91,11 @@ describe("RewindOwnerPanel", () => {
 				{ provide: AuthService, useValue: { isPremium } },
 				{
 					provide: ToastService,
-					useValue: { pending: vi.fn(), error: vi.fn() }
+					useValue: {
+						pending: vi.fn(),
+						error: vi.fn(),
+						premium: vi.fn()
+					}
 				}
 			]
 		});
@@ -476,7 +480,9 @@ describe("RewindOwnerPanel", () => {
 		it("marks the AI generations as premium with the label of the owner's access, in English for any Rewind language", async () => {
 			const { fixture } = await renderPanel(rewindFixture());
 
-			expect(screen.getByText("Premium")).toBeInTheDocument();
+			expect(
+				screen.getByRole("button", { name: "Premium" })
+			).toBeInTheDocument();
 
 			fixture.componentRef.setInput(
 				"rewind",
@@ -491,9 +497,13 @@ describe("RewindOwnerPanel", () => {
 			);
 			fixture.detectChanges();
 
-			expect(await screen.findByText("Gift")).toBeInTheDocument();
-			expect(screen.queryByText("Premium")).toBeNull();
-			expect(screen.queryByText("Regalo")).toBeNull();
+			expect(
+				await screen.findByRole("button", { name: "Gift" })
+			).toBeInTheDocument();
+			expect(
+				screen.queryByRole("button", { name: "Premium" })
+			).toBeNull();
+			expect(screen.queryByRole("button", { name: "Regalo" })).toBeNull();
 		});
 
 		it("does not show the AI generations tile without AI access", async () => {
@@ -510,8 +520,10 @@ describe("RewindOwnerPanel", () => {
 				.expectOne(giftOffersUrl)
 				.flush({ data: { offers: [] } });
 
-			expect(screen.queryByText("Premium")).toBeNull();
-			expect(screen.queryByText("Gift")).toBeNull();
+			expect(
+				screen.queryByRole("button", { name: "Premium" })
+			).toBeNull();
+			expect(screen.queryByRole("button", { name: "Gift" })).toBeNull();
 			expect(screen.queryByText("AI generations")).toBeNull();
 			expect(screen.queryByText(/AI generations?: /)).toBeNull();
 			expect(chip("Open until Jan 31")).toBeInTheDocument();
@@ -889,5 +901,124 @@ describe("RewindOwnerPanel", () => {
 				expect(changes).toEqual([reloaded]);
 			}
 		);
+	});
+	describe("premium zone", () => {
+		const giftOffersUrl = `${api}/users/me/gift-offers`;
+		const noAccess = { allowed: false, source: null, expiresAt: null };
+
+		function premiumZone() {
+			return document.querySelector<HTMLElement>("[data-premium-zone]");
+		}
+
+		it("groups the AI generations, the extra day and Add AI recap in a gold framed zone, apart from Regenerate", async () => {
+			await renderPanel(
+				rewindFixture({
+					ownerControls: controls({
+						aiRecapState: "available",
+						graceEndsAt: "2027-02-07T23:59:59.999Z"
+					})
+				})
+			);
+
+			const zone = premiumZone();
+			expect(zone).not.toBeNull();
+			expect(zone?.className).toContain("border-premium/30");
+			const inZone = within(zone as HTMLElement);
+			expect(
+				inZone.getByRole("button", { name: "Premium" })
+			).toBeInTheDocument();
+			expect(
+				inZone.getByText(/AI generations? left/)
+			).toBeInTheDocument();
+			expect(inZone.getByText(/\+1 extra until/)).toBeInTheDocument();
+			expect(
+				inZone.getByRole("button", { name: /Add AI recap/ })
+			).toBeInTheDocument();
+			expect(
+				inZone.queryByRole("button", { name: /Regenerate/ })
+			).toBeNull();
+			expect(screen.getByRole("group", { name: "Premium" })).toBe(zone);
+		});
+
+		it("explains what an AI generation does every time the crown is pressed, even twice in a row", async () => {
+			await renderPanel(rewindFixture());
+			const toast = TestBed.inject(ToastService) as unknown as {
+				premium: ReturnType<typeof vi.fn>;
+			};
+			const user = userEvent.setup();
+
+			const crown = within(premiumZone() as HTMLElement).getByRole(
+				"button",
+				{
+					name: "Premium"
+				}
+			);
+			await user.dblClick(crown);
+
+			expect(toast.premium).toHaveBeenCalledTimes(2);
+			expect(toast.premium).toHaveBeenLastCalledWith(
+				"Premium perk",
+				"Each AI generation writes a new AI recap and premium stats for this Rewind."
+			);
+		});
+
+		it("shows no premium zone, crown or gold without AI access", async () => {
+			await renderPanel(
+				rewindFixture({
+					premiumAccess: noAccess,
+					ownerControls: controls({
+						canRegenerate: false,
+						regenerationBlockedBy: "no-ai-access"
+					})
+				})
+			);
+			http()
+				.expectOne(giftOffersUrl)
+				.flush({ data: { offers: [] } });
+
+			expect(premiumZone()).toBeNull();
+			expect(
+				screen.queryByRole("group", { name: /Premium|Gift/ })
+			).toBeNull();
+			expect(
+				document.querySelector(".text-premium, .border-premium\\/30")
+			).toBeNull();
+		});
+
+		it("keeps the AI recap error visible after the reload closes the zone", async () => {
+			const { fixture } = await renderPanel(
+				rewindFixture({
+					ownerControls: controls({ aiRecapState: "available" })
+				})
+			);
+			const user = userEvent.setup();
+
+			await user.click(
+				screen.getByRole("button", { name: /Add AI recap/ })
+			);
+			http().expectOne(aiRecapUrl).flush(
+				{
+					type: "REWIND_PERIOD_CLOSED",
+					title: "Closed",
+					status: 409
+				},
+				{ status: 409, statusText: "Conflict" }
+			);
+			const closed = rewindFixture({
+				ownerControls: controls({ periodStatus: "closed" })
+			});
+			http()
+				.expectOne(rewindUrl)
+				.flush({ data: { rewind: closed } });
+			fixture.componentRef.setInput("rewind", closed);
+			fixture.detectChanges();
+
+			expect(premiumZone()).toBeNull();
+			expect(
+				screen.getByText(
+					"This Rewind is closed, so its AI recap can't be added anymore."
+				)
+			).toBeInTheDocument();
+		});
 	});
 });
