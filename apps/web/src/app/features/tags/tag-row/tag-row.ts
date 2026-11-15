@@ -13,9 +13,9 @@ import {
 import { form, FormField, maxLength, validate } from "@angular/forms/signals";
 import { RouterLink } from "@angular/router";
 
-import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
-import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import {
+	UiActionMenu,
+	type UiActionMenuItem,
 	UiButton,
 	UiDescription,
 	UiFieldError,
@@ -30,7 +30,7 @@ import {
 import { type UserTag } from "../../mood-tags/mood-tags.model";
 import { type TagEdit } from "./tag-row.model";
 
-const MOBILE_ACTIONS: readonly ActionMenuItem[] = [
+const MOBILE_ACTIONS: readonly UiActionMenuItem[] = [
 	{ id: "games", icon: "videogame_asset", label: "Show in My Games" },
 	{ id: "edit", icon: "edit", label: "Edit" },
 	{ id: "delete", icon: "delete", label: "Delete", iconClass: "text-danger" }
@@ -44,7 +44,7 @@ let nextRowId = 0;
 @Component({
 	selector: "app-tag-row",
 	imports: [
-		ActionMenu,
+		UiActionMenu,
 		UiIconButton,
 		UiProgress,
 		UiFieldLabel,
@@ -94,12 +94,13 @@ export class TagRow {
 			message: `Use ${TAG_DESCRIPTION_MAX_LENGTH} characters or fewer.`
 		});
 	});
-	protected readonly mobileActions = computed<readonly ActionMenuItem[]>(() =>
-		MOBILE_ACTIONS.map(action =>
-			action.id === "games"
-				? action
-				: { ...action, disabled: this.saving() }
-		)
+	protected readonly mobileActions = computed<readonly UiActionMenuItem[]>(
+		() =>
+			MOBILE_ACTIONS.map(action =>
+				action.id === "games"
+					? action
+					: { ...action, disabled: this.saving() }
+			)
 	);
 	protected readonly usagePercent = computed(() =>
 		Math.round((this.tag().usageCount / Math.max(1, this.maxUsage())) * 100)

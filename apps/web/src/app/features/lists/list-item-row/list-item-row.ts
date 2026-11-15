@@ -9,11 +9,15 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { type BacklogStatus, type ListItem } from "../../../core/models";
-import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
-import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { RatioSummary } from "../../../shared/components/ratio-summary/ratio-summary";
-import { UiButton, UiEyebrow, UiIconButton } from "../../../shared/ui";
+import {
+	UiActionMenu,
+	type UiActionMenuItem,
+	UiButton,
+	UiEyebrow,
+	UiIconButton
+} from "../../../shared/ui";
 import {
 	backlogStatusIcon,
 	backlogStatusIconColor,
@@ -25,7 +29,7 @@ export type ListItemRowMode = "own" | "theirs" | "compare";
 @Component({
 	selector: "app-list-item-row",
 	imports: [
-		ActionMenu,
+		UiActionMenu,
 		CdkDragHandle,
 		RouterLink,
 		GamePoster,
@@ -53,7 +57,7 @@ export class ListItemRow {
 	readonly moveDown = output<void>();
 	readonly remove = output<void>();
 
-	protected readonly mobileActions = computed<readonly ActionMenuItem[]>(
+	protected readonly mobileActions = computed<readonly UiActionMenuItem[]>(
 		() => [
 			{
 				id: "up",

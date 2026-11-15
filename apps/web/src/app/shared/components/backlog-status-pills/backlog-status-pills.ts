@@ -6,15 +6,12 @@ import {
 	output
 } from "@angular/core";
 
+import { UiFilterChip, type UiFilterChipTouchTarget } from "../../ui";
 import {
 	BACKLOG_STATUS_FILTERS,
 	backlogStatusIcon,
 	backlogStatusIconColor
 } from "../../utils/backlog-status";
-import {
-	FilterChip,
-	type FilterChipTouchTarget
-} from "../chip-group/filter-chip";
 
 export type BacklogStatusPillsLayout = "wrap" | "scroll";
 
@@ -23,21 +20,22 @@ const NAV_CLASSES: Record<BacklogStatusPillsLayout, string> = {
 	scroll: "max-md:hidden -mx-[var(--page-pad-x)] px-[var(--page-pad-x)] tap:py-[8px] tap:-mb-[8px] flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 };
 
-const TOUCH_TARGETS: Record<BacklogStatusPillsLayout, FilterChipTouchTarget> = {
-	wrap: "grow",
-	scroll: "area"
-};
+const TOUCH_TARGETS: Record<BacklogStatusPillsLayout, UiFilterChipTouchTarget> =
+	{
+		wrap: "grow",
+		scroll: "area"
+	};
 
 const ALL_STATUSES = "";
 
 @Component({
 	selector: "app-backlog-status-pills",
-	imports: [FilterChip],
+	imports: [UiFilterChip],
 	template: `
 		<nav aria-label="Filter by status" [class]="navClass()">
 			@for (option of options; track option.value) {
 				<button
-					appFilterChip
+					uiFilterChip
 					chipSize="md"
 					[touchTarget]="touchTarget()"
 					[selected]="isActive(option.value)"

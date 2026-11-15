@@ -6,9 +6,7 @@ import {
 	model
 } from "@angular/core";
 
-import { FilterChip } from "../chip-group/filter-chip";
-import { OptionPicker } from "../option-picker/option-picker";
-import { type PickerOption } from "../option-picker/option-picker.model";
+import { UiFilterChip, UiOptionPicker, type UiPickerOption } from "../../ui";
 import { type PlatformCount, type PlatformRef } from "./platform-filter.model";
 
 export const ANY_PLATFORM_ID = "any";
@@ -43,9 +41,9 @@ export function matchesPlatform(
 
 @Component({
 	selector: "app-platform-filter",
-	imports: [FilterChip, OptionPicker],
+	imports: [UiFilterChip, UiOptionPicker],
 	template: `
-		<app-option-picker
+		<ui-option-picker
 			class="md:hidden"
 			label="Platform"
 			heading="Filter by platform"
@@ -58,7 +56,7 @@ export function matchesPlatform(
 		>
 			@for (option of options(); track option.id) {
 				<button
-					appFilterChip
+					uiFilterChip
 					chipSize="md"
 					[selected]="selected() === option.id"
 					[attr.aria-pressed]="selected() === option.id"
@@ -85,7 +83,7 @@ export class PlatformFilter {
 		...this.platforms()
 	]);
 
-	protected readonly pickerOptions = computed<PickerOption[]>(() =>
+	protected readonly pickerOptions = computed<UiPickerOption[]>(() =>
 		this.options().map(option => ({
 			value: option.id,
 			label: option.id ? option.label : "All platforms",

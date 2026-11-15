@@ -9,9 +9,11 @@ import {
 
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { PosterShelf } from "../../../shared/components/poster-shelf/poster-shelf";
-import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
-import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
-import { UiSkeleton } from "../../../shared/ui";
+import {
+	UiSegmentedControl,
+	type UiSegmentedOption,
+	UiSkeleton
+} from "../../../shared/ui";
 import {
 	type ComparisonDimension,
 	type ComparisonGame
@@ -27,7 +29,7 @@ const SKELETON_RANGE = [0, 1, 2, 3, 4, 5];
 		GameCoverCard,
 		PosterShelf,
 		ProfileSectionHeader,
-		SegmentedControl,
+		UiSegmentedControl,
 		UiSkeleton
 	],
 	templateUrl: "./profile-in-common.html",
@@ -36,7 +38,8 @@ const SKELETON_RANGE = [0, 1, 2, 3, 4, 5];
 })
 export class ProfileInCommon {
 	readonly username = input.required<string>();
-	readonly options = input.required<SegmentedOption<ComparisonDimension>[]>();
+	readonly options =
+		input.required<UiSegmentedOption<ComparisonDimension>[]>();
 	readonly selected = input.required<ComparisonDimension>();
 	readonly games = input<ComparisonGame[]>([]);
 	readonly count = input(0);

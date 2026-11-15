@@ -5,10 +5,10 @@ import { render, screen, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { ViewportService } from "../../../core/services/viewport";
-import { MultiOptionPicker } from "./multi-option-picker";
-import { type PickerOption } from "./option-picker.model";
+import { UiMultiOptionPicker } from "./ui-multi-option-picker";
+import { type UiPickerOption } from "./ui-option-picker.model";
 
-const platforms: PickerOption[] = [
+const platforms: UiPickerOption[] = [
 	{ value: "pc", label: "PC", shortLabel: "PC" },
 	{ value: "ps2", label: "PlayStation 2", shortLabel: "PS2" },
 	{ value: "ps3", label: "PlayStation 3", shortLabel: "PS3" },
@@ -16,7 +16,7 @@ const platforms: PickerOption[] = [
 	{ value: "xbox", label: "Xbox 360", shortLabel: "X360" }
 ];
 
-const manyPlatforms: PickerOption[] = [
+const manyPlatforms: UiPickerOption[] = [
 	...platforms,
 	{ value: "wii", label: "Wii", shortLabel: "Wii" },
 	{ value: "gba", label: "Game Boy Advance", shortLabel: "GBA" },
@@ -25,8 +25,8 @@ const manyPlatforms: PickerOption[] = [
 ];
 
 @Component({
-	imports: [MultiOptionPicker],
-	template: `<app-multi-option-picker
+	imports: [UiMultiOptionPicker],
+	template: `<ui-multi-option-picker
 		label="Platform"
 		heading="Filter by platform"
 		placeholder="All platforms"
@@ -37,14 +37,14 @@ const manyPlatforms: PickerOption[] = [
 	/>`
 })
 class Host {
-	readonly options = signal<PickerOption[]>(platforms);
+	readonly options = signal<UiPickerOption[]>(platforms);
 	readonly values = signal<readonly string[]>([]);
 }
 
-describe("MultiOptionPicker", () => {
+describe("UiMultiOptionPicker", () => {
 	async function renderPicker(
 		initial: string[] = [],
-		options: PickerOption[] = platforms,
+		options: UiPickerOption[] = platforms,
 		mobile = false
 	) {
 		const result = await render(Host, {

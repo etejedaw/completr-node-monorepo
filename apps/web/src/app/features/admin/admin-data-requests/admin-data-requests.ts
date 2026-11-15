@@ -15,14 +15,14 @@ import { type Subscription } from "rxjs";
 import { ToastService } from "../../../core/services/toast";
 import { adminErrorMessage } from "../../../core/utils/admin-error-message";
 import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
-import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
-import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
 import {
 	UiAlert,
 	UiBadge,
 	UiButton,
 	UiEyebrow,
 	UiPagination,
+	UiSegmentedControl,
+	type UiSegmentedOption,
 	UiSkeleton
 } from "../../../shared/ui";
 import {
@@ -38,7 +38,7 @@ import { type DataRequestStatusFilter } from "./admin-data-requests.model";
 
 const PAGE_SIZE = 20;
 
-const STATUS_FILTER_OPTIONS: readonly SegmentedOption<DataRequestStatusFilter>[] =
+const STATUS_FILTER_OPTIONS: readonly UiSegmentedOption<DataRequestStatusFilter>[] =
 	[
 		{ value: "pending", label: "Pending" },
 		{ value: "completed", label: "Completed" },
@@ -53,7 +53,7 @@ const STATUS_FILTER_OPTIONS: readonly SegmentedOption<DataRequestStatusFilter>[]
 		AdminDataRequestRejectDialog,
 		DatePipe,
 		RouterLink,
-		SegmentedControl,
+		UiSegmentedControl,
 		UiAlert,
 		UiBadge,
 		UiButton,
@@ -78,14 +78,17 @@ export class AdminDataRequests implements OnInit {
 	protected readonly limit = PAGE_SIZE;
 	protected readonly skeletonRows = [1, 2, 3];
 
-	protected readonly statusFilter = signal<DataRequestStatusFilter>("pending");
+	protected readonly statusFilter =
+		signal<DataRequestStatusFilter>("pending");
 	protected readonly requests = signal<AdminDataRequest[]>([]);
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly isLoading = signal(true);
 	protected readonly loadFailed = signal(false);
 	protected readonly busyRequestId = signal<string | null>(null);
-	protected readonly deletionToConfirm = signal<AdminDataRequest | null>(null);
+	protected readonly deletionToConfirm = signal<AdminDataRequest | null>(
+		null
+	);
 	protected readonly requestToReject = signal<AdminDataRequest | null>(null);
 
 	constructor() {

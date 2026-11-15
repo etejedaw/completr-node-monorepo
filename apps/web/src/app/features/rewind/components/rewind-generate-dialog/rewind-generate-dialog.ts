@@ -15,8 +15,6 @@ import {
 	type RewindLanguage,
 	type RewindPremiumAccess
 } from "../../../../core/models/rewind.model";
-import { SegmentedControl } from "../../../../shared/components/segmented-control/segmented-control";
-import { type SegmentedOption } from "../../../../shared/components/segmented-control/segmented-control.model";
 import {
 	UiAlert,
 	UiButton,
@@ -24,6 +22,8 @@ import {
 	UiEyebrow,
 	UiFieldLabel,
 	UiIconButton,
+	UiSegmentedControl,
+	type UiSegmentedOption,
 	UiSwitch
 } from "../../../../shared/ui";
 import { DEFAULT_REWIND_LANGUAGE } from "../../rewind-copy";
@@ -33,7 +33,7 @@ import {
 	type RewindGenerateError
 } from "../../rewind-errors";
 
-const LANGUAGE_OPTIONS: SegmentedOption<RewindLanguage>[] = [
+const LANGUAGE_OPTIONS: UiSegmentedOption<RewindLanguage>[] = [
 	{ value: "en", label: "English" },
 	{ value: "es", label: "Español" }
 ];
@@ -49,7 +49,7 @@ const RETRYABLE_ERRORS: readonly RewindGenerateError[] = [
 	selector: "app-rewind-generate-dialog",
 	imports: [
 		RouterLink,
-		SegmentedControl,
+		UiSegmentedControl,
 		UiAlert,
 		UiButton,
 		UiDialog,

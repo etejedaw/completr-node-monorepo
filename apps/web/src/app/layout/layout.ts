@@ -30,7 +30,6 @@ import { elevatedRoleBadge } from "../core/utils/role-badge";
 import { AppLogo } from "../shared/components/app-logo/app-logo";
 import { AttributionFooter } from "../shared/components/attribution-footer/attribution-footer";
 import { OnboardingTour } from "../shared/components/onboarding-tour/onboarding-tour";
-import { ToastContainer } from "../shared/components/toast-container/toast-container";
 import {
 	UiAvatar,
 	UiBadge,
@@ -38,7 +37,8 @@ import {
 	UiButton,
 	UiEyebrow,
 	UiIconButton,
-	UiSeparator
+	UiSeparator,
+	UiToastContainer
 } from "../shared/ui";
 import { NAV_ACTIVE_CLASSES, visibleNavSections } from "./nav-sections";
 import { type NavItem } from "./nav-sections.model";
@@ -96,7 +96,7 @@ function matchesRoute(url: string, route: string): boolean {
 		UiIconButton,
 		AppLogo,
 		SearchPalette,
-		ToastContainer,
+		UiToastContainer,
 		OnboardingTour,
 		AttributionFooter
 	],

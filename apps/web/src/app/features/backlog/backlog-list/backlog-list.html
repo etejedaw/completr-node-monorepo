@@ -32,7 +32,7 @@
 		</div>
 		}
 
-		<app-option-picker
+		<ui-option-picker
 			class="md:hidden"
 			label="Status"
 			heading="Filter by status"
@@ -65,7 +65,7 @@
 			/>
 
 			@if (viewPickerViews().length > 0) {
-			<app-option-picker
+			<ui-option-picker
 				variant="compact"
 				size="md"
 				label="View"
@@ -82,7 +82,7 @@
 			<div class="flex items-center gap-2">
 				@if (activeFilterId()) {
 				<div class="sm:hidden">
-					<app-action-menu
+					<ui-action-menu
 						#mobileToolsMenu
 						label="Filters & stats"
 						heading="Filters & stats"

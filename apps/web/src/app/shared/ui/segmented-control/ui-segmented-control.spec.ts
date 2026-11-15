@@ -1,17 +1,17 @@
 import { TestBed } from "@angular/core/testing";
 
-import { SegmentedControl } from "./segmented-control";
-import { type SegmentedOption } from "./segmented-control.model";
+import { UiSegmentedControl } from "./ui-segmented-control";
+import { type UiSegmentedOption } from "./ui-segmented-control.model";
 
-const options: SegmentedOption[] = [
+const options: UiSegmentedOption[] = [
 	{ value: "all", label: "All", count: 12 },
 	{ value: "mine", label: "Mine", icon: "person", hint: "Only yours" },
 	{ value: "none", label: "None", count: 0 }
 ];
 
-describe("SegmentedControl", () => {
+describe("UiSegmentedControl", () => {
 	function render(value = "all") {
-		const fixture = TestBed.createComponent(SegmentedControl);
+		const fixture = TestBed.createComponent(UiSegmentedControl);
 		fixture.componentRef.setInput("options", options);
 		fixture.componentRef.setInput("label", "Scope");
 		fixture.componentRef.setInput("value", value);

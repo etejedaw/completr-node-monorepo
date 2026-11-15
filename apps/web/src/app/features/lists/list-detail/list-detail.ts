@@ -23,15 +23,19 @@ import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { ToastService } from "../../../core/services/toast";
 import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
-import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
-import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { injectExportDownload } from "../../../shared/components/export-actions/export-download";
 import { GiftOfferCard } from "../../../shared/components/gift-offer-card/gift-offer-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { type LibraryHeroBackLink } from "../../../shared/components/library-hero/library-hero.model";
 import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
 import { ProgressMeter } from "../../../shared/components/progress-meter/progress-meter";
-import { UiButton, UiEmptyState, UiSkeleton } from "../../../shared/ui";
+import {
+	UiActionMenu,
+	type UiActionMenuItem,
+	UiButton,
+	UiEmptyState,
+	UiSkeleton
+} from "../../../shared/ui";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { PendingRemovals } from "../../../shared/utils/pending-removals";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
@@ -52,7 +56,7 @@ import {
 } from "../list-modal/list-modal.model";
 import { ListsService } from "../lists";
 
-const LIST_ACTIONS: ActionMenuItem[] = [
+const LIST_ACTIONS: UiActionMenuItem[] = [
 	{ id: "edit", icon: "edit", label: "Edit list" },
 	{ id: "refresh", icon: "refresh", label: "Refresh scores" },
 	{ id: "duplicate", icon: "content_copy", label: "Duplicate" }
@@ -61,7 +65,7 @@ const LIST_ACTIONS: ActionMenuItem[] = [
 @Component({
 	selector: "app-list-detail",
 	imports: [
-		ActionMenu,
+		UiActionMenu,
 		GiftOfferCard,
 		RouterLink,
 		CdkDropList,
@@ -106,7 +110,7 @@ export class ListDetail implements OnInit {
 		resource: () => ({ listId: this.listId }),
 		label: () => this.list()?.name ?? "list"
 	});
-	protected readonly listMenuItems = computed<ActionMenuItem[]>(() => [
+	protected readonly listMenuItems = computed<UiActionMenuItem[]>(() => [
 		...LIST_ACTIONS.map(action =>
 			action.id === "refresh"
 				? { ...action, busy: this.refreshing() }

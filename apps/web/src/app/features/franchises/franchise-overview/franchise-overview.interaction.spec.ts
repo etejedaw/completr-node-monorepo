@@ -23,14 +23,14 @@ import {
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
-import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
+import { UiToastContainer } from "../../../shared/ui";
 import { type FranchiseSummary } from "../franchises.model";
 import { FranchiseOverview } from "./franchise-overview";
 
 @Component({
 	selector: "app-franchises-host",
-	imports: [RouterOutlet, ToastContainer],
-	template: `<router-outlet /><app-toast-container />`,
+	imports: [RouterOutlet, UiToastContainer],
+	template: `<router-outlet /><ui-toast-container />`,
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 class FranchisesHost {}

@@ -12,29 +12,29 @@ import { RouterLink } from "@angular/router";
 
 import { type Genre, type Platform } from "../../../../core/models";
 import { ViewportService } from "../../../../core/services/viewport";
-import { ChipGroup } from "../../../../shared/components/chip-group/chip-group";
-import { type ChipOption } from "../../../../shared/components/chip-group/chip-group.model";
 import { FilterSection } from "../../../../shared/components/filter-section/filter-section";
 import { GameFilterPanel } from "../../../../shared/components/game-filter-panel/game-filter-panel";
 import { MoodTagsInput } from "../../../../shared/components/mood-tags-input/mood-tags-input";
-import { MultiOptionPicker } from "../../../../shared/components/option-picker/multi-option-picker";
-import { OptionPicker } from "../../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../../shared/components/option-picker/option-picker.model";
 import { RangeInputs } from "../../../../shared/components/range-inputs/range-inputs";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import {
 	UiBottomSheet,
 	UiButton,
+	UiChipGroup,
+	type UiChipOption,
 	UiDatePicker,
 	UiDrawer,
 	UiInput,
+	UiMultiOptionPicker,
+	UiOptionPicker,
+	type UiPickerOption,
 	UiSwitch
 } from "../../../../shared/ui";
 import { BACKLOG_STATUS_FILTERS } from "../../../../shared/utils/backlog-status";
 
 export type SortOrder = "asc" | "desc";
 
-const BACKLOG_SORT_OPTIONS: readonly PickerOption[] = [
+const BACKLOG_SORT_OPTIONS: readonly UiPickerOption[] = [
 	{ value: "createdAt", label: "Date added", icon: "schedule" },
 	{ value: "title", label: "Title", icon: "sort_by_alpha" },
 	{ value: "score", label: "Score", icon: "star" },
@@ -47,7 +47,7 @@ const BACKLOG_SORT_OPTIONS: readonly PickerOption[] = [
 	{ value: "status", label: "Status", icon: "flag" }
 ];
 
-const SORT_ORDER_OPTIONS: readonly PickerOption[] = [
+const SORT_ORDER_OPTIONS: readonly UiPickerOption[] = [
 	{ value: "desc", label: "Descending", icon: "arrow_downward" },
 	{ value: "asc", label: "Ascending", icon: "arrow_upward" }
 ];
@@ -57,12 +57,12 @@ const SORT_ORDER_OPTIONS: readonly PickerOption[] = [
 	imports: [
 		NgTemplateOutlet,
 		RouterLink,
-		ChipGroup,
+		UiChipGroup,
 		FilterSection,
 		GameFilterPanel,
 		MoodTagsInput,
-		MultiOptionPicker,
-		OptionPicker,
+		UiMultiOptionPicker,
+		UiOptionPicker,
 		RangeInputs,
 		StarRating,
 		UiBottomSheet,
@@ -78,7 +78,7 @@ const SORT_ORDER_OPTIONS: readonly PickerOption[] = [
 })
 export class BacklogFiltersPanel {
 	protected readonly isMobile = inject(ViewportService).isMobile;
-	protected readonly statusChipOptions: readonly ChipOption[] =
+	protected readonly statusChipOptions: readonly UiChipOption[] =
 		BACKLOG_STATUS_FILTERS;
 	protected readonly sortPickerOptions = BACKLOG_SORT_OPTIONS;
 	protected readonly sortOrderPickerOptions = SORT_ORDER_OPTIONS;
@@ -129,7 +129,7 @@ export class BacklogFiltersPanel {
 		() => this.activeFiltersCount() > 0
 	);
 
-	protected readonly platformPickerOptions = computed<PickerOption[]>(() =>
+	protected readonly platformPickerOptions = computed<UiPickerOption[]>(() =>
 		this.allPlatforms().map(platform => ({
 			value: platform.code,
 			label: platform.name,

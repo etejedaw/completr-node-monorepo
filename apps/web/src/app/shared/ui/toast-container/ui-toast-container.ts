@@ -10,15 +10,16 @@ import { NgpToast } from "ng-primitives/toast";
 
 import { ToastService, UNDO_WINDOW_MS } from "../../../core/services/toast";
 import { type Toast } from "../../../core/services/toast.model";
-import { UiButton, UiIconButton } from "../../ui";
+import { UiButton } from "../button/ui-button";
+import { UiIconButton } from "../icon-button/ui-icon-button";
 
 @Component({
-	selector: "app-toast-container",
+	selector: "ui-toast-container",
 	imports: [NgpToast, UiButton, UiIconButton],
-	templateUrl: "./toast-container.html",
+	templateUrl: "./ui-toast-container.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ToastContainer implements OnInit {
+export class UiToastContainer implements OnInit {
 	private readonly toastService = inject(ToastService);
 	protected readonly undoWindowMs = UNDO_WINDOW_MS;
 	private readonly tpl =

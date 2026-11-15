@@ -12,7 +12,6 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { forkJoin } from "rxjs";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
-import { FilterChip } from "../../../shared/components/chip-group/filter-chip";
 import { CalendarDayOverflow } from "../../../shared/components/month-calendar/calendar-day-overflow";
 import { CalendarEventChip } from "../../../shared/components/month-calendar/calendar-event-chip";
 import {
@@ -23,7 +22,7 @@ import {
 	startOfMonth
 } from "../../../shared/components/month-calendar/month-calendar";
 import { type CalendarAgendaItem } from "../../../shared/components/month-calendar/month-calendar.model";
-import { UiButton } from "../../../shared/ui";
+import { UiButton, UiFilterChip } from "../../../shared/ui";
 import {
 	backlogStatusCalendarBarClass,
 	backlogStatusFillClass,
@@ -47,7 +46,7 @@ const MONTH_LIMIT = 100;
 		CalendarDayOverflow,
 		CalendarDayTemplate,
 		CalendarEventChip,
-		FilterChip,
+		UiFilterChip,
 		MonthCalendar,
 		UiButton
 	],

@@ -6,8 +6,7 @@ import {
 	model
 } from "@angular/core";
 
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
+import { UiOptionPicker, type UiPickerOption } from "../../../shared/ui";
 import { QUEUE_SORT_OPTIONS, type QueueSort } from "../queue-order";
 
 const QUEUE_SORT_ICONS: Record<QueueSort, string> = {
@@ -19,9 +18,9 @@ const QUEUE_SORT_ICONS: Record<QueueSort, string> = {
 
 @Component({
 	selector: "app-queue-sort-control",
-	imports: [OptionPicker],
+	imports: [UiOptionPicker],
 	template: `
-		<app-option-picker
+		<ui-option-picker
 			class="md:hidden"
 			label="Sort"
 			heading="Sort queue by"
@@ -29,7 +28,7 @@ const QUEUE_SORT_ICONS: Record<QueueSort, string> = {
 			[value]="value()"
 			(valueChange)="value.set($any($event))"
 		/>
-		<app-option-picker
+		<ui-option-picker
 			class="max-md:hidden shrink-0"
 			variant="compact"
 			size="md"
@@ -54,7 +53,7 @@ export class QueueSortControl {
 		)
 	);
 
-	protected readonly pickerOptions = computed<PickerOption[]>(() =>
+	protected readonly pickerOptions = computed<UiPickerOption[]>(() =>
 		this.options().map(option => ({
 			value: option.value,
 			label: option.label,

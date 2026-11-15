@@ -13,8 +13,6 @@ import { ToastService } from "../../../core/services/toast";
 import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
@@ -23,6 +21,8 @@ import {
 	UiDialog,
 	UiEmptyState,
 	UiNoMatches,
+	UiOptionPicker,
+	type UiPickerOption,
 	UiPremiumBadge,
 	UiSkeleton
 } from "../../../shared/ui";
@@ -38,7 +38,7 @@ import { type TagEdit } from "../tag-row/tag-row.model";
 
 type TagSort = "usage" | "name";
 
-const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: TagSort })[] = [
+const SORT_PICKER_OPTIONS: readonly (UiPickerOption & { value: TagSort })[] = [
 	{ value: "usage", label: "Most used", icon: "trending_up" },
 	{ value: "name", label: "Name (A–Z)", icon: "sort_by_alpha" }
 ];
@@ -48,7 +48,7 @@ const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: TagSort })[] = [
 	imports: [
 		LibraryHero,
 		LibraryToolbar,
-		OptionPicker,
+		UiOptionPicker,
 		TagCreateDialog,
 		TagRow,
 		UiBadge,

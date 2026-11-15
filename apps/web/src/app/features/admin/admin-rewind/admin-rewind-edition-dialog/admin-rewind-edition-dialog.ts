@@ -21,8 +21,6 @@ import {
 import { map, type Observable } from "rxjs";
 
 import { adminErrorMessage } from "../../../../core/utils/admin-error-message";
-import { OptionPicker } from "../../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../../shared/components/option-picker/option-picker.model";
 import {
 	UiAlert,
 	UiButton,
@@ -33,7 +31,9 @@ import {
 	UiFieldLabel,
 	UiFormField,
 	UiInput,
-	UiLabel
+	UiLabel,
+	UiOptionPicker,
+	type UiPickerOption
 } from "../../../../shared/ui";
 import { type RewindEdition } from "../../services/rewind-admin.model";
 import { RewindAdminService } from "../../services/rewind-admin.service";
@@ -104,7 +104,7 @@ function snapshotOf(
 		AdminRewindEditionConfirm,
 		AdminRewindEditionSummary,
 		FormField,
-		OptionPicker,
+		UiOptionPicker,
 		UiAlert,
 		UiButton,
 		UiDateRangePicker,
@@ -201,7 +201,7 @@ export class AdminRewindEditionDialog {
 			? "This edition is in progress."
 			: "Changes apply from the next time a Rewind is read or generated.";
 	});
-	protected readonly designOptions = computed<PickerOption[]>(() =>
+	protected readonly designOptions = computed<UiPickerOption[]>(() =>
 		this.designs().map(design => ({
 			value: design,
 			label: `Design ${design}`,

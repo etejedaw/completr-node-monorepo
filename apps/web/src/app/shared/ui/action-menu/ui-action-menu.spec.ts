@@ -6,10 +6,10 @@ import { Router } from "@angular/router";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
-import { ActionMenu } from "./action-menu";
-import { type ActionMenuItem } from "./action-menu.model";
+import { UiActionMenu } from "./ui-action-menu";
+import { type UiActionMenuItem } from "./ui-action-menu.model";
 
-const ITEMS: ActionMenuItem[] = [
+const ITEMS: UiActionMenuItem[] = [
 	{ id: "edit", label: "Edit list", icon: "edit" },
 	{ id: "refresh", label: "Refresh scores", icon: "refresh", busy: true },
 	{
@@ -26,7 +26,7 @@ const ITEMS: ActionMenuItem[] = [
 @Component({ template: "" })
 class BlankPage {}
 
-const LINK_ITEMS: ActionMenuItem[] = [
+const LINK_ITEMS: UiActionMenuItem[] = [
 	{ id: "edit", label: "Edit user", icon: "edit" },
 	{
 		id: "profile",
@@ -49,7 +49,7 @@ const LINK_ITEMS: ActionMenuItem[] = [
 	}
 ];
 
-describe("ActionMenu", () => {
+describe("UiActionMenu", () => {
 	let mobile = false;
 
 	beforeEach(() => {
@@ -70,7 +70,7 @@ describe("ActionMenu", () => {
 
 	async function renderMenu(inputs: Record<string, unknown> = {}) {
 		const selected = vi.fn();
-		await render(ActionMenu, {
+		await render(UiActionMenu, {
 			inputs: {
 				label: "More list actions",
 				heading: "List actions",
@@ -150,7 +150,7 @@ describe("ActionMenu", () => {
 	});
 
 	it("uses the glass button over a hero and keeps primary as is", async () => {
-		const { rerender } = await render(ActionMenu, {
+		const { rerender } = await render(UiActionMenu, {
 			inputs: {
 				label: "More list actions",
 				heading: "List actions",
@@ -186,7 +186,7 @@ describe("ActionMenu", () => {
 	});
 
 	it("paints the trigger gold only when it is marked premium", async () => {
-		const { rerender } = await render(ActionMenu, {
+		const { rerender } = await render(UiActionMenu, {
 			inputs: {
 				label: "Export",
 				heading: "Export My Games",
@@ -211,7 +211,7 @@ describe("ActionMenu", () => {
 
 	it("keeps an unlocked premium item gold but drops its ribbon on request", async () => {
 		const user = userEvent.setup();
-		const unlockedJson: ActionMenuItem = {
+		const unlockedJson: UiActionMenuItem = {
 			id: "json",
 			label: "Download JSON",
 			icon: "data_object",
@@ -254,7 +254,7 @@ describe("ActionMenu", () => {
 	});
 
 	it("counts the active options in the trigger name and badge", async () => {
-		const { rerender } = await render(ActionMenu, {
+		const { rerender } = await render(UiActionMenu, {
 			inputs: {
 				label: "Filters & stats",
 				heading: "Filters & stats",
@@ -298,7 +298,7 @@ describe("ActionMenu", () => {
 	});
 
 	it("moves the focus back to its trigger on request", async () => {
-		const { fixture } = await render(ActionMenu, {
+		const { fixture } = await render(UiActionMenu, {
 			inputs: { label: "Export", heading: "Export", items: ITEMS }
 		});
 
@@ -310,7 +310,7 @@ describe("ActionMenu", () => {
 	describe("with link items", () => {
 		async function renderLinks() {
 			const selected = vi.fn();
-			await render(ActionMenu, {
+			await render(UiActionMenu, {
 				inputs: {
 					label: "More actions for bob",
 					heading: "bob",

@@ -68,7 +68,7 @@
 	>
 		@for (item of legendItems; track item.status) {
 		<button
-			appFilterChip
+			uiFilterChip
 			touchTarget="area"
 			[selected]="!isStatusHidden(item.status)"
 			[attr.aria-pressed]="!isStatusHidden(item.status)"

@@ -7,12 +7,12 @@ import {
 } from "@angular/core";
 
 import {
-	type SegmentedControlSemantics,
-	type SegmentedOption
-} from "./segmented-control.model";
+	type UiSegmentedControlSemantics,
+	type UiSegmentedOption
+} from "./ui-segmented-control.model";
 
 @Component({
-	selector: "app-segmented-control",
+	selector: "ui-segmented-control",
 	template: `
 		<div
 			[attr.role]="semantics() === 'radio' ? 'radiogroup' : 'group'"
@@ -73,10 +73,10 @@ import {
 	host: { class: "inline-block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SegmentedControl<T extends string = string> {
-	readonly options = input.required<readonly SegmentedOption<T>[]>();
+export class UiSegmentedControl<T extends string = string> {
+	readonly options = input.required<readonly UiSegmentedOption<T>[]>();
 	readonly label = input.required<string>();
 	readonly iconOnly = input(false, { transform: booleanAttribute });
-	readonly semantics = input<SegmentedControlSemantics>("radio");
+	readonly semantics = input<UiSegmentedControlSemantics>("radio");
 	readonly value = model.required<T>();
 }

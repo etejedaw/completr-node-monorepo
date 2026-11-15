@@ -12,9 +12,12 @@ import {
 } from "@angular/core";
 
 import { ViewportService } from "../../../core/services/viewport";
-import { UiButton, UiIconButton } from "../../ui";
-import { ActionMenu } from "../action-menu/action-menu";
-import { type ActionMenuItem } from "../action-menu/action-menu.model";
+import {
+	UiActionMenu,
+	type UiActionMenuItem,
+	UiButton,
+	UiIconButton
+} from "../../ui";
 import { type BulkAction, type BulkItemNoun } from "./bulk-action-bar.model";
 
 const MOBILE_PRIMARY_LIMIT = 3;
@@ -30,7 +33,7 @@ const CLEARANCE_PROPERTY = "--bulk-bar-clearance";
 
 @Component({
 	selector: "app-bulk-action-bar",
-	imports: [ActionMenu, UiButton, UiIconButton],
+	imports: [UiActionMenu, UiButton, UiIconButton],
 	templateUrl: "./bulk-action-bar.html",
 	host: {
 		class: "sticky z-30 flex justify-center pointer-events-none bottom-[16px] max-md:bottom-[calc(var(--tabbar-height)+env(safe-area-inset-bottom)+8px)]",
@@ -77,7 +80,7 @@ export class BulkActionBar {
 		this.actions().filter(action => action.tone === "danger")
 	);
 
-	protected readonly moreItems = computed<ActionMenuItem[]>(() => {
+	protected readonly moreItems = computed<UiActionMenuItem[]>(() => {
 		const collapsed = this.isMobile()
 			? this.mainActions().slice(MOBILE_PRIMARY_LIMIT)
 			: [];

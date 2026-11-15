@@ -17,14 +17,14 @@ import { avatarRing } from "../../core/utils/premium";
 import { LibraryHero } from "../../shared/components/library-hero/library-hero";
 import { type LibraryHeroPoster } from "../../shared/components/library-hero/library-hero.model";
 import { LibraryToolbar } from "../../shared/components/library-toolbar/library-toolbar";
-import { OptionPicker } from "../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../shared/components/option-picker/option-picker.model";
 import { PremiumOnly } from "../../shared/directives/premium-only";
 import {
 	UiAvatar,
 	UiButton,
 	UiEyebrow,
+	UiOptionPicker,
 	UiPagination,
+	type UiPickerOption,
 	UiPlainEmptyState,
 	UiPremiumBadge,
 	UiSkeleton
@@ -97,7 +97,7 @@ function buildFilterParams(value: string): {
 		RouterLink,
 		LibraryHero,
 		LibraryToolbar,
-		OptionPicker,
+		UiOptionPicker,
 		UiAvatar,
 		UiButton,
 		UiEyebrow,
@@ -168,7 +168,7 @@ export class FeedPage {
 			isLoading && previous?.value.length ? previous.value : posters
 	});
 
-	protected readonly filterOptions: readonly PickerOption[] = [
+	protected readonly filterOptions: readonly UiPickerOption[] = [
 		{ value: "", label: "All activity", icon: "dynamic_feed" },
 		{ value: "cat:games", label: "Games", icon: "sports_esports" },
 		{

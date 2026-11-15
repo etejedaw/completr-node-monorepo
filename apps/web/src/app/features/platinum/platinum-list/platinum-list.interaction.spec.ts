@@ -17,13 +17,13 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type PlatinumEntry } from "../../../core/models";
-import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
+import { UiToastContainer } from "../../../shared/ui";
 import { PlatinumList } from "./platinum-list";
 
 @Component({
 	selector: "app-platinum-host",
-	imports: [PlatinumList, ToastContainer],
-	template: `<app-platinum-list /><app-toast-container />`,
+	imports: [PlatinumList, UiToastContainer],
+	template: `<app-platinum-list /><ui-toast-container />`,
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 class PlatinumHost {}

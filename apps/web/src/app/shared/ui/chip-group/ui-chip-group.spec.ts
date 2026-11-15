@@ -1,17 +1,17 @@
 import { TestBed } from "@angular/core/testing";
 
-import { ChipGroup } from "./chip-group";
-import { type ChipOption } from "./chip-group.model";
+import { UiChipGroup } from "./ui-chip-group";
+import { type UiChipOption } from "./ui-chip-group.model";
 
-const options: ChipOption[] = [
+const options: UiChipOption[] = [
 	{ value: "a", label: "Alpha", count: 3 },
 	{ value: "b", label: "Beta", icon: "star", hint: "Second" },
 	{ value: "c", label: "Gamma", count: 0 }
 ];
 
-describe("ChipGroup", () => {
+describe("UiChipGroup", () => {
 	function render(inputs: Record<string, unknown> = {}) {
-		const fixture = TestBed.createComponent(ChipGroup);
+		const fixture = TestBed.createComponent(UiChipGroup);
 		fixture.componentRef.setInput("options", options);
 		for (const [name, value] of Object.entries(inputs)) {
 			fixture.componentRef.setInput(name, value);
@@ -38,7 +38,7 @@ describe("ChipGroup", () => {
 
 	beforeEach(() => {
 		vi.stubGlobal("CSS", { escape: (value: string) => value });
-		TestBed.configureTestingModule({ imports: [ChipGroup] });
+		TestBed.configureTestingModule({ imports: [UiChipGroup] });
 	});
 
 	afterEach(() => {

@@ -2,15 +2,15 @@ import { Component, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 
 import {
-	FilterChip,
-	type FilterChipSize,
-	type FilterChipTouchTarget
-} from "./filter-chip";
+	UiFilterChip,
+	type UiFilterChipSize,
+	type UiFilterChipTouchTarget
+} from "./ui-filter-chip";
 
 @Component({
-	imports: [FilterChip],
+	imports: [UiFilterChip],
 	template: `<button
-		appFilterChip
+		uiFilterChip
 		class="extra-layout"
 		[chipSize]="size()"
 		[selected]="selected()"
@@ -20,12 +20,12 @@ import {
 	</button>`
 })
 class Host {
-	readonly size = signal<FilterChipSize>("sm");
+	readonly size = signal<UiFilterChipSize>("sm");
 	readonly selected = signal(false);
-	readonly target = signal<FilterChipTouchTarget>("grow");
+	readonly target = signal<UiFilterChipTouchTarget>("grow");
 }
 
-describe("FilterChip", () => {
+describe("UiFilterChip", () => {
 	function render() {
 		const fixture = TestBed.createComponent(Host);
 		fixture.detectChanges();

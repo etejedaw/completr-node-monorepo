@@ -51,6 +51,17 @@
 			</span>
 			{{ t.undoLabel }}
 		</button>
+		} @else if (t.actionLabel) {
+		<button
+			uiButton
+			variant="ghost"
+			size="sm"
+			type="button"
+			class="shrink-0 -my-1 !text-fg !font-semibold"
+			(click)="t.onAction?.()"
+		>
+			{{ t.actionLabel }}
+		</button>
 		}
 		<button
 			uiIconButton

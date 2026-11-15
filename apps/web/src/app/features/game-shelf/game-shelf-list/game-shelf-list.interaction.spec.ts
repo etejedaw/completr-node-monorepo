@@ -17,13 +17,13 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type GameShelfEntry } from "../../../core/models";
-import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
+import { UiToastContainer } from "../../../shared/ui";
 import { GameShelfList } from "./game-shelf-list";
 
 @Component({
 	selector: "app-shelf-host",
-	imports: [GameShelfList, ToastContainer],
-	template: `<app-game-shelf-list /><app-toast-container />`,
+	imports: [GameShelfList, UiToastContainer],
+	template: `<app-game-shelf-list /><ui-toast-container />`,
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 class ShelfHost {}

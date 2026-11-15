@@ -32,7 +32,7 @@
 	>
 		Filters
 	</button>
-	<app-segmented-control
+	<ui-segmented-control
 		class="max-sm:basis-full max-sm:[&>div]:flex max-sm:[&>div]:w-full max-sm:[&_button]:flex-1"
 		label="Game status"
 		[options]="activeFilterOptions"
@@ -72,7 +72,7 @@
 <ng-template #filtersBody>
 	<div class="flex flex-col gap-6">
 		<app-filter-section label="Missing data">
-			<app-chip-group
+			<ui-chip-group
 				label="Games missing any data"
 				[options]="generalMissingOptions"
 				[value]="draftMissing()"
@@ -80,7 +80,7 @@
 			/>
 		</app-filter-section>
 		<app-filter-section label="No score from">
-			<app-chip-group
+			<ui-chip-group
 				label="Games missing a score from"
 				[options]="scoreMissingOptions()"
 				[value]="draftMissing()"
@@ -88,7 +88,7 @@
 			/>
 		</app-filter-section>
 		<app-filter-section label="No time from">
-			<app-chip-group
+			<ui-chip-group
 				label="Games missing a time from"
 				[options]="timeMissingOptions"
 				[value]="draftMissing()"
@@ -216,7 +216,7 @@
 			class="flex items-center justify-end gap-1 md:col-start-6 md:row-start-1"
 		>
 			<div class="md:hidden">
-				<app-action-menu
+				<ui-action-menu
 					icon="more_vert"
 					variant="ghost"
 					[iconOnly]="true"

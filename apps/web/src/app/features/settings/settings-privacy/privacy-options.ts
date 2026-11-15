@@ -1,6 +1,6 @@
 import { type VisibilityLevel } from "../../../core/models/user.model";
 import { NAV_SECTIONS } from "../../../layout/nav-sections";
-import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
+import { type UiSegmentedOption } from "../../../shared/ui";
 import {
 	type PrivacyDraft,
 	type PrivacyMode,
@@ -12,7 +12,7 @@ import {
 	type SectionVisibilityKey
 } from "./privacy-options.model";
 
-export const VISIBILITY_OPTIONS: SegmentedOption<VisibilityLevel>[] = [
+export const VISIBILITY_OPTIONS: UiSegmentedOption<VisibilityLevel>[] = [
 	{
 		value: "public",
 		label: "Everyone",

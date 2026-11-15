@@ -11,22 +11,22 @@ import { form, FormField, required } from "@angular/forms/signals";
 import { injectDialogRef } from "ng-primitives/dialog";
 
 import { type Game } from "../../../core/models";
-import { ChipGroup } from "../../../shared/components/chip-group/chip-group";
-import { type ChipOption } from "../../../shared/components/chip-group/chip-group.model";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
 import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import {
 	UiAlert,
 	UiButton,
+	UiChipGroup,
+	type UiChipOption,
 	UiDatePicker,
 	UiDialog,
 	UiFieldLabel,
 	UiFieldOptional,
 	UiInput,
+	UiOptionPicker,
+	type UiPickerOption,
 	UiTextarea
 } from "../../../shared/ui";
 import { injectGameSearch } from "../../games/game-search";
@@ -54,13 +54,13 @@ const EDITION_SUGGESTIONS = [
 	selector: "app-game-shelf-modal",
 	imports: [
 		UiAlert,
-		ChipGroup,
+		UiChipGroup,
 		DatePipe,
 		DialogDeleteAction,
 		FormField,
 		GamePoster,
 		GameSearchStep,
-		OptionPicker,
+		UiOptionPicker,
 		SelectedGameRow,
 		UiButton,
 		UiDatePicker,
@@ -91,7 +91,7 @@ export class GameShelfModal implements OnInit {
 		signal(true)
 	);
 	protected readonly returnedToSearch = signal(false);
-	protected readonly platformOptions = computed<PickerOption[]>(() =>
+	protected readonly platformOptions = computed<UiPickerOption[]>(() =>
 		(this.selectedGame()?.platforms ?? []).map(platform => ({
 			value: platform.id,
 			label: platform.name,
@@ -133,7 +133,7 @@ export class GameShelfModal implements OnInit {
 		required(path.platformId);
 	});
 
-	protected readonly editionChipOptions: readonly ChipOption[] =
+	protected readonly editionChipOptions: readonly UiChipOption[] =
 		EDITION_SUGGESTIONS.map(suggestion => ({
 			value: suggestion,
 			label: suggestion

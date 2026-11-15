@@ -7,9 +7,11 @@ import {
 } from "@angular/core";
 
 import { type BacklogEntry } from "../../../../core/models";
-import { ActionMenu } from "../../../../shared/components/action-menu/action-menu";
-import { type ActionMenuItem } from "../../../../shared/components/action-menu/action-menu.model";
-import { UiButton } from "../../../../shared/ui";
+import {
+	UiActionMenu,
+	type UiActionMenuItem,
+	UiButton
+} from "../../../../shared/ui";
 import {
 	backlogStatusIcon,
 	backlogStatusIconColor,
@@ -20,7 +22,7 @@ export type GameLibraryActionsVariant = "full" | "compact";
 
 @Component({
 	selector: "app-game-library-actions",
-	imports: [ActionMenu, UiButton],
+	imports: [UiActionMenu, UiButton],
 	templateUrl: "./game-library-actions.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -49,7 +51,7 @@ export class GameLibraryActions {
 	protected readonly statusIcon = backlogStatusIcon;
 	protected readonly statusLabel = backlogStatusLabel;
 
-	protected readonly libraryMenuItems = computed<ActionMenuItem[]>(() => {
+	protected readonly libraryMenuItems = computed<UiActionMenuItem[]>(() => {
 		const listsCount = this.listsCount();
 		const inQueue = this.inQueue();
 		const inWishlist = this.inWishlist();

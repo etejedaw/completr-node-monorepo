@@ -6,15 +6,14 @@ import {
 	model
 } from "@angular/core";
 
-import { SegmentedControl } from "../segmented-control/segmented-control";
-import { type SegmentedOption } from "../segmented-control/segmented-control.model";
+import { UiSegmentedControl, type UiSegmentedOption } from "../../ui";
 import { type ViewModeOption } from "./view-mode-toggle.model";
 
 @Component({
 	selector: "app-view-mode-toggle",
-	imports: [SegmentedControl],
+	imports: [UiSegmentedControl],
 	template: `
-		<app-segmented-control
+		<ui-segmented-control
 			label="View mode"
 			semantics="toggle"
 			iconOnly
@@ -29,7 +28,7 @@ export class ViewModeToggle<T extends string> {
 	readonly options = input.required<readonly ViewModeOption<T>[]>();
 	readonly value = model.required<T>();
 
-	protected readonly segments = computed<SegmentedOption<T>[]>(() =>
+	protected readonly segments = computed<UiSegmentedOption<T>[]>(() =>
 		this.options().map(option => ({
 			value: option.value,
 			label: option.label,

@@ -12,14 +12,14 @@ import { type Subscription } from "rxjs";
 
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import {
 	UiBadge,
 	UiButton,
 	UiEmptyState,
 	UiNoMatches,
+	UiOptionPicker,
 	UiPagination,
+	type UiPickerOption,
 	UiSkeleton,
 	UiTable
 } from "../../../shared/ui";
@@ -47,7 +47,7 @@ const DELETED_AUTHOR_LABEL = "Deleted user";
 const toPickerOptions = (
 	values: string[],
 	allLabel: string
-): PickerOption[] => [
+): UiPickerOption[] => [
 	{ value: "", label: allLabel },
 	...values.map(value => ({ value, label: value }))
 ];
@@ -59,7 +59,7 @@ const toPickerOptions = (
 		RouterLink,
 		LibraryHero,
 		LibraryToolbar,
-		OptionPicker,
+		UiOptionPicker,
 		UiBadge,
 		UiButton,
 		UiEmptyState,

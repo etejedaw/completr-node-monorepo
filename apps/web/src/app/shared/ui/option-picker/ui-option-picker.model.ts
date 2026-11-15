@@ -1,4 +1,4 @@
-export interface PickerOption {
+export interface UiPickerOption {
 	value: string;
 	label: string;
 	shortLabel?: string;
@@ -12,7 +12,7 @@ export interface PickerOption {
 	fragment?: string;
 }
 
-export interface PickerAction {
+export interface UiPickerAction {
 	id: string;
 	label: string;
 	icon: string;

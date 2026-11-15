@@ -13,8 +13,7 @@ import {
 } from "@angular/router";
 import { filter, map } from "rxjs";
 
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
+import { UiOptionPicker, type UiPickerOption } from "../../../shared/ui";
 import { SETTINGS_SECTIONS } from "../settings-sections";
 
 function settingsSectionOf(url: string): string {
@@ -23,7 +22,7 @@ function settingsSectionOf(url: string): string {
 
 @Component({
 	selector: "app-settings-nav",
-	imports: [RouterLink, RouterLinkActive, OptionPicker],
+	imports: [RouterLink, RouterLinkActive, UiOptionPicker],
 	template: `
 		@if (variant() === "rail") {
 			<nav aria-label="Settings sections">
@@ -66,7 +65,7 @@ function settingsSectionOf(url: string): string {
 				</ul>
 			</nav>
 		} @else {
-			<app-option-picker
+			<ui-option-picker
 				label="Section"
 				heading="Settings"
 				[options]="pickerOptions"
@@ -83,7 +82,7 @@ export class SettingsNav {
 	private readonly router = inject(Router);
 
 	protected readonly sections = SETTINGS_SECTIONS;
-	protected readonly pickerOptions: readonly PickerOption[] =
+	protected readonly pickerOptions: readonly UiPickerOption[] =
 		SETTINGS_SECTIONS.map(section => ({
 			value: section.path,
 			label: section.label,

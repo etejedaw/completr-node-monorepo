@@ -16,10 +16,10 @@ import { type FieldTree, FormField } from "@angular/forms/signals";
 
 import { type GameScore, type GameTime } from "../../../../core/models";
 import { ScoreSourcesService } from "../../../../core/services/score-sources";
-import { ChipGroup } from "../../../../shared/components/chip-group/chip-group";
-import { type ChipOption } from "../../../../shared/components/chip-group/chip-group.model";
 import {
 	UiButton,
+	UiChipGroup,
+	type UiChipOption,
 	UiEyebrow,
 	UiFieldError,
 	UiFieldLabel,
@@ -54,7 +54,7 @@ function hasVisibleError(field: FieldTree<number | null>): boolean {
 @Component({
 	selector: "app-backlog-reference-fields",
 	imports: [
-		ChipGroup,
+		UiChipGroup,
 		FormField,
 		UiButton,
 		UiEyebrow,
@@ -94,13 +94,13 @@ export class BacklogReferenceFields {
 		return tooltip ? REFERENCE_TOOLTIP_TEXTS[tooltip] : null;
 	});
 
-	protected readonly scoreChipOptions = computed<ChipOption[]>(() =>
+	protected readonly scoreChipOptions = computed<UiChipOption[]>(() =>
 		this.scores().map(entry => ({
 			value: entry.source,
 			label: `${entry.source} ${entry.score}${this.scaleLabel(entry.source)}`
 		}))
 	);
-	protected readonly durationChipOptions = computed<ChipOption[]>(() =>
+	protected readonly durationChipOptions = computed<UiChipOption[]>(() =>
 		this.times().map(entry => ({
 			value: entry.source,
 			label: `${entry.source} ${entry.duration}h`

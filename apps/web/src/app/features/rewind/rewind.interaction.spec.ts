@@ -28,14 +28,14 @@ import {
 	type RewindYearSummary
 } from "../../core/models/rewind.model";
 import { ExportService } from "../../core/services/export";
-import { ToastContainer } from "../../shared/components/toast-container/toast-container";
+import { UiToastContainer } from "../../shared/ui";
 import { RewindArchive } from "./rewind-archive/rewind-archive";
 import { RewindDetail } from "./rewind-detail/rewind-detail";
 
 @Component({
 	selector: "app-rewind-host",
-	imports: [RouterOutlet, ToastContainer],
-	template: `<router-outlet /><app-toast-container />`,
+	imports: [RouterOutlet, UiToastContainer],
+	template: `<router-outlet /><ui-toast-container />`,
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 class RewindHost {}

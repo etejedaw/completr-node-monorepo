@@ -17,14 +17,14 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type BacklogEntry, type QueueEntry } from "../../../core/models";
-import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
+import { UiToastContainer } from "../../../shared/ui";
 import { pickCalendarDate } from "../../../shared/ui/date-picker/ui-date-picker.testing";
 import { QueueView } from "./queue-view";
 
 @Component({
 	selector: "app-queue-host",
-	imports: [QueueView, ToastContainer],
-	template: `<app-queue-view /><app-toast-container />`,
+	imports: [QueueView, UiToastContainer],
+	template: `<app-queue-view /><ui-toast-container />`,
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 class QueueHost {}

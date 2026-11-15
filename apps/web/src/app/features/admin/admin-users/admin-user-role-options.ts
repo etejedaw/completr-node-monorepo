@@ -1,6 +1,6 @@
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
+import { type UiPickerOption } from "../../../shared/ui";
 
-export const ROLE_OPTIONS: readonly PickerOption[] = [
+export const ROLE_OPTIONS: readonly UiPickerOption[] = [
 	{ value: "user", label: "User", icon: "person" },
 	{ value: "premium", label: "Premium", icon: "workspace_premium" },
 	{

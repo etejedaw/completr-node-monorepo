@@ -12,9 +12,12 @@ import {
 import { NgpPopover, NgpPopoverTrigger } from "ng-primitives/popover";
 
 import { ViewportService } from "../../../core/services/viewport";
-import { UiBottomSheet, UiEyebrow } from "../../ui";
-import { ChipGroup } from "../chip-group/chip-group";
-import { type ChipOption } from "../chip-group/chip-group.model";
+import {
+	UiBottomSheet,
+	UiChipGroup,
+	type UiChipOption,
+	UiEyebrow
+} from "../../ui";
 
 const YEARS_BEFORE_TODAY = 4;
 const YEARS_AFTER_TODAY = 1;
@@ -42,7 +45,7 @@ const MONTHS = [
 		NgTemplateOutlet,
 		NgpPopover,
 		NgpPopoverTrigger,
-		ChipGroup,
+		UiChipGroup,
 		UiBottomSheet
 	],
 	templateUrl: "./month-year-picker.html",
@@ -69,7 +72,7 @@ export class MonthYearPicker {
 		String(this.shownYear())
 	]);
 
-	protected readonly yearOptions = computed<ChipOption[]>(() => {
+	protected readonly yearOptions = computed<UiChipOption[]>(() => {
 		const shown = this.shownYear();
 		const first = Math.min(
 			this.minYear() ?? this.currentYear - YEARS_BEFORE_TODAY,

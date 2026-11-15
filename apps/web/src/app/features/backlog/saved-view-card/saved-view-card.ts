@@ -8,10 +8,13 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { type BacklogStatus } from "../../../core/models";
-import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
-import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { BacklogStatusBadge } from "../../../shared/components/backlog-status-badge/backlog-status-badge";
-import { UiBadge, UiIconButton } from "../../../shared/ui";
+import {
+	UiActionMenu,
+	type UiActionMenuItem,
+	UiBadge,
+	UiIconButton
+} from "../../../shared/ui";
 import {
 	backlogStatusIcon,
 	backlogStatusLabel
@@ -22,7 +25,7 @@ import { type ViewChip } from "./saved-view-card.model";
 
 type ViewActionId = "share" | "duplicate" | "edit";
 
-const MENU_ITEMS: readonly ActionMenuItem[] = [
+const MENU_ITEMS: readonly UiActionMenuItem[] = [
 	{ id: "share", icon: "share", label: "Copy public link" },
 	{ id: "duplicate", icon: "content_copy", label: "Duplicate" },
 	{ id: "edit", icon: "edit", label: "Edit" }
@@ -98,7 +101,7 @@ function buildChips(view: SavedFilter): ViewChip[] {
 @Component({
 	selector: "app-saved-view-card",
 	imports: [
-		ActionMenu,
+		UiActionMenu,
 		BacklogStatusBadge,
 		RouterLink,
 		UiBadge,

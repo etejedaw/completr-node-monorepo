@@ -2,9 +2,9 @@ import { ApplicationRef } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 
 import { TOAST_CONFIG, ToastService } from "../../../core/services/toast";
-import { ToastContainer } from "./toast-container";
+import { UiToastContainer } from "./ui-toast-container";
 
-describe("ToastContainer", () => {
+describe("UiToastContainer", () => {
 	const toasts = { registerTemplate: vi.fn() };
 
 	beforeEach(() => {
@@ -15,7 +15,7 @@ describe("ToastContainer", () => {
 	});
 
 	it("registers its template with the toast service", () => {
-		const fixture = TestBed.createComponent(ToastContainer);
+		const fixture = TestBed.createComponent(UiToastContainer);
 		fixture.detectChanges();
 
 		expect(toasts.registerTemplate).toHaveBeenCalledOnce();
@@ -23,7 +23,7 @@ describe("ToastContainer", () => {
 
 	describe("variants", () => {
 		function component() {
-			const fixture = TestBed.createComponent(ToastContainer);
+			const fixture = TestBed.createComponent(UiToastContainer);
 			fixture.detectChanges();
 			return fixture.componentInstance as unknown as {
 				iconFor(variant: string): string;
@@ -57,7 +57,7 @@ describe("ToastContainer", () => {
 
 		async function renderContainer() {
 			TestBed.resetTestingModule();
-			const fixture = TestBed.createComponent(ToastContainer);
+			const fixture = TestBed.createComponent(UiToastContainer);
 			TestBed.inject(ApplicationRef).components.push(
 				fixture.componentRef
 			);
@@ -114,6 +114,105 @@ describe("ToastContainer", () => {
 
 			const premiumToasts = renderedToasts("Your Up Next has no limit.");
 			expect(premiumToasts).toHaveLength(1);
+		});
+
+		describe("action", () => {
+			function actionButton(text: string, label: string) {
+				const toast = renderedToasts(text)[0];
+				return [...toast.querySelectorAll("button")].find(
+					button => button.textContent?.trim() === label
+				);
+			}
+
+			it("renders the action as a button and runs it once on repeated clicks", async () => {
+				const fixture = await renderContainer();
+				const run = vi.fn();
+				service.success("Rewind ready", {
+					action: { label: "View", run }
+				});
+				await settle(fixture);
+
+				const button = actionButton("Rewind ready", "View");
+				expect(button).toBeDefined();
+				expect(button?.type).toBe("button");
+				button?.click();
+				button?.click();
+				button?.click();
+				await settle(fixture);
+
+				expect(run).toHaveBeenCalledOnce();
+			});
+
+			it("can be reached and triggered with the keyboard", async () => {
+				const fixture = await renderContainer();
+				const run = vi.fn();
+				service.info("Keyboard toast", {
+					action: { label: "Open", run }
+				});
+				await settle(fixture);
+
+				const button = actionButton("Keyboard toast", "Open");
+				button?.focus();
+				expect(document.activeElement).toBe(button);
+				button?.dispatchEvent(
+					new KeyboardEvent("keydown", {
+						key: "Enter",
+						bubbles: true
+					})
+				);
+				button?.click();
+				await settle(fixture);
+
+				expect(run).toHaveBeenCalledOnce();
+			});
+
+			it("closes the toast when the action is used", async () => {
+				const fixture = await renderContainer();
+				service.success("Closing toast", {
+					action: { label: "View", run: vi.fn() }
+				});
+				await settle(fixture);
+
+				actionButton("Closing toast", "View")?.click();
+				await settle(fixture);
+
+				expect(
+					renderedToasts("Closing toast").filter(
+						toast => toast.dataset["visible"] !== "false"
+					)
+				).toHaveLength(0);
+			});
+
+			it("never runs the action when the toast is closed with the dismiss button", async () => {
+				const fixture = await renderContainer();
+				const run = vi.fn();
+				service.success("Dismissed toast", {
+					action: { label: "View", run }
+				});
+				await settle(fixture);
+
+				renderedToasts("Dismissed toast")[0]
+					.querySelector<HTMLButtonElement>("[aria-label='Dismiss']")
+					?.click();
+				await settle(fixture);
+
+				expect(run).not.toHaveBeenCalled();
+			});
+
+			it("renders a message without an action as before", async () => {
+				const fixture = await renderContainer();
+				service.success("Plain toast");
+				await settle(fixture);
+
+				const buttons = [
+					...renderedToasts("Plain toast")[0].querySelectorAll(
+						"button"
+					)
+				];
+				expect(buttons.map(b => b.getAttribute("aria-label"))).toEqual([
+					"Dismiss"
+				]);
+			});
 		});
 	});
 });

@@ -150,7 +150,7 @@
 					>{{ statusStyle(row.status).label }}</ui-badge
 				>
 				@if (row.status !== 'ended') {
-				<app-action-menu
+				<ui-action-menu
 					icon="more_vert"
 					variant="ghost"
 					[iconOnly]="true"
@@ -213,7 +213,7 @@
 	>
 		<div>
 			<label uiFieldLabel for="promotion-feature">Feature</label>
-			<app-option-picker
+			<ui-option-picker
 				variant="input"
 				triggerId="promotion-feature"
 				label="Feature"

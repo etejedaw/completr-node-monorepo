@@ -42,7 +42,7 @@
 		[value]="searchQuery()"
 		(valueChange)="onSearch($event)"
 	/>
-	<app-option-picker
+	<ui-option-picker
 		class="max-md:hidden shrink-0"
 		variant="compact"
 		size="md"
@@ -53,7 +53,7 @@
 		[value]="sortMode()"
 		(valueChange)="sortMode.set($any($event))"
 	/>
-	<app-option-picker
+	<ui-option-picker
 		class="md:hidden basis-full"
 		label="Sort"
 		heading="Sort saved views by"

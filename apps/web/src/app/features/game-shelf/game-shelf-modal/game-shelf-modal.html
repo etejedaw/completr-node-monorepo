@@ -77,7 +77,7 @@
 		@if (platformOptions().length > 0) {
 		<div>
 			<label uiFieldLabel for="shelf-platform">Platform</label>
-			<app-option-picker
+			<ui-option-picker
 				variant="input"
 				triggerId="shelf-platform"
 				label="Platform"
@@ -109,7 +109,7 @@
 				placeholder="Standard, Deluxe, GOTY..."
 				[formField]="form.edition"
 			/>
-			<app-chip-group
+			<ui-chip-group
 				class="mt-2"
 				mode="single"
 				label="Edition suggestions"

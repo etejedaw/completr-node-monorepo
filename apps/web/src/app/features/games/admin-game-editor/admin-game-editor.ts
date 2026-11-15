@@ -23,19 +23,15 @@ import {
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { adminErrorMessage } from "../../../core/utils/admin-error-message";
-import { ChipGroup } from "../../../shared/components/chip-group/chip-group";
-import { type ChipOption } from "../../../shared/components/chip-group/chip-group.model";
 import { FilterSection } from "../../../shared/components/filter-section/filter-section";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
-import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
-import { type SegmentedOption } from "../../../shared/components/segmented-control/segmented-control.model";
 import {
 	UiAlert,
 	UiBadge,
 	UiButton,
+	UiChipGroup,
+	type UiChipOption,
 	UiDatePicker,
 	UiDialog,
 	UiEyebrow,
@@ -44,6 +40,10 @@ import {
 	UiFieldOptional,
 	UiIconButton,
 	UiInput,
+	UiOptionPicker,
+	type UiPickerOption,
+	UiSegmentedControl,
+	type UiSegmentedOption,
 	UiSwitch,
 	UiTextarea
 } from "../../../shared/ui";
@@ -80,7 +80,7 @@ const HLTB_ID_ERROR =
 const METACRITIC_SLUG_ERROR =
 	"Use lowercase letters, numbers and hyphens (e.g. the-witcher-3-wild-hunt) or paste the Metacritic game URL.";
 
-const LOOKUP_SOURCES: SegmentedOption<OnlineSearchSource>[] = [
+const LOOKUP_SOURCES: UiSegmentedOption<OnlineSearchSource>[] = [
 	{ value: "rawg", label: "RAWG" },
 	{ value: "igdb", label: "IGDB" }
 ];
@@ -99,7 +99,7 @@ const FRANCHISES_PAGE_SIZE = 100;
 const NOT_FOUND_STATUS = 404;
 const SERVICE_UNAVAILABLE_STATUS = 503;
 
-const COMPILATION_ROW_MODES: SegmentedOption<CompilationRowMode>[] = [
+const COMPILATION_ROW_MODES: UiSegmentedOption<CompilationRowMode>[] = [
 	{ value: "link", label: "Link existing", icon: "link" },
 	{ value: "create", label: "Create new", icon: "add_circle_outline" }
 ];
@@ -108,12 +108,12 @@ const COMPILATION_ROW_MODES: SegmentedOption<CompilationRowMode>[] = [
 	selector: "app-admin-game-editor",
 	imports: [
 		CatalogGamePicker,
-		ChipGroup,
+		UiChipGroup,
 		FilterSection,
 		FormField,
 		GamePoster,
-		OptionPicker,
-		SegmentedControl,
+		UiOptionPicker,
+		UiSegmentedControl,
 		SelectedGameRow,
 		UiAlert,
 		UiBadge,
@@ -153,20 +153,20 @@ export class AdminGameEditor implements OnInit {
 	protected readonly compilationRowModes = COMPILATION_ROW_MODES;
 	protected readonly lookupSources = LOOKUP_SOURCES;
 
-	protected readonly platformOptions = computed<ChipOption[]>(() =>
+	protected readonly platformOptions = computed<UiChipOption[]>(() =>
 		this.allPlatforms().map(platform => ({
 			value: platform.code,
 			label: platform.abbreviation,
 			hint: platform.name
 		}))
 	);
-	protected readonly genreOptions = computed<ChipOption[]>(() =>
+	protected readonly genreOptions = computed<UiChipOption[]>(() =>
 		this.allGenres().map(genre => ({
 			value: genre.code,
 			label: genre.name
 		}))
 	);
-	protected readonly franchiseOptions = computed<PickerOption[]>(() => [
+	protected readonly franchiseOptions = computed<UiPickerOption[]>(() => [
 		{ value: "", label: "None", icon: "block" },
 		...this.allFranchises().map(franchise => ({
 			value: franchise.id,
@@ -876,19 +876,21 @@ export class AdminGameEditor implements OnInit {
 		return current.some(t => originalBySource.get(t.source) !== t.duration);
 	}
 
-	protected readonly availableScoreSources = computed<PickerOption[]>(() => {
-		const used = new Set(this.scores().map(s => s.source));
-		return this.scoreSourcesService
-			.manualSources()
-			.filter(source => !used.has(source.code))
-			.map(source => ({
-				value: source.code,
-				label: source.code,
-				icon: "star_outline"
-			}));
-	});
+	protected readonly availableScoreSources = computed<UiPickerOption[]>(
+		() => {
+			const used = new Set(this.scores().map(s => s.source));
+			return this.scoreSourcesService
+				.manualSources()
+				.filter(source => !used.has(source.code))
+				.map(source => ({
+					value: source.code,
+					label: source.code,
+					icon: "star_outline"
+				}));
+		}
+	);
 
-	protected readonly availableTimeSources = computed<PickerOption[]>(() => {
+	protected readonly availableTimeSources = computed<UiPickerOption[]>(() => {
 		const used = new Set(this.times().map(t => t.source));
 		return this.timeSources
 			.filter(source => !used.has(source))

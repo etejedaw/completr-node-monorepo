@@ -20,8 +20,6 @@ import { debounceTime, Subject, type Subscription } from "rxjs";
 
 import { ToastService } from "../../../../core/services/toast";
 import { LibraryToolbar } from "../../../../shared/components/library-toolbar/library-toolbar";
-import { OptionPicker } from "../../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../../shared/components/option-picker/option-picker.model";
 import { PageSearch } from "../../../../shared/components/page-search/page-search";
 import {
 	UiAlert,
@@ -33,7 +31,9 @@ import {
 	UiIconButton,
 	UiInput,
 	UiNoMatches,
+	UiOptionPicker,
 	UiPagination,
+	type UiPickerOption,
 	UiSkeleton,
 	UiTable
 } from "../../../../shared/ui";
@@ -64,7 +64,7 @@ const ACCESS_KIND_BADGES: Record<AdminRewindAccessKind, AccessKindBadge> = {
 	imports: [
 		LibraryToolbar,
 		NgTemplateOutlet,
-		OptionPicker,
+		UiOptionPicker,
 		PageSearch,
 		UiAlert,
 		UiBadge,
@@ -102,7 +102,7 @@ export class AdminRewindTable {
 	protected readonly draft = signal<RegenerationsDraft | null>(null);
 	protected readonly savingId = signal<string | null>(null);
 
-	protected readonly yearOptions = computed<PickerOption[]>(() =>
+	protected readonly yearOptions = computed<UiPickerOption[]>(() =>
 		[...this.years()]
 			.sort((a, b) => b - a)
 			.map(year => ({

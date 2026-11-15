@@ -40,29 +40,27 @@ import {
 import { DialogService } from "../../../core/services/dialog";
 import { PointerService } from "../../../core/services/pointer";
 import { ToastService } from "../../../core/services/toast";
-import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
-import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { BacklogEntryCard } from "../../../shared/components/backlog-entry-card/backlog-entry-card";
 import { BacklogStatusPills } from "../../../shared/components/backlog-status-pills/backlog-status-pills";
 import { BulkActionBar } from "../../../shared/components/bulk-action-bar/bulk-action-bar";
 import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import {
-	type PickerAction,
-	type PickerOption
-} from "../../../shared/components/option-picker/option-picker.model";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
 import { type ViewModeOption } from "../../../shared/components/view-mode-toggle/view-mode-toggle.model";
 import { SwipeActions } from "../../../shared/directives/swipe-actions";
 import {
+	UiActionMenu,
+	type UiActionMenuItem,
 	UiButton,
 	UiCountBadge,
 	UiEmptyState,
 	UiFiltersButton,
 	UiNoMatches,
+	UiOptionPicker,
 	UiPagination,
+	type UiPickerAction,
+	type UiPickerOption,
 	UiSkeleton
 } from "../../../shared/ui";
 import {
@@ -154,7 +152,7 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 		ViewModeToggle,
 		BacklogTable,
 		BacklogStatusPills,
-		OptionPicker,
+		UiOptionPicker,
 		BacklogCalendar,
 		SurpriseMe,
 		BacklogEntryCard,
@@ -168,7 +166,7 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 		UiPagination,
 		UiSkeleton,
 		BacklogFiltersPanel,
-		ActionMenu,
+		UiActionMenu,
 		EntryRatingSheet,
 		ReorderViewsDialog,
 		SavedViewStats,
@@ -255,7 +253,7 @@ export class BacklogList implements OnInit {
 		return active && !active.showInBacklog ? [...pinned, active] : pinned;
 	});
 
-	protected readonly viewPickerOptions = computed<PickerOption[]>(() => [
+	protected readonly viewPickerOptions = computed<UiPickerOption[]>(() => [
 		{ value: "", label: "None", icon: "bookmark_border" },
 		...this.viewPickerViews().map(view => ({
 			value: view.id,
@@ -266,7 +264,7 @@ export class BacklogList implements OnInit {
 		}))
 	]);
 
-	protected readonly viewPickerActions = computed<PickerAction[]>(() => [
+	protected readonly viewPickerActions = computed<UiPickerAction[]>(() => [
 		...(this.backlogFilters().length > 1
 			? [
 					{
@@ -736,7 +734,7 @@ export class BacklogList implements OnInit {
 		ElementRef<HTMLButtonElement>
 	>("mobileToolsButton", { read: ElementRef });
 	private readonly mobileToolsMenu = viewChild("mobileToolsMenu", {
-		read: ActionMenu
+		read: UiActionMenu
 	});
 	private focusToolsButtonOnClose = false;
 
@@ -761,7 +759,7 @@ export class BacklogList implements OnInit {
 		this.closeFilters();
 	}
 
-	protected readonly mobileToolsItems = computed<ActionMenuItem[]>(() => {
+	protected readonly mobileToolsItems = computed<UiActionMenuItem[]>(() => {
 		const filters = this.activeFiltersCount();
 		const stats = this.viewStats.enabledCount();
 		return [

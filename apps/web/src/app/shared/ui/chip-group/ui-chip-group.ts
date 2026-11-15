@@ -6,13 +6,13 @@ import {
 	model
 } from "@angular/core";
 
-import { type ChipOption } from "./chip-group.model";
-import { FilterChip, type FilterChipTouchTarget } from "./filter-chip";
+import { type UiChipOption } from "./ui-chip-group.model";
+import { UiFilterChip, type UiFilterChipTouchTarget } from "./ui-filter-chip";
 
-export type ChipGroupMode = "multiple" | "single";
-export type ChipGroupLayout = "wrap" | "scroll";
+export type UiChipGroupMode = "multiple" | "single";
+export type UiChipGroupLayout = "wrap" | "scroll";
 
-const LAYOUT_CLASSES: Record<ChipGroupLayout, string> = {
+const LAYOUT_CLASSES: Record<UiChipGroupLayout, string> = {
 	wrap: "flex flex-wrap gap-2",
 	scroll: "flex gap-2 overflow-x-auto overscroll-x-contain [scrollbar-width:none] pointer-coarse:py-[8px]"
 };
@@ -25,8 +25,8 @@ const ARROW_STEP: Record<string, number> = {
 };
 
 @Component({
-	selector: "app-chip-group",
-	imports: [FilterChip],
+	selector: "ui-chip-group",
+	imports: [UiFilterChip],
 	template: `
 		<div
 			[class]="layoutClass()"
@@ -35,7 +35,7 @@ const ARROW_STEP: Record<string, number> = {
 		>
 			@for (option of options(); track option.value; let index = $index) {
 				<button
-					appFilterChip
+					uiFilterChip
 					[touchTarget]="touchTarget()"
 					[selected]="isSelected(option.value)"
 					[attr.role]="mode() === 'single' ? 'radio' : null"
@@ -70,13 +70,13 @@ const ARROW_STEP: Record<string, number> = {
 	host: { class: "block", "(keydown)": "onKeydown($event)" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ChipGroup {
-	readonly options = input.required<readonly ChipOption[]>();
-	readonly mode = input<ChipGroupMode>("multiple");
+export class UiChipGroup {
+	readonly options = input.required<readonly UiChipOption[]>();
+	readonly mode = input<UiChipGroupMode>("multiple");
 	readonly label = input("");
 	readonly allowEmpty = input(true);
-	readonly layout = input<ChipGroupLayout>("wrap");
-	readonly touchTarget = input<FilterChipTouchTarget>("grow");
+	readonly layout = input<UiChipGroupLayout>("wrap");
+	readonly touchTarget = input<UiFilterChipTouchTarget>("grow");
 	readonly value = model<readonly string[]>([]);
 
 	protected readonly layoutClass = computed(

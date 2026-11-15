@@ -11,15 +11,17 @@ import { type Genre, type Platform } from "../../../../core/models";
 import { FilterSection } from "../../../../shared/components/filter-section/filter-section";
 import { GameFilterPanel } from "../../../../shared/components/game-filter-panel/game-filter-panel";
 import { RangeInputs } from "../../../../shared/components/range-inputs/range-inputs";
-import { SegmentedControl } from "../../../../shared/components/segmented-control/segmented-control";
-import { type SegmentedOption } from "../../../../shared/components/segmented-control/segmented-control.model";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
-import { UiButton } from "../../../../shared/ui";
+import {
+	UiButton,
+	UiSegmentedControl,
+	type UiSegmentedOption
+} from "../../../../shared/ui";
 
 type GameTypeFilter = boolean | null;
 type GameTypeValue = "all" | "games" | "dlc";
 
-const GAME_TYPE_OPTIONS: SegmentedOption<GameTypeValue>[] = [
+const GAME_TYPE_OPTIONS: UiSegmentedOption<GameTypeValue>[] = [
 	{ value: "all", label: "All" },
 	{ value: "games", label: "Games" },
 	{ value: "dlc", label: "DLC" }
@@ -37,7 +39,7 @@ const GAME_TYPE_FILTER: Record<GameTypeValue, GameTypeFilter> = {
 		FilterSection,
 		GameFilterPanel,
 		RangeInputs,
-		SegmentedControl,
+		UiSegmentedControl,
 		StarRating,
 		UiButton
 	],

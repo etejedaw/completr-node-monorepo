@@ -1,4 +1,4 @@
-export interface ChipOption {
+export interface UiChipOption {
 	value: string;
 	label: string;
 	icon?: string;

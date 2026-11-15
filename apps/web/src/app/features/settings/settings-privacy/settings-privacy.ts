@@ -17,13 +17,13 @@ import { AuthService } from "../../../core/services/auth";
 import { FollowRequestsService } from "../../../core/services/follow-requests";
 import { ToastService } from "../../../core/services/toast";
 import { avatarRing } from "../../../core/utils/premium";
-import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
 import {
 	UiAlert,
 	UiAvatar,
 	UiBadge,
 	UiButton,
 	UiEyebrow,
+	UiSegmentedControl,
 	UiSkeleton,
 	UiSwitch
 } from "../../../shared/ui";
@@ -79,7 +79,7 @@ function draftFromUser(user: User): PrivacyDraft {
 	imports: [
 		NgTemplateOutlet,
 		RouterLink,
-		SegmentedControl,
+		UiSegmentedControl,
 		SettingsPanel,
 		SettingsRow,
 		SettingsSaveBar,

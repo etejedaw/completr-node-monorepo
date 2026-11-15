@@ -12,10 +12,10 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { type Subscription } from "rxjs";
 
 import { ToastService } from "../../../core/services/toast";
-import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
-import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import {
+	UiActionMenu,
+	type UiActionMenuItem,
 	UiBadge,
 	UiButton,
 	UiEmptyState,
@@ -59,7 +59,7 @@ const DEFAULT_JOB_STATUS_STYLE: JobStatusStyle = {
 @Component({
 	selector: "app-admin-jobs",
 	imports: [
-		ActionMenu,
+		UiActionMenu,
 		DatePipe,
 		LibraryHero,
 		UiBadge,
@@ -83,7 +83,7 @@ export class AdminJobs implements OnInit {
 	protected readonly starting = signal("");
 	protected readonly cancelling = signal("");
 	protected readonly loadFailed = signal(false);
-	protected readonly jobMenuItems = computed<ActionMenuItem[]>(() =>
+	protected readonly jobMenuItems = computed<UiActionMenuItem[]>(() =>
 		JOB_ACTIONS.map(action => ({
 			id: action.type,
 			label: action.label,

@@ -19,16 +19,16 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type Game } from "../../../core/models";
-import { ToastContainer } from "../../../shared/components/toast-container/toast-container";
+import { UiToastContainer } from "../../../shared/ui";
 import { AdminGameEditor } from "./admin-game-editor";
 
 @Component({
 	selector: "app-admin-game-editor-host",
-	imports: [AdminGameEditor, ToastContainer],
+	imports: [AdminGameEditor, UiToastContainer],
 	template: `<app-admin-game-editor
 			[game]="game()"
 			(saved)="saved.emit()"
-		/><app-toast-container />`,
+		/><ui-toast-container />`,
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 class AdminGameEditorHost {

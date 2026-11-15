@@ -20,11 +20,15 @@ import {
 } from "ng-primitives/menu";
 
 import { ViewportService } from "../../../core/services/viewport";
-import { UiBottomSheet, UiEyebrow } from "../../ui";
-import { type PickerAction, type PickerOption } from "./option-picker.model";
+import { UiBottomSheet } from "../bottom-sheet/ui-bottom-sheet";
+import { UiEyebrow } from "../label/ui-eyebrow";
+import {
+	type UiPickerAction,
+	type UiPickerOption
+} from "./ui-option-picker.model";
 
 @Component({
-	selector: "app-option-picker",
+	selector: "ui-option-picker",
 	imports: [
 		UiEyebrow,
 		NgTemplateOutlet,
@@ -36,16 +40,16 @@ import { type PickerAction, type PickerOption } from "./option-picker.model";
 		NgpMenuTrigger,
 		UiBottomSheet
 	],
-	templateUrl: "./option-picker.html",
+	templateUrl: "./ui-option-picker.html",
 	host: { class: "block min-w-0" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OptionPicker {
+export class UiOptionPicker {
 	readonly label = input.required<string>();
 	readonly heading = input.required<string>();
-	readonly options = input.required<readonly PickerOption[]>();
+	readonly options = input.required<readonly UiPickerOption[]>();
 	readonly value = model<string>("");
-	readonly actions = input<readonly PickerAction[]>([]);
+	readonly actions = input<readonly UiPickerAction[]>([]);
 	readonly variant = input<"field" | "compact" | "input">("field");
 	readonly triggerId = input<string | null>(null);
 	readonly size = input<"sm" | "md">("sm");
@@ -54,7 +58,7 @@ export class OptionPicker {
 	readonly invalid = input(false);
 	readonly describedBy = input<string | null>(null);
 	readonly actionSelected = output<string>();
-	readonly lockedSelected = output<PickerOption>();
+	readonly lockedSelected = output<UiPickerOption>();
 
 	protected readonly isMobile = inject(ViewportService).isMobile;
 	protected readonly sheetOpen = signal(false);
@@ -69,7 +73,7 @@ export class OptionPicker {
 		if (this.isMobile()) this.sheetOpen.set(true);
 	}
 
-	protected choose(option: PickerOption) {
+	protected choose(option: UiPickerOption) {
 		this.sheetOpen.set(false);
 		if (option.locked) {
 			this.lockedSelected.emit(option);

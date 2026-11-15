@@ -18,7 +18,7 @@
 		class="px-5 py-5 md:px-6 border-b border-line"
 		label="Lookup"
 	>
-		<app-segmented-control
+		<ui-segmented-control
 			class="mb-3"
 			label="Lookup source"
 			[options]="lookupSources"
@@ -258,7 +258,7 @@
 				<label uiFieldLabel for="editor-franchise"
 					>Franchise <ui-field-optional
 				/></label>
-				<app-option-picker
+				<ui-option-picker
 					variant="input"
 					triggerId="editor-franchise"
 					label="Franchise"
@@ -319,7 +319,7 @@
 		class="px-5 py-5 md:px-6 border-b border-line"
 		label="Platforms"
 	>
-		<app-chip-group
+		<ui-chip-group
 			mode="multiple"
 			[options]="platformOptions()"
 			[value]="platformValues()"
@@ -331,7 +331,7 @@
 		class="px-5 py-5 md:px-6 border-b border-line"
 		label="Genres"
 	>
-		<app-chip-group
+		<ui-chip-group
 			mode="multiple"
 			[options]="genreOptions()"
 			[value]="genreValues()"
@@ -389,7 +389,7 @@
 			} @if (availableScoreSources().length > 0) {
 			<span uiEyebrow class="mt-4 mb-2">Add a score</span>
 			<div class="flex flex-wrap items-center gap-2">
-				<app-option-picker
+				<ui-option-picker
 					class="flex-1 min-w-36"
 					variant="input"
 					label="Source"
@@ -485,7 +485,7 @@
 			} @if (availableTimeSources().length > 0) {
 			<span uiEyebrow class="mt-4 mb-2">Add a duration</span>
 			<div class="flex flex-wrap items-center gap-2">
-				<app-option-picker
+				<ui-option-picker
 					class="flex-1 min-w-36"
 					variant="input"
 					label="Source"
@@ -737,7 +737,7 @@
 		<div class="rounded-card border border-line bg-surface p-3">
 			<div class="flex items-center gap-2 mb-3">
 				<span uiEyebrow>#{{ i + 1 }}</span>
-				<app-segmented-control
+				<ui-segmented-control
 					class="ml-1"
 					[label]="'Item ' + (i + 1) + ' source'"
 					[options]="compilationRowModes"

@@ -12,8 +12,6 @@ import { type Game } from "../../../core/models";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
 import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import {
 	UiAlert,
 	UiButton,
@@ -21,6 +19,8 @@ import {
 	UiDialog,
 	UiFieldLabel,
 	UiFieldOptional,
+	UiOptionPicker,
+	type UiPickerOption,
 	UiSkeleton,
 	UiTextarea
 } from "../../../shared/ui";
@@ -50,7 +50,7 @@ const NO_SELECTION = "";
 	imports: [
 		DialogDeleteAction,
 		GameSearchStep,
-		OptionPicker,
+		UiOptionPicker,
 		SelectedGameRow,
 		UiAlert,
 		UiButton,
@@ -108,7 +108,7 @@ export class PlatinumDialog {
 		return this.picksGame ? null : (this.context()?.game.title ?? null);
 	});
 
-	protected readonly runOptions = computed<readonly PickerOption[]>(() => {
+	protected readonly runOptions = computed<readonly UiPickerOption[]>(() => {
 		const runs = this.runs();
 		return [
 			{ value: NO_SELECTION, label: "No specific run", icon: "remove" },
@@ -122,7 +122,7 @@ export class PlatinumDialog {
 		];
 	});
 
-	protected readonly platformOptions = computed<readonly PickerOption[]>(
+	protected readonly platformOptions = computed<readonly UiPickerOption[]>(
 		() => {
 			const platforms = [...(this.context()?.game.platforms ?? [])];
 			for (const run of this.runs()) {

@@ -26,8 +26,6 @@ import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
 import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { PlatinumTrophy } from "../../../shared/components/platinum-trophy/platinum-trophy";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
 import {
@@ -42,6 +40,8 @@ import {
 	UiFieldOptional,
 	UiIconButton,
 	UiInput,
+	UiOptionPicker,
+	type UiPickerOption,
 	UiSelectableRow,
 	UiSwitch,
 	UiTab,
@@ -94,7 +94,7 @@ import { type ReferencePick } from "./reference-values.model";
 
 export type BacklogModalResult = "saved" | "newRun";
 
-const BACKLOG_FORM_STATUS_OPTIONS: readonly PickerOption[] =
+const BACKLOG_FORM_STATUS_OPTIONS: readonly UiPickerOption[] =
 	BACKLOG_STATUS_FILTERS.map(filter => ({
 		value: filter.value,
 		label: filter.label,
@@ -135,7 +135,7 @@ const MISSING_FIELD_LABELS: Record<MissingField, string> = {
 		DialogDeleteAction,
 		GamePoster,
 		GameSearchStep,
-		OptionPicker,
+		UiOptionPicker,
 		PlatinumTrophy,
 		SelectedGameRow,
 		UiAvatar,
@@ -242,7 +242,7 @@ export class BacklogModal implements OnInit {
 	);
 	protected readonly returnedToSearch = signal(false);
 	protected readonly statusOptions = BACKLOG_FORM_STATUS_OPTIONS;
-	protected readonly platformOptions = computed<PickerOption[]>(() =>
+	protected readonly platformOptions = computed<UiPickerOption[]>(() =>
 		(this.selectedGame()?.platforms ?? []).map(platform => ({
 			value: platform.id,
 			label: platform.name,
@@ -266,7 +266,7 @@ export class BacklogModal implements OnInit {
 	protected readonly gameTimes = computed(
 		() => this.selectedGame()?.times ?? []
 	);
-	protected readonly compilationParentOptions = computed<PickerOption[]>(
+	protected readonly compilationParentOptions = computed<UiPickerOption[]>(
 		() => [
 			{
 				value: STANDALONE_RUN,

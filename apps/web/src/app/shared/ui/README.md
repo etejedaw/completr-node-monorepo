@@ -19,6 +19,11 @@ Los estilos que no caben en clases de Tailwind (botones, pestañas, interruptore
 | `UiDatePicker`, `UiDateRangePicker`, `UiCalendarPanel` | `ui-date-picker`, `ui-date-range-picker`, `ui-calendar-panel` | Fechas y rangos; nunca `<input type="date">`                                                                                                                                               |
 | `UiSearchBar`                                          | `ui-search-bar`                                               | Búsqueda con botón de limpiar                                                                                                                                                              |
 | `UiTabs`, `UiTabList`, `UiTab`, `UiTabPanel`           | `ui-tabs`, `[uiTabList]`, `button[uiTab]`, `[uiTabPanel]`     | Pestañas                                                                                                                                                                                   |
+| `UiActionMenu`                                         | `ui-action-menu`                                              | Menú de acciones `⋯`; en mobile abre una hoja con las acciones con texto                                                                                                                   |
+| `UiOptionPicker`, `UiMultiOptionPicker`                | `ui-option-picker`, `ui-multi-option-picker`                  | Selector de una o varias opciones, en popover o en hoja                                                                                                                                    |
+| `UiSegmentedControl`                                   | `ui-segmented-control`                                        | Control de segmento con semántica radio o toggle                                                                                                                                           |
+| `UiChipGroup`, `UiFilterChip`                          | `ui-chip-group`, `button[uiFilterChip]`                       | Chips de filtro, de selección simple o múltiple                                                                                                                                            |
+| `UiToastContainer`                                     | `ui-toast-container`                                          | Único contenedor de toasts, montado en el shell; se alimenta desde `ToastService`                                                                                                          |
 | `UiDialog`                                             | `ui-dialog`                                                   | Único diálogo de la app; se abre con `DialogService`. Tonos y tamaños por input                                                                                                            |
 | `UiBottomSheet`                                        | `ui-bottom-sheet`                                             | Hoja inferior para mobile y menús largos                                                                                                                                                   |
 | `UiDrawer`                                             | `ui-drawer`                                                   | Panel lateral                                                                                                                                                                              |
@@ -36,16 +41,12 @@ Los estilos que no caben en clases de Tailwind (botones, pestañas, interruptore
 
 ## Piezas compuestas fuera de `ui/`
 
-Viven en `shared/components/` porque combinan varias piezas del design system con lógica de dominio o de interacción, y moverlas rompería imports en todas las features. Se usan igual que las de `ui/`:
+Viven en `shared/components/` porque combinan varias piezas del design system con lógica de dominio. Se usan igual que las de `ui/`:
 
-| Pieza                                             | Para qué                                                                          |
-| ------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `ActionMenu`                                      | Menú de acciones `⋯`; en mobile abre una hoja con las acciones con texto          |
-| `OptionPicker`, `MultiOptionPicker`               | Selector de una o varias opciones, en popover o en hoja                           |
-| `SegmentedControl`, `ChipGroup`, `ViewModeToggle` | Controles de segmento y chips de filtro                                           |
-| `ToastContainer`                                  | Único contenedor de toasts, montado en el shell; se alimenta desde `ToastService` |
-| `StarRating`, `ProgressMeter`, `RatioSummary`     | Valoración, medidor y resumen del ratio                                           |
-| `LibraryHero`, `LibraryToolbar`, `LibraryPage`    | Estructura de las páginas de biblioteca                                           |
+| Pieza                                                           | Para qué                                                   |
+| --------------------------------------------------------------- | ---------------------------------------------------------- |
+| `ViewModeToggle`, `StarRating`, `ProgressMeter`, `RatioSummary` | Selector de vista, valoración, medidor y resumen del ratio |
+| `LibraryHero`, `LibraryToolbar`, `LibraryPage`                  | Estructura de las páginas de biblioteca                    |
 
 ## Reglas de uso
 

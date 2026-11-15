@@ -15,13 +15,15 @@ import { RouterLink } from "@angular/router";
 import { NgpMenu, NgpMenuItem, NgpMenuTrigger } from "ng-primitives/menu";
 
 import { ViewportService } from "../../../core/services/viewport";
-import { UiBottomSheet, UiCountBadge, UiEyebrow } from "../../ui";
-import { UiButton } from "../../ui/button/ui-button";
+import { UiBottomSheet } from "../bottom-sheet/ui-bottom-sheet";
+import { UiButton } from "../button/ui-button";
+import { UiCountBadge } from "../count-badge/ui-count-badge";
+import { UiEyebrow } from "../label/ui-eyebrow";
 import {
-	type ActionMenuItem,
-	type ActionMenuLink,
-	type ActionMenuVariant
-} from "./action-menu.model";
+	type UiActionMenuItem,
+	type UiActionMenuLink,
+	type UiActionMenuVariant
+} from "./ui-action-menu.model";
 
 const MENU_ITEM_CLASS =
 	"w-full flex items-center gap-2.5 min-h-9 px-2.5 rounded bg-transparent border-0 text-left text-sm text-fg-secondary no-underline outline-none cursor-pointer hover:bg-surface-hover hover:text-fg focus-visible:bg-surface-hover focus-visible:text-fg data-[disabled]:opacity-40 data-[disabled]:cursor-default";
@@ -30,7 +32,7 @@ const SHEET_ITEM_CLASS =
 	"w-full min-h-14 flex items-center gap-3 px-4 rounded-card bg-transparent border-0 text-base font-medium text-fg text-left no-underline cursor-pointer transition active:bg-surface disabled:opacity-40 disabled:cursor-default";
 
 @Component({
-	selector: "app-action-menu",
+	selector: "ui-action-menu",
 	imports: [
 		UiEyebrow,
 		NgTemplateOutlet,
@@ -42,18 +44,18 @@ const SHEET_ITEM_CLASS =
 		UiButton,
 		UiCountBadge
 	],
-	templateUrl: "./action-menu.html",
+	templateUrl: "./ui-action-menu.html",
 	host: { class: "contents" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ActionMenu {
+export class UiActionMenu {
 	readonly label = input.required<string>();
 	readonly heading = input.required<string>();
-	readonly items = input.required<readonly ActionMenuItem[]>();
+	readonly items = input.required<readonly UiActionMenuItem[]>();
 	readonly icon = input("more_horiz");
 	readonly iconOnly = input(false);
 	readonly placement = input<"toolbar" | "hero">("toolbar");
-	readonly variant = input<ActionMenuVariant>("secondary");
+	readonly variant = input<UiActionMenuVariant>("secondary");
 	readonly size = input<"md" | "lg" | null>(null);
 	readonly busy = input(false);
 	readonly count = input(0);
@@ -91,7 +93,7 @@ export class ActionMenu {
 		if (this.isMobile()) this.sheetOpen.set(true);
 	}
 
-	protected linkOf(item: ActionMenuItem): ActionMenuLink | null {
+	protected linkOf(item: UiActionMenuItem): UiActionMenuLink | null {
 		if (item.disabled || item.busy) return null;
 		return item.link ?? null;
 	}
@@ -100,7 +102,7 @@ export class ActionMenu {
 		this.sheetOpen.set(false);
 	}
 
-	protected select(item: ActionMenuItem) {
+	protected select(item: UiActionMenuItem) {
 		if (item.disabled || item.busy) return;
 		this.closeSheet();
 		this.selected.emit(item.id);

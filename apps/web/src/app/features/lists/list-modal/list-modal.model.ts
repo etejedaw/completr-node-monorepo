@@ -1,5 +1,5 @@
 import { type List } from "../../../core/models";
-import { type ChipOption } from "../../../shared/components/chip-group/chip-group.model";
+import { type UiChipOption } from "../../../shared/ui";
 
 export interface ListModalData {
 	list: List | null;
@@ -15,7 +15,7 @@ export type SourceField = "scoreSource" | "durationSource";
 export interface SourceGroup {
 	field: SourceField;
 	label: string;
-	options: readonly ChipOption[];
+	options: readonly UiChipOption[];
 	selected: readonly string[];
 }
 

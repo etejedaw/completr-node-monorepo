@@ -13,8 +13,6 @@ import {
 import { form, FormField, required } from "@angular/forms/signals";
 import { forkJoin } from "rxjs";
 
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import {
 	UiAlert,
 	UiBadge,
@@ -26,6 +24,8 @@ import {
 	UiFieldOptional,
 	UiFormField,
 	UiLabel,
+	UiOptionPicker,
+	type UiPickerOption,
 	UiPlainEmptyState,
 	UiSkeleton
 } from "../../../shared/ui";
@@ -70,7 +70,7 @@ const GRANT_NOT_ACTIVE_MESSAGE =
 	imports: [
 		DatePipe,
 		FormField,
-		OptionPicker,
+		UiOptionPicker,
 		UiAlert,
 		UiBadge,
 		UiButton,
@@ -115,7 +115,7 @@ export class AdminPremiumAccess implements OnInit {
 	protected readonly individualGrants = computed(() =>
 		this.grants().filter(grant => grant.feature !== "*")
 	);
-	protected readonly featureOptions = computed<PickerOption[]>(() =>
+	protected readonly featureOptions = computed<UiPickerOption[]>(() =>
 		this.features().map(definition => ({
 			value: definition.feature,
 			label: this.featureLabel(definition.feature),

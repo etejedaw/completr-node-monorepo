@@ -3,10 +3,10 @@ import { TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 
 import { ViewportService } from "../../../core/services/viewport";
-import { OptionPicker } from "./option-picker";
-import { type PickerOption } from "./option-picker.model";
+import { UiOptionPicker } from "./ui-option-picker";
+import { type UiPickerOption } from "./ui-option-picker.model";
 
-const options: PickerOption[] = [
+const options: UiPickerOption[] = [
 	{ value: "", label: "All", icon: "apps", count: 10 },
 	{
 		value: "playing",
@@ -18,7 +18,7 @@ const options: PickerOption[] = [
 	{ value: "vip", label: "VIP", icon: "star", locked: true }
 ];
 
-describe("OptionPicker", () => {
+describe("UiOptionPicker", () => {
 	function render(inputs: Record<string, unknown> = {}, mobile = false) {
 		TestBed.configureTestingModule({
 			providers: [
@@ -29,7 +29,7 @@ describe("OptionPicker", () => {
 				}
 			]
 		});
-		const fixture = TestBed.createComponent(OptionPicker);
+		const fixture = TestBed.createComponent(UiOptionPicker);
 		fixture.componentRef.setInput("label", "Status");
 		fixture.componentRef.setInput("heading", "Filter by status");
 		fixture.componentRef.setInput("options", options);

@@ -2,7 +2,7 @@ import { computed, inject, signal } from "@angular/core";
 
 import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
-import { type PickerAction } from "../../../shared/components/option-picker/option-picker.model";
+import { type UiPickerAction } from "../../../shared/ui";
 import { reportHttpFailure } from "../../../shared/utils/http-failure";
 import { CoopRunsService, type SyncField } from "../../coop-runs/coop-runs";
 import {
@@ -41,7 +41,7 @@ export function injectCoopRun(options: CoopRunOptions) {
 	const pickerUserId = signal<string | null>(null);
 	const pickerUserName = signal("");
 
-	const friendActions = computed<PickerAction[]>(() => {
+	const friendActions = computed<UiPickerAction[]>(() => {
 		const taken = new Set(members().map(member => member.userId));
 		return following()
 			.filter(friend => !taken.has(friend.id))

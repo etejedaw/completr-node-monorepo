@@ -18,10 +18,10 @@ import { debounceTime, of, Subject, switchMap } from "rxjs";
 
 import { GlobalSearchService } from "../../core/services/global-search";
 import { type SearchResults } from "../../core/services/global-search.model";
-import { ChipGroup } from "../../shared/components/chip-group/chip-group";
-import { type ChipOption } from "../../shared/components/chip-group/chip-group.model";
 import {
 	UiButton,
+	UiChipGroup,
+	type UiChipOption,
 	UiEyebrow,
 	UiFocusTrap,
 	UiIconButton
@@ -40,7 +40,7 @@ import {
 const MIN_QUERY_LENGTH = 2;
 const SEARCH_DEBOUNCE_MS = 250;
 
-const SCOPE_OPTIONS: readonly ChipOption[] = [
+const SCOPE_OPTIONS: readonly UiChipOption[] = [
 	{ value: "all", label: "All" },
 	{ value: "library", label: "My library", icon: "list_alt" },
 	{ value: "games", label: "Games", icon: "sports_esports" },
@@ -63,7 +63,7 @@ function isScope(value: string | undefined): value is SearchPaletteScope {
 @Component({
 	selector: "app-search-palette",
 	imports: [
-		ChipGroup,
+		UiChipGroup,
 		RouterLink,
 		SearchPaletteOption,
 		UiButton,

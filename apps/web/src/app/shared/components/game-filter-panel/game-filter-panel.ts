@@ -7,19 +7,18 @@ import {
 } from "@angular/core";
 
 import { type Genre, type Platform } from "../../../core/models";
-import { ChipGroup } from "../chip-group/chip-group";
-import { type ChipOption } from "../chip-group/chip-group.model";
+import { UiChipGroup, type UiChipOption } from "../../ui";
 import { FilterSection } from "../filter-section/filter-section";
 import { RangeInputs } from "../range-inputs/range-inputs";
 
 @Component({
 	selector: "app-game-filter-panel",
-	imports: [ChipGroup, FilterSection, RangeInputs],
+	imports: [UiChipGroup, FilterSection, RangeInputs],
 	template: `
 		<div class="flex flex-col gap-6">
 			@if (genreOptions().length > 0) {
 				<app-filter-section label="Genres">
-					<app-chip-group
+					<ui-chip-group
 						[options]="genreOptions()"
 						[value]="genreValues()"
 						(valueChange)="selectedGenres.set(asSet($event))"
@@ -29,7 +28,7 @@ import { RangeInputs } from "../range-inputs/range-inputs";
 
 			@if (platformOptions().length > 0) {
 				<app-filter-section label="Platforms">
-					<app-chip-group
+					<ui-chip-group
 						[options]="platformOptions()"
 						[value]="platformValues()"
 						(valueChange)="selectedPlatforms.set(asSet($event))"
@@ -63,13 +62,13 @@ export class GameFilterPanel {
 	readonly yearFrom = model<number | null>(null);
 	readonly yearTo = model<number | null>(null);
 
-	protected readonly genreOptions = computed<ChipOption[]>(() =>
+	protected readonly genreOptions = computed<UiChipOption[]>(() =>
 		this.allGenres().map(genre => ({
 			value: genre.code,
 			label: genre.name
 		}))
 	);
-	protected readonly platformOptions = computed<ChipOption[]>(() =>
+	protected readonly platformOptions = computed<UiChipOption[]>(() =>
 		this.allPlatforms().map(platform => ({
 			value: platform.code,
 			label: platform.abbreviation

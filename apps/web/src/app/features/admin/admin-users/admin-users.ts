@@ -16,12 +16,12 @@ import { debounceTime, Subject, type Subscription } from "rxjs";
 import { avatarRing, isPremiumRole } from "../../../core/utils/premium";
 import { elevatedRoleBadge } from "../../../core/utils/role-badge";
 import { type RoleBadge } from "../../../core/utils/role-badge.model";
-import { ActionMenu } from "../../../shared/components/action-menu/action-menu";
-import { type ActionMenuItem } from "../../../shared/components/action-menu/action-menu.model";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import {
+	UiActionMenu,
+	type UiActionMenuItem,
 	UiAlert,
 	UiAvatar,
 	UiBadge,
@@ -61,7 +61,7 @@ const USER_ROLE_BADGE: RoleBadge = {
 	selector: "app-admin-users",
 	imports: [
 		PageSearch,
-		ActionMenu,
+		UiActionMenu,
 		AdminAccountDeletionDialog,
 		AdminDataRequests,
 		AdminInvitations,
@@ -240,8 +240,8 @@ export class AdminUsers implements OnInit {
 		}
 	}
 
-	private dataActionItems(user: AdminUser): ActionMenuItem[] {
-		const items: ActionMenuItem[] = [
+	private dataActionItems(user: AdminUser): UiActionMenuItem[] {
+		const items: UiActionMenuItem[] = [
 			{
 				id: "download-data",
 				label: "Download data",
@@ -275,7 +275,7 @@ export class AdminUsers implements OnInit {
 		this.loadUsers();
 	}
 
-	private actionsFor(user: AdminUser): ActionMenuItem[] {
+	private actionsFor(user: AdminUser): UiActionMenuItem[] {
 		return [
 			{ id: "edit", label: "Edit user", icon: "edit" },
 			{

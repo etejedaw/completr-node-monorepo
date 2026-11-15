@@ -16,8 +16,6 @@ import { ToastService } from "../../../core/services/toast";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../shared/components/option-picker/option-picker.model";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
@@ -30,7 +28,9 @@ import {
 	UiFieldOptional,
 	UiInput,
 	UiNoMatches,
+	UiOptionPicker,
 	UiPagination,
+	type UiPickerOption,
 	UiPremiumBadge,
 	UiSkeleton,
 	UiSwatchButton,
@@ -65,7 +65,7 @@ function isFeatured(view: SavedFilter): boolean {
 	return view.isDefault || view.showInBacklog;
 }
 
-const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: SortMode })[] = [
+const SORT_PICKER_OPTIONS: readonly (UiPickerOption & { value: SortMode })[] = [
 	{ value: "name_asc", label: "Name (A–Z)", icon: "sort_by_alpha" },
 	{ value: "name_desc", label: "Name (Z–A)", icon: "sort_by_alpha" },
 	{ value: "created_desc", label: "Recently created", icon: "schedule" },
@@ -83,7 +83,7 @@ const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: SortMode })[] = [
 		RouterLink,
 		LibraryHero,
 		LibraryToolbar,
-		OptionPicker,
+		UiOptionPicker,
 		SavedViewCard,
 		UiButton,
 		UiEmptyState,

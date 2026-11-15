@@ -10,11 +10,11 @@ import { form, FormField, maxLength, required } from "@angular/forms/signals";
 import { injectDialogRef } from "ng-primitives/dialog";
 
 import { ScoreSourcesService } from "../../../core/services/score-sources";
-import { ChipGroup } from "../../../shared/components/chip-group/chip-group";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import {
 	UiAlert,
 	UiButton,
+	UiChipGroup,
 	UiDescription,
 	UiDialog,
 	UiFieldError,
@@ -48,7 +48,7 @@ const DURATION_SOURCES: readonly SourceOption[] = [
 		UiAlert,
 		UiFieldLabel,
 		UiFieldOptional,
-		ChipGroup,
+		UiChipGroup,
 		DialogDeleteAction,
 		FormField,
 		UiButton,

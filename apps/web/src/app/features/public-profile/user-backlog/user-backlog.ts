@@ -20,12 +20,12 @@ import { BacklogStatusPills } from "../../../shared/components/backlog-status-pi
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { profileBackLink } from "../../../shared/components/library-hero/library-hero-back-link";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
 import { type ViewModeOption } from "../../../shared/components/view-mode-toggle/view-mode-toggle.model";
 import {
 	UiButton,
+	UiOptionPicker,
 	UiPagination,
 	UiPlainEmptyState,
 	UiSkeleton
@@ -113,7 +113,7 @@ function defaultSortForStatus(status: string): {
 		PageSearch,
 		BacklogTable,
 		ViewModeToggle,
-		OptionPicker,
+		UiOptionPicker,
 		BacklogEntryCard,
 		BacklogStatusPills,
 		LibraryHero,

@@ -14,13 +14,16 @@ import { NgpListbox, NgpListboxOption } from "ng-primitives/listbox";
 import { NgpPopover, NgpPopoverTrigger } from "ng-primitives/popover";
 
 import { ViewportService } from "../../../core/services/viewport";
-import { UiBottomSheet, UiButton, UiEyebrow, UiInput } from "../../ui";
-import { type PickerOption } from "./option-picker.model";
+import { UiBottomSheet } from "../bottom-sheet/ui-bottom-sheet";
+import { UiButton } from "../button/ui-button";
+import { UiInput } from "../input/ui-input";
+import { UiEyebrow } from "../label/ui-eyebrow";
+import { type UiPickerOption } from "./ui-option-picker.model";
 
 const MAX_NAMED_OPTIONS = 3;
 
 @Component({
-	selector: "app-multi-option-picker",
+	selector: "ui-multi-option-picker",
 	imports: [
 		UiEyebrow,
 		NgTemplateOutlet,
@@ -32,14 +35,14 @@ const MAX_NAMED_OPTIONS = 3;
 		UiButton,
 		UiInput
 	],
-	templateUrl: "./multi-option-picker.html",
+	templateUrl: "./ui-multi-option-picker.html",
 	host: { class: "block min-w-0" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MultiOptionPicker {
+export class UiMultiOptionPicker {
 	readonly label = input.required<string>();
 	readonly heading = input.required<string>();
-	readonly options = input.required<readonly PickerOption[]>();
+	readonly options = input.required<readonly UiPickerOption[]>();
 	readonly values = model<readonly string[]>([]);
 	readonly placeholder = input("None");
 	readonly placeholderIcon = input("tune");

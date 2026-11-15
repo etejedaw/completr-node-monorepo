@@ -11,8 +11,7 @@ import { map, of } from "rxjs";
 import { AuthService } from "../../../core/services/auth";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
-import { SegmentedControl } from "../../../shared/components/segmented-control/segmented-control";
-import { UiButton, UiEmptyState } from "../../../shared/ui";
+import { UiButton, UiEmptyState, UiSegmentedControl } from "../../../shared/ui";
 import { ProfileCollectionPage } from "../components/profile-collection-page";
 import { COMPARISON_OPTIONS } from "../services/comparison-options";
 import { injectPublicCollection } from "../services/public-collection";
@@ -45,7 +44,7 @@ function parseDimension(value: string | null): ComparisonDimension {
 		ProfileCollectionPage,
 		CoverGrid,
 		GameCoverCard,
-		SegmentedControl,
+		UiSegmentedControl,
 		UiButton,
 		UiEmptyState
 	],

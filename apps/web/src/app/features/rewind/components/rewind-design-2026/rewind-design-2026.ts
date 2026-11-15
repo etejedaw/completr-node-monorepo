@@ -8,13 +8,13 @@ import {
 } from "@angular/core";
 
 import { type Rewind } from "../../../../core/models/rewind.model";
-import { OptionPicker } from "../../../../shared/components/option-picker/option-picker";
-import { type PickerOption } from "../../../../shared/components/option-picker/option-picker.model";
 import { ProfileBackdrop } from "../../../../shared/components/profile-backdrop/profile-backdrop";
 import {
 	UiButton,
 	UiDialog,
 	UiEyebrow,
+	UiOptionPicker,
+	type UiPickerOption,
 	UiSkeleton
 } from "../../../../shared/ui";
 import { ProfileSectionHeader } from "../../../public-profile/components/profile-section-header";
@@ -55,7 +55,7 @@ function backdropOf(rewind: Rewind): string | null {
 @Component({
 	selector: "app-rewind-design-2026",
 	imports: [
-		OptionPicker,
+		UiOptionPicker,
 		ProfileBackdrop,
 		ProfileSectionHeader,
 		RewindAiRecap,
@@ -120,7 +120,7 @@ export class RewindDesign2026 implements RewindDesignComponent {
 
 	protected readonly backdropUrl = computed(() => backdropOf(this.rewind()));
 
-	protected readonly yearOptions = computed<PickerOption[]>(() => {
+	protected readonly yearOptions = computed<UiPickerOption[]>(() => {
 		const rewind = this.rewind();
 		return [rewind.year, ...rewind.otherYears]
 			.sort((a, b) => b - a)

@@ -28,7 +28,6 @@ import {
 	PASSWORD_MIN_LENGTH
 } from "../../../core/utils/password-policy";
 import { isPremiumRole } from "../../../core/utils/premium";
-import { OptionPicker } from "../../../shared/components/option-picker/option-picker";
 import {
 	UiAlert,
 	UiButton,
@@ -41,6 +40,7 @@ import {
 	UiIconButton,
 	UiInput,
 	UiLabel,
+	UiOptionPicker,
 	UiSwitch
 } from "../../../shared/ui";
 import { fieldErrorsFromResponse } from "../../../shared/utils/validation-errors";
@@ -69,7 +69,7 @@ const EDIT_FIELDS = ["name", "password"] as const;
 	selector: "app-admin-user-edit-dialog",
 	imports: [
 		FormField,
-		OptionPicker,
+		UiOptionPicker,
 		RouterLink,
 		UiAlert,
 		UiButton,
