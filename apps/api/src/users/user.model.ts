@@ -27,6 +27,7 @@ class User extends Model {
 	declare platinumVisibility: VisibilityLevel;
 	declare franchiseVisibility: VisibilityLevel;
 	declare rewindVisibility: VisibilityLevel;
+	declare rewindIgnoresProfileVisibility: boolean;
 	declare acceptFollowRequests: boolean;
 	declare theme: string;
 	declare isActive: boolean;
@@ -81,6 +82,11 @@ User.init(
 		platinumVisibility: visibilityField(),
 		franchiseVisibility: visibilityField(),
 		rewindVisibility: visibilityField(),
+		rewindIgnoresProfileVisibility: {
+			type: DataTypes.BOOLEAN,
+			allowNull: false,
+			defaultValue: false
+		},
 		acceptFollowRequests: {
 			type: DataTypes.BOOLEAN,
 			allowNull: false,

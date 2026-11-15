@@ -43,6 +43,7 @@ export function userMeSerializer(
 		platinumVisibility: user.platinumVisibility,
 		franchiseVisibility: user.franchiseVisibility,
 		rewindVisibility: user.rewindVisibility,
+		rewindIgnoresProfileVisibility: user.rewindIgnoresProfileVisibility,
 		acceptFollowRequests: user.acceptFollowRequests,
 		theme: user.theme,
 		createdAt: user.createdAt
