@@ -1,5 +1,11 @@
 import { HttpClient } from "@angular/common/http";
-import { computed, inject, Injectable, signal } from "@angular/core";
+import {
+	computed,
+	DestroyRef,
+	inject,
+	Injectable,
+	signal
+} from "@angular/core";
 import { Router } from "@angular/router";
 import { firstValueFrom, from, map, type Observable, tap } from "rxjs";
 
@@ -31,8 +37,9 @@ export class AuthService {
 
 	private readonly _user = signal<User | null>(null);
 	readonly user = this._user.asReadonly();
+	private readonly accessToken = signal(this.storage.get(TOKEN_KEY));
 	readonly isLoggedIn = computed(
-		() => this._user() !== null || this.storage.get(TOKEN_KEY) !== null
+		() => this._user() !== null || this.accessToken() !== null
 	);
 	readonly isPremium = computed(
 		() => this._user()?.premiumAccess?.active ?? false
@@ -40,6 +47,22 @@ export class AuthService {
 	private readonly premiumFeatures = computed(
 		() => new Set(this._user()?.premiumFeatures ?? [])
 	);
+
+	constructor() {
+		this.followTokenChangesFromOtherTabs();
+	}
+
+	private followTokenChangesFromOtherTabs() {
+		if (typeof window === "undefined") return;
+		const syncAccessToken = (event: StorageEvent) => {
+			if (event.key !== TOKEN_KEY && event.key !== null) return;
+			this.accessToken.set(this.storage.get(TOKEN_KEY));
+		};
+		window.addEventListener("storage", syncAccessToken);
+		inject(DestroyRef).onDestroy(() =>
+			window.removeEventListener("storage", syncAccessToken)
+		);
+	}
 
 	hasPremiumFeature(feature: PremiumFeature): boolean {
 		return this.isPremium() || this.premiumFeatures().has(feature);
@@ -156,6 +179,7 @@ export class AuthService {
 	clearSession() {
 		this.storage.remove(TOKEN_KEY);
 		this.storage.remove(SESSION_ID_KEY);
+		this.accessToken.set(null);
 		this._user.set(null);
 		this.router.navigate(["/login"]);
 	}
@@ -194,5 +218,6 @@ export class AuthService {
 	private saveTokens(res: AuthResponse) {
 		this.storage.set(TOKEN_KEY, res.data.access_token);
 		this.storage.set(SESSION_ID_KEY, res.data.session_id);
+		this.accessToken.set(res.data.access_token);
 	}
 }

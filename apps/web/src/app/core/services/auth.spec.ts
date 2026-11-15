@@ -181,10 +181,76 @@ describe("AuthService", () => {
 			expect(service.token()).toBe("old");
 		});
 
-		it("reports logged in when a token is stored even without a loaded user", () => {
+		it("reports logged in when another tab stores a token even without a loaded user", () => {
 			localStorage.setItem("access_token", "t");
+			window.dispatchEvent(
+				new StorageEvent("storage", {
+					key: "access_token",
+					newValue: "t"
+				})
+			);
 
 			expect(service.isLoggedIn()).toBe(true);
+		});
+	});
+
+	describe("isLoggedIn", () => {
+		function freshService() {
+			return TestBed.runInInjectionContext(() => new AuthService());
+		}
+
+		it("starts logged in when a token was stored before the app loaded", () => {
+			localStorage.setItem("access_token", "t");
+
+			expect(freshService().isLoggedIn()).toBe(true);
+		});
+
+		it("turns true after login and false after clearing the session", () => {
+			service.login({ email: "a@b.c", password: "pw" }).subscribe();
+			httpTesting.expectOne(`${api}/auth/login`).flush(authResponse);
+			expect(service.isLoggedIn()).toBe(true);
+
+			service.clearSession();
+
+			expect(service.isLoggedIn()).toBe(false);
+		});
+
+		it("turns false when the session is cleared before the user ever loaded", () => {
+			localStorage.setItem("access_token", "t");
+			const auth = freshService();
+			auth.loadUser().subscribe({ error: vi.fn() });
+			expect(auth.isLoggedIn()).toBe(true);
+
+			auth.clearSession();
+			httpTesting
+				.expectOne(`${api}/users/me`)
+				.flush(null, { status: 401, statusText: "Unauthorized" });
+
+			expect(auth.isLoggedIn()).toBe(false);
+		});
+
+		it("follows another tab that logs out or logs in again", () => {
+			localStorage.setItem("access_token", "t");
+			const auth = freshService();
+
+			localStorage.removeItem("access_token");
+			window.dispatchEvent(
+				new StorageEvent("storage", { key: "access_token" })
+			);
+			expect(auth.isLoggedIn()).toBe(false);
+
+			localStorage.setItem("access_token", "other");
+			window.dispatchEvent(new StorageEvent("storage", { key: null }));
+			expect(auth.isLoggedIn()).toBe(true);
+		});
+
+		it("ignores storage changes to unrelated keys", () => {
+			const auth = freshService();
+			localStorage.setItem("access_token", "t");
+
+			window.dispatchEvent(new StorageEvent("storage", { key: "theme" }));
+
+			expect(auth.isLoggedIn()).toBe(false);
 		});
 	});
 
