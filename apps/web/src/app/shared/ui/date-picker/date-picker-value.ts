@@ -1,5 +1,15 @@
 export type UiDatePickerMode = "date" | "datetime";
 
+export const CALENDAR_WEEKDAYS = [
+	{ short: "S", full: "Sunday" },
+	{ short: "M", full: "Monday" },
+	{ short: "T", full: "Tuesday" },
+	{ short: "W", full: "Wednesday" },
+	{ short: "T", full: "Thursday" },
+	{ short: "F", full: "Friday" },
+	{ short: "S", full: "Saturday" }
+] as const;
+
 // 2026-11-03
 const DATE_VALUE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 // 2026-11-03T14:30, with optional seconds and fraction
@@ -89,6 +99,11 @@ export function formatDateDisplay(date: Date, mode: UiDatePickerMode) {
 
 export function formatDayLabel(date: Date) {
 	return DAY_LABEL.format(date);
+}
+
+export function formatCalendarDayLabel(date: Date) {
+	const today = isSameDay(date, new Date()) ? ", today" : "";
+	return formatDayLabel(date) + today;
 }
 
 export function formatMonthLabel(date: Date) {

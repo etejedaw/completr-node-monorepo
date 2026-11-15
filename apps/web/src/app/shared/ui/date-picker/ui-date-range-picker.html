@@ -1,0 +1,77 @@
+<button
+	type="button"
+	class="ui-input w-full flex items-center gap-2.5 text-left cursor-pointer data-[open]:border-brand aria-invalid:!border-danger disabled:cursor-not-allowed disabled:opacity-50"
+	[ngpPopoverTrigger]="popover"
+	[ngpPopoverTriggerDisabled]="opening.isMobile() || disabled()"
+	ngpPopoverTriggerPlacement="bottom-start"
+	[ngpPopoverTriggerOffset]="6"
+	(ngpPopoverTriggerOpenChange)="opening.changePopover($event)"
+	aria-haspopup="dialog"
+	[attr.aria-expanded]="opening.isOpen()"
+	[attr.aria-label]="triggerLabel()"
+	[attr.aria-invalid]="invalid() || null"
+	[attr.aria-describedby]="describedBy()"
+	[attr.id]="triggerId()"
+	[attr.data-open]="opening.isOpen() ? '' : null"
+	[disabled]="disabled()"
+	(click)="opening.openSheet()"
+>
+	<span
+		aria-hidden="true"
+		class="material-icons shrink-0 text-lg text-fg-muted"
+		>date_range</span
+	>
+	<span
+		class="flex-1 min-w-0 truncate tabular-nums"
+		[class.text-fg]="displayText()"
+		[class.text-fg-muted]="!displayText()"
+		>{{ displayText() ?? placeholderText() }}</span
+	>
+	<span aria-hidden="true" class="material-icons shrink-0 text-fg-muted"
+		>expand_more</span
+	>
+</button>
+
+<ng-template #popover>
+	<div
+		ngpPopover
+		role="dialog"
+		[attr.aria-label]="sheetHeading()"
+		class="fixed z-[1010] w-[23rem] max-w-[calc(100vw-2rem)] p-3 bg-sidebar border border-line rounded-card shadow-popover outline-none data-[enter]:animate-[uiFadeUp_140ms_ease-out]"
+	>
+		<ng-container *ngTemplateOutlet="calendar" />
+	</div>
+</ng-template>
+
+@if (opening.sheetOpen()) {
+<ui-bottom-sheet [heading]="sheetHeading()" (closed)="opening.closeSheet()">
+	<div class="px-2 pb-1">
+		<ng-container *ngTemplateOutlet="calendar" />
+	</div>
+</ui-bottom-sheet>
+}
+
+<ng-template #calendar>
+	<div
+		ngpDateRangePicker
+		uiDatePickerInitialFocus
+		class="flex flex-col gap-3"
+		[ngpDateRangePickerStartDate]="draftStart()"
+		[ngpDateRangePickerEndDate]="draftEnd()"
+		[ngpDateRangePickerMin]="minDay()"
+		[ngpDateRangePickerMax]="maxDay()"
+		[ngpDateRangePickerFocusedDate]="focusedDay()"
+		(ngpDateRangePickerFocusedDateChange)="onFocusedDayChange($event)"
+		(ngpDateRangePickerStartDateChange)="pickRangeStart($event)"
+		(ngpDateRangePickerEndDateChange)="pickRangeEnd($event)"
+	>
+		<ui-calendar-panel [focusedDay]="focusedDay()" />
+
+		<p
+			aria-live="polite"
+			class="m-0 pt-3 border-t border-line text-[0.8125rem] text-fg-secondary tabular-nums"
+		>
+			{{ progressText() }}
+		</p>
+	</div>
+</ng-template>

@@ -5,19 +5,19 @@
 		class="ui-input w-full flex items-center gap-2.5 text-left cursor-pointer data-[open]:border-brand aria-invalid:!border-danger disabled:cursor-not-allowed disabled:opacity-50"
 		[class.pr-12]="canClear()"
 		[ngpPopoverTrigger]="popover"
-		[ngpPopoverTriggerDisabled]="isMobile() || disabled()"
+		[ngpPopoverTriggerDisabled]="opening.isMobile() || disabled()"
 		ngpPopoverTriggerPlacement="bottom-start"
 		[ngpPopoverTriggerOffset]="6"
-		(ngpPopoverTriggerOpenChange)="onPopoverOpenChange($event)"
+		(ngpPopoverTriggerOpenChange)="opening.changePopover($event)"
 		aria-haspopup="dialog"
-		[attr.aria-expanded]="isOpen()"
+		[attr.aria-expanded]="opening.isOpen()"
 		[attr.aria-label]="triggerLabel()"
 		[attr.aria-invalid]="showInvalid() || null"
 		[attr.aria-describedby]="describedBy()"
 		[attr.id]="triggerId()"
-		[attr.data-open]="isOpen() ? '' : null"
+		[attr.data-open]="opening.isOpen() ? '' : null"
 		[disabled]="disabled()"
-		(click)="openSheet()"
+		(click)="opening.openSheet()"
 	>
 		<span
 			aria-hidden="true"
@@ -60,8 +60,8 @@
 	</div>
 </ng-template>
 
-@if (sheetOpen()) {
-<ui-bottom-sheet [heading]="sheetHeading()" (closed)="closeSheet()">
+@if (opening.sheetOpen()) {
+<ui-bottom-sheet [heading]="sheetHeading()" (closed)="opening.closeSheet()">
 	<div class="px-2 pb-1">
 		<ng-container *ngTemplateOutlet="calendar" />
 	</div>
@@ -80,72 +80,7 @@
 		(ngpDatePickerFocusedDateChange)="onFocusedDayChange($event)"
 		(ngpDatePickerDateChange)="onDayPicked($event)"
 	>
-		<div class="flex items-center gap-2">
-			<button
-				uiIconButton
-				size="lg"
-				type="button"
-				ngpDatePickerPreviousMonth
-				aria-label="Previous month"
-			>
-				<span aria-hidden="true" class="material-icons"
-					>chevron_left</span
-				>
-			</button>
-			<h2
-				ngpDatePickerLabel
-				[id]="gridLabelId"
-				class="m-0 flex-1 text-center font-display text-base font-semibold text-fg"
-			>
-				{{ monthLabel() }}
-			</h2>
-			<button
-				uiIconButton
-				size="lg"
-				type="button"
-				ngpDatePickerNextMonth
-				aria-label="Next month"
-			>
-				<span aria-hidden="true" class="material-icons"
-					>chevron_right</span
-				>
-			</button>
-		</div>
-
-		<table ngpDatePickerGrid class="w-full border-collapse table-fixed">
-			<thead>
-				<tr>
-					@for (weekday of weekdays; track $index) {
-					<th
-						scope="col"
-						[attr.abbr]="weekday.full"
-						class="h-8 p-0 text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-fg-muted"
-					>
-						{{ weekday.short }}
-					</th>
-					}
-				</tr>
-			</thead>
-			<tbody>
-				<tr *ngpDatePickerRowRender>
-					<td
-						*ngpDatePickerCellRender="let date"
-						ngpDatePickerCell
-						class="p-0.5 text-center"
-					>
-						<button
-							ngpDatePickerDateButton
-							data-day
-							type="button"
-							[attr.aria-label]="dayLabel(date)"
-							class="mx-auto flex size-[40px] tap:size-[44px] max-sm:size-[44px] items-center justify-center rounded-card border border-transparent bg-transparent text-sm tabular-nums text-fg-secondary cursor-pointer outline-none transition hover:bg-surface-hover hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand data-[outside-month]:text-fg-muted data-[today]:border-line-hover data-[today]:font-semibold data-[today]:text-fg data-[selected]:!border-brand data-[selected]:!bg-brand-solid data-[selected]:font-semibold data-[selected]:!text-white disabled:cursor-not-allowed disabled:opacity-35 disabled:line-through disabled:hover:bg-transparent disabled:hover:text-fg-secondary"
-						>
-							{{ date.getDate() }}
-						</button>
-					</td>
-				</tr>
-			</tbody>
-		</table>
+		<ui-calendar-panel [focusedDay]="focusedDay()" />
 
 		@if (isDateTime()) {
 		<div

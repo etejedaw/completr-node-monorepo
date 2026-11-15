@@ -13,6 +13,7 @@ export { UiCheckbox } from "./checkbox/ui-checkbox";
 export { UiCountBadge } from "./count-badge/ui-count-badge";
 export type { UiDatePickerMode } from "./date-picker/ui-date-picker";
 export { UiDatePicker } from "./date-picker/ui-date-picker";
+export { UiDateRangePicker } from "./date-picker/ui-date-range-picker";
 export type { UiDialogSize, UiDialogTone } from "./dialog/ui-dialog";
 export { UiDialog } from "./dialog/ui-dialog";
 export { UiDrawer } from "./drawer/ui-drawer";
