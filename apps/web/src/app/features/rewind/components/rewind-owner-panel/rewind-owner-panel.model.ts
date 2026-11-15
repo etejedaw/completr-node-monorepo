@@ -12,7 +12,6 @@ export interface RewindOwnerPanelCopy {
 	aiPerk: string;
 	aiLeft: (count: number) => string;
 	aiGraceExtra: (date: string) => string;
-	aiNeedsAccess: string;
 	aiOutsideSeason: string;
 	thisVersion: string;
 	writtenIn: string;

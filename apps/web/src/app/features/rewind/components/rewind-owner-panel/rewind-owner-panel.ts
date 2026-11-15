@@ -125,16 +125,10 @@ export class RewindOwnerPanel {
 				]
 			: null;
 	});
-	protected readonly aiTile = computed<RewindOwnerAiTile>(() => {
+	protected readonly aiTile = computed<RewindOwnerAiTile | null>(() => {
+		if (!this.rewind().premiumAccess?.allowed) return null;
 		const copy = this.copy();
-		const state = this.panelState();
-		if (state === "open-without-ai")
-			return {
-				value: AI_TILE_EMPTY_VALUE,
-				detail: copy.aiNeedsAccess,
-				spokenSummary: [`${copy.aiGenerations}: ${copy.aiNeedsAccess}`]
-			};
-		if (state !== "open-with-ai")
+		if (this.panelState() !== "open-with-ai")
 			return {
 				value: AI_TILE_EMPTY_VALUE,
 				detail: copy.aiOutsideSeason,
@@ -158,6 +152,11 @@ export class RewindOwnerPanel {
 				: [copy.regenerationsLeft(left)]
 		};
 	});
+	protected readonly tileColumnsClass = computed(() =>
+		this.aiTile()
+			? "grid-cols-2 sm:grid-cols-3"
+			: "grid-cols-1 sm:grid-cols-2"
+	);
 	protected readonly notice = computed(() => {
 		const block = this.rewind().ownerControls?.regenerationBlockedBy;
 		if (block && !REGENERATION_BLOCKS_SHOWN_ELSEWHERE.includes(block))

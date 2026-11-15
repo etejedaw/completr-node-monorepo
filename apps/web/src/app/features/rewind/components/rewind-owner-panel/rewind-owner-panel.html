@@ -29,7 +29,8 @@
 	}
 
 	<ul
-		class="m-0 grid list-none grid-cols-2 gap-px overflow-hidden rounded-card border border-line bg-line p-0 sm:col-span-2 sm:grid-cols-3"
+		class="m-0 grid list-none gap-px overflow-hidden rounded-card border border-line bg-line p-0 sm:col-span-2"
+		[class]="tileColumnsClass()"
 	>
 		@let season = seasonTile();
 		<li
@@ -57,7 +58,7 @@
 			}
 		</li>
 
-		@let ai = aiTile(); @let premiumLabel = aiPremiumLabel();
+		@if (aiTile(); as ai) { @let premiumLabel = aiPremiumLabel();
 		<li
 			class="row-span-3 grid min-w-0 grid-rows-subgrid content-start items-start gap-y-1.5 p-4"
 			[class]="premiumLabel ? premiumTileClass : 'bg-surface'"
@@ -89,9 +90,11 @@
 			<span class="sr-only">{{ sentence }}</span>
 			}
 		</li>
+		}
 
 		<li
-			class="col-span-2 row-span-3 grid min-w-0 grid-rows-subgrid content-start items-start gap-y-1.5 bg-surface p-4 sm:col-span-1"
+			class="row-span-3 grid min-w-0 grid-rows-subgrid content-start items-start gap-y-1.5 bg-surface p-4 sm:col-span-1"
+			[class.col-span-2]="aiTile() !== null"
 		>
 			<span uiEyebrow>{{ copy().thisVersion }}</span>
 			<span
