@@ -23,13 +23,6 @@ export function notFoundError() {
 	});
 }
 
-export function forbiddenError() {
-	return new ServiceError("GAME_SHELF_FORBIDDEN", {
-		...BASE_OPTIONS,
-		raw: undefined
-	});
-}
-
 export function limitReachedError() {
 	return new ServiceError("GAME_SHELF_LIMIT_REACHED", {
 		...BASE_OPTIONS,

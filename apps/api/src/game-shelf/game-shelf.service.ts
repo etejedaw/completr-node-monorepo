@@ -19,6 +19,7 @@ import { resolvePremiumAccess } from "../premium-access/premium-access.service";
 import { type RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
 import { type UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import * as gameShelfServiceError from "./errors/game-shelf.service-error";
+import { FREE_SHELF_LIMIT, SHELF_ORDER } from "./game-shelf.constants";
 import { GameShelf } from "./game-shelf.model";
 
 const GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
@@ -32,12 +33,40 @@ const PLATFORM_ATTRS = [
 	"releaseAt"
 ];
 
-const FREE_SHELF_LIMIT = 250;
-
 const shelfInclude = [
 	{ model: Game, attributes: GAME_ATTRS },
 	{ model: Platform, attributes: PLATFORM_ATTRS }
 ];
+
+async function lockUserShelf(userId: string, transaction: Transaction) {
+	await sequelize.query("SELECT pg_advisory_xact_lock(hashtext(:lockKey))", {
+		replacements: { lockKey: `game-shelf:${userId}` },
+		transaction
+	});
+}
+
+async function createShelfEntry(
+	user: RequestUser,
+	registerGameShelfDto: RegisterGameShelfDto,
+	unlimited: boolean,
+	transaction: Transaction
+) {
+	await lockUserShelf(user.id, transaction);
+
+	if (!unlimited) {
+		const count = await GameShelf.count({
+			where: { userId: user.id },
+			transaction
+		});
+		if (count >= FREE_SHELF_LIMIT)
+			throw gameShelfServiceError.limitReachedError();
+	}
+
+	return GameShelf.create(
+		{ ...registerGameShelfDto, userId: user.id },
+		{ transaction }
+	);
+}
 
 export async function registerGameShelf(
 	user: RequestUser,
@@ -48,22 +77,22 @@ export async function registerGameShelf(
 		user,
 		"game-shelf.unlimited"
 	);
-	if (!premiumAccess.allowed) {
-		const count = await GameShelf.count({
-			where: { userId: user.id },
-			transaction
-		});
-		if (count >= FREE_SHELF_LIMIT)
-			throw gameShelfServiceError.limitReachedError();
-	}
 
 	try {
-		return await GameShelf.create(
-			{
-				...registerGameShelfDto,
-				userId: user.id
-			},
-			{ transaction }
+		if (transaction)
+			return await createShelfEntry(
+				user,
+				registerGameShelfDto,
+				premiumAccess.allowed,
+				transaction
+			);
+		return await sequelize.transaction(shelfTransaction =>
+			createShelfEntry(
+				user,
+				registerGameShelfDto,
+				premiumAccess.allowed,
+				shelfTransaction
+			)
 		);
 	} catch (error) {
 		rethrowSequelizeError(error, {
@@ -86,15 +115,8 @@ export async function existsGameShelfEntry(
 	return count > 0;
 }
 
-export async function findGameShelfById(id: string) {
+async function findGameShelfById(id: string) {
 	return await GameShelf.findOne({ where: { id } });
-}
-
-export async function findGameShelfByUserId(userId: string) {
-	return await GameShelf.findAll({
-		where: { userId },
-		include: shelfInclude
-	});
 }
 
 export async function findGameEntriesByUserId(
@@ -138,6 +160,7 @@ export async function findGameShelfByUserIdPaginated(
 	const query: Record<string, unknown> = {
 		where: { userId },
 		include: [gameInclude, { model: Platform, attributes: PLATFORM_ATTRS }],
+		order: SHELF_ORDER,
 		distinct: true
 	};
 	if (pagination.limit) query.limit = pagination.limit;
@@ -154,6 +177,7 @@ export async function findPublicGameShelfByUserId(
 	const query: Record<string, unknown> = {
 		where: { userId, isPublic: true },
 		include: shelfInclude,
+		order: SHELF_ORDER,
 		distinct: true
 	};
 	if (pagination.limit) query.limit = pagination.limit;
@@ -169,9 +193,8 @@ export async function updateGameShelf(
 	updateGameShelfDto: UpdateGameShelfDto
 ) {
 	const gameShelf = await findGameShelfById(id);
-	if (!gameShelf) throw gameShelfServiceError.notFoundError();
-	if (gameShelf.userId !== userId)
-		throw gameShelfServiceError.forbiddenError();
+	if (!gameShelf || gameShelf.userId !== userId)
+		throw gameShelfServiceError.notFoundError();
 
 	await gameShelf.update(updateGameShelfDto);
 	return gameShelf;
@@ -238,7 +261,8 @@ export async function findGameShelfForExport(
 		],
 		order: [
 			[Game, "title", "ASC"],
-			["createdAt", "ASC"]
+			["createdAt", "ASC"],
+			["id", "ASC"]
 		]
 	});
 }

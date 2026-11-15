@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, it, mock } from "node:test";
 
 import { UniqueConstraintError, ValidationError } from "sequelize";
 
+import { sequelize } from "../../src/database/sequelize.database";
 import { GameShelf } from "../../src/game-shelf/game-shelf.model";
 import * as gameShelfService from "../../src/game-shelf/game-shelf.service";
 import { asModel } from "../unit-helpers/as-model";
@@ -10,7 +11,8 @@ import {
 	buildRequestUser,
 	captureRejection,
 	spy,
-	stub
+	stub,
+	stubTransaction
 } from "../unit-helpers/mocks";
 import { stubPremiumAccess } from "../unit-helpers/premium-access";
 
@@ -19,6 +21,8 @@ const dto = { gameId: "game-1", platformId: "platform-1" };
 
 beforeEach(() => {
 	stubPremiumAccess();
+	stub(sequelize, "query", async () => []);
+	stubTransaction();
 });
 
 function stubShelfEntry(userId: string) {
@@ -156,14 +160,14 @@ void describe("gameShelfService.updateGameShelf", () => {
 		assert.equal((error as { code: string }).code, "GAME_SHELF_NOT_FOUND");
 	});
 
-	void it("fails with GAME_SHELF_FORBIDDEN when the entry belongs to someone else", async () => {
+	void it("fails with GAME_SHELF_NOT_FOUND when the entry belongs to someone else", async () => {
 		const update = stubShelfEntry("owner");
 
 		const error = await captureRejection(
 			gameShelfService.updateGameShelf("gs-1", "intruder", { notes: "x" })
 		);
 
-		assert.equal((error as { code: string }).code, "GAME_SHELF_FORBIDDEN");
+		assert.equal((error as { code: string }).code, "GAME_SHELF_NOT_FOUND");
 		assert.equal(update.mock.callCount(), 0);
 	});
 
