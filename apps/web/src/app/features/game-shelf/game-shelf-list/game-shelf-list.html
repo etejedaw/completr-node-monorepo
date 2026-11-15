@@ -51,6 +51,7 @@
 	[limit]="limit"
 	[total]="total()"
 	(cleared)="clearSearchAndFilter()"
+	(retried)="loadShelf()"
 	(offsetChange)="onOffsetChange($event)"
 >
 	<ng-template appLibraryPageToolbar>

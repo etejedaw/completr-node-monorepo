@@ -17,6 +17,7 @@ import { AuthService } from "../../../core/services/auth";
 import { DialogService } from "../../../core/services/dialog";
 import { type ExportParams } from "../../../core/services/export";
 import { FavoritesService } from "../../../core/services/favorites";
+import { StorageService } from "../../../core/services/storage";
 import { BulkActionBar } from "../../../shared/components/bulk-action-bar/bulk-action-bar";
 import { type BulkAction } from "../../../shared/components/bulk-action-bar/bulk-action-bar.model";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
@@ -56,6 +57,7 @@ import { uniqueGameIds } from "../../../shared/utils/backlog-eligibility";
 import { countOf } from "../../../shared/utils/bulk-feedback";
 import { injectBulkRemoval } from "../../../shared/utils/bulk-removal";
 import { injectBulkRunner } from "../../../shared/utils/bulk-runner";
+import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { injectRowSelection } from "../../../shared/utils/row-selection";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
@@ -79,8 +81,8 @@ const VIEW_MODES: readonly ViewModeOption<ShelfViewMode>[] = [
 	{ value: "calendar", label: "Calendar", icon: "calendar_month" }
 ];
 
-function readStoredViewMode(): ShelfViewMode {
-	const saved = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+function readStoredViewMode(storage: StorageService): ShelfViewMode {
+	const saved = storage.get(VIEW_MODE_STORAGE_KEY);
 	return saved === "table" || saved === "calendar" ? saved : "grid";
 }
 
@@ -116,6 +118,8 @@ function readStoredViewMode(): ShelfViewMode {
 })
 export class GameShelfList implements OnInit {
 	private readonly destroyRef = inject(DestroyRef);
+	private readonly storage = inject(StorageService);
+	private readonly shelfLoader = injectLatestLoader();
 	private readonly shelfService = inject(GameShelfService);
 	private readonly favoritesService = inject(FavoritesService);
 	private readonly wishlistService = inject(WishlistService);
@@ -145,7 +149,9 @@ export class GameShelfList implements OnInit {
 		"Edition",
 		"Acquired"
 	];
-	protected readonly viewMode = signal<ShelfViewMode>(readStoredViewMode());
+	protected readonly viewMode = signal<ShelfViewMode>(
+		readStoredViewMode(this.storage)
+	);
 
 	protected readonly platformCounts = computed(() =>
 		countByPlatform(this.allEntries(), entry => entry.platform)
@@ -215,6 +221,7 @@ export class GameShelfList implements OnInit {
 	});
 	protected readonly pageState = computed<LibraryPageState>(() => {
 		if (this.isLoading()) return "loading";
+		if (this.shelfLoader.failed()) return "error";
 		if (this.entries().length > 0) return "ready";
 		return this.searchQuery().trim() || this.selectedPlatform()
 			? "no-matches"
@@ -228,9 +235,7 @@ export class GameShelfList implements OnInit {
 	);
 
 	constructor() {
-		effect(() =>
-			localStorage.setItem(VIEW_MODE_STORAGE_KEY, this.viewMode())
-		);
+		effect(() => this.storage.set(VIEW_MODE_STORAGE_KEY, this.viewMode()));
 	}
 
 	protected setViewMode(mode: ShelfViewMode) {
@@ -356,15 +361,15 @@ export class GameShelfList implements OnInit {
 		this.loadShelf();
 	}
 
-	private loadShelf() {
+	protected loadShelf() {
 		this.isLoading.set(true);
-		this.shelfService
-			.getMyShelf({
+		this.shelfLoader.load(
+			this.shelfService.getMyShelf({
 				limit: this.limit,
 				offset: this.offset(),
 				search: this.searchQuery().trim() || undefined
-			})
-			.subscribe({
+			}),
+			{
 				next: res => {
 					this.allEntries.set(
 						this.bulkRemoval.withoutPending(res.data.gameShelf)
@@ -373,6 +378,7 @@ export class GameShelfList implements OnInit {
 					this.isLoading.set(false);
 				},
 				error: () => this.isLoading.set(false)
-			});
+			}
+		);
 	}
 }
