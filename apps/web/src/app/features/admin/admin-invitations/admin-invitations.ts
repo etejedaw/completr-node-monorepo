@@ -3,11 +3,14 @@ import {
 	ChangeDetectionStrategy,
 	Component,
 	computed,
+	DestroyRef,
 	inject,
 	type OnInit,
 	signal
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { email, form, FormField, required } from "@angular/forms/signals";
+import { type Subscription } from "rxjs";
 
 import { ToastService } from "../../../core/services/toast";
 import {
@@ -24,6 +27,8 @@ import {
 } from "../../../shared/ui";
 import { type AdminInvitation } from "../services/invitation-admin.model";
 import { InvitationAdminService } from "../services/invitation-admin.service";
+
+const NOT_FOUND_STATUS = 404;
 
 @Component({
 	selector: "app-admin-invitations",
@@ -47,6 +52,8 @@ import { InvitationAdminService } from "../services/invitation-admin.service";
 export class AdminInvitations implements OnInit {
 	private readonly invitationAdminService = inject(InvitationAdminService);
 	private readonly toast = inject(ToastService);
+	private readonly destroyRef = inject(DestroyRef);
+	private loadRequest: Subscription | null = null;
 
 	protected readonly invitations = signal<AdminInvitation[]>([]);
 	protected readonly loadFailed = signal(false);
@@ -70,11 +77,13 @@ export class AdminInvitations implements OnInit {
 	});
 
 	ngOnInit() {
+		this.destroyRef.onDestroy(() => this.loadRequest?.unsubscribe());
 		this.loadInvitations();
 	}
 
 	protected loadInvitations() {
-		this.invitationAdminService.list().subscribe({
+		this.loadRequest?.unsubscribe();
+		this.loadRequest = this.invitationAdminService.list().subscribe({
 			next: invitations => {
 				this.invitations.set(invitations);
 				this.loadFailed.set(false);
@@ -109,60 +118,72 @@ export class AdminInvitations implements OnInit {
 		this.inviteError.set("");
 		this.inviteErrorEmail.set(null);
 
-		this.invitationAdminService.invite(address).subscribe({
-			next: () => {
-				this.isInviting.set(false);
-				this.closeInvite();
-				this.toast.success(`Invitation sent to ${address}.`);
-				this.loadInvitations();
-			},
-			error: err => {
-				this.isInviting.set(false);
-				this.inviteErrorEmail.set(this.inviteModel().email);
-				this.inviteError.set(this.inviteErrorMessage(err));
-			}
-		});
+		this.invitationAdminService
+			.invite(address)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: () => {
+					this.isInviting.set(false);
+					this.closeInvite();
+					this.toast.success(`Invitation sent to ${address}.`);
+					this.loadInvitations();
+				},
+				error: err => {
+					this.isInviting.set(false);
+					this.inviteErrorEmail.set(this.inviteModel().email);
+					this.inviteError.set(this.inviteErrorMessage(err));
+				}
+			});
 	}
 
 	protected resend(invitation: AdminInvitation) {
 		if (this.busyInvitationId()) return;
 		this.busyInvitationId.set(invitation.id);
 
-		this.invitationAdminService.invite(invitation.email).subscribe({
-			next: () => {
-				this.busyInvitationId.set(null);
-				this.toast.success(`Invitation resent to ${invitation.email}.`);
-				this.loadInvitations();
-			},
-			error: err => {
-				this.busyInvitationId.set(null);
-				if (err.status !== 409) {
-					this.toast.warning(this.inviteErrorMessage(err));
+		this.invitationAdminService
+			.invite(invitation.email)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: () => {
+					this.busyInvitationId.set(null);
+					this.toast.success(
+						`Invitation resent to ${invitation.email}.`
+					);
+					this.loadInvitations();
+				},
+				error: err => {
+					this.busyInvitationId.set(null);
+					if (err.status !== 409) {
+						this.toast.warning(this.inviteErrorMessage(err));
+					}
 				}
-			}
-		});
+			});
 	}
 
 	protected revoke(invitation: AdminInvitation) {
 		if (this.busyInvitationId()) return;
 		this.busyInvitationId.set(invitation.id);
 
-		this.invitationAdminService.revoke(invitation.id).subscribe({
-			next: () => {
-				this.busyInvitationId.set(null);
-				this.confirmingRevokeId.set(null);
-				this.invitations.update(list =>
-					list.filter(item => item.id !== invitation.id)
-				);
-				this.toast.success(
-					`Invitation for ${invitation.email} revoked.`
-				);
-			},
-			error: () => {
-				this.busyInvitationId.set(null);
-				this.toast.warning("Could not revoke the invitation.");
-			}
-		});
+		this.invitationAdminService
+			.revoke(invitation.id)
+			.pipe(takeUntilDestroyed(this.destroyRef))
+			.subscribe({
+				next: () => {
+					this.busyInvitationId.set(null);
+					this.confirmingRevokeId.set(null);
+					this.invitations.update(list =>
+						list.filter(item => item.id !== invitation.id)
+					);
+					this.toast.success(
+						`Invitation for ${invitation.email} revoked.`
+					);
+				},
+				error: err => {
+					this.busyInvitationId.set(null);
+					this.toast.warning("Could not revoke the invitation.");
+					if (err.status === NOT_FOUND_STATUS) this.loadInvitations();
+				}
+			});
 	}
 
 	private inviteErrorMessage(err: {
