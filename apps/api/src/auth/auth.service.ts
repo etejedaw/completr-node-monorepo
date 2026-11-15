@@ -6,6 +6,7 @@ import { type LoginDto, type RegisterDto } from "./dtos";
 import * as authDomainError from "./errors/auth.domains-error";
 import * as passwordService from "./services/password.service";
 import * as passwordResetService from "./services/password-reset.service";
+import * as sessionService from "./services/session.service";
 import * as tokenService from "./services/token.service";
 import { buildPasswordResetEmail } from "./utils/password-reset-email.util";
 
@@ -14,36 +15,30 @@ const RESET_PASSWORD_PATH = "/reset-password";
 const logger = new PinoLogger("Auth Service");
 
 export async function register(registerDto: RegisterDto, deviceInfo?: string) {
-	const userEmail = await userService.findUserByEmail(registerDto.email);
-	const userName = await userService.findUserByUsername(registerDto.username);
+	const [userEmail, userName] = await Promise.all([
+		userService.findUserByEmail(registerDto.email),
+		userService.findUserByUsername(registerDto.username)
+	]);
 	if (userEmail || userName) throw authDomainError.userAlreadyExists();
 
 	const hashPassword = await passwordService.hashPassword(
 		registerDto.password
 	);
 
-	const userData = {
+	const user = await userService.createUser({
 		...registerDto,
 		password: hashPassword
-	};
-
-	const user = await userService.createUser(userData);
-
-	const { rawToken: refreshToken, sessionId } =
-		await tokenService.createRefreshToken(user.id, deviceInfo);
-	const accessToken = tokenService.signAccessToken({
-		sub: user.id,
-		username: user.username,
-		email: user.email,
-		sid: sessionId
 	});
 
-	return { user, accessToken, refreshToken, sessionId };
+	return { user, ...(await sessionService.issueSession(user, deviceInfo)) };
 }
 
 export async function login(loginDto: LoginDto, deviceInfo?: string) {
 	const user = await userService.findUserByEmail(loginDto.email);
-	if (!user) throw authDomainError.invalidCredentials();
+	if (!user) {
+		await passwordService.burnPasswordCheck(loginDto.password);
+		throw authDomainError.invalidCredentials();
+	}
 
 	const comparePassword = await passwordService.verifyPassword(
 		loginDto.password,
@@ -51,16 +46,7 @@ export async function login(loginDto: LoginDto, deviceInfo?: string) {
 	);
 	if (!comparePassword) throw authDomainError.invalidCredentials();
 
-	const { rawToken: refreshToken, sessionId } =
-		await tokenService.createRefreshToken(user.id, deviceInfo);
-	const accessToken = tokenService.signAccessToken({
-		sub: user.id,
-		username: user.username,
-		email: user.email,
-		sid: sessionId
-	});
-
-	return { accessToken, refreshToken, sessionId };
+	return sessionService.issueSession(user, deviceInfo);
 }
 
 export async function refresh(rawRefreshToken: string, deviceInfo?: string) {
@@ -70,22 +56,13 @@ export async function refresh(rawRefreshToken: string, deviceInfo?: string) {
 	const user = await userService.findUserById(storedToken.userId);
 	if (!user || !user.isActive) throw authDomainError.invalidRefreshToken();
 
-	const previousDeviceInfo = storedToken.deviceInfo;
-	await tokenService.deleteRefreshToken(rawRefreshToken);
+	const wasClaimed = await tokenService.deleteRefreshToken(rawRefreshToken);
+	if (!wasClaimed) throw authDomainError.invalidRefreshToken();
 
-	const { rawToken: refreshToken, sessionId } =
-		await tokenService.createRefreshToken(
-			user.id,
-			deviceInfo ?? previousDeviceInfo ?? undefined
-		);
-	const accessToken = tokenService.signAccessToken({
-		sub: user.id,
-		username: user.username,
-		email: user.email,
-		sid: sessionId
-	});
-
-	return { accessToken, refreshToken, sessionId };
+	return sessionService.issueSession(
+		user,
+		deviceInfo ?? storedToken.deviceInfo ?? undefined
+	);
 }
 
 export async function logout(rawRefreshToken: string) {
