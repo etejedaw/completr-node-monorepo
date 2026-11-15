@@ -29,7 +29,6 @@ import {
 	rewindAiRecapError
 } from "../../rewind-errors";
 import { rewindPremiumAccessKindOf } from "../../rewind-premium-access-kind";
-import { REWIND_PREMIUM_TILE_CLASS } from "../../rewind-tone";
 import { RewindGenerateDialog } from "../rewind-generate-dialog/rewind-generate-dialog";
 import { injectRewindGenerateFlow } from "../rewind-generate-dialog/rewind-generate-flow";
 import { REWIND_OWNER_PANEL_COPY } from "./rewind-owner-panel.copy";
@@ -116,7 +115,8 @@ export class RewindOwnerPanel {
 			tone: "open"
 		};
 	});
-	protected readonly premiumTileClass = REWIND_PREMIUM_TILE_CLASS;
+	protected readonly stripColumnClass =
+		"row-span-3 grid min-w-0 grid-rows-subgrid content-start items-start gap-y-1.5 border-t border-line pt-4 first:border-t-0 first:pt-0 sm:min-w-40 sm:border-t-0 sm:border-l sm:px-6 sm:pt-0 sm:first:border-l-0 sm:first:pl-0";
 	protected readonly aiPremiumLabel = computed(() => {
 		const kind = rewindPremiumAccessKindOf(this.rewind().premiumAccess);
 		return kind
@@ -152,11 +152,6 @@ export class RewindOwnerPanel {
 				: [copy.regenerationsLeft(left)]
 		};
 	});
-	protected readonly tileColumnsClass = computed(() =>
-		this.aiTile()
-			? "grid-cols-2 sm:grid-cols-3"
-			: "grid-cols-1 sm:grid-cols-2"
-	);
 	protected readonly notice = computed(() => {
 		const block = this.rewind().ownerControls?.regenerationBlockedBy;
 		if (block && !REGENERATION_BLOCKS_SHOWN_ELSEWHERE.includes(block))
