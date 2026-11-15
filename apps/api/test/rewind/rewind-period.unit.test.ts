@@ -146,7 +146,9 @@ void describe("buildRewindYears generationBlockedBy", () => {
 			visibility: options.visitor
 				? visitorVisibility(options.generated ?? [2025, 2026])
 				: ownerVisibility(options.generated ?? []),
-			generationAccess: options.visitor ? null : { accessKind }
+			generationAccess: options.visitor ? null : { accessKind },
+			frozenViews: new Map(),
+			platinumsVisible: true
 		});
 		return Object.fromEntries(
 			result.years.map(summary => [

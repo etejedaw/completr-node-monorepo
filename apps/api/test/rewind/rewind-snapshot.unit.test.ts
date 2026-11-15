@@ -310,7 +310,8 @@ void describe("listing frozen years", () => {
 				frozenYearListing: new Map([[2026, true]])
 			},
 			frozenViews: new Map([[2026, frozenView]]),
-			platinumsVisible: false
+			platinumsVisible: false,
+			generationAccess: null
 		};
 
 		const { years } = buildRewindYears(source);
