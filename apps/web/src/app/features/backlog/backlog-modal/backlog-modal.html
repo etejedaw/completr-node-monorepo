@@ -85,7 +85,9 @@
 				<li>
 					<button
 						type="button"
-						class="w-full min-h-[44px] flex items-center gap-2.5 p-2 rounded-card border border-line bg-input-bg text-left cursor-pointer transition hover:border-brand hover:bg-brand-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+						uiSelectableRow
+						variant="card"
+						class="flex items-center gap-2.5 p-2"
 						(click)="pickCompilationChild(item.game)"
 					>
 						<app-game-poster
@@ -827,7 +829,9 @@
 		<li>
 			<button
 				type="button"
-				class="w-full min-h-[44px] bg-input-bg border border-line rounded-card p-3 text-left cursor-pointer hover:border-brand transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-line"
+				uiSelectableRow
+				variant="card"
+				class="p-3"
 				(click)="coop.chooseCandidate(c.id)"
 				[disabled]="!!c.coopRunId"
 			>

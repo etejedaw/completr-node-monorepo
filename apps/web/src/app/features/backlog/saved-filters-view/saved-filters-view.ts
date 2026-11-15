@@ -33,6 +33,7 @@ import {
 	UiPagination,
 	UiPremiumBadge,
 	UiSkeleton,
+	UiSwatchButton,
 	UiSwitch,
 	UiTextarea
 } from "../../../shared/ui";
@@ -88,6 +89,7 @@ const SORT_PICKER_OPTIONS: readonly (PickerOption & { value: SortMode })[] = [
 		UiEmptyState,
 		UiEyebrow,
 		UiNoMatches,
+		UiSwatchButton,
 		UiPagination,
 		UiPremiumBadge,
 		UiSkeleton,

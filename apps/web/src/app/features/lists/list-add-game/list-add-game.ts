@@ -24,7 +24,7 @@ import {
 	ONLINE_SEARCH_UNAVAILABLE_TITLE,
 	onlineSourceLabel
 } from "../../../shared/constants/online-search";
-import { UiSearchBar, UiSkeleton } from "../../../shared/ui";
+import { UiSearchBar, UiSelectableRow, UiSkeleton } from "../../../shared/ui";
 import { catalogOnlyResult } from "../../games/game-search";
 import { GamesService } from "../../games/games";
 import { type OnlineGameSearchResult } from "../../games/games.model";
@@ -34,7 +34,13 @@ const MIN_QUERY_LENGTH = 2;
 
 @Component({
 	selector: "app-list-add-game",
-	imports: [GamePoster, OnlineSourceNote, UiSearchBar, UiSkeleton],
+	imports: [
+		GamePoster,
+		OnlineSourceNote,
+		UiSearchBar,
+		UiSelectableRow,
+		UiSkeleton
+	],
 	templateUrl: "./list-add-game.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
