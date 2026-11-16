@@ -276,5 +276,11 @@ export interface GenerateRewindRequest {
 	language: RewindLanguage;
 	includePrivateRuns: boolean;
 	includeNotes: boolean;
+	writeAiRecap: boolean;
 	expectedGeneratedAt: string | null;
+}
+
+export interface AddRewindAiRecapRequest {
+	includePrivateRuns: boolean;
+	includeNotes: boolean;
 }

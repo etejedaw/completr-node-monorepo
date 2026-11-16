@@ -19,9 +19,7 @@ import {
 	UiAlert,
 	UiButton,
 	UiDialog,
-	UiEyebrow,
 	UiFieldLabel,
-	UiIconButton,
 	UiSegmentedControl,
 	type UiSegmentedOption,
 	UiSwitch
@@ -32,6 +30,8 @@ import {
 	BLOCKING_GENERATE_ERRORS,
 	type RewindGenerateError
 } from "../../rewind-errors";
+import { RewindAiProviderNotice } from "../rewind-ai-provider-notice/rewind-ai-provider-notice";
+import { RewindAiRecapSwitches } from "../rewind-ai-recap-switches/rewind-ai-recap-switches";
 
 const LANGUAGE_OPTIONS: UiSegmentedOption<RewindLanguage>[] = [
 	{ value: "en", label: "English" },
@@ -48,14 +48,14 @@ const RETRYABLE_ERRORS: readonly RewindGenerateError[] = [
 @Component({
 	selector: "app-rewind-generate-dialog",
 	imports: [
+		RewindAiProviderNotice,
+		RewindAiRecapSwitches,
 		RouterLink,
 		UiSegmentedControl,
 		UiAlert,
 		UiButton,
 		UiDialog,
-		UiEyebrow,
 		UiFieldLabel,
-		UiIconButton,
 		UiSwitch
 	],
 	templateUrl: "./rewind-generate-dialog.html",
@@ -84,9 +84,17 @@ export class RewindGenerateDialog {
 	protected readonly includeNotes = linkedSignal(
 		() => this.rewind()?.ownerControls?.includesNotes ?? false
 	);
+	protected readonly writeAiRecap = signal(true);
 
-	protected readonly providerNoticeOpen = signal(false);
 	protected readonly isRegeneration = computed(() => this.rewind() !== null);
+	protected readonly writesAiRecap = computed(
+		() => this.isRegeneration() || this.writeAiRecap()
+	);
+	protected readonly writeAiRecapHint = computed(() =>
+		this.writeAiRecap()
+			? "Your premium stats are added either way."
+			: "You can add it later from your Rewind. Your premium stats are added either way."
+	);
 	protected readonly controls = computed(
 		() => this.rewind()?.ownerControls ?? null
 	);
@@ -119,7 +127,7 @@ export class RewindGenerateDialog {
 			: "Regenerating replaces your current Rewind."
 	);
 	protected readonly progressLine = computed(() =>
-		this.hasPremiumAccess()
+		this.hasPremiumAccess() && this.writesAiRecap()
 			? "Rewinding your year… this can take up to a minute."
 			: "Rewinding your year…"
 	);
@@ -159,6 +167,10 @@ export class RewindGenerateDialog {
 				return "Something in the request wasn't valid. Try again.";
 			case "rate_limited":
 				return "Too many attempts. Wait a moment and try again.";
+			case "daily_limit":
+				return this.isRegeneration()
+					? "You've reached today's AI recap limit. Try again tomorrow."
+					: "You've reached today's AI recap limit. Turn off the AI recap to generate your Rewind now, or try again tomorrow.";
 			case "network":
 				return "You seem to be offline. Check your connection and try again.";
 			case "failed":
@@ -174,7 +186,11 @@ export class RewindGenerateDialog {
 			language: this.language(),
 			includePrivateRuns:
 				this.hasPremiumAccess() && this.includePrivateRuns(),
-			includeNotes: this.hasPremiumAccess() && this.includeNotes(),
+			includeNotes:
+				this.hasPremiumAccess() &&
+				this.writesAiRecap() &&
+				this.includeNotes(),
+			writeAiRecap: this.hasPremiumAccess() && this.writesAiRecap(),
 			expectedGeneratedAt: this.rewind()?.generatedAt ?? null
 		});
 	}
