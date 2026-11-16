@@ -56,7 +56,13 @@ export const FIRST_GENERATION: GenerateRewindRequest = {
 	language: "en",
 	includePrivateRuns: false,
 	includeNotes: false,
+	writeAiRecap: true,
 	expectedGeneratedAt: null
+};
+
+export const AI_RECAP_OPTIONS = {
+	includePrivateRuns: false,
+	includeNotes: false
 };
 
 export async function signUpOn(
@@ -108,10 +114,15 @@ export function generate(
 		.send(body as object);
 }
 
-export function requestAiRecap(account: Account, year: number | string) {
+export function requestAiRecap(
+	account: Account,
+	year: number | string,
+	body: unknown = AI_RECAP_OPTIONS
+) {
 	return api()
 		.post(`/users/me/rewinds/${year}/ai-recap`)
-		.set("Authorization", account.authorization);
+		.set("Authorization", account.authorization)
+		.send(body as object);
 }
 
 export function readRewind(

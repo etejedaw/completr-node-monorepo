@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { type RewindRecord } from "../../src/rewind/rewind-record.interface";
+import { AddRewindAiRecapSchema } from "../../src/rewind/schemas/add-rewind-ai-recap.schema";
 import { GenerateRewindSchema } from "../../src/rewind/schemas/generate-rewind.schema";
 import { buildRewindOwnerControls } from "../../src/rewind/utils/build-rewind-owner-controls.util";
 import { isAiRecapInProgress } from "../../src/rewind/utils/is-ai-recap-in-progress.util";
@@ -584,6 +585,7 @@ void describe("GenerateRewindSchema", () => {
 		language: "es",
 		includePrivateRuns: false,
 		includeNotes: false,
+		writeAiRecap: true,
 		expectedGeneratedAt: null
 	};
 
@@ -613,6 +615,14 @@ void describe("GenerateRewindSchema", () => {
 			{ ...valid, includeNotes: 1 },
 			{ ...valid, includeNotes: null },
 			{ ...valid, notes: "my secret" },
+			{ ...valid, writeAiRecap: "true" },
+			{ ...valid, writeAiRecap: null },
+			{
+				language: "en",
+				includePrivateRuns: false,
+				includeNotes: false,
+				expectedGeneratedAt: null
+			},
 			{
 				language: "en",
 				includePrivateRuns: true,
@@ -626,6 +636,32 @@ void describe("GenerateRewindSchema", () => {
 		for (const body of garbage) {
 			assert.equal(
 				GenerateRewindSchema.safeParse(body).success,
+				false,
+				JSON.stringify(body)
+			);
+		}
+	});
+});
+
+void describe("AddRewindAiRecapSchema", () => {
+	const valid = { includePrivateRuns: true, includeNotes: false };
+
+	void it("accepts both privacy switches", () => {
+		assert.equal(AddRewindAiRecapSchema.safeParse(valid).success, true);
+	});
+
+	void it("rejects missing, loose or extra fields", () => {
+		const garbage = [
+			{},
+			{ includePrivateRuns: true },
+			{ ...valid, includeNotes: "false" },
+			{ ...valid, includePrivateRuns: 1 },
+			{ ...valid, language: "en" },
+			null
+		];
+		for (const body of garbage) {
+			assert.equal(
+				AddRewindAiRecapSchema.safeParse(body).success,
 				false,
 				JSON.stringify(body)
 			);

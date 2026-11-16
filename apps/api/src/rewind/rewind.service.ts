@@ -9,6 +9,7 @@ import * as rewindEditionsService from "../rewind-editions/services/rewind-editi
 import { resolveSectionAccess } from "../users/helpers/visibility.helper";
 import * as usersService from "../users/services/users.service";
 import { type User } from "../users/user.model";
+import { type AddRewindAiRecapDto } from "./dtos/add-rewind-ai-recap.dto";
 import { type GenerateRewindDto } from "./dtos/generate-rewind.dto";
 import * as rewindServiceError from "./errors/rewind.service-error";
 import { rewindViewToRewind } from "./mappers/rewind-view-to-rewind.mapper";
@@ -28,7 +29,10 @@ import {
 } from "./rewind-record.interface";
 import { type RewindEntryPoint } from "./rewind-record.types";
 import { type RewindCalendar, type RewindRun } from "./rewind-run.interface";
-import { runRecap } from "./services/rewind-ai-recap.service";
+import {
+	runRecap,
+	storePremiumStats
+} from "./services/rewind-ai-recap.service";
 import { freezeRewind } from "./services/rewind-freeze.service";
 import {
 	requireGenerationAllowed,
@@ -410,6 +414,8 @@ export async function generateOwnRewind(
 			premiumAccess,
 			spend
 		});
+	else if (record.premiumAccessKind !== null)
+		await storePremiumStats(owner, record);
 
 	return {
 		rewind: await getOwnRewind(owner, year, premiumAccess),
@@ -419,7 +425,8 @@ export async function generateOwnRewind(
 
 export async function addOwnRewindAiRecap(
 	ownerId: string,
-	year: number
+	year: number,
+	dto: AddRewindAiRecapDto
 ): Promise<Rewind> {
 	const owner = await requireSignedInOwner(ownerId);
 	const { calendar, premiumAccess, accessKind } =
@@ -427,6 +434,7 @@ export async function addOwnRewindAiRecap(
 	const { record, spend } = await reserveAiRecap(
 		owner,
 		year,
+		dto,
 		calendar,
 		accessKind
 	);
@@ -435,7 +443,7 @@ export async function addOwnRewindAiRecap(
 		owner,
 		record,
 		calendar,
-		reusablePremiumStats: record.premiumStats,
+		reusablePremiumStats: null,
 		premiumAccess,
 		spend
 	});

@@ -7,6 +7,7 @@ export const GenerateRewindSchema = z
 		language: z.enum(REWIND_LANGUAGES),
 		includePrivateRuns: z.boolean(),
 		includeNotes: z.boolean(),
+		writeAiRecap: z.boolean(),
 		expectedGeneratedAt: z.iso.datetime({ offset: true }).nullable()
 	})
 	.strict();

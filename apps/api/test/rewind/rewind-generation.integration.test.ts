@@ -195,6 +195,7 @@ void describe("POST /users/me/rewinds/:year", () => {
 			language: "es",
 			includePrivateRuns: true,
 			includeNotes: false,
+			writeAiRecap: true,
 			expectedGeneratedAt: null
 		}).expect(201);
 
@@ -532,6 +533,79 @@ void describe("premium generation", () => {
 		const again = await requestAiRecap(player, 2026);
 		assert.equal(again.status, 409);
 		assert.equal(again.body.type, "REWIND_AI_RECAP_EXISTS");
+	});
+
+	void it("creates a premium Rewind without the AI recap, with premium stats and the quota untouched", async () => {
+		const player = await playerWithYears("premium");
+		mockPremiumStats();
+		const aiMock = mockAiRecap();
+
+		const response = await generate(player, 2026, {
+			...FIRST_GENERATION,
+			writeAiRecap: false
+		}).expect(201);
+
+		assert.equal(aiMock.mock.callCount(), 0);
+		assert.equal(response.body.data.aiRecap, null);
+		assert.deepEqual(response.body.data.premiumStats, PREMIUM_STATS);
+		assert.equal(response.body.data.premiumAccessKind, "premium");
+		assert.equal(
+			response.body.data.ownerControls.aiRecapState,
+			"available"
+		);
+		assert.equal(response.body.data.ownerControls.regenerationsLeft, 2);
+		const row = await findRewindRow(player, 2026);
+		assert.equal(row?.premiumAccessKind, "premium");
+		assert.equal(row?.regenerationsLeft, 2);
+		assert.equal(row?.aiRecapStatus, null);
+	});
+
+	void it("adds the AI recap with the privacy switches it receives", async () => {
+		const player = await playerWithYears("premium");
+		mockPremiumStats();
+		const aiMock = mockAiRecap();
+		await generate(player, 2026, {
+			...FIRST_GENERATION,
+			writeAiRecap: false
+		}).expect(201);
+
+		const added = await requestAiRecap(player, 2026, {
+			includePrivateRuns: true,
+			includeNotes: true
+		}).expect(200);
+
+		assert.equal(aiMock.mock.callCount(), 1);
+		assert.deepEqual(added.body.data.aiRecap, AI_RECAP);
+		assert.equal(added.body.data.ownerControls.includesPrivateRuns, true);
+		assert.equal(added.body.data.ownerControls.includesNotes, true);
+		assert.equal(added.body.data.ownerControls.regenerationsLeft, 1);
+	});
+
+	void it("rejects an ai-recap request without its privacy switches", async () => {
+		const player = await playerWithYears("premium");
+		mockPremiumStats();
+		mockAiRecap();
+		await generate(player, 2026, {
+			...FIRST_GENERATION,
+			writeAiRecap: false
+		}).expect(201);
+
+		await requestAiRecap(player, 2026, {}).expect(422);
+		assert.equal((await findRewindRow(player, 2026))?.regenerationsLeft, 2);
+	});
+
+	void it("ignores writeAiRecap for a user without AI access", async () => {
+		const player = await playerWithYears();
+		const aiMock = mockAiRecap();
+
+		const response = await generate(player, 2026).expect(201);
+
+		assert.equal(aiMock.mock.callCount(), 0);
+		assert.equal(response.body.data.premiumStats, null);
+		assert.equal(
+			response.body.data.ownerControls.aiRecapState,
+			"unavailable"
+		);
 	});
 
 	void it("keeps the generation spent when the AI answered but its output was unusable", async () => {

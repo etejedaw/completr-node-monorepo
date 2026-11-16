@@ -269,6 +269,41 @@ export async function runRecap({
 	}
 }
 
+export async function storePremiumStats(
+	owner: User,
+	record: RewindModel
+): Promise<void> {
+	const { year } = record;
+	const publicOnly = !record.includesPrivateRuns;
+	try {
+		const [runs, addedByMonth] = await Promise.all([
+			findRewindRuns(owner.id, { publicOnly, includeNotes: false }),
+			backlogRewindService.countRunsAddedByMonth(owner.id, year, {
+				publicOnly
+			})
+		]);
+		const genres = await gameGenreService.findGenresByGameIds(
+			listActiveGameIds(runs, [year])
+		);
+		const premiumStats = buildRewindPremiumStats({
+			year,
+			runs,
+			genres,
+			addedByMonth
+		});
+		await RewindModel.update(
+			{ premiumStats },
+			{ where: { id: record.id } }
+		);
+	} catch (error) {
+		logger.error("storePremiumStats", "failed", {
+			rewindId: record.id,
+			year,
+			code: resolveErrorCode(error)
+		});
+	}
+}
+
 function publicPlatinumsFor(
 	owner: User,
 	includesPrivateRuns: boolean,

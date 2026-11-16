@@ -3,6 +3,7 @@ import { type Transaction } from "sequelize";
 import { rethrowSequelizeError } from "../../common/errors/sequelize-error.mapper";
 import { sequelize } from "../../database/sequelize.database";
 import { type User } from "../../users/user.model";
+import { type AddRewindAiRecapDto } from "../dtos/add-rewind-ai-recap.dto";
 import { type GenerateRewindDto } from "../dtos/generate-rewind.dto";
 import * as rewindServiceError from "../errors/rewind.service-error";
 import { type RewindPremiumAccessKind } from "../rewind.constants";
@@ -13,7 +14,9 @@ import {
 	type RewindGenerationReservation
 } from "../rewind-generation.interface";
 import { type SpendableRewindAiBudget } from "../rewind-generation.types";
+import { rewindAiRecapDailyLimiter } from "../rewind-rate-limiter.config";
 import { type RewindCalendar } from "../rewind-run.interface";
+import { consumeAiRecapDailyQuota } from "../utils/consume-ai-recap-daily-quota.util";
 import { isAiRecapInProgress } from "../utils/is-ai-recap-in-progress.util";
 import { nextGeneratedAt } from "../utils/next-generated-at.util";
 import { planRewindGeneration } from "../utils/plan-rewind-generation.util";
@@ -29,6 +32,21 @@ function lockRecord(userId: string, year: number, transaction: Transaction) {
 		lock: transaction.LOCK.UPDATE,
 		transaction
 	});
+}
+
+function creationBudget(
+	budget: RewindAiBudget,
+	dto: GenerateRewindDto
+): RewindAiBudget {
+	return dto.writeAiRecap ? budget : { ...budget, spend: null };
+}
+
+async function requireAiRecapQuota(
+	owner: User,
+	budget: RewindAiBudget
+): Promise<void> {
+	if (budget.spend)
+		await consumeAiRecapDailyQuota(rewindAiRecapDailyLimiter, owner);
 }
 
 function pendingRecapFields(budget: RewindAiBudget, now: Date) {
@@ -114,18 +132,21 @@ export async function reserveGeneration(
 		if (plan.kind === "limit-reached")
 			throw rewindServiceError.regenerationLimitError();
 		if (plan.kind === "create" || !record) {
+			const budget = creationBudget(plan.budget, dto);
+			await requireAiRecapQuota(owner, budget);
 			return {
 				record: await createRecord(
 					owner,
 					year,
 					dto,
-					plan.budget,
+					budget,
 					transaction
 				),
 				created: true,
-				spend: plan.budget.spend
+				spend: budget.spend
 			};
 		}
+		await requireAiRecapQuota(owner, plan.budget);
 		return {
 			record: await regenerateRecord(
 				record,
@@ -174,6 +195,7 @@ function requireAiRecapAllowed(
 export async function reserveAiRecap(
 	owner: User,
 	year: number,
+	dto: AddRewindAiRecapDto,
 	calendar: RewindCalendar,
 	accessKind: RewindPremiumAccessKind | null
 ): Promise<RewindAiRecapReservation> {
@@ -182,10 +204,13 @@ export async function reserveAiRecap(
 		if (!record) throw rewindServiceError.notGeneratedError();
 		const now = new Date();
 		const budget = requireAiRecapAllowed(record, calendar, accessKind, now);
+		await requireAiRecapQuota(owner, budget);
 
 		return {
 			record: await record.update(
 				{
+					includesPrivateRuns: dto.includePrivateRuns,
+					includesNotes: dto.includeNotes,
 					aiRecapStatus: "pending",
 					aiRecapRequestedAt: now,
 					...UNFROZEN_FIELDS,
