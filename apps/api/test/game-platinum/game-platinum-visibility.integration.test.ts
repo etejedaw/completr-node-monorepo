@@ -207,6 +207,7 @@ void describe("GET /users/:username/platinums", () => {
 				id: game.id,
 				code: game.code,
 				title: game.title,
+				coverUrl: null,
 				backgroundUrl: null,
 				isDlc: false
 			}
