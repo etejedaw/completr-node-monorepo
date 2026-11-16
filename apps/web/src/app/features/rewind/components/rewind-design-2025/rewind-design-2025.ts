@@ -36,8 +36,10 @@ import {
 	Rewind2025Awards
 } from "./rewind-2025-awards/rewind-2025-awards";
 import { Rewind2025CoverFeature } from "./rewind-2025-cover-feature/rewind-2025-cover-feature";
+import { Rewind2025LeftBehind } from "./rewind-2025-left-behind/rewind-2025-left-behind";
 import { Rewind2025RecapArticle } from "./rewind-2025-recap-article/rewind-2025-recap-article";
 import { Rewind2025Shelves } from "./rewind-2025-shelves/rewind-2025-shelves";
+import { rewindDesign2025Copy } from "./rewind-design-2025.copy";
 
 export const COLLAGE_TILES = 18;
 
@@ -70,6 +72,7 @@ function backdropOf(rewind: Rewind): string | null {
 		ProfileSectionHeader,
 		Rewind2025Awards,
 		Rewind2025CoverFeature,
+		Rewind2025LeftBehind,
 		Rewind2025RecapArticle,
 		Rewind2025Shelves,
 		RewindMoreYears,
@@ -96,6 +99,10 @@ export class RewindDesign2025 implements RewindDesignComponent {
 
 	protected readonly text = computed(
 		() => rewindCopy(this.rewind().language).page
+	);
+
+	protected readonly designCopy = computed(() =>
+		rewindDesign2025Copy(this.rewind().language)
 	);
 
 	protected readonly eyebrow = computed(() =>

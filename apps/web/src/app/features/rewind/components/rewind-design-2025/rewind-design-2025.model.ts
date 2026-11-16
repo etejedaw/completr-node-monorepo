@@ -12,4 +12,7 @@ export interface RewindDesign2025Copy {
 	runsNoun: (count: number) => string;
 	thenGenres: (genres: string) => string;
 	platformRuns: (count: string, platform: string) => string;
+	leftBehind: string;
+	leftBehindSummary: (count: number) => string;
+	abandonedGameLabel: (title: string, date: string) => string;
 }

@@ -1,4 +1,4 @@
-@let data = rewind(); @let page = text();
+@let data = rewind(); @let page = text(); @let design = designCopy();
 <header class="bleed bleed-top relative isolate overflow-hidden">
 	<app-profile-backdrop
 		class="absolute inset-0 -z-20"
@@ -145,6 +145,40 @@
 					}
 				</div>
 			</div>
+			}
+		</div>
+		}
+	</section>
+	} @if (data.abandonedGames.length > 0) {
+	<section
+		appRewindReveal
+		aria-labelledby="rewind-2025-left-behind-heading"
+		aria-describedby="rewind-2025-left-behind-summary"
+		class="min-w-0"
+		data-left-behind
+	>
+		<app-profile-section-header
+			headingId="rewind-2025-left-behind-heading"
+			[heading]="design.leftBehind"
+		/>
+		<p
+			id="rewind-2025-left-behind-summary"
+			class="m-0 -mt-2 mb-4 text-sm text-fg-secondary"
+		>
+			{{ design.leftBehindSummary(data.abandonedGames.length) }}
+		</p>
+		@defer (on viewport; prefetch on idle) {
+		<app-rewind-2025-left-behind
+			[games]="data.abandonedGames"
+			[language]="data.language"
+		/>
+		} @placeholder {
+		<div
+			aria-hidden="true"
+			class="grid grid-cols-3 gap-2.5 min-[420px]:grid-cols-4 sm:grid-cols-6 @3xl/page:grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] @3xl/page:gap-3"
+		>
+			@for (poster of skeletonPosters; track poster) {
+			<ui-skeleton variant="rect" class="aspect-[2/3] rounded-md" />
 			}
 		</div>
 		}

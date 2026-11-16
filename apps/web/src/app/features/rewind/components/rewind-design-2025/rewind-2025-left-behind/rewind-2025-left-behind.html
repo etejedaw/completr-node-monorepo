@@ -1,0 +1,26 @@
+@let text = copy();
+<ul
+	class="m-0 grid list-none grid-cols-3 gap-x-2.5 gap-y-4 p-0 min-[420px]:grid-cols-4 sm:grid-cols-6 @3xl/page:grid-cols-[repeat(auto-fill,minmax(6.5rem,1fr))] @3xl/page:gap-x-3"
+>
+	@for (game of sortedGames(); track game.gameId) {
+	<li class="min-w-0">
+		<a
+			class="group flex flex-col gap-1.5 rounded-md no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			[routerLink]="['/games', game.code]"
+			[attr.aria-label]="text.abandonedGameLabel(game.title, dateOf(game))"
+		>
+			<app-game-poster
+				class="aspect-[2/3] rounded-md ring-1 ring-line transition group-hover:ring-brand"
+				[class]="posterClass"
+				[src]="game.coverUrl ?? game.backgroundUrl"
+				[title]="game.title"
+				[width]="420"
+				titleSize="0.75rem"
+			/>
+			<span class="text-xs tabular-nums text-fg-muted"
+				>{{ dateOf(game) }}</span
+			>
+		</a>
+	</li>
+	}
+</ul>

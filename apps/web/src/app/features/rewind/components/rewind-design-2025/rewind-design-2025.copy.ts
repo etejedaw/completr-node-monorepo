@@ -1,5 +1,5 @@
 import { type RewindLanguage } from "../../../../core/models/rewind.model";
-import { DEFAULT_REWIND_LANGUAGE } from "../../rewind-copy";
+import { DEFAULT_REWIND_LANGUAGE, formatRewindNumber } from "../../rewind-copy";
 import { type RewindDesign2025Copy } from "./rewind-design-2025.model";
 
 export const REWIND_DESIGN_2025_COPY: Record<
@@ -20,7 +20,13 @@ export const REWIND_DESIGN_2025_COPY: Record<
 		monthsNoun: count => (count === 1 ? "month" : "months"),
 		runsNoun: count => (count === 1 ? "run" : "runs"),
 		thenGenres: genres => `then ${genres}`,
-		platformRuns: (count, platform) => `${count} on ${platform}`
+		platformRuns: (count, platform) => `${count} on ${platform}`,
+		leftBehind: "What you left behind",
+		leftBehindSummary: count =>
+			count === 1
+				? "1 game you left halfway this year"
+				: `${count} games you left halfway this year`,
+		abandonedGameLabel: (title, date) => `${title}, ${date}, abandoned`
 	},
 	es: {
 		coverOfTheYear: "La portada del año",
@@ -36,7 +42,13 @@ export const REWIND_DESIGN_2025_COPY: Record<
 		monthsNoun: count => (count === 1 ? "mes" : "meses"),
 		runsNoun: count => (count === 1 ? "partida" : "partidas"),
 		thenGenres: genres => `luego ${genres}`,
-		platformRuns: (count, platform) => `${count} en ${platform}`
+		platformRuns: (count, platform) => `${count} en ${platform}`,
+		leftBehind: "Los que soltaste",
+		leftBehindSummary: count =>
+			count === 1
+				? "1 juego que dejaste a medias este año"
+				: `${formatRewindNumber(count, "es")} juegos que dejaste a medias este año`,
+		abandonedGameLabel: (title, date) => `${title}, ${date}, abandonado`
 	}
 };
 

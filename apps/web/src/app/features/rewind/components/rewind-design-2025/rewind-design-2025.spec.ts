@@ -131,6 +131,7 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 			platformsPlayed: 2
 		},
 		finishedGames: FINISHED_GAMES,
+		abandonedGames: [],
 		highlights: {
 			topRated: {
 				...FINISHED_GAMES[0],
@@ -332,6 +333,147 @@ describe("RewindDesign2025", () => {
 		expect(
 			within(summerShelf).getByRole("img", { name: "Outer Wilds" })
 		).toHaveAttribute("src", "https://img/outer-wilds-bg.jpg");
+	});
+
+	describe("what the player left behind", () => {
+		const ABANDONED_GAMES: RewindFinishedGame[] = [
+			finished("tunic", "Tunic", "2025-09-30T10:00:00.000Z"),
+			finished("inside", "Inside", "2025-01-02T10:00:00.000Z", {
+				coverUrl: null,
+				backgroundUrl: "https://img/inside-bg.jpg"
+			}),
+			finished("limbo", "Limbo", "2025-05-05T10:00:00.000Z")
+		];
+
+		function leftBehind(root: HTMLElement) {
+			return root.querySelector<HTMLElement>("[data-left-behind]");
+		}
+
+		it("adds the section after the shelves with the abandoned games by date and keeps them off the shelves", async () => {
+			const root = await renderDesign(
+				rewindFixture({ abandonedGames: ABANDONED_GAMES })
+			);
+			await renderDeferred();
+
+			const section = leftBehind(root)!;
+			expect(
+				within(section).getByRole("heading", {
+					level: 2,
+					name: "What you left behind"
+				})
+			).toBeInTheDocument();
+			expect(section).toHaveAccessibleDescription(
+				"3 games you left halfway this year"
+			);
+			expect(
+				within(section)
+					.getAllByRole("link")
+					.map(link => link.getAttribute("href"))
+			).toEqual(["/games/inside", "/games/limbo", "/games/tunic"]);
+			expect(
+				within(section).getByRole("link", {
+					name: "Limbo, May 5, abandoned"
+				})
+			).toHaveTextContent("May 5");
+			expect(section).not.toHaveTextContent(/abandoned/);
+			expect(section.querySelector("[data-abandoned-badge]")).toBeNull();
+			for (const poster of section.querySelectorAll("app-game-poster"))
+				expect(poster).toHaveClass(
+					"grayscale",
+					"opacity-60",
+					"group-hover:grayscale-0",
+					"group-focus-visible:grayscale-0"
+				);
+
+			const shelves = root.querySelector("app-rewind-2025-shelves")!;
+			expect(
+				shelves.compareDocumentPosition(section) &
+					Node.DOCUMENT_POSITION_FOLLOWING
+			).toBeTruthy();
+			const shelvedGames = [...shelves.querySelectorAll("a")].map(link =>
+				link.getAttribute("href")
+			);
+			expect(shelvedGames).toHaveLength(FINISHED_GAMES.length);
+			for (const game of ABANDONED_GAMES)
+				expect(shelvedGames).not.toContain(`/games/${game.code}`);
+			expect(
+				screen.getByRole("heading", { name: "Finished in 2025" })
+			).toBeInTheDocument();
+		});
+
+		it("omits the section when nothing was abandoned", async () => {
+			const root = await renderDesign(rewindFixture());
+			await renderDeferred();
+
+			expect(leftBehind(root)).toBeNull();
+			expect(
+				screen.queryByRole("heading", { name: "What you left behind" })
+			).not.toBeInTheDocument();
+		});
+
+		it("shows the section even in a year without finished games", async () => {
+			const root = await renderDesign(
+				rewindFixture({
+					finishedGames: [],
+					highlights: {
+						...rewindFixture().highlights,
+						topRated: null
+					},
+					abandonedGames: [ABANDONED_GAMES[0]]
+				})
+			);
+			await renderDeferred();
+
+			expect(root.querySelector("app-rewind-2025-shelves")).toBeNull();
+			expect(leftBehind(root)).toHaveAccessibleDescription(
+				"1 game you left halfway this year"
+			);
+		});
+
+		it("writes the section in Spanish", async () => {
+			const root = await renderDesign(
+				rewindFixture({
+					language: "es",
+					abandonedGames: ABANDONED_GAMES
+				})
+			);
+			await renderDeferred();
+
+			const section = leftBehind(root)!;
+			expect(
+				within(section).getByRole("heading", {
+					name: "Los que soltaste"
+				})
+			).toBeInTheDocument();
+			expect(section).toHaveAccessibleDescription(
+				"3 juegos que dejaste a medias este año"
+			);
+			expect(
+				within(section).getByRole("link", {
+					name: /^Tunic, 30 sept?\.?, abandonado$/
+				})
+			).toBeInTheDocument();
+		});
+
+		it("follows a Rewind that gains and loses its abandoned games", async () => {
+			const root = await renderDesign(rewindFixture());
+			for (const abandonedGames of [
+				ABANDONED_GAMES,
+				[],
+				ABANDONED_GAMES.slice(1)
+			]) {
+				fixture.componentRef.setInput(
+					"rewind",
+					rewindFixture({ abandonedGames })
+				);
+				fixture.detectChanges();
+			}
+			await renderDeferred();
+
+			expect(within(leftBehind(root)!).getAllByRole("link")).toHaveLength(
+				2
+			);
+		});
 	});
 
 	it("features the best rated game as the cover of the year", async () => {
