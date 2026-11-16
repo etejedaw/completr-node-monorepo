@@ -79,6 +79,7 @@ void describe("backlogSerializer", () => {
 			id: "comp-1",
 			code: "collection",
 			title: "Collection",
+			coverUrl: "https://img/cover.jpg",
 			backgroundUrl: "https://img/bg.jpg"
 		});
 	});
@@ -89,6 +90,7 @@ void describe("backlogSerializer", () => {
 		assert.deepEqual(Object.keys(result.game).sort(), [
 			"backgroundUrl",
 			"code",
+			"coverUrl",
 			"id",
 			"isDlc",
 			"title"

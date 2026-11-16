@@ -37,6 +37,7 @@ interface GameEntryBody {
 	id: string;
 	code: string;
 	title: string;
+	coverUrl: string | null;
 	backgroundUrl: string | null;
 }
 
@@ -223,6 +224,7 @@ void describe("GET /users/:username/comparison", () => {
 					id: shared!.id,
 					code: shared!.code,
 					title: shared!.title,
+					coverUrl: null,
 					backgroundUrl: null
 				});
 			});

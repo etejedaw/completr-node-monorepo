@@ -35,7 +35,11 @@ interface CardSetup {
 	favoritePositions?: number[];
 }
 
-type FeaturedGame = { title: string; backgroundUrl: string | null } | null;
+type FeaturedGame = {
+	title: string;
+	coverUrl: string | null;
+	backgroundUrl: string | null;
+} | null;
 
 type Viewer = "mutual" | "stranger" | "anonymous";
 
@@ -82,7 +86,10 @@ function withViewer(
 }
 
 function search(viewer: Account | undefined, q: string, limit: number) {
-	return withViewer(api().get("/users/search").query({ search: q, limit }), viewer);
+	return withViewer(
+		api().get("/users/search").query({ search: q, limit }),
+		viewer
+	);
 }
 
 function discover(viewer: Account | undefined, limit: number) {
@@ -132,7 +139,11 @@ async function seedCardData(
 		const game = await createGame();
 		await Favorite.create({ userId: user.id, gameId: game.id, position });
 		if (position < featuredPosition) {
-			featuredGame = { title: game.title, backgroundUrl: null };
+			featuredGame = {
+				title: game.title,
+				coverUrl: null,
+				backgroundUrl: null
+			};
 			featuredPosition = position;
 		}
 	}

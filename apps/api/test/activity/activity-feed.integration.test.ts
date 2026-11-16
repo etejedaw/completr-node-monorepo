@@ -211,6 +211,91 @@ void describe("GET /feed", () => {
 			assert.equal(byId.get(coopActivity.id)!.target?.id, buddy.user.id);
 		});
 
+		void it("sends the cover and the background of every game, also for snapshots saved before covers existed", async () => {
+			const viewer = await createUserWithSession();
+			const coverUrl =
+				"https://images.igdb.com/igdb/image/upload/t_cover_big/co1feed.jpg";
+			const backgroundUrl = "https://media.rawg.io/media/games/feed.jpg";
+			const coverOnly = await createGame();
+			await coverOnly.update({ coverUrl });
+			const coverOnlyActivity = await createActivity(
+				viewer,
+				"backlog_added",
+				minutesAgo(3)
+			);
+			await ActivityGame.create({
+				activityId: coverOnlyActivity.id,
+				gameId: coverOnly.id
+			});
+			const bothArts = await createGame();
+			await bothArts.update({ coverUrl, backgroundUrl });
+			const bothArtsActivity = await createActivity(
+				viewer,
+				"backlog_completed",
+				minutesAgo(2)
+			);
+			await ActivityGame.create({
+				activityId: bothArtsActivity.id,
+				gameId: bothArts.id
+			});
+			const legacySnapshot = await Activity.create({
+				userId: viewer.user.id,
+				type: "coop_tagged",
+				createdAt: minutesAgo(1),
+				metadata: {
+					game: {
+						id: bothArts.id,
+						title: bothArts.title,
+						code: bothArts.code,
+						backgroundUrl
+					}
+				}
+			});
+
+			const [first, second] = await Promise.all([
+				getFeed(viewer),
+				getFeed(viewer)
+			]);
+
+			assert.deepEqual(first, second);
+			const byId = new Map(
+				first.activities.map(entry => [
+					entry.id,
+					entry as FeedActivity & {
+						target: {
+							coverUrl?: string | null;
+							backgroundUrl?: string | null;
+						} | null;
+						game?: {
+							coverUrl?: string | null;
+							backgroundUrl?: string | null;
+						};
+					}
+				])
+			);
+			assert.equal(
+				byId.get(coverOnlyActivity.id)!.target?.coverUrl,
+				coverUrl
+			);
+			assert.equal(
+				byId.get(coverOnlyActivity.id)!.target?.backgroundUrl,
+				null
+			);
+			assert.equal(
+				byId.get(bothArtsActivity.id)!.target?.coverUrl,
+				coverUrl
+			);
+			assert.equal(
+				byId.get(bothArtsActivity.id)!.target?.backgroundUrl,
+				backgroundUrl
+			);
+			assert.equal(byId.get(legacySnapshot.id)!.game?.coverUrl, null);
+			assert.equal(
+				byId.get(legacySnapshot.id)!.game?.backgroundUrl,
+				backgroundUrl
+			);
+		});
+
 		void it("never returns follow events", async () => {
 			const viewer = await createUserWithSession();
 			const other = await createUserWithSession();

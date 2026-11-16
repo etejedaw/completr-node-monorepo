@@ -47,6 +47,21 @@ void describe("gameListSerializer", () => {
 		assert.equal(result.ratio, null);
 	});
 
+	void it("exposes both arts and keeps the cover of a cover-only game", () => {
+		const both = gameListSerializer(buildGame());
+		const coverOnly = gameListSerializer(
+			buildGame({
+				backgroundUrl: null,
+				coverUrl: "https://img/only-cover.jpg"
+			})
+		);
+
+		assert.equal(both.coverUrl, "https://img/cover.jpg");
+		assert.equal(both.backgroundUrl, "https://img/bg.jpg");
+		assert.equal(coverOnly.coverUrl, "https://img/only-cover.jpg");
+		assert.equal(coverOnly.backgroundUrl, null);
+	});
+
 	void it("defaults justImported to false and genres to empty", () => {
 		const result = gameListSerializer(buildGame());
 
@@ -64,6 +79,15 @@ void describe("gameListSerializer", () => {
 });
 
 void describe("gameAdminListSerializer", () => {
+	void it("exposes the cover next to the background", () => {
+		const result = gameAdminListSerializer(
+			buildGame({ backgroundUrl: null })
+		);
+
+		assert.equal(result.coverUrl, "https://img/cover.jpg");
+		assert.equal(result.backgroundUrl, null);
+	});
+
 	void it("includes the activation state, scores and times by source", () => {
 		const result = gameAdminListSerializer(
 			buildGame({
@@ -116,6 +140,7 @@ void describe("gameSerializer", () => {
 		);
 
 		assert.equal(result.parentGame?.code, "parent-code");
+		assert.equal(result.parentGame?.coverUrl, "https://img/cover.jpg");
 		assert.deepEqual(result.franchise, {
 			id: "f-1",
 			name: "Zelda",
@@ -144,6 +169,25 @@ void describe("gameSerializer", () => {
 		assert.deepEqual(result.partOfCompilations, [null]);
 	});
 
+	void it("exposes both arts of every DLC", () => {
+		const result = gameSerializer(
+			buildGame({
+				Dlcs: [
+					buildGame({ id: "dlc-1", backgroundUrl: null }),
+					buildGame({ id: "dlc-2", coverUrl: null })
+				]
+			})
+		);
+
+		assert.deepEqual(
+			result.dlcs.map(dlc => [dlc.coverUrl, dlc.backgroundUrl]),
+			[
+				["https://img/cover.jpg", null],
+				[null, "https://img/bg.jpg"]
+			]
+		);
+	});
+
 	void it("serializes external links by source and id only", () => {
 		const result = gameSerializer(
 			buildGame({
@@ -170,6 +214,7 @@ void describe("gameShowcaseSerializer", () => {
 			id: "g",
 			code: "g",
 			title: "G",
+			coverUrl: null,
 			backgroundUrl: null,
 			releaseYear: null,
 			genres: [],
@@ -199,6 +244,7 @@ void describe("gameShowcaseSerializer", () => {
 					id: "b",
 					code: "brothers",
 					title: "Brothers",
+					coverUrl: null,
 					backgroundUrl: "https://img.test/b.jpg",
 					releaseYear: 2013,
 					genres: ["Adventure", "Puzzle"],
@@ -208,6 +254,15 @@ void describe("gameShowcaseSerializer", () => {
 				}
 			]
 		});
+	});
+
+	void it("keeps the cover of a cover-only game", () => {
+		const [coverOnly] = gameShowcaseSerializer([
+			row({ coverUrl: "https://img.test/cover.jpg" })
+		]).games;
+
+		assert.equal(coverOnly?.coverUrl, "https://img.test/cover.jpg");
+		assert.equal(coverOnly?.backgroundUrl, null);
 	});
 
 	void it("nulls score, hours and ratio when the game lacks them", () => {
