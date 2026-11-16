@@ -12,7 +12,15 @@ export const REWIND_DESIGN_2025_COPY: Record<
 			`Your highest rating of the year, ${rating} out of 5. Finished on ${finishedOn}.`,
 		quarter: quarter => `Q${quarter}`,
 		gamesNoun: count => (count === 1 ? "game" : "games"),
-		shelvesLabel: range => `Games finished from ${range}`
+		shelvesLabel: range => `Games finished from ${range}`,
+		fastestAndBestValue: "Fastest and best value",
+		ratioUnit: "ratio",
+		favoriteGenre: "Favorite genre",
+		platform: "Platform",
+		monthsNoun: count => (count === 1 ? "month" : "months"),
+		runsNoun: count => (count === 1 ? "run" : "runs"),
+		thenGenres: genres => `then ${genres}`,
+		platformRuns: (count, platform) => `${count} on ${platform}`
 	},
 	es: {
 		coverOfTheYear: "La portada del año",
@@ -20,7 +28,15 @@ export const REWIND_DESIGN_2025_COPY: Record<
 			`Tu nota más alta del año, ${rating} de 5. Terminado el ${finishedOn}.`,
 		quarter: quarter => `T${quarter}`,
 		gamesNoun: count => (count === 1 ? "juego" : "juegos"),
-		shelvesLabel: range => `Juegos terminados de ${range}`
+		shelvesLabel: range => `Juegos terminados de ${range}`,
+		fastestAndBestValue: "El más corto y mejor ratio",
+		ratioUnit: "ratio",
+		favoriteGenre: "Género favorito",
+		platform: "Plataforma",
+		monthsNoun: count => (count === 1 ? "mes" : "meses"),
+		runsNoun: count => (count === 1 ? "partida" : "partidas"),
+		thenGenres: genres => `luego ${genres}`,
+		platformRuns: (count, platform) => `${count} en ${platform}`
 	}
 };
 
