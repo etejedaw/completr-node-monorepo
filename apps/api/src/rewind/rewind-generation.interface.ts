@@ -32,7 +32,6 @@ export interface RewindGenerationResult {
 export interface RecapRequest {
 	recordId: string;
 	requestedAt: Date;
-	spend: RewindAiSpend;
 }
 
 export interface RecapRunInput {
@@ -41,7 +40,7 @@ export interface RecapRunInput {
 	calendar: RewindCalendar;
 	reusablePremiumStats: RewindPremiumStats | null;
 	premiumAccess: PremiumAccess;
-	spend: RewindAiSpend;
+	spend: RewindAiSpend | null;
 }
 
 export interface RecapSources {

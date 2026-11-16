@@ -26,6 +26,7 @@ import {
 	type RecapRunInput,
 	type RecapSources
 } from "../rewind-generation.interface";
+import { type RewindAiSpend } from "../rewind-generation.types";
 import { type RewindRecord } from "../rewind-record.interface";
 import {
 	type RewindCalendar,
@@ -215,9 +216,12 @@ function spentProviderTokens(error: unknown): boolean {
 	return REWIND_AI_TOKEN_SPENDING_ERROR_CODES.has(resolveErrorCode(error));
 }
 
-async function refundAiSpend(request: RecapRequest): Promise<void> {
-	const where = { id: request.recordId };
-	if (request.spend === "grace") {
+async function refundAiSpend(
+	recordId: string,
+	spend: RewindAiSpend
+): Promise<void> {
+	const where = { id: recordId };
+	if (spend === "grace") {
 		await RewindModel.update({ graceUsed: false }, { where });
 		return;
 	}
@@ -234,8 +238,7 @@ export async function runRecap({
 }: RecapRunInput): Promise<boolean> {
 	const request: RecapRequest = {
 		recordId: record.id,
-		requestedAt: record.aiRecapRequestedAt ?? new Date(),
-		spend
+		requestedAt: record.aiRecapRequestedAt ?? new Date()
 	};
 	let premiumStats: RewindPremiumStats | null = null;
 	try {
@@ -255,16 +258,16 @@ export async function runRecap({
 		await markRecapReady(request, aiRecap, premiumStats);
 		return true;
 	} catch (error) {
-		const refunded = !spentProviderTokens(error);
+		const refundableSpend = spentProviderTokens(error) ? null : spend;
 		logger.error("runRecap", "failed", {
 			rewindId: record.id,
 			year: record.year,
 			code: resolveErrorCode(error),
-			refunded,
+			refunded: refundableSpend !== null,
 			failures: findServiceErrorFailures(error)
 		});
 		await markRecapFailed(request, premiumStats);
-		if (refunded) await refundAiSpend(request);
+		if (refundableSpend) await refundAiSpend(record.id, refundableSpend);
 		return false;
 	}
 }
