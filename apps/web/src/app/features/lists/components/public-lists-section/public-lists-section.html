@@ -1,0 +1,47 @@
+@if (!isHidden()) {
+<section [attr.aria-labelledby]="headingId()" [attr.aria-busy]="isLoading()">
+	<div class="mb-3">
+		<h2 [id]="headingId()" uiEyebrow class="m-0">{{ copy().heading }}</h2>
+		<p class="m-0 mt-1 text-sm text-fg-muted">{{ copy().hint }}</p>
+	</div>
+	@if (isFirstLoad()) {
+	<div
+		class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+		[attr.aria-label]="copy().loadingLabel"
+	>
+		@for (i of skeletonRange; track i) {
+		<ui-skeleton variant="rect" class="block aspect-[16/10] rounded-card" />
+		}
+	</div>
+	} @else if (loader.failed()) {
+	<ui-load-error
+		[title]="copy().errorTitle"
+		hint="Check your connection and try again."
+		(retried)="load()"
+	/>
+	} @else if (page(); as current) { @if (current.lists.length === 0) {
+	<ui-empty-state
+		icon="diversity_3"
+		title="No community lists yet"
+		hint="When other players make a list public, it shows up here. Follow people to see what they curate."
+	>
+		<a uiButton variant="secondary" routerLink="/users">Find people</a>
+	</ui-empty-state>
+	} @else {
+	<ul
+		class="list-none m-0 p-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3 transition-opacity"
+		[class.opacity-60]="isRefreshing()"
+	>
+		@for (list of current.lists; track list.id) {
+		<li><app-list-card [list]="list" /></li>
+		}
+	</ul>
+	<ui-pagination
+		[offset]="offset()"
+		[limit]="copy().pageSize"
+		[total]="current.total"
+		(offsetChange)="goToOffset($event)"
+	/>
+	} }
+</section>
+}
