@@ -1,14 +1,29 @@
 import "@testing-library/jest-dom/vitest";
 
-import { provideRouter } from "@angular/router";
+import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { TestBed } from "@angular/core/testing";
+import { provideRouter, Router } from "@angular/router";
 import { fireEvent, render, screen } from "@testing-library/angular";
 
 import { BETA_SIGNUP_URL } from "../../shared/constants/beta-signup";
 import { GuestShell } from "./guest-shell";
 
+@Component({
+	selector: "app-page-stub",
+	template: `<h1>Page</h1>`,
+	changeDetection: ChangeDetectionStrategy.OnPush
+})
+class PageStub {}
+
 describe("GuestShell", () => {
 	async function renderShell() {
-		return render(GuestShell, { providers: [provideRouter([])] });
+		return render(GuestShell, {
+			providers: [
+				provideRouter([
+					{ path: "user/:username/rewind/:year", component: PageStub }
+				])
+			]
+		});
 	}
 
 	it("offers sign in and the beta signup to visitors", async () => {
@@ -48,5 +63,28 @@ describe("GuestShell", () => {
 		}
 
 		expect(header).not.toHaveClass("backdrop-blur-xl");
+	});
+
+	it("gives visitors a skip link that lands on the main content", async () => {
+		await renderShell();
+		const skipLink = screen.getByRole("link", { name: "Skip to content" });
+
+		fireEvent.click(skipLink);
+
+		expect(screen.getByRole("main")).toHaveAttribute("tabindex", "-1");
+		expect(screen.getByRole("main")).toHaveFocus();
+	});
+
+	it("opens the next rewind at the top after reading the previous one to the bottom", async () => {
+		await renderShell();
+		const router = TestBed.inject(Router);
+		const main = screen.getByRole("main");
+		await router.navigateByUrl("/user/etejedaw/rewind/2025");
+
+		main.scrollTop = 6000;
+		fireEvent.scroll(main);
+		await router.navigateByUrl("/user/etejedaw/rewind/2026");
+
+		expect(main.scrollTop).toBe(0);
 	});
 });
