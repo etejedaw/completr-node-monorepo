@@ -9,11 +9,15 @@ import { resolveRewindRegenerationBlocker } from "./resolve-rewind-regeneration-
 
 export function buildRewindOwnerControls(
 	record: RewindRecord,
-	calendar: Pick<RewindCalendar, "today" | "edition" | "upcomingEdition">,
+	calendar: Pick<
+		RewindCalendar,
+		"today" | "edition" | "upcomingEdition" | "firstYear"
+	>,
 	accessKind: RewindPremiumAccessKind | null
 ): RewindOwnerControls {
 	const budget = resolveRewindAiBudget(record, calendar, accessKind);
-	const canUseAi = budget.spend !== null;
+	const isOlderThanAccount = record.year < calendar.firstYear;
+	const canUseAi = !isOlderThanAccount && budget.spend !== null;
 
 	return {
 		includesPrivateRuns: record.includesPrivateRuns,
@@ -21,12 +25,14 @@ export function buildRewindOwnerControls(
 		regenerationsLeft: budget.regenerationsLeft,
 		graceEndsAt: budget.graceEndsAt,
 		canRegenerate: canUseAi,
-		regenerationBlockedBy: resolveRewindRegenerationBlocker(
-			record.year,
-			calendar,
-			accessKind,
-			budget
-		),
+		regenerationBlockedBy: isOlderThanAccount
+			? "period-closed"
+			: resolveRewindRegenerationBlocker(
+					record.year,
+					calendar,
+					accessKind,
+					budget
+				),
 		aiRecapState: resolveAiRecapState(record, canUseAi),
 		periodOpen: budget.edition !== null,
 		periodStatus: resolveRewindPeriod(calendar)?.status ?? "closed",
