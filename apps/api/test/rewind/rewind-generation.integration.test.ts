@@ -10,6 +10,8 @@ import { type Game } from "../../src/games/game.model";
 import * as iaServiceError from "../../src/ia/errors/ia.service-error";
 import { type Platform } from "../../src/platforms/platform.model";
 import { Rewind } from "../../src/rewind/rewind.model";
+import { runRecap } from "../../src/rewind/services/rewind-ai-recap.service";
+import * as rewindEditionsService from "../../src/rewind-editions/services/rewind-editions.service";
 import {
 	type RewindPremiumStatsInput,
 	type RewindRecapInput
@@ -34,7 +36,8 @@ import {
 	readRewindYears,
 	regenerateStored,
 	regenerationOf,
-	signUpOn
+	signUpOn,
+	storeRewind
 } from "./rewind-generation.helper";
 
 let platform: Platform;
@@ -625,6 +628,45 @@ void describe("premium generation", () => {
 		assert.equal(timedOut.status, 200);
 		assert.equal(timedOut.body.data.ownerControls.aiRecapState, "failed");
 		assert.equal((await findRewindRow(player, 2026))?.regenerationsLeft, 0);
+	});
+
+	void it("refunds nothing when a recap that spent no generation fails", async () => {
+		const player = await playerWithYears("premium");
+		mockPremiumStats();
+		mockAiRecap(() =>
+			Promise.reject(iaServiceError.providerUnavailableError("503"))
+		);
+		const edition =
+			await rewindEditionsService.findRewindEditionByYear(2026);
+		assert.ok(edition);
+		const record = await storeRewind(player, 2026, {
+			premiumAccessKind: "premium",
+			regenerationsLeft: 1,
+			graceUsed: true,
+			aiRecapStatus: "pending",
+			aiRecapRequestedAt: new Date()
+		});
+
+		const ready = await runRecap({
+			owner: player.user,
+			record,
+			calendar: {
+				today: new Date("2026-12-15"),
+				firstYear: 2025,
+				edition,
+				upcomingEdition: null
+			},
+			reusablePremiumStats: null,
+			premiumAccess: { allowed: true, source: "role", expiresAt: null },
+			spend: null
+		});
+
+		assert.equal(ready, false);
+		await record.reload();
+		assert.equal(record.aiRecapStatus, "failed");
+		assert.deepEqual(record.premiumStats, PREMIUM_STATS);
+		assert.equal(record.regenerationsLeft, 1);
+		assert.equal(record.graceUsed, true);
 	});
 
 	void it("answers 201 with a failed recap when the premium stats crash", async () => {
