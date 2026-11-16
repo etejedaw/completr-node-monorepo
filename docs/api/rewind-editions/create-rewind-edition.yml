@@ -43,7 +43,7 @@ docs: |-
     | closesAt | string | Yes | `YYYY-MM-DD` |
     | graceStartsAt | string | Yes | `YYYY-MM-DD` |
     | graceEndsAt | string | Yes | `YYYY-MM-DD` |
-    | design | string | Yes | One of the designs listed by `GET /admin/rewind/editions` |
+    | design | string | Yes | One of the designs listed by `GET /admin/rewind/editions` (`"2025"` or `"2026"`). `"2025"` has no share images: the share endpoints answer 404 for its Rewinds |
     | premiumRegenerations | integer | Yes | 0 to 1000 |
     | giftRegenerations | integer | Yes | 0 to 1000 |
 

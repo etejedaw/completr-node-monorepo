@@ -14,7 +14,7 @@ settings:
 docs: |-
     ## List Rewind Editions
 
-    Lists every Rewind edition, newest year first, with the designs an edition can use. `status` is `scheduled` before `opensAt`, `open` from `opensAt` to `closesAt` (both included) and `closed` after, comparing UTC days and honoring `REWIND_TODAY` outside prod. `inProgress` is true exactly when `status` is `open`. `generatedCount` is the number of rewinds of that year.
+    Lists every Rewind edition, newest year first, with the designs an edition can use (`"2025"` and `"2026"`, the last one being the latest). The `"2025"` design has no share images. `status` is `scheduled` before `opensAt`, `open` from `opensAt` to `closesAt` (both included) and `closed` after, comparing UTC days and honoring `REWIND_TODAY` outside prod. `inProgress` is true exactly when `status` is `open`. `generatedCount` is the number of rewinds of that year.
 
     **Authentication:** Bearer token, admin only. Other roles receive 404 `AUTH_ROUTE_NOT_FOUND`.
 
@@ -39,7 +39,7 @@ docs: |-
       "generatedCount": 42
     }
         ],
-        "designs": ["2026"]
+        "designs": ["2025", "2026"]
       }
     }
     ```
