@@ -23,10 +23,6 @@ import { rewindCopy } from "../../rewind-copy";
 import { type RewindDesignComponent } from "../../rewind-designs.model";
 import { RewindReveal } from "../../rewind-reveal";
 import { REWIND_YEAR_FILL_CLASS } from "../../rewind-tone";
-import {
-	presentHighlightKeys,
-	RewindHighlights
-} from "../rewind-highlights/rewind-highlights";
 import { RewindMoreYears } from "../rewind-more-years/rewind-more-years";
 import { RewindOwnerPanel } from "../rewind-owner-panel/rewind-owner-panel";
 import { RewindPersonaRank } from "../rewind-persona-rank/rewind-persona-rank";
@@ -35,6 +31,10 @@ import {
 	RewindPremiumStats
 } from "../rewind-premium-stats/rewind-premium-stats";
 import { RewindTally, rewindTallyRows } from "../rewind-tally/rewind-tally";
+import {
+	hasRewind2025Awards,
+	Rewind2025Awards
+} from "./rewind-2025-awards/rewind-2025-awards";
 import { Rewind2025CoverFeature } from "./rewind-2025-cover-feature/rewind-2025-cover-feature";
 import { Rewind2025RecapArticle } from "./rewind-2025-recap-article/rewind-2025-recap-article";
 import { Rewind2025Shelves } from "./rewind-2025-shelves/rewind-2025-shelves";
@@ -68,10 +68,10 @@ function backdropOf(rewind: Rewind): string | null {
 		CoverUrlPipe,
 		ProfileBackdrop,
 		ProfileSectionHeader,
+		Rewind2025Awards,
 		Rewind2025CoverFeature,
 		Rewind2025RecapArticle,
 		Rewind2025Shelves,
-		RewindHighlights,
 		RewindMoreYears,
 		RewindOwnerPanel,
 		RewindPersonaRank,
@@ -118,8 +118,8 @@ export class RewindDesign2025 implements RewindDesignComponent {
 
 	protected readonly backdropUrl = computed(() => backdropOf(this.rewind()));
 
-	protected readonly hasHighlights = computed(
-		() => presentHighlightKeys(this.rewind().highlights).length > 0
+	protected readonly hasHighlights = computed(() =>
+		hasRewind2025Awards(this.rewind().highlights)
 	);
 
 	protected readonly hasPremiumStats = computed(() => {

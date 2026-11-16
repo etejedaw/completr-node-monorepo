@@ -270,6 +270,8 @@ describe("RewindDesign2025", () => {
 		expect(
 			screen.getByRole("heading", { name: "Highlights" })
 		).toBeInTheDocument();
+		expect(root.querySelector("app-rewind-2025-awards")).not.toBeNull();
+		expect(root.querySelector("app-rewind-highlights")).toBeNull();
 		expect(
 			screen.getByRole("heading", { name: "Premium stats" })
 		).toBeInTheDocument();
@@ -491,6 +493,23 @@ describe("RewindDesign2025", () => {
 			screen.queryByRole("heading", { name: "Finished in 2025" })
 		).not.toBeInTheDocument();
 		expect(shelfQuarters(root)).toEqual([]);
+	});
+
+	it("drops the highlights when the cover of the year is all there is", async () => {
+		const root = await renderDesign(
+			rewindFixture({
+				highlights: {
+					...rewindFixture().highlights,
+					busiestMonth: null
+				}
+			})
+		);
+
+		expect(screen.getByText("Cover of the year")).toBeInTheDocument();
+		expect(
+			screen.queryByRole("heading", { name: "Highlights" })
+		).not.toBeInTheDocument();
+		expect(root.querySelector("app-rewind-2025-awards")).toBeNull();
 	});
 
 	it("hides premium stats that come back with no chart to draw", async () => {
