@@ -145,6 +145,20 @@ export class RewindDesign2026 implements RewindDesignComponent {
 		() => this.rewind().finishedGames.length > 0
 	);
 
+	protected readonly hasClosedGames = computed(() => {
+		const rewind = this.rewind();
+		return (
+			rewind.finishedGames.length > 0 || rewind.abandonedGames.length > 0
+		);
+	});
+
+	protected readonly closedGamesHeading = computed(() => {
+		const { year, abandonedGames } = this.rewind();
+		return abandonedGames.length > 0
+			? this.text().closedIn(year)
+			: this.text().finishedIn(year);
+	});
+
 	protected readonly storyImage = injectRewindStoryImage(() =>
 		this.shareTarget()
 	);
@@ -169,7 +183,7 @@ export class RewindDesign2026 implements RewindDesignComponent {
 			this.hasHighlights() ? "highlights highlights" : null,
 			this.hasYearMix() ? "mix mix" : null,
 			this.hasPremiumStats() ? "stats stats" : null,
-			rewind.finishedGames.length ? "finished finished" : null,
+			this.hasClosedGames() ? "finished finished" : null,
 			rewind.otherYears.length ? "more more" : null
 		];
 		return rows

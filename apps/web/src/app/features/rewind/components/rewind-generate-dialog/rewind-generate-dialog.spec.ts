@@ -50,6 +50,7 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 			platformsPlayed: 1
 		},
 		finishedGames: [],
+		abandonedGames: [],
 		highlights: {
 			topRated: null,
 			bestRatio: null,

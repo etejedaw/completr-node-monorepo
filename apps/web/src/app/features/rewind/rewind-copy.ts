@@ -43,6 +43,7 @@ const ENGLISH: RewindCopy = {
 		results: "Results",
 		highlights: "Highlights",
 		finishedIn: year => `Finished in ${year}`,
+		closedIn: year => `Closed in ${year}`,
 		moreRewinds: "More Rewinds",
 		seeAll: "See all",
 		loading: "Loading Rewind",
@@ -100,6 +101,11 @@ const ENGLISH: RewindCopy = {
 		releasedIn: year => `Released in ${year}`,
 		games: count => englishPlural(count, "game", "games"),
 		runs: count => englishPlural(count, "run", "runs")
+	},
+	timeline: {
+		abandonedGames: count => `${count} abandoned`,
+		abandoned: "abandoned",
+		abandonedGameLabel: (title, date) => `${title}, ${date}, abandoned`
 	},
 	aiRecap: {
 		heading: "AI recap",
@@ -186,6 +192,7 @@ const SPANISH: RewindCopy = {
 		results: "Resultados",
 		highlights: "Lo más destacado",
 		finishedIn: year => `Terminados en ${year}`,
+		closedIn: year => `Cerrados en ${year}`,
 		moreRewinds: "Más Rewinds",
 		seeAll: "Ver todos",
 		loading: "Cargando Rewind",
@@ -246,6 +253,12 @@ const SPANISH: RewindCopy = {
 		releasedIn: year => `Lanzado en ${year}`,
 		games: count => spanishPlural(count, "juego", "juegos"),
 		runs: count => spanishPlural(count, "partida", "partidas")
+	},
+	timeline: {
+		abandonedGames: count =>
+			spanishPlural(count, "abandonado", "abandonados"),
+		abandoned: "abandonado",
+		abandonedGameLabel: (title, date) => `${title}, ${date}, abandonado`
 	},
 	aiRecap: {
 		heading: "Resumen con IA",

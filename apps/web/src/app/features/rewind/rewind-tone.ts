@@ -51,3 +51,6 @@ export const REWIND_YEAR_FILL_CLASS =
 	"bg-linear-to-r from-brand via-nav-queue to-nav-shelf bg-clip-text text-transparent";
 export const REWIND_PREMIUM_FRAME_CLASS =
 	"relative isolate flex flex-col overflow-hidden rounded-card border border-premium/45 bg-[linear-gradient(160deg,color-mix(in_oklab,var(--color-premium)_10%,var(--color-surface)),var(--color-surface)_45%)] shadow-[inset_0_1px_0_color-mix(in_oklab,var(--color-premium)_30%,transparent)]";
+
+export const REWIND_ABANDONED_POSTER_CLASS =
+	"grayscale brightness-75 opacity-60 motion-reduce:transition-none group-hover:grayscale-0 group-hover:brightness-100 group-hover:opacity-100 group-focus-visible:grayscale-0 group-focus-visible:brightness-100 group-focus-visible:opacity-100";
