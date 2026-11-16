@@ -71,6 +71,27 @@ describe("ListsService", () => {
 			.flush({ data: { lists: [] } });
 	});
 
+	it.each([
+		["getOfficialPage", "official"],
+		["getRecentPage", "recent"]
+	] as const)(
+		"%s sends limit and offset and returns the lists with the total",
+		(method, path) => {
+			let result: unknown;
+
+			service[method]({ limit: 12, offset: 24 }).subscribe(
+				r => (result = r)
+			);
+
+			const req = httpTesting.expectOne(r => r.url === `${url}/${path}`);
+			expect(req.request.method).toBe("GET");
+			expect(req.request.params.get("limit")).toBe("12");
+			expect(req.request.params.get("offset")).toBe("24");
+			req.flush({ data: { lists: [{ id: "l1" }], total: 25 } });
+			expect(result).toEqual({ lists: [{ id: "l1" }], total: 25 });
+		}
+	);
+
 	it("loads a list by id", () => {
 		let result: unknown;
 
