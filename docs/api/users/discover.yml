@@ -48,6 +48,7 @@ docs: |-
             "completedTotal": 214,
             "featuredGame": {
               "title": "Resident Evil 4",
+              "coverUrl": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1abc.jpg",
               "backgroundUrl": "https://…/re4.jpg"
             }
           }

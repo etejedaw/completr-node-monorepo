@@ -45,7 +45,7 @@ docs: |-
         "wishlist": {
           "id": "uuid",
           "position": 1,
-          "game": { "id": "uuid", "code": "...", "title": "...", "backgroundUrl": "...", "isDlc": false },
+          "game": { "id": "uuid", "code": "...", "title": "...", "coverUrl": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1abc.jpg", "backgroundUrl": "...", "isDlc": false },
           "platform": { "id": "uuid", "name": "...", "abbreviation": "..." } | null
         }
       }

@@ -57,17 +57,17 @@ docs: |-
           "abandonmentRate": 0.095,
           "longestPlayed": {
             "backlogId": "uuid",
-            "game": { "id": "uuid", "code": "elden-ring", "title": "Elden Ring", "backgroundUrl": "https://..." },
+            "game": { "id": "uuid", "code": "elden-ring", "title": "Elden Ring", "coverUrl": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1abc.jpg", "backgroundUrl": "https://..." },
             "value": 92.5
           },
           "bestPersonalRatio": {
             "backlogId": "uuid",
-            "game": { "id": "uuid", "code": "florence", "title": "Florence", "backgroundUrl": "https://..." },
+            "game": { "id": "uuid", "code": "florence", "title": "Florence", "coverUrl": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1abc.jpg", "backgroundUrl": "https://..." },
             "value": 82
           },
           "highestRated": {
             "backlogId": "uuid",
-            "game": { "id": "uuid", "code": "the-witcher-3", "title": "The Witcher 3", "backgroundUrl": "https://..." },
+            "game": { "id": "uuid", "code": "the-witcher-3", "title": "The Witcher 3", "coverUrl": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1abc.jpg", "backgroundUrl": "https://..." },
             "value": 10
           },
           "ratingDistribution": [

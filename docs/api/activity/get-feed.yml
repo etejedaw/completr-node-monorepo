@@ -61,6 +61,7 @@ docs: |-
               "id": "uuid",
               "title": "Fez",
               "code": "fez",
+              "coverUrl": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1abc.jpg",
               "backgroundUrl": "https://..."
             }
           }
@@ -73,7 +74,7 @@ docs: |-
 
     Each activity user includes `hasPremium`, true for a premium role or temporary full premium without changing `role`; individual feature grants do not change it.
 
-    For `coop_tagged`, `target` is the tagged user and `game` carries the co-op game (from a `metadata` snapshot taken when the tag was created, shape `{ type: "game", id, name, code, backgroundUrl }`). This lets the client render "X is playing co-op with Y in [game]". Other activity types omit `game`.
+    For `coop_tagged`, `target` is the tagged user and `game` carries the co-op game (from a `metadata` snapshot taken when the tag was created, shape `{ type: "game", id, name, code, coverUrl, backgroundUrl }`; snapshots saved before covers were recorded answer `coverUrl: null`). This lets the client render "X is playing co-op with Y in [game]". Other activity types omit `game`.
 
     ### Activity Types
 

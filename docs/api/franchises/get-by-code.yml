@@ -62,6 +62,7 @@ docs: |-
             "id": "uuid",
             "title": "Resident Evil 2 (2019)",
             "code": "resident-evil-2-2019",
+            "coverUrl": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1abc.jpg",
             "backgroundUrl": "https://example.com/bg.jpg",
             "backlogStatus": "completed"
           }

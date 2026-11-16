@@ -56,7 +56,7 @@ docs: |-
             "isFollowing": true,
             "gamesTotal": 140,
             "completedTotal": 58,
-            "featuredGame": { "title": "Hollow Knight", "backgroundUrl": "https://media.rawg.io/media/games/..." }
+            "featuredGame": { "title": "Hollow Knight", "coverUrl": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1abc.jpg", "backgroundUrl": "https://media.rawg.io/media/games/..." }
           }
         ],
         "total": 37

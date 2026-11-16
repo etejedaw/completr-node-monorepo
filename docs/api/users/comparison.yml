@@ -82,6 +82,7 @@ docs: |-
             "id": "uuid",
             "code": "resident-evil-2",
             "title": "Resident Evil 2",
+            "coverUrl": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1abc.jpg",
             "backgroundUrl": "https://example.com/bg.jpg"
           }
         ],
@@ -92,7 +93,7 @@ docs: |-
     }
     ```
 
-    `backgroundUrl` may be `null`. Each `counts` value equals the length of its bucket.
+    `coverUrl` and `backgroundUrl` may be `null`. Each `counts` value equals the length of its bucket.
 
     ### Errors
 
