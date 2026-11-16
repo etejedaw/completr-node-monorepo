@@ -25,7 +25,8 @@ import { type UpsertGamePlatinumDto } from "./dtos/upsert-game-platinum.dto";
 import * as gamePlatinumServiceError from "./errors/game-platinum.service-error";
 import {
 	LATEST_PLATINUMS_FIRST,
-	PLATINUM_RUN_INCLUDE
+	PLATINUM_RUN_INCLUDE,
+	REWIND_PLATINUM_ATTRS
 } from "./game-platinum.constants";
 import { type UpsertedGamePlatinum } from "./game-platinum.interface";
 import { GamePlatinum } from "./game-platinum.model";
@@ -256,6 +257,23 @@ export async function countPlatinumsByUserIdAndYear(
 			userId,
 			platinumedAt: { [Op.between]: [`${year}-01-01`, `${year}-12-31`] }
 		}
+	});
+}
+
+export async function findPlatinumsByBacklogIds(
+	userId: string,
+	backlogIds: string[],
+	options: { includeNotes: boolean }
+) {
+	const uniqueBacklogIds = [...new Set(backlogIds)];
+	if (uniqueBacklogIds.length === 0) return [];
+
+	return GamePlatinum.findAll({
+		where: { userId, backlogId: uniqueBacklogIds },
+		attributes: options.includeNotes
+			? [...REWIND_PLATINUM_ATTRS, "notes"]
+			: REWIND_PLATINUM_ATTRS,
+		order: [["id", "ASC"]]
 	});
 }
 
