@@ -20,6 +20,7 @@ async function queryShowcaseGames(): Promise<ShowcaseGameRow[]> {
 		SELECT "Game"."id",
 			"Game"."code",
 			"Game"."title",
+			"Game"."coverUrl",
 			"Game"."backgroundUrl",
 			EXTRACT(YEAR FROM "Game"."releaseAt")::int AS "releaseYear",
 			ARRAY(
@@ -34,7 +35,7 @@ async function queryShowcaseGames(): Promise<ShowcaseGameRow[]> {
 		LEFT JOIN "GamePopularities" gp ON gp."gameId" = "Game"."id"
 		WHERE "Game"."isActive" = true
 			AND "Game"."isDlc" = false
-			AND "Game"."backgroundUrl" IS NOT NULL
+			AND COALESCE("Game"."coverUrl", "Game"."backgroundUrl") IS NOT NULL
 		ORDER BY COALESCE(gp."score", 0) DESC, "Game"."title" ASC, "Game"."id" ASC
 		LIMIT :limit
 		`,

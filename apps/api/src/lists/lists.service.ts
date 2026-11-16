@@ -135,7 +135,14 @@ export async function findListBasicById(id: string) {
 	return List.findOne({ where: { id } });
 }
 
-const LIST_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
+const LIST_GAME_ATTRS = [
+	"id",
+	"code",
+	"title",
+	"coverUrl",
+	"backgroundUrl",
+	"isDlc"
+];
 const LIST_OWNER_ATTRS = ["id", "username", "role"];
 const LIST_ITEMS_ORDER: [string, string][] = [
 	["position", "ASC"],
@@ -144,26 +151,30 @@ const LIST_ITEMS_ORDER: [string, string][] = [
 
 function listPreviewItemsInclude() {
 	return {
-	...listItemsService.listItemInclude(),
-	separate: true,
-	limit: LIST_PREVIEW_SIZE,
-	order: LIST_ITEMS_ORDER,
-	include: [{ ...gamesService.gameInclude(), attributes: LIST_GAME_ATTRS }]
+		...listItemsService.listItemInclude(),
+		separate: true,
+		limit: LIST_PREVIEW_SIZE,
+		order: LIST_ITEMS_ORDER,
+		include: [
+			{ ...gamesService.gameInclude(), attributes: LIST_GAME_ATTRS }
+		]
 	};
 }
 
 function listDetailInclude() {
 	return [
-	{
-		...usersService.userInclude(),
-		attributes: LIST_OWNER_ATTRS
-	},
-	{
-		...listItemsService.listItemInclude(),
-		include: [{ ...gamesService.gameInclude(), attributes: LIST_GAME_ATTRS }],
-		separate: true,
-		order: LIST_ITEMS_ORDER
-	}
+		{
+			...usersService.userInclude(),
+			attributes: LIST_OWNER_ATTRS
+		},
+		{
+			...listItemsService.listItemInclude(),
+			include: [
+				{ ...gamesService.gameInclude(), attributes: LIST_GAME_ATTRS }
+			],
+			separate: true,
+			order: LIST_ITEMS_ORDER
+		}
 	];
 }
 
@@ -189,7 +200,12 @@ export async function findOwnListForExport(id: string, userId: string) {
 					"duration",
 					"createdAt"
 				],
-				include: [{ ...gamesService.gameInclude(), attributes: ["id", "title"] }]
+				include: [
+					{
+						...gamesService.gameInclude(),
+						attributes: ["id", "title"]
+					}
+				]
 			}
 		],
 		order: [
@@ -354,9 +370,7 @@ export async function findPublicListsByUserId(
 			...listsOfUserWhere(userId, pagination.search),
 			isPublic: true
 		},
-		include: [
-			listPreviewItemsInclude()
-		],
+		include: [listPreviewItemsInclude()],
 		order: LIST_ORDER_NEWEST_FIRST
 	};
 	if (pagination.limit) query.limit = pagination.limit;
@@ -521,7 +535,12 @@ export async function findOwnListsForDataExport(userId: string) {
 		include: [
 			{
 				...listItemsService.listItemInclude(),
-				include: [{ ...gamesService.gameInclude(), attributes: GAME_REFERENCE_ATTRS }]
+				include: [
+					{
+						...gamesService.gameInclude(),
+						attributes: GAME_REFERENCE_ATTRS
+					}
+				]
 			}
 		],
 		order: [

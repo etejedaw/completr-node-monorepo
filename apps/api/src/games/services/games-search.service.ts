@@ -56,6 +56,7 @@ const GAME_LIST_ATTRS = [
 	"id",
 	"code",
 	"title",
+	"coverUrl",
 	"backgroundUrl",
 	"isDlc",
 	"createdAt",

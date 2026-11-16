@@ -398,6 +398,7 @@ function toEntryMap(rows: GameEntryRow[]): Map<string, ComparisonGameEntry> {
 			id: row.Game.id,
 			code: row.Game.code,
 			title: row.Game.title,
+			coverUrl: row.Game.coverUrl,
 			backgroundUrl: row.Game.backgroundUrl
 		});
 	}

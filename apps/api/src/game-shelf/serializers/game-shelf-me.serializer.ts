@@ -26,6 +26,7 @@ function gameSerializer(game: Game) {
 		id: game.id,
 		title: game.title,
 		code: game.code,
+		coverUrl: game.coverUrl,
 		backgroundUrl: game.backgroundUrl,
 		isDlc: game.isDlc
 	};

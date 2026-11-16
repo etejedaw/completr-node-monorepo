@@ -190,7 +190,14 @@ export async function findPlatinumsByUserIdPaginated(
 		: null;
 	const gameInclude: Includeable = {
 		model: Game,
-		attributes: ["id", "code", "title", "backgroundUrl", "isDlc"],
+		attributes: [
+			"id",
+			"code",
+			"title",
+			"coverUrl",
+			"backgroundUrl",
+			"isDlc"
+		],
 		...(titleWhere && { where: titleWhere, required: true })
 	};
 

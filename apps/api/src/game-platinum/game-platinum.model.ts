@@ -18,7 +18,7 @@ class GamePlatinum extends Model {
 	declare Backlog?: Pick<Backlog, "id" | "isPublic"> | null;
 	declare Game?: Pick<
 		Game,
-		"id" | "code" | "title" | "backgroundUrl" | "isDlc"
+		"id" | "code" | "title" | "coverUrl" | "backgroundUrl" | "isDlc"
 	>;
 	declare Platform?: Pick<Platform, "id" | "name" | "abbreviation"> | null;
 }

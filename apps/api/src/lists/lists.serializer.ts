@@ -55,6 +55,7 @@ export function listSummarySerializer(list: List) {
 							id: item.Game.id,
 							code: item.Game.code,
 							title: item.Game.title,
+							coverUrl: item.Game.coverUrl,
 							backgroundUrl: item.Game.backgroundUrl
 						}
 					: null

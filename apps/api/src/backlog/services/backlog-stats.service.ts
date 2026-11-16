@@ -1,9 +1,17 @@
 import { col, fn, literal, Op, type Order } from "sequelize";
 
-import { calculateRatio, RATIO_SCORE_MULTIPLIER } from "../../common/utils/calculate-ratio.util";
+import {
+	calculateRatio,
+	RATIO_SCORE_MULTIPLIER
+} from "../../common/utils/calculate-ratio.util";
 import { sequelize } from "../../database/sequelize.database";
 import * as gamesService from "../../games/games.service";
-import { type BacklogHighlight, type BacklogStats, type MonthlyCount, type RatingBucket } from "../backlog.interface";
+import {
+	type BacklogHighlight,
+	type BacklogStats,
+	type MonthlyCount,
+	type RatingBucket
+} from "../backlog.interface";
 import { Backlog } from "../backlog.model";
 import { type BacklogQuery } from "../schemas/backlog-query.schema";
 import { buildBacklogWhere } from "../utils/build-backlog-where.util";
@@ -101,7 +109,13 @@ const RATING_MAX_STARS = 5;
 
 const COMPLETION_TREND_MONTHS = 12;
 
-const HIGHLIGHT_GAME_ATTRS = ["id", "code", "title", "backgroundUrl"];
+const HIGHLIGHT_GAME_ATTRS = [
+	"id",
+	"code",
+	"title",
+	"coverUrl",
+	"backgroundUrl"
+];
 
 async function findHighlight(
 	baseWhere: Record<string, unknown>,
@@ -110,7 +124,9 @@ async function findHighlight(
 ): Promise<Backlog | null> {
 	return Backlog.findOne({
 		where: { ...baseWhere, ...extraWhere },
-		include: [{ ...gamesService.gameInclude(), attributes: HIGHLIGHT_GAME_ATTRS }],
+		include: [
+			{ ...gamesService.gameInclude(), attributes: HIGHLIGHT_GAME_ATTRS }
+		],
 		order
 	});
 }
@@ -126,6 +142,7 @@ function toHighlight(
 			id: entry.Game.id,
 			code: entry.Game.code,
 			title: entry.Game.title,
+			coverUrl: entry.Game.coverUrl ?? null,
 			backgroundUrl: entry.Game.backgroundUrl ?? null
 		},
 		value
@@ -141,7 +158,11 @@ function toNumberOrNull(value: unknown): number | null {
 async function countRatingsByStars(
 	baseWhere: Record<string, unknown>
 ): Promise<RatingBucket[]> {
-	const starsExpression = fn("LEAST", RATING_MAX_STARS, fn("CEIL", col("userRating")));
+	const starsExpression = fn(
+		"LEAST",
+		RATING_MAX_STARS,
+		fn("CEIL", col("userRating"))
+	);
 	const rows = (await Backlog.findAll({
 		where: { [Op.and]: [baseWhere, { userRating: { [Op.gt]: 0 } }] },
 		attributes: [
