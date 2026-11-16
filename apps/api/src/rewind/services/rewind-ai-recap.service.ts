@@ -4,15 +4,24 @@ import * as coopRunsService from "../../coop-runs/coop-runs.service";
 import * as franchisesService from "../../franchises/franchises.service";
 import * as gameGenreService from "../../game-genre/game-genre.service";
 import * as gamePlatinumService from "../../game-platinum/game-platinum.service";
+import * as moodTagsService from "../../mood-tags/mood-tags.service";
 import { type PremiumAccess } from "../../premium-access/premium-access.interface";
+import * as queueService from "../../queue/queue.service";
 import * as reviewsService from "../../reviews/reviews.service";
+import { REWIND_RECAP_UP_NEXT_LIMIT } from "../../rewind-recap/rewind-recap.constants";
 import {
 	type RewindCoopPartner,
-	type RewindGameReview
+	type RewindGameReview,
+	type RewindGameTag,
+	type RewindQueuedGame,
+	type RewindRunPlatinum
 } from "../../rewind-recap/rewind-recap.interface";
 import { generateRewindAiRecap } from "../../rewind-recap/rewind-recap.service";
 import { buildRewindPremiumStats } from "../../rewind-recap/utils/build-rewind-premium-stats.util";
+import { groupGenreNamesByGame } from "../../rewind-recap/utils/group-genre-names-by-game.util";
 import { type User } from "../../users/user.model";
+import { platinumToRewindRunPlatinum } from "../mappers/platinum-to-rewind-run-platinum.mapper";
+import { queueEntryToRewindQueuedGame } from "../mappers/queue-entry-to-rewind-queued-game.mapper";
 import { userToRewindOwner } from "../mappers/user-to-rewind-owner.mapper";
 import { REWIND_AI_TOKEN_SPENDING_ERROR_CODES } from "../rewind.constants";
 import {
@@ -36,6 +45,7 @@ import {
 import { buildRewind } from "../utils/build-rewind.util";
 import { buildYearTotals } from "../utils/build-year-totals.util";
 import { findServiceErrorFailures } from "../utils/find-service-error-failures.util";
+import { isSectionShared } from "../utils/is-section-shared.util";
 import { listActiveGameIds } from "../utils/list-active-game-ids.util";
 import { listRewindYears } from "../utils/list-rewind-years.util";
 import { resolveErrorCode } from "../utils/resolve-error-code.util";
@@ -71,6 +81,57 @@ async function findWrittenReviews(
 	);
 }
 
+async function findUpNext(
+	owner: User,
+	record: RewindRecord
+): Promise<RewindQueuedGame[]> {
+	if (!isSectionShared(owner.queueVisibility, record.includesPrivateRuns))
+		return [];
+	const { rows } = await queueService.findQueueByUserIdPaginated(
+		owner.id,
+		{ limit: REWIND_RECAP_UP_NEXT_LIMIT },
+		!record.includesPrivateRuns
+	);
+	const genres = await gameGenreService.findGenresByGameIds(
+		rows.map(entry => entry.Backlog.gameId)
+	);
+	const genreNamesByGame = groupGenreNamesByGame(genres);
+	return rows.map(entry =>
+		queueEntryToRewindQueuedGame(entry, genreNamesByGame)
+	);
+}
+
+async function findGameTags(
+	owner: User,
+	gameIds: string[]
+): Promise<RewindGameTag[]> {
+	const tagsByGame = await moodTagsService.findTagsForGames(owner.id, [
+		...new Set(gameIds)
+	]);
+	return [...tagsByGame.entries()].flatMap(([gameId, tags]) =>
+		tags.map(tag => ({ gameId, tag }))
+	);
+}
+
+async function findRunPlatinums(
+	owner: User,
+	record: RewindRecord,
+	runs: RewindRun[]
+): Promise<RewindRunPlatinum[] | null> {
+	if (!isSectionShared(owner.platinumVisibility, record.includesPrivateRuns))
+		return null;
+	const platinums = await gamePlatinumService.findPlatinumsByBacklogIds(
+		owner.id,
+		runs.map(run => run.id),
+		{ includeNotes: record.includesNotes }
+	);
+	return platinums.flatMap(platinum =>
+		platinum.backlogId === null
+			? []
+			: [platinumToRewindRunPlatinum(platinum, platinum.backlogId)]
+	);
+}
+
 async function gatherRecapSources(
 	owner: User,
 	record: RewindRecord,
@@ -78,27 +139,39 @@ async function gatherRecapSources(
 ): Promise<RecapSources> {
 	const publicOnly = !record.includesPrivateRuns;
 	const { year } = record;
-	const [runs, addedByMonth] = await Promise.all([
+	const [runs, addedByMonth, upNext] = await Promise.all([
 		findRewindRuns(owner.id, {
 			publicOnly,
 			includeNotes: record.includesNotes
 		}),
 		backlogRewindService.countRunsAddedByMonth(owner.id, year, {
 			publicOnly
-		})
+		}),
+		findUpNext(owner, record)
 	]);
-	const [genres, franchises, platinums, coopPartners, reviews] =
-		await Promise.all([
-			gameGenreService.findGenresByGameIds(
-				listActiveGameIds(runs, [year, year - 1])
-			),
-			franchisesService.findFranchisesByGameIds(
-				listActiveGameIds(runs, [year])
-			),
-			publicPlatinumsFor(owner, record.includesPrivateRuns, year),
-			findCoopPartners(runs),
-			findWrittenReviews(owner, runs)
-		]);
+	const yearGameIds = listActiveGameIds(runs, [year]);
+	const [
+		genres,
+		franchises,
+		platinums,
+		coopPartners,
+		reviews,
+		tags,
+		runPlatinums
+	] = await Promise.all([
+		gameGenreService.findGenresByGameIds(
+			listActiveGameIds(runs, [year, year - 1])
+		),
+		franchisesService.findFranchisesByGameIds(yearGameIds),
+		publicPlatinumsFor(owner, record.includesPrivateRuns, year),
+		findCoopPartners(runs),
+		findWrittenReviews(owner, runs),
+		findGameTags(owner, [
+			...yearGameIds,
+			...upNext.map(game => game.gameId)
+		]),
+		findRunPlatinums(owner, record, runs)
+	]);
 	const yearGenres = filterGenresOfYear(genres, runs, year);
 	const premiumStats =
 		reusablePremiumStats ??
@@ -115,6 +188,9 @@ async function gatherRecapSources(
 		franchises,
 		coopPartners,
 		reviews,
+		tags,
+		runPlatinums,
+		upNext,
 		platinums,
 		premiumStats
 	};
@@ -158,6 +234,9 @@ async function writeAiRecap(
 		franchises: sources.franchises,
 		coopPartners: sources.coopPartners,
 		reviews: sources.reviews,
+		tags: sources.tags,
+		platinums: sources.runPlatinums,
+		upNext: sources.upNext,
 		previousYearTotals: await buildPreviousYearTotals(
 			owner,
 			record,
@@ -312,8 +391,8 @@ function publicPlatinumsFor(
 	includesPrivateRuns: boolean,
 	year: number
 ): Promise<number | null> {
-	const platinumIsPublic = owner.platinumVisibility === "public";
-	if (!includesPrivateRuns && !platinumIsPublic) return Promise.resolve(null);
+	if (!isSectionShared(owner.platinumVisibility, includesPrivateRuns))
+		return Promise.resolve(null);
 	return gamePlatinumService.countPlatinumsByUserIdAndYear(owner.id, year);
 }
 
