@@ -12,6 +12,17 @@ const PRIVILEGED_ROLES: ReadonlySet<string> = new Set<UserRole>([
 	"moderator"
 ]);
 
+export function isRateLimitingActive(): boolean {
+	return (
+		environmentConfig.NODE_ENV !== "test" &&
+		environmentConfig.RATE_LIMIT_ENABLED
+	);
+}
+
+export function isRateLimitExempt(role: string): boolean {
+	return PRIVILEGED_ROLES.has(role);
+}
+
 function skipRateLimit(
 	_request: Request,
 	_response: Response,
@@ -20,13 +31,16 @@ function skipRateLimit(
 	next();
 }
 
-export function rateLimiterMiddleware(limiter: RateLimiterMemory) {
-	if (
-		environmentConfig.NODE_ENV === "test" ||
-		!environmentConfig.RATE_LIMIT_ENABLED
-	) {
-		return skipRateLimit;
-	}
+export function resolveUserRateLimitKey(request: Request): string {
+	const user = request.locals?.user as RequestUser | undefined;
+	return user ? `user:${user.id}` : resolveClientIp(request);
+}
+
+export function rateLimiterMiddleware(
+	limiter: RateLimiterMemory,
+	resolveKey: (request: Request) => string = resolveClientIp
+) {
+	if (!isRateLimitingActive()) return skipRateLimit;
 
 	return async (
 		request: Request,
@@ -35,11 +49,11 @@ export function rateLimiterMiddleware(limiter: RateLimiterMemory) {
 	) => {
 		try {
 			const user = request.locals?.user as RequestUser | undefined;
-			if (user && PRIVILEGED_ROLES.has(user.role)) {
+			if (user && isRateLimitExempt(user.role)) {
 				return next();
 			}
 
-			await limiter.consume(resolveClientIp(request));
+			await limiter.consume(resolveKey(request));
 			return next();
 		} catch (error) {
 			throw authDomainsErrors.authRateLimited({ raw: error });

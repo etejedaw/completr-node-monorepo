@@ -23,6 +23,7 @@ import {
 	type RewindPremiumAccess
 } from "../../../../core/models/rewind.model";
 import { ToastService } from "../../../../core/services/toast";
+import { SUPPRESS_CONFLICT_TOAST } from "../../../../shared/utils/validation-errors";
 import { RewindGenerateDialog } from "./rewind-generate-dialog";
 import { injectRewindGenerateFlow } from "./rewind-generate-flow";
 
@@ -96,6 +97,7 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 }
 
 let isPremium: WritableSignal<boolean>;
+let canWriteAiRecap: WritableSignal<boolean>;
 
 @Component({
 	imports: [RewindGenerateDialog],
@@ -107,6 +109,7 @@ let isPremium: WritableSignal<boolean>;
 				[year]="2026"
 				[rewind]="flow.latestRewind()"
 				[premiumAccess]="premiumAccess()"
+				[canWriteAiRecap]="canWriteAiRecap()"
 				[pending]="flow.isPending()"
 				[error]="flow.error()"
 				(submitted)="flow.submit($event)"
@@ -118,6 +121,7 @@ let isPremium: WritableSignal<boolean>;
 })
 class GeneratorHost {
 	readonly current = signal<Rewind | null>(null);
+	readonly canWriteAiRecap = computed(() => canWriteAiRecap());
 	readonly premiumAccess = computed<RewindPremiumAccess>(() => ({
 		allowed: isPremium(),
 		source: isPremium() ? "feature-grant" : null,
@@ -139,6 +143,7 @@ describe("RewindGenerateDialog", () => {
 	let toast: {
 		success: ReturnType<typeof vi.fn>;
 		error: ReturnType<typeof vi.fn>;
+		warning: ReturnType<typeof vi.fn>;
 	};
 
 	async function renderHost(current: Rewind | null = null) {
@@ -172,7 +177,8 @@ describe("RewindGenerateDialog", () => {
 
 	beforeEach(() => {
 		isPremium = signal(false);
-		toast = { success: vi.fn(), error: vi.fn() };
+		canWriteAiRecap = signal(true);
+		toast = { success: vi.fn(), error: vi.fn(), warning: vi.fn() };
 		vi.spyOn(performance, "now").mockReturnValue(10_000);
 		vi.stubGlobal(
 			"matchMedia",
@@ -207,6 +213,7 @@ describe("RewindGenerateDialog", () => {
 			language: "en",
 			includePrivateRuns: false,
 			includeNotes: false,
+			writeAiRecap: false,
 			expectedGeneratedAt: null
 		});
 		const rewind = rewindFixture();
@@ -561,6 +568,7 @@ describe("RewindGenerateDialog", () => {
 			language: "en",
 			includePrivateRuns: false,
 			includeNotes: true,
+			writeAiRecap: true,
 			expectedGeneratedAt: null
 		});
 		request.flush({ data: rewindFixture() });
@@ -626,6 +634,7 @@ describe("RewindGenerateDialog", () => {
 			language: "en",
 			includePrivateRuns: false,
 			includeNotes: false,
+			writeAiRecap: true,
 			expectedGeneratedAt: "2026-12-02T10:00:00.000Z"
 		});
 		request.flush({ data: rewindFixture() });
@@ -710,6 +719,7 @@ describe("RewindGenerateDialog", () => {
 			language: "es",
 			includePrivateRuns: true,
 			includeNotes: false,
+			writeAiRecap: true,
 			expectedGeneratedAt: "2026-12-02T10:00:00.000Z"
 		});
 		request.flush({ data: rewindFixture() });
@@ -911,6 +921,54 @@ describe("RewindGenerateDialog", () => {
 		}
 	);
 
+	it("keeps the global conflict toast away from the open dialog, which explains the 409 itself", async () => {
+		isPremium.set(true);
+		await renderHost();
+		const dialog = await openDialog();
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Generate" })
+		);
+
+		const [request] = pendingGenerations();
+		expect(request.request.context.get(SUPPRESS_CONFLICT_TOAST)).toBe(true);
+		request.flush(
+			{ type: "REWIND_REGENERATION_LIMIT", title: "No rolls left" },
+			{ status: 409, statusText: "Conflict" }
+		);
+
+		expect(
+			await within(dialog).findByText(/You've used every AI generation/)
+		).toBeInTheDocument();
+		expect(toast.warning).not.toHaveBeenCalled();
+	});
+
+	it("warns with the API reason when a 409 arrives after the dialog was closed", async () => {
+		await renderHost(rewindFixture());
+		const dialog = await openDialog("Regenerate your 2026 Rewind");
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Regenerate" })
+		);
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Close" })
+		);
+
+		pendingGenerations()[0].flush(
+			{
+				type: "REWIND_REGENERATION_LIMIT",
+				title: "You've used every AI generation for this Rewind"
+			},
+			{ status: 409, statusText: "Conflict" }
+		);
+		httpTesting
+			.match(rewindUrl)
+			.forEach(req => req.flush({ data: rewindFixture() }));
+
+		expect(toast.warning).toHaveBeenCalledExactlyOnceWith(
+			"You've used every AI generation for this Rewind"
+		);
+		expect(toast.error).not.toHaveBeenCalled();
+	});
+
 	it("toasts Try again when a closed dialog loses its connection", async () => {
 		await renderHost(rewindFixture());
 		const dialog = await openDialog("Regenerate your 2026 Rewind");
@@ -1082,5 +1140,313 @@ describe("RewindGenerateDialog", () => {
 			).toBeNull();
 			expect(within(dialog).queryByText("AI recap")).toBeNull();
 		});
+	});
+
+	describe("Write my AI recap switch", () => {
+		function writeSwitch(dialog: HTMLElement) {
+			return within(dialog).queryByRole("switch", {
+				name: "Write my AI recap"
+			});
+		}
+
+		it("is on by default for premium on a first generation and sends writeAiRecap true", async () => {
+			isPremium.set(true);
+			await renderHost();
+			const dialog = await openDialog();
+
+			expect(writeSwitch(dialog)).toHaveAttribute("aria-checked", "true");
+			expect(
+				within(dialog).getByRole("switch", { name: "Use my notes" })
+			).toBeInTheDocument();
+			expect(
+				within(dialog).getByRole("button", {
+					name: "Who writes the AI recap"
+				})
+			).toBeInTheDocument();
+			await userEvent.click(
+				within(dialog).getByRole("button", { name: "Generate" })
+			);
+
+			const [request] = pendingGenerations();
+			expect(request.request.body.writeAiRecap).toBe(true);
+			request.flush({ data: rewindFixture() });
+		});
+
+		it("hides the DeepSeek help and the notes switch and sends no AI recap when turned off", async () => {
+			isPremium.set(true);
+			await renderHost();
+			const dialog = await openDialog();
+			await userEvent.click(
+				within(dialog).getByRole("switch", { name: "Use my notes" })
+			);
+			await userEvent.click(
+				within(dialog).getByRole("switch", {
+					name: "Include private runs"
+				})
+			);
+
+			await userEvent.click(writeSwitch(dialog) as HTMLElement);
+
+			expect(writeSwitch(dialog)).toHaveAttribute(
+				"aria-checked",
+				"false"
+			);
+			expect(
+				within(dialog).queryByRole("switch", { name: "Use my notes" })
+			).toBeNull();
+			expect(
+				within(dialog).queryByRole("button", {
+					name: "Who writes the AI recap"
+				})
+			).toBeNull();
+			expect(within(dialog).queryByText(/DeepSeek/)).toBeNull();
+			expect(
+				within(dialog).getByRole("switch", {
+					name: "Include private runs"
+				})
+			).toHaveAttribute("aria-checked", "true");
+			await userEvent.click(
+				within(dialog).getByRole("button", { name: "Generate" })
+			);
+
+			const [request] = pendingGenerations();
+			expect(request.request.body).toEqual({
+				language: "en",
+				includePrivateRuns: true,
+				includeNotes: false,
+				writeAiRecap: false,
+				expectedGeneratedAt: null
+			});
+			request.flush({ data: rewindFixture() });
+		});
+
+		it("closes an open DeepSeek notice when the switch is turned off", async () => {
+			isPremium.set(true);
+			await renderHost();
+			const dialog = await openDialog();
+			await userEvent.click(
+				within(dialog).getByRole("button", {
+					name: "Who writes the AI recap"
+				})
+			);
+			expect(
+				within(dialog).getByText(/written by DeepSeek/)
+			).toBeInTheDocument();
+
+			await userEvent.click(writeSwitch(dialog) as HTMLElement);
+
+			expect(
+				within(dialog).queryByText(/written by DeepSeek/)
+			).toBeNull();
+		});
+
+		it("is not shown when regenerating, which always writes the AI recap", async () => {
+			isPremium.set(true);
+			await renderHost(rewindFixture());
+			const dialog = await openDialog("Regenerate your 2026 Rewind");
+
+			expect(writeSwitch(dialog)).toBeNull();
+			expect(
+				within(dialog).getByRole("button", {
+					name: "Who writes the AI recap"
+				})
+			).toBeInTheDocument();
+			await userEvent.click(
+				within(dialog).getByRole("button", { name: "Regenerate" })
+			);
+
+			const [request] = pendingGenerations();
+			expect(request.request.body.writeAiRecap).toBe(true);
+			request.flush({ data: rewindFixture() });
+		});
+
+		it("is not shown without premium access and sends writeAiRecap false", async () => {
+			await renderHost();
+			const dialog = await openDialog();
+
+			expect(writeSwitch(dialog)).toBeNull();
+			await userEvent.click(
+				within(dialog).getByRole("button", { name: "Generate" })
+			);
+
+			const [request] = pendingGenerations();
+			expect(request.request.body.writeAiRecap).toBe(false);
+			request.flush({ data: rewindFixture() });
+		});
+	});
+
+	describe("no AI generations left on a first generation", () => {
+		const outOfGenerationsReason =
+			"No AI generations left for 2026. You can still generate your Rewind, and your premium stats are added either way.";
+
+		function writeSwitchOf(dialog: HTMLElement) {
+			return within(dialog).getByRole("switch", {
+				name: "Write my AI recap"
+			});
+		}
+
+		it("turns Write my AI recap off and locks it with the reason, and generates without it", async () => {
+			isPremium.set(true);
+			canWriteAiRecap.set(false);
+			await renderHost();
+			const dialog = await openDialog();
+			const writeSwitch = writeSwitchOf(dialog);
+
+			expect(writeSwitch).toHaveAttribute("aria-checked", "false");
+			expect(writeSwitch).toBeDisabled();
+			expect(
+				within(dialog).getByText(outOfGenerationsReason)
+			).toBeInTheDocument();
+			await userEvent.dblClick(writeSwitch);
+			expect(writeSwitch).toHaveAttribute("aria-checked", "false");
+			expect(
+				within(dialog).queryByRole("switch", { name: "Use my notes" })
+			).toBeNull();
+			expect(
+				within(dialog).queryByRole("button", {
+					name: "Who writes the AI recap"
+				})
+			).toBeNull();
+			expect(
+				within(dialog).getByRole("switch", {
+					name: "Include private runs"
+				})
+			).toBeEnabled();
+			await userEvent.dblClick(
+				within(dialog).getByRole("button", { name: "Generate" })
+			);
+
+			const requests = pendingGenerations();
+			expect(requests).toHaveLength(1);
+			expect(requests[0].request.body.writeAiRecap).toBe(false);
+			expect(requests[0].request.body.includeNotes).toBe(false);
+			requests[0].flush({ data: rewindFixture() });
+		});
+
+		it("turns the AI recap off when the API answers the limit to stale data and lets the owner generate without it", async () => {
+			isPremium.set(true);
+			const host = await renderHost();
+			const dialog = await openDialog();
+			await userEvent.click(
+				within(dialog).getByRole("switch", { name: "Use my notes" })
+			);
+			await userEvent.click(
+				within(dialog).getByRole("button", { name: "Generate" })
+			);
+
+			pendingGenerations()[0].flush(
+				{ type: "REWIND_REGENERATION_LIMIT" },
+				{ status: 409, statusText: "Conflict" }
+			);
+
+			expect(
+				await within(dialog).findByText(
+					"You've used every AI generation for 2026. We turned off the AI recap so you can generate your Rewind without it."
+				)
+			).toBeInTheDocument();
+			expect(writeSwitchOf(dialog)).toHaveAttribute(
+				"aria-checked",
+				"false"
+			);
+			expect(writeSwitchOf(dialog)).toBeDisabled();
+			const generate = within(dialog).getByRole("button", {
+				name: "Generate"
+			});
+			expect(generate).toBeEnabled();
+			await userEvent.tripleClick(generate);
+
+			const requests = pendingGenerations();
+			expect(requests).toHaveLength(1);
+			expect(requests[0].request.body.writeAiRecap).toBe(false);
+			expect(requests[0].request.body.includeNotes).toBe(false);
+			const rewind = rewindFixture();
+			requests[0].flush({ data: rewind });
+			await waitFor(() => expect(dialogNamed()).toBeNull());
+			expect(host.finishedInDialog).toEqual([rewind]);
+		});
+
+		it("turns the switch back on when the year gets AI generations again", async () => {
+			isPremium.set(true);
+			canWriteAiRecap.set(false);
+			await renderHost();
+			const dialog = await openDialog();
+			expect(writeSwitchOf(dialog)).toBeDisabled();
+
+			canWriteAiRecap.set(true);
+			await waitFor(() => expect(writeSwitchOf(dialog)).toBeEnabled());
+
+			expect(writeSwitchOf(dialog)).toHaveAttribute(
+				"aria-checked",
+				"true"
+			);
+			expect(
+				within(dialog).queryByText(outOfGenerationsReason)
+			).toBeNull();
+		});
+	});
+
+	describe("daily AI recap limit", () => {
+		const dailyLimit = {
+			type: "REWIND_AI_RECAP_DAILY_LIMIT"
+		};
+
+		it("tells a first generation to turn the AI recap off and then generates without it", async () => {
+			isPremium.set(true);
+			const host = await renderHost();
+			const dialog = await openDialog();
+			await userEvent.click(
+				within(dialog).getByRole("button", { name: "Generate" })
+			);
+
+			pendingGenerations()[0].flush(dailyLimit, {
+				status: 429,
+				statusText: "Too Many Requests"
+			});
+
+			expect(
+				await within(dialog).findByText(
+					"You've reached today's AI recap limit. Turn off the AI recap to generate your Rewind now, or try again tomorrow."
+				)
+			).toBeInTheDocument();
+			await userEvent.click(writeSwitchOf(dialog));
+			await userEvent.click(
+				within(dialog).getByRole("button", { name: "Generate" })
+			);
+			const [request] = pendingGenerations();
+			expect(request.request.body.writeAiRecap).toBe(false);
+			const rewind = rewindFixture();
+			request.flush({ data: rewind });
+			await waitFor(() => expect(dialogNamed()).toBeNull());
+			expect(host.finishedInDialog).toEqual([rewind]);
+		});
+
+		it("asks a regeneration to try again tomorrow", async () => {
+			isPremium.set(true);
+			await renderHost(rewindFixture());
+			const dialog = await openDialog("Regenerate your 2026 Rewind");
+			await userEvent.click(
+				within(dialog).getByRole("button", { name: "Regenerate" })
+			);
+
+			pendingGenerations()[0].flush(dailyLimit, {
+				status: 429,
+				statusText: "Too Many Requests"
+			});
+
+			expect(
+				await within(dialog).findByText(
+					"You've reached today's AI recap limit. Try again tomorrow."
+				)
+			).toBeInTheDocument();
+			expect(
+				within(dialog).queryByText(/Turn off the AI recap/)
+			).toBeNull();
+		});
+
+		function writeSwitchOf(dialog: HTMLElement) {
+			return within(dialog).getByRole("switch", {
+				name: "Write my AI recap"
+			});
+		}
 	});
 });

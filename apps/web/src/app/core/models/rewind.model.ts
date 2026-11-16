@@ -43,6 +43,7 @@ export interface RewindYearSummary {
 	year: number;
 	isGenerated: boolean;
 	generationBlockedBy: RewindGenerationBlock | null;
+	canWriteAiRecap: boolean;
 	finishedCount: number;
 	startedCount: number;
 	hoursPlayed: number;
@@ -276,5 +277,6 @@ export interface GenerateRewindRequest {
 	language: RewindLanguage;
 	includePrivateRuns: boolean;
 	includeNotes: boolean;
+	writeAiRecap: boolean;
 	expectedGeneratedAt: string | null;
 }

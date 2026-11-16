@@ -94,29 +94,11 @@ export function rewindAiRecapPremiumRequired(
 	);
 }
 
-export function rewindAiRecapExists(context?: Record<string, unknown>) {
+export function rewindAiRecapDailyLimit(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,
-		"REWIND_AI_RECAP_EXISTS",
-		"This Rewind already has an AI recap",
-		context
-	);
-}
-
-export function rewindAiRecapInProgress(context?: Record<string, unknown>) {
-	return new DomainError(
-		MODULE_NAME,
-		"REWIND_AI_RECAP_IN_PROGRESS",
-		"The AI recap is still being generated",
-		context
-	);
-}
-
-export function rewindAiRecapFailed(context?: Record<string, unknown>) {
-	return new DomainError(
-		MODULE_NAME,
-		"REWIND_AI_RECAP_FAILED",
-		"The AI recap could not be generated",
+		"REWIND_AI_RECAP_DAILY_LIMIT",
+		"You reached today's AI recap limit, try again tomorrow",
 		context
 	);
 }

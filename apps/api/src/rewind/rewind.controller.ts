@@ -50,15 +50,3 @@ export async function postOwnRewind(request: Request, response: Response) {
 		.status(created ? 201 : 200)
 		.json({ data: rewindSerializer(rewind) });
 }
-
-export async function postOwnRewindAiRecap(
-	request: Request,
-	response: Response
-) {
-	const { year } = request.locals.params as OwnRewindYearParams;
-	const user = request.locals.user as RequestUser;
-
-	const rewind = await rewindService.addOwnRewindAiRecap(user.id, year);
-
-	return response.status(200).json({ data: rewindSerializer(rewind) });
-}

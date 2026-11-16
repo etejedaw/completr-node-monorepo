@@ -40,8 +40,6 @@ export function yearTone(year: number): RewindTone {
 	return YEAR_TONES[Math.abs(year) % YEAR_TONES.length];
 }
 
-export const TONE_TINT_CLASS =
-	"bg-[color-mix(in_oklab,var(--tone)_22%,var(--color-surface))] text-fg";
 export const TONE_TINT_SECONDARY_CLASS =
 	"text-[color-mix(in_oklab,var(--color-fg)_80%,var(--tone))]";
 export const TONE_ACCENT_CARD_CLASS =

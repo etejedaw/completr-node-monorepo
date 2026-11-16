@@ -14,6 +14,7 @@ import { generateRewindAiRecap } from "../../rewind-recap/rewind-recap.service";
 import { buildRewindPremiumStats } from "../../rewind-recap/utils/build-rewind-premium-stats.util";
 import { type User } from "../../users/user.model";
 import { userToRewindOwner } from "../mappers/user-to-rewind-owner.mapper";
+import { REWIND_AI_TOKEN_SPENDING_ERROR_CODES } from "../rewind.constants";
 import {
 	type RewindAiRecap,
 	type RewindPremiumStats,
@@ -25,6 +26,7 @@ import {
 	type RecapRunInput,
 	type RecapSources
 } from "../rewind-generation.interface";
+import { type RewindAiSpend } from "../rewind-generation.types";
 import { type RewindRecord } from "../rewind-record.interface";
 import {
 	type RewindCalendar,
@@ -81,7 +83,9 @@ async function gatherRecapSources(
 			publicOnly,
 			includeNotes: record.includesNotes
 		}),
-		backlogRewindService.countRunsAddedByMonth(owner.id, year, { publicOnly })
+		backlogRewindService.countRunsAddedByMonth(owner.id, year, {
+			publicOnly
+		})
 	]);
 	const [genres, franchises, platinums, coopPartners, reviews] =
 		await Promise.all([
@@ -208,9 +212,16 @@ function markRecapFailed(
 	});
 }
 
-async function refundAiSpend(request: RecapRequest): Promise<void> {
-	const where = { id: request.recordId };
-	if (request.spend === "grace") {
+function spentProviderTokens(error: unknown): boolean {
+	return REWIND_AI_TOKEN_SPENDING_ERROR_CODES.has(resolveErrorCode(error));
+}
+
+async function refundAiSpend(
+	recordId: string,
+	spend: RewindAiSpend
+): Promise<void> {
+	const where = { id: recordId };
+	if (spend === "grace") {
 		await RewindModel.update({ graceUsed: false }, { where });
 		return;
 	}
@@ -227,8 +238,7 @@ export async function runRecap({
 }: RecapRunInput): Promise<boolean> {
 	const request: RecapRequest = {
 		recordId: record.id,
-		requestedAt: record.aiRecapRequestedAt ?? new Date(),
-		spend
+		requestedAt: record.aiRecapRequestedAt ?? new Date()
 	};
 	let premiumStats: RewindPremiumStats | null = null;
 	try {
@@ -248,15 +258,52 @@ export async function runRecap({
 		await markRecapReady(request, aiRecap, premiumStats);
 		return true;
 	} catch (error) {
+		const refundableSpend = spentProviderTokens(error) ? null : spend;
 		logger.error("runRecap", "failed", {
 			rewindId: record.id,
 			year: record.year,
 			code: resolveErrorCode(error),
+			refunded: refundableSpend !== null,
 			failures: findServiceErrorFailures(error)
 		});
 		await markRecapFailed(request, premiumStats);
-		await refundAiSpend(request);
+		if (refundableSpend) await refundAiSpend(record.id, refundableSpend);
 		return false;
+	}
+}
+
+export async function storePremiumStats(
+	owner: User,
+	record: RewindModel
+): Promise<void> {
+	const { year } = record;
+	const publicOnly = !record.includesPrivateRuns;
+	try {
+		const [runs, addedByMonth] = await Promise.all([
+			findRewindRuns(owner.id, { publicOnly, includeNotes: false }),
+			backlogRewindService.countRunsAddedByMonth(owner.id, year, {
+				publicOnly
+			})
+		]);
+		const genres = await gameGenreService.findGenresByGameIds(
+			listActiveGameIds(runs, [year])
+		);
+		const premiumStats = buildRewindPremiumStats({
+			year,
+			runs,
+			genres,
+			addedByMonth
+		});
+		await RewindModel.update(
+			{ premiumStats },
+			{ where: { id: record.id } }
+		);
+	} catch (error) {
+		logger.error("storePremiumStats", "failed", {
+			rewindId: record.id,
+			year,
+			code: resolveErrorCode(error)
+		});
 	}
 }
 

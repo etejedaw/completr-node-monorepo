@@ -34,6 +34,7 @@ function summary(
 	return {
 		isGenerated: true,
 		generationBlockedBy: null,
+		canWriteAiRecap: true,
 		year: 2026,
 		finishedCount: 18,
 		startedCount: 23,

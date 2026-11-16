@@ -12,6 +12,7 @@ import { provideRouter } from "@angular/router";
 import { render, screen } from "@testing-library/angular";
 
 import { type Rewind } from "../../core/models/rewind.model";
+import { RewindDesign2025 } from "./components/rewind-design-2025/rewind-design-2025";
 import { RewindDesign2026 } from "./components/rewind-design-2026/rewind-design-2026";
 import { RewindDesignOutlet } from "./components/rewind-design-outlet/rewind-design-outlet";
 import {
@@ -93,6 +94,15 @@ describe("rewind design registry", () => {
 		for (const design of REWIND_DESIGN_REGISTRY)
 			expect(resolveRewindDesign(design.key)).toBe(design);
 		expect(resolveRewindDesign("2026").component).toBe(RewindDesign2026);
+		expect(resolveRewindDesign("2025").component).toBe(RewindDesign2025);
+	});
+
+	it("keeps 2026 as the latest design after registering 2025", () => {
+		expect(REWIND_DESIGN_REGISTRY.map(design => design.key)).toEqual([
+			"2025",
+			"2026"
+		]);
+		expect(LATEST_REWIND_DESIGN.component).toBe(RewindDesign2026);
 	});
 
 	it("falls back to the latest design for unknown, empty or missing keys", () => {
@@ -196,6 +206,25 @@ describe("RewindDesignOutlet", () => {
 		design.rewindChange.emit(regenerated);
 
 		expect(fixture.componentInstance.changes).toEqual([regenerated]);
+	});
+
+	it("draws a 2025 Rewind with the magazine design and no share section", async () => {
+		const { fixture } = await renderOutlet();
+		const host = fixture.componentInstance;
+
+		host.rewind.set(rewindFixture({ year: 2025, design: "2025" }));
+		fixture.detectChanges();
+
+		expect(designs(fixture)).toHaveLength(0);
+		expect(
+			fixture.debugElement.queryAll(By.directive(RewindDesign2025))
+		).toHaveLength(1);
+		expect(
+			screen.getByRole("heading", { level: 1, name: /2025/ })
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: "Share" })
+		).not.toBeInTheDocument();
 	});
 
 	it("removes the design when the outlet is destroyed", async () => {

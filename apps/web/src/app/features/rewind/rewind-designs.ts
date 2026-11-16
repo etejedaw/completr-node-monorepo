@@ -1,7 +1,9 @@
+import { RewindDesign2025 } from "./components/rewind-design-2025/rewind-design-2025";
 import { RewindDesign2026 } from "./components/rewind-design-2026/rewind-design-2026";
 import { type RewindDesignEntry } from "./rewind-designs.model";
 
 export const REWIND_DESIGN_REGISTRY: readonly RewindDesignEntry[] = [
+	{ key: "2025", component: RewindDesign2025 },
 	{ key: "2026", component: RewindDesign2026 }
 ];
 

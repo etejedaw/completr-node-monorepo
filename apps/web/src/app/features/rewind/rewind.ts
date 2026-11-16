@@ -1,4 +1,4 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpContext } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 import { map, type Observable } from "rxjs";
 
@@ -8,6 +8,9 @@ import {
 	type Rewind,
 	type RewindYears
 } from "../../core/models/rewind.model";
+import { SUPPRESS_CONFLICT_TOAST } from "../../shared/utils/validation-errors";
+
+const GENERATE_CONTEXT = new HttpContext().set(SUPPRESS_CONFLICT_TOAST, true);
 
 export type RewindImageFormat = "story" | "story-list" | "og";
 
@@ -31,13 +34,9 @@ export class RewindService {
 
 	generate(year: number, request: GenerateRewindRequest): Observable<Rewind> {
 		return this.http
-			.post<{ data: Rewind }>(`${ownRewindsUrl()}/${year}`, request)
-			.pipe(map(res => res.data));
-	}
-
-	addAiRecap(year: number): Observable<Rewind> {
-		return this.http
-			.post<{ data: Rewind }>(`${ownRewindsUrl()}/${year}/ai-recap`, {})
+			.post<{ data: Rewind }>(`${ownRewindsUrl()}/${year}`, request, {
+				context: GENERATE_CONTEXT
+			})
 			.pipe(map(res => res.data));
 	}
 

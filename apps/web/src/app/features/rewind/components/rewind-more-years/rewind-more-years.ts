@@ -30,7 +30,7 @@ import { RewindYearCard } from "../rewind-year-card/rewind-year-card";
 					[seeAllLink]="['/user', username(), 'rewind']"
 				/>
 				<ul
-					class="list-none m-0 p-0 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
+					class="list-none m-0 p-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
 				>
 					@for (summary of years(); track summary.year) {
 						<li>

@@ -1,0 +1,34 @@
+<div class="flex flex-col gap-2">
+	<ui-switch
+		label="Include private runs"
+		[(checked)]="includePrivateRuns"
+		[disabled]="disabled()"
+	/>
+	@if (includePrivateRuns()) {
+	<ui-alert tone="warning" icon="visibility"
+		>{{ privateRunsWarning() }}</ui-alert
+	>
+	} @else {
+	<p class="m-0 text-compact text-fg-muted">{{ privateRunsHint() }}</p>
+	}
+</div>
+@if (writesAiRecap()) {
+<div class="flex flex-col gap-2">
+	<ui-switch
+		label="Use my notes"
+		[(checked)]="includeNotes"
+		[disabled]="disabled()"
+	/>
+	@if (includeNotes()) {
+	<ui-alert tone="info" icon="edit_note">
+		Your AI recap reads your notes to understand you as a player. Anyone who
+		can see your Rewind will read the recap, so it never quotes them word
+		for word or names people.
+	</ui-alert>
+	} @else {
+	<p class="m-0 text-compact text-fg-muted">
+		Off by default. Only your AI recap reads your notes.
+	</p>
+	}
+</div>
+}

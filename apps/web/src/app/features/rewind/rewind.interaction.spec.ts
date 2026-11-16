@@ -167,6 +167,7 @@ function summaryFor(year: number): RewindYearSummary {
 		year,
 		isGenerated: true,
 		generationBlockedBy: null,
+		canWriteAiRecap: true,
 		finishedCount: 18,
 		startedCount: 23,
 		hoursPlayed: 212.5,

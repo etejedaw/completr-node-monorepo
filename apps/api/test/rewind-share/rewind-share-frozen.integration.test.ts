@@ -198,7 +198,18 @@ void describe("share images of a frozen Rewind", () => {
 	void it("falls back to the latest templates for a snapshot with an unknown design", async () => {
 		const player = await frozenPlayer();
 		const row = await findRewindRow(player, 2026);
-		await row!.update({ snapshot: { ...row!.snapshot!, design: "1999" } });
+		const { snapshot } = row!;
+		await row!.update({
+			snapshot: {
+				...snapshot!,
+				design: "1999",
+				owner: { ...snapshot!.owner, design: "1999" },
+				public: snapshot!.public && {
+					...snapshot!.public,
+					design: "1999"
+				}
+			}
+		});
 
 		const [story, og] = await Promise.all([
 			storyOf(player),

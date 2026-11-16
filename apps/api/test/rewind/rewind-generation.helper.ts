@@ -56,6 +56,7 @@ export const FIRST_GENERATION: GenerateRewindRequest = {
 	language: "en",
 	includePrivateRuns: false,
 	includeNotes: false,
+	writeAiRecap: true,
 	expectedGeneratedAt: null
 };
 
@@ -108,12 +109,6 @@ export function generate(
 		.send(body as object);
 }
 
-export function requestAiRecap(account: Account, year: number | string) {
-	return api()
-		.post(`/users/me/rewinds/${year}/ai-recap`)
-		.set("Authorization", account.authorization);
-}
-
 export function readRewind(
 	username: string,
 	year: number | string,
@@ -141,6 +136,20 @@ export function regenerationOf(
 		expectedGeneratedAt: generatedAt,
 		...overrides
 	};
+}
+
+export async function regenerateStored(
+	account: Account,
+	year: number,
+	overrides: Partial<GenerateRewindRequest> = {}
+) {
+	const row = await findRewindRow(account, year);
+	if (!row) throw new Error(`No stored Rewind for ${year}`);
+	return generate(
+		account,
+		year,
+		regenerationOf(row.generatedAt.toISOString(), overrides)
+	);
 }
 
 export function mockAiRecap(

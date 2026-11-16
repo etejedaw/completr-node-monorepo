@@ -17,9 +17,27 @@ import {
 import { type RewindGenerateFlowOptions } from "./rewind-generate-flow.model";
 
 const ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindGenerateError[] = [
-	"conflict",
+	"conflict"
+];
+
+const ERRORS_THAT_CHANGE_AN_EXISTING_REWIND: readonly RewindGenerateError[] = [
 	"limit"
 ];
+
+const CONFLICT_STATUS = 409;
+
+function statusOf(failure: unknown): number {
+	return (failure as HttpErrorResponse | undefined)?.status ?? 0;
+}
+
+function conflictMessage(failure: unknown, year: number): string {
+	const problem = (failure as HttpErrorResponse | undefined)?.error;
+	return (
+		problem?.detail ??
+		problem?.title ??
+		`Your ${year} Rewind couldn't be generated. Open it to see why.`
+	);
+}
 
 const ERRORS_THAT_CHANGE_THE_OWNER_CONTROLS: readonly RewindGenerateError[] = [
 	"period_closed",
@@ -89,14 +107,17 @@ export function injectRewindGenerateFlow(options: RewindGenerateFlowOptions) {
 				isPending.set(false);
 				const kind = rewindGenerateError(failure);
 				error.set(kind);
-				const controlsChanged =
-					ERRORS_THAT_CHANGE_THE_OWNER_CONTROLS.includes(kind) &&
-					latestRewind() !== null;
+				const existingRewindChanged =
+					latestRewind() !== null &&
+					(ERRORS_THAT_CHANGE_AN_EXISTING_REWIND.includes(kind) ||
+						ERRORS_THAT_CHANGE_THE_OWNER_CONTROLS.includes(kind));
 				if (
 					ERRORS_THAT_CHANGE_THE_REWIND.includes(kind) ||
-					controlsChanged
+					existingRewindChanged
 				)
 					reloadAfterChange(username, year);
+				if (isConflictAfterClosing(failure))
+					toast.warning(conflictMessage(failure, year));
 				if (shouldToastFailure(failure, kind))
 					toast.error(
 						`Couldn't generate your ${year} Rewind. Try again.`
@@ -105,11 +126,14 @@ export function injectRewindGenerateFlow(options: RewindGenerateFlowOptions) {
 		});
 	}
 
+	function isConflictAfterClosing(failure: unknown) {
+		return !isOpen() && statusOf(failure) === CONFLICT_STATUS;
+	}
+
 	function shouldToastFailure(failure: unknown, kind: RewindGenerateError) {
-		const status = (failure as HttpErrorResponse | undefined)?.status ?? 0;
 		return (
 			!isOpen() &&
-			!isToastedByErrorInterceptor(status) &&
+			!isToastedByErrorInterceptor(statusOf(failure)) &&
 			!BLOCKING_GENERATE_ERRORS.includes(kind)
 		);
 	}

@@ -33,21 +33,5 @@ export const REWIND_OWNER_PANEL_COPY: RewindOwnerPanelCopy = {
 	aiRecapFailed: "AI recap couldn't be generated",
 	retry: "Retry",
 	addAiRecap: "Add AI recap",
-	addAiRecapHint:
-		"Adds an AI-written recap and premium stats. It uses one AI generation.",
-	aiRecapPending: "Writing your AI recap… this can take up to a minute.",
-	aiRecapErrors: {
-		premium_required: "Adding an AI recap needs Premium.",
-		year_requires_premium: "AI recaps for previous years need Premium.",
-		period_closed:
-			"This Rewind is closed, so its AI recap can't be added anymore.",
-		limit: "You've used every AI generation for this Rewind.",
-		exists: "Your AI recap was already added. We loaded it.",
-		in_progress:
-			"Your AI recap is already being written. Check back in a minute.",
-		not_generated: "This Rewind isn't generated anymore. Reload the page.",
-		rate_limited: "Too many attempts. Wait a moment and try again.",
-		failed: "The AI recap couldn't be written right now. Try again in a few minutes.",
-		network: "You seem to be offline. Check your connection and try again."
-	}
+	addAiRecapHint: "Adds an AI-written recap to this Rewind."
 };

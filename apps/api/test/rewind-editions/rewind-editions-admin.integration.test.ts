@@ -123,7 +123,7 @@ void describe("GET /admin/rewind/editions", () => {
 			.set("Authorization", admin.authorization);
 
 		assert.equal(response.status, 200);
-		assert.deepEqual(response.body.data.designs, ["2026"]);
+		assert.deepEqual(response.body.data.designs, ["2025", "2026"]);
 		const [upcoming, latest, previous] = response.body.data.editions;
 		assert.equal(upcoming.year, 2027);
 		assert.equal(upcoming.status, "scheduled");

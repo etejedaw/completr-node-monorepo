@@ -40,14 +40,8 @@ export function rewindServiceToDomainMapper(
 	if (error.code === "REWIND_AI_RECAP_PREMIUM_REQUIRED")
 		return rewindDomainError.rewindAiRecapPremiumRequired(context);
 
-	if (error.code === "REWIND_AI_RECAP_EXISTS")
-		return rewindDomainError.rewindAiRecapExists(context);
-
-	if (error.code === "REWIND_AI_RECAP_IN_PROGRESS")
-		return rewindDomainError.rewindAiRecapInProgress(context);
-
-	if (error.code === "REWIND_AI_RECAP_FAILED")
-		return rewindDomainError.rewindAiRecapFailed(context);
+	if (error.code === "REWIND_AI_RECAP_DAILY_LIMIT")
+		return rewindDomainError.rewindAiRecapDailyLimit(context);
 
 	return rewindDomainError.rewindInternalError(context);
 }

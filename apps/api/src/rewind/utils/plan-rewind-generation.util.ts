@@ -1,8 +1,6 @@
 import { type RewindGenerationAttempt } from "../rewind-generation.interface";
-import {
-	type RewindAiBudgetRecord,
-	type RewindGenerationPlan
-} from "../rewind-generation.types";
+import { type RewindGenerationPlan } from "../rewind-generation.types";
+import { resolveFirstGenerationAiBudget } from "./resolve-first-generation-ai-budget.util";
 import { resolveRewindAiBudget } from "./resolve-rewind-ai-budget.util";
 
 function matchesGeneratedAt(expected: string | null, generatedAt: Date) {
@@ -10,15 +8,6 @@ function matchesGeneratedAt(expected: string | null, generatedAt: Date) {
 		expected !== null &&
 		new Date(expected).getTime() === generatedAt.getTime()
 	);
-}
-
-function blankRecord(year: number): RewindAiBudgetRecord {
-	return {
-		year,
-		graceUsed: false,
-		regenerationsLeft: 0,
-		premiumAccessKind: null
-	};
 }
 
 export function planRewindGeneration({
@@ -32,8 +21,8 @@ export function planRewindGeneration({
 		return expectedGeneratedAt === null
 			? {
 					kind: "create",
-					budget: resolveRewindAiBudget(
-						blankRecord(year),
+					budget: resolveFirstGenerationAiBudget(
+						year,
 						calendar,
 						accessKind
 					)

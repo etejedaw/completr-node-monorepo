@@ -9,15 +9,13 @@ import { type RewindPremiumAccessKind } from "../rewind.constants";
 import { Rewind as RewindModel } from "../rewind.model";
 import {
 	type RewindAiBudget,
-	type RewindAiRecapReservation,
 	type RewindGenerationReservation
 } from "../rewind-generation.interface";
-import { type SpendableRewindAiBudget } from "../rewind-generation.types";
+import { rewindAiRecapDailyLimiter } from "../rewind-rate-limiter.config";
 import { type RewindCalendar } from "../rewind-run.interface";
-import { isAiRecapInProgress } from "../utils/is-ai-recap-in-progress.util";
+import { consumeAiRecapDailyQuota } from "../utils/consume-ai-recap-daily-quota.util";
 import { nextGeneratedAt } from "../utils/next-generated-at.util";
 import { planRewindGeneration } from "../utils/plan-rewind-generation.util";
-import { resolveRewindAiBudget } from "../utils/resolve-rewind-ai-budget.util";
 import { resolveRewindAiUseChanges } from "../utils/resolve-rewind-ai-use-changes.util";
 import { resolveRewindGenerationBlocker } from "../utils/resolve-rewind-generation-blocker.util";
 
@@ -29,6 +27,25 @@ function lockRecord(userId: string, year: number, transaction: Transaction) {
 		lock: transaction.LOCK.UPDATE,
 		transaction
 	});
+}
+
+function creationBudget(
+	budget: RewindAiBudget,
+	dto: GenerateRewindDto,
+	accessKind: RewindPremiumAccessKind | null
+): RewindAiBudget {
+	if (!dto.writeAiRecap) return { ...budget, spend: null };
+	if (accessKind !== null && budget.spend === null)
+		throw rewindServiceError.regenerationLimitError();
+	return budget;
+}
+
+async function requireAiRecapQuota(
+	owner: User,
+	budget: RewindAiBudget
+): Promise<void> {
+	if (budget.spend)
+		await consumeAiRecapDailyQuota(rewindAiRecapDailyLimiter, owner);
 }
 
 function pendingRecapFields(budget: RewindAiBudget, now: Date) {
@@ -114,18 +131,21 @@ export async function reserveGeneration(
 		if (plan.kind === "limit-reached")
 			throw rewindServiceError.regenerationLimitError();
 		if (plan.kind === "create" || !record) {
+			const budget = creationBudget(plan.budget, dto, accessKind);
+			await requireAiRecapQuota(owner, budget);
 			return {
 				record: await createRecord(
 					owner,
 					year,
 					dto,
-					plan.budget,
+					budget,
 					transaction
 				),
 				created: true,
-				spend: plan.budget.spend
+				spend: budget.spend
 			};
 		}
+		await requireAiRecapQuota(owner, plan.budget);
 		return {
 			record: await regenerateRecord(
 				record,
@@ -149,51 +169,4 @@ export function requireGenerationAllowed(
 		throw rewindServiceError.periodClosedError();
 	if (blocker === "requires-premium")
 		throw rewindServiceError.yearRequiresPremiumError();
-}
-
-function requireAiRecapAllowed(
-	record: RewindModel,
-	calendar: RewindCalendar,
-	accessKind: RewindPremiumAccessKind | null,
-	now: Date
-): SpendableRewindAiBudget {
-	requireGenerationAllowed(record.year, calendar, accessKind);
-	if (accessKind === null)
-		throw rewindServiceError.aiRecapPremiumRequiredError();
-	if (record.aiRecapStatus === "ready" && record.aiRecap)
-		throw rewindServiceError.aiRecapExistsError();
-	if (isAiRecapInProgress(record, now))
-		throw rewindServiceError.aiRecapInProgressError();
-
-	const budget = resolveRewindAiBudget(record, calendar, accessKind);
-	const { spend } = budget;
-	if (!spend) throw rewindServiceError.regenerationLimitError();
-	return { ...budget, spend };
-}
-
-export async function reserveAiRecap(
-	owner: User,
-	year: number,
-	calendar: RewindCalendar,
-	accessKind: RewindPremiumAccessKind | null
-): Promise<RewindAiRecapReservation> {
-	return sequelize.transaction(async transaction => {
-		const record = await lockRecord(owner.id, year, transaction);
-		if (!record) throw rewindServiceError.notGeneratedError();
-		const now = new Date();
-		const budget = requireAiRecapAllowed(record, calendar, accessKind, now);
-
-		return {
-			record: await record.update(
-				{
-					aiRecapStatus: "pending",
-					aiRecapRequestedAt: now,
-					...UNFROZEN_FIELDS,
-					...resolveRewindAiUseChanges(record, budget)
-				},
-				{ transaction }
-			),
-			spend: budget.spend
-		};
-	});
 }

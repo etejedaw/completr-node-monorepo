@@ -118,11 +118,21 @@ export class RewindDetail {
 			null
 	);
 
+	private readonly generationSummary = computed(
+		() =>
+			this.generationYears()?.years.find(
+				year => year.year === this.year()
+			) ?? null
+	);
+
+	protected readonly generationCanWriteAiRecap = computed(
+		() => this.generationSummary()?.canWriteAiRecap ?? true
+	);
+
 	protected readonly generationBlockMessage = computed(() => {
 		const years = this.generationYears();
-		const summary = years?.years.find(year => year.year === this.year());
 		return generationBlockMessageOf(
-			summary ?? null,
+			this.generationSummary(),
 			years?.period ?? null,
 			this.language()
 		);

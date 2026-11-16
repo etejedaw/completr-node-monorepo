@@ -22,8 +22,8 @@ import {
 	PREMIUM_STATS,
 	readRewind,
 	readRewindYears,
+	regenerateStored,
 	regenerationOf,
-	requestAiRecap,
 	signUpOn,
 	storeRewind
 } from "./rewind-generation.helper";
@@ -130,14 +130,14 @@ void describe("Rewind premium access", () => {
 		assert.equal(aiMock.mock.callCount(), 2);
 	});
 
-	void it("lets a feature grant add a recap to an existing base Rewind and labels it as a gift", async () => {
+	void it("lets a feature grant add a recap to an existing base Rewind by regenerating and labels it as a gift", async () => {
 		const player = await playerWithYear();
 		mockPremiumStats();
 		const aiMock = mockAiRecap();
 		const base = await generate(player, 2026).expect(201);
 		assert.equal(base.body.data.premiumAccessKind, null);
 
-		const denied = await requestAiRecap(player, 2026);
+		const denied = await regenerateStored(player, 2026);
 		assert.equal(denied.status, 402);
 		assert.equal(denied.body.type, "REWIND_AI_RECAP_PREMIUM_REQUIRED");
 
@@ -151,15 +151,21 @@ void describe("Rewind premium access", () => {
 		assert.equal(own.body.data.premiumAccess.source, "feature-grant");
 		assert.equal(own.body.data.premiumAccessKind, null);
 
-		const added = await requestAiRecap(player, 2026).expect(200);
+		const added = await regenerateStored(player, 2026);
+		assert.equal(added.status, 200);
 		assert.deepEqual(added.body.data.aiRecap, AI_RECAP);
 		assert.deepEqual(added.body.data.premiumStats, PREMIUM_STATS);
 		assert.equal(added.body.data.premiumAccessKind, "gift");
 		assert.equal(added.body.data.ownerControls.regenerationsLeft, 1);
 		assert.equal(aiMock.mock.callCount(), 1);
 
-		const repeated = await requestAiRecap(player, 2026);
+		const repeated = await generate(
+			player,
+			2026,
+			regenerationOf(base.body.data.generatedAt)
+		);
 		assert.equal(repeated.status, 409);
+		assert.equal(repeated.body.type, "REWIND_GENERATION_CONFLICT");
 		assert.equal(aiMock.mock.callCount(), 1);
 	});
 
@@ -261,7 +267,7 @@ void describe("Rewind premium access", () => {
 		assert.equal(own.body.data.ownerControls.regenerationsLeft, 1);
 		assert.equal(own.body.data.ownerControls.canRegenerate, false);
 
-		const denied = await requestAiRecap(giftedPlayer, 2026);
+		const denied = await regenerateStored(giftedPlayer, 2026);
 		assert.equal(denied.status, 402);
 		const regenerated = await generate(
 			giftedPlayer,

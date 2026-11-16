@@ -117,32 +117,7 @@
 					/>
 				</ul>
 			</div>
-			@if (controls.aiRecapState === "failed") {
-			<button
-				uiButton
-				type="button"
-				variant="secondary"
-				class="tap:min-h-[44px] max-sm:!w-full shrink-0"
-				[disabled]="aiRecapPending()"
-				(click)="addAiRecap()"
-			>
-				{{ copy.retry }}
-			</button>
-			} @else if (controls.aiRecapState === "available") {
-			<button
-				uiButton
-				type="button"
-				variant="secondary"
-				class="tap:min-h-[44px] max-sm:!w-full shrink-0"
-				[disabled]="aiRecapPending()"
-				(click)="addAiRecap()"
-			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>auto_awesome</span
-				>
-				{{ copy.addAiRecap }}
-			</button>
-			} @if (controls.canRegenerate) {
+			@if (controls.canRegenerate) {
 			<button
 				uiButton
 				type="button"
@@ -152,14 +127,45 @@
 				(click)="generation.open()"
 			>
 				<span aria-hidden="true" class="material-icons text-base"
-					>refresh</span
+					>{{ aiAction().icon }}</span
 				>
-				{{ generation.isPending() ? copy.regenerating : copy.regenerate
+				{{ generation.isPending() ? copy.regenerating : aiAction().label
 				}}
 			</button>
+			} @else if (noRegenerationsLeft()) {
+			<span
+				class="inline-flex shrink-0 max-sm:w-full"
+				[attr.title]="copy.regenerationBlocks['no-regenerations-left']"
+			>
+				<button
+					uiButton
+					type="button"
+					variant="primary"
+					class="tap:min-h-[44px] max-sm:!w-full"
+					disabled
+					aria-describedby="rewind-no-regenerations-left"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>{{ aiAction().icon }}</span
+					>
+					{{ aiAction().label }}
+				</button>
+			</span>
 			}
 		</div>
-		@if (controls.aiRecapState === "failed") {
+		@if (noRegenerationsLeft()) {
+		<p
+			id="rewind-no-regenerations-left"
+			class="m-0 inline-flex items-center gap-1.5 text-sm text-fg-secondary"
+		>
+			<span
+				aria-hidden="true"
+				class="material-icons text-base text-fg-muted"
+				>info</span
+			>
+			{{ copy.regenerationBlocks["no-regenerations-left"] }}
+		</p>
+		} @if (controls.aiRecapState === "failed") {
 		<p class="m-0 inline-flex items-center gap-1.5 text-sm text-fg">
 			<span
 				aria-hidden="true"
@@ -174,22 +180,6 @@
 		</p>
 		}
 	</div>
-	} @if (aiRecapPending()) {
-	<p
-		role="status"
-		class="m-0 inline-flex items-center gap-2 text-sm text-fg-secondary"
-	>
-		<span
-			aria-hidden="true"
-			class="material-icons text-base text-premium motion-safe:animate-spin"
-			>autorenew</span
-		>
-		{{ copy.aiRecapPending }}
-	</p>
-	} @else if (aiRecapErrorMessage(); as message) {
-	<ui-alert [tone]="aiRecapError() === 'exists' ? 'info' : 'danger'"
-		>{{ message }}</ui-alert
-	>
 	}
 </section>
 @if (panelState() === "open-without-ai") {
@@ -206,6 +196,8 @@
 	[premiumAccess]="
 			generation.latestRewind()?.premiumAccess ?? null
 		"
+	[addsAiRecap]="addsAiRecap()"
+	[addsPremiumStats]="addsPremiumStats()"
 	[pending]="generation.isPending()"
 	[error]="generation.error()"
 	(submitted)="generation.submit($event)"

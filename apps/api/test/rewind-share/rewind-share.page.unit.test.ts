@@ -54,6 +54,24 @@ void describe("renderSharePage", () => {
 		);
 	});
 
+	void it("describes a Rewind of the 2025 design without any image meta tag", () => {
+		const html = renderSharePage(
+			"esteban",
+			2026,
+			buildRewind({ design: "2025" })
+		);
+
+		assert.equal(
+			metaContent(html, "og:title"),
+			"@esteban&#39;s 2026 Rewind"
+		);
+		assert.equal(metaContent(html, "twitter:card"), "summary");
+		assert.equal(metaContent(html, "og:image"), undefined);
+		assert.equal(metaContent(html, "og:image:width"), undefined);
+		assert.equal(metaContent(html, "twitter:image"), undefined);
+		assert.doesNotMatch(html, /\.png/);
+	});
+
 	void it("serves a generic page without data or image when the Rewind is not visible", () => {
 		const html = renderSharePage("esteban", 2026, null);
 

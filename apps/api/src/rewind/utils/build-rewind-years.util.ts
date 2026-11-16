@@ -11,6 +11,7 @@ import { listVisibleRewindYears } from "./list-visible-rewind-years.util";
 import { pickCoverGames } from "./pick-cover-games.util";
 import { pickVisiblePersona } from "./pick-visible-persona.util";
 import { pickYearPersona } from "./pick-year-persona.util";
+import { resolveFirstGenerationAiBudget } from "./resolve-first-generation-ai-budget.util";
 import { resolveRewindGenerationBlocker } from "./resolve-rewind-generation-blocker.util";
 import { resolveRewindPeriod } from "./resolve-rewind-period.util";
 import { resolveSpotlightYear } from "./resolve-spotlight-year.util";
@@ -23,12 +24,28 @@ function summarizeFrozenYear(
 		year: view.year,
 		isGenerated: true,
 		generationBlockedBy: null,
+		canWriteAiRecap: false,
 		persona: pickVisiblePersona(view, platinumsVisible),
 		finishedCount: view.totals.finished,
 		startedCount: view.totals.started,
 		hoursPlayed: view.totals.hoursPlayed,
 		covers: view.covers
 	};
+}
+
+function canFirstGenerationWriteAiRecap(
+	source: RewindYearsSource,
+	year: number,
+	isGenerated: boolean
+): boolean {
+	if (!source.generationAccess || isGenerated) return false;
+	return (
+		resolveFirstGenerationAiBudget(
+			year,
+			source.calendar,
+			source.generationAccess.accessKind
+		).spend !== null
+	);
 }
 
 function summarizeYear(
@@ -60,6 +77,11 @@ function summarizeYear(
 						source.generationAccess.accessKind
 					)
 				: null,
+		canWriteAiRecap: canFirstGenerationWriteAiRecap(
+			source,
+			year,
+			isGenerated
+		),
 		persona: pickYearPersona(totals, latestFinishedRuns),
 		finishedCount: totals.finished,
 		startedCount: totals.started,

@@ -1,7 +1,7 @@
 <ui-dialog
 	size="sm"
 	eyebrow="Rewind"
-	[icon]="isRegeneration() ? 'refresh' : 'auto_awesome'"
+	[icon]="icon()"
 	[heading]="heading()"
 	[subheading]="subheading()"
 	(closed)="closed.emit()"
@@ -22,6 +22,10 @@
 			}
 			<p class="m-0 text-fg-secondary">{{ replaceWarning() }}</p>
 		</div>
+		} @if (addsPremiumStats()) {
+		<ui-alert tone="info" icon="insights">
+			Your premium stats will be added to this Rewind too.
+		</ui-alert>
 		}
 
 		<fieldset class="m-0 flex flex-col gap-2 border-0 p-0">
@@ -42,99 +46,28 @@
 			aria-labelledby="rewind-ai-recap-heading"
 			data-premium-zone
 		>
-			<div class="flex flex-col gap-2">
-				<div class="flex items-center gap-1.5">
-					<span
-						aria-hidden="true"
-						class="material-icons text-base leading-none text-premium"
-						>workspace_premium</span
-					>
-					<span uiEyebrow tone="premium" id="rewind-ai-recap-heading"
-						>AI recap</span
-					>
-					<button
-						uiIconButton
-						type="button"
-						size="sm"
-						class="tap-area"
-						aria-label="Who writes the AI recap"
-						aria-controls="rewind-ai-provider-notice"
-						[attr.aria-expanded]="providerNoticeOpen()"
-						(click)="
-							providerNoticeOpen.set(
-								!providerNoticeOpen()
-							)
-						"
-					>
-						<span
-							aria-hidden="true"
-							class="material-icons text-base"
-							>help_outline</span
-						>
-					</button>
-				</div>
-				@if (providerNoticeOpen()) {
-				<p
-					id="rewind-ai-provider-notice"
-					class="m-0 flex items-start gap-2 rounded-card border border-line bg-surface px-3 py-2.5 text-compact leading-relaxed text-fg-secondary"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons shrink-0 text-base text-fg-muted"
-						>smart_toy</span
-					>
-					<span>
-						Your AI recap is written by DeepSeek, an external AI
-						service. It receives this year's games, ratings, reviews
-						and stats, never your email or username.
-						<a
-							routerLink="/privacy"
-							fragment="sharing"
-							target="_blank"
-							rel="noopener"
-							class="font-semibold text-brand hover:text-brand-hover"
-							>How your data is used</a
-						>
-					</span>
-				</p>
-				}
-			</div>
+			<app-rewind-ai-provider-notice
+				headingId="rewind-ai-recap-heading"
+				[showProvider]="writesAiRecap()"
+			/>
+			@if (!isRegeneration()) {
 			<div class="flex flex-col gap-2">
 				<ui-switch
-					label="Include private runs"
-					[(checked)]="includePrivateRuns"
-					[disabled]="pending()"
+					label="Write my AI recap"
+					[(checked)]="writeAiRecap"
+					[disabled]="pending() || isAiRecapOutOfGenerations()"
 				/>
-				@if (includePrivateRuns()) {
-				<ui-alert tone="warning" icon="visibility">
-					Your AI recap and premium stats may mention private games,
-					and anyone who can see your Rewind will read them.
-				</ui-alert>
-				} @else {
 				<p class="m-0 text-compact text-fg-muted">
-					Off by default. Only your AI recap and premium stats use
-					private runs.
+					{{ writeAiRecapHint() }}
 				</p>
-				}
 			</div>
-			<div class="flex flex-col gap-2">
-				<ui-switch
-					label="Use my notes"
-					[(checked)]="includeNotes"
-					[disabled]="pending()"
-				/>
-				@if (includeNotes()) {
-				<ui-alert tone="info" icon="edit_note">
-					Your AI recap reads your notes to understand you as a
-					player. Anyone who can see your Rewind will read the recap,
-					so it never quotes them word for word or names people.
-				</ui-alert>
-				} @else {
-				<p class="m-0 text-compact text-fg-muted">
-					Off by default. Only your AI recap reads your notes.
-				</p>
-				}
-			</div>
+			}
+			<app-rewind-ai-recap-switches
+				[(includePrivateRuns)]="includePrivateRuns"
+				[(includeNotes)]="includeNotes"
+				[writesAiRecap]="writesAiRecap()"
+				[disabled]="pending()"
+			/>
 		</section>
 		} @if (pending()) {
 		<div

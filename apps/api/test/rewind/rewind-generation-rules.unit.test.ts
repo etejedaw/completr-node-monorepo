@@ -584,6 +584,7 @@ void describe("GenerateRewindSchema", () => {
 		language: "es",
 		includePrivateRuns: false,
 		includeNotes: false,
+		writeAiRecap: true,
 		expectedGeneratedAt: null
 	};
 
@@ -613,6 +614,14 @@ void describe("GenerateRewindSchema", () => {
 			{ ...valid, includeNotes: 1 },
 			{ ...valid, includeNotes: null },
 			{ ...valid, notes: "my secret" },
+			{ ...valid, writeAiRecap: "true" },
+			{ ...valid, writeAiRecap: null },
+			{
+				language: "en",
+				includePrivateRuns: false,
+				includeNotes: false,
+				expectedGeneratedAt: null
+			},
 			{
 				language: "en",
 				includePrivateRuns: true,

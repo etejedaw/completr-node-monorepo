@@ -199,21 +199,48 @@ void describe("renderRewindImage", () => {
 		}
 	});
 
-	void it("never asks for background art in either format", async () => {
+	void it("never asks for the background art of a game that has a cover, in either format", async () => {
+		const backgroundUrl = "https://media.rawg.io/media/games/top/art.jpg";
 		const fetchMock = stubFetch(() =>
 			Promise.resolve(new Response(new Uint8Array(samplePng())))
 		);
 
 		for (const format of ["story", "og"] as const) {
-			const image = await renderRewindImage(
-				rewindWithBackdrop(
-					"https://media.rawg.io/media/games/top/art.jpg"
-				),
-				format
-			);
+			const rewind = rewindWithBackdrop(backgroundUrl);
+			rewind.highlights.topRated = {
+				...rewind.highlights.topRated!,
+				coverUrl: "https://covers.test/top.png"
+			};
+			const image = await renderRewindImage(rewind, format);
 			assert.equal(image.hasMissingImages, false);
 		}
-		assert.equal(fetchMock.mock.callCount(), 0);
+		const requestedUrls = fetchMock.mock.calls.map(call =>
+			String(call.arguments[0])
+		);
+		assert.ok(requestedUrls.length > 0);
+		assert.equal(
+			requestedUrls.some(url => url.endsWith("games/top/art.jpg")),
+			false
+		);
+	});
+
+	void it("uses the background art as the poster of a game without a cover", async () => {
+		const backgroundUrl = "https://media.rawg.io/media/games/top/art.jpg";
+		const fetchMock = stubFetch(() =>
+			Promise.resolve(new Response(new Uint8Array(samplePng())))
+		);
+
+		const image = await renderRewindImage(
+			rewindWithBackdrop(backgroundUrl),
+			"story"
+		);
+
+		assert.equal(image.hasMissingImages, false);
+		assert.ok(
+			fetchMock.mock.calls.some(call =>
+				String(call.arguments[0]).endsWith("games/top/art.jpg")
+			)
+		);
 	});
 
 	void it("downloads up to 12 covers for the mosaic of both formats", async () => {

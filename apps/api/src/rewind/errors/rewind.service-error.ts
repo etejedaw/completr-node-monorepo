@@ -72,23 +72,9 @@ export function aiRecapPremiumRequiredError() {
 	});
 }
 
-export function aiRecapExistsError() {
-	return new ServiceError("REWIND_AI_RECAP_EXISTS", {
+export function aiRecapDailyLimitError(rawError: unknown) {
+	return new ServiceError("REWIND_AI_RECAP_DAILY_LIMIT", {
 		...BASE_OPTIONS,
-		raw: undefined
-	});
-}
-
-export function aiRecapInProgressError() {
-	return new ServiceError("REWIND_AI_RECAP_IN_PROGRESS", {
-		...BASE_OPTIONS,
-		raw: undefined
-	});
-}
-
-export function aiRecapFailedError() {
-	return new ServiceError("REWIND_AI_RECAP_FAILED", {
-		...BASE_OPTIONS,
-		raw: undefined
+		raw: rawError
 	});
 }

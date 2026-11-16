@@ -14,6 +14,7 @@ import {
 } from "./story-list.template";
 
 const SHARE_DESIGNS: ShareDesignCatalog = {
+	"2025": null,
 	"2026": {
 		story: { coverLimit: STORY_COVER_LIMIT, render: storyTemplate },
 		"story-list": {
@@ -30,6 +31,12 @@ function isKnownDesign(design: string): design is RewindDesign {
 	return (REWIND_DESIGNS as readonly string[]).includes(design);
 }
 
-export function shareDesignTemplates(design: string): ShareDesignTemplates {
+export function shareDesignTemplates(
+	design: string
+): ShareDesignTemplates | null {
 	return SHARE_DESIGNS[isKnownDesign(design) ? design : LATEST_DESIGN];
+}
+
+export function hasShareImages(design: string): boolean {
+	return shareDesignTemplates(design) !== null;
 }

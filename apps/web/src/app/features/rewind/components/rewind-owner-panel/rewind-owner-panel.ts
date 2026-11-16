@@ -6,8 +6,7 @@ import {
 	DestroyRef,
 	inject,
 	input,
-	output,
-	signal
+	output
 } from "@angular/core";
 
 import {
@@ -17,7 +16,6 @@ import {
 } from "../../../../core/models/rewind.model";
 import { GiftOfferCard } from "../../../../shared/components/gift-offer-card/gift-offer-card";
 import {
-	UiAlert,
 	UiBadge,
 	UiButton,
 	UiEyebrow,
@@ -26,10 +24,6 @@ import {
 import { RewindService } from "../../rewind";
 import { rewindCopy } from "../../rewind-copy";
 import { formatRewindDay, formatRewindDayWithYear } from "../../rewind-dates";
-import {
-	type RewindAiRecapError,
-	rewindAiRecapError
-} from "../../rewind-errors";
 import { rewindPremiumAccessKindOf } from "../../rewind-premium-access-kind";
 import { RewindGenerateDialog } from "../rewind-generate-dialog/rewind-generate-dialog";
 import { injectRewindGenerateFlow } from "../rewind-generate-dialog/rewind-generate-flow";
@@ -54,14 +48,6 @@ const PANEL_LANGUAGE: RewindLanguage = "en";
 const STATUS_CHIP_CLASS =
 	"inline-flex h-9 max-w-full items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface/60 px-3.5 text-sm text-fg";
 
-const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
-	"exists",
-	"premium_required",
-	"year_requires_premium",
-	"period_closed",
-	"limit"
-];
-
 @Component({
 	selector: "app-rewind-owner-panel",
 	imports: [
@@ -69,7 +55,6 @@ const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 		NgTemplateOutlet,
 		UiEyebrow,
 		RewindGenerateDialog,
-		UiAlert,
 		UiBadge,
 		UiButton,
 		UiPremiumBadge
@@ -150,38 +135,31 @@ export class RewindOwnerPanel {
 		if (state === "closed" && !this.frozenAt()) return this.copy.closedHint;
 		return null;
 	});
-	protected readonly aiRecapPending = signal(false);
-	protected readonly aiRecapError = signal<RewindAiRecapError | null>(null);
-	protected readonly aiRecapErrorMessage = computed(() => {
-		const error = this.aiRecapError();
-		return error ? this.copy.aiRecapErrors[error] : null;
+	protected readonly noRegenerationsLeft = computed(
+		() =>
+			this.rewind().ownerControls?.regenerationBlockedBy ===
+			"no-regenerations-left"
+	);
+	protected readonly aiAction = computed(() => {
+		const state = this.rewind().ownerControls?.aiRecapState;
+		if (state === "failed")
+			return { label: this.copy.retry, icon: "refresh" };
+		if (state === "available")
+			return { label: this.copy.addAiRecap, icon: "auto_awesome" };
+		return { label: this.copy.regenerate, icon: "refresh" };
 	});
+	protected readonly addsAiRecap = computed(
+		() => this.rewind().ownerControls?.aiRecapState === "available"
+	);
+	protected readonly addsPremiumStats = computed(
+		() => this.addsAiRecap() && this.rewind().premiumStats === null
+	);
 	protected readonly generation = injectRewindGenerateFlow({
 		username: () => this.rewind().user.username,
 		year: () => this.rewind().year,
 		rewind: () => this.rewind(),
 		onGenerated: rewind => this.publish(rewind)
 	});
-
-	protected addAiRecap() {
-		if (this.aiRecapPending()) return;
-		const { year, user } = this.rewind();
-		this.aiRecapPending.set(true);
-		this.aiRecapError.set(null);
-		this.rewindService.addAiRecap(year).subscribe({
-			next: rewind => {
-				this.aiRecapPending.set(false);
-				this.publish(rewind);
-			},
-			error: (failure: unknown) => {
-				this.aiRecapPending.set(false);
-				const kind = rewindAiRecapError(failure);
-				this.aiRecapError.set(kind);
-				if (AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND.includes(kind))
-					this.reload(user.username, year);
-			}
-		});
-	}
 
 	protected reloadRewind() {
 		const { year, user } = this.rewind();

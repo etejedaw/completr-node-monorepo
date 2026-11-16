@@ -4,12 +4,18 @@ import { describe, it } from "node:test";
 
 const PROBE_SCRIPT = `
 const { RateLimiterMemory } = require("rate-limiter-flexible");
-const { rateLimiterMiddleware } = require("./src/common/middlewares/rate-limiter.middleware");
-const middleware = rateLimiterMiddleware(new RateLimiterMemory({ points: 1, duration: 60 }));
-const request = { ip: "10.0.0.1", headers: {}, locals: {} };
+const { rateLimiterMiddleware, resolveUserRateLimitKey } = require("./src/common/middlewares/rate-limiter.middleware");
+const byUser = process.env.PROBE_KEY === "user";
+const middleware = byUser
+	? rateLimiterMiddleware(new RateLimiterMemory({ points: 1, duration: 60 }), resolveUserRateLimitKey)
+	: rateLimiterMiddleware(new RateLimiterMemory({ points: 1, duration: 60 }));
+const user = { id: "user-1", role: "premium" };
 (async () => {
 	const outcomes = [];
 	for (let attempt = 0; attempt < 3; attempt++) {
+		const request = byUser
+			? { ip: "10.0.0." + attempt, headers: {}, locals: { user } }
+			: { ip: "10.0.0.1", headers: {}, locals: {} };
 		try {
 			await middleware(request, {}, () => {});
 			outcomes.push("passed");
@@ -67,5 +73,9 @@ void describe("rateLimiterMiddleware environment switches", () => {
 			probe({ NODE_ENV: "test", RATE_LIMIT_ENABLED: "true" }),
 			"passed,passed,passed"
 		);
+	});
+
+	void it("keeps counting the same user across different IPs with the user key", () => {
+		assert.equal(probe({ PROBE_KEY: "user" }), "passed,limited,limited");
 	});
 });
