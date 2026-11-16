@@ -16,6 +16,7 @@ import {
 	ONLINE_SEARCH_UNAVAILABLE_TITLE,
 	onlineSourceLabel
 } from "../../constants/online-search";
+import { GameArtPipe } from "../../pipes/game-art";
 import { UiButton, UiEyebrow, UiSearchBar, UiSkeleton } from "../../ui";
 import { GamePoster } from "../game-poster/game-poster";
 import { OnlineSourceNote } from "../online-source-note/online-source-note";
@@ -32,7 +33,8 @@ export type GameSearchStatus =
 		OnlineSourceNote,
 		UiButton,
 		UiSearchBar,
-		UiSkeleton
+		UiSkeleton,
+		GameArtPipe
 	],
 	templateUrl: "./game-search-step.html",
 	host: { class: "block" },

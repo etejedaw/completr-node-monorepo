@@ -69,9 +69,9 @@
 			class="group relative isolate flex items-end gap-4 min-h-[9.5rem] p-4 rounded-card overflow-hidden border border-line no-underline transition hover:border-brand/50"
 			[routerLink]="['/games', entry.game.code]"
 		>
-			@if (entry.game.backgroundUrl) {
+			@if (entry.game | gameArt: 'landscape'; as art) {
 			<img
-				[src]="entry.game.backgroundUrl | coverUrl: 640"
+				[src]="art | coverUrl: 640"
 				alt=""
 				aria-hidden="true"
 				loading="lazy"
@@ -83,7 +83,7 @@
 				class="absolute inset-0 -z-10 bg-gradient-to-t from-canvas via-canvas/75 to-canvas/20"
 			></span>
 			<app-game-poster
-				[src]="entry.game.backgroundUrl"
+				[src]="entry.game | gameArt: 'portrait'"
 				[title]="entry.game.title"
 				[width]="420"
 				[compact]="true"

@@ -10,12 +10,21 @@ import { RouterLink } from "@angular/router";
 import { type UserResult } from "../../../core/services/users.model";
 import { avatarRing } from "../../../core/utils/premium";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
+import { GameArtPipe } from "../../../shared/pipes/game-art";
 import { UiAvatar, UiBadge, UiButton, UiEyebrow } from "../../../shared/ui";
 import { type FollowState } from "../../../shared/utils/inject-follow-actions.model";
 
 @Component({
 	selector: "app-user-card",
-	imports: [RouterLink, CoverUrlPipe, UiAvatar, UiBadge, UiButton, UiEyebrow],
+	imports: [
+		RouterLink,
+		CoverUrlPipe,
+		UiAvatar,
+		UiBadge,
+		UiButton,
+		UiEyebrow,
+		GameArtPipe
+	],
 	templateUrl: "./user-card.html",
 	host: { class: "block h-full" },
 	changeDetection: ChangeDetectionStrategy.OnPush

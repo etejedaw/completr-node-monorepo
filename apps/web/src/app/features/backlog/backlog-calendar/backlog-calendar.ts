@@ -28,6 +28,7 @@ import {
 	backlogStatusFillClass,
 	backlogStatusLabel
 } from "../../../shared/utils/backlog-status";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { BacklogService } from "../backlog";
 import { type BacklogFilters } from "../backlog.model";
 import {
@@ -187,7 +188,7 @@ export class BacklogCalendar {
 		return entries.map(entry => ({
 			id: entry.id,
 			title: entry.game.title,
-			posterSrc: entry.game.backgroundUrl,
+			posterSrc: gameArtUrl(entry.game, "portrait") ?? undefined,
 			meta: `${backlogStatusLabel(entry.status)} · ${entry.platform.abbreviation}`,
 			dotClass: backlogStatusFillClass(entry.status),
 			dateLabel: this.rangeLabel(entry)

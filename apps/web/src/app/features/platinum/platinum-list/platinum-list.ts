@@ -40,6 +40,7 @@ import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view
 import { UiButton } from "../../../shared/ui";
 import { countOf } from "../../../shared/utils/bulk-feedback";
 import { injectBulkRemoval } from "../../../shared/utils/bulk-removal";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectRowSelection } from "../../../shared/utils/row-selection";
 import {
@@ -142,7 +143,7 @@ export class PlatinumList implements OnInit {
 	});
 	protected readonly heroPosters = computed(() =>
 		this.allPlatinums().map(platinum => ({
-			src: platinum.game.backgroundUrl,
+			src: gameArtUrl(platinum.game, "portrait"),
 			title: platinum.game.title
 		}))
 	);

@@ -177,7 +177,7 @@
 	>
 		<app-game-poster
 			class="w-10 aspect-[2/3] rounded-md row-span-1 max-md:self-start"
-			[src]="game.backgroundUrl"
+			[src]="game | gameArt: 'portrait'"
 			[title]="game.title"
 			[width]="420"
 			[compact]="true"

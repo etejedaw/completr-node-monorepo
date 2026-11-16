@@ -3,9 +3,9 @@
 	class="relative isolate flex gap-4 sm:gap-5 h-full"
 	[class]="surfaceClass()"
 >
-	@if (showBackdrop()) {
+	@if (backdropUrl(); as backdrop) {
 	<img
-		[src]="item.game!.backgroundUrl! | coverUrl: 640"
+		[src]="backdrop | coverUrl: 640"
 		alt=""
 		aria-hidden="true"
 		loading="lazy"

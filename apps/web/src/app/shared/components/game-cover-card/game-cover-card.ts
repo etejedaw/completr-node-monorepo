@@ -8,6 +8,7 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
+import { GameArtPipe } from "../../pipes/game-art";
 import { UiIconButton } from "../../ui";
 import { GamePoster } from "../game-poster/game-poster";
 import { MoodTagsChips } from "../mood-tags-chips/mood-tags-chips";
@@ -25,7 +26,8 @@ import {
 		DatePipe,
 		UiIconButton,
 		MoodTagsChips,
-		GamePoster
+		GamePoster,
+		GameArtPipe
 	],
 	template: `
 		<div class="flex flex-col gap-1.5 text-inherit group">
@@ -142,7 +144,7 @@ import {
 
 		<ng-template #cover>
 			<app-game-poster
-				[src]="game().coverUrl ?? game().backgroundUrl"
+				[src]="game() | gameArt: 'portrait'"
 				[title]="game().title"
 				[width]="420"
 				class="block w-full aspect-[2/3]"

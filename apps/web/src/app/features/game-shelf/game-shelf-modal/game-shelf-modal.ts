@@ -15,6 +15,7 @@ import { DialogDeleteAction } from "../../../shared/components/dialog-delete-act
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { GameSearchStep } from "../../../shared/components/game-search/game-search-step";
 import { SelectedGameRow } from "../../../shared/components/game-search/selected-game-row";
+import { GameArtPipe } from "../../../shared/pipes/game-art";
 import {
 	UiAlert,
 	UiButton,
@@ -68,7 +69,8 @@ const EDITION_SUGGESTIONS = [
 		UiInput,
 		UiTextarea,
 		UiFieldLabel,
-		UiFieldOptional
+		UiFieldOptional,
+		GameArtPipe
 	],
 	templateUrl: "./game-shelf-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -151,6 +153,7 @@ export class GameShelfModal implements OnInit {
 			this.selectedGame.set({
 				id: e.game.id,
 				title: e.game.title,
+				coverUrl: e.game.coverUrl,
 				backgroundUrl: e.game.backgroundUrl
 			} as Game);
 			this.model.set({

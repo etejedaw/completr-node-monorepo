@@ -15,7 +15,7 @@
 		<app-game-poster
 			framed
 			class="w-24 aspect-[2/3] shrink-0 rounded-md shadow-card"
-			[src]="e.game.backgroundUrl"
+			[src]="e.game | gameArt: 'portrait'"
 			[title]="e.game.title"
 			[width]="420"
 		/>

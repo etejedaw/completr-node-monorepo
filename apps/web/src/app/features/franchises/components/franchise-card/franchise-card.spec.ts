@@ -12,8 +12,20 @@ const residentEvil: FranchiseSummary = {
 	gameCount: 8,
 	isTracked: false,
 	previewGames: [
-		{ id: "g1", code: "re1", title: "Resident Evil", backgroundUrl: null },
-		{ id: "g2", code: "re2", title: "Resident Evil 2", backgroundUrl: null }
+		{
+			id: "g1",
+			code: "re1",
+			title: "Resident Evil",
+			coverUrl: null,
+			backgroundUrl: null
+		},
+		{
+			id: "g2",
+			code: "re2",
+			title: "Resident Evil 2",
+			coverUrl: null,
+			backgroundUrl: null
+		}
 	]
 };
 

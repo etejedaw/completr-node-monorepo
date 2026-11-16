@@ -10,6 +10,7 @@ import { RouterLink } from "@angular/router";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
 import { RatingDistribution } from "../../../../shared/components/rating-distribution/rating-distribution";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
+import { GameArtPipe } from "../../../../shared/pipes/game-art";
 import {
 	UiAlert,
 	UiButton,
@@ -116,7 +117,8 @@ const SUMMARY_COLUMN_CLASSES: Record<number, string> = {
 		UiButton,
 		UiEyebrow,
 		UiProgress,
-		UiSkeleton
+		UiSkeleton,
+		GameArtPipe
 	],
 	templateUrl: "./saved-view-stats.html",
 	host: { class: "contents" },

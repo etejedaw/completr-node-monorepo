@@ -29,6 +29,7 @@ export class UserReviews {
 			review.game
 				? {
 						title: review.game.title,
+						coverUrl: review.game.coverUrl ?? undefined,
 						backgroundUrl: review.game.backgroundUrl ?? undefined
 					}
 				: UNKNOWN_GAME

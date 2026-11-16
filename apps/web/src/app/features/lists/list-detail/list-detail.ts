@@ -36,6 +36,7 @@ import {
 	UiEmptyState,
 	UiSkeleton
 } from "../../../shared/ui";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { PendingRemovals } from "../../../shared/utils/pending-removals";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
@@ -126,7 +127,7 @@ export class ListDetail implements OnInit {
 	protected readonly skeletonRange = [0, 1, 2, 3, 4];
 	protected readonly heroPosters = computed(() =>
 		(this.list()?.items ?? []).map(item => ({
-			src: item.game.backgroundUrl,
+			src: gameArtUrl(item.game, "portrait"),
 			title: item.game.title
 		}))
 	);

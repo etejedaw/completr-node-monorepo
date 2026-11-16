@@ -11,6 +11,7 @@ import { RouterLink } from "@angular/router";
 import { type BacklogStatus, type ListItem } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { RatioSummary } from "../../../shared/components/ratio-summary/ratio-summary";
+import { GameArtPipe } from "../../../shared/pipes/game-art";
 import {
 	UiActionMenu,
 	type UiActionMenuItem,
@@ -36,7 +37,8 @@ export type ListItemRowMode = "own" | "theirs" | "compare";
 		RatioSummary,
 		UiButton,
 		UiEyebrow,
-		UiIconButton
+		UiIconButton,
+		GameArtPipe
 	],
 	templateUrl: "./list-item-row.html",
 	host: { class: "block" },

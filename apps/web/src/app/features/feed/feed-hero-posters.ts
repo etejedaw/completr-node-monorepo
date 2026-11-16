@@ -1,4 +1,5 @@
 import { type LibraryHeroPoster } from "../../shared/components/library-hero/library-hero.model";
+import { gameArtUrl } from "../../shared/utils/game-art";
 import { type ActivityTarget, type FeedActivity } from "./feed.model";
 
 export function gamePosters(activities: FeedActivity[]): LibraryHeroPoster[] {
@@ -6,11 +7,12 @@ export function gamePosters(activities: FeedActivity[]): LibraryHeroPoster[] {
 	const posters: LibraryHeroPoster[] = [];
 	for (const activity of activities) {
 		const game = activityGame(activity);
-		if (!game?.backgroundUrl) continue;
+		const src = gameArtUrl(game, "portrait");
+		if (!game || !src) continue;
 		const gameKey = gameIdentity(game);
 		if (seenGameKeys.has(gameKey)) continue;
 		seenGameKeys.add(gameKey);
-		posters.push({ src: game.backgroundUrl, title: game.name });
+		posters.push({ src, title: game.name });
 	}
 	return posters;
 }

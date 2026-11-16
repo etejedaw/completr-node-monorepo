@@ -2,11 +2,12 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
+import { GameArtPipe } from "../../../../shared/pipes/game-art";
 import { type PosterGridGame } from "./game-poster-grid.model";
 
 @Component({
 	selector: "app-game-poster-grid",
-	imports: [RouterLink, GamePoster],
+	imports: [RouterLink, GamePoster, GameArtPipe],
 	template: `
 		<ul
 			class="list-none m-0 p-0"
@@ -28,7 +29,7 @@ import { type PosterGridGame } from "./game-poster-grid.model";
 					>
 						<span class="relative block">
 							<app-game-poster
-								[src]="game.coverUrl ?? game.backgroundUrl"
+								[src]="game | gameArt: 'portrait'"
 								[title]="game.title"
 								[width]="420"
 								framed

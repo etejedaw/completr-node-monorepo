@@ -5,6 +5,10 @@ import { provideRouter } from "@angular/router";
 import { ReviewCard } from "./review-card";
 import { type ReviewCardReview } from "./review-card.model";
 
+const COVER =
+	"https://images.igdb.com/igdb/image/upload/t_cover_big/co1abc.jpg";
+const BACKGROUND = "https://media.rawg.io/media/games/celeste/background.jpg";
+
 const review: ReviewCardReview = {
 	content: "Great run",
 	rating: 4.5,
@@ -81,18 +85,45 @@ describe("ReviewCard", () => {
 			).toBe("https://example.com/hades-bg.jpg");
 		});
 
-		it("renders the decorative backdrop only when the game has a background", () => {
-			expect(
-				render().querySelector('img[aria-hidden="true"]')
-			).not.toBeNull();
-			expect(
+		it("renders the decorative backdrop from the background, falls back to the cover and skips it without art", () => {
+			const backdropOf = (
+				game: Partial<NonNullable<typeof review.game>>
+			) =>
 				render({
-					review: {
-						...review,
-						game: { ...review.game!, backgroundUrl: null }
-					}
-				}).querySelector('img[aria-hidden="true"]')
+					review: { ...review, game: { ...review.game!, ...game } }
+				})
+					.querySelector('img[aria-hidden="true"]')
+					?.getAttribute("src") ?? null;
+
+			expect(
+				backdropOf({ coverUrl: COVER, backgroundUrl: BACKGROUND })
+			).toContain("games/celeste/background.jpg");
+			expect(backdropOf({ coverUrl: COVER, backgroundUrl: null })).toBe(
+				COVER
+			);
+			expect(
+				backdropOf({ coverUrl: null, backgroundUrl: null })
 			).toBeNull();
+			expect(backdropOf({ coverUrl: "", backgroundUrl: " " })).toBeNull();
+		});
+
+		it("shows the cover as poster and keeps the background for the backdrop", () => {
+			const element = render({
+				review: {
+					...review,
+					game: {
+						...review.game!,
+						coverUrl: COVER,
+						backgroundUrl: BACKGROUND
+					}
+				}
+			});
+
+			expect(
+				element
+					.querySelector("app-game-poster img")
+					?.getAttribute("src")
+			).toBe(COVER);
 		});
 
 		it("shows the rating, its label, the duration, the date and the content", () => {

@@ -19,6 +19,7 @@ import { PrivateRunLock } from "../../../../shared/components/private-run-lock/p
 import { RatioSummary } from "../../../../shared/components/ratio-summary/ratio-summary";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { CoverUrlPipe } from "../../../../shared/pipes/cover-url";
+import { GameArtPipe } from "../../../../shared/pipes/game-art";
 import { UiAvatar, UiBadge, UiEyebrow } from "../../../../shared/ui";
 import { type ProgressNote } from "../../../backlog-progress/backlog-progress.model";
 import { type CoopMember } from "../../../coop-runs/coop-runs.model";
@@ -44,7 +45,8 @@ const MISSING_VALUE = "—";
 		StarRating,
 		UiAvatar,
 		UiBadge,
-		UiEyebrow
+		UiEyebrow,
+		GameArtPipe
 	],
 	templateUrl: "./backlog-entry-summary.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

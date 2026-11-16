@@ -395,3 +395,78 @@ describe("BacklogEntryCard private run lock", () => {
 		expect(lockFor(false, true)).toBeNull();
 	});
 });
+
+describe("BacklogEntryCard art", () => {
+	const COVER = "https://img.test/hades-cover.jpg";
+	const BACKGROUND = "https://img.test/hades-background.jpg";
+
+	function withArt(art: {
+		coverUrl?: string;
+		backgroundUrl?: string;
+	}): BacklogEntry {
+		const entry = entryWithStatus("playing");
+		return { ...entry, game: { ...entry.game, ...art } };
+	}
+
+	function posterSources(element: HTMLElement): (string | null)[] {
+		return Array.from(element.querySelectorAll("app-game-poster img")).map(
+			image => image.getAttribute("src")
+		);
+	}
+
+	beforeEach(() => {
+		TestBed.configureTestingModule({
+			imports: [BacklogEntryCard],
+			providers: [provideRouter([]), ...DEVICE_PROVIDERS]
+		});
+	});
+
+	it("shows the background behind the row and the cover on the poster", () => {
+		const fixture = TestBed.createComponent(BacklogEntryCard);
+		fixture.componentRef.setInput(
+			"entry",
+			withArt({ coverUrl: COVER, backgroundUrl: BACKGROUND })
+		);
+		fixture.detectChanges();
+
+		expect(posterSources(fixture.nativeElement).slice(0, 2)).toEqual([
+			BACKGROUND,
+			COVER
+		]);
+	});
+
+	it("uses the cover everywhere for a cover-only game and follows a refreshed entry", () => {
+		const fixture = TestBed.createComponent(BacklogEntryCard);
+		fixture.componentRef.setInput("entry", withArt({ coverUrl: COVER }));
+		fixture.detectChanges();
+
+		expect(posterSources(fixture.nativeElement).slice(0, 2)).toEqual([
+			COVER,
+			COVER
+		]);
+
+		fixture.componentRef.setInput(
+			"entry",
+			withArt({ backgroundUrl: BACKGROUND })
+		);
+		fixture.detectChanges();
+
+		expect(posterSources(fixture.nativeElement).slice(0, 2)).toEqual([
+			BACKGROUND,
+			BACKGROUND
+		]);
+	});
+
+	it("falls back to the placeholder when the game has no art", () => {
+		const fixture = TestBed.createComponent(BacklogEntryCard);
+		fixture.componentRef.setInput("entry", withArt({}));
+		fixture.detectChanges();
+
+		expect(posterSources(fixture.nativeElement)).toEqual([]);
+		expect(
+			(fixture.nativeElement as HTMLElement).querySelector(
+				'app-game-poster [role="img"]'
+			)
+		).not.toBeNull();
+	});
+});

@@ -38,6 +38,7 @@ import {
 	UiPremiumBadge
 } from "../../../shared/ui";
 import { arrangeIntoFullOrder } from "../../../shared/utils/full-order";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { PendingRemovals } from "../../../shared/utils/pending-removals";
@@ -110,7 +111,7 @@ export class QueueView implements OnInit {
 
 	protected readonly heroPosters = computed(() =>
 		this.entries().map(entry => ({
-			src: entry.backlog.game.backgroundUrl,
+			src: gameArtUrl(entry.backlog.game, "portrait"),
 			title: entry.backlog.game.title
 		}))
 	);

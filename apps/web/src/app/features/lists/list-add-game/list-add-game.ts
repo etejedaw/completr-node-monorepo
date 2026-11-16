@@ -26,6 +26,7 @@ import {
 	ONLINE_SEARCH_UNAVAILABLE_TITLE,
 	onlineSourceLabel
 } from "../../../shared/constants/online-search";
+import { GameArtPipe } from "../../../shared/pipes/game-art";
 import { UiSearchBar, UiSelectableRow, UiSkeleton } from "../../../shared/ui";
 import { catalogOnlyResult } from "../../../shared/utils/inject-game-search";
 
@@ -39,7 +40,8 @@ const MIN_QUERY_LENGTH = 2;
 		OnlineSourceNote,
 		UiSearchBar,
 		UiSelectableRow,
-		UiSkeleton
+		UiSkeleton,
+		GameArtPipe
 	],
 	templateUrl: "./list-add-game.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

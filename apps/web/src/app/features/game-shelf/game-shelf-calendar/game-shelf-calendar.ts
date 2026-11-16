@@ -19,6 +19,7 @@ import {
 	shortDate
 } from "../../../shared/components/month-calendar/month-calendar";
 import { type CalendarAgendaItem } from "../../../shared/components/month-calendar/month-calendar.model";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 
 const MAX_CHIPS = 3;
 const ACQUIRED_DOT = "bg-brand";
@@ -107,7 +108,7 @@ export class GameShelfCalendar {
 		return entries.map(entry => ({
 			id: entry.id,
 			title: entry.game.title,
-			posterSrc: entry.game.backgroundUrl,
+			posterSrc: gameArtUrl(entry.game, "portrait") ?? undefined,
 			meta: entry.edition
 				? `${entry.platform.abbreviation} · ${entry.edition}`
 				: entry.platform.abbreviation,

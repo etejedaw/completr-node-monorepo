@@ -58,6 +58,7 @@ import {
 	UiSearchBar,
 	UiSkeleton
 } from "../../../shared/ui";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { catalogOnlyResult } from "../../../shared/utils/inject-game-search";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { ListsService } from "../../lists/lists";
@@ -221,7 +222,7 @@ export class GamesBrowse implements OnInit {
 	);
 	protected readonly heroPosters = computed<LibraryHeroPoster[]>(() =>
 		this.latestGames().map(game => ({
-			src: game.backgroundUrl,
+			src: gameArtUrl(game, "portrait"),
 			title: game.title
 		}))
 	);

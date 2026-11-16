@@ -10,6 +10,7 @@ import { RouterLink } from "@angular/router";
 import { avatarRing } from "../../../core/utils/premium";
 import { ActivityDeleteButton } from "../../../shared/components/activity-delete-button/activity-delete-button";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { GameArtPipe } from "../../../shared/pipes/game-art";
 import { UiAvatar } from "../../../shared/ui";
 import {
 	activityIcon,
@@ -26,7 +27,13 @@ const TIME_OF_DAY_FORMAT = new Intl.DateTimeFormat("en", {
 
 @Component({
 	selector: "app-feed-activity-item",
-	imports: [RouterLink, ActivityDeleteButton, GamePoster, UiAvatar],
+	imports: [
+		RouterLink,
+		ActivityDeleteButton,
+		GamePoster,
+		UiAvatar,
+		GameArtPipe
+	],
 	templateUrl: "./feed-activity-item.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush

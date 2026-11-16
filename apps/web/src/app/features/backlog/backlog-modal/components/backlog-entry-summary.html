@@ -4,7 +4,7 @@
 	aria-labelledby="summary-game-heading"
 >
 	<div aria-hidden="true" class="absolute inset-0 -z-10">
-		@if (e.game.backgroundUrl; as art) {
+		@if (e.game | gameArt: 'landscape'; as art) {
 		<img
 			[src]="art | coverUrl: 640"
 			alt=""
@@ -33,7 +33,7 @@
 		<app-game-poster
 			framed
 			class="w-24 sm:w-28 aspect-[2/3] shrink-0 rounded-lg shadow-card"
-			[src]="e.game.backgroundUrl"
+			[src]="e.game | gameArt: 'portrait'"
 			[title]="e.game.title"
 			[width]="420"
 		/>

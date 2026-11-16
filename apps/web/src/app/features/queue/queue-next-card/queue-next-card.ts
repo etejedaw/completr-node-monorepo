@@ -9,6 +9,7 @@ import { RouterLink } from "@angular/router";
 import { type QueueEntry } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { CoverUrlPipe } from "../../../shared/pipes/cover-url";
+import { GameArtPipe } from "../../../shared/pipes/game-art";
 import { UiButton, UiEyebrow, UiIconButton } from "../../../shared/ui";
 
 @Component({
@@ -19,7 +20,8 @@ import { UiButton, UiEyebrow, UiIconButton } from "../../../shared/ui";
 		CoverUrlPipe,
 		UiButton,
 		UiEyebrow,
-		UiIconButton
+		UiIconButton,
+		GameArtPipe
 	],
 	templateUrl: "./queue-next-card.html",
 	host: { class: "block" },

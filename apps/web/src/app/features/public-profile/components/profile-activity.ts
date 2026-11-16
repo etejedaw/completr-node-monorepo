@@ -8,6 +8,7 @@ import { RouterLink } from "@angular/router";
 
 import { ActivityDeleteButton } from "../../../shared/components/activity-delete-button/activity-delete-button";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { GameArtPipe } from "../../../shared/pipes/game-art";
 import {
 	activityIcon,
 	activityIconColorClass,
@@ -22,7 +23,7 @@ const DATE_FORMAT = new Intl.DateTimeFormat("en", {
 
 @Component({
 	selector: "app-profile-activity",
-	imports: [RouterLink, ActivityDeleteButton, GamePoster],
+	imports: [RouterLink, ActivityDeleteButton, GamePoster, GameArtPipe],
 	templateUrl: "./profile-activity.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush

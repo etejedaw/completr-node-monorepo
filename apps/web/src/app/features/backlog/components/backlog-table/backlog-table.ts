@@ -19,6 +19,7 @@ import { StarRating } from "../../../../shared/components/star-rating/star-ratin
 import { FloatingXScrollbar } from "../../../../shared/directives/floating-x-scrollbar";
 import { SelectionCell } from "../../../../shared/directives/selection-cell";
 import { type SelectionToggle } from "../../../../shared/directives/selection-cell.model";
+import { GameArtPipe } from "../../../../shared/pipes/game-art";
 import {
 	UiAvatar,
 	UiBadge,
@@ -105,7 +106,8 @@ const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 		UiBadge,
 		UiCheckbox,
 		UiIconButton,
-		UiTable
+		UiTable,
+		GameArtPipe
 	],
 	templateUrl: "./backlog-table.html",
 	host: { class: "block" },

@@ -11,6 +11,7 @@ import { avatarRing } from "../../../core/utils/premium";
 import { getRatingLabel } from "../../constants/rating-labels";
 import { CoverUrlPipe } from "../../pipes/cover-url";
 import { UiAvatar } from "../../ui";
+import { gameArtUrl } from "../../utils/game-art";
 import { ExpandableText } from "../expandable-text/expandable-text";
 import { GamePoster } from "../game-poster/game-poster";
 import { StarRating } from "../star-rating/star-rating";
@@ -38,8 +39,13 @@ export class ReviewCard {
 	readonly subject = input<ReviewCardSubject>("game");
 	readonly highlighted = input(false);
 
-	protected readonly posterUrl = computed(
-		() => this.review().game?.coverUrl ?? this.review().game?.backgroundUrl
+	protected readonly posterUrl = computed(() =>
+		gameArtUrl(this.review().game, "portrait")
+	);
+	protected readonly backdropUrl = computed(() =>
+		this.subject() === "game"
+			? gameArtUrl(this.review().game, "landscape")
+			: null
 	);
 	protected readonly authorAvatarRing = computed(() =>
 		avatarRing(this.review().user?.role, this.review().user?.hasPremium)
@@ -50,9 +56,6 @@ export class ReviewCard {
 	});
 	protected readonly ratingLabel = computed(() =>
 		getRatingLabel(this.review().rating ?? null)
-	);
-	protected readonly showBackdrop = computed(
-		() => this.subject() === "game" && !!this.review().game?.backgroundUrl
 	);
 	protected readonly surfaceClass = computed(() => {
 		const tone = this.highlighted()

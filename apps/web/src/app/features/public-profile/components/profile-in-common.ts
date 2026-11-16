@@ -52,6 +52,7 @@ export class ProfileInCommon {
 	protected readonly cards = computed(() =>
 		this.games().map(game => ({
 			...game,
+			coverUrl: game.coverUrl ?? undefined,
 			backgroundUrl: game.backgroundUrl ?? undefined
 		}))
 	);

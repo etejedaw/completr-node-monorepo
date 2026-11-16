@@ -29,6 +29,7 @@ import {
 	UiPremiumBadge,
 	UiSkeleton
 } from "../../../shared/ui";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectLibraryPosters } from "../../backlog/library-posters";
 import { ListModal } from "../list-modal/list-modal";
@@ -85,7 +86,12 @@ export class ListOverview implements OnInit {
 			.flatMap(list => list.previewItems ?? [])
 			.flatMap(item =>
 				item.game
-					? [{ src: item.game.backgroundUrl, title: item.game.title }]
+					? [
+							{
+								src: gameArtUrl(item.game, "portrait"),
+								title: item.game.title
+							}
+						]
 					: []
 			);
 		return fromLists.length > 0 ? fromLists : this.libraryPosters();

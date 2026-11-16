@@ -26,7 +26,7 @@
 		[attr.aria-label]="entry.game.title"
 	>
 		<app-game-poster
-			[src]="entry.game.backgroundUrl"
+			[src]="entry.game | gameArt: 'portrait'"
 			[title]="entry.game.title"
 			[width]="420"
 			[compact]="true"

@@ -37,6 +37,7 @@ import {
 } from "../../../shared/components/platform-filter/platform-filter";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { UiButton, UiPremiumBadge } from "../../../shared/ui";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { isNotFound } from "../../../shared/utils/http-failure";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
@@ -106,7 +107,7 @@ export class WishlistView implements OnInit {
 	});
 	protected readonly heroPosters = computed(() =>
 		this.allEntries().map(entry => ({
-			src: entry.game.backgroundUrl,
+			src: gameArtUrl(entry.game, "portrait"),
 			title: entry.game.title
 		}))
 	);

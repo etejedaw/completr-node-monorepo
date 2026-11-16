@@ -38,6 +38,7 @@ import {
 	BACKLOG_STATUS_FILTERS,
 	BACKLOG_STATUS_PICKER_OPTIONS
 } from "../../../shared/utils/backlog-status";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { BacklogTable } from "../../backlog/components/backlog-table/backlog-table";
 import { profileAccessErrorOf } from "../services/profile-access-error";
 import { PublicLibraryService } from "../services/public-library.service";
@@ -152,7 +153,7 @@ export class UserBacklog implements OnInit {
 	protected readonly flippedEntryIds = signal<Set<string>>(new Set());
 	protected readonly heroPosters = computed(() =>
 		this.entries().map(entry => ({
-			src: entry.game.backgroundUrl,
+			src: gameArtUrl(entry.game, "portrait"),
 			title: entry.game.title
 		}))
 	);

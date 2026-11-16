@@ -9,6 +9,7 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
+import { GameArtPipe } from "../../pipes/game-art";
 import { UiAvatar, UiBadge, UiEyebrow, UiIconButton } from "../../ui";
 import { canChangeStatus, canQuickRate } from "../../utils/backlog-eligibility";
 import {
@@ -49,7 +50,8 @@ const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 		UiAvatar,
 		UiBadge,
 		UiEyebrow,
-		UiIconButton
+		UiIconButton,
+		GameArtPipe
 	],
 	templateUrl: "./backlog-entry-card.html",
 	host: {

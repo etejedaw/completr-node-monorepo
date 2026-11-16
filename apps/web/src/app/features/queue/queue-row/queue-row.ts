@@ -10,6 +10,7 @@ import { RouterLink } from "@angular/router";
 
 import { type QueueEntry } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { GameArtPipe } from "../../../shared/pipes/game-art";
 import {
 	UiActionMenu,
 	type UiActionMenuItem,
@@ -23,7 +24,8 @@ import {
 		CdkDragHandle,
 		RouterLink,
 		GamePoster,
-		UiIconButton
+		UiIconButton,
+		GameArtPipe
 	],
 	templateUrl: "./queue-row.html",
 	host: { class: "block" },

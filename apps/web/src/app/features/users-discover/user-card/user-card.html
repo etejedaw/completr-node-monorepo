@@ -1,15 +1,16 @@
-@let person = user();
+@let person = user(); @let featuredArt = person.featuredGame | gameArt:
+'landscape';
 <article
 	class="group relative isolate h-full flex flex-col rounded-card bg-surface border border-line overflow-hidden transition duration-200 hover:border-line-hover hover:-translate-y-0.5 focus-within:border-brand/60"
 >
 	<div
 		aria-hidden="true"
 		class="relative overflow-hidden bg-[radial-gradient(circle_at_20%_0%,var(--color-brand-subtle),transparent_70%)]"
-		[class]="person.featuredGame?.backgroundUrl ? 'h-20 sm:h-24' : 'h-12 sm:h-16'"
+		[class]="featuredArt ? 'h-20 sm:h-24' : 'h-12 sm:h-16'"
 	>
-		@if (person.featuredGame?.backgroundUrl) {
+		@if (featuredArt) {
 		<img
-			[src]="person.featuredGame!.backgroundUrl! | coverUrl: 640"
+			[src]="featuredArt | coverUrl: 640"
 			alt=""
 			loading="lazy"
 			class="w-full h-full object-cover opacity-60 transition duration-500 group-hover:scale-105 group-hover:opacity-75"

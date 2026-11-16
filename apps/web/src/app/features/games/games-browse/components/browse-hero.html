@@ -8,7 +8,7 @@
 		@for (item of games(); track item.id; let i = $index) { @if
 		(mountedIndexes().has(i)) {
 		<img
-			[src]="item.backgroundUrl | coverUrl: 1280"
+			[src]="item | gameArt: 'landscape' | coverUrl: 1280"
 			alt=""
 			[attr.fetchpriority]="i === 0 ? 'high' : null"
 			[attr.loading]="i === 0 ? null : 'lazy'"

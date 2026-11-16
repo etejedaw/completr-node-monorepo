@@ -19,6 +19,7 @@ import {
 	shortDate
 } from "../../../../shared/components/month-calendar/month-calendar";
 import { type CalendarAgendaItem } from "../../../../shared/components/month-calendar/month-calendar.model";
+import { gameArtUrl } from "../../../../shared/utils/game-art";
 import { type DatedPlatinum } from "./platinum-calendar.model";
 
 const MAX_CHIPS = 3;
@@ -118,7 +119,7 @@ export class PlatinumCalendar {
 		return platinums.map(platinum => ({
 			id: platinum.id,
 			title: platinum.game.title,
-			posterSrc: platinum.game.backgroundUrl,
+			posterSrc: gameArtUrl(platinum.game, "portrait") ?? undefined,
 			meta: platinum.platform?.abbreviation ?? "Platinum",
 			dotClass: PLATINUM_DOT,
 			dateLabel: shortDate(parseDateOnly(platinum.platinumedAt))

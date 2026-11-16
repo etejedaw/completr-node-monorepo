@@ -7,7 +7,7 @@
 		tabindex="-1"
 	>
 		<app-game-poster
-			[src]="game.backgroundUrl"
+			[src]="game | gameArt: 'portrait'"
 			[title]="game.name"
 			[width]="420"
 			[compact]="true"

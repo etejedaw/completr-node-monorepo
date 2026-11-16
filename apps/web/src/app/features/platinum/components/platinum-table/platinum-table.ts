@@ -11,6 +11,7 @@ import { type PlatinumEntry } from "../../../../core/models";
 import { GameTitleCell } from "../../../../shared/components/game-title-cell/game-title-cell";
 import { SelectionCell } from "../../../../shared/directives/selection-cell";
 import { type SelectionToggle } from "../../../../shared/directives/selection-cell.model";
+import { GameArtPipe } from "../../../../shared/pipes/game-art";
 import {
 	UiBadge,
 	UiCheckbox,
@@ -28,7 +29,8 @@ import { type RowSelection } from "../../../../shared/utils/row-selection.model"
 		UiBadge,
 		UiCheckbox,
 		UiIconButton,
-		UiTable
+		UiTable,
+		GameArtPipe
 	],
 	templateUrl: "./platinum-table.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

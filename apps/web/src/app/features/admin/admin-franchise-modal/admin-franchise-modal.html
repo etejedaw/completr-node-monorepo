@@ -113,7 +113,7 @@
 						<div class="flex items-center gap-3 min-w-0">
 							<app-game-poster
 								class="w-8 aspect-[2/3] shrink-0 rounded-sm"
-								[src]="game.backgroundUrl"
+								[src]="game | gameArt: 'portrait'"
 								[title]="game.title"
 								[width]="420"
 								[compact]="true"
@@ -220,7 +220,7 @@
 						<div class="flex items-center gap-3 min-w-0">
 							<app-game-poster
 								class="w-8 aspect-[2/3] shrink-0 rounded-sm"
-								[src]="game.backgroundUrl"
+								[src]="game | gameArt: 'portrait'"
 								[title]="game.title"
 								[width]="420"
 								[compact]="true"

@@ -133,6 +133,7 @@ export function injectGameCompilation(
 					id: item.game!.id,
 					title: item.game!.title,
 					code: item.game!.code,
+					coverUrl: item.game!.coverUrl,
 					backgroundUrl: item.game!.backgroundUrl
 				} as Game
 			}));

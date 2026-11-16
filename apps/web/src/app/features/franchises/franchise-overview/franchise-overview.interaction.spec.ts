@@ -55,6 +55,7 @@ function saga(name: string, gameCount: number): FranchiseSummary {
 				id: `${code}-${index}`,
 				code: `${code}-${index}`,
 				title: `${name} ${index + 1}`,
+				coverUrl: null,
 				backgroundUrl: null
 			})
 		)
