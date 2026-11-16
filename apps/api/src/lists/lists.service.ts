@@ -1,4 +1,4 @@
-import { Op, QueryTypes, type Transaction } from "sequelize";
+import { Op, QueryTypes, type Transaction, type WhereOptions } from "sequelize";
 
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
@@ -27,6 +27,7 @@ import {
 	LIST_PREVIEW_SIZE
 } from "./lists.constants";
 import { type BacklogSummary, type ListProgress } from "./lists.interface";
+import { type DiscoveryQuery } from "./schemas/discovery-query.schema";
 
 async function hasPremiumAccess(userId: string, role: string) {
 	return resolvePremiumAccess({ id: userId, role }, "lists.unlimited");
@@ -430,42 +431,51 @@ export async function findUserListsWithGameFlag(
 	}));
 }
 
+function discoveryListsInclude(ownerRoleWhere: WhereOptions) {
+	return [
+		{
+			...usersService.userInclude(),
+			where: ownerRoleWhere,
+			attributes: LIST_OWNER_ATTRS
+		},
+		listPreviewItemsInclude()
+	];
+}
+
+function othersListsCondition(viewerId: string | undefined) {
+	return viewerId ? { userId: { [Op.ne]: viewerId } } : {};
+}
+
 export async function findRecentUserLists(
 	viewerId: string | undefined,
-	limit = 12
+	pagination: DiscoveryQuery
 ) {
-	return List.findAll({
-		where: { isPublic: true, [Op.and]: [visibleListsCondition(viewerId)] },
-		include: [
-			{
-				...usersService.userInclude(),
-				where: { role: { [Op.ne]: "admin" } },
-				attributes: LIST_OWNER_ATTRS
-			},
-			listPreviewItemsInclude()
-		],
-		limit,
+	const { rows, count } = await List.findAndCountAll({
+		where: {
+			isPublic: true,
+			...othersListsCondition(viewerId),
+			[Op.and]: [visibleListsCondition(viewerId)]
+		},
+		include: discoveryListsInclude({ role: { [Op.ne]: "admin" } }),
+		limit: pagination.limit,
+		offset: pagination.offset,
 		order: LIST_ORDER_NEWEST_FIRST
 	});
+	return { lists: rows, total: count };
 }
 
 export async function findOfficialLists(
 	viewerId: string | undefined,
-	limit = 12
+	pagination: DiscoveryQuery
 ) {
-	return List.findAll({
+	const { rows, count } = await List.findAndCountAll({
 		where: { isPublic: true, [Op.and]: [visibleListsCondition(viewerId)] },
-		include: [
-			{
-				...usersService.userInclude(),
-				where: { role: "admin" },
-				attributes: LIST_OWNER_ATTRS
-			},
-			listPreviewItemsInclude()
-		],
-		limit,
+		include: discoveryListsInclude({ role: "admin" }),
+		limit: pagination.limit,
+		offset: pagination.offset,
 		order: LIST_ORDER_NEWEST_FIRST
 	});
+	return { lists: rows, total: count };
 }
 
 export async function searchPublicLists(
