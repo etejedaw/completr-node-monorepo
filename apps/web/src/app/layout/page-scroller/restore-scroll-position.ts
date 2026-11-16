@@ -1,7 +1,6 @@
 import { afterNextRender, type Injector } from "@angular/core";
 
 const RESTORE_TIMEOUT_MS = 3000;
-const RESTORE_TOLERANCE_PX = 1;
 const USER_SCROLL_INTENTS = [
 	"wheel",
 	"touchstart",
@@ -16,6 +15,8 @@ export function restoreScrollPosition(
 	onSettled: () => void
 ): () => void {
 	let settled = false;
+	const previousOverflowAnchor = scroller.style.overflowAnchor;
+	scroller.style.overflowAnchor = "none";
 	const contentObserver =
 		typeof ResizeObserver === "undefined"
 			? null
@@ -32,6 +33,7 @@ export function restoreScrollPosition(
 		clearTimeout(timeout);
 		contentObserver?.disconnect();
 		renderRef.destroy();
+		scroller.style.overflowAnchor = previousOverflowAnchor;
 		for (const intent of USER_SCROLL_INTENTS) {
 			scroller.removeEventListener(intent, settle);
 		}
@@ -41,9 +43,6 @@ export function restoreScrollPosition(
 	function scrollToTarget() {
 		if (settled) return;
 		scroller.scrollTop = target;
-		const reached =
-			Math.abs(scroller.scrollTop - target) <= RESTORE_TOLERANCE_PX;
-		if (reached) settle();
 	}
 
 	for (const intent of USER_SCROLL_INTENTS) {

@@ -198,6 +198,7 @@ describe("PageScroller", () => {
 		scrollAsUser(1200);
 		await navigate("/games");
 		await goBack();
+		fireEvent.wheel(main);
 		scrollAsUser(2000);
 		await goForward();
 		await goBack();
@@ -235,6 +236,27 @@ describe("PageScroller", () => {
 		contentHeight = 5000;
 		FakeResizeObserver.resizeAll();
 		expect(main.scrollTop).toBe(3000);
+	});
+
+	it("holds the restored position while content above keeps loading, with scroll anchoring off until it settles", async () => {
+		scrollAsUser(3000);
+		await navigate("/games");
+		vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+		location.back();
+		await vi.advanceTimersByTimeAsync(0);
+		await settle();
+		expect(main.scrollTop).toBe(3000);
+		expect(main.style.overflowAnchor).toBe("none");
+
+		main.scrollTop = 3994;
+		FakeResizeObserver.resizeAll();
+		expect(main.scrollTop).toBe(3000);
+
+		vi.advanceTimersByTime(3000);
+		expect(main.style.overflowAnchor).toBe("");
+		main.scrollTop = 3500;
+		FakeResizeObserver.resizeAll();
+		expect(main.scrollTop).toBe(3500);
 	});
 
 	it("stops restoring as soon as the user scrolls on their own", async () => {
