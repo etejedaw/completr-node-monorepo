@@ -45,7 +45,7 @@ const PROFILE_REWIND_LIMIT = 4;
 						<li
 							[class]="
 								isMobile()
-									? 'w-[11rem] shrink-0 snap-start'
+									? 'w-[15rem] shrink-0 snap-start'
 									: ''
 							"
 						>
