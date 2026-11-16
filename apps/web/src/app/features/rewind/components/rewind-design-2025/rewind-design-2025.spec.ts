@@ -236,8 +236,106 @@ describe("RewindDesign2025", () => {
 		fixture.detectChanges();
 	}
 
+	it("draws its own tally, persona and premium stats instead of the shared ones", async () => {
+		const root = await renderDesign(rewindFixture());
+
+		expect(root.querySelector("app-rewind-2025-tally")).not.toBeNull();
+		expect(
+			root.querySelector("app-rewind-2025-persona-rank")
+		).not.toBeNull();
+		expect(
+			root.querySelector("app-rewind-2025-premium-stats")
+		).not.toBeNull();
+		expect(root.querySelector("app-rewind-tally")).toBeNull();
+		expect(root.querySelector("app-rewind-persona-rank")).toBeNull();
+		expect(root.querySelector("app-rewind-premium-stats")).toBeNull();
+	});
+
+	describe("more of your year", () => {
+		const yearMix = {
+			lengthMix: [
+				{ range: "under-5" as const, count: 2 },
+				{ range: "5-15" as const, count: 5 }
+			],
+			releaseDecades: [{ decade: 2010, count: 4 }],
+			gamesWithoutHours: 0,
+			gamesWithoutRelease: 0
+		};
+
+		it("adds its own section between the premium stats and the shelves", async () => {
+			const root = await renderDesign(rewindFixture({ yearMix }));
+
+			const section = screen.getByRole("region", {
+				name: "More of your year"
+			});
+			expect(
+				within(section).getByRole("figure", {
+					name: "How long were your games?"
+				})
+			).toBeInTheDocument();
+			expect(
+				within(section).getByRole("figure", { name: "Release decades" })
+			).toBeInTheDocument();
+			expect(
+				root.querySelector("app-rewind-2025-year-mix")
+			).not.toBeNull();
+			expect(root.querySelector("app-rewind-year-mix")).toBeNull();
+			const order = [
+				"app-rewind-2025-premium-stats",
+				"app-rewind-2025-year-mix",
+				"[aria-labelledby='rewind-2025-finished-heading']"
+			].map(selector => root.querySelector(selector)!);
+			expect(
+				order[0].compareDocumentPosition(order[1]) &
+					Node.DOCUMENT_POSITION_FOLLOWING
+			).toBeTruthy();
+			expect(
+				order[1].compareDocumentPosition(order[2]) &
+					Node.DOCUMENT_POSITION_FOLLOWING
+			).toBeTruthy();
+		});
+
+		it("writes the section in Spanish", async () => {
+			await renderDesign(rewindFixture({ yearMix, language: "es" }));
+
+			const section = screen.getByRole("region", {
+				name: "Más de tu año"
+			});
+			expect(
+				within(section).getByRole("figure", {
+					name: "¿Cuánto duraron tus juegos?"
+				})
+			).toBeInTheDocument();
+		});
+
+		it("leaves the section out when there is nothing to chart", async () => {
+			const root = await renderDesign(rewindFixture());
+
+			expect(root.querySelector("app-rewind-2025-year-mix")).toBeNull();
+			expect(
+				screen.queryByRole("region", { name: "More of your year" })
+			).toBeNull();
+		});
+
+		it("follows a Rewind that gains and loses its mix", async () => {
+			const root = await renderDesign(rewindFixture());
+			for (const next of [yearMix, rewindFixture().yearMix, yearMix]) {
+				fixture.componentRef.setInput(
+					"rewind",
+					rewindFixture({ yearMix: next })
+				);
+				fixture.detectChanges();
+			}
+			await fixture.whenStable();
+
+			expect(
+				root.querySelector("app-rewind-2025-year-mix")
+			).not.toBeNull();
+		});
+	});
+
 	it("never shows the backlog chart and keeps the other premium charts", async () => {
-		const root = await renderDesign(
+		await renderDesign(
 			rewindFixture({
 				premiumStats: {
 					...premiumStats(),
@@ -246,9 +344,13 @@ describe("RewindDesign2025", () => {
 			})
 		);
 
-		expect(root.querySelector("app-rewind-premium-stats")).not.toBeNull();
-		expect(screen.queryByRole("figure", { name: /backlog/i })).toBeNull();
-		expect(screen.getAllByRole("figure").length).toBeGreaterThan(0);
+		const section = screen.getByRole("region", { name: "Premium stats" });
+		expect(
+			within(section).queryByRole("figure", { name: /backlog/i })
+		).toBeNull();
+		expect(within(section).getAllByRole("figure").length).toBeGreaterThan(
+			0
+		);
 	});
 
 	it("leaves the premium stats out when the backlog chart is the only one with data", async () => {
@@ -263,7 +365,10 @@ describe("RewindDesign2025", () => {
 			})
 		);
 
-		expect(root.querySelector("app-rewind-premium-stats")).toBeNull();
+		expect(root.querySelector("app-rewind-2025-premium-stats")).toBeNull();
+		expect(
+			screen.queryByRole("region", { name: "Premium stats" })
+		).toBeNull();
 	});
 
 	function shelfQuarters(root: HTMLElement): string[] {
@@ -657,7 +762,7 @@ describe("RewindDesign2025", () => {
 		expect(root.querySelector("[data-hero-collage]")).toBeNull();
 		expect(screen.queryByText("Cover of the year")).not.toBeInTheDocument();
 		expect(root.querySelector("app-rewind-2025-recap-article")).toBeNull();
-		expect(root.querySelector("app-rewind-premium-stats")).toBeNull();
+		expect(root.querySelector("app-rewind-2025-premium-stats")).toBeNull();
 		expect(
 			screen.queryByRole("heading", { name: "Highlights" })
 		).not.toBeInTheDocument();
@@ -696,7 +801,7 @@ describe("RewindDesign2025", () => {
 			})
 		);
 
-		expect(root.querySelector("app-rewind-premium-stats")).toBeNull();
+		expect(root.querySelector("app-rewind-2025-premium-stats")).toBeNull();
 	});
 
 	it("keeps up with a Rewind that changes many times in a row", async () => {

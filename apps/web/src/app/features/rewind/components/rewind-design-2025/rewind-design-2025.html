@@ -45,7 +45,7 @@
 					>{{ data.year }}</span
 				>
 			</h1>
-			<app-rewind-persona-rank
+			<app-rewind-2025-persona-rank
 				class="mt-3"
 				[code]="data.persona"
 				[language]="data.language"
@@ -69,7 +69,10 @@
 			<h2 id="rewind-2025-results-heading" class="sr-only">
 				{{ page.results }}
 			</h2>
-			<app-rewind-tally [rows]="tally()" [language]="data.language" />
+			<app-rewind-2025-tally
+				[rows]="tally()"
+				[language]="data.language"
+			/>
 		</section>
 	</div>
 </header>
@@ -105,12 +108,17 @@
 		/>
 	</section>
 	} @if (hasPremiumStats() && data.premiumStats; as stats) {
-	<app-rewind-premium-stats
+	<app-rewind-2025-premium-stats
 		class="min-w-0"
 		[stats]="stats"
 		[language]="data.language"
 		[premiumAccessKind]="data.premiumAccessKind"
-		[showBacklogFlow]="false"
+	/>
+	} @if (hasYearMix()) {
+	<app-rewind-2025-year-mix
+		class="min-w-0"
+		[mix]="data.yearMix"
+		[language]="data.language"
 	/>
 	} @if (data.finishedGames.length > 0) {
 	<section
