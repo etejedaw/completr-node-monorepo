@@ -33,8 +33,7 @@ export const REWIND_OWNER_PANEL_COPY: RewindOwnerPanelCopy = {
 	aiRecapFailed: "AI recap couldn't be generated",
 	retry: "Retry",
 	addAiRecap: "Add AI recap",
-	addAiRecapHint:
-		"Adds an AI-written recap and premium stats. It uses one AI generation.",
+	addAiRecapHint: "Adds an AI-written recap to this Rewind.",
 	aiRecapPending: "Writing your AI recap… this can take up to a minute.",
 	aiRecapErrors: {
 		premium_required: "Adding an AI recap needs Premium.",
@@ -47,6 +46,8 @@ export const REWIND_OWNER_PANEL_COPY: RewindOwnerPanelCopy = {
 			"Your AI recap is already being written. Check back in a minute.",
 		not_generated: "This Rewind isn't generated anymore. Reload the page.",
 		rate_limited: "Too many attempts. Wait a moment and try again.",
+		daily_limit:
+			"You've reached today's AI recap limit. Try again tomorrow.",
 		failed: "The AI recap couldn't be written right now. Try again in a few minutes.",
 		network: "You seem to be offline. Check your connection and try again."
 	}

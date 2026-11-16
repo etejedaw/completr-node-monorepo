@@ -107,6 +107,7 @@ describe("RewindService", () => {
 			language: "es",
 			includePrivateRuns: true,
 			includeNotes: false,
+			writeAiRecap: true,
 			expectedGeneratedAt: null
 		};
 		let result: unknown;
@@ -126,6 +127,7 @@ describe("RewindService", () => {
 				language: "en",
 				includePrivateRuns: false,
 				includeNotes: false,
+				writeAiRecap: true,
 				expectedGeneratedAt: "2025-12-03T10:00:00.000Z"
 			})
 			.subscribe();
@@ -140,12 +142,18 @@ describe("RewindService", () => {
 	it("adds the AI recap to a generated year", () => {
 		let result: unknown;
 
-		service.addAiRecap(2026).subscribe(value => (result = value));
+		service
+			.addAiRecap(2026, { includePrivateRuns: true, includeNotes: false })
+			.subscribe(value => (result = value));
 
 		const req = httpTesting.expectOne(
 			`${api}/users/me/rewinds/2026/ai-recap`
 		);
 		expect(req.request.method).toBe("POST");
+		expect(req.request.body).toEqual({
+			includePrivateRuns: true,
+			includeNotes: false
+		});
 		req.flush({ data: { year: 2026, aiRecap: null } });
 		expect(result).toEqual({ year: 2026, aiRecap: null });
 	});

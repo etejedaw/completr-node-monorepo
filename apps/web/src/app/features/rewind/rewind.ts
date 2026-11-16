@@ -4,6 +4,7 @@ import { map, type Observable } from "rxjs";
 
 import { environment } from "../../../environments/environment";
 import {
+	type AddRewindAiRecapRequest,
 	type GenerateRewindRequest,
 	type Rewind,
 	type RewindYears
@@ -35,9 +36,14 @@ export class RewindService {
 			.pipe(map(res => res.data));
 	}
 
-	addAiRecap(year: number): Observable<Rewind> {
+	addAiRecap(
+		year: number,
+		request: AddRewindAiRecapRequest
+	): Observable<Rewind> {
 		return this.http
-			.post<{ data: Rewind }>(`${ownRewindsUrl()}/${year}/ai-recap`, {})
+			.post<{
+				data: Rewind;
+			}>(`${ownRewindsUrl()}/${year}/ai-recap`, request)
 			.pipe(map(res => res.data));
 	}
 

@@ -106,6 +106,16 @@ describe("RewindOwnerPanel", () => {
 		return TestBed.inject(HttpTestingController);
 	}
 
+	async function writeAiRecapFrom(trigger: string | RegExp) {
+		await userEvent.click(screen.getByRole("button", { name: trigger }));
+		const dialog = await screen.findByRole("dialog", {
+			name: "Add the AI recap to your 2026 Rewind"
+		});
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Write AI recap" })
+		);
+	}
+
 	beforeEach(() => {
 		isPremium = signal(true);
 		changes = [];
@@ -204,7 +214,7 @@ describe("RewindOwnerPanel", () => {
 		expect(screen.queryByText("Includes private runs")).toBeNull();
 	});
 
-	it("hides Regenerate when no regeneration is possible", async () => {
+	it("shows a disabled Regenerate with its reason when no AI generation is left", async () => {
 		await renderPanel(
 			rewindFixture({
 				ownerControls: controls({
@@ -216,7 +226,31 @@ describe("RewindOwnerPanel", () => {
 		);
 
 		expect(chip("0 AI generations left")).toBeInTheDocument();
-		expect(screen.queryByRole("button", { name: "Regenerate" })).toBeNull();
+		const regenerate = screen.getByRole("button", { name: "Regenerate" });
+		expect(regenerate).toBeDisabled();
+		expect(regenerate.parentElement).toHaveAttribute(
+			"title",
+			"You've used every AI generation for this Rewind."
+		);
+		expect(
+			screen.getByText("You've used every AI generation for this Rewind.")
+		).toBeInTheDocument();
+		await userEvent.click(regenerate);
+		expect(
+			screen.queryByRole("dialog", {
+				name: "Regenerate your 2026 Rewind"
+			})
+		).toBeNull();
+	});
+
+	it("does not show the used-up line while a generation is left", async () => {
+		await renderPanel(rewindFixture());
+
+		expect(
+			screen.queryByText(
+				"You've used every AI generation for this Rewind."
+			)
+		).toBeNull();
 	});
 
 	it.each(["ready", "unavailable"] as const)(
@@ -239,6 +273,12 @@ describe("RewindOwnerPanel", () => {
 		);
 
 		await userEvent.dblClick(screen.getByRole("button", { name: "Retry" }));
+		const dialog = await screen.findByRole("dialog", {
+			name: "Add the AI recap to your 2026 Rewind"
+		});
+		await userEvent.dblClick(
+			within(dialog).getByRole("button", { name: "Write AI recap" })
+		);
 
 		const requests = http().match(aiRecapUrl);
 		expect(requests).toHaveLength(1);
@@ -260,6 +300,12 @@ describe("RewindOwnerPanel", () => {
 
 		expect(add).toHaveTextContent("auto_awesome");
 		await userEvent.tripleClick(add);
+		const dialog = await screen.findByRole("dialog", {
+			name: "Add the AI recap to your 2026 Rewind"
+		});
+		await userEvent.tripleClick(
+			within(dialog).getByRole("button", { name: "Write AI recap" })
+		);
 
 		expect(screen.getByRole("status")).toHaveTextContent(
 			"Writing your AI recap"
@@ -299,7 +345,7 @@ describe("RewindOwnerPanel", () => {
 				ownerControls: controls({ aiRecapState: "failed" })
 			})
 		);
-		await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+		await writeAiRecapFrom("Retry");
 
 		http()
 			.expectOne(aiRecapUrl)
@@ -322,9 +368,7 @@ describe("RewindOwnerPanel", () => {
 				ownerControls: controls({ aiRecapState: "available" })
 			})
 		);
-		await userEvent.click(
-			screen.getByRole("button", { name: "Add AI recap" })
-		);
+		await writeAiRecapFrom("Add AI recap");
 
 		http()
 			.expectOne(aiRecapUrl)
@@ -360,6 +404,11 @@ describe("RewindOwnerPanel", () => {
 			429,
 			"TOO_MANY_REQUESTS",
 			"Too many attempts. Wait a moment and try again."
+		],
+		[
+			429,
+			"REWIND_AI_RECAP_DAILY_LIMIT",
+			"You've reached today's AI recap limit. Try again tomorrow."
 		]
 	])(
 		"shows the %s %s error and lets the owner retry",
@@ -369,9 +418,7 @@ describe("RewindOwnerPanel", () => {
 					ownerControls: controls({ aiRecapState: "failed" })
 				})
 			);
-			await userEvent.click(
-				screen.getByRole("button", { name: "Retry" })
-			);
+			await writeAiRecapFrom("Retry");
 
 			http()
 				.expectOne(aiRecapUrl)
@@ -379,14 +426,124 @@ describe("RewindOwnerPanel", () => {
 
 			expect(await screen.findByText(message)).toBeInTheDocument();
 			expect(changes).toEqual([]);
-			await userEvent.click(
-				screen.getByRole("button", { name: "Retry" })
-			);
+			await writeAiRecapFrom("Retry");
 			http().expectOne(aiRecapUrl).flush({ data: rewindFixture() });
 			await waitFor(() => expect(changes).toHaveLength(1));
 			expect(screen.queryByText(message)).toBeNull();
 		}
 	);
+
+	it("opens the AI recap dialog prefilled from the Rewind and sends its choices", async () => {
+		await renderPanel(
+			rewindFixture({
+				ownerControls: controls({
+					aiRecapState: "available",
+					includesPrivateRuns: true
+				})
+			})
+		);
+
+		await userEvent.click(
+			screen.getByRole("button", { name: "Add AI recap" })
+		);
+		const dialog = await screen.findByRole("dialog", {
+			name: "Add the AI recap to your 2026 Rewind"
+		});
+		expect(
+			within(dialog).getByRole("switch", { name: "Include private runs" })
+		).toHaveAttribute("aria-checked", "true");
+		http().expectNone(aiRecapUrl);
+		await userEvent.click(
+			within(dialog).getByRole("switch", { name: "Use my notes" })
+		);
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Write AI recap" })
+		);
+
+		const request = http().expectOne(aiRecapUrl);
+		expect(request.request.body).toEqual({
+			includePrivateRuns: true,
+			includeNotes: true
+		});
+		await waitFor(() =>
+			expect(
+				screen.queryByRole("dialog", {
+					name: "Add the AI recap to your 2026 Rewind"
+				})
+			).toBeNull()
+		);
+		request.flush({ data: rewindFixture() });
+	});
+
+	it("sends no request when the AI recap dialog is cancelled", async () => {
+		await renderPanel(
+			rewindFixture({
+				ownerControls: controls({ aiRecapState: "failed" })
+			})
+		);
+		await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+		const dialog = await screen.findByRole("dialog", {
+			name: "Add the AI recap to your 2026 Rewind"
+		});
+
+		await userEvent.click(
+			within(dialog).getByRole("button", { name: "Cancel" })
+		);
+
+		await waitFor(() =>
+			expect(
+				screen.queryByRole("dialog", {
+					name: "Add the AI recap to your 2026 Rewind"
+				})
+			).toBeNull()
+		);
+		http().expectNone(aiRecapUrl);
+		expect(changes).toEqual([]);
+	});
+
+	it("shows the premium stats alert in the AI recap dialog only without premium stats", async () => {
+		const { fixture } = await renderPanel(
+			rewindFixture({
+				ownerControls: controls({ aiRecapState: "available" })
+			})
+		);
+		const alert = "Your premium stats will be added to this Rewind too.";
+
+		await userEvent.click(
+			screen.getByRole("button", { name: "Add AI recap" })
+		);
+		expect(await screen.findByText(alert)).toBeInTheDocument();
+		await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+		fixture.componentRef.setInput(
+			"rewind",
+			rewindFixture({
+				premiumStats: {} as Rewind["premiumStats"],
+				ownerControls: controls({ aiRecapState: "available" })
+			})
+		);
+		fixture.detectChanges();
+		await userEvent.click(
+			screen.getByRole("button", { name: "Add AI recap" })
+		);
+		await screen.findByRole("dialog", {
+			name: "Add the AI recap to your 2026 Rewind"
+		});
+		expect(screen.queryByText(alert)).toBeNull();
+	});
+
+	it("says the AI recap adds nothing but the recap in the hint", async () => {
+		await renderPanel(
+			rewindFixture({
+				ownerControls: controls({ aiRecapState: "available" })
+			})
+		);
+
+		expect(
+			screen.getAllByText("Adds an AI-written recap to this Rewind.")
+				.length
+		).toBeGreaterThan(0);
+	});
 
 	it("explains a network error in English even when the Rewind is in Spanish", async () => {
 		await renderPanel(
@@ -395,7 +552,7 @@ describe("RewindOwnerPanel", () => {
 				ownerControls: controls({ aiRecapState: "failed" })
 			})
 		);
-		await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+		await writeAiRecapFrom("Retry");
 
 		http().expectOne(aiRecapUrl).error(new ProgressEvent("error"));
 
@@ -413,7 +570,7 @@ describe("RewindOwnerPanel", () => {
 				ownerControls: controls({ aiRecapState: "failed" })
 			})
 		);
-		await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+		await writeAiRecapFrom("Retry");
 
 		fixture.destroy();
 		http().expectOne(aiRecapUrl).flush({ data: rewindFixture() });
@@ -444,6 +601,7 @@ describe("RewindOwnerPanel", () => {
 			language: "es",
 			includePrivateRuns: true,
 			includeNotes: false,
+			writeAiRecap: true,
 			expectedGeneratedAt: "2026-12-02T10:00:00.000Z"
 		});
 		const regenerated = rewindFixture({
@@ -700,7 +858,7 @@ describe("RewindOwnerPanel", () => {
 			).toBeNull();
 		});
 
-		it("does not repeat the reason when the panel already says it", async () => {
+		it("shows the used-up reason once and keeps the closed reason out of the panel", async () => {
 			const { fixture } = await renderPanel(
 				rewindFixture({
 					ownerControls: controls({
@@ -713,10 +871,10 @@ describe("RewindOwnerPanel", () => {
 
 			expect(chip("0 AI generations left")).toBeInTheDocument();
 			expect(
-				screen.queryByText(
+				screen.getByText(
 					"You've used every AI generation for this Rewind."
 				)
-			).toBeNull();
+			).toBeInTheDocument();
 
 			fixture.componentRef.setInput(
 				"rewind",
@@ -874,8 +1032,16 @@ describe("RewindOwnerPanel", () => {
 						ownerControls: controls({ aiRecapState: "available" })
 					})
 				);
-				await userEvent.dblClick(
+				await userEvent.click(
 					screen.getByRole("button", { name: "Add AI recap" })
+				);
+				const dialog = await screen.findByRole("dialog", {
+					name: "Add the AI recap to your 2026 Rewind"
+				});
+				await userEvent.dblClick(
+					within(dialog).getByRole("button", {
+						name: "Write AI recap"
+					})
 				);
 
 				const requests = http().match(aiRecapUrl);
@@ -1041,6 +1207,12 @@ describe("RewindOwnerPanel", () => {
 
 			await user.click(
 				screen.getByRole("button", { name: /Add AI recap/ })
+			);
+			const dialog = await screen.findByRole("dialog", {
+				name: "Add the AI recap to your 2026 Rewind"
+			});
+			await user.click(
+				within(dialog).getByRole("button", { name: "Write AI recap" })
 			);
 			http().expectOne(aiRecapUrl).flush(
 				{

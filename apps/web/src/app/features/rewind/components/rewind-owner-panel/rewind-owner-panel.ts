@@ -11,6 +11,7 @@ import {
 } from "@angular/core";
 
 import {
+	type AddRewindAiRecapRequest,
 	type Rewind,
 	type RewindLanguage,
 	type RewindRegenerationBlock
@@ -31,6 +32,7 @@ import {
 	rewindAiRecapError
 } from "../../rewind-errors";
 import { rewindPremiumAccessKindOf } from "../../rewind-premium-access-kind";
+import { RewindAiRecapDialog } from "../rewind-ai-recap-dialog/rewind-ai-recap-dialog";
 import { RewindGenerateDialog } from "../rewind-generate-dialog/rewind-generate-dialog";
 import { injectRewindGenerateFlow } from "../rewind-generate-dialog/rewind-generate-flow";
 import { REWIND_OWNER_PANEL_COPY } from "./rewind-owner-panel.copy";
@@ -68,6 +70,7 @@ const AI_RECAP_ERRORS_THAT_CHANGE_THE_REWIND: readonly RewindAiRecapError[] = [
 		GiftOfferCard,
 		NgTemplateOutlet,
 		UiEyebrow,
+		RewindAiRecapDialog,
 		RewindGenerateDialog,
 		UiAlert,
 		UiBadge,
@@ -150,6 +153,12 @@ export class RewindOwnerPanel {
 		if (state === "closed" && !this.frozenAt()) return this.copy.closedHint;
 		return null;
 	});
+	protected readonly noRegenerationsLeft = computed(
+		() =>
+			this.rewind().ownerControls?.regenerationBlockedBy ===
+			"no-regenerations-left"
+	);
+	protected readonly aiRecapDialogOpen = signal(false);
 	protected readonly aiRecapPending = signal(false);
 	protected readonly aiRecapError = signal<RewindAiRecapError | null>(null);
 	protected readonly aiRecapErrorMessage = computed(() => {
@@ -163,12 +172,18 @@ export class RewindOwnerPanel {
 		onGenerated: rewind => this.publish(rewind)
 	});
 
-	protected addAiRecap() {
+	protected openAiRecapDialog() {
+		if (this.aiRecapPending()) return;
+		this.aiRecapDialogOpen.set(true);
+	}
+
+	protected addAiRecap(request: AddRewindAiRecapRequest) {
+		this.aiRecapDialogOpen.set(false);
 		if (this.aiRecapPending()) return;
 		const { year, user } = this.rewind();
 		this.aiRecapPending.set(true);
 		this.aiRecapError.set(null);
-		this.rewindService.addAiRecap(year).subscribe({
+		this.rewindService.addAiRecap(year, request).subscribe({
 			next: rewind => {
 				this.aiRecapPending.set(false);
 				this.publish(rewind);

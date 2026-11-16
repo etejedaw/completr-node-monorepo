@@ -124,7 +124,7 @@
 				variant="secondary"
 				class="tap:min-h-[44px] max-sm:!w-full shrink-0"
 				[disabled]="aiRecapPending()"
-				(click)="addAiRecap()"
+				(click)="openAiRecapDialog()"
 			>
 				{{ copy.retry }}
 			</button>
@@ -135,7 +135,7 @@
 				variant="secondary"
 				class="tap:min-h-[44px] max-sm:!w-full shrink-0"
 				[disabled]="aiRecapPending()"
-				(click)="addAiRecap()"
+				(click)="openAiRecapDialog()"
 			>
 				<span aria-hidden="true" class="material-icons text-base"
 					>auto_awesome</span
@@ -157,9 +157,40 @@
 				{{ generation.isPending() ? copy.regenerating : copy.regenerate
 				}}
 			</button>
+			} @else if (noRegenerationsLeft()) {
+			<span
+				class="inline-flex shrink-0 max-sm:w-full"
+				[attr.title]="copy.regenerationBlocks['no-regenerations-left']"
+			>
+				<button
+					uiButton
+					type="button"
+					variant="primary"
+					class="tap:min-h-[44px] max-sm:!w-full"
+					disabled
+					aria-describedby="rewind-no-regenerations-left"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>refresh</span
+					>
+					{{ copy.regenerate }}
+				</button>
+			</span>
 			}
 		</div>
-		@if (controls.aiRecapState === "failed") {
+		@if (noRegenerationsLeft()) {
+		<p
+			id="rewind-no-regenerations-left"
+			class="m-0 inline-flex items-center gap-1.5 text-sm text-fg-secondary"
+		>
+			<span
+				aria-hidden="true"
+				class="material-icons text-base text-fg-muted"
+				>info</span
+			>
+			{{ copy.regenerationBlocks["no-regenerations-left"] }}
+		</p>
+		} @if (controls.aiRecapState === "failed") {
 		<p class="m-0 inline-flex items-center gap-1.5 text-sm text-fg">
 			<span
 				aria-hidden="true"
@@ -210,6 +241,12 @@
 	[error]="generation.error()"
 	(submitted)="generation.submit($event)"
 	(closed)="generation.close()"
+/>
+} @if (aiRecapDialogOpen()) {
+<app-rewind-ai-recap-dialog
+	[rewind]="rewind()"
+	(submitted)="addAiRecap($event)"
+	(closed)="aiRecapDialogOpen.set(false)"
 />
 }
 <ng-template #aiInputChips let-controls>
