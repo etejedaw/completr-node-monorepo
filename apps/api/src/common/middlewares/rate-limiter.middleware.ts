@@ -12,6 +12,17 @@ const PRIVILEGED_ROLES: ReadonlySet<string> = new Set<UserRole>([
 	"moderator"
 ]);
 
+export function isRateLimitingActive(): boolean {
+	return (
+		environmentConfig.NODE_ENV !== "test" &&
+		environmentConfig.RATE_LIMIT_ENABLED
+	);
+}
+
+export function isRateLimitExempt(role: string): boolean {
+	return PRIVILEGED_ROLES.has(role);
+}
+
 function skipRateLimit(
 	_request: Request,
 	_response: Response,
@@ -29,12 +40,7 @@ export function rateLimiterMiddleware(
 	limiter: RateLimiterMemory,
 	resolveKey: (request: Request) => string = resolveClientIp
 ) {
-	if (
-		environmentConfig.NODE_ENV === "test" ||
-		!environmentConfig.RATE_LIMIT_ENABLED
-	) {
-		return skipRateLimit;
-	}
+	if (!isRateLimitingActive()) return skipRateLimit;
 
 	return async (
 		request: Request,
@@ -43,7 +49,7 @@ export function rateLimiterMiddleware(
 	) => {
 		try {
 			const user = request.locals?.user as RequestUser | undefined;
-			if (user && PRIVILEGED_ROLES.has(user.role)) {
+			if (user && isRateLimitExempt(user.role)) {
 				return next();
 			}
 

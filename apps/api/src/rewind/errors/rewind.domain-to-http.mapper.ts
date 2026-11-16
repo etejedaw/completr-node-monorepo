@@ -52,6 +52,9 @@ export function rewindDomainToHttpMapper(
 	if (error.code === "REWIND_AI_RECAP_IN_PROGRESS")
 		return new HttpError({ ...baseOptions, status: 409 });
 
+	if (error.code === "REWIND_AI_RECAP_DAILY_LIMIT")
+		return new HttpError({ ...baseOptions, status: 429 });
+
 	if (error.code === "REWIND_AI_RECAP_FAILED")
 		return new HttpError({ ...baseOptions, status: 503 });
 

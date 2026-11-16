@@ -112,6 +112,15 @@ export function rewindAiRecapInProgress(context?: Record<string, unknown>) {
 	);
 }
 
+export function rewindAiRecapDailyLimit(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"REWIND_AI_RECAP_DAILY_LIMIT",
+		"You reached today's AI recap limit, try again tomorrow",
+		context
+	);
+}
+
 export function rewindAiRecapFailed(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

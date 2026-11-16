@@ -46,6 +46,9 @@ export function rewindServiceToDomainMapper(
 	if (error.code === "REWIND_AI_RECAP_IN_PROGRESS")
 		return rewindDomainError.rewindAiRecapInProgress(context);
 
+	if (error.code === "REWIND_AI_RECAP_DAILY_LIMIT")
+		return rewindDomainError.rewindAiRecapDailyLimit(context);
+
 	if (error.code === "REWIND_AI_RECAP_FAILED")
 		return rewindDomainError.rewindAiRecapFailed(context);
 

@@ -86,6 +86,13 @@ export function aiRecapInProgressError() {
 	});
 }
 
+export function aiRecapDailyLimitError(rawError: unknown) {
+	return new ServiceError("REWIND_AI_RECAP_DAILY_LIMIT", {
+		...BASE_OPTIONS,
+		raw: rawError
+	});
+}
+
 export function aiRecapFailedError() {
 	return new ServiceError("REWIND_AI_RECAP_FAILED", {
 		...BASE_OPTIONS,
