@@ -32,6 +32,7 @@ import { LruCache } from "./utils/lru-cache.util";
 import { rewindSummary } from "./utils/rewind-summary.util";
 import { selectShareCovers } from "./utils/select-share-covers.util";
 import { shareCopy } from "./utils/share-copy.util";
+import { sharePosterUrl } from "./utils/share-poster-url.util";
 
 const GENERIC_SHARE_TITLE = "Completr Rewind";
 const GENERIC_SHARE_DESCRIPTION =
@@ -55,12 +56,13 @@ function failedToLoad(url: string | null, dataUri: string | null): boolean {
 }
 
 async function loadCover(game: RewindGameRef): Promise<LoadedCover> {
-	const dataUri = await fetchImageDataUri(game.coverUrl);
+	const posterUrl = sharePosterUrl(game);
+	const dataUri = await fetchImageDataUri(posterUrl);
 	return {
 		gameId: game.gameId,
 		title: game.title,
 		dataUri,
-		failedToLoad: failedToLoad(game.coverUrl, dataUri)
+		failedToLoad: failedToLoad(posterUrl, dataUri)
 	};
 }
 

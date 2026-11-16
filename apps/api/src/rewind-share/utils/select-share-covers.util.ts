@@ -1,14 +1,16 @@
 import { type Rewind, type RewindGameRef } from "../../rewind/rewind.interface";
+import { sharePosterUrl } from "./share-poster-url.util";
 
 function isFirstAppearance(
 	game: RewindGameRef,
 	seenGameIds: Set<string>,
 	seenCoverUrls: Set<string>
 ): boolean {
+	const posterUrl = sharePosterUrl(game);
 	if (seenGameIds.has(game.gameId)) return false;
-	if (game.coverUrl && seenCoverUrls.has(game.coverUrl)) return false;
+	if (posterUrl && seenCoverUrls.has(posterUrl)) return false;
 	seenGameIds.add(game.gameId);
-	if (game.coverUrl) seenCoverUrls.add(game.coverUrl);
+	if (posterUrl) seenCoverUrls.add(posterUrl);
 	return true;
 }
 
@@ -28,6 +30,7 @@ export function selectShareCovers(
 	);
 	return [
 		...distinct.filter(game => game.coverUrl),
-		...distinct.filter(game => !game.coverUrl)
+		...distinct.filter(game => !game.coverUrl && game.backgroundUrl),
+		...distinct.filter(game => !sharePosterUrl(game))
 	].slice(0, limit);
 }

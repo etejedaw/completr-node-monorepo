@@ -57,4 +57,56 @@ void describe("selectShareCovers", () => {
 			["with-art", "no-art"]
 		);
 	});
+
+	void it("falls back to the background art of a game without a cover, between real covers and games without any art", () => {
+		const rewind = buildRewind({
+			finishedGames: [
+				finishedGame({
+					gameId: "no-art",
+					code: "no-art"
+				}),
+				finishedGame({
+					gameId: "background-only",
+					code: "background-only",
+					backgroundUrl: "https://img.test/buckshot-background.jpg"
+				}),
+				finishedGame({
+					gameId: "with-cover",
+					code: "with-cover",
+					coverUrl: "https://img.test/cover.jpg",
+					backgroundUrl: "https://img.test/cover-background.jpg"
+				})
+			]
+		});
+		rewind.highlights.topRated = null;
+
+		assert.deepEqual(
+			selectShareCovers(rewind, 4).map(game => game.code),
+			["with-cover", "background-only", "no-art"]
+		);
+	});
+
+	void it("skips a second game whose fallback background repeats one already picked", () => {
+		const sharedBackground = "https://img.test/shared-background.jpg";
+		const rewind = buildRewind({
+			finishedGames: [
+				finishedGame({
+					gameId: "first",
+					code: "first",
+					backgroundUrl: sharedBackground
+				}),
+				finishedGame({
+					gameId: "second",
+					code: "second",
+					backgroundUrl: sharedBackground
+				})
+			]
+		});
+		rewind.highlights.topRated = null;
+
+		assert.deepEqual(
+			selectShareCovers(rewind, 4).map(game => game.code),
+			["second"]
+		);
+	});
 });
