@@ -26,6 +26,14 @@ describe("CoverUrlPipe", () => {
 		}
 	);
 
+	it.each([
+		"https://images.igdb.com/igdb/image/upload/t_cover_big/co1abc.jpg",
+		"https://images.igdb.com/igdb/image/upload/t_1080p/sc5xyz.jpg"
+	])("keeps an IGDB url untouched whatever the width (%s)", url => {
+		expect(pipe.transform(url, 640)).toBe(url);
+		expect(pipe.transform(url, 1280)).toBe(url);
+	});
+
 	it("returns external urls untouched", () => {
 		expect(pipe.transform("https://example.com/cover.jpg")).toBe(
 			"https://example.com/cover.jpg"
