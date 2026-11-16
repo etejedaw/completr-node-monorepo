@@ -107,18 +107,18 @@
 			[language]="data.language"
 		/>
 	</section>
+	} @if (hasYearMix()) {
+	<app-rewind-2025-year-mix
+		class="min-w-0"
+		[mix]="data.yearMix"
+		[language]="data.language"
+	/>
 	} @if (hasPremiumStats() && data.premiumStats; as stats) {
 	<app-rewind-2025-premium-stats
 		class="min-w-0"
 		[stats]="stats"
 		[language]="data.language"
 		[premiumAccessKind]="data.premiumAccessKind"
-	/>
-	} @if (hasYearMix()) {
-	<app-rewind-2025-year-mix
-		class="min-w-0"
-		[mix]="data.yearMix"
-		[language]="data.language"
 	/>
 	} @if (data.finishedGames.length > 0) {
 	<section

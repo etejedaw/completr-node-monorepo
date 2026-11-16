@@ -262,7 +262,7 @@ describe("RewindDesign2025", () => {
 			gamesWithoutRelease: 0
 		};
 
-		it("adds its own section between the premium stats and the shelves", async () => {
+		it("adds its own section above the premium stats, which stay before the shelves", async () => {
 			const root = await renderDesign(rewindFixture({ yearMix }));
 
 			const section = screen.getByRole("region", {
@@ -281,8 +281,8 @@ describe("RewindDesign2025", () => {
 			).not.toBeNull();
 			expect(root.querySelector("app-rewind-year-mix")).toBeNull();
 			const order = [
-				"app-rewind-2025-premium-stats",
 				"app-rewind-2025-year-mix",
+				"app-rewind-2025-premium-stats",
 				"[aria-labelledby='rewind-2025-finished-heading']"
 			].map(selector => root.querySelector(selector)!);
 			expect(
