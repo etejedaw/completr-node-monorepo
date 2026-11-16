@@ -20,7 +20,15 @@ function skipRateLimit(
 	next();
 }
 
-export function rateLimiterMiddleware(limiter: RateLimiterMemory) {
+export function resolveUserRateLimitKey(request: Request): string {
+	const user = request.locals?.user as RequestUser | undefined;
+	return user ? `user:${user.id}` : resolveClientIp(request);
+}
+
+export function rateLimiterMiddleware(
+	limiter: RateLimiterMemory,
+	resolveKey: (request: Request) => string = resolveClientIp
+) {
 	if (
 		environmentConfig.NODE_ENV === "test" ||
 		!environmentConfig.RATE_LIMIT_ENABLED
@@ -39,7 +47,7 @@ export function rateLimiterMiddleware(limiter: RateLimiterMemory) {
 				return next();
 			}
 
-			await limiter.consume(resolveClientIp(request));
+			await limiter.consume(resolveKey(request));
 			return next();
 		} catch (error) {
 			throw authDomainsErrors.authRateLimited({ raw: error });

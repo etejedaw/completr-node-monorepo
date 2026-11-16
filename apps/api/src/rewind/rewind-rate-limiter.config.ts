@@ -1,9 +1,11 @@
 import { RateLimiterMemory } from "rate-limiter-flexible";
 
-const MINUTES_TO_SECONDS = 60;
+import { REWIND_GENERATIONS_PER_DAY } from "./rewind.constants";
+
+const DAY_IN_SECONDS = 24 * 60 * 60;
 
 export const rewindGenerationLimiter = new RateLimiterMemory({
 	keyPrefix: "rewind-generation",
-	points: 5,
-	duration: 10 * MINUTES_TO_SECONDS
+	points: REWIND_GENERATIONS_PER_DAY,
+	duration: DAY_IN_SECONDS
 });
