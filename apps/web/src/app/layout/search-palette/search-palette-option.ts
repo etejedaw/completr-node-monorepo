@@ -9,12 +9,19 @@ import { avatarRing } from "../../core/utils/premium";
 import { BacklogStatusBadge } from "../../shared/components/backlog-status-badge/backlog-status-badge";
 import { GamePoster } from "../../shared/components/game-poster/game-poster";
 import { HighlightMatch } from "../../shared/components/highlight-match/highlight-match";
+import { GameArtPipe } from "../../shared/pipes/game-art";
 import { UiAvatar } from "../../shared/ui";
 import { type SearchPaletteItem } from "./search-palette.model";
 
 @Component({
 	selector: "app-search-palette-option",
-	imports: [BacklogStatusBadge, GamePoster, HighlightMatch, UiAvatar],
+	imports: [
+		BacklogStatusBadge,
+		GameArtPipe,
+		GamePoster,
+		HighlightMatch,
+		UiAvatar
+	],
 	templateUrl: "./search-palette-option.html",
 	host: { class: "contents" },
 	changeDetection: ChangeDetectionStrategy.OnPush

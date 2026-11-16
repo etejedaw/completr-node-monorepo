@@ -1,7 +1,7 @@
 @let current = item(); @switch (current.kind) { @case ("library") { @let entry =
 current.entry;
 <app-game-poster
-	[src]="entry.game.backgroundUrl"
+	[src]="entry.game | gameArt: 'portrait'"
 	[title]="entry.game.title"
 	[width]="420"
 	[compact]="true"
@@ -22,7 +22,7 @@ current.entry;
 />
 } @case ("game") { @let game = current.game;
 <app-game-poster
-	[src]="game.backgroundUrl"
+	[src]="game | gameArt: 'portrait'"
 	[title]="game.title"
 	[width]="420"
 	[compact]="true"
