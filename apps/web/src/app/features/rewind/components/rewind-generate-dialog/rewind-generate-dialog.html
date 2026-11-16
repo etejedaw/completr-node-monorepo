@@ -51,7 +51,7 @@
 				<ui-switch
 					label="Write my AI recap"
 					[(checked)]="writeAiRecap"
-					[disabled]="pending()"
+					[disabled]="pending() || isAiRecapOutOfGenerations()"
 				/>
 				<p class="m-0 text-compact text-fg-muted">
 					{{ writeAiRecapHint() }}

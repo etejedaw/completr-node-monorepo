@@ -113,6 +113,7 @@
 	[year]="summary().year"
 	[rewind]="generation.latestRewind()"
 	[premiumAccess]="premiumAccess()"
+	[canWriteAiRecap]="summary().canWriteAiRecap"
 	[pending]="generation.isPending()"
 	[error]="generation.error()"
 	(submitted)="generation.submit($event)"

@@ -12,6 +12,7 @@ const year = (value: number): RewindYearSummary => ({
 	year: value,
 	isGenerated: true,
 	generationBlockedBy: null,
+	canWriteAiRecap: true,
 	finishedCount: 3,
 	startedCount: 4,
 	hoursPlayed: 20,

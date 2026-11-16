@@ -43,6 +43,7 @@ export interface RewindYearSummary {
 	year: number;
 	isGenerated: boolean;
 	generationBlockedBy: RewindGenerationBlock | null;
+	canWriteAiRecap: boolean;
 	finishedCount: number;
 	startedCount: number;
 	hoursPlayed: number;

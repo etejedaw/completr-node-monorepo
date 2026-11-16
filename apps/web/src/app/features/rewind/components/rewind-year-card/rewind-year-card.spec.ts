@@ -23,6 +23,7 @@ function summary(
 	return {
 		isGenerated: true,
 		generationBlockedBy: null,
+		canWriteAiRecap: true,
 		year: 2025,
 		finishedCount: 18,
 		startedCount: 23,
@@ -103,6 +104,43 @@ describe("RewindYearCard", () => {
 		expect(button.textContent).toContain("Generate");
 		expect(button.textContent).not.toContain("Trophy Hunter");
 		expect(button.textContent).not.toContain("18 finished");
+	});
+
+	it("opens the generator with Write my AI recap locked off when the year has no AI generations left", async () => {
+		vi.stubGlobal(
+			"matchMedia",
+			vi.fn(() => ({
+				matches: false,
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn()
+			}))
+		);
+		const fixture = TestBed.createComponent(RewindYearCard);
+		fixture.componentRef.setInput("username", "ada");
+		fixture.componentRef.setInput(
+			"summary",
+			summary({ isGenerated: false, canWriteAiRecap: false })
+		);
+		fixture.componentRef.setInput("premiumAccess", {
+			allowed: true,
+			source: "role",
+			expiresAt: null
+		});
+		fixture.detectChanges();
+
+		(fixture.nativeElement as HTMLElement).querySelector("button")!.click();
+		fixture.detectChanges();
+		await fixture.whenStable();
+
+		const writeSwitch = document.querySelector(
+			'[role="switch"][aria-label="Write my AI recap"]'
+		);
+		expect(writeSwitch?.getAttribute("aria-checked")).toBe("false");
+		expect(writeSwitch?.hasAttribute("disabled")).toBe(true);
+		expect(document.body.textContent).toContain(
+			"No AI generations left for 2025."
+		);
+		vi.unstubAllGlobals();
 	});
 
 	it("replaces Generate with the reason when the API blocks the year", () => {

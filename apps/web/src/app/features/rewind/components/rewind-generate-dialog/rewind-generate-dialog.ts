@@ -4,8 +4,7 @@ import {
 	computed,
 	input,
 	linkedSignal,
-	output,
-	signal
+	output
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
@@ -66,6 +65,7 @@ export class RewindGenerateDialog {
 	readonly year = input.required<number>();
 	readonly rewind = input<Rewind | null>(null);
 	readonly premiumAccess = input<RewindPremiumAccess | null>(null);
+	readonly canWriteAiRecap = input(true);
 	readonly pending = input(false);
 	readonly error = input<RewindGenerateError | null>(null);
 	readonly submitted = output<GenerateRewindRequest>();
@@ -84,17 +84,25 @@ export class RewindGenerateDialog {
 	protected readonly includeNotes = linkedSignal(
 		() => this.rewind()?.ownerControls?.includesNotes ?? false
 	);
-	protected readonly writeAiRecap = signal(true);
-
 	protected readonly isRegeneration = computed(() => this.rewind() !== null);
+	protected readonly isAiRecapOutOfGenerations = computed(
+		() =>
+			!this.isRegeneration() &&
+			(!this.canWriteAiRecap() || this.error() === "limit")
+	);
+	protected readonly writeAiRecap = linkedSignal(
+		() => !this.isAiRecapOutOfGenerations()
+	);
 	protected readonly writesAiRecap = computed(
 		() => this.isRegeneration() || this.writeAiRecap()
 	);
-	protected readonly writeAiRecapHint = computed(() =>
-		this.writeAiRecap()
+	protected readonly writeAiRecapHint = computed(() => {
+		if (this.isAiRecapOutOfGenerations())
+			return `No AI generations left for ${this.year()}. You can still generate your Rewind, and your premium stats are added either way.`;
+		return this.writeAiRecap()
 			? "Your premium stats are added either way."
-			: "You can add it later from your Rewind. Your premium stats are added either way."
-	);
+			: "You can add it later from your Rewind. Your premium stats are added either way.";
+	});
 	protected readonly controls = computed(
 		() => this.rewind()?.ownerControls ?? null
 	);
@@ -138,8 +146,7 @@ export class RewindGenerateDialog {
 	protected readonly canSubmit = computed(() => {
 		if (this.pending() || this.premiumAccess() === null) return false;
 		const error = this.error();
-		if (error !== null && BLOCKING_GENERATE_ERRORS.includes(error))
-			return false;
+		if (error !== null && this.blocksSubmit(error)) return false;
 		const controls = this.controls();
 		return controls === null || controls.canRegenerate;
 	});
@@ -154,7 +161,9 @@ export class RewindGenerateDialog {
 			case "conflict":
 				return `Your ${year} Rewind was updated from another tab or device. We loaded the latest version.`;
 			case "limit":
-				return `You've used every AI generation for ${year}.`;
+				return this.isRegeneration()
+					? `You've used every AI generation for ${year}.`
+					: `You've used every AI generation for ${year}. We turned off the AI recap so you can generate your Rewind without it.`;
 			case "period_closed":
 				return `Rewind ${year} is closed. Your Rewinds stay as they were when it closed.`;
 			case "year_requires_premium":
@@ -179,6 +188,11 @@ export class RewindGenerateDialog {
 				return null;
 		}
 	});
+
+	private blocksSubmit(error: RewindGenerateError): boolean {
+		if (error === "limit" && !this.isRegeneration()) return false;
+		return BLOCKING_GENERATE_ERRORS.includes(error);
+	}
 
 	protected submit() {
 		if (!this.canSubmit()) return;

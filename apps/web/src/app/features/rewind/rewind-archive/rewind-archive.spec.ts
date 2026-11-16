@@ -28,6 +28,7 @@ function year(value: number, isGenerated: boolean): RewindYearSummary {
 		year: value,
 		isGenerated,
 		generationBlockedBy: null,
+		canWriteAiRecap: true,
 		finishedCount: 5,
 		startedCount: 6,
 		hoursPlayed: 40,
