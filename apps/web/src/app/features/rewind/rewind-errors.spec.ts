@@ -46,6 +46,8 @@ describe("rewindGenerateError", () => {
 		[404, undefined, "not_found"],
 		[422, undefined, "invalid"],
 		[429, undefined, "rate_limited"],
+		[429, "REWIND_AI_RECAP_DAILY_LIMIT", "daily_limit"],
+		[429, "SOMETHING_ELSE", "rate_limited"],
 		[500, undefined, "failed"],
 		[503, "COMMON_SOURCE_UNAVAILABLE", "failed"]
 	] as const)("maps %s %s to %s", (status, type, expected) => {
@@ -73,6 +75,8 @@ describe("rewindAiRecapError", () => {
 		[409, "REWIND_AI_RECAP_EXISTS", "exists"],
 		[404, undefined, "not_generated"],
 		[429, undefined, "rate_limited"],
+		[429, "REWIND_AI_RECAP_DAILY_LIMIT", "daily_limit"],
+		[429, "SOMETHING_ELSE", "rate_limited"],
 		[500, undefined, "failed"]
 	] as const)("maps %s %s to %s", (status, type, expected) => {
 		expect(rewindAiRecapError(failure(status, type))).toBe(expected);

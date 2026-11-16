@@ -19,6 +19,7 @@ const PERIOD_CLOSED_ERROR_TYPE = "REWIND_PERIOD_CLOSED";
 const YEAR_REQUIRES_PREMIUM_ERROR_TYPE = "REWIND_YEAR_REQUIRES_PREMIUM";
 const REGENERATION_LIMIT_ERROR_TYPE = "REWIND_REGENERATION_LIMIT";
 const AI_RECAP_IN_PROGRESS_ERROR_TYPE = "REWIND_AI_RECAP_IN_PROGRESS";
+const AI_RECAP_DAILY_LIMIT_ERROR_TYPE = "REWIND_AI_RECAP_DAILY_LIMIT";
 
 function errorType(response: HttpErrorResponse | undefined): unknown {
 	return response?.error?.type;
@@ -32,6 +33,7 @@ export type RewindGenerateError =
 	| "premium_required"
 	| "not_found"
 	| "rate_limited"
+	| "daily_limit"
 	| "invalid"
 	| "failed"
 	| "network";
@@ -61,8 +63,16 @@ export function rewindGenerateError(error: unknown): RewindGenerateError {
 	if (response?.status === 402) return "premium_required";
 	if (response?.status === 404) return "not_found";
 	if (response?.status === 422) return "invalid";
-	if (response?.status === 429) return "rate_limited";
+	if (response?.status === 429) return rateLimitKind(response);
 	return "failed";
+}
+
+function rateLimitKind(
+	response: HttpErrorResponse
+): "daily_limit" | "rate_limited" {
+	return errorType(response) === AI_RECAP_DAILY_LIMIT_ERROR_TYPE
+		? "daily_limit"
+		: "rate_limited";
 }
 
 export type RewindAiRecapError =
@@ -74,6 +84,7 @@ export type RewindAiRecapError =
 	| "in_progress"
 	| "not_generated"
 	| "rate_limited"
+	| "daily_limit"
 	| "failed"
 	| "network";
 
@@ -94,6 +105,6 @@ export function rewindAiRecapError(error: unknown): RewindAiRecapError {
 		return "exists";
 	}
 	if (response?.status === 404) return "not_generated";
-	if (response?.status === 429) return "rate_limited";
+	if (response?.status === 429) return rateLimitKind(response);
 	return "failed";
 }
