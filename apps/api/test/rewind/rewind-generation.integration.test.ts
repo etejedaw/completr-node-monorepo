@@ -557,7 +557,7 @@ void describe("premium generation", () => {
 		const row = await findRewindRow(player, 2026);
 		assert.equal(row?.premiumAccessKind, "premium");
 		assert.equal(row?.regenerationsLeft, 2);
-		assert.equal(row?.aiRecapStatus, null);
+		assert.equal(row?.aiRecapStatus, "none");
 	});
 
 	void it("adds the AI recap with the privacy switches it receives", async () => {

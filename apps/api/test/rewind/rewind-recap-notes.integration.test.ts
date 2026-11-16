@@ -197,7 +197,7 @@ void describe("notes in the AI recap", () => {
 		assert.deepEqual(notesOf(lastInput(aiMock)), []);
 	});
 
-	void it("uses the stored choice when the AI recap is retried", async () => {
+	void it("uses the notes choice sent with the AI recap retry", async () => {
 		for (const includeNotes of [true, false]) {
 			const player = await playerWithNotes();
 			mockPremiumStats();
@@ -218,7 +218,10 @@ void describe("notes in the AI recap", () => {
 					nextYearChallenge: "n"
 				})
 			);
-			const retry = await requestAiRecap(player, 2026).expect(200);
+			const retry = await requestAiRecap(player, 2026, {
+				includePrivateRuns: false,
+				includeNotes
+			}).expect(200);
 
 			const input = lastInput(aiMock);
 			assert.equal(input.includesNotes, includeNotes);
@@ -235,7 +238,7 @@ void describe("notes in the AI recap", () => {
 		}
 	});
 
-	void it("uses the stored choice of a free owner who becomes premium", async () => {
+	void it("uses the notes choice of a free owner who becomes premium and adds the AI recap", async () => {
 		const player = await playerWithNotes("user");
 		mockPremiumStats();
 		const aiMock = mockAiRecap();
@@ -246,7 +249,10 @@ void describe("notes in the AI recap", () => {
 		assert.equal(aiMock.mock.callCount(), 0);
 
 		await player.user.update({ role: "premium" });
-		await requestAiRecap(player, 2026).expect(200);
+		await requestAiRecap(player, 2026, {
+			includePrivateRuns: false,
+			includeNotes: true
+		}).expect(200);
 
 		assert.deepEqual(notesOf(lastInput(aiMock)).sort(), [
 			OLD_NOTE,
