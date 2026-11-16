@@ -14,14 +14,17 @@ import { ProfileBackdrop } from "../../../../shared/components/profile-backdrop/
 import { ProfileSectionHeader } from "../../../../shared/components/profile-section-header/profile-section-header";
 import { CoverUrlPipe } from "../../../../shared/pipes/cover-url";
 import {
+	UiButton,
 	UiEyebrow,
 	UiOptionPicker,
 	type UiPickerOption,
 	UiSkeleton
 } from "../../../../shared/ui";
-import { rewindCopy } from "../../rewind-copy";
+import { injectRewindLinkShare } from "../../inject-rewind-link-share";
+import { rewindCopy, rewindSummarySentence } from "../../rewind-copy";
 import { type RewindDesignComponent } from "../../rewind-designs.model";
 import { RewindReveal } from "../../rewind-reveal";
+import { REWIND_SHARE_COPY } from "../../rewind-share-copy";
 import { REWIND_YEAR_FILL_CLASS } from "../../rewind-tone";
 import { RewindMoreYears } from "../rewind-more-years/rewind-more-years";
 import { RewindOwnerPanel } from "../rewind-owner-panel/rewind-owner-panel";
@@ -89,6 +92,7 @@ function backdropOf(rewind: Rewind): string | null {
 		RewindMoreYears,
 		RewindOwnerPanel,
 		RewindReveal,
+		UiButton,
 		UiEyebrow,
 		UiOptionPicker,
 		UiSkeleton
@@ -118,6 +122,11 @@ export class RewindDesign2025 implements RewindDesignComponent {
 			? this.text().ownerEyebrow
 			: this.text().visitorEyebrow(this.username())
 	);
+
+	protected readonly summary = computed(() => {
+		const { totals, language } = this.rewind();
+		return rewindSummarySentence(totals, language);
+	});
 
 	protected readonly tally = computed(() => {
 		const { totals, language } = this.rewind();
@@ -154,6 +163,20 @@ export class RewindDesign2025 implements RewindDesignComponent {
 				link: `/user/${this.username()}/rewind/${year}`
 			}));
 	});
+
+	protected readonly shareCopy = REWIND_SHARE_COPY;
+	private readonly shareRewindLink = injectRewindLinkShare();
+
+	protected shareLink() {
+		const year = this.rewind().year;
+		void this.shareRewindLink({
+			username: this.username(),
+			year,
+			title: this.isOwner()
+				? this.shareCopy.ownerPreviewAlt(year)
+				: this.shareCopy.visitorPreviewAlt(this.username(), year)
+		});
+	}
 
 	protected readonly skeletonShelves = [0, 1];
 	protected readonly skeletonPosters = [0, 1, 2, 3, 4, 5];

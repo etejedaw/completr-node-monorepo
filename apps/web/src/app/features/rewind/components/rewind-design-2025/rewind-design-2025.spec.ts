@@ -13,6 +13,7 @@ import {
 } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 import { screen, within } from "@testing-library/angular";
+import { type Mock } from "vitest";
 
 import {
 	type Rewind,
@@ -203,7 +204,9 @@ describe("RewindDesign2025", () => {
 					useValue: {
 						pending: vi.fn(),
 						error: vi.fn(),
-						premium: vi.fn()
+						premium: vi.fn(),
+						success: vi.fn(),
+						warning: vi.fn()
 					}
 				}
 			]
@@ -424,28 +427,202 @@ describe("RewindDesign2025", () => {
 		);
 	});
 
-	it("never offers a way to share the Rewind", async () => {
-		const root = await renderDesign(
-			rewindFixture({ ownerControls: ownerControls() }),
-			{ isOwner: true }
-		);
-		await renderDeferred();
+	it("opens with the summary sentence of the year in its language", async () => {
+		await renderDesign(rewindFixture());
+		expect(
+			screen.getByText("4 games finished, 2 left behind and 7 started.")
+		).toBeInTheDocument();
 
-		expect(
-			screen.queryByRole("button", { name: /share|compartir/i })
-		).not.toBeInTheDocument();
-		expect(
-			screen.queryByRole("link", { name: /share|compartir/i })
-		).not.toBeInTheDocument();
-		expect(
-			screen.queryByRole("heading", { name: /share|compartir/i })
-		).not.toBeInTheDocument();
-		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-		expect(root.querySelector("app-rewind-share-actions")).toBeNull();
-		const requests = TestBed.inject(HttpTestingController).match(request =>
-			/story|share|image/i.test(request.url)
+		fixture.componentRef.setInput(
+			"rewind",
+			rewindFixture({ language: "es" })
 		);
-		expect(requests).toHaveLength(0);
+		fixture.detectChanges();
+		expect(
+			screen.getByText(
+				"4 juegos terminados, 2 abandonados y 7 empezados."
+			)
+		).toBeInTheDocument();
+	});
+
+	describe("sharing the link", () => {
+		const shareUrl = `${window.location.origin}/share/rewind/ada/2025`;
+		let toast: { success: Mock; warning: Mock };
+
+		function useDevice(options: {
+			touch: boolean;
+			share?: (data: ShareData) => Promise<void>;
+			clipboard?: { writeText: (text: string) => Promise<void> } | null;
+		}) {
+			vi.stubGlobal(
+				"matchMedia",
+				vi.fn((query: string) => ({
+					matches:
+						query === "(pointer: coarse)" ? options.touch : true,
+					addEventListener: vi.fn(),
+					removeEventListener: vi.fn()
+				}))
+			);
+			Object.defineProperty(navigator, "share", {
+				configurable: true,
+				value: options.share
+			});
+			Object.defineProperty(navigator, "clipboard", {
+				configurable: true,
+				value: options.clipboard ?? undefined
+			});
+		}
+
+		async function clickShare(times = 1) {
+			const button = screen.getByRole("button", { name: "Share" });
+			for (let click = 0; click < times; click++) button.click();
+			await new Promise(resolve => setTimeout(resolve));
+			await fixture.whenStable();
+		}
+
+		beforeEach(() => {
+			toast = TestBed.inject(ToastService) as unknown as {
+				success: Mock;
+				warning: Mock;
+			};
+		});
+
+		afterEach(() => {
+			Reflect.deleteProperty(navigator, "share");
+			Reflect.deleteProperty(navigator, "clipboard");
+		});
+
+		it("offers a Share button with no dialog, share section or story images", async () => {
+			const root = await renderDesign(
+				rewindFixture({ ownerControls: ownerControls() }),
+				{ isOwner: true }
+			);
+			await renderDeferred();
+
+			const button = screen.getByRole("button", { name: "Share" });
+			expect(button).not.toHaveAttribute("aria-haspopup");
+			expect(
+				screen.queryByRole("heading", { name: /share|compartir/i })
+			).not.toBeInTheDocument();
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+			expect(root.querySelector("app-rewind-share-actions")).toBeNull();
+			const requests = TestBed.inject(HttpTestingController).match(
+				request => /story|share|image/i.test(request.url)
+			);
+			expect(requests).toHaveLength(0);
+		});
+
+		it("copies the share link on desktop even when the browser can share natively", async () => {
+			const writeText = vi.fn(() => Promise.resolve());
+			const share = vi.fn(() => Promise.resolve());
+			useDevice({ touch: false, share, clipboard: { writeText } });
+			await renderDesign(rewindFixture());
+
+			await clickShare();
+
+			expect(writeText).toHaveBeenCalledExactlyOnceWith(shareUrl);
+			expect(share).not.toHaveBeenCalled();
+			expect(toast.success).toHaveBeenCalledWith("Link copied");
+		});
+
+		it("copies once when the button is clicked many times in a row", async () => {
+			const writeText = vi.fn(() => Promise.resolve());
+			useDevice({ touch: false, clipboard: { writeText } });
+			await renderDesign(rewindFixture());
+
+			await clickShare(4);
+
+			expect(writeText).toHaveBeenCalledTimes(1);
+			expect(toast.success).toHaveBeenCalledTimes(1);
+		});
+
+		it("warns when the link cannot be copied", async () => {
+			useDevice({
+				touch: false,
+				clipboard: {
+					writeText: () => Promise.reject(new Error("denied"))
+				}
+			});
+			await renderDesign(rewindFixture());
+			await clickShare();
+			expect(toast.warning).toHaveBeenCalledWith(
+				"Couldn't copy the link."
+			);
+
+			useDevice({ touch: false, clipboard: null });
+			await clickShare();
+			expect(toast.warning).toHaveBeenCalledTimes(2);
+		});
+
+		it("opens the native share sheet on touch devices with the link and a title", async () => {
+			const writeText = vi.fn(() => Promise.resolve());
+			const share = vi.fn(() => Promise.resolve());
+			useDevice({ touch: true, share, clipboard: { writeText } });
+			await renderDesign(rewindFixture(), { username: "ada" });
+
+			await clickShare(3);
+
+			expect(share).toHaveBeenCalledExactlyOnceWith({
+				title: "@ada's 2025 Rewind",
+				url: shareUrl
+			});
+			expect(writeText).not.toHaveBeenCalled();
+			expect(toast.success).not.toHaveBeenCalled();
+		});
+
+		it("stays quiet when the person closes the share sheet and can share again", async () => {
+			const share = vi
+				.fn()
+				.mockRejectedValueOnce(new DOMException("closed", "AbortError"))
+				.mockResolvedValueOnce(undefined);
+			const writeText = vi.fn(() => Promise.resolve());
+			useDevice({ touch: true, share, clipboard: { writeText } });
+			await renderDesign(
+				rewindFixture({ ownerControls: ownerControls() }),
+				{
+					isOwner: true
+				}
+			);
+
+			await clickShare();
+			await clickShare();
+
+			expect(share).toHaveBeenCalledTimes(2);
+			expect(share).toHaveBeenLastCalledWith({
+				title: "Your 2025 Rewind",
+				url: shareUrl
+			});
+			expect(writeText).not.toHaveBeenCalled();
+			expect(toast.warning).not.toHaveBeenCalled();
+		});
+
+		it("falls back to copying the link when the share sheet fails", async () => {
+			const writeText = vi.fn(() => Promise.resolve());
+			useDevice({
+				touch: true,
+				share: () =>
+					Promise.reject(
+						new DOMException("blocked", "NotAllowedError")
+					),
+				clipboard: { writeText }
+			});
+			await renderDesign(rewindFixture());
+
+			await clickShare();
+
+			expect(writeText).toHaveBeenCalledExactlyOnceWith(shareUrl);
+			expect(toast.success).toHaveBeenCalledWith("Link copied");
+		});
+
+		it("copies the link on a touch device without native sharing", async () => {
+			const writeText = vi.fn(() => Promise.resolve());
+			useDevice({ touch: true, clipboard: { writeText } });
+			await renderDesign(rewindFixture());
+
+			await clickShare();
+
+			expect(writeText).toHaveBeenCalledExactlyOnceWith(shareUrl);
+		});
 	});
 
 	it("shelves the finished games by quarter in calendar order and skips empty quarters", async () => {

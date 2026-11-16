@@ -50,17 +50,33 @@
 				[code]="data.persona"
 				[language]="data.language"
 			/>
-			@if (yearOptions().length > 1) {
-			<ui-option-picker
-				class="mt-4"
-				variant="compact"
-				size="md"
-				[label]="page.year"
-				[heading]="page.yearHeading"
-				[options]="yearOptions()"
-				[value]="'' + data.year"
-			/>
-			}
+			<p class="m-0 mt-3 max-w-xl text-base text-fg-secondary">
+				{{ summary() }}
+			</p>
+			<div class="mt-4 flex flex-wrap items-center gap-2">
+				<button
+					uiButton
+					type="button"
+					variant="primary"
+					class="max-sm:min-h-[44px] tap:min-h-[44px]"
+					(click)="shareLink()"
+				>
+					<span aria-hidden="true" class="material-icons text-base"
+						>ios_share</span
+					>
+					{{ shareCopy.share }}
+				</button>
+				@if (yearOptions().length > 1) {
+				<ui-option-picker
+					variant="compact"
+					size="md"
+					[label]="page.year"
+					[heading]="page.yearHeading"
+					[options]="yearOptions()"
+					[value]="'' + data.year"
+				/>
+				}
+			</div>
 		</div>
 		<section
 			aria-labelledby="rewind-2025-results-heading"

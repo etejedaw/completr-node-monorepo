@@ -209,7 +209,7 @@ describe("RewindDesignOutlet", () => {
 		expect(fixture.componentInstance.changes).toEqual([regenerated]);
 	});
 
-	it("draws a 2025 Rewind with the magazine design and no share section", async () => {
+	it("draws a 2025 Rewind with the magazine design and a link-only Share button", async () => {
 		const { fixture } = await renderOutlet();
 		const host = fixture.componentInstance;
 
@@ -224,7 +224,10 @@ describe("RewindDesignOutlet", () => {
 			screen.getByRole("heading", { level: 1, name: /2025/ })
 		).toBeInTheDocument();
 		expect(
-			screen.queryByRole("button", { name: "Share" })
+			screen.getByRole("button", { name: "Share" })
+		).not.toHaveAttribute("aria-haspopup");
+		expect(
+			screen.queryByRole("heading", { name: "Share" })
 		).not.toBeInTheDocument();
 	});
 
