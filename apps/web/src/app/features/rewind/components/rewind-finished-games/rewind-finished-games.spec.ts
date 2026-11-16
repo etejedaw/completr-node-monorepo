@@ -98,6 +98,35 @@ describe("RewindFinishedGames", () => {
 		expect(link).toHaveTextContent("Apr 2");
 	});
 
+	it("falls back to the background art of a game without a cover and keeps the real cover first", async () => {
+		const { container } = await renderTimeline([
+			{
+				...finished("buckshot", "2026-06-12"),
+				backgroundUrl: "https://img.test/buckshot-background.jpg"
+			},
+			{
+				...finished("watch-dogs", "2026-06-17"),
+				coverUrl: "https://img.test/watch-dogs-cover.jpg",
+				backgroundUrl: "https://img.test/watch-dogs-background.jpg"
+			},
+			finished("no-art", "2026-06-20")
+		]);
+
+		const sources = [...container.querySelectorAll("img")].map(image =>
+			image.getAttribute("src")
+		);
+		expect(sources.some(src => src?.includes("buckshot-background"))).toBe(
+			true
+		);
+		expect(sources.some(src => src?.includes("watch-dogs-cover"))).toBe(
+			true
+		);
+		expect(
+			sources.some(src => src?.includes("watch-dogs-background"))
+		).toBe(false);
+		expect(container.querySelectorAll("img")).toHaveLength(2);
+	});
+
 	it("renders nothing but the rail for a year without finished games", async () => {
 		await renderTimeline([]);
 

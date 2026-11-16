@@ -78,7 +78,7 @@ export class RewindArchive {
 	protected readonly posters = computed<LibraryHeroPoster[]>(() =>
 		(this.years() ?? []).flatMap(summary =>
 			summary.covers.map(cover => ({
-				src: cover.coverUrl,
+				src: cover.coverUrl ?? cover.backgroundUrl,
 				title: cover.title
 			}))
 		)

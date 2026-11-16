@@ -61,7 +61,7 @@
 			<app-game-poster
 				aria-hidden="true"
 				class="w-24 sm:w-32 shrink-0 aspect-[2/3] rotate-3 rounded-md ring-1 ring-line-hover shadow-[0_24px_48px_-20px_var(--color-canvas)] transition-transform duration-500 ease-out motion-safe:group-hover:rotate-0"
-				[src]="top.coverUrl"
+				[src]="top.coverUrl ?? top.backgroundUrl"
 				[title]="top.title"
 			/>
 		</a>
@@ -136,7 +136,7 @@
 			<app-game-poster
 				aria-hidden="true"
 				class="w-12 sm:w-14 shrink-0 aspect-[2/3] -rotate-3 rounded-md ring-1 ring-line-hover"
-				[src]="first.coverUrl"
+				[src]="first.coverUrl ?? first.backgroundUrl"
 				[title]="first.title"
 				[width]="420"
 				[compact]="true"
@@ -182,7 +182,7 @@
 			<app-game-poster
 				aria-hidden="true"
 				class="w-12 sm:w-14 shrink-0 aspect-[2/3] rotate-3 rounded-md ring-1 ring-line-hover"
-				[src]="last.coverUrl"
+				[src]="last.coverUrl ?? last.backgroundUrl"
 				[title]="last.title"
 				[width]="420"
 				[compact]="true"
@@ -234,7 +234,7 @@
 			<app-game-poster
 				aria-hidden="true"
 				class="col-start-2 row-start-1 w-9 shrink-0 self-start aspect-[2/3] rotate-3 rounded-md ring-1 ring-line-hover sm:row-span-2 sm:w-16 sm:self-center"
-				[src]="longest.coverUrl"
+				[src]="longest.coverUrl ?? longest.backgroundUrl"
 				[title]="longest.title"
 				[width]="420"
 				[compact]="true"
@@ -289,7 +289,7 @@
 			<app-game-poster
 				aria-hidden="true"
 				class="col-start-2 row-start-1 w-9 shrink-0 self-start aspect-[2/3] -rotate-3 rounded-md ring-1 ring-line-hover sm:row-span-2 sm:w-16 sm:self-center"
-				[src]="fastest.coverUrl"
+				[src]="fastest.coverUrl ?? fastest.backgroundUrl"
 				[title]="fastest.title"
 				[width]="420"
 				[compact]="true"
@@ -463,7 +463,7 @@
 			<app-game-poster
 				aria-hidden="true"
 				class="w-12 sm:w-14 shrink-0 aspect-[2/3] -rotate-6 rounded-md ring-1 ring-line-hover sepia-[0.35] transition-[filter,rotate] duration-500 ease-out group-hover:sepia-0 motion-safe:group-hover:-rotate-2"
-				[src]="classic.coverUrl"
+				[src]="classic.coverUrl ?? classic.backgroundUrl"
 				[title]="classic.title"
 				[width]="420"
 				[compact]="true"

@@ -42,7 +42,7 @@
 				>
 					<app-game-poster
 						class="aspect-[2/3] rounded-md ring-1 ring-line transition group-hover:ring-(--tone)"
-						[src]="game.coverUrl"
+						[src]="game.coverUrl ?? game.backgroundUrl"
 						[title]="game.title"
 						[width]="420"
 						titleSize="0.75rem"

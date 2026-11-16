@@ -250,7 +250,7 @@
 				>
 					<app-game-poster
 						class="row-span-2 aspect-[2/3] w-8 rounded-[4px] ring-1 ring-line"
-						[src]="row.coverUrl"
+						[src]="row.coverUrl ?? row.backgroundUrl"
 						[title]="row.title"
 						[width]="420"
 						[compact]="true"

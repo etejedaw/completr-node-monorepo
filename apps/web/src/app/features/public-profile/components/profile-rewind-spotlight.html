@@ -95,7 +95,7 @@
 				[style.translate]="placement(i)"
 				[style.transition-delay.ms]="fanDelay(i)"
 				[style.z-index]="zIndex(i)"
-				[src]="cover.coverUrl"
+				[src]="cover.coverUrl ?? cover.backgroundUrl"
 				[title]="cover.title"
 				[width]="420"
 			/>
@@ -198,7 +198,7 @@
 								"
 					[style.rotate.deg]="teaserRotation(i)"
 					[style.z-index]="zIndex(i)"
-					[src]="cover.coverUrl"
+					[src]="cover.coverUrl ?? cover.backgroundUrl"
 					[title]="cover.title"
 					[width]="420"
 				/>
