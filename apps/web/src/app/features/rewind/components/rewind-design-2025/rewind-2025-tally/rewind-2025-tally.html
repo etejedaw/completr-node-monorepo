@@ -1,32 +1,40 @@
-<dl class="m-0 flex flex-col" appInView (inViewChange)="$event && start()">
+<dl
+	class="m-0 grid grid-cols-2 border-t-[3px] border-fg @3xl/page:grid-cols-4"
+	appInView
+	(inViewChange)="$event && start()"
+>
 	@for (row of rows(); track row.label; let i = $index) {
 	<div
-		class="flex items-center gap-3 border-b border-l-4 border-b-line border-l-(--tone) py-3 pl-3 sm:py-4 sm:pl-4 last:border-b-0"
-		[style.--tone]="toneOf(row)"
+		class="flex min-w-0 flex-col gap-2 border-line-hover pt-4 pb-5 @3xl/page:pt-5 @3xl/page:pb-7"
+		[class]="cellClass(i)"
 	>
 		<dt
-			class="flex min-w-0 flex-1 items-baseline gap-3 text-sm sm:text-base text-fg-secondary"
+			class="text-xs font-semibold uppercase leading-tight tracking-[0.16em] text-fg-secondary"
 		>
-			<span class="shrink-0">{{ row.label }}</span>
-			<span
-				aria-hidden="true"
-				class="min-w-4 flex-1 border-b-2 border-dotted border-line-hover"
-			></span>
+			{{ row.label }}
 		</dt>
-		<dd
-			class="m-0 flex shrink-0 items-center gap-2.5 font-display text-4xl sm:text-5xl font-semibold leading-none tabular-nums text-(--tone)"
-		>
+		<dd class="m-0 flex flex-col gap-2">
+			<span
+				class="flex items-baseline gap-1 font-display text-[2.75rem] font-bold leading-[0.9] tracking-[-0.02em] tabular-nums text-fg @3xl/page:text-[4.25rem]"
+			>
+				<span aria-hidden="true">{{ displayValue(row, i) }}</span>
+				@if (suffixOf(row); as suffix) {
+				<span
+					aria-hidden="true"
+					class="text-[0.4em] font-semibold text-nav-queue"
+					>{{ suffix }}</span
+				>
+				}
+			</span>
 			@if (row.unit === "rating") {
 			<app-star-rating
 				aria-hidden="true"
-				class="max-sm:hidden"
 				size="sm"
 				[value]="row.value"
 				[readonly]="true"
 				[showValue]="false"
 			/>
 			}
-			<span aria-hidden="true">{{ displayValue(row, i) }}</span>
 			<span class="sr-only">{{ spoken(row) }}</span>
 		</dd>
 	</div>

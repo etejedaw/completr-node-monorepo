@@ -29,7 +29,7 @@
 		class="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--color-canvas)_70%,transparent)_0%,transparent_22%,color-mix(in_oklab,var(--color-canvas)_78%,transparent)_55%,var(--color-canvas)_100%),linear-gradient(90deg,var(--color-canvas)_0%,transparent_70%)]"
 	></div>
 	<div
-		class="bleed-inner grid grid-cols-1 items-end gap-8 pt-[calc(var(--topbar-height)+6rem)] pb-8 @3xl/page:min-h-[34rem] @3xl/page:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] @3xl/page:gap-10 lg:pt-[calc(var(--topbar-height)+9rem)]"
+		class="bleed-inner flex flex-col justify-end gap-8 pt-[calc(var(--topbar-height)+6rem)] @3xl/page:min-h-[34rem] @3xl/page:gap-10 lg:pt-[calc(var(--topbar-height)+9rem)]"
 	>
 		<div
 			class="flex min-w-0 flex-col gap-2 motion-safe:animate-[uiFadeUp_480ms_cubic-bezier(0.16,1,0.3,1)_200ms_both]"
@@ -80,7 +80,7 @@
 		</div>
 		<section
 			aria-labelledby="rewind-2025-results-heading"
-			class="min-w-0 rounded-card border border-line bg-surface/85 px-4 py-2 backdrop-blur-md sm:px-5 motion-safe:animate-[uiFadeUp_480ms_cubic-bezier(0.16,1,0.3,1)_350ms_both]"
+			class="min-w-0 motion-safe:animate-[uiFadeUp_480ms_cubic-bezier(0.16,1,0.3,1)_350ms_both]"
 		>
 			<h2 id="rewind-2025-results-heading" class="sr-only">
 				{{ page.results }}

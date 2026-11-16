@@ -17,7 +17,6 @@ import { StarRating } from "../../../../../shared/components/star-rating/star-ra
 import { InView } from "../../../../../shared/directives/in-view";
 import { formatHours, formatRating } from "../../../rewind-copy";
 import { canAnimateRewind } from "../../../rewind-motion";
-import { toneVar } from "../../../rewind-tone";
 import { rewindDesign2025Copy } from "../rewind-design-2025.copy";
 import {
 	type Rewind2025TallyRow,
@@ -29,6 +28,19 @@ export const REWIND_2025_TALLY_STAGGER_MS = 80;
 
 const RATING_SCALE = 5;
 
+const UNIT_SUFFIX: Record<Rewind2025TallyUnit, string | null> = {
+	count: null,
+	hours: "h",
+	rating: `/${RATING_SCALE}`
+};
+
+const CELL_CLASSES = [
+	"pr-3",
+	"border-l px-3 @3xl/page:px-5",
+	"border-t pr-3 @3xl/page:border-t-0 @3xl/page:border-l @3xl/page:px-5",
+	"border-l border-t px-3 @3xl/page:border-t-0 @3xl/page:px-5"
+];
+
 export function rewind2025TallyRows(
 	totals: RewindTotals,
 	language: RewindLanguage = "en"
@@ -38,19 +50,16 @@ export function rewind2025TallyRows(
 		{
 			label: copy.finished,
 			value: totals.finished,
-			tone: "success",
 			unit: "count"
 		},
 		{
 			label: copy.abandoned,
 			value: totals.abandoned,
-			tone: "danger",
 			unit: "count"
 		},
 		{
 			label: copy.hoursPlayed,
 			value: totals.hoursPlayed,
-			tone: "playing",
 			unit: "hours"
 		}
 	];
@@ -61,7 +70,6 @@ export function rewind2025TallyRows(
 				{
 					label: copy.averageRating,
 					value: totals.averageRating,
-					tone: "brand",
 					unit: "rating"
 				}
 			];
@@ -164,8 +172,12 @@ export class Rewind2025Tally {
 			: value;
 	}
 
-	protected toneOf(row: Rewind2025TallyRow): string {
-		return toneVar(row.tone);
+	protected suffixOf(row: Rewind2025TallyRow): string | null {
+		return UNIT_SUFFIX[row.unit];
+	}
+
+	protected cellClass(index: number): string {
+		return CELL_CLASSES[index % CELL_CLASSES.length];
 	}
 
 	private canAnimate(): boolean {

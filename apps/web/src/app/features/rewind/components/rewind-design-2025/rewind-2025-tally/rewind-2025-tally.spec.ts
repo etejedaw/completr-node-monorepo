@@ -13,8 +13,8 @@ import { type Rewind2025TallyRow } from "./rewind-2025-tally.model";
 let rows: Rewind2025TallyRow[];
 
 const baseRows: Rewind2025TallyRow[] = [
-	{ label: "Finished", value: 18, tone: "success", unit: "count" },
-	{ label: "Hours played", value: 212.5, tone: "playing", unit: "hours" }
+	{ label: "Finished", value: 18, unit: "count" },
+	{ label: "Hours played", value: 212.5, unit: "hours" }
 ];
 
 describe("Rewind2025Tally", () => {
@@ -71,7 +71,9 @@ describe("Rewind2025Tally", () => {
 
 	function visibleNumbers(element: HTMLElement) {
 		return [
-			...element.querySelectorAll("dd > span[aria-hidden='true']")
+			...element.querySelectorAll(
+				"dd > span > span[aria-hidden='true']:first-child"
+			)
 		].map(node => node.textContent?.trim());
 	}
 
@@ -170,8 +172,8 @@ describe("Rewind2025Tally", () => {
 
 	it("counts the average rating with stars and one decimal", async () => {
 		rows = [
-			{ label: "Finished", value: 7, tone: "success", unit: "count" },
-			{ label: "Average rating", value: 4, tone: "brand", unit: "rating" }
+			{ label: "Finished", value: 7, unit: "count" },
+			{ label: "Average rating", value: 4, unit: "rating" }
 		];
 		stubBrowser();
 		const fixture = await render();
@@ -194,13 +196,11 @@ describe("Rewind2025Tally", () => {
 			{
 				label: "Horas jugadas",
 				value: 313.3,
-				tone: "playing",
 				unit: "hours"
 			},
 			{
 				label: "Nota promedio",
 				value: 4.3,
-				tone: "brand",
 				unit: "rating"
 			}
 		];
@@ -216,16 +216,28 @@ describe("Rewind2025Tally", () => {
 		expect(spokenNumbers(element)).toEqual(["313,3", "4,3 de 5"]);
 	});
 
-	it("paints each row with its own colour token", async () => {
+	it("draws the results as one band with the unit beside hours and rating, hidden from assistive tech", async () => {
+		rows = [
+			...baseRows,
+			{ label: "Average rating", value: 3.7, unit: "rating" }
+		];
 		stubBrowser();
+		reducedMotion = true;
 		const fixture = await render();
-		const tones = [
-			...(
-				fixture.nativeElement as HTMLElement
-			).querySelectorAll<HTMLElement>("dl > div")
-		].map(row => row.style.getPropertyValue("--tone"));
+		const element = fixture.nativeElement as HTMLElement;
 
-		expect(tones).toEqual(["var(--color-success)", "var(--color-playing)"]);
+		const cells = [...element.querySelectorAll<HTMLElement>("dl > div")];
+		expect(cells).toHaveLength(3);
+		const units = cells.map(cell =>
+			[...cell.querySelectorAll("dd > span > span")]
+				.slice(1)
+				.map(unit => [
+					unit.textContent?.trim(),
+					unit.getAttribute("aria-hidden")
+				])
+		);
+		expect(units).toEqual([[], [["h", "true"]], [["/5", "true"]]]);
+		expect(spokenNumbers(element)).toEqual(["18", "212.5", "3.7 out of 5"]);
 	});
 
 	it("stops the animation when the page is left mid-count", async () => {
@@ -265,14 +277,12 @@ describe("rewind2025TallyRows", () => {
 		]);
 	});
 
-	it("gives every row its colour and unit", () => {
-		expect(
-			rewind2025TallyRows(totals).map(row => [row.tone, row.unit])
-		).toEqual([
-			["success", "count"],
-			["danger", "count"],
-			["playing", "hours"],
-			["brand", "rating"]
+	it("gives every row its unit", () => {
+		expect(rewind2025TallyRows(totals).map(row => row.unit)).toEqual([
+			"count",
+			"count",
+			"hours",
+			"rating"
 		]);
 	});
 
