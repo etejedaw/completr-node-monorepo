@@ -6,9 +6,13 @@ import {
 import {
 	LENGTH_BUCKETS,
 	MIN_GROUP_GAMES,
-	QUARTER_NAMES
+	QUARTER_NAMES,
+	REWIND_RECAP_TAG_GROUPS_LIMIT
 } from "../rewind-recap.constants";
-import { type RewindRecapPatterns } from "../rewind-recap.interface";
+import {
+	type RewindRecapPatterns,
+	type RewindRunPlatinum
+} from "../rewind-recap.interface";
 import { findFranchises } from "./find-franchises.util";
 import { findSameDayCloses } from "./find-same-day-closes.util";
 import { groupBy } from "./group-by.util";
@@ -20,6 +24,7 @@ import { quarterOf } from "./quarter-of.util";
 import { summarizeGroups } from "./summarize-groups.util";
 import { summarizeOverlap } from "./summarize-overlap.util";
 import { summarizePace } from "./summarize-pace.util";
+import { summarizePlatinums } from "./summarize-platinums.util";
 import { summarizeRatingHabits } from "./summarize-rating-habits.util";
 import { summarizeSocial } from "./summarize-social.util";
 import { timedGames } from "./timed-games.util";
@@ -33,7 +38,9 @@ export function buildRewindRecapPatterns(
 	genres: RewindGameGenre[],
 	year: number,
 	franchises: RewindGameFranchise[] = [],
-	coopAliasesByRun = new Map<string, string[]>()
+	coopAliasesByRun = new Map<string, string[]>(),
+	tagsByGame = new Map<string, string[]>(),
+	platinumsByRun: Map<string, RewindRunPlatinum> | null = null
 ): RewindRecapPatterns {
 	const closedInYear = runs.filter(run => isClosedInYear(run, year));
 	const closed = closedInYear.filter(run => !isImportedClose(run, year));
@@ -70,6 +77,10 @@ export function buildRewindRecapPatterns(
 			groupBy(closed, run => coopAliasesByRun.get(run.id) ?? []),
 			MIN_GROUP_GAMES
 		),
+		byTag: summarizeGroups(
+			groupBy(closed, run => tagsByGame.get(run.gameId) ?? []),
+			MIN_GROUP_GAMES
+		).slice(0, REWIND_RECAP_TAG_GROUPS_LIMIT),
 		sameDayCloses: findSameDayCloses(closed),
 		quickDrops: timed
 			.filter(
@@ -89,6 +100,7 @@ export function buildRewindRecapPatterns(
 		franchises: findFranchises(closed, franchises),
 		overlap: summarizeOverlap(closed),
 		ratingHabits: summarizeRatingHabits(closed),
+		platinums: summarizePlatinums(closed, platinumsByRun, namesByGame),
 		importedCloses: closedInYear.length - closed.length
 	};
 }

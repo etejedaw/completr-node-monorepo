@@ -1,3 +1,4 @@
+import { REWIND_RECAP_UP_NEXT_LIMIT } from "../rewind-recap.constants";
 import {
 	type GameRowLookups,
 	type RewindRecapInput
@@ -7,12 +8,15 @@ import { buildRewindRecapPatterns } from "./build-rewind-recap-patterns.util";
 import { compareChronologically } from "./compare-chronologically.util";
 import { groupFranchiseNamesByGame } from "./group-franchise-names-by-game.util";
 import { groupGenreNamesByGame } from "./group-genre-names-by-game.util";
+import { groupPlatinumsByRun } from "./group-platinums-by-run.util";
+import { groupTagsByGame } from "./group-tags-by-game.util";
 import { isActiveInYear } from "./is-active-in-year.util";
 import { pickRecapRuns } from "./pick-recap-runs.util";
 import { recapGameColumns } from "./recap-game-columns.util";
 import { summarizeHighlights } from "./summarize-highlights.util";
 import { toGameRow } from "./to-game-row.util";
 import { toIsoDate } from "./to-iso-date.util";
+import { toUpNextGame } from "./to-up-next-game.util";
 
 export function buildRewindRecapContent(
 	input: RewindRecapInput,
@@ -33,7 +37,9 @@ export function buildRewindRecapContent(
 		coopAliasesByRun,
 		reviewsByGame: new Map(
 			input.reviews.map(review => [review.gameId, review.content])
-		)
+		),
+		tagsByGame: groupTagsByGame(input.tags),
+		platinumsByRun: groupPlatinumsByRun(input.platinums)
 	};
 
 	return JSON.stringify({
@@ -47,8 +53,13 @@ export function buildRewindRecapContent(
 			input.genres,
 			input.year,
 			input.franchises,
-			coopAliasesByRun
+			coopAliasesByRun,
+			lookups.tagsByGame,
+			lookups.platinumsByRun
 		),
+		upNext: input.upNext
+			.slice(0, REWIND_RECAP_UP_NEXT_LIMIT)
+			.map(game => toUpNextGame(game, lookups.tagsByGame, todayDate)),
 		games: {
 			columns: recapGameColumns(input.includesNotes),
 			rows: recapRuns.map(run =>

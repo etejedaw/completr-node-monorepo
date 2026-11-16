@@ -38,10 +38,23 @@ export const REWIND_RECAP_GAME_COLUMNS = [
 	"daysInBacklog",
 	"daysToFinish",
 	"coopWith",
-	"review"
+	"review",
+	"tags",
+	"platinumed",
+	"daysToPlatinum"
 ] as const;
 
 export const REWIND_RECAP_NOTES_COLUMN = "notes";
+
+export const REWIND_RECAP_PLATINUM_NOTES_COLUMN = "platinumNotes";
+
+export const REWIND_RECAP_UP_NEXT_LIMIT = 5;
+
+export const REWIND_RECAP_ROW_TAGS_LIMIT = 5;
+
+export const REWIND_RECAP_TAG_GROUPS_LIMIT = 8;
+
+export const REWIND_RECAP_PLATINUM_GENRES_LIMIT = 8;
 
 export const REWIND_RECAP_NOTE_MAX_LENGTH = 300;
 
