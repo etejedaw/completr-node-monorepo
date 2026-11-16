@@ -1,0 +1,113 @@
+@let text = copy();
+<article
+	aria-labelledby="rewind-2025-recap-heading"
+	class="gap-6 p-5 sm:gap-8 sm:p-8 @3xl/page:p-10"
+	[class]="frameClass"
+>
+	<header class="flex flex-col gap-3">
+		<div class="flex items-center gap-2">
+			<span aria-hidden="true" class="material-icons text-xl text-premium"
+				>auto_awesome</span
+			>
+			<span uiEyebrow tone="premium">{{ text.heading }}</span>
+			@if (premiumLabel(); as label) {
+			<ui-premium-badge
+				class="ml-auto"
+				interactive
+				[label]="label"
+				[message]="premiumPerk"
+			/>
+			}
+		</div>
+		<h2
+			id="rewind-2025-recap-heading"
+			class="m-0 max-w-[24ch] font-display text-3xl font-bold leading-[1.08] tracking-tight text-fg text-balance [overflow-wrap:anywhere] sm:text-4xl @3xl/page:text-5xl"
+		>
+			{{ recap().headline }}
+		</h2>
+	</header>
+
+	<div
+		data-recap-body
+		class="columns-1 gap-10 text-base leading-relaxed text-fg-secondary @3xl/page:columns-2"
+	>
+		@if (leadParagraph(); as lead) {
+		<p
+			class="m-0 mb-5 text-pretty [overflow-wrap:anywhere] first-letter:float-left first-letter:mr-2 first-letter:font-display first-letter:text-[3.4em] first-letter:font-bold first-letter:leading-[0.85] first-letter:text-premium"
+		>
+			{{ lead }}
+		</p>
+		} @if (pullQuote(); as quote) {
+		<blockquote
+			aria-hidden="true"
+			data-pull-quote
+			class="m-0 mb-5 break-inside-avoid border-l-4 border-premium py-1 pl-4 font-display text-xl font-semibold leading-snug text-fg text-balance [overflow-wrap:anywhere] sm:text-2xl"
+		>
+			{{ quote }}
+		</blockquote>
+		} @for (paragraph of restParagraphs(); track $index) {
+		<p class="m-0 mb-5 text-pretty [overflow-wrap:anywhere]">
+			{{ paragraph }}
+		</p>
+		} @if (insights().length > 0) {
+		<h3 class="sr-only">{{ text.insights }}</h3>
+		} @for (insight of insights(); track insight.key) {
+		<section
+			appRewindReveal
+			class="mb-5 flex break-inside-avoid flex-col gap-1.5 border-t border-line pt-4"
+		>
+			@if (insight.label) {
+			<span uiEyebrow>{{ insight.label }}</span>
+			}
+			<h4
+				class="m-0 font-display text-lg font-bold leading-tight text-fg [overflow-wrap:anywhere]"
+			>
+				{{ insight.title }}
+			</h4>
+			<p class="m-0 text-sm leading-relaxed [overflow-wrap:anywhere]">
+				{{ insight.body }}
+			</p>
+		</section>
+		}
+	</div>
+
+	@if (funFact() || challenge()) {
+	<footer class="grid grid-cols-1 gap-3 @3xl/page:grid-cols-2">
+		@if (funFact(); as fact) {
+		<div
+			class="flex min-w-0 items-start gap-3 rounded-card border border-line bg-surface p-4"
+		>
+			<span aria-hidden="true" class="material-icons text-xl text-premium"
+				>lightbulb</span
+			>
+			<div class="flex min-w-0 flex-col gap-1">
+				<h3 class="m-0" uiEyebrow>{{ text.funFact }}</h3>
+				<p
+					class="m-0 text-sm leading-relaxed text-fg [overflow-wrap:anywhere]"
+				>
+					{{ fact }}
+				</p>
+			</div>
+		</div>
+		} @if (challenge(); as nextChallenge) {
+		<div
+			class="flex min-w-0 items-start gap-3 rounded-card border border-premium/40 bg-surface p-4"
+		>
+			<span aria-hidden="true" class="material-icons text-xl text-premium"
+				>flag</span
+			>
+			<div class="flex min-w-0 flex-col gap-1">
+				<h3 class="m-0" uiEyebrow tone="premium">
+					{{ text.nextYearChallenge(year() + 1) }}
+				</h3>
+				<p
+					class="m-0 font-display text-base font-semibold leading-snug text-fg [overflow-wrap:anywhere] sm:text-lg"
+				>
+					{{ nextChallenge }}
+				</p>
+			</div>
+		</div>
+		}
+	</footer>
+	}
+</article>

@@ -1,0 +1,65 @@
+@let text = copy();
+<ol class="m-0 flex list-none flex-col p-0">
+	@for (shelf of shelves(); track shelf.quarter) {
+	<li
+		class="grid min-w-0 grid-cols-1 gap-3 border-t border-line py-5 @3xl/page:grid-cols-[10rem_minmax(0,1fr)] @3xl/page:gap-6"
+		[attr.data-quarter]="shelf.quarter"
+	>
+		<div
+			class="flex items-end justify-between gap-3 @3xl/page:flex-col @3xl/page:items-start @3xl/page:justify-start"
+		>
+			<h3
+				class="m-0 flex min-w-0 flex-col gap-1"
+				[id]="'rewind-2025-shelf-' + shelf.quarter"
+			>
+				<span uiEyebrow tone="brand">{{ shelf.label }}</span>
+				<span
+					aria-hidden="true"
+					class="font-display text-lg font-semibold leading-tight text-fg"
+					>{{ shelf.range }}</span
+				>
+				<span class="sr-only">{{ shelf.spokenRange }}</span>
+			</h3>
+			<p
+				class="m-0 flex items-baseline gap-1.5 font-display text-fg @3xl/page:flex-col @3xl/page:items-start @3xl/page:gap-0.5"
+			>
+				<span
+					aria-hidden="true"
+					class="text-4xl font-bold leading-none tabular-nums"
+					>{{ shelf.count }}</span
+				>
+				<span
+					class="font-sans text-sm text-fg-secondary @3xl/page:text-xs"
+					><span aria-hidden="true"
+						>{{ text.gamesNoun(shelf.count) }}</span
+					><span class="sr-only">{{ shelf.countLabel }}</span></span
+				>
+			</p>
+		</div>
+		<ul
+			class="m-0 flex min-w-0 list-none snap-x snap-proximity gap-3 overflow-x-auto overscroll-x-contain p-0 pb-2 [scrollbar-width:thin] pointer-coarse:py-[8px]"
+			[attr.aria-label]="text.shelvesLabel(shelf.spokenRange)"
+		>
+			@for (game of shelf.games; track game.gameId + game.finishedAt) {
+			<li class="w-[6.5rem] shrink-0 snap-start sm:w-[7.5rem]">
+				<a
+					class="group flex flex-col gap-1.5 rounded-md no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+					[routerLink]="['/games', game.code]"
+				>
+					<app-game-poster
+						class="aspect-[2/3] rounded-md ring-1 ring-line transition-shadow group-hover:ring-brand"
+						[src]="game.coverUrl ?? game.backgroundUrl"
+						[title]="game.title"
+						[width]="420"
+						titleSize="0.75rem"
+					/>
+					<span class="text-xs tabular-nums text-fg-secondary"
+						>{{ dateOf(game) }}</span
+					>
+				</a>
+			</li>
+			}
+		</ul>
+	</li>
+	}
+</ol>
