@@ -66,6 +66,7 @@ export class RewindGenerateDialog {
 	readonly rewind = input<Rewind | null>(null);
 	readonly premiumAccess = input<RewindPremiumAccess | null>(null);
 	readonly canWriteAiRecap = input(true);
+	readonly addsPremiumStats = input(false);
 	readonly pending = input(false);
 	readonly error = input<RewindGenerateError | null>(null);
 	readonly submitted = output<GenerateRewindRequest>();

@@ -280,8 +280,3 @@ export interface GenerateRewindRequest {
 	writeAiRecap: boolean;
 	expectedGeneratedAt: string | null;
 }
-
-export interface AddRewindAiRecapRequest {
-	includePrivateRuns: boolean;
-	includeNotes: boolean;
-}

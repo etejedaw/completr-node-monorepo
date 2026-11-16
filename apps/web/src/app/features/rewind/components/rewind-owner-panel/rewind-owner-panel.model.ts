@@ -2,7 +2,6 @@ import {
 	type RewindLanguage,
 	type RewindRegenerationBlock
 } from "../../../../core/models/rewind.model";
-import { type RewindAiRecapError } from "../../rewind-errors";
 
 export interface RewindOwnerPanelCopy {
 	eyebrow: string;
@@ -29,8 +28,6 @@ export interface RewindOwnerPanelCopy {
 	retry: string;
 	addAiRecap: string;
 	addAiRecapHint: string;
-	aiRecapPending: string;
-	aiRecapErrors: Record<RewindAiRecapError, string>;
 }
 
 export type RewindOwnerPanelState =

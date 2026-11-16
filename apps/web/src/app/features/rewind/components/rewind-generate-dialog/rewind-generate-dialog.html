@@ -22,6 +22,10 @@
 			}
 			<p class="m-0 text-fg-secondary">{{ replaceWarning() }}</p>
 		</div>
+		} @if (addsPremiumStats()) {
+		<ui-alert tone="info" icon="insights">
+			Your premium stats will be added to this Rewind too.
+		</ui-alert>
 		}
 
 		<fieldset class="m-0 flex flex-col gap-2 border-0 p-0">

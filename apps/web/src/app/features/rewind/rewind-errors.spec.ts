@@ -1,8 +1,4 @@
-import {
-	rewindAiRecapError,
-	rewindGenerateError,
-	rewindLoadError
-} from "./rewind-errors";
+import { rewindGenerateError, rewindLoadError } from "./rewind-errors";
 
 function failure(status: number, type?: string) {
 	return { status, error: type ? { type } : null };
@@ -61,29 +57,5 @@ describe("rewindGenerateError", () => {
 		expect(rewindGenerateError({ status: 409, error: "text" })).toBe(
 			"conflict"
 		);
-	});
-});
-
-describe("rewindAiRecapError", () => {
-	it.each([
-		[0, undefined, "network"],
-		[402, undefined, "premium_required"],
-		[403, "REWIND_YEAR_REQUIRES_PREMIUM", "year_requires_premium"],
-		[409, "REWIND_AI_RECAP_IN_PROGRESS", "in_progress"],
-		[409, "REWIND_PERIOD_CLOSED", "period_closed"],
-		[409, "REWIND_REGENERATION_LIMIT", "limit"],
-		[409, "REWIND_AI_RECAP_EXISTS", "exists"],
-		[404, undefined, "not_generated"],
-		[429, undefined, "rate_limited"],
-		[429, "REWIND_AI_RECAP_DAILY_LIMIT", "daily_limit"],
-		[429, "SOMETHING_ELSE", "rate_limited"],
-		[500, undefined, "failed"]
-	] as const)("maps %s %s to %s", (status, type, expected) => {
-		expect(rewindAiRecapError(failure(status, type))).toBe(expected);
-	});
-
-	it("falls back to failed for input that is not an HTTP error", () => {
-		expect(rewindAiRecapError(undefined)).toBe("failed");
-		expect(rewindAiRecapError("boom")).toBe("failed");
 	});
 });

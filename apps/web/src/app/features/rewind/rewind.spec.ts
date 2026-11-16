@@ -12,7 +12,7 @@ import {
 	type RewindYears
 } from "../../core/models/rewind.model";
 import { RewindService, rewindShareUrl } from "./rewind";
-import { rewindAiRecapError, rewindGenerateError } from "./rewind-errors";
+import { rewindGenerateError } from "./rewind-errors";
 
 const api = environment.apiUrl;
 
@@ -138,25 +138,6 @@ describe("RewindService", () => {
 		);
 		req.flush({ data: { year: 2025 } });
 	});
-
-	it("adds the AI recap to a generated year", () => {
-		let result: unknown;
-
-		service
-			.addAiRecap(2026, { includePrivateRuns: true, includeNotes: false })
-			.subscribe(value => (result = value));
-
-		const req = httpTesting.expectOne(
-			`${api}/users/me/rewinds/2026/ai-recap`
-		);
-		expect(req.request.method).toBe("POST");
-		expect(req.request.body).toEqual({
-			includePrivateRuns: true,
-			includeNotes: false
-		});
-		req.flush({ data: { year: 2026, aiRecap: null } });
-		expect(result).toEqual({ year: 2026, aiRecap: null });
-	});
 });
 
 function httpError(status: number, type?: string) {
@@ -184,20 +165,5 @@ describe("rewindGenerateError", () => {
 	it("treats a non-HTTP failure as a generic failure", () => {
 		expect(rewindGenerateError(new Error("boom"))).toBe("failed");
 		expect(rewindGenerateError(null)).toBe("failed");
-	});
-});
-
-describe("rewindAiRecapError", () => {
-	it.each([
-		[0, undefined, "network"],
-		[402, "REWIND_AI_RECAP_PREMIUM_REQUIRED", "premium_required"],
-		[409, "REWIND_AI_RECAP_EXISTS", "exists"],
-		[409, "REWIND_AI_RECAP_IN_PROGRESS", "in_progress"],
-		[404, "REWIND_NOT_GENERATED", "not_generated"],
-		[429, undefined, "rate_limited"],
-		[503, "REWIND_AI_RECAP_FAILED", "failed"],
-		[500, undefined, "failed"]
-	] as const)("maps %s %s to %s", (status, type, expected) => {
-		expect(rewindAiRecapError(httpError(status, type))).toBe(expected);
 	});
 });

@@ -117,32 +117,7 @@
 					/>
 				</ul>
 			</div>
-			@if (controls.aiRecapState === "failed") {
-			<button
-				uiButton
-				type="button"
-				variant="secondary"
-				class="tap:min-h-[44px] max-sm:!w-full shrink-0"
-				[disabled]="aiRecapPending()"
-				(click)="openAiRecapDialog()"
-			>
-				{{ copy.retry }}
-			</button>
-			} @else if (controls.aiRecapState === "available") {
-			<button
-				uiButton
-				type="button"
-				variant="secondary"
-				class="tap:min-h-[44px] max-sm:!w-full shrink-0"
-				[disabled]="aiRecapPending()"
-				(click)="openAiRecapDialog()"
-			>
-				<span aria-hidden="true" class="material-icons text-base"
-					>auto_awesome</span
-				>
-				{{ copy.addAiRecap }}
-			</button>
-			} @if (controls.canRegenerate) {
+			@if (controls.canRegenerate) {
 			<button
 				uiButton
 				type="button"
@@ -152,9 +127,9 @@
 				(click)="generation.open()"
 			>
 				<span aria-hidden="true" class="material-icons text-base"
-					>refresh</span
+					>{{ aiAction().icon }}</span
 				>
-				{{ generation.isPending() ? copy.regenerating : copy.regenerate
+				{{ generation.isPending() ? copy.regenerating : aiAction().label
 				}}
 			</button>
 			} @else if (noRegenerationsLeft()) {
@@ -171,9 +146,9 @@
 					aria-describedby="rewind-no-regenerations-left"
 				>
 					<span aria-hidden="true" class="material-icons text-base"
-						>refresh</span
+						>{{ aiAction().icon }}</span
 					>
-					{{ copy.regenerate }}
+					{{ aiAction().label }}
 				</button>
 			</span>
 			}
@@ -205,22 +180,6 @@
 		</p>
 		}
 	</div>
-	} @if (aiRecapPending()) {
-	<p
-		role="status"
-		class="m-0 inline-flex items-center gap-2 text-sm text-fg-secondary"
-	>
-		<span
-			aria-hidden="true"
-			class="material-icons text-base text-premium motion-safe:animate-spin"
-			>autorenew</span
-		>
-		{{ copy.aiRecapPending }}
-	</p>
-	} @else if (aiRecapErrorMessage(); as message) {
-	<ui-alert [tone]="aiRecapError() === 'exists' ? 'info' : 'danger'"
-		>{{ message }}</ui-alert
-	>
 	}
 </section>
 @if (panelState() === "open-without-ai") {
@@ -237,16 +196,11 @@
 	[premiumAccess]="
 			generation.latestRewind()?.premiumAccess ?? null
 		"
+	[addsPremiumStats]="addsPremiumStats()"
 	[pending]="generation.isPending()"
 	[error]="generation.error()"
 	(submitted)="generation.submit($event)"
 	(closed)="generation.close()"
-/>
-} @if (aiRecapDialogOpen()) {
-<app-rewind-ai-recap-dialog
-	[rewind]="rewind()"
-	(submitted)="addAiRecap($event)"
-	(closed)="aiRecapDialogOpen.set(false)"
 />
 }
 <ng-template #aiInputChips let-controls>
