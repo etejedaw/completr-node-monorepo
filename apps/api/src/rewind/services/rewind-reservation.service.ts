@@ -36,9 +36,13 @@ function lockRecord(userId: string, year: number, transaction: Transaction) {
 
 function creationBudget(
 	budget: RewindAiBudget,
-	dto: GenerateRewindDto
+	dto: GenerateRewindDto,
+	accessKind: RewindPremiumAccessKind | null
 ): RewindAiBudget {
-	return dto.writeAiRecap ? budget : { ...budget, spend: null };
+	if (!dto.writeAiRecap) return { ...budget, spend: null };
+	if (accessKind !== null && budget.spend === null)
+		throw rewindServiceError.regenerationLimitError();
+	return budget;
 }
 
 async function requireAiRecapQuota(
@@ -132,7 +136,7 @@ export async function reserveGeneration(
 		if (plan.kind === "limit-reached")
 			throw rewindServiceError.regenerationLimitError();
 		if (plan.kind === "create" || !record) {
-			const budget = creationBudget(plan.budget, dto);
+			const budget = creationBudget(plan.budget, dto, accessKind);
 			await requireAiRecapQuota(owner, budget);
 			return {
 				record: await createRecord(

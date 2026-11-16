@@ -302,3 +302,97 @@ void describe("resolveRewindRegenerationBlocker", () => {
 		);
 	});
 });
+
+void describe("buildRewindYears canWriteAiRecap", () => {
+	const runs = [
+		finishedRun("hades", "2025-03-01"),
+		finishedRun("tunic", "2026-12-05")
+	];
+	const GRACE_DAY = new Date("2027-01-03T12:00:00.000Z");
+
+	function availability(
+		today: Date,
+		accessKind: "premium" | "gift" | null,
+		options: {
+			edition?: RewindEditionRecord;
+			visitor?: boolean;
+			generated?: number[];
+		} = {}
+	) {
+		const result = buildRewindYears({
+			runs,
+			calendar: calendarOn(
+				today,
+				2000,
+				options.edition ?? editionOf(2026, { premiumRegenerations: 2 })
+			),
+			genres: [],
+			platinumsByYear: new Map(),
+			visibility: options.visitor
+				? visitorVisibility(options.generated ?? [2025, 2026])
+				: ownerVisibility(options.generated ?? []),
+			generationAccess: options.visitor ? null : { accessKind },
+			frozenViews: new Map(),
+			platinumsVisible: true
+		});
+		return Object.fromEntries(
+			result.years.map(summary => [summary.year, summary.canWriteAiRecap])
+		);
+	}
+
+	void it("offers the AI recap on every allowed year while the premium quota has rolls", () => {
+		assert.deepEqual(availability(OPEN_DAY, "premium"), {
+			2026: true,
+			2025: true
+		});
+	});
+
+	void it("refuses it when the quota is zero outside the grace window", () => {
+		assert.deepEqual(
+			availability(OPEN_DAY, "premium", { edition: edition2026 }),
+			{ 2026: false, 2025: false }
+		);
+	});
+
+	void it("offers it during the grace window even with a zero quota, only for the edition year", () => {
+		assert.deepEqual(
+			availability(GRACE_DAY, "premium", { edition: edition2026 }),
+			{ 2026: true, 2025: false }
+		);
+	});
+
+	void it("follows the gift quota and keeps previous years closed to a gift", () => {
+		assert.deepEqual(
+			availability(OPEN_DAY, "gift", {
+				edition: editionOf(2026, { giftRegenerations: 1 })
+			}),
+			{ 2026: true, 2025: false }
+		);
+		assert.deepEqual(availability(OPEN_DAY, "gift"), {
+			2026: false,
+			2025: false
+		});
+	});
+
+	void it("never offers it without AI access, on a generated year or to a visitor", () => {
+		assert.deepEqual(availability(OPEN_DAY, null), {
+			2026: false,
+			2025: false
+		});
+		assert.deepEqual(
+			availability(OPEN_DAY, "premium", { generated: [2026] }),
+			{ 2026: false, 2025: true }
+		);
+		assert.deepEqual(availability(OPEN_DAY, "premium", { visitor: true }), {
+			2026: false,
+			2025: false
+		});
+	});
+
+	void it("refuses it outside the Rewind season", () => {
+		assert.deepEqual(availability(AFTER_CLOSING, "premium"), {
+			2026: false,
+			2025: false
+		});
+	});
+});

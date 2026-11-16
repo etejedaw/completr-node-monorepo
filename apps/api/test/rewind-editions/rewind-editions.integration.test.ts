@@ -20,6 +20,7 @@ import {
 	addRun,
 	AI_RECAP,
 	findRewindRow,
+	FIRST_GENERATION,
 	generate,
 	mockAiRecap,
 	mockPremiumStats,
@@ -67,6 +68,20 @@ async function playerWithTwoYears(role: Account["user"]["role"] = "user") {
 	await addRun(player, games.hades, platform, { finishedAt: "2026-03-10" });
 	await addRun(player, games.celeste, platform, { finishedAt: "2025-07-07" });
 	return player;
+}
+
+async function canWriteAiRecapOn(
+	owner: Account,
+	year: number,
+	authorization: string = owner.authorization
+): Promise<boolean | undefined> {
+	const response = await readRewindYears(
+		owner.user.username,
+		authorization || undefined
+	).expect(200);
+	return response.body.data.years.find(
+		(summary: { year: number }) => summary.year === year
+	)?.canWriteAiRecap;
 }
 
 function grantFeature(player: Account, feature: "rewind.premium" | "*") {
@@ -342,19 +357,33 @@ void describe("previous years", () => {
 });
 
 void describe("the quota of rolls", () => {
-	void it("creates the base without the AI when the quota is zero and answers the limit afterwards", async () => {
+	void it("refuses the AI recap when the quota is zero, creates the base without it and answers the limit afterwards", async () => {
 		await replaceEdition({ premiumRegenerations: 0 });
 		const player = await playerWithTwoYears("premium");
 		const aiMock = mockPremiumGeneration();
 
-		const created = await generate(player, 2026).expect(201);
+		assert.equal(await canWriteAiRecapOn(player, 2026), false);
+		const refused = await Promise.all([
+			generate(player, 2026),
+			generate(player, 2026)
+		]);
+		for (const response of refused) {
+			assert.equal(response.status, 409);
+			assert.equal(response.body.type, "REWIND_REGENERATION_LIMIT");
+		}
+		assert.equal(await findRewindRow(player, 2026), null);
+
+		const created = await generate(player, 2026, {
+			...FIRST_GENERATION,
+			writeAiRecap: false
+		}).expect(201);
 		assert.equal(created.body.data.aiRecap, null);
 		assert.equal(
 			created.body.data.ownerControls.aiRecapState,
 			"unavailable"
 		);
 		assert.equal(created.body.data.ownerControls.canRegenerate, false);
-		assert.equal(created.body.data.premiumAccessKind, null);
+		assert.equal(created.body.data.premiumAccessKind, "premium");
 		const row = await findRewindRow(player, 2026);
 		assert.equal(row?.premiumAccessKind, "premium");
 		assert.equal(row?.aiRecapStatus, "none");
@@ -370,6 +399,29 @@ void describe("the quota of rolls", () => {
 		assert.equal(regeneration.status, 409);
 		assert.equal(regeneration.body.type, "REWIND_REGENERATION_LIMIT");
 		assert.equal(aiMock.mock.callCount(), 0);
+	});
+
+	void it("tells only the owner which ungenerated years can still write the AI recap", async () => {
+		await replaceEdition({ premiumRegenerations: 2 });
+		const premium = await playerWithTwoYears("premium");
+		const free = await playerWithTwoYears();
+		const stranger = await playerWithTwoYears("premium");
+		mockPremiumGeneration();
+
+		assert.equal(await canWriteAiRecapOn(premium, 2026), true);
+		assert.equal(await canWriteAiRecapOn(free, 2026), false);
+		assert.equal(
+			await canWriteAiRecapOn(premium, 2026, stranger.authorization),
+			undefined
+		);
+		assert.equal(await canWriteAiRecapOn(premium, 2026, ""), undefined);
+
+		await generate(premium, 2026).expect(201);
+		assert.equal(await canWriteAiRecapOn(premium, 2026), false);
+		assert.equal(
+			await canWriteAiRecapOn(premium, 2026, stranger.authorization),
+			false
+		);
 	});
 
 	void it("spends a gift roll on the AI recap and takes only one on a double click", async () => {

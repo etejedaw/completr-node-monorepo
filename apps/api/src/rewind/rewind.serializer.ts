@@ -11,6 +11,7 @@ function rewindYearSummarySerializer(
 		year: summary.year,
 		isGenerated: summary.isGenerated,
 		generationBlockedBy: summary.generationBlockedBy,
+		canWriteAiRecap: summary.canWriteAiRecap,
 		persona: summary.persona,
 		finishedCount: summary.finishedCount,
 		startedCount: summary.startedCount,

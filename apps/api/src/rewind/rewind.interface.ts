@@ -36,6 +36,7 @@ export interface RewindYearSummary {
 	year: number;
 	isGenerated: boolean;
 	generationBlockedBy: RewindGenerationBlocker | null;
+	canWriteAiRecap: boolean;
 	persona: RewindPersonaCode;
 	finishedCount: number;
 	startedCount: number;
