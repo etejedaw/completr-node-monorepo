@@ -20,4 +20,7 @@ export type ShareDesignTemplates = Record<
 	ShareFormatTemplate
 >;
 
-export type ShareDesignCatalog = Record<RewindDesign, ShareDesignTemplates>;
+export type ShareDesignCatalog = Record<
+	RewindDesign,
+	ShareDesignTemplates | null
+>;

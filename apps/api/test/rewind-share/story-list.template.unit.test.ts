@@ -233,6 +233,20 @@ void describe("story list template", () => {
 		assert.equal(fetchMock.mock.callCount(), 12);
 	});
 
+	void it("has no image of any format for a design without share images", () => {
+		const rewind = buildRewind({ design: "2025" });
+
+		for (const format of ["story", "story-list", "og"] as const)
+			assert.equal(hasRewindImage(rewind, format), false, format);
+	});
+
+	void it("refuses to render an image for a design without share images", async () => {
+		await assert.rejects(
+			renderRewindImage(buildRewind({ design: "2025" }), "story"),
+			{ code: "REWIND_NOT_FOUND" }
+		);
+	});
+
 	void it("has no list image for a year without finished games", () => {
 		const empty = emptyRewind();
 

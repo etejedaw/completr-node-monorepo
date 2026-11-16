@@ -3,6 +3,7 @@ import satori from "satori";
 
 import { environmentConfig } from "../common/config/environment.config";
 import { ServiceError } from "../common/errors/service-error";
+import * as rewindServiceError from "../rewind/errors/rewind.service-error";
 import { type Rewind, type RewindGameRef } from "../rewind/rewind.interface";
 import * as rewindService from "../rewind/rewind.service";
 import {
@@ -23,7 +24,10 @@ import {
 	type SatoriElement,
 	type ShareFormatTemplate
 } from "./rewind-share-template.interface";
-import { shareDesignTemplates } from "./templates/share-designs.template";
+import {
+	hasShareImages,
+	shareDesignTemplates
+} from "./templates/share-designs.template";
 import { sharePageTemplate } from "./templates/share-page.template";
 import { fetchImageDataUri } from "./utils/fetch-image.util";
 import { hashRewind } from "./utils/hash-rewind.util";
@@ -90,7 +94,9 @@ export async function renderRewindImage(
 	rewind: Rewind,
 	format: RewindImageFormat
 ): Promise<RenderedImage> {
-	const template = shareDesignTemplates(rewind.design)[format];
+	const templates = shareDesignTemplates(rewind.design);
+	if (!templates) throw rewindServiceError.notFoundError();
+	const template = templates[format];
 	const artwork = await loadArtwork(rewind, template);
 	const { width, height } = SHARE_IMAGE_SIZES[format];
 	const svg = await satori(imageTemplate(rewind, artwork, template), {
@@ -111,6 +117,7 @@ export function hasRewindImage(
 	rewind: Rewind,
 	format: RewindImageFormat
 ): boolean {
+	if (!hasShareImages(rewind.design)) return false;
 	return format !== "story-list" || rewind.finishedGames.length > 0;
 }
 
@@ -190,7 +197,9 @@ function sharePageMeta(
 		language: copy.language,
 		title: copy.pageTitle(rewind.user.username, rewind.year),
 		description: rewindSummary(rewind.totals, copy),
-		imageUrl: ogImageUrl(rewind.user.username, rewind.year),
+		imageUrl: hasShareImages(rewind.design)
+			? ogImageUrl(rewind.user.username, rewind.year)
+			: null,
 		continueLink: copy.continueLink,
 		redirectUrl
 	};
