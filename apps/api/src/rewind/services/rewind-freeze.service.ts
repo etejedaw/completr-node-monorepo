@@ -135,7 +135,7 @@ async function buildRewindSnapshot(
 	const context: RewindSnapshotContext = {
 		calendar: {
 			today: resolveCurrentRewindDay(frozenAt),
-			firstYear: owner.createdAt.getUTCFullYear(),
+			firstYear: Math.min(owner.createdAt.getUTCFullYear(), record.year),
 			edition,
 			upcomingEdition: null
 		},
