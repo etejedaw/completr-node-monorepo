@@ -145,11 +145,15 @@ export function genreShareRows(
 	}));
 }
 
-export function hasPremiumCharts(stats: RewindPremiumStatsData): boolean {
+export function hasPremiumCharts(
+	stats: RewindPremiumStatsData,
+	options: { backlogFlow: boolean } = { backlogFlow: true }
+): boolean {
 	return (
 		monthHoursBars(stats.hoursByMonth).length > 0 ||
 		criticGapRows(stats.tasteVsCritics).length > 0 ||
-		backlogFlowBars(stats.backlogFlow).length > 0 ||
+		(options.backlogFlow &&
+			backlogFlowBars(stats.backlogFlow).length > 0) ||
 		genreShareRows(stats.genreShare).length > 0
 	);
 }
@@ -166,6 +170,7 @@ export class RewindPremiumStats {
 	readonly stats = input.required<RewindPremiumStatsData>();
 	readonly language = input<RewindLanguage>("en");
 	readonly premiumAccessKind = input<RewindPremiumAccessKind | null>(null);
+	readonly showBacklogFlow = input(true);
 
 	protected readonly premiumLabel = computed(() => {
 		const kind = this.premiumAccessKind();
@@ -186,14 +191,19 @@ export class RewindPremiumStats {
 		criticGapRows(this.stats().tasteVsCritics)
 	);
 	protected readonly flowBars = computed(() =>
-		backlogFlowBars(this.stats().backlogFlow)
+		this.showBacklogFlow() ? backlogFlowBars(this.stats().backlogFlow) : []
+	);
+	protected readonly hoursSpanClass = computed(() =>
+		this.showBacklogFlow() ? "" : "lg:col-span-2"
 	);
 	protected readonly genreRows = computed(() =>
 		genreShareRows(this.stats().genreShare, this.copy().moreGenres)
 	);
 
 	protected readonly hasAnyChart = computed(() =>
-		hasPremiumCharts(this.stats())
+		hasPremiumCharts(this.stats(), {
+			backlogFlow: this.showBacklogFlow()
+		})
 	);
 
 	protected readonly netBalance = computed(() =>

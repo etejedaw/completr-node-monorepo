@@ -113,6 +113,48 @@ describe("RewindPremiumStats", () => {
 		expect(figure("Genre share")).toBeInTheDocument();
 	});
 
+	it("leaves the backlog chart out and gives the hours chart the full width when asked to", async () => {
+		await render(RewindPremiumStats, {
+			inputs: {
+				stats: stats(),
+				language: "es",
+				premiumAccessKind: "premium",
+				showBacklogFlow: false
+			},
+			providers: [
+				{ provide: ToastService, useValue: { premium: vi.fn() } }
+			]
+		});
+
+		const figures = screen.getAllByRole("figure");
+		expect(figures).toHaveLength(3);
+		expect(
+			screen.queryByRole("figure", {
+				name: "¿Tu backlog creció o se achicó?"
+			})
+		).toBeNull();
+		expect(figures[0].className).toContain("lg:col-span-2");
+		expect(figures[1].className).not.toContain("lg:col-span-2");
+	});
+
+	it("shows nothing when the backlog chart was the only one with data and it is hidden", async () => {
+		const onlyFlow = {
+			...stats(),
+			hoursByMonth: [],
+			tasteVsCritics: [],
+			genreShare: []
+		};
+		const { container } = await render(RewindPremiumStats, {
+			inputs: { stats: onlyFlow, showBacklogFlow: false },
+			providers: [
+				{ provide: ToastService, useValue: { premium: vi.fn() } }
+			]
+		});
+
+		expect(screen.queryByRole("region")).toBeNull();
+		expect(container.querySelectorAll("figure")).toHaveLength(0);
+	});
+
 	it("labels stats generated with a gift as Gift", async () => {
 		await renderStats(stats(), "en", "gift");
 

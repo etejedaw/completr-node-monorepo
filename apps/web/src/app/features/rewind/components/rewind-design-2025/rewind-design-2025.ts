@@ -131,7 +131,7 @@ export class RewindDesign2025 implements RewindDesignComponent {
 
 	protected readonly hasPremiumStats = computed(() => {
 		const stats = this.rewind().premiumStats;
-		return !!stats && hasPremiumCharts(stats);
+		return !!stats && hasPremiumCharts(stats, { backlogFlow: false });
 	});
 
 	protected readonly yearOptions = computed<UiPickerOption[]>(() => {

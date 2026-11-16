@@ -236,6 +236,36 @@ describe("RewindDesign2025", () => {
 		fixture.detectChanges();
 	}
 
+	it("never shows the backlog chart and keeps the other premium charts", async () => {
+		const root = await renderDesign(
+			rewindFixture({
+				premiumStats: {
+					...premiumStats(),
+					backlogFlow: [{ month: 3, added: 4, finished: 1 }]
+				}
+			})
+		);
+
+		expect(root.querySelector("app-rewind-premium-stats")).not.toBeNull();
+		expect(screen.queryByRole("figure", { name: /backlog/i })).toBeNull();
+		expect(screen.getAllByRole("figure").length).toBeGreaterThan(0);
+	});
+
+	it("leaves the premium stats out when the backlog chart is the only one with data", async () => {
+		const root = await renderDesign(
+			rewindFixture({
+				premiumStats: {
+					hoursByMonth: [],
+					tasteVsCritics: [],
+					genreShare: [],
+					backlogFlow: [{ month: 3, added: 4, finished: 1 }]
+				}
+			})
+		);
+
+		expect(root.querySelector("app-rewind-premium-stats")).toBeNull();
+	});
+
 	function shelfQuarters(root: HTMLElement): string[] {
 		return [...root.querySelectorAll("[data-quarter]")].map(
 			shelf => shelf.getAttribute("data-quarter") ?? ""
