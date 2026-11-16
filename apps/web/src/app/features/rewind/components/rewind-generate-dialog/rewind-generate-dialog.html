@@ -1,7 +1,7 @@
 <ui-dialog
 	size="sm"
 	eyebrow="Rewind"
-	[icon]="isRegeneration() ? 'refresh' : 'auto_awesome'"
+	[icon]="icon()"
 	[heading]="heading()"
 	[subheading]="subheading()"
 	(closed)="closed.emit()"

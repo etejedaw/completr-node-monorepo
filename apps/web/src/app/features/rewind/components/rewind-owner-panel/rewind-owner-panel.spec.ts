@@ -106,10 +106,15 @@ describe("RewindOwnerPanel", () => {
 		return TestBed.inject(HttpTestingController);
 	}
 
+	const addAiRecapDialog = "Add an AI recap to your 2026 Rewind";
+
 	async function openGenerator(trigger: string) {
 		await userEvent.click(screen.getByRole("button", { name: trigger }));
 		return screen.findByRole("dialog", {
-			name: "Regenerate your 2026 Rewind"
+			name:
+				trigger === "Add AI recap"
+					? addAiRecapDialog
+					: "Regenerate your 2026 Rewind"
 		});
 	}
 
@@ -300,7 +305,7 @@ describe("RewindOwnerPanel", () => {
 			screen.getByRole("button", { name: "Add AI recap" })
 		);
 		const dialog = await screen.findByRole("dialog", {
-			name: "Regenerate your 2026 Rewind"
+			name: addAiRecapDialog
 		});
 		expect(
 			within(dialog).getByText(
@@ -308,10 +313,18 @@ describe("RewindOwnerPanel", () => {
 			)
 		).toBeInTheDocument();
 		expect(
+			within(dialog).getByText(
+				"Adding the AI recap rebuilds your current Rewind."
+			)
+		).toBeInTheDocument();
+		expect(
+			within(dialog).queryByRole("button", { name: "Regenerate" })
+		).toBeNull();
+		expect(
 			within(dialog).getByRole("switch", { name: "Include private runs" })
 		).toHaveAttribute("aria-checked", "true");
 		await user.tripleClick(
-			within(dialog).getByRole("button", { name: "Regenerate" })
+			within(dialog).getByRole("button", { name: "Add AI recap" })
 		);
 
 		const requests = http().match(generateUrl);
@@ -470,7 +483,7 @@ describe("RewindOwnerPanel", () => {
 		);
 		const dialog = await openGenerator("Add AI recap");
 		await userEvent.click(
-			within(dialog).getByRole("button", { name: "Regenerate" })
+			within(dialog).getByRole("button", { name: "Add AI recap" })
 		);
 
 		fixture.destroy();
@@ -937,11 +950,11 @@ describe("RewindOwnerPanel", () => {
 					screen.getByRole("button", { name: "Add AI recap" })
 				);
 				const dialog = await screen.findByRole("dialog", {
-					name: "Regenerate your 2026 Rewind"
+					name: addAiRecapDialog
 				});
 				await userEvent.dblClick(
 					within(dialog).getByRole("button", {
-						name: "Regenerate"
+						name: "Add AI recap"
 					})
 				);
 
@@ -1116,10 +1129,10 @@ describe("RewindOwnerPanel", () => {
 				screen.getByRole("button", { name: "Add AI recap" })
 			);
 			const dialog = await screen.findByRole("dialog", {
-				name: "Regenerate your 2026 Rewind"
+				name: addAiRecapDialog
 			});
 			await user.click(
-				within(dialog).getByRole("button", { name: "Regenerate" })
+				within(dialog).getByRole("button", { name: "Add AI recap" })
 			);
 			http().expectOne(generateUrl).flush(
 				{

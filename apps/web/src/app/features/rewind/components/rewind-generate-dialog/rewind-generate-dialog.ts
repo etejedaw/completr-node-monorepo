@@ -66,6 +66,7 @@ export class RewindGenerateDialog {
 	readonly rewind = input<Rewind | null>(null);
 	readonly premiumAccess = input<RewindPremiumAccess | null>(null);
 	readonly canWriteAiRecap = input(true);
+	readonly addsAiRecap = input(false);
 	readonly addsPremiumStats = input(false);
 	readonly pending = input(false);
 	readonly error = input<RewindGenerateError | null>(null);
@@ -107,16 +108,28 @@ export class RewindGenerateDialog {
 	protected readonly controls = computed(
 		() => this.rewind()?.ownerControls ?? null
 	);
-	protected readonly heading = computed(() =>
-		this.isRegeneration()
+	protected readonly isAddingAiRecap = computed(
+		() => this.isRegeneration() && this.addsAiRecap()
+	);
+	protected readonly icon = computed(() =>
+		this.isRegeneration() && !this.isAddingAiRecap()
+			? "refresh"
+			: "auto_awesome"
+	);
+	protected readonly heading = computed(() => {
+		if (this.isAddingAiRecap())
+			return `Add an AI recap to your ${this.year()} Rewind`;
+		return this.isRegeneration()
 			? `Regenerate your ${this.year()} Rewind`
-			: `Generate your ${this.year()} Rewind`
-	);
-	protected readonly subheading = computed(() =>
-		this.isRegeneration()
+			: `Generate your ${this.year()} Rewind`;
+	});
+	protected readonly subheading = computed(() => {
+		if (this.isAddingAiRecap())
+			return "Pick the language and what the AI reads, and we'll rebuild your year with its recap.";
+		return this.isRegeneration()
 			? "Pick the language again and rebuild your year."
-			: "Your year stays hidden from everyone until you generate it."
-	);
+			: "Your year stays hidden from everyone until you generate it.";
+	});
 	protected readonly regenerationsLine = computed(() => {
 		const left = this.controls()?.regenerationsLeft ?? 0;
 		if (left <= 0) return "No AI generations left";
@@ -130,11 +143,13 @@ export class RewindGenerateDialog {
 			? `Extra AI generation available until ${formatRewindDay(graceEndsAt, DEFAULT_REWIND_LANGUAGE)}`
 			: null;
 	});
-	protected readonly replaceWarning = computed(() =>
-		this.rewind()?.aiRecap
+	protected readonly replaceWarning = computed(() => {
+		if (this.isAddingAiRecap())
+			return "Adding the AI recap rebuilds your current Rewind.";
+		return this.rewind()?.aiRecap
 			? "Regenerating replaces your current Rewind and its AI recap."
-			: "Regenerating replaces your current Rewind."
-	);
+			: "Regenerating replaces your current Rewind.";
+	});
 	protected readonly progressLine = computed(() =>
 		this.hasPremiumAccess() && this.writesAiRecap()
 			? "Rewinding your year… this can take up to a minute."
@@ -154,6 +169,7 @@ export class RewindGenerateDialog {
 	protected readonly submitLabel = computed(() => {
 		if (this.pending()) return "Rewinding…";
 		if (this.isRetryable()) return "Try again";
+		if (this.isAddingAiRecap()) return "Add AI recap";
 		return this.isRegeneration() ? "Regenerate" : "Generate";
 	});
 	protected readonly errorMessage = computed(() => {

@@ -148,10 +148,11 @@ export class RewindOwnerPanel {
 			return { label: this.copy.addAiRecap, icon: "auto_awesome" };
 		return { label: this.copy.regenerate, icon: "refresh" };
 	});
+	protected readonly addsAiRecap = computed(
+		() => this.rewind().ownerControls?.aiRecapState === "available"
+	);
 	protected readonly addsPremiumStats = computed(
-		() =>
-			this.rewind().ownerControls?.aiRecapState === "available" &&
-			this.rewind().premiumStats === null
+		() => this.addsAiRecap() && this.rewind().premiumStats === null
 	);
 	protected readonly generation = injectRewindGenerateFlow({
 		username: () => this.rewind().user.username,
