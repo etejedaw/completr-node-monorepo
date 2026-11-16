@@ -5,8 +5,13 @@ info:
 
 http:
     method: GET
-    url: "{{BASE_URL}}/lists/recent?limit=12"
+    url: "{{BASE_URL}}/lists/recent?limit=12&offset=0"
     auth: inherit
+    params:
+        - name: limit
+          value: "12"
+        - name: offset
+          value: "0"
 
 settings:
     encodeUrl: true
@@ -14,19 +19,20 @@ settings:
 docs: |-
     ## Get Recent Lists
 
-    Returns the newest public lists of regular users, newest first.
+    Returns the newest public lists of other regular users, newest first. The viewer's own lists are never included: they already come from `GET /lists/me`.
 
     **Auth:** Bearer token required.
 
     **Rate Limit:** 50 requests per minute.
 
-    Visibility: only lists the viewer may see are returned. A list is visible when its owner's profile (`profileVisibility`) and lists section (`listVisibility`) are visible to the viewer (friend = mutual follow) and the list is public. The filter runs in the query, so `limit` applies to the visible lists.
+    Visibility: only lists the viewer may see are returned. A list is visible when its owner's profile (`profileVisibility`) and lists section (`listVisibility`) are visible to the viewer (friend = mutual follow) and the list is public. The filter runs in the query, so `limit`, `offset` and `total` apply to the visible lists.
 
     ### Query Parameters
 
-    | Param | Type    | Required | Description                                  |
-    |-------|---------|----------|----------------------------------------------|
-    | limit | integer | No       | Number of lists to return, 1 to 50 (default 12) |
+    | Param  | Type    | Required | Description                                  |
+    |--------|---------|----------|----------------------------------------------|
+    | limit  | integer | No       | Number of lists to return, 1 to 50 (default 12) |
+    | offset | integer | No       | Number of visible lists to skip, 0 or more (default 0). Pages are ordered by `createdAt` and then `id`, so walking them never repeats or skips a list |
 
     ### Response (200)
 
@@ -44,13 +50,16 @@ docs: |-
             "durationSource": "hltb",
             "previewItems": []
           }
-        ]
+        ],
+        "total": 37
       }
     }
     ```
+
+    `total` counts every visible list, not just the returned page.
 
     ### Errors
 
     | Status | Type                    | Reason                                      |
     |--------|-------------------------|---------------------------------------------|
-    | 422    | `COMMON_SCHEMA_INVALID` | `limit` is not an integer between 1 and 50, or an unknown parameter was sent |
+    | 422    | `COMMON_SCHEMA_INVALID` | `limit` is not an integer between 1 and 50, `offset` is not a non-negative integer, or an unknown parameter was sent |
