@@ -51,13 +51,13 @@ docs: |-
     | language            | `en` \| `es`     | Yes      | Language the Rewind page and its share images are shown in, for every viewer                |
     | includePrivateRuns  | boolean          | Yes      | Feed private runs to the AI recap and the premium stats. Does not change the live numbers   |
     | includeNotes        | boolean          | Yes      | Feed the notes of the runs the AI already reads to the AI recap only. Never returned        |
-    | writeAiRecap        | boolean          | Yes      | First generation only: write the AI recap now (`true`) or leave it for `POST /users/me/rewinds/:year/ai-recap`. Ignored on a regeneration, which always writes it, and without access |
+    | writeAiRecap        | boolean          | Yes      | First generation only: write the AI recap now (`true`) or leave it for `POST /users/me/rewinds/:year/ai-recap`. Ignored on a regeneration, which always writes it, and without access. With access and no AI generation left → 409 `REWIND_REGENERATION_LIMIT` |
     | expectedGeneratedAt | ISO date \| null | Yes      | `null` for the first generation; the current `generatedAt` to regenerate                    |
 
     Unknown fields are rejected.
 
     - **First generation:** no row and `expectedGeneratedAt: null` → 201.
-    - **Rolls:** every AI generation spends one roll: the first generation with access, each regeneration and `POST /users/me/rewinds/:year/ai-recap`. The first time a Rewind uses the AI it gets the quota of the open edition: `premiumRegenerations` with full premium, `giftRegenerations` with a specific Rewind grant. That quota is fixed (`premiumAccessKind` records which one) and does not change if the access changes later. With access but a quota of 0 the base is created without calling the AI.
+    - **Rolls:** every AI generation spends one roll: the first generation with access, each regeneration and `POST /users/me/rewinds/:year/ai-recap`. The first time a Rewind uses the AI it gets the quota of the open edition: `premiumRegenerations` with full premium, `giftRegenerations` with a specific Rewind grant. That quota is fixed (`premiumAccessKind` records which one) and does not change if the access changes later. With access, no grace and a quota of 0, a first generation with `writeAiRecap: true` gets 409 `REWIND_REGENERATION_LIMIT` and creates nothing; with `writeAiRecap: false` it creates the base without calling the AI. `canWriteAiRecap` in `GET /users/:username/rewinds` tells the client beforehand.
     - **First generation without the recap (`writeAiRecap: false`):** with access, the quota is assigned and the premium stats are stored, but nothing is spent and the AI is not called; `ownerControls.aiRecapState` is `"available"`.
     - **Regeneration:** `expectedGeneratedAt` equal to the stored `generatedAt` → 200, with new options. Needs `rewind.premium` access; without it the options stay fixed and the request gets 402. Inside the grace window of the edition (`graceStartsAt` to `graceEndsAt`) and only for the edition year, one extra AI generation is spent first without using a roll (`graceUsed`). With no grace and no rolls left → 409 `REWIND_REGENERATION_LIMIT`.
     - **AI failure:** the roll or the grace is given back only when the failure spent no AI tokens (provider unavailable, AI not configured, an error before the call). If the model answered with an unusable output (`IA_INVALID_OUTPUT`, `IA_INVALID_RESPONSE`) or timed out (`IA_TIMEOUT`), it stays spent.
@@ -116,7 +116,7 @@ docs: |-
     | 404    | REWIND_NOT_FOUND           | The year is not open, is before the sign-up or has no data                  |
     | 409    | REWIND_PERIOD_CLOSED       | No Rewind edition is open today                                             |
     | 409    | REWIND_GENERATION_CONFLICT | `expectedGeneratedAt` does not match the stored generation (or the row exists and it is `null`, or no row exists and it is not `null`) |
-    | 409    | REWIND_REGENERATION_LIMIT  | No grace and no rolls left                                                  |
+    | 409    | REWIND_REGENERATION_LIMIT  | No grace and no rolls left, on a regeneration or on a first generation with `writeAiRecap: true` |
     | 422    | AUTH_SCHEMA_INVALID        | Missing or malformed `Authorization` header                                 |
     | 422    | COMMON_SCHEMA_INVALID      | Bad `year` or body (unknown language, non-boolean flag, bad date, extra fields) |
     | 429    | AUTH_RATE_LIMITED          | More than 5 requests in 10 minutes                                          |

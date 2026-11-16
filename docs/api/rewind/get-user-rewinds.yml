@@ -59,6 +59,7 @@ docs: |-
             "year": 2026,
             "isGenerated": true,
             "generationBlockedBy": null,
+            "canWriteAiRecap": false,
             "persona": "marathoner",
             "finishedCount": 18,
             "startedCount": 23,
@@ -83,6 +84,7 @@ docs: |-
     - `premiumAccess`: only for the owner, `null` for everyone else. The owner's current access to `rewind.premium`, with `allowed`, `source` (`role`, `full-grant`, `feature-grant` or null) and `expiresAt`. It lets the client configure the first generation before a Rewind row exists.
     - `isGenerated`: whether the owner generated the year. Always `true` for visitors, who never get ungenerated years.
     - `generationBlockedBy`: why the owner cannot generate that year now. Only computed for the owner and for years not generated yet; `null` for generated years and for every visitor. `period-closed` when no edition is open today; `requires-premium` when an edition is open, the year is before the edition year and the owner has no full premium (a specific Rewind grant does not count); `null` when the year can be generated.
+    - `canWriteAiRecap`: whether a first generation of that year can write the AI recap now, with the same budget rules as `POST /users/me/rewinds/:year` (access, year allowed, grace window of the edition year or the edition quota). Only `true` for the owner on a year not generated yet; `false` for generated years, without access and for every visitor. When `false`, a first generation must send `writeAiRecap: false`.
     - `persona`: the title of the year, computed with the same rules as `persona` in `GET /users/:username/rewinds/:year` and the same data the viewer gets there (platinums only count for viewers who can see them).
     - `finishedCount` / `startedCount`: distinct games finished (`completed` with `finishedAt` in the year) and started (`startedAt` in the year).
     - `hoursPlayed`: sum of `realDuration` of the `completed` and `abandoned` runs with `finishedAt` in the year, rounded to 1 decimal.
