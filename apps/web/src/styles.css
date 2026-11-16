@@ -242,6 +242,7 @@ h6 {
 }
 
 .page-scroller {
+	position: relative;
 	container-type: inline-size;
 	container-name: page;
 }
