@@ -6,6 +6,16 @@ info:
 http:
     method: POST
     url: "{{BASE_URL}}/users/me/rewinds/:year/ai-recap"
+    headers:
+        - name: Content-Type
+          value: application/json
+    body:
+        type: json
+        data: |-
+            {
+              "includePrivateRuns": false,
+              "includeNotes": true
+            }
     auth: inherit
     params:
         - name: year
@@ -18,16 +28,25 @@ settings:
 docs: |-
     ## Add Own Rewind AI Recap
 
-    Generates the AI recap (and the premium stats, if they are missing) of a Rewind the owner already generated. Used to retry after a failed recap, or by an owner who gained `rewind.premium` access after generating the year. Uses the stored `language`, `includesPrivateRuns` and `includesNotes`. Like any AI generation it needs an open edition and the year allowed (the edition year, or a previous year with full premium), and spends the grace if it is available or one roll otherwise; the first AI use assigns the quota of the open edition (see `POST /users/me/rewinds/:year`). If the AI fails, the grace or the roll is given back.
+    Generates the AI recap (and the premium stats, if they are missing) of a Rewind the owner already generated. Used to retry after a failed recap, or by an owner who gained `rewind.premium` access after generating the year. Uses the stored `language`; `includePrivateRuns` and `includeNotes` come in the body, are stored on the Rewind and the premium stats are recomputed with them. Like any AI generation it needs an open edition and the year allowed (the edition year, or a previous year with full premium), and spends the grace if it is available or one roll otherwise; the first AI use assigns the quota of the open edition (see `POST /users/me/rewinds/:year`). If the AI fails without spending tokens (provider unavailable, AI not configured), the grace or the roll is given back; an unusable output or a timeout keeps it spent.
 
     **Authentication:** Bearer token required (roles: user, premium, moderator, admin). The owner must currently have `rewind.premium` access through a premium role, temporary full premium or a specific Rewind grant.
-    **Rate Limit:** 5 requests every 10 minutes (shared with `POST /users/me/rewinds/:year`).
+    **Rate Limit:** 5 requests every 10 minutes per user, and 2 AI recaps per user per day, both shared with `POST /users/me/rewinds/:year`; admins and moderators are exempt.
 
     ### Path Params
 
     | Param | Type    | Required | Description                                   |
     |-------|---------|----------|-----------------------------------------------|
     | year  | integer | Yes      | Calendar year, digits only, from 2000 to 2100 |
+
+    ### Request Body
+
+    | Field              | Type    | Required | Description                                                           |
+    |--------------------|---------|----------|-----------------------------------------------------------------------|
+    | includePrivateRuns | boolean | Yes      | Feed private runs to the AI recap and the premium stats               |
+    | includeNotes       | boolean | Yes      | Feed the run notes to the AI recap only. Never returned               |
+
+    Unknown fields are rejected.
 
     Adding the recap to a frozen Rewind (a previous year, in a later edition) clears its snapshot and `frozenAt`: the Rewind is live again with the design of the open edition and is frozen again when that edition closes.
 
@@ -97,6 +116,7 @@ docs: |-
     | 409    | REWIND_PERIOD_CLOSED             | No Rewind edition is open today                   |
     | 409    | REWIND_REGENERATION_LIMIT        | No grace and no rolls left                        |
     | 422    | AUTH_SCHEMA_INVALID              | Missing or malformed `Authorization` header       |
-    | 422    | COMMON_SCHEMA_INVALID            | Bad `year`                                        |
-    | 429    | AUTH_RATE_LIMITED                | Too many requests                                 |
+    | 422    | COMMON_SCHEMA_INVALID            | Bad `year` or body (missing or non-boolean flag, extra fields) |
+    | 429    | AUTH_RATE_LIMITED                | More than 5 requests in 10 minutes                |
+    | 429    | REWIND_AI_RECAP_DAILY_LIMIT      | The user already used today's 2 AI recaps; nothing is spent |
     | 503    | REWIND_AI_RECAP_FAILED           | The AI recap could not be generated; it stays `failed` |
