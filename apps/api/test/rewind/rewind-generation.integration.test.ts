@@ -7,6 +7,7 @@ import { Op } from "sequelize";
 
 import { Backlog } from "../../src/backlog/backlog.model";
 import { type Game } from "../../src/games/game.model";
+import * as iaServiceError from "../../src/ia/errors/ia.service-error";
 import { type Platform } from "../../src/platforms/platform.model";
 import { Rewind } from "../../src/rewind/rewind.model";
 import {
@@ -531,6 +532,32 @@ void describe("premium generation", () => {
 		const again = await requestAiRecap(player, 2026);
 		assert.equal(again.status, 409);
 		assert.equal(again.body.type, "REWIND_AI_RECAP_EXISTS");
+	});
+
+	void it("keeps the generation spent when the AI answered but its output was unusable", async () => {
+		const player = await playerWithYears("premium");
+		mockPremiumStats();
+		const failing = mockAiRecap(() =>
+			Promise.reject(iaServiceError.invalidOutputError("schema mismatch"))
+		);
+
+		const response = await generate(player, 2026).expect(201);
+		assert.equal(response.body.data.ownerControls.aiRecapState, "failed");
+		assert.equal((await findRewindRow(player, 2026))?.regenerationsLeft, 1);
+
+		failing.mock.mockImplementation(() =>
+			Promise.reject(iaServiceError.providerUnavailableError("503"))
+		);
+		const unavailable = await requestAiRecap(player, 2026);
+		assert.equal(unavailable.status, 503);
+		assert.equal((await findRewindRow(player, 2026))?.regenerationsLeft, 1);
+
+		failing.mock.mockImplementation(() =>
+			Promise.reject(iaServiceError.timeoutError("slow"))
+		);
+		const timedOut = await requestAiRecap(player, 2026);
+		assert.equal(timedOut.status, 503);
+		assert.equal((await findRewindRow(player, 2026))?.regenerationsLeft, 0);
 	});
 
 	void it("answers 201 with a failed recap when the premium stats crash", async () => {
