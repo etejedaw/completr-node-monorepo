@@ -1,7 +1,7 @@
 ---
 lang: es
-version: "2.5"
-updated: 2026-11-07
+version: "2.6"
+updated: 2026-11-16
 title: Política de privacidad
 summary: "La idea de fondo es simple: recojo lo mínimo para que la app funcione, no vendo tus datos ni los cedo con fines comerciales, y puedes pedir una copia o el borrado de todo cuando quieras."
 highlights:
@@ -68,7 +68,7 @@ Lo que **no** hago: no vendo ni cedo tus datos con fines comerciales, no hago pu
 
 ## Base legal
 
-Trato tus datos de cuenta y tu contenido para poder prestarte el servicio que solicitas al registrarte (ejecución de un contrato, artículo 13 letra c de la Ley 21.719). La analítica agregada y los registros de seguridad se apoyan en mi interés legítimo en mantener la app funcionando y mejorarla (artículo 13 letra d). El Rewind, incluido su resumen con IA, es parte del servicio que solicitas al generarlo (artículo 13 letra c). Tus notas y tus partidas privadas solo entran si activas el interruptor correspondiente en ese Rewind. El pedido de invitación se apoya en tu consentimiento (artículo 12).
+Trato tus datos de cuenta y tu contenido para poder prestarte el servicio que solicitas al registrarte (ejecución de un contrato, artículo 13 letra c de la Ley 21.719). La analítica agregada y los registros de seguridad se apoyan en mi interés legítimo en mantener la app funcionando y mejorarla (artículo 13 letra d). El Rewind, incluido su resumen con IA, es parte del servicio que solicitas al generarlo (artículo 13 letra c). Tus notas y tus partidas privadas solo entran si activas el interruptor correspondiente en ese Rewind, y ese mismo interruptor de partidas privadas decide si entran Up Next y tus platinos cuando sus secciones no están en Everyone. El pedido de invitación se apoya en tu consentimiento (artículo 12).
 
 Puedes retirar ese consentimiento cuando quieras, sin explicar por qué y sin costo: escríbeme y saco tu correo de la lista. Retirarlo no afecta lo que hice antes con tu permiso.
 
@@ -93,7 +93,7 @@ Cada sección de tu cuenta (perfil, My Games, My Shelf, Platinums, Sagas, Rewind
 Hay algunas excepciones, y van en sentidos opuestos:
 
 - **Las listas nacen privadas.** Cada lista que creas empieza siendo solo tuya; la publicas por separado cuando tú decides.
-- **El Rewind queda oculto hasta que lo generas.** Aunque su sección esté en Everyone, nadie ve el Rewind de un año hasta que lo creas desde tu perfil. Quien pueda verlo ve también su resumen con IA, que puede parafrasear tus reseñas, y tus notas si las incluiste, pero nunca las cita.
+- **El Rewind queda oculto hasta que lo generas.** Aunque su sección esté en Everyone, nadie ve el Rewind de un año hasta que lo creas desde tu perfil. Quien pueda verlo ve también su resumen con IA, que puede parafrasear tus reseñas y etiquetas, y tus notas si las incluiste, pero nunca las cita. Su reto para el año siguiente puede nombrar un juego de tu lista Up Next.
 - **Las reseñas no tienen control de visibilidad.** Si escribes una reseña o pones una nota a un juego, cualquier persona con cuenta en Completr puede verla en la ficha de ese juego, aunque el resto de tu perfil esté en privado. Si no quieres que algo se vea, no lo publiques como reseña.
 
 ## Por dónde pasan tus datos
@@ -103,7 +103,7 @@ A nadie se los cedo con fines comerciales. Pero para que la app funcione tus dat
 - **Cloudflare** (Estados Unidos). Todo lo que envías y recibes pasa por su red antes de llegar a mis servidores, así que técnicamente puede verlo.
 - **Mis servidores** (São Paulo, Brasil). Aquí corren la aplicación, la base de datos y la analítica. Los administro yo directamente.
 - **Servicio de correo** (São Paulo, Brasil). Recibe el correo que dejas al pedir una invitación.
-- **DeepSeek** (China). Escribe el resumen con IA del Rewind. Solo recibe datos cuando generas un Rewind que incluye ese resumen, y solo los de ese año: tus juegos, con sus fechas, plataforma, géneros, horas, tus puntuaciones y las reseñas que publicaste de ellos, y las estadísticas calculadas a partir de ellos. Tus notas escritas y tus partidas privadas solo van si activas sus interruptores. No recibe nada que te identifique: ni tu correo, ni tu nombre de usuario, ni tu nombre visible, ni el identificador de tu cuenta, solo tus partidas. La petición sale desde mis servidores, así que tampoco ve tu dirección IP. La única excepción es lo que tú mismo escribas que pueda identificarte en tus reseñas, o en tus notas si eliges incluirlas. DeepSeek almacena y procesa esos datos en China. Sus condiciones no fijan cuánto tiempo conserva lo que recibe por su API ni aclaran si lo usa para entrenar sus modelos: su política general contempla ese uso para sus propios servicios y permite oponerse escribiendo a privacy@deepseek.com. Como la petición no lleva nada que te identifique, esa copia no queda asociada a ti.
+- **DeepSeek** (China). Escribe el resumen con IA del Rewind. Solo recibe datos cuando generas un Rewind que incluye ese resumen, y solo los de ese año: tus juegos, con sus fechas, plataforma, géneros, horas, tus puntuaciones, las reseñas que publicaste de ellos, las etiquetas que les pusiste y si sacaste su platino y cuándo, las estadísticas calculadas a partir de ellos, y los primeros cinco juegos de tu lista Up Next con sus géneros, duración, etiquetas y cuánto llevan esperando. Tus notas escritas, también las de tus platinos, y tus partidas privadas solo van si activas sus interruptores. Up Next y tus platinos solo van si sus secciones están en Everyone o si incluyes tus partidas privadas. No recibe nada que te identifique: ni tu correo, ni tu nombre de usuario, ni tu nombre visible, ni el identificador de tu cuenta, solo tus partidas. La petición sale desde mis servidores, así que tampoco ve tu dirección IP. La única excepción es lo que tú mismo escribas que pueda identificarte en tus reseñas o etiquetas, o en tus notas si eliges incluirlas. DeepSeek almacena y procesa esos datos en China. Sus condiciones no fijan cuánto tiempo conserva lo que recibe por su API ni aclaran si lo usa para entrenar sus modelos: su política general contempla ese uso para sus propios servicios y permite oponerse escribiendo a privacy@deepseek.com. Como la petición no lleva nada que te identifique, esa copia no queda asociada a ti.
 
 Los datos de los videojuegos provienen de catálogos y sitios externos (como RAWG, IGDB, Metacritic, HowLongToBeat y Wikidata), pero esa es información que _recibo_: nunca envío tus datos personales a esos servicios.
 
@@ -113,13 +113,13 @@ Fuera de esos y de los servidores de imágenes que explico a continuación, no h
 
 Mis servidores están en Brasil y Cloudflare es un servicio estadounidense, así que tus datos salen de Chile. Esas transferencias están amparadas en los acuerdos de tratamiento de datos suscritos con cada proveedor, que incluyen cláusulas contractuales con garantías de protección.
 
-Cuando generas un Rewind con resumen con IA, los datos descritos para DeepSeek también salen de Chile, hacia China. Esa transferencia solo ocurre cuando pides ese resumen, porque sin ella no se puede escribir, y se limita a lo que el resumen necesita.
+Cuando generas un Rewind con resumen con IA, los datos descritos para DeepSeek (tus juegos de ese año con sus estadísticas, etiquetas y platinos, los primeros juegos de tu lista Up Next y, si las incluyes, tus notas) también salen de Chile, hacia China. Esa transferencia solo ocurre cuando pides ese resumen, porque sin ella no se puede escribir, y se limita a lo que el resumen necesita.
 
 ## Decisiones automatizadas
 
 Ningún sistema automatizado toma decisiones sobre tu cuenta: nada de lo que puedes hacer en Completr depende de uno. No uso tus datos para entrenar modelos.
 
-El único perfil es el Rewind, y solo existe si lo pides. Al generarlo, la app te asigna una persona (como Trophy Hunter o The Finisher) a partir de tus números del año y, con el resumen con IA, DeepSeek escribe una descripción de tus hábitos como jugador. No tiene ningún efecto sobre tu cuenta, tú decides quién lo ve desde su sección de privacidad y puedes regenerarlo para reemplazarlo.
+El único perfil es el Rewind, y solo existe si lo pides. Al generarlo, la app te asigna una persona (como Trophy Hunter o The Finisher) a partir de tus números del año y, con el resumen con IA, DeepSeek escribe una descripción de tus hábitos como jugador y un reto para el año siguiente, que puede sugerir un juego de tu lista Up Next. No tiene ningún efecto sobre tu cuenta, tú decides quién lo ve desde su sección de privacidad y puedes regenerarlo para reemplazarlo.
 
 ## Cuánto tiempo los conservo
 
