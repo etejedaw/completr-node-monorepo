@@ -45,6 +45,7 @@ export function buildRecapRewind(overrides: Partial<Rewind> = {}): Rewind {
 		otherYears: [],
 		totals: buildTotals(),
 		finishedGames: [],
+		abandonedGames: [],
 		highlights: {
 			topRated: null,
 			bestRatio: null,

@@ -35,6 +35,25 @@ void describe("selectShareCovers", () => {
 		);
 	});
 
+	void it("never picks an abandoned game as a cover", () => {
+		const rewind = buildRewind({
+			finishedGames: [finishedGame({ gameId: "kept", code: "kept" })],
+			abandonedGames: [
+				finishedGame({
+					gameId: "dropped",
+					code: "dropped",
+					coverUrl: "https://img.test/dropped.jpg"
+				})
+			]
+		});
+		rewind.highlights.topRated = null;
+
+		assert.deepEqual(
+			selectShareCovers(rewind, 4).map(game => game.code),
+			["kept"]
+		);
+	});
+
 	void it("puts games without cover art after the ones that have it", () => {
 		const rewind = buildRewind({
 			finishedGames: [

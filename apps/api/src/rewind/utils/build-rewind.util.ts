@@ -37,6 +37,9 @@ export function buildRewind(
 		).filter(other => other !== year),
 		totals,
 		finishedGames,
+		abandonedGames: listLatestFinishedRuns(yearRuns.abandoned).map(
+			toRewindFinishedGame
+		),
 		highlights: calculateRewindHighlights({
 			year,
 			finishedRuns: yearRuns.finished,

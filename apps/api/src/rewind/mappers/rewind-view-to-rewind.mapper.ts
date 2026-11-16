@@ -39,6 +39,7 @@ export function rewindViewToRewind(
 		otherYears: live.otherYears,
 		totals: visibleTotals(view.totals, live.platinumsVisible),
 		finishedGames: view.finishedGames.map(toFinishedGame),
+		abandonedGames: (view.abandonedGames ?? []).map(toFinishedGame),
 		highlights: {
 			...view.highlights,
 			classic: view.highlights.classic ?? null

@@ -248,6 +248,125 @@ void describe("buildRewind", () => {
 		});
 	});
 
+	void describe("abandonedGames", () => {
+		function abandonedRun(
+			gameCode: string,
+			finishedAt: string,
+			overrides: Partial<RewindRun> = {}
+		) {
+			return buildRun(gameCode, {
+				status: "abandoned",
+				finishedAt,
+				...overrides
+			});
+		}
+
+		void it("lists each game once by its latest abandoned run, in chronological order", () => {
+			const runs = [
+				abandonedRun("late", "2025-11-20"),
+				abandonedRun("twice", "2025-02-01"),
+				abandonedRun("early", "2025-01-15", { platform: null }),
+				abandonedRun("twice", "2025-08-09", {
+					platform: { name: "PC", abbreviation: "PC" }
+				})
+			];
+
+			const { abandonedGames, totals } = rewindOf(runs);
+
+			assert.deepEqual(
+				abandonedGames.map(game => [
+					game.code,
+					game.finishedAt,
+					game.platformAbbreviation
+				]),
+				[
+					["early", "2025-01-15", null],
+					["twice", "2025-08-09", "PC"],
+					["late", "2025-11-20", "NSW"]
+				]
+			);
+			assert.equal(abandonedGames.length, totals.abandoned);
+		});
+
+		void it("carries the game art like the finished games", () => {
+			const [game] = rewindOf([
+				abandonedRun("art", "2025-03-03")
+			]).abandonedGames;
+
+			assert.deepEqual(game, {
+				gameId: "id-art",
+				code: "art",
+				title: "ART",
+				coverUrl: "https://img.test/art.jpg",
+				backgroundUrl: "https://img.test/art-bg.jpg",
+				finishedAt: "2025-03-03",
+				platformAbbreviation: "NSW"
+			});
+		});
+
+		void it("keeps a game abandoned and then finished in the same year in both lists, as the totals count it", () => {
+			const runs = [
+				abandonedRun("comeback", "2025-03-01"),
+				finishedRun("comeback", "2025-09-01")
+			];
+
+			const rewind = rewindOf(runs);
+
+			assert.deepEqual(
+				rewind.abandonedGames.map(game => game.finishedAt),
+				["2025-03-01"]
+			);
+			assert.deepEqual(
+				rewind.finishedGames.map(game => game.finishedAt),
+				["2025-09-01"]
+			);
+			assert.equal(rewind.totals.abandoned, 1);
+			assert.equal(rewind.totals.finished, 1);
+		});
+
+		void it("leaves out finished, still open and other years' runs", () => {
+			const runs = [
+				finishedRun("done", "2025-04-01"),
+				buildRun("playing", {
+					status: "playing",
+					startedAt: "2025-02-01"
+				}),
+				buildRun("undated", { status: "abandoned", finishedAt: null }),
+				abandonedRun("before", "2024-12-31"),
+				abandonedRun("after", "2026-01-01")
+			];
+
+			assert.deepEqual(rewindOf(runs, { year: 2025 }).abandonedGames, []);
+		});
+
+		void it("does not change the finished timeline, the highlights or the year mix", () => {
+			const finished = [
+				finishedRun("one", "2025-02-01"),
+				finishedRun("two", "2025-06-01")
+			];
+			const withAbandoned = rewindOf([
+				...finished,
+				abandonedRun("drop", "2025-01-01"),
+				abandonedRun("drop-late", "2025-12-31")
+			]);
+			const withoutAbandoned = rewindOf(finished);
+
+			assert.deepEqual(
+				withAbandoned.finishedGames,
+				withoutAbandoned.finishedGames
+			);
+			assert.deepEqual(
+				withAbandoned.highlights.firstFinished,
+				withoutAbandoned.highlights.firstFinished
+			);
+			assert.deepEqual(
+				withAbandoned.highlights.lastFinished,
+				withoutAbandoned.highlights.lastFinished
+			);
+			assert.deepEqual(withAbandoned.yearMix, withoutAbandoned.yearMix);
+		});
+	});
+
 	void describe("topRated", () => {
 		void it("is null when no finished run has a rating", () => {
 			const runs = [

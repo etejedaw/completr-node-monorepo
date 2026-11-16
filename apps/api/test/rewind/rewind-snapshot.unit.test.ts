@@ -14,6 +14,7 @@ import { buildRewindYears } from "../../src/rewind/utils/build-rewind-years.util
 import { listVisibleRewindYears } from "../../src/rewind/utils/list-visible-rewind-years.util";
 import { resolveClosedRewindEdition } from "../../src/rewind/utils/resolve-closed-rewind-edition.util";
 import {
+	buildRun,
 	calendarOn,
 	editionOf,
 	finishedRun,
@@ -156,6 +157,63 @@ void describe("buildRewindView", () => {
 		assert.deepEqual(ownerView?.finishedGames, []);
 	});
 
+	void it("stores the abandoned games of the year by their latest run, with platform and genres", () => {
+		const runs = [
+			buildRun("tunic", {
+				status: "abandoned",
+				finishedAt: "2026-02-01"
+			}),
+			buildRun("tunic", {
+				status: "abandoned",
+				finishedAt: "2026-10-05",
+				platform: { name: "PC", abbreviation: "PC" }
+			}),
+			buildRun("inside", {
+				status: "abandoned",
+				finishedAt: "2026-04-04"
+			}),
+			buildRun("limbo", {
+				status: "abandoned",
+				finishedAt: "2025-12-31"
+			}),
+			finishedRun("hades", "2026-03-10")
+		];
+
+		const view = buildRewindView(
+			viewSource(runs, {
+				genres: [
+					{ gameId: "id-tunic", code: "adventure", name: "Adventure" }
+				]
+			})
+		);
+
+		assert.deepEqual(
+			view?.abandonedGames?.map(game => [
+				game.title,
+				game.finishedAt,
+				game.platformName,
+				game.genres
+			]),
+			[
+				["INSIDE", "2026-04-04", "Switch", []],
+				["TUNIC", "2026-10-05", "PC", ["Adventure"]]
+			]
+		);
+		assert.equal(view?.abandonedGames?.length, view?.totals.abandoned);
+		assert.deepEqual(
+			view?.finishedGames.map(game => game.title),
+			["HADES"]
+		);
+	});
+
+	void it("stores an empty abandoned list when nothing was abandoned", () => {
+		const view = buildRewindView(
+			viewSource([finishedRun("hades", "2026-03-10")])
+		);
+
+		assert.deepEqual(view?.abandonedGames, []);
+	});
+
 	void it("drops the AI recap that is not ready and keeps the access kind only with premium content", () => {
 		const view = buildRewindView(
 			viewSource([finishedRun("hades", "2026-03-10")], {
@@ -264,6 +322,44 @@ void describe("rewindViewToRewind", () => {
 
 		assert.equal(rewind.highlights.classic, null);
 		assert.equal(rewind.highlights.topRated, view.highlights.topRated);
+	});
+
+	void it("serves the abandoned games of the photo with the same fields as the finished ones", () => {
+		const withAbandoned = buildRewindView(
+			viewSource([
+				buildRun("tunic", {
+					status: "abandoned",
+					finishedAt: "2026-06-06"
+				})
+			])
+		)!;
+
+		const rewind = rewindViewToRewind(withAbandoned, live);
+
+		assert.deepEqual(rewind.abandonedGames, [
+			{
+				gameId: "id-tunic",
+				code: "tunic",
+				title: "TUNIC",
+				coverUrl: "https://img.test/tunic.jpg",
+				backgroundUrl: "https://img.test/tunic-bg.jpg",
+				finishedAt: "2026-06-06",
+				platformAbbreviation: "NSW"
+			}
+		]);
+	});
+
+	void it("reads a photo frozen before the abandoned games existed as one without them", () => {
+		const viewBeforeAbandoned = { ...view };
+		delete viewBeforeAbandoned.abandonedGames;
+
+		const rewind = rewindViewToRewind(viewBeforeAbandoned, live);
+
+		assert.deepEqual(rewind.abandonedGames, []);
+		assert.deepEqual(
+			rewind.finishedGames.map(game => game.code),
+			view.finishedGames.map(game => game.code)
+		);
 	});
 
 	void it("serves the persona and totals without platinums to a viewer without access to them", () => {
