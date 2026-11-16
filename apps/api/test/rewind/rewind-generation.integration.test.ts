@@ -32,8 +32,8 @@ import {
 	PREMIUM_STATS,
 	readRewind,
 	readRewindYears,
+	regenerateStored,
 	regenerationOf,
-	requestAiRecap,
 	signUpOn
 } from "./rewind-generation.helper";
 
@@ -502,7 +502,7 @@ void describe("premium generation", () => {
 		assert.equal(aiMock.mock.callCount(), 1);
 	});
 
-	void it("answers 201 with a failed recap when the AI fails, and retries with ai-recap", async () => {
+	void it("answers 201 with a failed recap when the AI fails, and retries with a regeneration", async () => {
 		const player = await playerWithYears("premium");
 		mockPremiumStats();
 		const failing = mockAiRecap(() => Promise.reject(new Error("timeout")));
@@ -514,9 +514,12 @@ void describe("premium generation", () => {
 		assert.equal(response.body.data.ownerControls.aiRecapState, "failed");
 		assert.equal(failing.mock.callCount(), 1);
 
-		const retryFailure = await requestAiRecap(player, 2026);
-		assert.equal(retryFailure.status, 503);
-		assert.equal(retryFailure.body.type, "REWIND_AI_RECAP_FAILED");
+		const retryFailure = await regenerateStored(player, 2026);
+		assert.equal(retryFailure.status, 200);
+		assert.equal(
+			retryFailure.body.data.ownerControls.aiRecapState,
+			"failed"
+		);
 		assert.equal(
 			(await findRewindRow(player, 2026))?.aiRecapStatus,
 			"failed"
@@ -525,14 +528,11 @@ void describe("premium generation", () => {
 		assert.equal((await findRewindRow(player, 2026))?.regenerationsLeft, 2);
 
 		failing.mock.mockImplementation(() => Promise.resolve(AI_RECAP));
-		const retry = await requestAiRecap(player, 2026).expect(200);
+		const retry = await regenerateStored(player, 2026);
+		assert.equal(retry.status, 200);
 		assert.deepEqual(retry.body.data.aiRecap, AI_RECAP);
 		assert.equal(retry.body.data.ownerControls.aiRecapState, "ready");
 		assert.equal(retry.body.data.ownerControls.regenerationsLeft, 1);
-
-		const again = await requestAiRecap(player, 2026);
-		assert.equal(again.status, 409);
-		assert.equal(again.body.type, "REWIND_AI_RECAP_EXISTS");
 	});
 
 	void it("creates a premium Rewind without the AI recap, with premium stats and the quota untouched", async () => {
@@ -560,7 +560,7 @@ void describe("premium generation", () => {
 		assert.equal(row?.aiRecapStatus, "none");
 	});
 
-	void it("adds the AI recap with the privacy switches it receives", async () => {
+	void it("adds the AI recap with the privacy switches it receives when regenerating", async () => {
 		const player = await playerWithYears("premium");
 		mockPremiumStats();
 		const aiMock = mockAiRecap();
@@ -569,29 +569,17 @@ void describe("premium generation", () => {
 			writeAiRecap: false
 		}).expect(201);
 
-		const added = await requestAiRecap(player, 2026, {
+		const added = await regenerateStored(player, 2026, {
 			includePrivateRuns: true,
 			includeNotes: true
-		}).expect(200);
+		});
+		assert.equal(added.status, 200);
 
 		assert.equal(aiMock.mock.callCount(), 1);
 		assert.deepEqual(added.body.data.aiRecap, AI_RECAP);
 		assert.equal(added.body.data.ownerControls.includesPrivateRuns, true);
 		assert.equal(added.body.data.ownerControls.includesNotes, true);
 		assert.equal(added.body.data.ownerControls.regenerationsLeft, 1);
-	});
-
-	void it("rejects an ai-recap request without its privacy switches", async () => {
-		const player = await playerWithYears("premium");
-		mockPremiumStats();
-		mockAiRecap();
-		await generate(player, 2026, {
-			...FIRST_GENERATION,
-			writeAiRecap: false
-		}).expect(201);
-
-		await requestAiRecap(player, 2026, {}).expect(422);
-		assert.equal((await findRewindRow(player, 2026))?.regenerationsLeft, 2);
 	});
 
 	void it("ignores writeAiRecap for a user without AI access", async () => {
@@ -622,15 +610,20 @@ void describe("premium generation", () => {
 		failing.mock.mockImplementation(() =>
 			Promise.reject(iaServiceError.providerUnavailableError("503"))
 		);
-		const unavailable = await requestAiRecap(player, 2026);
-		assert.equal(unavailable.status, 503);
+		const unavailable = await regenerateStored(player, 2026);
+		assert.equal(unavailable.status, 200);
+		assert.equal(
+			unavailable.body.data.ownerControls.aiRecapState,
+			"failed"
+		);
 		assert.equal((await findRewindRow(player, 2026))?.regenerationsLeft, 1);
 
 		failing.mock.mockImplementation(() =>
 			Promise.reject(iaServiceError.timeoutError("slow"))
 		);
-		const timedOut = await requestAiRecap(player, 2026);
-		assert.equal(timedOut.status, 503);
+		const timedOut = await regenerateStored(player, 2026);
+		assert.equal(timedOut.status, 200);
+		assert.equal(timedOut.body.data.ownerControls.aiRecapState, "failed");
 		assert.equal((await findRewindRow(player, 2026))?.regenerationsLeft, 0);
 	});
 
@@ -649,7 +642,7 @@ void describe("premium generation", () => {
 		assert.equal(aiMock.mock.callCount(), 0);
 	});
 
-	void it("answers REWIND_AI_RECAP_IN_PROGRESS for a recent pending recap and lets a stale one retry", async () => {
+	void it("reads a pending recap as failed and lets a regeneration replace it", async () => {
 		const player = await playerWithYears("premium");
 		mockPremiumStats();
 		const aiMock = mockAiRecap(() => Promise.reject(new Error("down")));
@@ -666,19 +659,13 @@ void describe("premium generation", () => {
 		).expect(200);
 		assert.equal(pending.body.data.ownerControls.aiRecapState, "failed");
 
-		const busy = await requestAiRecap(player, 2026);
-		assert.equal(busy.status, 409);
-		assert.equal(busy.body.type, "REWIND_AI_RECAP_IN_PROGRESS");
-
-		await Rewind.update(
-			{ aiRecapRequestedAt: new Date(Date.now() - 3 * 60 * 1000) },
-			{ where: { userId: player.user.id, year: 2026 } }
-		);
 		aiMock.mock.mockImplementation(() => Promise.resolve(AI_RECAP));
-		await requestAiRecap(player, 2026).expect(200);
+		const replaced = await regenerateStored(player, 2026);
+		assert.equal(replaced.status, 200);
+		assert.deepEqual(replaced.body.data.aiRecap, AI_RECAP);
 	});
 
-	void it("answers one ai-recap and rejects the double click", async () => {
+	void it("answers one regeneration and rejects the double click with a conflict", async () => {
 		const player = await playerWithYears("premium");
 		mockPremiumStats();
 		const aiMock = mockAiRecap(() => Promise.reject(new Error("down")));
@@ -690,9 +677,13 @@ void describe("premium generation", () => {
 				})
 		);
 
+		const generatedAt = (
+			await findRewindRow(player, 2026)
+		)?.generatedAt.toISOString() as string;
+
 		const responses = await Promise.all([
-			requestAiRecap(player, 2026),
-			requestAiRecap(player, 2026)
+			generate(player, 2026, regenerationOf(generatedAt)),
+			generate(player, 2026, regenerationOf(generatedAt))
 		]);
 
 		assert.deepEqual(
@@ -701,9 +692,10 @@ void describe("premium generation", () => {
 		);
 		assert.equal(
 			responses.find(response => response.status === 409)?.body.type,
-			"REWIND_AI_RECAP_IN_PROGRESS"
+			"REWIND_GENERATION_CONFLICT"
 		);
 		assert.equal(aiMock.mock.callCount(), 2);
+		assert.equal((await findRewindRow(player, 2026))?.regenerationsLeft, 1);
 	});
 
 	void it("leaves private runs out of the AI and stats unless the owner includes them", async () => {
@@ -844,7 +836,7 @@ void describe("premium generation", () => {
 });
 
 void describe("premium changes", () => {
-	void it("gives a free owner who becomes premium the premium quota and spends one roll on the AI recap", async () => {
+	void it("gives a free owner who becomes premium the premium quota and spends one roll on the regeneration that adds the AI recap", async () => {
 		const player = await playerWithYears();
 		mockPremiumStats();
 		const aiMock = mockAiRecap();
@@ -853,7 +845,7 @@ void describe("premium changes", () => {
 			language: "es"
 		}).expect(201);
 
-		const free = await requestAiRecap(player, 2026);
+		const free = await regenerateStored(player, 2026, { language: "es" });
 		assert.equal(free.status, 402);
 		assert.equal(free.body.type, "REWIND_AI_RECAP_PREMIUM_REQUIRED");
 
@@ -867,7 +859,10 @@ void describe("premium changes", () => {
 
 		assert.equal(own.body.data.ownerControls.regenerationsLeft, 2);
 
-		const added = await requestAiRecap(player, 2026).expect(200);
+		const added = await regenerateStored(player, 2026, {
+			language: "es"
+		});
+		assert.equal(added.status, 200);
 		assert.deepEqual(added.body.data.aiRecap, AI_RECAP);
 		assert.deepEqual(added.body.data.premiumStats, PREMIUM_STATS);
 		assert.equal(added.body.data.ownerControls.regenerationsLeft, 1);
@@ -908,18 +903,6 @@ void describe("premium changes", () => {
 		assert.equal(own.body.data.ownerControls.regenerationsLeft, 1);
 		assert.equal(own.body.data.ownerControls.canRegenerate, false);
 		assert.equal(aiMock.mock.callCount(), 1);
-	});
-
-	void it("answers 404 REWIND_NOT_GENERATED to ai-recap for an ungenerated year", async () => {
-		const player = await playerWithYears("premium");
-
-		for (const year of [2026, 2024]) {
-			const response = await requestAiRecap(player, year);
-			assert.equal(response.status, 404);
-			assert.equal(response.body.type, "REWIND_NOT_GENERATED");
-		}
-		const garbage = await requestAiRecap(player, "abc");
-		assert.equal(garbage.status, 422);
 	});
 
 	void it("treats moderators and admins as premium", async () => {

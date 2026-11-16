@@ -3,24 +3,19 @@ import { type Transaction } from "sequelize";
 import { rethrowSequelizeError } from "../../common/errors/sequelize-error.mapper";
 import { sequelize } from "../../database/sequelize.database";
 import { type User } from "../../users/user.model";
-import { type AddRewindAiRecapDto } from "../dtos/add-rewind-ai-recap.dto";
 import { type GenerateRewindDto } from "../dtos/generate-rewind.dto";
 import * as rewindServiceError from "../errors/rewind.service-error";
 import { type RewindPremiumAccessKind } from "../rewind.constants";
 import { Rewind as RewindModel } from "../rewind.model";
 import {
 	type RewindAiBudget,
-	type RewindAiRecapReservation,
 	type RewindGenerationReservation
 } from "../rewind-generation.interface";
-import { type SpendableRewindAiBudget } from "../rewind-generation.types";
 import { rewindAiRecapDailyLimiter } from "../rewind-rate-limiter.config";
 import { type RewindCalendar } from "../rewind-run.interface";
 import { consumeAiRecapDailyQuota } from "../utils/consume-ai-recap-daily-quota.util";
-import { isAiRecapInProgress } from "../utils/is-ai-recap-in-progress.util";
 import { nextGeneratedAt } from "../utils/next-generated-at.util";
 import { planRewindGeneration } from "../utils/plan-rewind-generation.util";
-import { resolveRewindAiBudget } from "../utils/resolve-rewind-ai-budget.util";
 import { resolveRewindAiUseChanges } from "../utils/resolve-rewind-ai-use-changes.util";
 import { resolveRewindGenerationBlocker } from "../utils/resolve-rewind-generation-blocker.util";
 
@@ -174,55 +169,4 @@ export function requireGenerationAllowed(
 		throw rewindServiceError.periodClosedError();
 	if (blocker === "requires-premium")
 		throw rewindServiceError.yearRequiresPremiumError();
-}
-
-function requireAiRecapAllowed(
-	record: RewindModel,
-	calendar: RewindCalendar,
-	accessKind: RewindPremiumAccessKind | null,
-	now: Date
-): SpendableRewindAiBudget {
-	requireGenerationAllowed(record.year, calendar, accessKind);
-	if (accessKind === null)
-		throw rewindServiceError.aiRecapPremiumRequiredError();
-	if (record.aiRecapStatus === "ready" && record.aiRecap)
-		throw rewindServiceError.aiRecapExistsError();
-	if (isAiRecapInProgress(record, now))
-		throw rewindServiceError.aiRecapInProgressError();
-
-	const budget = resolveRewindAiBudget(record, calendar, accessKind);
-	const { spend } = budget;
-	if (!spend) throw rewindServiceError.regenerationLimitError();
-	return { ...budget, spend };
-}
-
-export async function reserveAiRecap(
-	owner: User,
-	year: number,
-	dto: AddRewindAiRecapDto,
-	calendar: RewindCalendar,
-	accessKind: RewindPremiumAccessKind | null
-): Promise<RewindAiRecapReservation> {
-	return sequelize.transaction(async transaction => {
-		const record = await lockRecord(owner.id, year, transaction);
-		if (!record) throw rewindServiceError.notGeneratedError();
-		const now = new Date();
-		const budget = requireAiRecapAllowed(record, calendar, accessKind, now);
-		await requireAiRecapQuota(owner, budget);
-
-		return {
-			record: await record.update(
-				{
-					includesPrivateRuns: dto.includePrivateRuns,
-					includesNotes: dto.includeNotes,
-					aiRecapStatus: "pending",
-					aiRecapRequestedAt: now,
-					...UNFROZEN_FIELDS,
-					...resolveRewindAiUseChanges(record, budget)
-				},
-				{ transaction }
-			),
-			spend: budget.spend
-		};
-	});
 }

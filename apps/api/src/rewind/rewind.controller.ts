@@ -2,7 +2,6 @@ import { type Request, type Response } from "express";
 
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type UsernameParam } from "../users/schemas/username-params.schema";
-import { type AddRewindAiRecapDto } from "./dtos/add-rewind-ai-recap.dto";
 import { type GenerateRewindDto } from "./dtos/generate-rewind.dto";
 import { rewindSerializer, rewindYearsSerializer } from "./rewind.serializer";
 import * as rewindService from "./rewind.service";
@@ -50,17 +49,4 @@ export async function postOwnRewind(request: Request, response: Response) {
 	return response
 		.status(created ? 201 : 200)
 		.json({ data: rewindSerializer(rewind) });
-}
-
-export async function postOwnRewindAiRecap(
-	request: Request,
-	response: Response
-) {
-	const { year } = request.locals.params as OwnRewindYearParams;
-	const dto = request.locals.body as AddRewindAiRecapDto;
-	const user = request.locals.user as RequestUser;
-
-	const rewind = await rewindService.addOwnRewindAiRecap(user.id, year, dto);
-
-	return response.status(200).json({ data: rewindSerializer(rewind) });
 }

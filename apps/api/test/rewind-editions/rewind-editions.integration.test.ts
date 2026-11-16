@@ -26,8 +26,8 @@ import {
 	mockPremiumStats,
 	readRewind,
 	readRewindYears,
+	regenerateStored,
 	regenerationOf,
-	requestAiRecap,
 	signUpOn,
 	storeRewind
 } from "../rewind/rewind-generation.helper";
@@ -139,7 +139,7 @@ void describe("the period of the edition", () => {
 			2026,
 			regenerationOf(stored.generatedAt.toISOString())
 		);
-		const recap = await requestAiRecap(player, 2026);
+		const recap = await regenerateStored(player, 2026);
 		const older = await generate(player, 2025);
 
 		for (const response of [regeneration, recap, older]) {
@@ -350,7 +350,7 @@ void describe("previous years", () => {
 		);
 		assert.equal(response.status, 403);
 		assert.equal(response.body.type, "REWIND_YEAR_REQUIRES_PREMIUM");
-		const recap = await requestAiRecap(player, 2025);
+		const recap = await regenerateStored(player, 2025);
 		assert.equal(recap.status, 403);
 		assert.equal((await findRewindRow(player, 2025))?.regenerationsLeft, 1);
 	});
@@ -388,7 +388,7 @@ void describe("the quota of rolls", () => {
 		assert.equal(row?.premiumAccessKind, "premium");
 		assert.equal(row?.aiRecapStatus, "none");
 
-		const recap = await requestAiRecap(player, 2026);
+		const recap = await regenerateStored(player, 2026);
 		assert.equal(recap.status, 409);
 		assert.equal(recap.body.type, "REWIND_REGENERATION_LIMIT");
 		const regeneration = await generate(
@@ -424,7 +424,7 @@ void describe("the quota of rolls", () => {
 		);
 	});
 
-	void it("spends a gift roll on the AI recap and takes only one on a double click", async () => {
+	void it("spends a gift roll on the regeneration that adds the AI recap and takes only one on a double click", async () => {
 		await replaceEdition({ giftRegenerations: 2 });
 		const player = await playerWithTwoYears();
 		await generate(player, 2026).expect(201);
@@ -437,9 +437,14 @@ void describe("the quota of rolls", () => {
 				})
 		);
 
+		const stored = await findRewindRow(player, 2026);
+		const body = regenerationOf(
+			stored?.generatedAt.toISOString() as string
+		);
+
 		const responses = await Promise.all([
-			requestAiRecap(player, 2026),
-			requestAiRecap(player, 2026)
+			generate(player, 2026, body),
+			generate(player, 2026, body)
 		]);
 
 		assert.deepEqual(
@@ -448,7 +453,7 @@ void describe("the quota of rolls", () => {
 		);
 		assert.equal(
 			responses.find(response => response.status === 409)?.body.type,
-			"REWIND_AI_RECAP_IN_PROGRESS"
+			"REWIND_GENERATION_CONFLICT"
 		);
 		assert.equal(aiMock.mock.callCount(), 1);
 		const row = await findRewindRow(player, 2026);
@@ -456,7 +461,7 @@ void describe("the quota of rolls", () => {
 		assert.equal(row?.regenerationsLeft, 1);
 	});
 
-	void it("gives the roll back when the AI fails on a regeneration or on the AI recap", async () => {
+	void it("gives the roll back when the AI fails on a regeneration or on a retry after a failure", async () => {
 		await replaceEdition();
 		const player = await playerWithTwoYears("premium");
 		mockPremiumStats();
@@ -474,8 +479,9 @@ void describe("the quota of rolls", () => {
 			"failed"
 		);
 		assert.equal(regenerated.body.data.ownerControls.regenerationsLeft, 2);
-		const recap = await requestAiRecap(player, 2026);
-		assert.equal(recap.status, 503);
+		const retry = await regenerateStored(player, 2026);
+		assert.equal(retry.status, 200);
+		assert.equal(retry.body.data.ownerControls.aiRecapState, "failed");
 
 		assert.equal(failing.mock.callCount(), 3);
 		assert.equal((await findRewindRow(player, 2026))?.regenerationsLeft, 2);
@@ -494,7 +500,7 @@ void describe("the quota of rolls", () => {
 		const responses = await Promise.all([
 			generate(player, 2026, body),
 			generate(player, 2026, body),
-			requestAiRecap(player, 2026)
+			regenerateStored(player, 2026)
 		]);
 
 		const statuses = responses.map(response => response.status);
@@ -508,7 +514,7 @@ void describe("the quota of rolls", () => {
 		for (const response of responses.filter(r => r.status !== 200))
 			assert.match(
 				response.body.type,
-				/REWIND_GENERATION_CONFLICT|REWIND_REGENERATION_LIMIT|REWIND_AI_RECAP_IN_PROGRESS|REWIND_AI_RECAP_EXISTS/
+				/REWIND_GENERATION_CONFLICT|REWIND_REGENERATION_LIMIT/
 			);
 	});
 

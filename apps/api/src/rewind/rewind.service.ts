@@ -9,7 +9,6 @@ import * as rewindEditionsService from "../rewind-editions/services/rewind-editi
 import { resolveSectionAccess } from "../users/helpers/visibility.helper";
 import * as usersService from "../users/services/users.service";
 import { type User } from "../users/user.model";
-import { type AddRewindAiRecapDto } from "./dtos/add-rewind-ai-recap.dto";
 import { type GenerateRewindDto } from "./dtos/generate-rewind.dto";
 import * as rewindServiceError from "./errors/rewind.service-error";
 import { rewindViewToRewind } from "./mappers/rewind-view-to-rewind.mapper";
@@ -36,7 +35,6 @@ import {
 import { freezeRewind } from "./services/rewind-freeze.service";
 import {
 	requireGenerationAllowed,
-	reserveAiRecap,
 	reserveGeneration
 } from "./services/rewind-reservation.service";
 import { findRewindRuns } from "./services/rewind-runs.service";
@@ -421,35 +419,6 @@ export async function generateOwnRewind(
 		rewind: await getOwnRewind(owner, year, premiumAccess),
 		created
 	};
-}
-
-export async function addOwnRewindAiRecap(
-	ownerId: string,
-	year: number,
-	dto: AddRewindAiRecapDto
-): Promise<Rewind> {
-	const owner = await requireSignedInOwner(ownerId);
-	const { calendar, premiumAccess, accessKind } =
-		await resolveOwnerAccess(owner);
-	const { record, spend } = await reserveAiRecap(
-		owner,
-		year,
-		dto,
-		calendar,
-		accessKind
-	);
-
-	const succeeded = await runRecap({
-		owner,
-		record,
-		calendar,
-		reusablePremiumStats: null,
-		premiumAccess,
-		spend
-	});
-	if (!succeeded) throw rewindServiceError.aiRecapFailedError();
-
-	return getOwnRewind(owner, year, premiumAccess);
 }
 
 export async function findRewindsForDataExport(userId: string) {

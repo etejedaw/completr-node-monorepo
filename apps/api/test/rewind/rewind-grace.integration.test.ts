@@ -16,8 +16,8 @@ import {
 	mockPremiumStats,
 	openRewindEdition2026,
 	readRewind,
+	regenerateStored,
 	regenerationOf,
-	requestAiRecap,
 	signUpOn,
 	storeRewind
 } from "./rewind-generation.helper";
@@ -145,8 +145,12 @@ void describe("regenerating during the grace of the edition (2027-01-03)", () =>
 		aiMock.mock.mockImplementation(() =>
 			Promise.reject(new Error("still down"))
 		);
-		const retryFailure = await requestAiRecap(player, 2026);
-		assert.equal(retryFailure.status, 503);
+		const retryFailure = await regenerateStored(player, 2026);
+		assert.equal(retryFailure.status, 200);
+		assert.equal(
+			retryFailure.body.data.ownerControls.aiRecapState,
+			"failed"
+		);
 		assert.equal((await findRewindRow(player, 2026))?.graceUsed, false);
 	});
 

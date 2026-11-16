@@ -14,5 +14,3 @@ export type RewindGenerationPlan =
 	| { kind: "conflict" }
 	| { kind: "premium-required" }
 	| { kind: "limit-reached" };
-
-export type SpendableRewindAiBudget = RewindAiBudget & { spend: RewindAiSpend };

@@ -94,8 +94,3 @@ export interface RewindGenerationReservation {
 	created: boolean;
 	spend: RewindAiSpend | null;
 }
-
-export interface RewindAiRecapReservation {
-	record: RewindModel;
-	spend: RewindAiSpend;
-}
