@@ -9,6 +9,7 @@ export interface PlatinumEntry {
 		id: string;
 		code: string;
 		title: string;
+		coverUrl?: string;
 		backgroundUrl?: string;
 		isDlc: boolean;
 	};

@@ -28,6 +28,7 @@ export interface ComparisonGame {
 	id: string;
 	code: string;
 	title: string;
+	coverUrl: string | null;
 	backgroundUrl: string | null;
 }
 

@@ -2,7 +2,8 @@ export interface ShowcaseGame {
 	id: string;
 	code: string;
 	title: string;
-	backgroundUrl: string;
+	coverUrl: string | null;
+	backgroundUrl: string | null;
 	releaseYear: number | null;
 	genres: string[];
 	score: number | null;

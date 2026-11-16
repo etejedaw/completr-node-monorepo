@@ -5,6 +5,7 @@ export interface GameResult {
 	id: string;
 	title: string;
 	code: string;
+	coverUrl?: string;
 	backgroundUrl?: string;
 }
 

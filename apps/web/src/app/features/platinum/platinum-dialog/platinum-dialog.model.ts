@@ -8,6 +8,7 @@ export interface PlatinumDialogGame {
 	id: string;
 	code: string;
 	title: string;
+	coverUrl?: string;
 	backgroundUrl?: string;
 	platforms: Platform[];
 }

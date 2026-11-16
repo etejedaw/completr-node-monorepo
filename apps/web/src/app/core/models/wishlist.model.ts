@@ -6,6 +6,7 @@ export interface WishlistEntry {
 		id: string;
 		code: string;
 		title: string;
+		coverUrl?: string;
 		backgroundUrl?: string;
 		isDlc: boolean;
 	};
