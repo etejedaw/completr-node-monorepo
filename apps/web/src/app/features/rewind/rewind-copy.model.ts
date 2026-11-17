@@ -121,6 +121,9 @@ export interface RewindPageCopy {
 	yearHeading: string;
 	results: string;
 	highlights: string;
+	gameOfTheYear: string;
+	shareHeadline: (year: number) => string;
+	shareDescription: string;
 	finishedIn: (year: number) => string;
 	closedIn: (year: number) => string;
 	moreRewinds: string;

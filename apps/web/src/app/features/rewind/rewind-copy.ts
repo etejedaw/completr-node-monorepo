@@ -42,6 +42,10 @@ const ENGLISH: RewindCopy = {
 		yearHeading: "Rewind year",
 		results: "Results",
 		highlights: "Highlights",
+		gameOfTheYear: "Your game of the year",
+		shareHeadline: year => `Your ${year}, ready for your stories`,
+		shareDescription:
+			"Two images and a link so your friends can see your year.",
 		finishedIn: year => `Finished in ${year}`,
 		closedIn: year => `Closed in ${year}`,
 		moreRewinds: "More Rewinds",
@@ -191,6 +195,10 @@ const SPANISH: RewindCopy = {
 		yearHeading: "Año del Rewind",
 		results: "Resultados",
 		highlights: "Lo más destacado",
+		gameOfTheYear: "Tu juego del año",
+		shareHeadline: year => `Tu ${year}, listo para tus historias`,
+		shareDescription:
+			"Dos imágenes y un enlace para que tus amigos vean tu año.",
 		finishedIn: year => `Terminados en ${year}`,
 		closedIn: year => `Cerrados en ${year}`,
 		moreRewinds: "Más Rewinds",

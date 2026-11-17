@@ -8,6 +8,7 @@ export const REWIND_SHARE_COPY: RewindShareCopy = {
 	shareImage: "Share image",
 	shareImages: "Share both",
 	downloadImage: "Download image",
+	downloadAll: "Download",
 	imagesLabel: "Story images",
 	summaryLabel: "Summary",
 	gamesLabel: "Games",
