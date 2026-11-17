@@ -750,11 +750,13 @@ describe("Rewind interaction", () => {
 			expect(
 				screen.getByText("months in a row", { exact: false })
 			).toBeInTheDocument();
+			const genres = screen.getByText("Top genres").closest("div")!;
+			expect(genres).toHaveTextContent("Roguelike");
 			expect(
-				within(
-					screen.getByRole("list", { name: "Top genres" })
-				).getAllByRole("listitem")
-			).toHaveLength(2);
+				within(genres).getByText("7 games, Platformer 4 games", {
+					selector: ".sr-only"
+				})
+			).toBeInTheDocument();
 			await untilVisible(() =>
 				expect(
 					within(shareSection()).getByRole("img", {
