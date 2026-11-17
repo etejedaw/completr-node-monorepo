@@ -452,7 +452,84 @@ describe("Rewind interaction", () => {
 	});
 
 	describe("detail page", () => {
-		it("shows the results of the year from the summary down to the share preview", async () => {
+		it("opens with the results strip and a decorative fan of posters inside the hero, with no separate Results section", async () => {
+			const covered = Array.from({ length: 7 }, (_, index) => ({
+				gameId: `game-${index}`,
+				code: `game-${index}`,
+				title: `Game ${index}`,
+				coverUrl: `https://example.test/cover-${index}.jpg`,
+				backgroundUrl: null,
+				finishedAt: `2026-0${index + 1}-10T00:00:00.000Z`,
+				platformAbbreviation: null
+			}));
+			rewindOverrides.set(2026, { finishedGames: covered });
+			await renderRewind();
+
+			const hero = screen
+				.getByRole("heading", { level: 1 })
+				.closest("header") as HTMLElement;
+			expect(
+				within(hero).getByRole("region", { name: "Results" })
+			).toBeInTheDocument();
+			expect(
+				screen.getAllByRole("region", { name: "Results" })
+			).toHaveLength(1);
+			const posters = [
+				...hero.querySelectorAll<HTMLImageElement>(
+					"app-rewind-2026-cover-fan img"
+				)
+			];
+			expect(posters.map(poster => poster.getAttribute("src"))).toEqual([
+				"https://example.test/cover-6.jpg",
+				"https://example.test/cover-5.jpg",
+				"https://example.test/cover-4.jpg",
+				"https://example.test/cover-3.jpg",
+				"https://example.test/cover-2.jpg"
+			]);
+			for (const poster of posters) {
+				expect(poster).toHaveAttribute("alt", "");
+				expect(poster.closest("[aria-hidden='true']")).not.toBeNull();
+			}
+			expect(
+				screen.queryByRole("img", { name: /Game \d/ })
+			).not.toBeInTheDocument();
+		});
+
+		it("draws no fan when no finished game has art", async () => {
+			await renderRewind();
+
+			expect(
+				document.querySelector("app-rewind-2026-cover-fan img")
+			).toBeNull();
+			expect(
+				screen.getByRole("region", { name: "Results" })
+			).toBeInTheDocument();
+		});
+
+		it("puts the share section beside the AI recap on its first row", async () => {
+			rewindOverrides.set(2026, { aiRecap: AI_RECAP });
+			await renderRewind();
+
+			const grid = (
+				await screen.findByRole("region", { name: "AI recap" })
+			).closest("[style*='--rewind-areas']") as HTMLElement;
+			expect(grid.style.getPropertyValue("--rewind-areas")).toMatch(
+				/^"recap share" /
+			);
+		});
+
+		it("gives the share section the whole first row when there is no AI recap", async () => {
+			await renderRewind();
+
+			const share = screen.getByRole("region", { name: "Share" });
+			expect(
+				(
+					share.closest("[style*='--rewind-areas']") as HTMLElement
+				).style.getPropertyValue("--rewind-areas")
+			).toMatch(/^"share share" /);
+		});
+
+		it("shows the results of the year in the hero down to the share preview", async () => {
 			await renderRewind();
 
 			expect(
@@ -462,10 +539,10 @@ describe("Rewind interaction", () => {
 				})
 			).toBeInTheDocument();
 			expect(
-				screen.getByText(
+				screen.queryByText(
 					"18 games finished, 4 left behind and 23 started."
 				)
-			).toBeInTheDocument();
+			).not.toBeInTheDocument();
 			const results = screen.getByRole("region", { name: "Results" });
 			expect(
 				within(results).getByText("Left behind")
@@ -1010,10 +1087,10 @@ describe("Rewind interaction", () => {
 			);
 			expect(document.querySelector("[lang='es']")).not.toBeNull();
 			expect(
-				screen.getByText(
+				screen.queryByText(
 					"18 juegos terminados, 4 abandonados y 23 empezados."
 				)
-			).toBeInTheDocument();
+			).not.toBeInTheDocument();
 			const results = screen.getByRole("region", { name: "Resultados" });
 			expect(
 				within(results).getByText("Abandonados")
@@ -1094,7 +1171,7 @@ describe("Rewind interaction", () => {
 				screen.getByRole("region", { name: "Premium stats" })
 			).toBeInTheDocument();
 			expect(sectionNames().slice(0, 5)).toEqual([
-				"rewind-results-heading",
+				"rewind-2026-results-heading",
 				"rewind-ai-recap-heading",
 				"rewind-highlights-heading",
 				"rewind-year-mix-heading",
@@ -1149,7 +1226,7 @@ describe("Rewind interaction", () => {
 				})
 			).toBeInTheDocument();
 			expect(sectionNames().slice(0, 3)).toEqual([
-				"rewind-results-heading",
+				"rewind-2026-results-heading",
 				"rewind-highlights-heading",
 				"rewind-year-mix-heading"
 			]);
