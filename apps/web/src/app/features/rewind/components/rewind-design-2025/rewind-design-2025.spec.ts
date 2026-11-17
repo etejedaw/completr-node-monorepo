@@ -868,6 +868,33 @@ describe("RewindDesign2025", () => {
 		expect(root.querySelector("app-rewind-ai-recap")).toBeNull();
 	});
 
+	it("keeps the gold on the recap frame and header and draws the inner accents in the brand colour", async () => {
+		await renderDesign(rewindFixture());
+
+		const article = screen.getByRole("article", {
+			name: "Resident Evil was your home"
+		});
+		const header = article.querySelector("header")!;
+		const lead = article.querySelector<HTMLElement>(
+			"[data-recap-story] p"
+		)!;
+		const quote = article.querySelector<HTMLElement>("[data-pull-quote]")!;
+		const funFact = article.querySelector<HTMLElement>(
+			"[data-recap-fun-fact]"
+		)!;
+		const bulb = within(funFact).getByText("lightbulb");
+
+		expect(article.className).toContain("border-premium/45");
+		expect(header.querySelector(".material-icons")).toHaveClass(
+			"text-premium"
+		);
+		expect(lead.className).toContain("first-letter:text-brand");
+		expect(quote).toHaveClass("border-brand");
+		expect(bulb).toHaveClass("text-brand");
+		for (const inner of [lead, quote, funFact])
+			expect(inner.outerHTML).not.toContain("premium");
+	});
+
 	it("spreads the recap paragraphs over two columns when it has no insights", async () => {
 		const fixture = rewindFixture();
 		await renderDesign(
