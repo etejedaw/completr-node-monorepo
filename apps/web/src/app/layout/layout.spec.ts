@@ -155,6 +155,30 @@ describe("Layout", () => {
 		expect(await screen.findByRole("dialog")).toBeInTheDocument();
 	});
 
+	it("offers the skip link before the sidebar and lands it on the main content", async () => {
+		const { container } = await renderLayout();
+		const skipLink = screen.getByRole("link", { name: "Skip to content" });
+
+		expect(container.querySelector("a")).toBe(skipLink);
+		fireEvent.click(skipLink);
+		expect(screen.getByRole("main")).toHaveFocus();
+	});
+
+	it("blurs the header on scroll and opens the next page at the top", async () => {
+		const { container } = await renderLayout();
+		const router = TestBed.inject(Router);
+		const main = screen.getByRole("main");
+		const header = container.querySelector("main > header") as HTMLElement;
+		await router.navigateByUrl("/feed");
+
+		main.scrollTop = 900;
+		fireEvent.scroll(main);
+		expect(header).toHaveClass("backdrop-blur-xl");
+
+		await router.navigateByUrl("/games");
+		expect(main.scrollTop).toBe(0);
+	});
+
 	it("remembers the collapsed sidebar", async () => {
 		localStorage.setItem("completr.sidebar.collapsed", "1");
 		const { fixture } = await renderLayout();

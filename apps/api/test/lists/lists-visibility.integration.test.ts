@@ -378,7 +378,7 @@ void describe("GET /lists/recent visibility", () => {
 		assert.deepEqual(sorted(listIdsOf(response)), sorted(expected));
 	});
 
-	void it("does not list private lists even to their owner", async () => {
+	void it("never lists the viewer's own lists, public or private", async () => {
 		const ownerCase = ownerCaseOf("public", "public");
 
 		const response = await getAs(
@@ -387,10 +387,47 @@ void describe("GET /lists/recent visibility", () => {
 			{ limit: 50 }
 		);
 
-		assert.ok(listIdsOf(response).includes(ownerCase.publicList.id));
+		assert.ok(!listIdsOf(response).includes(ownerCase.publicList.id));
 		assert.ok(!listIdsOf(response).includes(ownerCase.privateList.id));
+		assert.equal(
+			response.body.data.total,
+			visiblePublicListIds(
+				fixture.owners.filter(other => other !== ownerCase),
+				"stranger"
+			).length
+		);
 	});
+
+	for (const viewerKey of ["stranger", "oneWay", "mutual"] as const) {
+		void it(`pages through the lists a ${viewerKey} may see with no gaps or repeats`, async () => {
+			const expected = visiblePublicListIds(fixture.owners, viewerKey);
+
+			const seen = await walkPages(
+				"/lists/recent",
+				fixture.viewers[viewerKey].authorization,
+				2
+			);
+
+			assert.deepEqual(seen.totals, [expected.length]);
+			assert.equal(new Set(seen.ids).size, seen.ids.length);
+			assert.deepEqual(sorted(seen.ids), sorted(expected));
+		});
+	}
 });
+
+async function walkPages(path: string, authorization: string, limit: number) {
+	const ids: string[] = [];
+	const totals = new Set<number>();
+	for (let offset = 0; ; offset += limit) {
+		const response = await getAs(path, authorization, { limit, offset });
+		assert.equal(response.status, 200);
+		totals.add(response.body.data.total);
+		const page = listIdsOf(response);
+		ids.push(...page);
+		if (page.length < limit) break;
+	}
+	return { ids, totals: [...totals] };
+}
 
 void describe("GET /lists/official visibility", () => {
 	for (const viewerKey of ["stranger", "mutual"] as const) {
@@ -415,6 +452,22 @@ void describe("GET /lists/official visibility", () => {
 			);
 		});
 	}
+
+	void it("pages through the official lists a stranger may see with a matching total", async () => {
+		const expected = visiblePublicListIds(
+			fixture.officialOwners,
+			"stranger"
+		);
+
+		const seen = await walkPages(
+			"/lists/official",
+			fixture.viewers.stranger.authorization,
+			1
+		);
+
+		assert.deepEqual(seen.totals, [expected.length]);
+		assert.deepEqual(sorted(seen.ids), sorted(expected));
+	});
 
 	void it("applies the limit after filtering", async () => {
 		const expected = visiblePublicListIds(fixture.officialOwners, "mutual");

@@ -12,6 +12,7 @@ import {
 	countByPlatform,
 	matchesPlatform
 } from "../../../shared/components/platform-filter/platform-filter";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { hasLoadFailedOf, profileAccessErrorOf } from "./profile-access-error";
 import {
 	type CollectionGame,
@@ -91,7 +92,7 @@ export function injectPublicCollection<T>(
 
 	const posters = computed(() =>
 		items().map(item => ({
-			src: gameOf(item).backgroundUrl,
+			src: gameArtUrl(gameOf(item), "portrait"),
 			title: gameOf(item).title
 		}))
 	);

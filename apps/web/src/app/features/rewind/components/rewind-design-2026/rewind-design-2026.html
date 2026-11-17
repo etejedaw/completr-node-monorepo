@@ -118,19 +118,20 @@
 		[language]="data.language"
 		[premiumAccessKind]="data.premiumAccessKind"
 	/>
-	} @if (data.finishedGames.length > 0) {
+	} @if (hasClosedGames()) {
 	<section
 		appRewindReveal
 		aria-labelledby="rewind-finished-heading"
 		class="min-w-0 lg:[grid-area:finished]"
 	>
 		<app-profile-section-header
-			[heading]="page.finishedIn(data.year)"
+			[heading]="closedGamesHeading()"
 			headingId="rewind-finished-heading"
 		/>
 		@defer (on viewport; prefetch on idle) {
 		<app-rewind-finished-games
 			[games]="data.finishedGames"
+			[abandonedGames]="data.abandonedGames"
 			[language]="data.language"
 		/>
 		} @placeholder {

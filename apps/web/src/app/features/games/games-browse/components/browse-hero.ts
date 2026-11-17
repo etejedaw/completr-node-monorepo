@@ -12,13 +12,21 @@ import { RouterLink } from "@angular/router";
 
 import { type Game } from "../../../../core/models";
 import { CoverUrlPipe } from "../../../../shared/pipes/cover-url";
+import { GameArtPipe } from "../../../../shared/pipes/game-art";
 import { UiBadge, UiButton, UiIconButton } from "../../../../shared/ui";
 
 const ROTATION_INTERVAL_MS = 7000;
 
 @Component({
 	selector: "app-browse-hero",
-	imports: [RouterLink, CoverUrlPipe, UiBadge, UiButton, UiIconButton],
+	imports: [
+		RouterLink,
+		CoverUrlPipe,
+		UiBadge,
+		UiButton,
+		UiIconButton,
+		GameArtPipe
+	],
 	templateUrl: "./browse-hero.html",
 	host: {
 		class: "block",

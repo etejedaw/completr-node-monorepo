@@ -28,7 +28,7 @@ docs: |-
           {
             "id": "uuid",
             "position": 1,
-            "game": { "id": "uuid", "title": "...", "code": "...", "backgroundUrl": "...", "isDlc": false }
+            "game": { "id": "uuid", "title": "...", "code": "...", "coverUrl": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1abc.jpg", "backgroundUrl": "...", "isDlc": false }
           }
         ],
         "total": 1

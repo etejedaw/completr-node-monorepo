@@ -21,6 +21,7 @@ import { catchError, debounceTime, of, Subject, switchMap } from "rxjs";
 import { type Game } from "../../../core/models";
 import { GamesService } from "../../../core/services/games";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { GameArtPipe } from "../../../shared/pipes/game-art";
 import {
 	UiAlert,
 	UiBadge,
@@ -74,7 +75,8 @@ const FRANCHISE_GAMES_PAGE_SIZE = 100;
 		UiLabel,
 		UiPlainEmptyState,
 		UiSkeleton,
-		UiFieldError
+		UiFieldError,
+		GameArtPipe
 	],
 	templateUrl: "./admin-franchise-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -220,6 +222,7 @@ export class AdminFranchiseModal implements OnInit {
 		return {
 			id: g.id,
 			title: g.title,
+			coverUrl: g.coverUrl,
 			backgroundUrl: g.backgroundUrl,
 			releaseAt: g.releaseAt,
 			franchiseName: g.franchise?.name ?? null

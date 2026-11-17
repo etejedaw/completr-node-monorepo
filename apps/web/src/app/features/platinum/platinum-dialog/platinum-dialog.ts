@@ -231,6 +231,7 @@ export class PlatinumDialog {
 						id: fullGame.id,
 						code: fullGame.code,
 						title: fullGame.title,
+						coverUrl: fullGame.coverUrl,
 						backgroundUrl: fullGame.backgroundUrl,
 						platforms: fullGame.platforms ?? []
 					},

@@ -2,7 +2,10 @@ import { type PremiumAccess } from "../premium-access/premium-access.interface";
 import { type RewindEditionRecord } from "../rewind-editions/rewind-editions.interface";
 import {
 	type RewindCoopPartner,
-	type RewindGameReview
+	type RewindGameReview,
+	type RewindGameTag,
+	type RewindQueuedGame,
+	type RewindRunPlatinum
 } from "../rewind-recap/rewind-recap.interface";
 import { type User } from "../users/user.model";
 import { type RewindPremiumAccessKind } from "./rewind.constants";
@@ -50,6 +53,9 @@ export interface RecapSources {
 	franchises: RewindGameFranchise[];
 	coopPartners: RewindCoopPartner[];
 	reviews: RewindGameReview[];
+	tags: RewindGameTag[];
+	runPlatinums: RewindRunPlatinum[] | null;
+	upNext: RewindQueuedGame[];
 	platinums: number | null;
 	premiumStats: RewindPremiumStats;
 }

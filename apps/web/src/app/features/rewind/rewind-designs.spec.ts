@@ -40,6 +40,7 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 			platformsPlayed: 1
 		},
 		finishedGames: [],
+		abandonedGames: [],
 		highlights: {
 			topRated: null,
 			bestRatio: null,
@@ -208,7 +209,7 @@ describe("RewindDesignOutlet", () => {
 		expect(fixture.componentInstance.changes).toEqual([regenerated]);
 	});
 
-	it("draws a 2025 Rewind with the magazine design and no share section", async () => {
+	it("draws a 2025 Rewind with the magazine design and a link-only Share button", async () => {
 		const { fixture } = await renderOutlet();
 		const host = fixture.componentInstance;
 
@@ -223,8 +224,98 @@ describe("RewindDesignOutlet", () => {
 			screen.getByRole("heading", { level: 1, name: /2025/ })
 		).toBeInTheDocument();
 		expect(
-			screen.queryByRole("button", { name: "Share" })
+			screen.getByRole("button", { name: "Share" })
+		).not.toHaveAttribute("aria-haspopup");
+		expect(
+			screen.queryByRole("heading", { name: "Share" })
 		).not.toBeInTheDocument();
+	});
+
+	describe("the closed games of the 2026 design", () => {
+		const hades = {
+			gameId: "id-hades",
+			code: "hades",
+			title: "Hades",
+			coverUrl: null,
+			backgroundUrl: null,
+			finishedAt: "2026-03-10",
+			platformAbbreviation: "PC"
+		};
+		const tunic = {
+			...hades,
+			gameId: "id-tunic",
+			code: "tunic",
+			title: "Tunic"
+		};
+
+		async function renderWith(overrides: Partial<Rewind>) {
+			const result = await renderOutlet();
+			result.fixture.componentInstance.rewind.set(
+				rewindFixture(overrides)
+			);
+			result.fixture.detectChanges();
+			return result;
+		}
+
+		it("keeps the Finished title when nothing was abandoned", async () => {
+			await renderWith({ finishedGames: [hades] });
+
+			expect(
+				screen.getByRole("heading", {
+					level: 2,
+					name: "Finished in 2026"
+				})
+			).toBeInTheDocument();
+			expect(
+				screen.queryByRole("heading", { name: /Closed in/ })
+			).not.toBeInTheDocument();
+		});
+
+		it("calls the section Closed once a game was abandoned, in both languages", async () => {
+			const { fixture } = await renderWith({
+				finishedGames: [hades],
+				abandonedGames: [tunic]
+			});
+			expect(
+				screen.getByRole("heading", {
+					level: 2,
+					name: "Closed in 2026"
+				})
+			).toBeInTheDocument();
+
+			fixture.componentInstance.rewind.set(
+				rewindFixture({
+					language: "es",
+					finishedGames: [hades],
+					abandonedGames: [tunic]
+				})
+			);
+			fixture.detectChanges();
+
+			expect(
+				screen.getByRole("heading", {
+					level: 2,
+					name: "Cerrados en 2026"
+				})
+			).toBeInTheDocument();
+		});
+
+		it("shows the section for a year with only abandoned games and hides it with none", async () => {
+			const { fixture } = await renderWith({ abandonedGames: [tunic] });
+			expect(
+				screen.getByRole("heading", {
+					level: 2,
+					name: "Closed in 2026"
+				})
+			).toBeInTheDocument();
+
+			fixture.componentInstance.rewind.set(rewindFixture());
+			fixture.detectChanges();
+
+			expect(
+				screen.queryByRole("heading", { name: /in 2026/ })
+			).not.toBeInTheDocument();
+		});
 	});
 
 	it("removes the design when the outlet is destroyed", async () => {

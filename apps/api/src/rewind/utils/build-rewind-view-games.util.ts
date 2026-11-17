@@ -1,6 +1,8 @@
 import { type RewindViewGame } from "../rewind.interface";
-import { type RewindGameGenre, type RewindRun } from "../rewind-run.interface";
-import { collectYearRuns } from "./collect-year-runs.util";
+import {
+	type ClosedRewindRun,
+	type RewindGameGenre
+} from "../rewind-run.interface";
 import { listLatestFinishedRuns } from "./list-latest-finished-runs.util";
 import { toRewindFinishedGame } from "./to-rewind-finished-game.util";
 
@@ -17,13 +19,11 @@ function groupGenreNamesByGame(
 }
 
 export function buildRewindViewGames(
-	runs: RewindRun[],
-	year: number,
+	closedRuns: ClosedRewindRun[],
 	genres: RewindGameGenre[]
 ): RewindViewGame[] {
 	const namesByGame = groupGenreNamesByGame(genres);
-	const { finished } = collectYearRuns(runs, year);
-	return listLatestFinishedRuns(finished).map(run => ({
+	return listLatestFinishedRuns(closedRuns).map(run => ({
 		...toRewindFinishedGame(run),
 		platformName: run.platform?.name ?? null,
 		genres: namesByGame.get(run.gameId) ?? []

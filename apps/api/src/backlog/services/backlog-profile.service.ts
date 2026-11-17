@@ -2,10 +2,12 @@ import { Op } from "sequelize";
 
 import { calculateRatio } from "../../common/utils/calculate-ratio.util";
 import * as gamesService from "../../games/games.service";
-import { COMPLETIONS_PAGE_SIZE, HIGHLIGHTS_RECENT_LIMIT } from "../backlog.constants";
+import {
+	COMPLETIONS_PAGE_SIZE,
+	HIGHLIGHTS_RECENT_LIMIT
+} from "../backlog.constants";
 import { Backlog, type BacklogStatus } from "../backlog.model";
 import { buildBacklogInclude } from "../utils/build-backlog-include.util";
-
 
 export async function findGameEntriesByStatus(
 	userId: string,
@@ -23,7 +25,7 @@ export async function findGameEntriesByStatus(
 		include: [
 			{
 				...gamesService.gameInclude(),
-				attributes: ["id", "code", "title", "backgroundUrl"]
+				attributes: ["id", "code", "title", "coverUrl", "backgroundUrl"]
 			}
 		],
 		order: [

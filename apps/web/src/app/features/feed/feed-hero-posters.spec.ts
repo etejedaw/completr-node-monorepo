@@ -1,12 +1,17 @@
 import { type ActivityTarget, type FeedActivity } from "./feed.model";
 import { gamePosters } from "./feed-hero-posters";
 
-function game(id: string, backgroundUrl?: string): ActivityTarget {
+function game(
+	id: string,
+	backgroundUrl?: string,
+	coverUrl?: string
+): ActivityTarget {
 	return {
 		type: "game",
 		id,
 		name: `Game ${id}`,
 		code: `game-${id}`,
+		coverUrl,
 		backgroundUrl
 	};
 }
@@ -24,6 +29,31 @@ function activity(overrides: Partial<FeedActivity>): FeedActivity {
 }
 
 describe("gamePosters", () => {
+	it("prefers the cover for the portrait posters and keeps cover-only games", () => {
+		const posters = gamePosters([
+			activity({
+				target: game(
+					"both",
+					"https://img.test/both-bg.jpg",
+					"https://img.test/both-cover.jpg"
+				)
+			}),
+			activity({
+				target: game("cover", undefined, "https://img.test/cover.jpg")
+			}),
+			activity({ target: game("bare", "", "  ") }),
+			activity({
+				type: "backlog_completed",
+				target: game("cover", undefined, "https://img.test/cover.jpg")
+			})
+		]);
+
+		expect(posters).toEqual([
+			{ src: "https://img.test/both-cover.jpg", title: "Game both" },
+			{ src: "https://img.test/cover.jpg", title: "Game cover" }
+		]);
+	});
+
 	it("uses the game target of regular activities", () => {
 		const posters = gamePosters([
 			activity({ target: game("a", "https://img.test/a.jpg") }),

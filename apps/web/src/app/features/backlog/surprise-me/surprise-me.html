@@ -48,14 +48,14 @@
 			>
 				<app-game-poster
 					class="absolute inset-0 scale-110 blur-2xl opacity-60"
-					[src]="entry.game.backgroundUrl"
+					[src]="entry.game | gameArt: 'landscape'"
 					[title]="entry.game.title"
 					[width]="420"
 					[compact]="true"
 				/>
 				<app-game-poster
 					class="absolute inset-0 [mask-image:linear-gradient(to_bottom,black_55%,transparent)]"
-					[src]="entry.game.backgroundUrl"
+					[src]="entry.game | gameArt: 'landscape'"
 					[title]="entry.game.title"
 					[width]="640"
 					[compact]="true"
@@ -68,7 +68,7 @@
 				<app-game-poster
 					framed
 					class="w-20 shrink-0 aspect-[2/3] rounded-card shadow-card"
-					[src]="entry.game.backgroundUrl"
+					[src]="entry.game | gameArt: 'portrait'"
 					[title]="entry.game.title"
 					[width]="420"
 				/>

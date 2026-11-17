@@ -5,6 +5,7 @@ export interface CollectionPlatform {
 
 export interface CollectionGame {
 	title: string;
+	coverUrl?: string;
 	backgroundUrl?: string;
 }
 

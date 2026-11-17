@@ -35,6 +35,7 @@ import {
 	UiPagination,
 	UiSkeleton
 } from "../../../shared/ui";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { injectFollowActions } from "../../../shared/utils/inject-follow-actions";
 import { UserCard } from "../../users-discover/user-card/user-card";
 import { PublicProfileService } from "../public-profile.service";
@@ -165,16 +166,12 @@ export class UserConnections {
 	);
 
 	protected readonly heroPosters = computed(() =>
-		this.lastLoadedPage().users.flatMap(user =>
-			user.featuredGame?.backgroundUrl
-				? [
-						{
-							src: user.featuredGame.backgroundUrl,
-							title: user.featuredGame.title
-						}
-					]
-				: []
-		)
+		this.lastLoadedPage().users.flatMap(user => {
+			const src = gameArtUrl(user.featuredGame, "portrait");
+			return user.featuredGame && src
+				? [{ src, title: user.featuredGame.title }]
+				: [];
+		})
 	);
 
 	protected readonly connectionCount = computed(() =>

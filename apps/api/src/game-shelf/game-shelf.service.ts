@@ -23,7 +23,14 @@ import { FREE_SHELF_LIMIT, SHELF_ORDER } from "./game-shelf.constants";
 import { GameShelf } from "./game-shelf.model";
 import { type GameShelfQuery } from "./schemas/game-shelf-query.schema";
 
-const GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
+const GAME_ATTRS = [
+	"id",
+	"code",
+	"title",
+	"coverUrl",
+	"backgroundUrl",
+	"isDlc"
+];
 const PLATFORM_ATTRS = [
 	"id",
 	"name",
@@ -132,7 +139,7 @@ export async function findGameEntriesByUserId(
 		include: [
 			{
 				model: Game,
-				attributes: ["id", "code", "title", "backgroundUrl"]
+				attributes: ["id", "code", "title", "coverUrl", "backgroundUrl"]
 			}
 		],
 		order: [

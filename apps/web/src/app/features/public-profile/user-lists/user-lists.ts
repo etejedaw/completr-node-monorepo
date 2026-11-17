@@ -29,6 +29,7 @@ import {
 	UiPagination,
 	UiSkeleton
 } from "../../../shared/ui";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import {
 	hasLoadFailedOf,
 	profileAccessErrorOf
@@ -194,11 +195,12 @@ export class UserLists {
 	protected readonly heroPosters = computed<LibraryHeroPoster[]>(() =>
 		this.lastLoadedPage()
 			.items.flatMap(list => list.previewItems ?? [])
-			.flatMap(item =>
-				item.game?.backgroundUrl
-					? [{ src: item.game.backgroundUrl, title: item.game.title }]
-					: []
-			)
+			.flatMap(item => {
+				const src = gameArtUrl(item.game, "portrait");
+				return item.game && src
+					? [{ src, title: item.game.title }]
+					: [];
+			})
 			.slice(0, HERO_POSTER_COUNT)
 	);
 

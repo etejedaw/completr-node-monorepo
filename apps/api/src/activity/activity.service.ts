@@ -140,7 +140,7 @@ const TARGET_INCLUDES = [
 		include: [
 			{
 				association: "Game",
-				attributes: ["id", "title", "code", "backgroundUrl"]
+				attributes: ["id", "title", "code", "coverUrl", "backgroundUrl"]
 			}
 		]
 	},

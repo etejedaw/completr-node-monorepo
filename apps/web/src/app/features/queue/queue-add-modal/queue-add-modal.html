@@ -53,7 +53,7 @@
 			<app-game-poster
 				framed
 				class="w-10 aspect-[2/3] shrink-0 rounded"
-				[src]="entry.game.backgroundUrl"
+				[src]="entry.game | gameArt: 'portrait'"
 				[title]="entry.game.title"
 				[width]="420"
 				[compact]="true"

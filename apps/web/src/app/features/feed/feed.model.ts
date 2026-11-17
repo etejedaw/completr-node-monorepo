@@ -6,6 +6,7 @@ export interface ActivityTarget {
 	name: string;
 	code?: string;
 	username?: string;
+	coverUrl?: string;
 	backgroundUrl?: string;
 	avatarUrl?: string;
 	role?: string;

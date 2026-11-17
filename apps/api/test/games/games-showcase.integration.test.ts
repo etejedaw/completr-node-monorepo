@@ -16,6 +16,8 @@ import {
 const SHOWCASE_SIZE = 21;
 const REGULAR_GAME_COUNT = 25;
 const BACKGROUND_URL = "https://img.completr.test/background.jpg";
+const COVER_URL =
+	"https://images.igdb.com/igdb/image/upload/t_cover_big/co1abc.jpg";
 
 useTestDatabase();
 
@@ -23,6 +25,7 @@ interface ShowcaseSeed {
 	title: string;
 	popularity?: number;
 	backgroundUrl?: string | null;
+	coverUrl?: string | null;
 	isDlc?: boolean;
 	isActive?: boolean;
 	releaseAt?: string;
@@ -36,6 +39,7 @@ async function createShowcaseGame(seed: ShowcaseSeed) {
 			seed.backgroundUrl === undefined
 				? BACKGROUND_URL
 				: seed.backgroundUrl,
+		coverUrl: seed.coverUrl ?? null,
 		isDlc: seed.isDlc ?? false,
 		isActive: seed.isActive ?? true,
 		releaseAt: seed.releaseAt ? new Date(seed.releaseAt) : undefined
@@ -115,9 +119,15 @@ void describe("GET /games/showcase", () => {
 			isActive: false
 		});
 		await createShowcaseGame({
-			title: "Popular Without Background",
+			title: "Popular Without Art",
 			popularity: 3000,
 			backgroundUrl: null
+		});
+		const coverOnlyGame = await createShowcaseGame({
+			title: "Popular Cover Only",
+			popularity: 2500,
+			backgroundUrl: null,
+			coverUrl: COVER_URL
 		});
 
 		const featuredGame = regularGames.get(3)!;
@@ -143,9 +153,10 @@ void describe("GET /games/showcase", () => {
 		assert.deepEqual(
 			games.map((game: { title: string }) => game.title),
 			[
+				"Popular Cover Only",
 				"Tie Alpha",
 				"Tie Zulu",
-				...Array.from({ length: SHOWCASE_SIZE - 2 }, (_, index) =>
+				...Array.from({ length: SHOWCASE_SIZE - 3 }, (_, index) =>
 					regularTitle(index + 1)
 				)
 			]
@@ -157,6 +168,7 @@ void describe("GET /games/showcase", () => {
 			id: featuredGame.id,
 			code: featuredGame.code,
 			title: "Show 03",
+			coverUrl: null,
 			backgroundUrl: BACKGROUND_URL,
 			releaseYear: 2013,
 			genres: ["Adventure", "Puzzle"],
@@ -168,7 +180,20 @@ void describe("GET /games/showcase", () => {
 			id: regularGames.get(4)!.id,
 			code: regularGames.get(4)!.code,
 			title: "Show 04",
+			coverUrl: null,
 			backgroundUrl: BACKGROUND_URL,
+			releaseYear: null,
+			genres: [],
+			score: null,
+			hours: null,
+			ratio: null
+		});
+		assert.deepEqual(byTitle.get("Popular Cover Only"), {
+			id: coverOnlyGame.id,
+			code: coverOnlyGame.code,
+			title: "Popular Cover Only",
+			coverUrl: COVER_URL,
+			backgroundUrl: null,
 			releaseYear: null,
 			genres: [],
 			score: null,
@@ -181,7 +206,7 @@ void describe("GET /games/showcase", () => {
 		);
 	});
 
-	void it("excludes DLCs, inactive games and games without a background", async () => {
+	void it("excludes DLCs, inactive games and games without any art", async () => {
 		const response = await getShowcase();
 
 		const titles = response.body.data.games.map(
@@ -189,7 +214,7 @@ void describe("GET /games/showcase", () => {
 		);
 		assert.equal(titles.includes("Popular Dlc"), false);
 		assert.equal(titles.includes("Popular Retired"), false);
-		assert.equal(titles.includes("Popular Without Background"), false);
+		assert.equal(titles.includes("Popular Without Art"), false);
 	});
 
 	void it("is public and ignores an invalid token", async () => {

@@ -6,6 +6,7 @@ import {
 } from "@angular/core";
 import { type Params, RouterLink } from "@angular/router";
 
+import { GameArtPipe } from "../../pipes/game-art";
 import { UiProgress } from "../../ui";
 import { GamePoster } from "../game-poster/game-poster";
 import { type ListCardList } from "./list-card.model";
@@ -14,7 +15,7 @@ const COLLAGE_SIZE = 4;
 
 @Component({
 	selector: "app-list-card",
-	imports: [RouterLink, GamePoster, UiProgress],
+	imports: [RouterLink, GamePoster, UiProgress, GameArtPipe],
 	template: `
 		<a
 			class="group relative isolate block aspect-[16/10] rounded-card overflow-hidden bg-surface ring-1 ring-on-image/10 shadow-card no-underline transition duration-200 hover:-translate-y-1 hover:ring-brand/60 focus-visible:ring-brand"
@@ -24,7 +25,7 @@ const COLLAGE_SIZE = 4;
 			<div aria-hidden="true" class="absolute inset-0 -z-10 flex">
 				@for (item of collage(); track item.id) {
 					<app-game-poster
-						[src]="item.game!.backgroundUrl"
+						[src]="item.game | gameArt: 'portrait'"
 						[title]="item.game!.title"
 						[width]="640"
 						[compact]="true"

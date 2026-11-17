@@ -8,8 +8,10 @@ type ActivitySource = NonNullable<
 	ProfileBackdropSources["profile"]
 >["recentActivity"][number];
 
-function favorite(backgroundUrl?: string) {
-	return { game: { id: "g", code: "g", title: "Game", backgroundUrl } };
+function favorite(backgroundUrl?: string, coverUrl?: string) {
+	return {
+		game: { id: "g", code: "g", title: "Game", coverUrl, backgroundUrl }
+	};
 }
 
 function backlog(backgroundUrl?: string): BacklogSource {
@@ -27,7 +29,14 @@ function activity(backgroundUrl: string | null): ActivitySource {
 		type: "completed",
 		createdAt: "2026-01-01T00:00:00.000Z",
 		target: null,
-		game: { type: "game", id: "g", name: "Game", code: "g", backgroundUrl }
+		game: {
+			type: "game",
+			id: "g",
+			name: "Game",
+			code: "g",
+			coverUrl: null,
+			backgroundUrl
+		}
 	};
 }
 
@@ -61,6 +70,36 @@ describe("pickProfileBackdrop", () => {
 				showsFavorites: true
 			})
 		).toBe("second.jpg");
+	});
+
+	it("prefers the background of a favorite over its cover", () => {
+		expect(
+			pickProfileBackdrop({
+				profile: null,
+				favorites: [favorite("background.jpg", "cover.jpg")],
+				showsFavorites: true
+			})
+		).toBe("background.jpg");
+	});
+
+	it("uses the cover of a cover-only favorite instead of skipping it", () => {
+		expect(
+			pickProfileBackdrop({
+				profile: profile([backlog("backlog.jpg")]),
+				favorites: [favorite(undefined, "cover.jpg")],
+				showsFavorites: true
+			})
+		).toBe("cover.jpg");
+	});
+
+	it("skips favorites whose art is blank", () => {
+		expect(
+			pickProfileBackdrop({
+				profile: profile([backlog("backlog.jpg")]),
+				favorites: [favorite("  ", "")],
+				showsFavorites: true
+			})
+		).toBe("backlog.jpg");
 	});
 
 	it("falls back to the backlog when no favorite has art", () => {

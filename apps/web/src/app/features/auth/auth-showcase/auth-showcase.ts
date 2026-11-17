@@ -4,6 +4,7 @@ import { RouterLink } from "@angular/router";
 import { AppLogo } from "../../../shared/components/app-logo/app-logo";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { UiEyebrow } from "../../../shared/ui";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { injectShowcaseGames } from "../showcase-games";
 import { type ShowcaseGame } from "../showcase-games.model";
 import {
@@ -65,7 +66,7 @@ function featuredDetails(game: ShowcaseGame): string | null {
 function toFeaturedGame(game: RatedShowcaseGame): FeaturedGame {
 	return {
 		code: game.code,
-		src: game.backgroundUrl,
+		src: gameArtUrl(game, "portrait"),
 		title: game.title,
 		details: featuredDetails(game),
 		score: game.score,
@@ -237,7 +238,10 @@ export class AuthShowcase {
 		if (games.length < POSTERS_PER_COLUMN)
 			return distributeInColumns(FALLBACK_POSTERS);
 		return distributeInColumns(
-			games.map(game => ({ src: game.backgroundUrl, title: game.title }))
+			games.map(game => ({
+				src: gameArtUrl(game, "portrait"),
+				title: game.title
+			}))
 		);
 	});
 

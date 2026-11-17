@@ -177,6 +177,7 @@ export interface Rewind {
 	otherYears: number[];
 	totals: RewindTotals;
 	finishedGames: RewindFinishedGame[];
+	abandonedGames: RewindFinishedGame[];
 	highlights: RewindHighlights;
 	yearMix: RewindYearMix;
 	language: RewindLanguage;

@@ -7,6 +7,7 @@ export interface AdminFranchiseModalData {
 export interface SelectedGame {
 	id: string;
 	title: string;
+	coverUrl?: string;
 	backgroundUrl?: string;
 	releaseAt?: string;
 	franchiseName?: string | null;

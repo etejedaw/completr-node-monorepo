@@ -110,6 +110,17 @@ function finishedTitles(response: { body: { data: unknown } }) {
 	return data.finishedGames.map(game => game.title);
 }
 
+function abandonedTitles(response: { body: { data: unknown } }) {
+	const data = response.body.data as { abandonedGames: { title: string }[] };
+	return data.abandonedGames.map(game => game.title);
+}
+
+function withoutAbandoned(view: RewindView): RewindView {
+	const photo = { ...view };
+	delete photo.abandonedGames;
+	return photo;
+}
+
 function withoutClassic(view: RewindView): RewindView {
 	const highlights: RewindStoredHighlights = { ...view.highlights };
 	delete highlights.classic;
@@ -504,6 +515,69 @@ void describe("reading a frozen Rewind", () => {
 			assert.equal(read.status, 200);
 			assert.equal(read.body.data.highlights.classic, null);
 			assert.deepEqual(finishedTitles(read), ["Doom"]);
+		}
+	});
+
+	void it("freezes the abandoned games into each photo with its privacy and reads a photo frozen before they existed as none", async () => {
+		const player = await playerWithHades("user");
+		await addRun(player, games.tunic, platform, {
+			status: "abandoned",
+			finishedAt: "2026-05-05"
+		});
+		await addRun(player, games.celeste, platform, {
+			status: "abandoned",
+			finishedAt: "2026-06-06",
+			isPublic: false
+		});
+		await generateAndClose(player);
+		await freezeClosedRewindEditions();
+
+		const row = await findRewindRow(player, 2026);
+		assert.ok(row?.snapshot?.public);
+		assert.deepEqual(
+			row.snapshot.owner.abandonedGames?.map(game => game.title),
+			["Tunic", "Celeste"]
+		);
+		assert.deepEqual(
+			row.snapshot.public.abandonedGames?.map(game => game.title),
+			["Tunic"]
+		);
+
+		await Backlog.update(
+			{ isPublic: false },
+			{ where: { userId: player.user.id } }
+		);
+		await addRun(player, games.hades, platform, {
+			status: "abandoned",
+			finishedAt: "2026-11-11"
+		});
+		const [visitor, owner] = await Promise.all([
+			readRewind(player.user.username, 2026).expect(200),
+			readRewind(player.user.username, 2026, player.authorization).expect(
+				200
+			)
+		]);
+		assert.deepEqual(abandonedTitles(visitor), ["Tunic"]);
+		assert.deepEqual(abandonedTitles(owner), ["Tunic", "Celeste"]);
+		assert.equal(owner.body.data.totals.abandoned, 2);
+
+		const { owner: ownerPhoto, public: visitorPhoto } = row.snapshot;
+		await row.update({
+			snapshot: {
+				...row.snapshot,
+				owner: withoutAbandoned(ownerPhoto),
+				public: withoutAbandoned(visitorPhoto)
+			}
+		});
+		const reads = await Promise.all([
+			readRewind(player.user.username, 2026),
+			readRewind(player.user.username, 2026, player.authorization)
+		]);
+
+		for (const read of reads) {
+			assert.equal(read.status, 200);
+			assert.deepEqual(read.body.data.abandonedGames, []);
+			assert.deepEqual(finishedTitles(read), ["Hades"]);
 		}
 	});
 

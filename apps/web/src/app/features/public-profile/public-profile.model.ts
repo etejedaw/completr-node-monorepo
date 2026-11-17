@@ -39,6 +39,7 @@ export interface PublicActivity {
 		id: string;
 		name: string;
 		code: string;
+		coverUrl: string | null;
 		backgroundUrl: string | null;
 	} | null;
 }

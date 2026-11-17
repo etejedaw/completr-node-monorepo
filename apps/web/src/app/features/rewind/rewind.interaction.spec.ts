@@ -91,6 +91,7 @@ function rewindFor(year: number, otherYears: number[]): Rewind {
 			platformsPlayed: 2
 		},
 		finishedGames: [hades, celeste],
+		abandonedGames: [],
 		highlights: {
 			topRated: { ...hades, userRating: 5 },
 			bestRatio: null,

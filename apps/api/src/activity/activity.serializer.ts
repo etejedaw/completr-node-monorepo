@@ -29,6 +29,7 @@ function serializeGameTarget(game: ActivityGameReference) {
 		id: game.id,
 		name: game.title,
 		code: game.code,
+		coverUrl: game.coverUrl ?? null,
 		backgroundUrl: game.backgroundUrl
 	};
 }

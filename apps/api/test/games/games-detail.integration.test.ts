@@ -222,6 +222,7 @@ void describe("GET /games/:code game data", () => {
 				id: catalog.dlc!.id,
 				code: catalog.dlc!.code,
 				title: "Detail DLC",
+				coverUrl: null,
 				backgroundUrl: null
 			}
 		]);

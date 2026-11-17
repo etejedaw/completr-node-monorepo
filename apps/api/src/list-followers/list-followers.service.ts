@@ -40,6 +40,7 @@ const FOLLOWED_LIST_PREVIEW_INCLUDE = {
 						"id",
 						"code",
 						"title",
+						"coverUrl",
 						"backgroundUrl",
 						"isDlc"
 					]

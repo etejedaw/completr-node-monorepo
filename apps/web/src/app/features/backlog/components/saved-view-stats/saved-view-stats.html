@@ -294,7 +294,7 @@
 					>
 						<app-game-poster
 							class="w-12 aspect-[3/4] rounded-md shrink-0"
-							[src]="highlight.entry.game.backgroundUrl"
+							[src]="highlight.entry.game | gameArt: 'portrait'"
 							[title]="highlight.entry.game.title"
 							[width]="420"
 							[compact]="true"

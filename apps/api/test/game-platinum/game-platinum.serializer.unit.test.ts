@@ -70,6 +70,7 @@ void describe("platinumEntrySerializer", () => {
 		id: "game-1",
 		code: "bloodborne",
 		title: "Bloodborne",
+		coverUrl: "https://img.test/bb-cover.jpg",
 		backgroundUrl: "https://img.test/bb.jpg",
 		isDlc: false
 	};

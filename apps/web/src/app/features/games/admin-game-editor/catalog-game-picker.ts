@@ -12,6 +12,7 @@ import {
 
 import { type Game } from "../../../core/models";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { GameArtPipe } from "../../../shared/pipes/game-art";
 import {
 	UiBadge,
 	UiButton,
@@ -33,7 +34,8 @@ const RESULT_STEP: Record<string, number> = { ArrowDown: 1, ArrowUp: -1 };
 		UiButton,
 		UiPlainEmptyState,
 		UiSearchBar,
-		UiSkeleton
+		UiSkeleton,
+		GameArtPipe
 	],
 	template: `
 		<ui-search-bar
@@ -75,7 +77,7 @@ const RESULT_STEP: Record<string, number> = { ArrowDown: 1, ArrowUp: -1 };
 							<app-game-poster
 								framed
 								class="w-9 aspect-[2/3] shrink-0 rounded"
-								[src]="game.backgroundUrl"
+								[src]="game | gameArt: 'portrait'"
 								[title]="game.title"
 								[width]="420"
 								[compact]="true"

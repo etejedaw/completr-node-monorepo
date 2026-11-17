@@ -107,22 +107,28 @@ export async function getListById(request: Request, response: Response) {
 }
 
 export async function getRecentLists(request: Request, response: Response) {
-	const { limit } = request.locals.query as DiscoveryQuery;
+	const pagination = request.locals.query as DiscoveryQuery;
 	const user = request.locals.user as RequestUser;
-	const lists = await listsService.findRecentUserLists(user.id, limit);
+	const { lists, total } = await listsService.findRecentUserLists(
+		user.id,
+		pagination
+	);
 	const listsPlain = lists.map(list => list.get({ plain: true }));
 
-	const data = { lists: listsPlain.map(listSummarySerializer) };
+	const data = { lists: listsPlain.map(listSummarySerializer), total };
 	return response.status(200).json({ data });
 }
 
 export async function getOfficialLists(request: Request, response: Response) {
-	const { limit } = request.locals.query as DiscoveryQuery;
+	const pagination = request.locals.query as DiscoveryQuery;
 	const user = request.locals.user as RequestUser;
-	const lists = await listsService.findOfficialLists(user.id, limit);
+	const { lists, total } = await listsService.findOfficialLists(
+		user.id,
+		pagination
+	);
 	const listsPlain = lists.map(list => list.get({ plain: true }));
 
-	const data = { lists: listsPlain.map(listSummarySerializer) };
+	const data = { lists: listsPlain.map(listSummarySerializer), total };
 	return response.status(200).json({ data });
 }
 

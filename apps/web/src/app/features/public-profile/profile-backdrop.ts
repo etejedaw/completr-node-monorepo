@@ -2,6 +2,7 @@ import { computed, inject, type Signal } from "@angular/core";
 import { rxResource } from "@angular/core/rxjs-interop";
 import { catchError, map, type Observable, of, switchMap } from "rxjs";
 
+import { gameArtUrl } from "../../shared/utils/game-art";
 import { type ProfileBackdropSources } from "./profile-backdrop.model";
 import { PublicProfileService } from "./public-profile.service";
 import { type PublicFavorite } from "./services/public-library.model";
@@ -15,15 +16,16 @@ export function pickProfileBackdrop({
 	showsFavorites
 }: ProfileBackdropSources): string | null {
 	if (showsFavorites && favorites === null) return null;
-	return (
-		favorites?.find(favorite => favorite.game.backgroundUrl)?.game
-			.backgroundUrl ||
-		profile?.backlogs.find(backlog => backlog.game.backgroundUrl)?.game
-			.backgroundUrl ||
-		profile?.recentActivity.find(activity => activity.game?.backgroundUrl)
-			?.game?.backgroundUrl ||
-		null
-	);
+	const candidates = [
+		...(favorites ?? []).map(favorite => favorite.game),
+		...(profile?.backlogs ?? []).map(backlog => backlog.game),
+		...(profile?.recentActivity ?? []).map(activity => activity.game)
+	];
+	for (const game of candidates) {
+		const art = gameArtUrl(game, "landscape");
+		if (art) return art;
+	}
+	return null;
 }
 
 export function injectProfileBackdrop(

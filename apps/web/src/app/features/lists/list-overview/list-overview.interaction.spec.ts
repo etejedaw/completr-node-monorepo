@@ -128,6 +128,8 @@ describe("Lists interaction", () => {
 		}
 		if (url === `${api}/lists/following`)
 			return req.flush({ data: { lists: [] } });
+		if (url === `${api}/lists/official` || url === `${api}/lists/recent`)
+			return req.flush({ data: { lists: [], total: 0 } });
 		if (url === `${api}/users/me/backlog`)
 			return req.flush({ data: { backlog: [], total: 0 } });
 		if (url === `${api}/score-sources`)

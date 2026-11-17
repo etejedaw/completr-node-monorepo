@@ -29,6 +29,7 @@ export async function postMember(request: Request, response: Response) {
 					id: game.id,
 					title: game.title,
 					code: game.code,
+					coverUrl: game.coverUrl,
 					backgroundUrl: game.backgroundUrl
 				}
 			}

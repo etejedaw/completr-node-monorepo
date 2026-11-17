@@ -188,7 +188,7 @@ export async function findGameEntriesByUserId(
 		include: [
 			{
 				...gamesService.gameInclude(),
-				attributes: ["id", "code", "title", "backgroundUrl"]
+				attributes: ["id", "code", "title", "coverUrl", "backgroundUrl"]
 			}
 		],
 		order: FAVORITES_ORDER
@@ -199,7 +199,9 @@ export async function findFavoritesByUserIdPaginated(
 	userId: string,
 	pagination: PaginatedSearchQuery = {}
 ) {
-	const gameInclude: Record<string, unknown> = { ...gamesService.gameInclude() };
+	const gameInclude: Record<string, unknown> = {
+		...gamesService.gameInclude()
+	};
 	const titleWhere = pagination.search
 		? buildTextSearchWhere(pagination.search, ["Game.title"])
 		: null;
@@ -257,7 +259,9 @@ export async function existsByGameId(
 export async function findFavoritesForDataExport(userId: string) {
 	return Favorite.findAll({
 		where: { userId },
-		include: [{ ...gamesService.gameInclude(), attributes: GAME_REFERENCE_ATTRS }],
+		include: [
+			{ ...gamesService.gameInclude(), attributes: GAME_REFERENCE_ATTRS }
+		],
 		order: FAVORITES_ORDER
 	});
 }
@@ -267,7 +271,7 @@ export async function findFeaturedFavoritesByUserIds(userIds: string[]) {
 	if (userIds.length === 0) return featured;
 
 	const rows = await sequelize.query<FeaturedFavoriteRow>(
-		`SELECT DISTINCT ON (f."userId") f."userId", g.title, g."backgroundUrl"
+		`SELECT DISTINCT ON (f."userId") f."userId", g.title, g."coverUrl", g."backgroundUrl"
 		 FROM "Favorites" AS f
 		 LEFT JOIN "Games" AS g ON g.id = f."gameId"
 		 WHERE f."userId" IN (:userIds)
@@ -279,7 +283,11 @@ export async function findFeaturedFavoritesByUserIds(userIds: string[]) {
 			row.userId,
 			row.title === null
 				? null
-				: { title: row.title, backgroundUrl: row.backgroundUrl ?? null }
+				: {
+						title: row.title,
+						coverUrl: row.coverUrl ?? null,
+						backgroundUrl: row.backgroundUrl ?? null
+					}
 		);
 	}
 	return featured;

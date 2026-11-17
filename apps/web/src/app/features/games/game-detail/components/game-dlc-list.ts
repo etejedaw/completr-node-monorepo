@@ -3,11 +3,12 @@ import { RouterLink } from "@angular/router";
 
 import { type GameSummary } from "../../../../core/models";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
+import { GameArtPipe } from "../../../../shared/pipes/game-art";
 import { UiBadge } from "../../../../shared/ui";
 
 @Component({
 	selector: "app-game-dlc-list",
-	imports: [RouterLink, GamePoster, UiBadge],
+	imports: [RouterLink, GamePoster, UiBadge, GameArtPipe],
 	template: `
 		<ul class="list-none m-0 p-0 grid grid-cols-1 sm:grid-cols-2 gap-3">
 			@for (dlc of dlcs(); track dlc.id) {
@@ -17,7 +18,7 @@ import { UiBadge } from "../../../../shared/ui";
 						[routerLink]="['/games', dlc.code]"
 					>
 						<app-game-poster
-							[src]="dlc.backgroundUrl ?? dlc.coverUrl"
+							[src]="dlc | gameArt: 'landscape'"
 							[title]="dlc.title"
 							[width]="420"
 							[compact]="true"

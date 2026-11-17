@@ -45,6 +45,7 @@ import { type ViewModeOption } from "../../../shared/components/view-mode-toggle
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { SelectionCell } from "../../../shared/directives/selection-cell";
 import { type SelectionToggle } from "../../../shared/directives/selection-cell.model";
+import { GameArtPipe } from "../../../shared/pipes/game-art";
 import {
 	UiBadge,
 	UiButton,
@@ -57,6 +58,7 @@ import { uniqueGameIds } from "../../../shared/utils/backlog-eligibility";
 import { countOf } from "../../../shared/utils/bulk-feedback";
 import { injectBulkRemoval } from "../../../shared/utils/bulk-removal";
 import { injectBulkRunner } from "../../../shared/utils/bulk-runner";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { injectRowSelection } from "../../../shared/utils/row-selection";
@@ -111,7 +113,8 @@ function readStoredViewMode(storage: StorageService): ShelfViewMode {
 		PlatformFilter,
 		PremiumOnly,
 		UiPremiumBadge,
-		PageSearch
+		PageSearch,
+		GameArtPipe
 	],
 	templateUrl: "./game-shelf-list.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -229,7 +232,7 @@ export class GameShelfList implements OnInit {
 	});
 	protected readonly heroPosters = computed(() =>
 		this.allEntries().map(entry => ({
-			src: entry.game.backgroundUrl,
+			src: gameArtUrl(entry.game, "portrait"),
 			title: entry.game.title
 		}))
 	);

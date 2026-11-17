@@ -58,7 +58,7 @@
 				(click)="gameSelected.emit(game)"
 			>
 				<app-game-poster
-					[src]="game.backgroundUrl"
+					[src]="game | gameArt: 'portrait'"
 					[title]="game.title"
 					[width]="420"
 					[compact]="true"

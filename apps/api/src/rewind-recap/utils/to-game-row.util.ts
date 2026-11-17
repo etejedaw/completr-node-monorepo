@@ -4,6 +4,8 @@ import { type GameRow } from "../rewind-recap.types";
 import { condenseRecapNote } from "./condense-recap-note.util";
 import { daysInBacklog } from "./days-in-backlog.util";
 import { daysToFinish } from "./days-to-finish.util";
+import { daysToPlatinum } from "./days-to-platinum.util";
+import { joinRecapTags } from "./join-recap-tags.util";
 import { lengthRangeOf } from "./length-range-of.util";
 import { paceVsEstimate } from "./pace-vs-estimate.util";
 import { ratingVsCritics } from "./rating-vs-critics.util";
@@ -14,6 +16,7 @@ export function toGameRow(
 	lookups: GameRowLookups,
 	includesNotes: boolean
 ): GameRow {
+	const platinum = lookups.platinumsByRun?.get(run.id);
 	const row: GameRow = [
 		run.game.title,
 		run.status,
@@ -32,7 +35,15 @@ export function toGameRow(
 		daysInBacklog(run),
 		daysToFinish(run),
 		lookups.coopAliasesByRun.get(run.id)?.join("/") ?? null,
-		condenseRecapNote(lookups.reviewsByGame.get(run.gameId) ?? null)
+		condenseRecapNote(lookups.reviewsByGame.get(run.gameId) ?? null),
+		joinRecapTags(lookups.tagsByGame.get(run.gameId)),
+		lookups.platinumsByRun === null ? null : platinum !== undefined,
+		daysToPlatinum(run, platinum)
 	];
-	return includesNotes ? [...row, condenseRecapNote(run.notes)] : row;
+	if (!includesNotes) return row;
+	return [
+		...row,
+		condenseRecapNote(run.notes),
+		condenseRecapNote(platinum?.notes ?? null)
+	];
 }

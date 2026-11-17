@@ -64,6 +64,7 @@ docs: |-
               "id": "uuid",
               "code": "astro-bot",
               "title": "Astro Bot",
+              "coverUrl": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1abc.jpg",
               "backgroundUrl": "https://…/astro-bot.jpg",
               "isDlc": false
             }

@@ -116,6 +116,7 @@ void describe("listSummarySerializer", () => {
 					id: "game-1",
 					code: "hollow-knight",
 					title: "Hollow Knight",
+					coverUrl: "https://img/cover.jpg",
 					backgroundUrl: "https://img/bg.jpg"
 				}
 			}

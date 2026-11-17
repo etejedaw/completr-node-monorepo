@@ -64,6 +64,7 @@ export function buildRewind(overrides: Partial<Rewind> = {}): Rewind {
 			platformsPlayed: 3
 		},
 		finishedGames: games,
+		abandonedGames: [],
 		highlights: {
 			topRated: { ...games[3]!, userRating: 5 },
 			bestRatio: { ...games[1]!, personalRatio: 1.2 },

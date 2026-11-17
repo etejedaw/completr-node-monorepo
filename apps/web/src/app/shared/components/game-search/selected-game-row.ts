@@ -9,18 +9,19 @@ import {
 	viewChild
 } from "@angular/core";
 
+import { GameArtPipe } from "../../pipes/game-art";
 import { UiButton, UiEyebrow } from "../../ui";
 import { GamePoster } from "../game-poster/game-poster";
 import { type SelectedGame } from "./selected-game-row.model";
 
 @Component({
 	selector: "app-selected-game-row",
-	imports: [UiEyebrow, GamePoster, UiButton],
+	imports: [UiEyebrow, GamePoster, UiButton, GameArtPipe],
 	template: `
 		@let current = game();
 		<app-game-poster
 			class="w-12 aspect-[2/3] shrink-0 rounded ring-1 ring-white/10"
-			[src]="current.backgroundUrl ?? null"
+			[src]="current | gameArt: 'portrait'"
 			[title]="current.title"
 			[width]="420"
 			[compact]="true"

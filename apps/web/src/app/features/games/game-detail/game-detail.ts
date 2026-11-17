@@ -611,6 +611,7 @@ export class GameDetail implements OnInit {
 							id: g.id,
 							code: g.code,
 							title: g.title,
+							coverUrl: g.coverUrl,
 							backgroundUrl: g.backgroundUrl,
 							platforms: g.platforms ?? []
 						},

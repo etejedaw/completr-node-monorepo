@@ -220,6 +220,7 @@ void describe("GET /games pagination and defaults", () => {
 		assert.equal(entry.id, games.alpha!.id);
 		assert.equal(entry.title, "Alpha Quest");
 		assert.equal(entry.code, "alpha-quest");
+		assert.equal(entry.coverUrl, null);
 		assert.equal(
 			entry.backgroundUrl,
 			"https://img.completr.test/background.jpg"
@@ -716,5 +717,33 @@ void describe("GET /games validation and authentication", () => {
 
 		assert.equal(response.status, 401);
 		assert.equal(response.body.type, "AUTH_INVALID_TOKEN");
+	});
+});
+
+void describe("GET /games art", () => {
+	const coverUrl =
+		"https://images.igdb.com/igdb/image/upload/t_cover_big/co9zzz.jpg";
+
+	void it("returns the cover of a cover-only game in the list and the detailed view, even when both are asked at once", async () => {
+		const coverOnly = await Game.create({
+			title: "Zulu Cover Only",
+			code: "zulu-cover-only",
+			coverUrl,
+			createdAt: new Date("2019-01-01")
+		});
+
+		const [list, detailed] = await Promise.all([
+			getGames({ search: "zulu cover" }),
+			getGames({ search: "zulu cover", detailed: "true" })
+		]);
+
+		for (const response of [list, detailed]) {
+			assert.equal(response.status, 200);
+			const [entry] = response.body.data.games;
+			assert.equal(entry.id, coverOnly.id);
+			assert.equal(entry.coverUrl, coverUrl);
+			assert.equal(entry.backgroundUrl, null);
+		}
+		await coverOnly.destroy();
 	});
 });

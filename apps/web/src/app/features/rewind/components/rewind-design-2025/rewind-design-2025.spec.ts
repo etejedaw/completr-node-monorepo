@@ -13,6 +13,7 @@ import {
 } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 import { screen, within } from "@testing-library/angular";
+import { type Mock } from "vitest";
 
 import {
 	type Rewind,
@@ -131,6 +132,7 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 			platformsPlayed: 2
 		},
 		finishedGames: FINISHED_GAMES,
+		abandonedGames: [],
 		highlights: {
 			topRated: {
 				...FINISHED_GAMES[0],
@@ -202,7 +204,9 @@ describe("RewindDesign2025", () => {
 					useValue: {
 						pending: vi.fn(),
 						error: vi.fn(),
-						premium: vi.fn()
+						premium: vi.fn(),
+						success: vi.fn(),
+						warning: vi.fn()
 					}
 				}
 			]
@@ -234,6 +238,141 @@ describe("RewindDesign2025", () => {
 			await block.render(DeferBlockState.Complete);
 		fixture.detectChanges();
 	}
+
+	it("draws its own tally, persona and premium stats instead of the shared ones", async () => {
+		const root = await renderDesign(rewindFixture());
+
+		expect(root.querySelector("app-rewind-2025-tally")).not.toBeNull();
+		expect(
+			root.querySelector("app-rewind-2025-persona-rank")
+		).not.toBeNull();
+		expect(
+			root.querySelector("app-rewind-2025-premium-stats")
+		).not.toBeNull();
+		expect(root.querySelector("app-rewind-tally")).toBeNull();
+		expect(root.querySelector("app-rewind-persona-rank")).toBeNull();
+		expect(root.querySelector("app-rewind-premium-stats")).toBeNull();
+	});
+
+	describe("more of your year", () => {
+		const yearMix = {
+			lengthMix: [
+				{ range: "under-5" as const, count: 2 },
+				{ range: "5-15" as const, count: 5 }
+			],
+			releaseDecades: [{ decade: 2010, count: 4 }],
+			gamesWithoutHours: 0,
+			gamesWithoutRelease: 0
+		};
+
+		it("adds its own section above the premium stats, which stay before the shelves", async () => {
+			const root = await renderDesign(rewindFixture({ yearMix }));
+
+			const section = screen.getByRole("region", {
+				name: "More of your year"
+			});
+			expect(
+				within(section).getByRole("figure", {
+					name: "How long were your games?"
+				})
+			).toBeInTheDocument();
+			expect(
+				within(section).getByRole("figure", { name: "Release decades" })
+			).toBeInTheDocument();
+			expect(
+				root.querySelector("app-rewind-2025-year-mix")
+			).not.toBeNull();
+			expect(root.querySelector("app-rewind-year-mix")).toBeNull();
+			const order = [
+				"app-rewind-2025-year-mix",
+				"app-rewind-2025-premium-stats",
+				"[aria-labelledby='rewind-2025-finished-heading']"
+			].map(selector => root.querySelector(selector)!);
+			expect(
+				order[0].compareDocumentPosition(order[1]) &
+					Node.DOCUMENT_POSITION_FOLLOWING
+			).toBeTruthy();
+			expect(
+				order[1].compareDocumentPosition(order[2]) &
+					Node.DOCUMENT_POSITION_FOLLOWING
+			).toBeTruthy();
+		});
+
+		it("writes the section in Spanish", async () => {
+			await renderDesign(rewindFixture({ yearMix, language: "es" }));
+
+			const section = screen.getByRole("region", {
+				name: "Más de tu año"
+			});
+			expect(
+				within(section).getByRole("figure", {
+					name: "¿Cuánto duraron tus juegos?"
+				})
+			).toBeInTheDocument();
+		});
+
+		it("leaves the section out when there is nothing to chart", async () => {
+			const root = await renderDesign(rewindFixture());
+
+			expect(root.querySelector("app-rewind-2025-year-mix")).toBeNull();
+			expect(
+				screen.queryByRole("region", { name: "More of your year" })
+			).toBeNull();
+		});
+
+		it("follows a Rewind that gains and loses its mix", async () => {
+			const root = await renderDesign(rewindFixture());
+			for (const next of [yearMix, rewindFixture().yearMix, yearMix]) {
+				fixture.componentRef.setInput(
+					"rewind",
+					rewindFixture({ yearMix: next })
+				);
+				fixture.detectChanges();
+			}
+			await fixture.whenStable();
+
+			expect(
+				root.querySelector("app-rewind-2025-year-mix")
+			).not.toBeNull();
+		});
+	});
+
+	it("never shows the backlog chart and keeps the other premium charts", async () => {
+		await renderDesign(
+			rewindFixture({
+				premiumStats: {
+					...premiumStats(),
+					backlogFlow: [{ month: 3, added: 4, finished: 1 }]
+				}
+			})
+		);
+
+		const section = screen.getByRole("region", { name: "Premium stats" });
+		expect(
+			within(section).queryByRole("figure", { name: /backlog/i })
+		).toBeNull();
+		expect(within(section).getAllByRole("figure").length).toBeGreaterThan(
+			0
+		);
+	});
+
+	it("leaves the premium stats out when the backlog chart is the only one with data", async () => {
+		const root = await renderDesign(
+			rewindFixture({
+				premiumStats: {
+					hoursByMonth: [],
+					tasteVsCritics: [],
+					genreShare: [],
+					backlogFlow: [{ month: 3, added: 4, finished: 1 }]
+				}
+			})
+		);
+
+		expect(root.querySelector("app-rewind-2025-premium-stats")).toBeNull();
+		expect(
+			screen.queryByRole("region", { name: "Premium stats" })
+		).toBeNull();
+	});
 
 	function shelfQuarters(root: HTMLElement): string[] {
 		return [...root.querySelectorAll("[data-quarter]")].map(
@@ -288,28 +427,202 @@ describe("RewindDesign2025", () => {
 		);
 	});
 
-	it("never offers a way to share the Rewind", async () => {
-		const root = await renderDesign(
-			rewindFixture({ ownerControls: ownerControls() }),
-			{ isOwner: true }
-		);
-		await renderDeferred();
+	it("opens with the summary sentence of the year in its language", async () => {
+		await renderDesign(rewindFixture());
+		expect(
+			screen.getByText("4 games finished, 2 left behind and 7 started.")
+		).toBeInTheDocument();
 
-		expect(
-			screen.queryByRole("button", { name: /share|compartir/i })
-		).not.toBeInTheDocument();
-		expect(
-			screen.queryByRole("link", { name: /share|compartir/i })
-		).not.toBeInTheDocument();
-		expect(
-			screen.queryByRole("heading", { name: /share|compartir/i })
-		).not.toBeInTheDocument();
-		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-		expect(root.querySelector("app-rewind-share-actions")).toBeNull();
-		const requests = TestBed.inject(HttpTestingController).match(request =>
-			/story|share|image/i.test(request.url)
+		fixture.componentRef.setInput(
+			"rewind",
+			rewindFixture({ language: "es" })
 		);
-		expect(requests).toHaveLength(0);
+		fixture.detectChanges();
+		expect(
+			screen.getByText(
+				"4 juegos terminados, 2 abandonados y 7 empezados."
+			)
+		).toBeInTheDocument();
+	});
+
+	describe("sharing the link", () => {
+		const shareUrl = `${window.location.origin}/share/rewind/ada/2025`;
+		let toast: { success: Mock; warning: Mock };
+
+		function useDevice(options: {
+			touch: boolean;
+			share?: (data: ShareData) => Promise<void>;
+			clipboard?: { writeText: (text: string) => Promise<void> } | null;
+		}) {
+			vi.stubGlobal(
+				"matchMedia",
+				vi.fn((query: string) => ({
+					matches:
+						query === "(pointer: coarse)" ? options.touch : true,
+					addEventListener: vi.fn(),
+					removeEventListener: vi.fn()
+				}))
+			);
+			Object.defineProperty(navigator, "share", {
+				configurable: true,
+				value: options.share
+			});
+			Object.defineProperty(navigator, "clipboard", {
+				configurable: true,
+				value: options.clipboard ?? undefined
+			});
+		}
+
+		async function clickShare(times = 1) {
+			const button = screen.getByRole("button", { name: "Share" });
+			for (let click = 0; click < times; click++) button.click();
+			await new Promise(resolve => setTimeout(resolve));
+			await fixture.whenStable();
+		}
+
+		beforeEach(() => {
+			toast = TestBed.inject(ToastService) as unknown as {
+				success: Mock;
+				warning: Mock;
+			};
+		});
+
+		afterEach(() => {
+			Reflect.deleteProperty(navigator, "share");
+			Reflect.deleteProperty(navigator, "clipboard");
+		});
+
+		it("offers a Share button with no dialog, share section or story images", async () => {
+			const root = await renderDesign(
+				rewindFixture({ ownerControls: ownerControls() }),
+				{ isOwner: true }
+			);
+			await renderDeferred();
+
+			const button = screen.getByRole("button", { name: "Share" });
+			expect(button).not.toHaveAttribute("aria-haspopup");
+			expect(
+				screen.queryByRole("heading", { name: /share|compartir/i })
+			).not.toBeInTheDocument();
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+			expect(root.querySelector("app-rewind-share-actions")).toBeNull();
+			const requests = TestBed.inject(HttpTestingController).match(
+				request => /story|share|image/i.test(request.url)
+			);
+			expect(requests).toHaveLength(0);
+		});
+
+		it("copies the share link on desktop even when the browser can share natively", async () => {
+			const writeText = vi.fn(() => Promise.resolve());
+			const share = vi.fn(() => Promise.resolve());
+			useDevice({ touch: false, share, clipboard: { writeText } });
+			await renderDesign(rewindFixture());
+
+			await clickShare();
+
+			expect(writeText).toHaveBeenCalledExactlyOnceWith(shareUrl);
+			expect(share).not.toHaveBeenCalled();
+			expect(toast.success).toHaveBeenCalledWith("Link copied");
+		});
+
+		it("copies once when the button is clicked many times in a row", async () => {
+			const writeText = vi.fn(() => Promise.resolve());
+			useDevice({ touch: false, clipboard: { writeText } });
+			await renderDesign(rewindFixture());
+
+			await clickShare(4);
+
+			expect(writeText).toHaveBeenCalledTimes(1);
+			expect(toast.success).toHaveBeenCalledTimes(1);
+		});
+
+		it("warns when the link cannot be copied", async () => {
+			useDevice({
+				touch: false,
+				clipboard: {
+					writeText: () => Promise.reject(new Error("denied"))
+				}
+			});
+			await renderDesign(rewindFixture());
+			await clickShare();
+			expect(toast.warning).toHaveBeenCalledWith(
+				"Couldn't copy the link."
+			);
+
+			useDevice({ touch: false, clipboard: null });
+			await clickShare();
+			expect(toast.warning).toHaveBeenCalledTimes(2);
+		});
+
+		it("opens the native share sheet on touch devices with the link and a title", async () => {
+			const writeText = vi.fn(() => Promise.resolve());
+			const share = vi.fn(() => Promise.resolve());
+			useDevice({ touch: true, share, clipboard: { writeText } });
+			await renderDesign(rewindFixture(), { username: "ada" });
+
+			await clickShare(3);
+
+			expect(share).toHaveBeenCalledExactlyOnceWith({
+				title: "@ada's 2025 Rewind",
+				url: shareUrl
+			});
+			expect(writeText).not.toHaveBeenCalled();
+			expect(toast.success).not.toHaveBeenCalled();
+		});
+
+		it("stays quiet when the person closes the share sheet and can share again", async () => {
+			const share = vi
+				.fn()
+				.mockRejectedValueOnce(new DOMException("closed", "AbortError"))
+				.mockResolvedValueOnce(undefined);
+			const writeText = vi.fn(() => Promise.resolve());
+			useDevice({ touch: true, share, clipboard: { writeText } });
+			await renderDesign(
+				rewindFixture({ ownerControls: ownerControls() }),
+				{
+					isOwner: true
+				}
+			);
+
+			await clickShare();
+			await clickShare();
+
+			expect(share).toHaveBeenCalledTimes(2);
+			expect(share).toHaveBeenLastCalledWith({
+				title: "Your 2025 Rewind",
+				url: shareUrl
+			});
+			expect(writeText).not.toHaveBeenCalled();
+			expect(toast.warning).not.toHaveBeenCalled();
+		});
+
+		it("falls back to copying the link when the share sheet fails", async () => {
+			const writeText = vi.fn(() => Promise.resolve());
+			useDevice({
+				touch: true,
+				share: () =>
+					Promise.reject(
+						new DOMException("blocked", "NotAllowedError")
+					),
+				clipboard: { writeText }
+			});
+			await renderDesign(rewindFixture());
+
+			await clickShare();
+
+			expect(writeText).toHaveBeenCalledExactlyOnceWith(shareUrl);
+			expect(toast.success).toHaveBeenCalledWith("Link copied");
+		});
+
+		it("copies the link on a touch device without native sharing", async () => {
+			const writeText = vi.fn(() => Promise.resolve());
+			useDevice({ touch: true, clipboard: { writeText } });
+			await renderDesign(rewindFixture());
+
+			await clickShare();
+
+			expect(writeText).toHaveBeenCalledExactlyOnceWith(shareUrl);
+		});
 	});
 
 	it("shelves the finished games by quarter in calendar order and skips empty quarters", async () => {
@@ -332,6 +645,147 @@ describe("RewindDesign2025", () => {
 		expect(
 			within(summerShelf).getByRole("img", { name: "Outer Wilds" })
 		).toHaveAttribute("src", "https://img/outer-wilds-bg.jpg");
+	});
+
+	describe("what the player left behind", () => {
+		const ABANDONED_GAMES: RewindFinishedGame[] = [
+			finished("tunic", "Tunic", "2025-09-30T10:00:00.000Z"),
+			finished("inside", "Inside", "2025-01-02T10:00:00.000Z", {
+				coverUrl: null,
+				backgroundUrl: "https://img/inside-bg.jpg"
+			}),
+			finished("limbo", "Limbo", "2025-05-05T10:00:00.000Z")
+		];
+
+		function leftBehind(root: HTMLElement) {
+			return root.querySelector<HTMLElement>("[data-left-behind]");
+		}
+
+		it("adds the section after the shelves with the abandoned games by date and keeps them off the shelves", async () => {
+			const root = await renderDesign(
+				rewindFixture({ abandonedGames: ABANDONED_GAMES })
+			);
+			await renderDeferred();
+
+			const section = leftBehind(root)!;
+			expect(
+				within(section).getByRole("heading", {
+					level: 2,
+					name: "What you left behind"
+				})
+			).toBeInTheDocument();
+			expect(section).toHaveAccessibleDescription(
+				"3 games you left halfway this year"
+			);
+			expect(
+				within(section)
+					.getAllByRole("link")
+					.map(link => link.getAttribute("href"))
+			).toEqual(["/games/inside", "/games/limbo", "/games/tunic"]);
+			expect(
+				within(section).getByRole("link", {
+					name: "Limbo, May 5, abandoned"
+				})
+			).toHaveTextContent("May 5");
+			expect(section).not.toHaveTextContent(/abandoned/);
+			expect(section.querySelector("[data-abandoned-badge]")).toBeNull();
+			for (const poster of section.querySelectorAll("app-game-poster"))
+				expect(poster).toHaveClass(
+					"grayscale",
+					"opacity-60",
+					"group-hover:grayscale-0",
+					"group-focus-visible:grayscale-0"
+				);
+
+			const shelves = root.querySelector("app-rewind-2025-shelves")!;
+			expect(
+				shelves.compareDocumentPosition(section) &
+					Node.DOCUMENT_POSITION_FOLLOWING
+			).toBeTruthy();
+			const shelvedGames = [...shelves.querySelectorAll("a")].map(link =>
+				link.getAttribute("href")
+			);
+			expect(shelvedGames).toHaveLength(FINISHED_GAMES.length);
+			for (const game of ABANDONED_GAMES)
+				expect(shelvedGames).not.toContain(`/games/${game.code}`);
+			expect(
+				screen.getByRole("heading", { name: "Finished in 2025" })
+			).toBeInTheDocument();
+		});
+
+		it("omits the section when nothing was abandoned", async () => {
+			const root = await renderDesign(rewindFixture());
+			await renderDeferred();
+
+			expect(leftBehind(root)).toBeNull();
+			expect(
+				screen.queryByRole("heading", { name: "What you left behind" })
+			).not.toBeInTheDocument();
+		});
+
+		it("shows the section even in a year without finished games", async () => {
+			const root = await renderDesign(
+				rewindFixture({
+					finishedGames: [],
+					highlights: {
+						...rewindFixture().highlights,
+						topRated: null
+					},
+					abandonedGames: [ABANDONED_GAMES[0]]
+				})
+			);
+			await renderDeferred();
+
+			expect(root.querySelector("app-rewind-2025-shelves")).toBeNull();
+			expect(leftBehind(root)).toHaveAccessibleDescription(
+				"1 game you left halfway this year"
+			);
+		});
+
+		it("writes the section in Spanish", async () => {
+			const root = await renderDesign(
+				rewindFixture({
+					language: "es",
+					abandonedGames: ABANDONED_GAMES
+				})
+			);
+			await renderDeferred();
+
+			const section = leftBehind(root)!;
+			expect(
+				within(section).getByRole("heading", {
+					name: "Los que soltaste"
+				})
+			).toBeInTheDocument();
+			expect(section).toHaveAccessibleDescription(
+				"3 juegos que dejaste a medias este año"
+			);
+			expect(
+				within(section).getByRole("link", {
+					name: /^Tunic, 30 sept?\.?, abandonado$/
+				})
+			).toBeInTheDocument();
+		});
+
+		it("follows a Rewind that gains and loses its abandoned games", async () => {
+			const root = await renderDesign(rewindFixture());
+			for (const abandonedGames of [
+				ABANDONED_GAMES,
+				[],
+				ABANDONED_GAMES.slice(1)
+			]) {
+				fixture.componentRef.setInput(
+					"rewind",
+					rewindFixture({ abandonedGames })
+				);
+				fixture.detectChanges();
+			}
+			await renderDeferred();
+
+			expect(within(leftBehind(root)!).getAllByRole("link")).toHaveLength(
+				2
+			);
+		});
 	});
 
 	it("features the best rated game as the cover of the year", async () => {
@@ -485,7 +939,7 @@ describe("RewindDesign2025", () => {
 		expect(root.querySelector("[data-hero-collage]")).toBeNull();
 		expect(screen.queryByText("Cover of the year")).not.toBeInTheDocument();
 		expect(root.querySelector("app-rewind-2025-recap-article")).toBeNull();
-		expect(root.querySelector("app-rewind-premium-stats")).toBeNull();
+		expect(root.querySelector("app-rewind-2025-premium-stats")).toBeNull();
 		expect(
 			screen.queryByRole("heading", { name: "Highlights" })
 		).not.toBeInTheDocument();
@@ -524,7 +978,7 @@ describe("RewindDesign2025", () => {
 			})
 		);
 
-		expect(root.querySelector("app-rewind-premium-stats")).toBeNull();
+		expect(root.querySelector("app-rewind-2025-premium-stats")).toBeNull();
 	});
 
 	it("keeps up with a Rewind that changes many times in a row", async () => {

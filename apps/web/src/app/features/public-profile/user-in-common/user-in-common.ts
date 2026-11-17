@@ -28,7 +28,11 @@ const IN_COMMON_SUFFIX: Record<string, string> = {
 };
 
 function toInCommonGame(game: ComparisonGame): InCommonGame {
-	return { ...game, backgroundUrl: game.backgroundUrl ?? undefined };
+	return {
+		...game,
+		coverUrl: game.coverUrl ?? undefined,
+		backgroundUrl: game.backgroundUrl ?? undefined
+	};
 }
 
 function parseDimension(value: string | null): ComparisonDimension {

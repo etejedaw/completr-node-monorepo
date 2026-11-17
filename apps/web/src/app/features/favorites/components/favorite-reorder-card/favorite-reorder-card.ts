@@ -9,6 +9,7 @@ import {
 
 import { type FavoriteEntry } from "../../../../core/models";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
+import { GameArtPipe } from "../../../../shared/pipes/game-art";
 import { UiIconButton } from "../../../../shared/ui";
 import {
 	type FavoriteReorderAction,
@@ -17,7 +18,7 @@ import {
 
 @Component({
 	selector: "app-favorite-reorder-card",
-	imports: [CdkDragHandle, GamePoster, UiIconButton],
+	imports: [CdkDragHandle, GamePoster, UiIconButton, GameArtPipe],
 	template: `
 		<div class="flex flex-col gap-1.5">
 			<div
@@ -27,7 +28,7 @@ import {
 				"
 			>
 				<app-game-poster
-					[src]="entry().game.backgroundUrl"
+					[src]="entry().game | gameArt: 'portrait'"
 					[title]="entry().game.title"
 					[width]="420"
 					class="block w-full aspect-[2/3]"

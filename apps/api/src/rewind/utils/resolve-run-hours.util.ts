@@ -1,6 +1,8 @@
 import { type RewindRun, type RunHours } from "../rewind-run.interface";
 
-export function resolveRunHours(run: RewindRun): RunHours | null {
+export function resolveRunHours(
+	run: Pick<RewindRun, "realDuration" | "duration">
+): RunHours | null {
 	if (run.realDuration !== null && run.realDuration > 0)
 		return { hours: run.realDuration, isEstimate: false };
 	if (run.duration !== null && run.duration > 0)

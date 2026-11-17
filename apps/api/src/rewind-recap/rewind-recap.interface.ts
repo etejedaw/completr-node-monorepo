@@ -16,7 +16,31 @@ export interface RewindRecapInput {
 	franchises: RewindGameFranchise[];
 	coopPartners: RewindCoopPartner[];
 	reviews: RewindGameReview[];
+	tags: RewindGameTag[];
+	platinums: RewindRunPlatinum[] | null;
+	upNext: RewindQueuedGame[];
 	previousYearTotals: RewindTotals | null;
+}
+
+export interface RewindGameTag {
+	gameId: string;
+	tag: string;
+}
+
+export interface RewindRunPlatinum {
+	runId: string;
+	platinumedAt: string | null;
+	notes: string | null;
+}
+
+export interface RewindQueuedGame {
+	gameId: string;
+	title: string;
+	genres: string[];
+	realDuration: number | null;
+	duration: number | null;
+	addedAt: string;
+	queuedAt: string;
 }
 
 export interface RewindGameReview {
@@ -103,6 +127,33 @@ export interface RecapDayInterval {
 	end: number;
 }
 
+export interface RecapPlatinumGroup {
+	name: string;
+	games: number;
+	platinumed: number;
+}
+
+export interface RecapPlatinumStats {
+	platinumed: number;
+	sameDay: number;
+	afterFinishing: number;
+	beforeFinishing: number;
+	undated: number;
+	medianDaysAfterFinishing: number | null;
+	byGenre: RecapPlatinumGroup[];
+	byLength: RecapPlatinumGroup[];
+}
+
+export interface RecapUpNextGame {
+	title: string;
+	genres: string | null;
+	lengthRange: string | null;
+	estimatedHours: number | null;
+	daysWaiting: number;
+	daysQueued: number;
+	tags: string | null;
+}
+
 export interface RewindRecapPatterns {
 	byGenre: RecapGroupStats[];
 	byPlatform: RecapGroupStats[];
@@ -110,6 +161,7 @@ export interface RewindRecapPatterns {
 	byQuarter: RecapGroupStats[];
 	bySocial: RecapGroupStats[];
 	byPartner: RecapGroupStats[];
+	byTag: RecapGroupStats[];
 	sameDayCloses: RecapSameDayClose[];
 	quickDrops: RecapTimedGame[];
 	slowestFinishes: RecapTimedGame[];
@@ -118,6 +170,7 @@ export interface RewindRecapPatterns {
 	franchises: RecapFranchiseGroup[];
 	overlap: RecapOverlapStats;
 	ratingHabits: RecapRatingHabits;
+	platinums: RecapPlatinumStats | null;
 	importedCloses: number;
 }
 
@@ -126,6 +179,8 @@ export interface GameRowLookups {
 	franchiseNamesByGame: Map<string, string[]>;
 	coopAliasesByRun: Map<string, string[]>;
 	reviewsByGame: Map<string, string>;
+	tagsByGame: Map<string, string[]>;
+	platinumsByRun: Map<string, RewindRunPlatinum> | null;
 }
 
 export interface RecapLengthBucket {

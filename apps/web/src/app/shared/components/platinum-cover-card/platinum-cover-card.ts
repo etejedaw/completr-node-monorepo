@@ -8,6 +8,7 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { type PlatinumEntry } from "../../../core/models";
+import { GameArtPipe } from "../../pipes/game-art";
 import { GamePoster } from "../game-poster/game-poster";
 
 const COVER_CLASS =
@@ -17,11 +18,11 @@ const TITLE_CLASS =
 
 @Component({
 	selector: "app-platinum-cover-card",
-	imports: [RouterLink, DatePipe, GamePoster, NgTemplateOutlet],
+	imports: [RouterLink, DatePipe, GamePoster, NgTemplateOutlet, GameArtPipe],
 	template: `
 		<ng-template #cover>
 			<app-game-poster
-				[src]="platinum().game.backgroundUrl"
+				[src]="platinum().game | gameArt: 'portrait'"
 				[title]="platinum().game.title"
 				[width]="420"
 				class="block w-full aspect-[2/3]"

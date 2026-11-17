@@ -31,7 +31,11 @@ interface UserCard {
 	isFollowing: boolean;
 	gamesTotal: number | null;
 	completedTotal: number | null;
-	featuredGame: { title: string; backgroundUrl: string | null } | null;
+	featuredGame: {
+		title: string;
+		coverUrl: string | null;
+		backgroundUrl: string | null;
+	} | null;
 }
 
 function uniqueTag() {
@@ -136,7 +140,9 @@ void describe("GET /users/search", () => {
 	void it("answers an empty list when nobody matches", async () => {
 		const viewer = await createUserWithSession();
 
-		const response = await search(viewer, { search: `nomatch_${uniqueTag()}` });
+		const response = await search(viewer, {
+			search: `nomatch_${uniqueTag()}`
+		});
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data, { users: [] });
@@ -152,7 +158,10 @@ void describe("GET /users/search", () => {
 			);
 		}
 
-		const response = await search(viewer, { search: `cap_${tag}`, limit: 2 });
+		const response = await search(viewer, {
+			search: `cap_${tag}`,
+			limit: 2
+		});
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(usernamesOf(response), [

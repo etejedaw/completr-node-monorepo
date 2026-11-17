@@ -76,6 +76,7 @@ import {
 	backlogStatusIconColor,
 	backlogStatusLabel
 } from "../../../shared/utils/backlog-status";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import {
 	isNotFound,
 	reportHttpFailure
@@ -298,7 +299,7 @@ export class BacklogList implements OnInit {
 
 	protected readonly heroPosters = computed(() =>
 		this.entries().map(entry => ({
-			src: entry.game.backgroundUrl,
+			src: gameArtUrl(entry.game, "portrait"),
 			title: entry.game.title
 		}))
 	);

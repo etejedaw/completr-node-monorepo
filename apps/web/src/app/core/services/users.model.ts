@@ -13,7 +13,11 @@ export interface UserResult {
 	isFollowing?: boolean;
 	gamesTotal?: number | null;
 	completedTotal?: number | null;
-	featuredGame?: { title: string; backgroundUrl: string | null } | null;
+	featuredGame?: {
+		title: string;
+		coverUrl: string | null;
+		backgroundUrl: string | null;
+	} | null;
 }
 
 export interface UsersResponse {

@@ -29,8 +29,10 @@ import {
 	UiPremiumBadge,
 	UiSkeleton
 } from "../../../shared/ui";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectLibraryPosters } from "../../backlog/library-posters";
+import { PublicListsSection } from "../components/public-lists-section/public-lists-section";
 import { ListModal } from "../list-modal/list-modal";
 import {
 	type ListModalData,
@@ -55,6 +57,7 @@ import { ListsService } from "../lists";
 		UiPagination,
 		UiSkeleton,
 		PremiumOnly,
+		PublicListsSection,
 		UiPremiumBadge
 	],
 	templateUrl: "./list-overview.html",
@@ -85,7 +88,12 @@ export class ListOverview implements OnInit {
 			.flatMap(list => list.previewItems ?? [])
 			.flatMap(item =>
 				item.game
-					? [{ src: item.game.backgroundUrl, title: item.game.title }]
+					? [
+							{
+								src: gameArtUrl(item.game, "portrait"),
+								title: item.game.title
+							}
+						]
 					: []
 			);
 		return fromLists.length > 0 ? fromLists : this.libraryPosters();

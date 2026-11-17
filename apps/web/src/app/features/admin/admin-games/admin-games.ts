@@ -40,6 +40,7 @@ import { GamePoster } from "../../../shared/components/game-poster/game-poster";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
+import { GameArtPipe } from "../../../shared/pipes/game-art";
 import {
 	UiActionMenu,
 	type UiActionMenuItem,
@@ -109,7 +110,8 @@ function sameValues(a: readonly string[], b: readonly string[]): boolean {
 		UiIconButton,
 		UiNoMatches,
 		UiPagination,
-		UiSkeleton
+		UiSkeleton,
+		GameArtPipe
 	],
 	templateUrl: "./admin-games.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

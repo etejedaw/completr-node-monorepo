@@ -21,6 +21,7 @@ import {
 	UiPagination,
 	UiSkeleton
 } from "../../../shared/ui";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { FranchiseCard } from "../components/franchise-card/franchise-card";
 import { injectFranchiseTracking } from "../franchise-tracking";
 import { FranchisesService } from "../franchises";
@@ -113,7 +114,7 @@ export class FranchiseOverview {
 	protected readonly heroPosters = computed(() =>
 		(this.shownPage()?.franchises ?? []).flatMap(franchise =>
 			franchise.previewGames.map(game => ({
-				src: game.backgroundUrl,
+				src: gameArtUrl(game, "portrait"),
 				title: game.title
 			}))
 		)

@@ -52,6 +52,7 @@ function gameSummarySerializer(game: Game) {
 		id: game.id,
 		code: game.code,
 		title: game.title,
+		coverUrl: game.coverUrl,
 		backgroundUrl: game.backgroundUrl
 	};
 }
@@ -81,6 +82,7 @@ function gameSerializer(game: Game) {
 		id: game.id,
 		code: game.code,
 		title: game.title,
+		coverUrl: game.coverUrl,
 		backgroundUrl: game.backgroundUrl,
 		isDlc: game.isDlc
 	};

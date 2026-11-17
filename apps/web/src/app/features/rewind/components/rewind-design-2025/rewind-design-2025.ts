@@ -14,30 +14,42 @@ import { ProfileBackdrop } from "../../../../shared/components/profile-backdrop/
 import { ProfileSectionHeader } from "../../../../shared/components/profile-section-header/profile-section-header";
 import { CoverUrlPipe } from "../../../../shared/pipes/cover-url";
 import {
+	UiButton,
 	UiEyebrow,
 	UiOptionPicker,
 	type UiPickerOption,
 	UiSkeleton
 } from "../../../../shared/ui";
-import { rewindCopy } from "../../rewind-copy";
+import { injectRewindLinkShare } from "../../inject-rewind-link-share";
+import { rewindCopy, rewindSummarySentence } from "../../rewind-copy";
 import { type RewindDesignComponent } from "../../rewind-designs.model";
 import { RewindReveal } from "../../rewind-reveal";
+import { REWIND_SHARE_COPY } from "../../rewind-share-copy";
 import { REWIND_YEAR_FILL_CLASS } from "../../rewind-tone";
 import { RewindMoreYears } from "../rewind-more-years/rewind-more-years";
 import { RewindOwnerPanel } from "../rewind-owner-panel/rewind-owner-panel";
-import { RewindPersonaRank } from "../rewind-persona-rank/rewind-persona-rank";
-import {
-	hasPremiumCharts,
-	RewindPremiumStats
-} from "../rewind-premium-stats/rewind-premium-stats";
-import { RewindTally, rewindTallyRows } from "../rewind-tally/rewind-tally";
 import {
 	hasRewind2025Awards,
 	Rewind2025Awards
 } from "./rewind-2025-awards/rewind-2025-awards";
 import { Rewind2025CoverFeature } from "./rewind-2025-cover-feature/rewind-2025-cover-feature";
+import { Rewind2025LeftBehind } from "./rewind-2025-left-behind/rewind-2025-left-behind";
+import { Rewind2025PersonaRank } from "./rewind-2025-persona-rank/rewind-2025-persona-rank";
+import {
+	hasRewind2025PremiumCharts,
+	Rewind2025PremiumStats
+} from "./rewind-2025-premium-stats/rewind-2025-premium-stats";
 import { Rewind2025RecapArticle } from "./rewind-2025-recap-article/rewind-2025-recap-article";
 import { Rewind2025Shelves } from "./rewind-2025-shelves/rewind-2025-shelves";
+import {
+	Rewind2025Tally,
+	rewind2025TallyRows
+} from "./rewind-2025-tally/rewind-2025-tally";
+import {
+	hasRewind2025YearMixCharts,
+	Rewind2025YearMix
+} from "./rewind-2025-year-mix/rewind-2025-year-mix";
+import { rewindDesign2025Copy } from "./rewind-design-2025.copy";
 
 export const COLLAGE_TILES = 18;
 
@@ -70,14 +82,17 @@ function backdropOf(rewind: Rewind): string | null {
 		ProfileSectionHeader,
 		Rewind2025Awards,
 		Rewind2025CoverFeature,
+		Rewind2025LeftBehind,
+		Rewind2025PersonaRank,
+		Rewind2025PremiumStats,
 		Rewind2025RecapArticle,
 		Rewind2025Shelves,
+		Rewind2025Tally,
+		Rewind2025YearMix,
 		RewindMoreYears,
 		RewindOwnerPanel,
-		RewindPersonaRank,
-		RewindPremiumStats,
 		RewindReveal,
-		RewindTally,
+		UiButton,
 		UiEyebrow,
 		UiOptionPicker,
 		UiSkeleton
@@ -98,18 +113,24 @@ export class RewindDesign2025 implements RewindDesignComponent {
 		() => rewindCopy(this.rewind().language).page
 	);
 
+	protected readonly designCopy = computed(() =>
+		rewindDesign2025Copy(this.rewind().language)
+	);
+
 	protected readonly eyebrow = computed(() =>
 		this.isOwner()
 			? this.text().ownerEyebrow
 			: this.text().visitorEyebrow(this.username())
 	);
 
+	protected readonly summary = computed(() => {
+		const { totals, language } = this.rewind();
+		return rewindSummarySentence(totals, language);
+	});
+
 	protected readonly tally = computed(() => {
 		const { totals, language } = this.rewind();
-		return rewindTallyRows(
-			{ ...totals, started: 0, platinums: null, finishRate: null },
-			language
-		);
+		return rewind2025TallyRows(totals, language);
 	});
 
 	protected readonly collage = computed(() =>
@@ -124,8 +145,12 @@ export class RewindDesign2025 implements RewindDesignComponent {
 
 	protected readonly hasPremiumStats = computed(() => {
 		const stats = this.rewind().premiumStats;
-		return !!stats && hasPremiumCharts(stats);
+		return !!stats && hasRewind2025PremiumCharts(stats);
 	});
+
+	protected readonly hasYearMix = computed(() =>
+		hasRewind2025YearMixCharts(this.rewind().yearMix)
+	);
 
 	protected readonly yearOptions = computed<UiPickerOption[]>(() => {
 		const rewind = this.rewind();
@@ -138,6 +163,20 @@ export class RewindDesign2025 implements RewindDesignComponent {
 				link: `/user/${this.username()}/rewind/${year}`
 			}));
 	});
+
+	protected readonly shareCopy = REWIND_SHARE_COPY;
+	private readonly shareRewindLink = injectRewindLinkShare();
+
+	protected shareLink() {
+		const year = this.rewind().year;
+		void this.shareRewindLink({
+			username: this.username(),
+			year,
+			title: this.isOwner()
+				? this.shareCopy.ownerPreviewAlt(year)
+				: this.shareCopy.visitorPreviewAlt(this.username(), year)
+		});
+	}
 
 	protected readonly skeletonShelves = [0, 1];
 	protected readonly skeletonPosters = [0, 1, 2, 3, 4, 5];

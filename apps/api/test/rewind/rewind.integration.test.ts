@@ -349,6 +349,17 @@ void describe("GET /users/:username/rewinds/:year", () => {
 			data.finishedGames.map((game: { code: string }) => game.code),
 			[games.hades.code, games.secret.code, games.celeste.code]
 		);
+		assert.deepEqual(data.abandonedGames, [
+			{
+				gameId: games.tunic.id,
+				code: games.tunic.code,
+				title: "Tunic",
+				coverUrl: `https://img.test/${games.tunic.code}.jpg`,
+				backgroundUrl: `https://img.test/${games.tunic.code}-bg.jpg`,
+				finishedAt: "2025-08-01",
+				platformAbbreviation: playstation.abbreviation
+			}
+		]);
 		assert.equal(data.highlights.topRated.code, games.secret.code);
 		assert.equal(data.highlights.longest.code, games.secret.code);
 		assert.equal(data.highlights.fastest.code, games.celeste.code);
@@ -423,6 +434,10 @@ void describe("GET /users/:username/rewinds/:year", () => {
 				platformsPlayed: 2
 			});
 			assert.equal(data.persona, "steady-player");
+			assert.deepEqual(
+				data.abandonedGames.map((game: { code: string }) => game.code),
+				[games.tunic.code]
+			);
 			assert.deepEqual(data.highlights.topGenres, [
 				{ code: "rewind-action", name: "Action", count: 2 },
 				{ code: "rewind-rpg", name: "RPG", count: 1 }
@@ -532,8 +547,90 @@ void describe("GET /users/:username/rewinds/:year", () => {
 		assert.equal(own.body.data.totals.abandoned, 1);
 		assert.equal(own.body.data.totals.hoursPlayed, 0);
 		assert.deepEqual(own.body.data.finishedGames, []);
+		assert.deepEqual(
+			own.body.data.abandonedGames.map(
+				(game: { code: string; finishedAt: string }) => [
+					game.code,
+					game.finishedAt
+				]
+			),
+			[[fixture.games.secret.code, "2023-06-01"]]
+		);
 		assert.equal(own.body.data.highlights.topRated, null);
 		assert.equal(own.body.data.highlights.busiestMonth, null);
+	});
+
+	void it("lists the abandoned games with the privacy of the finished ones, once per game, even if it was finished later", async () => {
+		const { stranger, mutual, games } = fixture;
+		const player = await createUserWithSession();
+		await backdateSignUp(player.user, SIGNED_UP_BEFORE_THE_DATA);
+		await makeMutual(player.user, mutual.user);
+		await addRun(player.user.id, games.tunic, {
+			status: "abandoned",
+			finishedAt: "2025-02-02"
+		});
+		await addRun(player.user.id, games.tunic, {
+			status: "abandoned",
+			finishedAt: "2025-04-04",
+			platform: nintendo
+		});
+		await addRun(player.user.id, games.secret, {
+			status: "abandoned",
+			finishedAt: "2025-03-03",
+			isPublic: false
+		});
+		await addRun(player.user.id, games.celeste, {
+			status: "abandoned",
+			finishedAt: "2025-05-05"
+		});
+		await addRun(player.user.id, games.celeste, {
+			status: "completed",
+			finishedAt: "2025-10-10"
+		});
+		await addRun(player.user.id, games.hades, {
+			status: "abandoned",
+			finishedAt: "2024-12-31"
+		});
+		await storeRewind(player, 2025);
+
+		const abandonedOf = (data: {
+			abandonedGames: { code: string; finishedAt: string }[];
+		}) => data.abandonedGames.map(game => [game.code, game.finishedAt]);
+		const reads = await Promise.all([
+			rewind(player.user.username, "2025", player.authorization),
+			rewind(player.user.username, "2025", player.authorization),
+			rewind(player.user.username, "2025", mutual.authorization),
+			rewind(player.user.username, "2025", stranger.authorization),
+			rewind(player.user.username, "2025")
+		]);
+		const [owner, ownerAgain, ...visitors] = reads.map(read => {
+			assert.equal(read.status, 200);
+			return read.body.data;
+		});
+
+		assert.deepEqual(abandonedOf(owner), [
+			[games.secret.code, "2025-03-03"],
+			[games.tunic.code, "2025-04-04"],
+			[games.celeste.code, "2025-05-05"]
+		]);
+		assert.equal(
+			owner.abandonedGames[1].platformAbbreviation,
+			nintendo.abbreviation
+		);
+		assert.equal(owner.totals.abandoned, 3);
+		assert.deepEqual(ownerAgain, owner);
+		assert.deepEqual(
+			owner.finishedGames.map((game: { code: string }) => game.code),
+			[games.celeste.code]
+		);
+		for (const visitor of visitors) {
+			assert.deepEqual(abandonedOf(visitor), [
+				[games.tunic.code, "2025-04-04"],
+				[games.celeste.code, "2025-05-05"]
+			]);
+			assert.equal(visitor.totals.abandoned, 2);
+			assert.equal(JSON.stringify(visitor).includes("Secret"), false);
+		}
 	});
 
 	void it("answers 422 COMMON_SCHEMA_INVALID for garbage years", async () => {

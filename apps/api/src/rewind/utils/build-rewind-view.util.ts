@@ -26,9 +26,8 @@ export function buildRewindView(source: RewindViewSource): RewindView | null {
 		visibility: source.visibility,
 		stored: toRewindStoredView(record, null)
 	});
-	const latestFinishedRuns = listLatestFinishedRuns(
-		collectYearRuns(runs, year).finished
-	);
+	const yearRuns = collectYearRuns(runs, year);
+	const latestFinishedRuns = listLatestFinishedRuns(yearRuns.finished);
 
 	return {
 		year,
@@ -37,7 +36,8 @@ export function buildRewindView(source: RewindViewSource): RewindView | null {
 		isSpotlight: rewind.isSpotlight,
 		otherYears: rewind.otherYears,
 		totals: rewind.totals,
-		finishedGames: buildRewindViewGames(runs, year, genres),
+		finishedGames: buildRewindViewGames(yearRuns.finished, genres),
+		abandonedGames: buildRewindViewGames(yearRuns.abandoned, genres),
 		personaWithoutPlatinums: pickYearPersona(
 			{ ...rewind.totals, platinums: null },
 			latestFinishedRuns

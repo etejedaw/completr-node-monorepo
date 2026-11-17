@@ -22,6 +22,7 @@ import {
 	UiSkeleton
 } from "../../../shared/ui";
 import { backlogStatusLabel } from "../../../shared/utils/backlog-status";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { injectFranchiseTracking } from "../franchise-tracking";
 import { FranchisesService } from "../franchises";
@@ -126,7 +127,7 @@ export class FranchiseDetail {
 
 	protected readonly heroPosters = computed(() =>
 		(this.detail()?.games ?? []).map(game => ({
-			src: game.backgroundUrl,
+			src: gameArtUrl(game, "portrait"),
 			title: game.title
 		}))
 	);

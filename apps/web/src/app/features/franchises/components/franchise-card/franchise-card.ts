@@ -8,12 +8,13 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
+import { GameArtPipe } from "../../../../shared/pipes/game-art";
 import { UiButton } from "../../../../shared/ui";
 import { type FranchiseSummary } from "../../franchises.model";
 
 @Component({
 	selector: "app-franchise-card",
-	imports: [RouterLink, GamePoster, UiButton],
+	imports: [RouterLink, GamePoster, UiButton, GameArtPipe],
 	template: `
 		<article
 			class="group relative isolate flex flex-col justify-end aspect-[16/10] rounded-card overflow-hidden bg-surface ring-1 ring-line shadow-card transition duration-200 hover:-translate-y-1 hover:ring-brand/60 has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-brand motion-reduce:transition-none motion-reduce:hover:translate-y-0"
@@ -22,7 +23,7 @@ import { type FranchiseSummary } from "../../franchises.model";
 			<div aria-hidden="true" class="absolute inset-0 -z-10 flex">
 				@for (game of franchise().previewGames; track game.id) {
 					<app-game-poster
-						[src]="game.backgroundUrl"
+						[src]="game | gameArt: 'portrait'"
 						[title]="game.title"
 						[width]="640"
 						[compact]="true"

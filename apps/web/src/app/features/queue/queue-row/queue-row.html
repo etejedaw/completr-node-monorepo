@@ -24,7 +24,7 @@
 		[attr.aria-label]="backlog.game.title"
 	>
 		<app-game-poster
-			[src]="backlog.game.backgroundUrl"
+			[src]="backlog.game | gameArt: 'portrait'"
 			[title]="backlog.game.title"
 			[width]="420"
 			[compact]="true"

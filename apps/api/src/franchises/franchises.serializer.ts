@@ -16,6 +16,7 @@ export function franchiseSummarySerializer(
 				id: game.id,
 				code: game.code,
 				title: game.title,
+				coverUrl: game.coverUrl,
 				backgroundUrl: game.backgroundUrl
 			})) ?? []
 	};

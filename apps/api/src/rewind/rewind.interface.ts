@@ -158,6 +158,7 @@ export interface Rewind {
 	otherYears: number[];
 	totals: RewindTotals;
 	finishedGames: RewindFinishedGame[];
+	abandonedGames: RewindFinishedGame[];
 	highlights: RewindHighlights;
 	yearMix: RewindYearMix;
 	language: RewindLanguage;
@@ -183,9 +184,14 @@ export interface RewindViewOptions {
 
 export interface RewindView extends Omit<
 	Rewind,
-	"finishedGames" | "highlights" | "ownerControls" | "premiumAccess"
+	| "finishedGames"
+	| "abandonedGames"
+	| "highlights"
+	| "ownerControls"
+	| "premiumAccess"
 > {
 	finishedGames: RewindViewGame[];
+	abandonedGames?: RewindViewGame[];
 	highlights: RewindStoredHighlights;
 	personaWithoutPlatinums: RewindPersonaCode;
 	covers: RewindGameRef[];

@@ -1,24 +1,31 @@
-import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { RouterLink, RouterOutlet } from "@angular/router";
 
 import { AppLogo } from "../../shared/components/app-logo/app-logo";
 import { AttributionFooter } from "../../shared/components/attribution-footer/attribution-footer";
 import { BETA_SIGNUP_URL } from "../../shared/constants/beta-signup";
 import { UiButton } from "../../shared/ui";
+import { PageScroller } from "../page-scroller/page-scroller";
+import { SkipLink } from "../skip-link/skip-link";
 
 @Component({
 	selector: "app-guest-shell",
-	imports: [RouterOutlet, RouterLink, AppLogo, AttributionFooter, UiButton],
+	imports: [
+		RouterOutlet,
+		RouterLink,
+		AppLogo,
+		AttributionFooter,
+		UiButton,
+		PageScroller,
+		SkipLink
+	],
 	template: `
-		<main
-			id="main-content"
-			class="page-scroller h-dvh overflow-y-auto overflow-x-hidden bg-canvas flex flex-col"
-			(scroll)="onScroll($any($event.target).scrollTop)"
-		>
+		<app-skip-link />
+		<main appPageScroller #pageScroller="appPageScroller" class="h-dvh">
 			<header
 				class="sticky top-0 z-40 shrink-0 h-[var(--topbar-height)] -mb-[var(--topbar-height)] border-b transition-[background-color,border-color] duration-200"
 				[class]="
-					scrolled()
+					pageScroller.scrolled()
 						? 'bg-canvas/80 backdrop-blur-xl border-line'
 						: 'border-transparent'
 				"
@@ -63,10 +70,4 @@ import { UiButton } from "../../shared/ui";
 })
 export class GuestShell {
 	protected readonly betaSignupUrl = BETA_SIGNUP_URL;
-	protected readonly scrolled = signal(false);
-
-	protected onScroll(scrollTop: number): void {
-		const scrolled = scrollTop > 8;
-		if (scrolled !== this.scrolled()) this.scrolled.set(scrolled);
-	}
 }

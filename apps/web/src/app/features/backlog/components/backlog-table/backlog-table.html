@@ -79,7 +79,7 @@
 				}
 				<td class="min-w-[180px]">
 					<app-game-title-cell
-						[coverUrl]="entry.game.backgroundUrl"
+						[coverUrl]="entry.game | gameArt: 'portrait'"
 						[title]="entry.game.title"
 						[code]="entry.game.code"
 						[moodTags]="entry.moodTags"

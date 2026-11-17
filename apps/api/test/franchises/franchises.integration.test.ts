@@ -75,6 +75,7 @@ void describe("GET /franchises", () => {
 		assert.deepEqual(Object.keys(summary.previewGames[0]).sort(), [
 			"backgroundUrl",
 			"code",
+			"coverUrl",
 			"id",
 			"title"
 		]);

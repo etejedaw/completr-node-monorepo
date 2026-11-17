@@ -36,6 +36,7 @@ export interface BacklogCompilationGame {
 	id: string;
 	code: string;
 	title: string;
+	coverUrl?: string;
 	backgroundUrl?: string;
 }
 
@@ -46,6 +47,7 @@ interface BacklogGame {
 	id: string;
 	code: string;
 	title: string;
+	coverUrl?: string;
 	backgroundUrl?: string;
 	isDlc: boolean;
 }

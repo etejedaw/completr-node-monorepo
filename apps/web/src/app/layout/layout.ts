@@ -42,7 +42,9 @@ import {
 } from "../shared/ui";
 import { NAV_ACTIVE_CLASSES, visibleNavSections } from "./nav-sections";
 import { type NavItem } from "./nav-sections.model";
+import { PageScroller } from "./page-scroller/page-scroller";
 import { SearchPalette } from "./search-palette/search-palette";
+import { SkipLink } from "./skip-link/skip-link";
 
 const SIDEBAR_COLLAPSED_KEY = "completr.sidebar.collapsed";
 const USER_LOAD_RETRIES = 2;
@@ -98,7 +100,9 @@ function matchesRoute(url: string, route: string): boolean {
 		SearchPalette,
 		UiToastContainer,
 		OnboardingTour,
-		AttributionFooter
+		AttributionFooter,
+		PageScroller,
+		SkipLink
 	],
 	templateUrl: "./layout.html",
 	host: { "(document:keydown)": "onDocumentKeydown($event)" },
@@ -121,7 +125,6 @@ export class Layout implements OnInit {
 	protected readonly railMode = computed(
 		() => this.collapsed() || this.tablet()
 	);
-	protected readonly scrolled = signal(false);
 	protected readonly moreOpen = signal(false);
 	protected readonly searchOpen = signal(false);
 	private readonly currentUrl = signal(this.router.url.split(/[?#]/)[0]);
@@ -273,11 +276,6 @@ export class Layout implements OnInit {
 		const next = !this.collapsed();
 		this.collapsed.set(next);
 		this.storage.set(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
-	}
-
-	protected onScroll(scrollTop: number) {
-		const scrolled = scrollTop > 8;
-		if (scrolled !== this.scrolled()) this.scrolled.set(scrolled);
 	}
 
 	private watchTabletBreakpoint() {

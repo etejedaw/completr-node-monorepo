@@ -11,6 +11,7 @@ import { type BacklogEntry } from "../../../core/models";
 import { QueueService } from "../../../core/services/queue";
 import { BacklogStatusBadge } from "../../../shared/components/backlog-status-badge/backlog-status-badge";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { GameArtPipe } from "../../../shared/pipes/game-art";
 import {
 	UiButton,
 	UiDialog,
@@ -30,7 +31,8 @@ import { type QueueAddModalData } from "./queue-add-modal.model";
 		UiDialog,
 		UiPlainEmptyState,
 		UiSearchBar,
-		UiSkeleton
+		UiSkeleton,
+		GameArtPipe
 	],
 	templateUrl: "./queue-add-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

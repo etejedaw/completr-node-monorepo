@@ -10,6 +10,8 @@ export const PLATINUM_RUN_INCLUDE = {
 	required: false
 };
 
+export const REWIND_PLATINUM_ATTRS = ["id", "backlogId", "platinumedAt"];
+
 export const LATEST_PLATINUMS_FIRST: Order = [
 	literal('"GamePlatinum"."platinumedAt" DESC NULLS LAST'),
 	["createdAt", "DESC"],

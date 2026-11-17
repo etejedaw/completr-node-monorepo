@@ -92,7 +92,7 @@
 					>
 						<app-game-poster
 							class="w-8 aspect-[2/3] shrink-0 rounded-sm"
-							[src]="item.game.backgroundUrl"
+							[src]="item.game | gameArt: 'portrait'"
 							[title]="item.game.title"
 							[width]="420"
 							[compact]="true"

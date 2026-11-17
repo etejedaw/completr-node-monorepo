@@ -1,0 +1,42 @@
+<dl
+	class="m-0 grid grid-cols-2 border-t-[3px] border-fg @3xl/page:grid-cols-4"
+	appInView
+	(inViewChange)="$event && start()"
+>
+	@for (row of rows(); track row.label; let i = $index) {
+	<div
+		class="flex min-w-0 flex-col gap-2 border-line-hover pt-4 pb-5 @3xl/page:pt-5 @3xl/page:pb-7"
+		[class]="cellClass(i)"
+	>
+		<dt
+			class="text-xs font-semibold uppercase leading-tight tracking-[0.16em] text-fg-secondary"
+		>
+			{{ row.label }}
+		</dt>
+		<dd class="m-0 flex flex-col gap-2">
+			<span
+				class="flex items-baseline gap-1 font-display text-[2.75rem] font-bold leading-[0.9] tracking-[-0.02em] tabular-nums text-fg @3xl/page:text-[4.25rem]"
+			>
+				<span aria-hidden="true">{{ displayValue(row, i) }}</span>
+				@if (suffixOf(row); as suffix) {
+				<span
+					aria-hidden="true"
+					class="text-[0.4em] font-semibold text-nav-queue"
+					>{{ suffix }}</span
+				>
+				}
+			</span>
+			@if (row.unit === "rating") {
+			<app-star-rating
+				aria-hidden="true"
+				size="sm"
+				[value]="row.value"
+				[readonly]="true"
+				[showValue]="false"
+			/>
+			}
+			<span class="sr-only">{{ spoken(row) }}</span>
+		</dd>
+	</div>
+	}
+</dl>

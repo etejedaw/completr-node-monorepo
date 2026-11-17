@@ -17,6 +17,7 @@ export function gameListSerializer(
 		id: game.id,
 		title: game.title,
 		code: game.code,
+		coverUrl: game.coverUrl,
 		backgroundUrl: game.backgroundUrl,
 		isDlc: game.isDlc,
 		ratio: calculateRatio(game.GameScores, game.GameTimes),
@@ -30,6 +31,7 @@ export function gameAdminListSerializer(game: Game) {
 		id: game.id,
 		title: game.title,
 		code: game.code,
+		coverUrl: game.coverUrl,
 		backgroundUrl: game.backgroundUrl,
 		isDlc: game.isDlc,
 		variant: game.variant ?? null,
@@ -95,6 +97,7 @@ function showcaseGameSerializer(row: ShowcaseGameRow) {
 		id: row.id,
 		code: row.code,
 		title: row.title,
+		coverUrl: row.coverUrl,
 		backgroundUrl: row.backgroundUrl,
 		releaseYear: row.releaseYear,
 		genres: row.genres,
@@ -196,6 +199,7 @@ function dlcSerializer(game: Game) {
 		id: game.id,
 		code: game.code,
 		title: game.title,
+		coverUrl: game.coverUrl,
 		backgroundUrl: game.backgroundUrl
 	};
 }
@@ -206,6 +210,7 @@ function parentGameSerializer(game?: Game | null) {
 		id: game.id,
 		code: game.code,
 		title: game.title,
+		coverUrl: game.coverUrl,
 		backgroundUrl: game.backgroundUrl
 	};
 }

@@ -32,6 +32,7 @@ void describe("activitySerializer", () => {
 						id: "g-1",
 						title: "Celeste",
 						code: "celeste",
+						coverUrl: "cover",
 						backgroundUrl: "bg"
 					}
 				}
@@ -43,8 +44,37 @@ void describe("activitySerializer", () => {
 			id: "g-1",
 			name: "Celeste",
 			code: "celeste",
+			coverUrl: "cover",
 			backgroundUrl: "bg"
 		});
+	});
+
+	void it("keeps the cover of a cover-only game target", () => {
+		const result = activitySerializer(
+			buildActivity({
+				ActivityGame: {
+					Game: {
+						id: "g-2",
+						title: "Pentiment",
+						code: "pentiment",
+						coverUrl: "cover",
+						backgroundUrl: null
+					}
+				}
+			})
+		);
+
+		assert.equal(result.target?.type, "game");
+		assert.deepEqual(
+			{
+				coverUrl: (result.target as { coverUrl?: string | null })
+					.coverUrl,
+				backgroundUrl: (
+					result.target as { backgroundUrl?: string | null }
+				).backgroundUrl
+			},
+			{ coverUrl: "cover", backgroundUrl: null }
+		);
 	});
 
 	void it("resolves a list target", () => {
@@ -121,6 +151,7 @@ void describe("activitySerializer", () => {
 			id: "g-1",
 			name: "Celeste",
 			code: "celeste",
+			coverUrl: null,
 			backgroundUrl: null
 		});
 		assert.equal(activitySerializer(buildActivity()).game, undefined);

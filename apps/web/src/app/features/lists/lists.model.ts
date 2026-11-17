@@ -5,6 +5,15 @@ export interface ListsResponse {
 	data: { lists: List[]; total?: number; frozen: boolean };
 }
 
+export interface ListsPage {
+	lists: List[];
+	total: number;
+}
+
+export interface ListsPageResponse {
+	data: ListsPage;
+}
+
 export interface ListsPagination extends Record<string, Appendable> {
 	limit?: number;
 	offset?: number;

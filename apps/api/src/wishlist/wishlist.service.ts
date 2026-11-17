@@ -191,7 +191,7 @@ export async function findGameEntriesByUserId(
 		include: [
 			{
 				...gamesService.gameInclude(),
-				attributes: ["id", "code", "title", "backgroundUrl"]
+				attributes: ["id", "code", "title", "coverUrl", "backgroundUrl"]
 			}
 		],
 		order: WISHLIST_ORDER
@@ -202,7 +202,9 @@ export async function findWishlistByUserIdPaginated(
 	userId: string,
 	pagination: PaginatedSearchQuery = {}
 ) {
-	const gameInclude: Record<string, unknown> = { ...gamesService.gameInclude() };
+	const gameInclude: Record<string, unknown> = {
+		...gamesService.gameInclude()
+	};
 	const titleWhere = pagination.search
 		? buildTextSearchWhere(pagination.search, ["Game.title"])
 		: null;
@@ -239,7 +241,10 @@ export async function findWishlistForExport(
 				attributes: ["id", "title"],
 				...(titleWhere && { required: true, where: titleWhere })
 			},
-			{ ...platformsService.platformInclude(), attributes: ["id", "name"] }
+			{
+				...platformsService.platformInclude(),
+				attributes: ["id", "name"]
+			}
 		],
 		order: WISHLIST_ORDER
 	});
@@ -263,7 +268,10 @@ export async function findWishlistForDataExport(userId: string) {
 		where: { userId },
 		include: [
 			{ ...gamesService.gameInclude(), attributes: GAME_REFERENCE_ATTRS },
-			{ ...platformsService.platformInclude(), attributes: ["id", "name"] }
+			{
+				...platformsService.platformInclude(),
+				attributes: ["id", "name"]
+			}
 		],
 		order: WISHLIST_ORDER
 	});

@@ -15,6 +15,7 @@ import { map, type Observable, of, switchMap, tap } from "rxjs";
 import { type BacklogEntry } from "../../../core/models";
 import { QueueService } from "../../../core/services/queue";
 import { GamePoster } from "../../../shared/components/game-poster/game-poster";
+import { GameArtPipe } from "../../../shared/pipes/game-art";
 import {
 	UiBadge,
 	UiButton,
@@ -37,7 +38,8 @@ const STABLE_ORDER = { sort_by: "createdAt", sort_order: "asc" } as const;
 		UiBadge,
 		UiButton,
 		UiDialog,
-		UiPlainEmptyState
+		UiPlainEmptyState,
+		GameArtPipe
 	],
 	templateUrl: "./surprise-me.html",
 	changeDetection: ChangeDetectionStrategy.OnPush

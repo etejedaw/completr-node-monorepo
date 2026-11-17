@@ -13,6 +13,7 @@ import { GamePoster } from "../../../../shared/components/game-poster/game-poste
 import { CoverUrlPipe } from "../../../../shared/pipes/cover-url";
 import { UiBadge, UiButton } from "../../../../shared/ui";
 import { type CanonicalScore } from "../../../../shared/utils/canonical-score.model";
+import { gameArtUrl } from "../../../../shared/utils/game-art";
 import { type GameFact } from "./game-hero.model";
 
 const SCORE_TYPE_LABELS: Record<NonNullable<CanonicalScore["type"]>, string> = {
@@ -64,11 +65,11 @@ export class GameHero {
 
 	readonly franchiseTrackToggled = output<void>();
 
-	protected readonly backdrop = computed(
-		() => this.game().backgroundUrl ?? this.game().coverUrl ?? null
+	protected readonly backdrop = computed(() =>
+		gameArtUrl(this.game(), "landscape")
 	);
-	protected readonly poster = computed(
-		() => this.game().coverUrl ?? this.game().backgroundUrl ?? null
+	protected readonly poster = computed(() =>
+		gameArtUrl(this.game(), "portrait")
 	);
 	protected readonly platformsLabel = computed(() =>
 		this.game()

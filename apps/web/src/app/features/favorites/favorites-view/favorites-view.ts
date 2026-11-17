@@ -48,6 +48,7 @@ import {
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { UiButton, UiPremiumBadge } from "../../../shared/ui";
+import { gameArtUrl } from "../../../shared/utils/game-art";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { FavoriteReorderCard } from "../components/favorite-reorder-card/favorite-reorder-card";
@@ -115,7 +116,7 @@ export class FavoritesView implements OnInit {
 	});
 	protected readonly heroPosters = computed(() =>
 		this.entries().map(entry => ({
-			src: entry.game.backgroundUrl,
+			src: gameArtUrl(entry.game, "portrait"),
 			title: entry.game.title
 		}))
 	);

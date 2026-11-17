@@ -96,17 +96,23 @@ const FRANCHISE_PREVIEW_SIZE = 4;
 
 function franchisePreviewGamesInclude() {
 	return {
-	...gamesService.gameInclude(),
-	separate: true,
-	limit: FRANCHISE_PREVIEW_SIZE,
-	where: { isActive: true },
-	attributes: ["id", "code", "title", "backgroundUrl", "franchiseId"],
-	order: [
-		["releaseAt", "ASC"],
-		["id", "ASC"]
-	] as [string, string][]
-
-};
+		...gamesService.gameInclude(),
+		separate: true,
+		limit: FRANCHISE_PREVIEW_SIZE,
+		where: { isActive: true },
+		attributes: [
+			"id",
+			"code",
+			"title",
+			"coverUrl",
+			"backgroundUrl",
+			"franchiseId"
+		],
+		order: [
+			["releaseAt", "ASC"],
+			["id", "ASC"]
+		] as [string, string][]
+	};
 }
 
 export async function findAllFranchises(pagination: PaginatedSearchQuery = {}) {

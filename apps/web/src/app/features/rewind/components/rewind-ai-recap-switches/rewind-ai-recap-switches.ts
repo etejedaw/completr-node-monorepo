@@ -23,7 +23,7 @@ export class RewindAiRecapSwitches {
 
 	protected readonly privateRunsWarning = computed(() =>
 		this.writesAiRecap()
-			? "Your AI recap and premium stats may mention private games, and anyone who can see your Rewind will read them."
+			? "Your AI recap and premium stats may mention private games, your Up Next and your platinums, and anyone who can see your Rewind will read them."
 			: "Your premium stats may include private games, and anyone who can see your Rewind will see them."
 	);
 	protected readonly privateRunsHint = computed(() =>

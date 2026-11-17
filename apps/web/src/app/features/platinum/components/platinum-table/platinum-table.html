@@ -47,7 +47,7 @@
 				}
 				<td>
 					<app-game-title-cell
-						[coverUrl]="platinum.game.backgroundUrl"
+						[coverUrl]="platinum.game | gameArt: 'portrait'"
 						[title]="platinum.game.title"
 						[code]="platinum.game.code"
 					/>

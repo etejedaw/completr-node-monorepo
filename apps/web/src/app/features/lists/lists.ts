@@ -11,6 +11,7 @@ import {
 	type GameListsResponse,
 	type ListItemsResponse,
 	type ListSingleResponse,
+	type ListsPageResponse,
 	type ListsPagination,
 	type ListsResponse,
 	type RefreshResponse,
@@ -27,20 +28,30 @@ export class ListsService {
 		return this.http.get<ListsResponse>(`${this.baseUrl}/me`, { params });
 	}
 
+	getOfficialPage(pagination: ListsPagination = {}) {
+		return this.getDiscoveryPage("official", pagination);
+	}
+
+	getRecentPage(pagination: ListsPagination = {}) {
+		return this.getDiscoveryPage("recent", pagination);
+	}
+
 	getOfficial(limit = 12) {
-		return this.http
-			.get<{
-				data: { lists: List[] };
-			}>(`${this.baseUrl}/official?limit=${limit}`)
-			.pipe(map(res => res.data.lists));
+		return this.getOfficialPage({ limit }).pipe(map(page => page.lists));
 	}
 
 	getRecent(limit = 12) {
+		return this.getRecentPage({ limit }).pipe(map(page => page.lists));
+	}
+
+	private getDiscoveryPage(
+		path: "official" | "recent",
+		pagination: ListsPagination
+	) {
+		const params = buildHttpParams(pagination);
 		return this.http
-			.get<{
-				data: { lists: List[] };
-			}>(`${this.baseUrl}/recent?limit=${limit}`)
-			.pipe(map(res => res.data.lists));
+			.get<ListsPageResponse>(`${this.baseUrl}/${path}`, { params })
+			.pipe(map(res => res.data));
 	}
 
 	getById(id: string) {

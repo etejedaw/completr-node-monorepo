@@ -22,6 +22,7 @@ import {
 	UiPlainEmptyState,
 	UiSkeleton
 } from "../../shared/ui";
+import { gameArtUrl } from "../../shared/utils/game-art";
 import { injectFollowActions } from "../../shared/utils/inject-follow-actions";
 import { UserCard } from "./user-card/user-card";
 
@@ -109,16 +110,12 @@ export class UsersDiscover {
 	);
 
 	protected readonly heroPosters = computed(() =>
-		[...this.discoverUsers(), ...this.searchResults()].flatMap(user =>
-			user.featuredGame?.backgroundUrl
-				? [
-						{
-							src: user.featuredGame.backgroundUrl,
-							title: user.featuredGame.title
-						}
-					]
-				: []
-		)
+		[...this.discoverUsers(), ...this.searchResults()].flatMap(user => {
+			const src = gameArtUrl(user.featuredGame, "portrait");
+			return user.featuredGame && src
+				? [{ src, title: user.featuredGame.title }]
+				: [];
+		})
 	);
 
 	protected readonly filterCount = computed(() => {

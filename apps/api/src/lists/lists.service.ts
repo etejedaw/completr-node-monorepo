@@ -1,4 +1,4 @@
-import { Op, QueryTypes, type Transaction } from "sequelize";
+import { Op, QueryTypes, type Transaction, type WhereOptions } from "sequelize";
 
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
@@ -27,6 +27,7 @@ import {
 	LIST_PREVIEW_SIZE
 } from "./lists.constants";
 import { type BacklogSummary, type ListProgress } from "./lists.interface";
+import { type DiscoveryQuery } from "./schemas/discovery-query.schema";
 
 async function hasPremiumAccess(userId: string, role: string) {
 	return resolvePremiumAccess({ id: userId, role }, "lists.unlimited");
@@ -135,7 +136,14 @@ export async function findListBasicById(id: string) {
 	return List.findOne({ where: { id } });
 }
 
-const LIST_GAME_ATTRS = ["id", "code", "title", "backgroundUrl", "isDlc"];
+const LIST_GAME_ATTRS = [
+	"id",
+	"code",
+	"title",
+	"coverUrl",
+	"backgroundUrl",
+	"isDlc"
+];
 const LIST_OWNER_ATTRS = ["id", "username", "role"];
 const LIST_ITEMS_ORDER: [string, string][] = [
 	["position", "ASC"],
@@ -144,26 +152,30 @@ const LIST_ITEMS_ORDER: [string, string][] = [
 
 function listPreviewItemsInclude() {
 	return {
-	...listItemsService.listItemInclude(),
-	separate: true,
-	limit: LIST_PREVIEW_SIZE,
-	order: LIST_ITEMS_ORDER,
-	include: [{ ...gamesService.gameInclude(), attributes: LIST_GAME_ATTRS }]
+		...listItemsService.listItemInclude(),
+		separate: true,
+		limit: LIST_PREVIEW_SIZE,
+		order: LIST_ITEMS_ORDER,
+		include: [
+			{ ...gamesService.gameInclude(), attributes: LIST_GAME_ATTRS }
+		]
 	};
 }
 
 function listDetailInclude() {
 	return [
-	{
-		...usersService.userInclude(),
-		attributes: LIST_OWNER_ATTRS
-	},
-	{
-		...listItemsService.listItemInclude(),
-		include: [{ ...gamesService.gameInclude(), attributes: LIST_GAME_ATTRS }],
-		separate: true,
-		order: LIST_ITEMS_ORDER
-	}
+		{
+			...usersService.userInclude(),
+			attributes: LIST_OWNER_ATTRS
+		},
+		{
+			...listItemsService.listItemInclude(),
+			include: [
+				{ ...gamesService.gameInclude(), attributes: LIST_GAME_ATTRS }
+			],
+			separate: true,
+			order: LIST_ITEMS_ORDER
+		}
 	];
 }
 
@@ -189,7 +201,12 @@ export async function findOwnListForExport(id: string, userId: string) {
 					"duration",
 					"createdAt"
 				],
-				include: [{ ...gamesService.gameInclude(), attributes: ["id", "title"] }]
+				include: [
+					{
+						...gamesService.gameInclude(),
+						attributes: ["id", "title"]
+					}
+				]
 			}
 		],
 		order: [
@@ -354,9 +371,7 @@ export async function findPublicListsByUserId(
 			...listsOfUserWhere(userId, pagination.search),
 			isPublic: true
 		},
-		include: [
-			listPreviewItemsInclude()
-		],
+		include: [listPreviewItemsInclude()],
 		order: LIST_ORDER_NEWEST_FIRST
 	};
 	if (pagination.limit) query.limit = pagination.limit;
@@ -416,42 +431,51 @@ export async function findUserListsWithGameFlag(
 	}));
 }
 
+function discoveryListsInclude(ownerRoleWhere: WhereOptions) {
+	return [
+		{
+			...usersService.userInclude(),
+			where: ownerRoleWhere,
+			attributes: LIST_OWNER_ATTRS
+		},
+		listPreviewItemsInclude()
+	];
+}
+
+function othersListsCondition(viewerId: string | undefined) {
+	return viewerId ? { userId: { [Op.ne]: viewerId } } : {};
+}
+
 export async function findRecentUserLists(
 	viewerId: string | undefined,
-	limit = 12
+	pagination: DiscoveryQuery
 ) {
-	return List.findAll({
-		where: { isPublic: true, [Op.and]: [visibleListsCondition(viewerId)] },
-		include: [
-			{
-				...usersService.userInclude(),
-				where: { role: { [Op.ne]: "admin" } },
-				attributes: LIST_OWNER_ATTRS
-			},
-			listPreviewItemsInclude()
-		],
-		limit,
+	const { rows, count } = await List.findAndCountAll({
+		where: {
+			isPublic: true,
+			...othersListsCondition(viewerId),
+			[Op.and]: [visibleListsCondition(viewerId)]
+		},
+		include: discoveryListsInclude({ role: { [Op.ne]: "admin" } }),
+		limit: pagination.limit,
+		offset: pagination.offset,
 		order: LIST_ORDER_NEWEST_FIRST
 	});
+	return { lists: rows, total: count };
 }
 
 export async function findOfficialLists(
 	viewerId: string | undefined,
-	limit = 12
+	pagination: DiscoveryQuery
 ) {
-	return List.findAll({
+	const { rows, count } = await List.findAndCountAll({
 		where: { isPublic: true, [Op.and]: [visibleListsCondition(viewerId)] },
-		include: [
-			{
-				...usersService.userInclude(),
-				where: { role: "admin" },
-				attributes: LIST_OWNER_ATTRS
-			},
-			listPreviewItemsInclude()
-		],
-		limit,
+		include: discoveryListsInclude({ role: "admin" }),
+		limit: pagination.limit,
+		offset: pagination.offset,
 		order: LIST_ORDER_NEWEST_FIRST
 	});
+	return { lists: rows, total: count };
 }
 
 export async function searchPublicLists(
@@ -521,7 +545,12 @@ export async function findOwnListsForDataExport(userId: string) {
 		include: [
 			{
 				...listItemsService.listItemInclude(),
-				include: [{ ...gamesService.gameInclude(), attributes: GAME_REFERENCE_ATTRS }]
+				include: [
+					{
+						...gamesService.gameInclude(),
+						attributes: GAME_REFERENCE_ATTRS
+					}
+				]
 			}
 		],
 		order: [

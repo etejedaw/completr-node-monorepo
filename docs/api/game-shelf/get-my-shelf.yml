@@ -48,6 +48,7 @@ docs: |-
               "id": "uuid",
               "title": "Metro Exodus",
               "code": "metro-exodus",
+              "coverUrl": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1abc.jpg",
               "backgroundUrl": "https://...",
               "isDlc": false
             },

@@ -91,6 +91,7 @@ export interface ComparisonGameEntry {
 	id: string;
 	code: string;
 	title: string;
+	coverUrl: string | null | undefined;
 	backgroundUrl: string | null | undefined;
 }
 
@@ -127,7 +128,11 @@ export interface UserCardInsights {
 	isFollowing: boolean;
 	gamesTotal: number | null;
 	completedTotal: number | null;
-	featuredGame: { title: string; backgroundUrl: string | null } | null;
+	featuredGame: {
+		title: string;
+		coverUrl: string | null;
+		backgroundUrl: string | null;
+	} | null;
 }
 
 export interface UserConnectionCardsBundle {

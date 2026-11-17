@@ -34,6 +34,7 @@ export interface ListPreviewItem {
 		id: string;
 		code: string;
 		title: string;
+		coverUrl?: string;
 		backgroundUrl?: string;
 	} | null;
 }
@@ -54,6 +55,7 @@ interface ListItemGame {
 	id: string;
 	code: string;
 	title: string;
+	coverUrl?: string;
 	backgroundUrl?: string;
 	isDlc: boolean;
 }

@@ -35,6 +35,7 @@ import { SelectedGameRow } from "../../../shared/components/game-search/selected
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import { PlatinumTrophy } from "../../../shared/components/platinum-trophy/platinum-trophy";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
+import { GameArtPipe } from "../../../shared/pipes/game-art";
 import {
 	UiAlert,
 	UiAvatar,
@@ -156,7 +157,8 @@ const MISSING_FIELD_LABELS: Record<MissingField, string> = {
 		UiTabList,
 		UiTab,
 		UiTabPanel,
-		UiTextarea
+		UiTextarea,
+		GameArtPipe
 	],
 	templateUrl: "./backlog-modal.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -469,6 +471,7 @@ export class BacklogModal implements OnInit {
 				id: e.game.id,
 				code: e.game.code,
 				title: e.game.title,
+				coverUrl: e.game.coverUrl,
 				backgroundUrl: e.game.backgroundUrl
 			} as Game);
 			if (e.compilationGame) {
@@ -476,6 +479,7 @@ export class BacklogModal implements OnInit {
 					id: e.compilationGame.id,
 					code: e.compilationGame.code,
 					title: e.compilationGame.title,
+					coverUrl: e.compilationGame.coverUrl,
 					backgroundUrl: e.compilationGame.backgroundUrl
 				} as Game);
 			}
