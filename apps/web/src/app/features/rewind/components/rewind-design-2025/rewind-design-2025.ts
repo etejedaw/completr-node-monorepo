@@ -35,6 +35,7 @@ import {
 import { Rewind2025CoverFeature } from "./rewind-2025-cover-feature/rewind-2025-cover-feature";
 import { Rewind2025LeftBehind } from "./rewind-2025-left-behind/rewind-2025-left-behind";
 import { Rewind2025PersonaRank } from "./rewind-2025-persona-rank/rewind-2025-persona-rank";
+import { Rewind2025Platinums } from "./rewind-2025-platinums/rewind-2025-platinums";
 import {
 	hasRewind2025PremiumCharts,
 	Rewind2025PremiumStats
@@ -84,6 +85,7 @@ function backdropOf(rewind: Rewind): string | null {
 		Rewind2025CoverFeature,
 		Rewind2025LeftBehind,
 		Rewind2025PersonaRank,
+		Rewind2025Platinums,
 		Rewind2025PremiumStats,
 		Rewind2025RecapArticle,
 		Rewind2025Shelves,
@@ -146,6 +148,11 @@ export class RewindDesign2025 implements RewindDesignComponent {
 	protected readonly hasPremiumStats = computed(() => {
 		const stats = this.rewind().premiumStats;
 		return !!stats && hasRewind2025PremiumCharts(stats);
+	});
+
+	protected readonly platinumGames = computed(() => {
+		const games = this.rewind().platinumGames;
+		return games && games.length > 0 ? games : null;
 	});
 
 	protected readonly hasYearMix = computed(() =>

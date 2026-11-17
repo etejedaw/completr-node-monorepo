@@ -1,0 +1,58 @@
+@let text = copy(); @let count = games().length;
+<section
+	class="grid min-w-0 grid-cols-1 gap-6 border-t-4 border-fg pt-5 @3xl/page:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] @3xl/page:gap-10"
+	data-platinums
+	[attr.aria-labelledby]="headingId"
+>
+	<div class="flex min-w-0 flex-col gap-2">
+		<h2 class="m-0" [id]="headingId">
+			<span uiEyebrow tone="brand">{{ text.platinums }}</span>
+		</h2>
+		<p class="m-0 flex flex-col gap-1 font-display font-bold text-fg">
+			<span class="text-[3.5rem] leading-none tabular-nums"
+				>{{ total() }}</span
+			>
+			<span
+				class="text-[1.75rem] leading-[1.15] tracking-[-0.01em] text-fg-secondary"
+				>{{ text.platinumsHeadline(count) }}</span
+			>
+		</p>
+		<p class="m-0 mt-1 max-w-md text-sm text-fg-secondary">
+			{{ text.platinumsSubline }}
+		</p>
+	</div>
+	<ol
+		class="m-0 grid min-w-0 list-none grid-cols-3 content-start gap-x-2.5 gap-y-4 p-0 @3xl/page:grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] @3xl/page:gap-x-3"
+	>
+		@for (entry of entries(); track $index) {
+		<li class="min-w-0">
+			<a
+				class="group flex flex-col gap-1 rounded-md no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+				[routerLink]="['/games', entry.code]"
+				[attr.aria-label]="entry.label"
+			>
+				<app-game-poster
+					aria-hidden="true"
+					class="mb-1 aspect-[2/3] rounded-md ring-1 ring-line transition-shadow group-hover:ring-brand"
+					[src]="entry.posterUrl"
+					[title]="entry.title"
+					[width]="420"
+					titleSize="0.75rem"
+				/>
+				<span
+					aria-hidden="true"
+					class="font-display text-xs font-bold tabular-nums text-brand"
+					>{{ entry.position }}</span
+				>
+				<span
+					class="font-display text-sm leading-tight font-semibold text-fg group-hover:underline"
+					>{{ entry.title }}</span
+				>
+				<span class="text-xs tabular-nums text-fg-muted"
+					>{{ entry.date }}</span
+				>
+			</a>
+		</li>
+		}
+	</ol>
+</section>

@@ -79,7 +79,14 @@ export const REWIND_DESIGN_2025_COPY: Record<
 			count === 1
 				? "1 game you left halfway this year"
 				: `${count} games you left halfway this year`,
-		abandonedGameLabel: (title, date) => `${title}, ${date}, abandoned`
+		abandonedGameLabel: (title, date) => `${title}, ${date}, abandoned`,
+		platinums: "Platinums",
+		platinumsHeadline: count =>
+			count === 1
+				? "game completed to a hundred percent"
+				: "games completed to a hundred percent",
+		platinumsSubline: "Every trophy on every list, in the order they came.",
+		platinumGameLabel: (title, date) => `${title}, platinum on ${date}`
 	},
 	es: {
 		locale: "es",
@@ -157,7 +164,14 @@ export const REWIND_DESIGN_2025_COPY: Record<
 			count === 1
 				? "1 juego que dejaste a medias este año"
 				: `${formatRewindNumber(count, "es")} juegos que dejaste a medias este año`,
-		abandonedGameLabel: (title, date) => `${title}, ${date}, abandonado`
+		abandonedGameLabel: (title, date) => `${title}, ${date}, abandonado`,
+		platinums: "Platinos",
+		platinumsHeadline: count =>
+			count === 1
+				? "juego completado al cien por cien"
+				: "juegos completados al cien por cien",
+		platinumsSubline: "Cada trofeo de cada lista, en orden de llegada.",
+		platinumGameLabel: (title, date) => `${title}, platino el ${date}`
 	}
 };
 

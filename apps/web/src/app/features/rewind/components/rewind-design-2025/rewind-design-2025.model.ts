@@ -73,4 +73,8 @@ export interface RewindDesign2025Copy {
 	leftBehind: string;
 	leftBehindSummary: (count: number) => string;
 	abandonedGameLabel: (title: string, date: string) => string;
+	platinums: string;
+	platinumsHeadline: (count: number) => string;
+	platinumsSubline: string;
+	platinumGameLabel: (title: string, date: string) => string;
 }
