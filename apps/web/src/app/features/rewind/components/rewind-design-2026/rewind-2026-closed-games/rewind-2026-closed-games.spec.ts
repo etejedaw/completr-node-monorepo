@@ -396,25 +396,62 @@ describe("Rewind2026ClosedGames", () => {
 			).toBe(false);
 		});
 
-		it("shows a quiet tile with the title for a game without any art, and keeps it a link", async () => {
+		it("shows the coloured fallback poster with the title for a game without any art, and keeps it a link", async () => {
 			const { container } = await renderClosed([
 				game("no-art", "2026-06-20")
 			]);
 
-			const tile = container.querySelector("[data-poster-placeholder]");
-			expect(tile).toHaveTextContent("NO-ART");
-			expect(tile?.closest("a")).toHaveAttribute("href", "/games/no-art");
-			expect(container.querySelector("app-game-poster")).toBeNull();
+			const poster = container.querySelector("app-game-poster");
+			expect(poster).not.toBeNull();
+			expect(poster?.querySelector("img")).toBeNull();
+			expect(poster?.querySelector("[role='img']")).toHaveAttribute(
+				"aria-label",
+				"NO-ART"
+			);
+			expect(poster).toHaveTextContent("NO-ART");
+			expect(poster?.closest("a")).toHaveAttribute(
+				"href",
+				"/games/no-art"
+			);
+			expect(
+				container.querySelector("[data-poster-placeholder]")
+			).toBeNull();
 		});
 
-		it("dims the placeholder of an abandoned game without art", async () => {
+		it("dims an abandoned game without art like the rest and marks it with the badge", async () => {
 			const { container } = await renderClosed([], "en", [
 				game("no-art", "2026-06-20")
 			]);
 
+			const poster = container.querySelector("app-game-poster");
+			expect(poster?.className).toContain("grayscale");
 			expect(
-				container.querySelector("[data-poster-placeholder]")
-			).toHaveClass("opacity-60");
+				poster?.closest("a")?.querySelector("[data-abandoned-badge]")
+			).not.toBeNull();
+		});
+
+		it("marks only abandoned posters with a red badge hidden from screen readers, titled in the Rewind language", async () => {
+			const { container } = await renderClosed(
+				[withArt("done", "2026-06-10")],
+				"es",
+				[withArt("left", "2026-06-20")]
+			);
+
+			const links = [...container.querySelectorAll("a")];
+			const badges = links.map(link =>
+				link.querySelector("[data-abandoned-badge]")
+			);
+			expect(badges.filter(Boolean)).toHaveLength(1);
+			const badge = container.querySelector("[data-abandoned-badge]")!;
+			expect(badge.closest("li")).toHaveAttribute("data-abandoned");
+			expect(badge).toHaveAttribute("aria-hidden", "true");
+			expect(badge).toHaveAttribute("title", "Abandonado");
+			expect(badge.className).toContain("text-danger");
+			expect(
+				container
+					.querySelector("li:not([data-abandoned]) a")
+					?.querySelector("[data-abandoned-badge]")
+			).toBeNull();
 		});
 
 		it("stacks the month over a horizontal snap row on a phone and wraps on a wide screen", async () => {
@@ -452,7 +489,9 @@ describe("Rewind2026ClosedGames", () => {
 			);
 
 			expect(container.querySelector("[style*='--tone']")).toBeNull();
-			expect(container.querySelector(".material-icons")).toBeNull();
+			const icons = [...container.querySelectorAll(".material-icons")];
+			expect(icons).toHaveLength(1);
+			expect(icons[0].closest("[data-abandoned-badge]")).not.toBeNull();
 			expect(
 				container.querySelector("li > span.rounded-full")
 			).toBeNull();
