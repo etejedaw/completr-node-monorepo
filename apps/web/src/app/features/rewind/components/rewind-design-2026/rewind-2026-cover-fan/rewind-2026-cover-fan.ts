@@ -63,15 +63,22 @@ export function rewind2026FanPosters(
 	const offsets = offsetsFromCenterOut(games.length);
 	return games.map((game, rank) => {
 		const offset = offsets[rank];
+		const isLead = rank === 0;
+		const depth = isLead ? 0 : Math.abs(offset);
 		return {
 			gameId: game.gameId,
 			url: posterUrlOf(game) ?? "",
 			offset,
-			depth: Math.abs(offset),
-			size: 1 - Math.min(Math.abs(offset), 1) * (1 - OUTER_POSTER_SIZE),
-			layer: games.length - rank
+			depth,
+			size: 1 - Math.min(depth, 1) * (1 - OUTER_POSTER_SIZE),
+			layer: games.length - rank,
+			isLead
 		};
 	});
+}
+
+export function rewind2026FanReach(posters: Rewind2026FanPoster[]): number {
+	return Math.max(0, ...posters.map(poster => Math.abs(poster.offset)));
 }
 
 @Component({
@@ -86,5 +93,8 @@ export class Rewind2026CoverFan {
 
 	protected readonly posters = computed(() =>
 		rewind2026FanPosters(selectRewind2026FanGames(this.rewind()))
+	);
+	protected readonly reach = computed(() =>
+		rewind2026FanReach(this.posters())
 	);
 }
