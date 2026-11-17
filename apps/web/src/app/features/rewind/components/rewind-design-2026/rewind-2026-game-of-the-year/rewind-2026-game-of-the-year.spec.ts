@@ -20,9 +20,13 @@ function topRated(overrides: Partial<RewindRatedGame> = {}): RewindRatedGame {
 	};
 }
 
-async function renderGame(game: RewindRatedGame, language: "en" | "es" = "en") {
+async function renderGame(
+	game: RewindRatedGame,
+	language: "en" | "es" = "en",
+	isOwner = true
+) {
 	return render(Rewind2026GameOfTheYear, {
-		inputs: { game, language },
+		inputs: { game, language, isOwner, username: "ada" },
 		providers: [provideRouter([])]
 	});
 }
@@ -38,6 +42,22 @@ describe("Rewind2026GameOfTheYear", () => {
 			screen.getByRole("link", { name: /Top rated.*Resident Evil 4/ })
 		).toHaveAttribute("href", "/games/resident-evil-4");
 		expect(screen.getByText("Rated 4.5 out of 5")).toBeInTheDocument();
+	});
+
+	it("names the section after the owner when a visitor opens it", async () => {
+		await renderGame(topRated(), "en", false);
+
+		expect(
+			screen.getByRole("region", { name: "@ada's game of the year" })
+		).toBeInTheDocument();
+	});
+
+	it("names the section after the owner in Spanish when a visitor opens it", async () => {
+		await renderGame(topRated(), "es", false);
+
+		expect(
+			screen.getByRole("region", { name: "El juego del año de @ada" })
+		).toBeInTheDocument();
 	});
 
 	it("speaks Spanish with its decimal comma", async () => {

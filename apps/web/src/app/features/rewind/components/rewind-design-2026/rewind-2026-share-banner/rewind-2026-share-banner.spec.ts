@@ -88,17 +88,28 @@ interface RenderOptions {
 	rewind?: Rewind2026ShareBannerSource;
 	image?: RewindStoryImage;
 	gamesImage?: RewindStoryImage | null;
+	isOwner?: boolean;
+	username?: string;
 }
 
 async function renderBanner({
 	rewind = source(games),
 	image = storyImage(),
-	gamesImage = storyImage("blob:games")
+	gamesImage = storyImage("blob:games"),
+	isOwner = true,
+	username = "ada"
 }: RenderOptions = {}) {
 	const toast = { success: vi.fn(), error: vi.fn(), warning: vi.fn() };
 	const saveFile = vi.fn();
 	const view = await render(Rewind2026ShareBanner, {
-		inputs: { rewind, image, gamesImage, previewAlt: "Ada's 2026 Rewind" },
+		inputs: {
+			rewind,
+			image,
+			gamesImage,
+			previewAlt: "Ada's 2026 Rewind",
+			isOwner,
+			username
+		},
 		providers: [
 			{ provide: ToastService, useValue: toast },
 			{ provide: ExportService, useValue: { saveFile } }
@@ -156,6 +167,34 @@ describe("Rewind2026ShareBanner", () => {
 			screen.getByText(
 				"Two images and a link so your friends can see your year."
 			)
+		).toBeInTheDocument();
+	});
+
+	it("talks about the owner of the Rewind when a visitor opens it, in both languages", async () => {
+		await renderBanner({ isOwner: false });
+
+		expect(
+			screen.getByRole("region", { name: "@ada's 2026, ready to share" })
+		).toBeInTheDocument();
+		expect(
+			screen.getByText("Two images and a link to show their year.")
+		).toBeInTheDocument();
+		expect(screen.queryByText(/your stories/)).not.toBeInTheDocument();
+	});
+
+	it("talks about the owner in Spanish when a visitor opens it", async () => {
+		await renderBanner({
+			rewind: source(games, { language: "es" }),
+			isOwner: false
+		});
+
+		expect(
+			screen.getByRole("region", {
+				name: "El 2026 de @ada, listo para compartir"
+			})
+		).toBeInTheDocument();
+		expect(
+			screen.getByText("Dos imágenes y un enlace para mostrar su año.")
 		).toBeInTheDocument();
 	});
 

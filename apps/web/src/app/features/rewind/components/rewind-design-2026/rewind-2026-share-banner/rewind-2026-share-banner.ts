@@ -59,6 +59,8 @@ export class Rewind2026ShareBanner {
 	readonly image = input.required<RewindStoryImage>();
 	readonly gamesImage = input<RewindStoryImage | null>(null);
 	readonly previewAlt = input.required<string>();
+	readonly isOwner = input(false);
+	readonly username = input("");
 
 	protected readonly actions = injectRewindShareActions({
 		image: () => this.image(),
@@ -69,6 +71,17 @@ export class Rewind2026ShareBanner {
 	protected readonly shareCopy = REWIND_SHARE_COPY;
 	protected readonly text = computed(
 		() => rewindCopy(this.rewind().language).page
+	);
+	protected readonly headline = computed(() => {
+		const year = this.rewind().year;
+		return this.isOwner()
+			? this.text().shareHeadline(year)
+			: this.text().visitorShareHeadline(this.username(), year);
+	});
+	protected readonly description = computed(() =>
+		this.isOwner()
+			? this.text().shareDescription
+			: this.text().visitorShareDescription
 	);
 	protected readonly collage = computed(() =>
 		rewind2026CollageUrls(this.rewind())

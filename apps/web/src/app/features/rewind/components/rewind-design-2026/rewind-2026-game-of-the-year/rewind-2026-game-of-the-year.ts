@@ -45,8 +45,15 @@ const VEIL_CLASS =
 export class Rewind2026GameOfTheYear {
 	readonly game = input.required<RewindRatedGame>();
 	readonly language = input<RewindLanguage>("en");
+	readonly isOwner = input(false);
+	readonly username = input("");
 
 	protected readonly page = computed(() => rewindCopy(this.language()).page);
+	protected readonly heading = computed(() =>
+		this.isOwner()
+			? this.page().gameOfTheYear
+			: this.page().visitorGameOfTheYear(this.username())
+	);
 	protected readonly highlightsCopy = computed(
 		() => rewindCopy(this.language()).highlights
 	);

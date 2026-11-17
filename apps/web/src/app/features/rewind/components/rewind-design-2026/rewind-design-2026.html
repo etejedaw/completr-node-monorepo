@@ -84,11 +84,15 @@
 		[image]="storyImage"
 		[gamesImage]="hasFinishedGames() ? gamesImage : null"
 		[previewAlt]="previewAlt()"
+		[isOwner]="isOwner()"
+		[username]="username()"
 	/>
 	@if (data.highlights.topRated; as topRated) {
 	<app-rewind-2026-game-of-the-year
 		[game]="topRated"
 		[language]="data.language"
+		[isOwner]="isOwner()"
+		[username]="username()"
 	/>
 	} @if (data.aiRecap; as recap) {
 	<app-rewind-ai-recap

@@ -35,11 +35,9 @@
 			id="rewind-share-heading"
 			class="m-0 max-w-[16ch] text-balance font-display text-[clamp(1.9rem,6vw,2.6rem)] font-bold leading-[1.05] tracking-tight"
 		>
-			{{ text().shareHeadline(rewind().year) }}
+			{{ headline() }}
 		</h2>
-		<p class="m-0 max-w-[42ch] text-fg-secondary">
-			{{ text().shareDescription }}
-		</p>
+		<p class="m-0 max-w-[42ch] text-fg-secondary">{{ description() }}</p>
 		<div class="mt-2 flex flex-wrap items-center gap-2">
 			@if (actions.canShareFiles()) {
 			<button

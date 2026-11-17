@@ -344,7 +344,7 @@ describe("Rewind interaction", () => {
 			.map(region => region.getAttribute("aria-labelledby"));
 	}
 
-	const BANNER_HEADING = "Your 2026, ready for your stories";
+	const BANNER_HEADING = "@ada's 2026, ready to share";
 
 	function shareSection() {
 		return screen.getByRole("region", { name: BANNER_HEADING });
@@ -571,7 +571,7 @@ describe("Rewind interaction", () => {
 			await renderRewind();
 
 			const section = screen.getByRole("region", {
-				name: "Your game of the year"
+				name: "@ada's game of the year"
 			});
 			expect(
 				within(section).getByRole("link", {
@@ -597,7 +597,9 @@ describe("Rewind interaction", () => {
 			await renderRewind();
 
 			expect(
-				screen.queryByRole("region", { name: "Your game of the year" })
+				screen.queryByRole("region", {
+					name: "@ada's game of the year"
+				})
 			).not.toBeInTheDocument();
 			expect(screen.queryByText("Top rated")).not.toBeInTheDocument();
 			expect(shareSection()).toBeInTheDocument();
@@ -1198,13 +1200,13 @@ describe("Rewind interaction", () => {
 				expect(
 					within(
 						screen.getByRole("region", {
-							name: "Your 2024, ready for your stories"
+							name: "@ada's 2024, ready to share"
 						})
 					).getByRole("img", { name: "@ada's 2024 Rewind" })
 				).toBeInTheDocument()
 			);
 			const banner = screen.getByRole("region", {
-				name: "Your 2024, ready for your stories"
+				name: "@ada's 2024, ready to share"
 			});
 			expect(within(banner).getAllByRole("figure")).toHaveLength(1);
 			expect(
@@ -1274,7 +1276,7 @@ describe("Rewind interaction", () => {
 				screen.getByRole("button", { name: "Año: 2026" })
 			).toBeInTheDocument();
 			const share = screen.getByRole("region", {
-				name: "Tu 2026, listo para tus historias"
+				name: "El 2026 de @ada, listo para compartir"
 			});
 			expect(
 				screen.getByRole("button", { name: "Share" })
@@ -1282,11 +1284,11 @@ describe("Rewind interaction", () => {
 			expect(within(share).getByText("Compartir")).toBeInTheDocument();
 			expect(
 				within(share).getByText(
-					"Dos imágenes y un enlace para que tus amigos vean tu año."
+					"Dos imágenes y un enlace para mostrar su año."
 				)
 			).toBeInTheDocument();
 			expect(
-				screen.getByRole("region", { name: "Tu juego del año" })
+				screen.getByRole("region", { name: "El juego del año de @ada" })
 			).toBeInTheDocument();
 			for (const name of ["Copy link", "Download"])
 				expect(
