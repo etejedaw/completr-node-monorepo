@@ -33,6 +33,12 @@
 						[code]="data.persona"
 						[language]="data.language"
 					/>
+					<p
+						class="m-0 mt-3 max-w-xl text-base text-fg-secondary"
+						animate.enter="motion-safe:animate-[uiFadeUp_480ms_cubic-bezier(0.16,1,0.3,1)_1150ms_both]"
+					>
+						{{ summary() }}
+					</p>
 				</div>
 				<div class="flex flex-wrap items-center gap-2">
 					<button
@@ -111,6 +117,17 @@
 		/>
 		<app-rewind-2026-highlights
 			[highlights]="data.highlights"
+			[language]="data.language"
+		/>
+	</section>
+	} @if (platinumGames(); as platinumGames) {
+	<section aria-labelledby="rewind-platinums-heading" class="min-w-0">
+		<app-profile-section-header
+			headingId="rewind-platinums-heading"
+			[heading]="platinumsHeading()"
+		/>
+		<app-rewind-2026-platinums
+			[games]="platinumGames"
 			[language]="data.language"
 		/>
 	</section>

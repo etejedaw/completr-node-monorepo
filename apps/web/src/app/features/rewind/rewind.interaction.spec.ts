@@ -92,6 +92,7 @@ function rewindFor(year: number, otherYears: number[]): Rewind {
 		},
 		finishedGames: [hades, celeste],
 		abandonedGames: [],
+		platinumGames: null,
 		highlights: {
 			topRated: { ...hades, userRating: 5 },
 			bestRatio: null,
@@ -682,10 +683,10 @@ describe("Rewind interaction", () => {
 				})
 			).toBeInTheDocument();
 			expect(
-				screen.queryByText(
+				screen.getByText(
 					"18 games finished, 4 left behind and 23 started."
 				)
-			).not.toBeInTheDocument();
+			).toBeInTheDocument();
 			const results = screen.getByRole("region", { name: "Results" });
 			expect(
 				within(results).getByText("Left behind")
@@ -1217,10 +1218,10 @@ describe("Rewind interaction", () => {
 			);
 			expect(document.querySelector("[lang='es']")).not.toBeNull();
 			expect(
-				screen.queryByText(
+				screen.getByText(
 					"18 juegos terminados, 4 abandonados y 23 empezados."
 				)
-			).not.toBeInTheDocument();
+			).toBeInTheDocument();
 			const results = screen.getByRole("region", { name: "Resultados" });
 			expect(
 				within(results).getByText("Abandonados")

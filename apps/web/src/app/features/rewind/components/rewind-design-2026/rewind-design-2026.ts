@@ -18,7 +18,7 @@ import {
 	type UiPickerOption,
 	UiSkeleton
 } from "../../../../shared/ui";
-import { rewindCopy } from "../../rewind-copy";
+import { rewindCopy, rewindSummarySentence } from "../../rewind-copy";
 import { type RewindDesignComponent } from "../../rewind-designs.model";
 import { RewindReveal } from "../../rewind-reveal";
 import { REWIND_SHARE_COPY } from "../../rewind-share-copy";
@@ -44,6 +44,7 @@ import {
 	hasRewind2026Highlights,
 	Rewind2026Highlights
 } from "./rewind-2026-highlights/rewind-2026-highlights";
+import { Rewind2026Platinums } from "./rewind-2026-platinums/rewind-2026-platinums";
 import { Rewind2026ResultsStrip } from "./rewind-2026-results-strip/rewind-2026-results-strip";
 import { Rewind2026ShareBanner } from "./rewind-2026-share-banner/rewind-2026-share-banner";
 
@@ -65,6 +66,7 @@ function backdropOf(rewind: Rewind): string | null {
 		Rewind2026CoverFan,
 		Rewind2026GameOfTheYear,
 		Rewind2026Highlights,
+		Rewind2026Platinums,
 		Rewind2026ResultsStrip,
 		Rewind2026ShareBanner,
 		RewindAiRecap,
@@ -95,10 +97,24 @@ export class RewindDesign2026 implements RewindDesignComponent {
 		() => rewindCopy(this.rewind().language).page
 	);
 
+	protected readonly summary = computed(() => {
+		const { totals, language } = this.rewind();
+		return rewindSummarySentence(totals, language);
+	});
+
 	protected readonly hasPremiumStats = computed(() => {
 		const stats = this.rewind().premiumStats;
 		return !!stats && hasPremiumCharts(stats);
 	});
+
+	protected readonly platinumGames = computed(() => {
+		const games = this.rewind().platinumGames;
+		return games && games.length > 0 ? games : null;
+	});
+
+	protected readonly platinumsHeading = computed(
+		() => rewindCopy(this.rewind().language).platinums.heading
+	);
 
 	protected readonly hasYearMix = computed(() =>
 		hasYearMixCharts(this.rewind().yearMix)

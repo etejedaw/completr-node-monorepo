@@ -114,6 +114,12 @@ const ENGLISH: RewindCopy = {
 		abandonedGameLabel: (title, date) => `${title}, ${date}, abandoned`,
 		abandonedBadge: "Abandoned"
 	},
+	platinums: {
+		heading: "Platinums",
+		inTheYear: "Platinums this year",
+		platinum: "Platinum",
+		gameLabel: (title, date) => `${title}, platinum on ${date}`
+	},
 	aiRecap: {
 		heading: "AI recap",
 		premiumLabels: ENGLISH_PREMIUM_LABELS,
@@ -273,6 +279,12 @@ const SPANISH: RewindCopy = {
 			spanishPlural(count, "abandonado", "abandonados"),
 		abandonedGameLabel: (title, date) => `${title}, ${date}, abandonado`,
 		abandonedBadge: "Abandonado"
+	},
+	platinums: {
+		heading: "Platinos",
+		inTheYear: "Platinos en el año",
+		platinum: "Platino",
+		gameLabel: (title, date) => `${title}, platino el ${date}`
 	},
 	aiRecap: {
 		heading: "Resumen con IA",
@@ -456,6 +468,21 @@ export function spokenMonthRange(
 		return `${monthName(fromMonth, language)} a ${rawMonthName(toMonth, language, "long")}`;
 	}
 	return `${monthName(fromMonth, language)} to ${monthName(toMonth, language)}`;
+}
+
+export function spokenMonthList(
+	months: number[],
+	language: RewindLanguage = DEFAULT_REWIND_LANGUAGE
+): string {
+	const names = months
+		.filter(isMonth)
+		.map((month, index) =>
+			index === 0 || language !== "es"
+				? monthName(month, language)
+				: rawMonthName(month, language, "long")
+		);
+	if (names.length === 0) return "";
+	return joinWithAnd(names, rewindCopy(language).summary.and);
 }
 
 export function utcMonth(isoDate: string): number {
