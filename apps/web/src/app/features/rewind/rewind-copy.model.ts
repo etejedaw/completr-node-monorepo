@@ -60,6 +60,8 @@ export interface RewindTimelineCopy {
 	abandonedGames: (count: number) => string;
 	abandonedGameLabel: (title: string, date: string) => string;
 	abandonedBadge: string;
+	platinumGameLabel: (title: string, date: string) => string;
+	platinumBadge: string;
 }
 
 export interface RewindAiRecapCopy {

@@ -626,6 +626,40 @@ describe("RewindDesign2025", () => {
 		});
 	});
 
+	it("marks the platinumed games on the shelves, only when the viewer can see platinums", async () => {
+		const hades = FINISHED_GAMES.find(game => game.gameId === "hades")!;
+		const root = await renderDesign(
+			rewindFixture({
+				platinumGames: [
+					{
+						gameId: hades.gameId,
+						code: hades.code,
+						title: hades.title,
+						coverUrl: hades.coverUrl,
+						backgroundUrl: hades.backgroundUrl,
+						platinumedAt: "2025-02-01",
+						platformAbbreviation: "PS5"
+					}
+				]
+			})
+		);
+		await renderDeferred();
+
+		const badges = root.querySelectorAll("[data-platinum-badge]");
+		expect(badges).toHaveLength(1);
+		expect(badges[0]).toHaveAttribute("aria-hidden", "true");
+		expect(badges[0].closest("a")).toHaveAttribute("href", "/games/hades");
+		expect(badges[0].closest("a")).toHaveTextContent("Platinum");
+
+		fixture.componentRef.setInput(
+			"rewind",
+			rewindFixture({ platinumGames: null })
+		);
+		fixture.detectChanges();
+		await renderDeferred();
+		expect(root.querySelector("[data-platinum-badge]")).toBeNull();
+	});
+
 	it("shelves the finished games by quarter in calendar order and skips empty quarters", async () => {
 		const root = await renderDesign(rewindFixture());
 		await renderDeferred();

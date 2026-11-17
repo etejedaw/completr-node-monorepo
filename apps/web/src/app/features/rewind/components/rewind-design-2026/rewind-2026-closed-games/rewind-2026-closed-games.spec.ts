@@ -5,7 +5,8 @@ import { render, screen, within } from "@testing-library/angular";
 
 import {
 	type RewindFinishedGame,
-	type RewindLanguage
+	type RewindLanguage,
+	type RewindPlatinumGame
 } from "../../../../../core/models/rewind.model";
 import { Rewind2026ClosedGames } from "./rewind-2026-closed-games";
 
@@ -36,13 +37,15 @@ function withArt(code: string, finishedAt: string): RewindFinishedGame {
 async function renderClosed(
 	games: RewindFinishedGame[],
 	language: RewindLanguage = "en",
-	abandonedGames?: RewindFinishedGame[]
+	abandonedGames?: RewindFinishedGame[],
+	platinumGames?: RewindPlatinumGame[] | null
 ) {
 	return render(Rewind2026ClosedGames, {
 		inputs: {
 			games,
 			language,
-			...(abandonedGames && { abandonedGames })
+			...(abandonedGames && { abandonedGames }),
+			...(platinumGames !== undefined && { platinumGames })
 		},
 		providers: [provideRouter([])]
 	});
@@ -63,6 +66,98 @@ function backgroundOf(row: HTMLElement) {
 }
 
 describe("Rewind2026ClosedGames", () => {
+	describe("platinum marker", () => {
+		function platinumOf(game: RewindFinishedGame): RewindPlatinumGame {
+			return {
+				gameId: game.gameId,
+				code: game.code,
+				title: game.title,
+				coverUrl: game.coverUrl,
+				backgroundUrl: game.backgroundUrl,
+				platinumedAt: "2026-06-30",
+				platformAbbreviation: "PS5"
+			};
+		}
+
+		it("marks only the finished games that were platinumed, with a badge hidden from screen readers", async () => {
+			const platinumed = withArt("plat", "2026-06-10");
+			const plain = withArt("plain", "2026-06-12");
+			const { container } = await renderClosed(
+				[platinumed, plain],
+				"en",
+				[],
+				[platinumOf(platinumed)]
+			);
+
+			const badges = container.querySelectorAll("[data-platinum-badge]");
+			expect(badges).toHaveLength(1);
+			expect(badges[0]).toHaveAttribute("aria-hidden", "true");
+			expect(badges[0]).toHaveAttribute("title", "Platinum");
+			expect(badges[0].className).toContain("text-platinum");
+			expect(badges[0].closest("a")).toHaveAttribute(
+				"aria-label",
+				"PLAT, Jun 10, platinum"
+			);
+			expect(
+				screen.getByRole("link", { name: "PLAIN, Jun 12" })
+			).toBeInTheDocument();
+		});
+
+		it("never marks an abandoned run as platinum, even for a platinumed game", async () => {
+			const game = withArt("both", "2026-06-10");
+			const { container } = await renderClosed(
+				[],
+				"en",
+				[game],
+				[platinumOf(game)]
+			);
+
+			expect(container.querySelector("[data-platinum-badge]")).toBeNull();
+			expect(
+				container.querySelector("[data-abandoned-badge]")
+			).not.toBeNull();
+		});
+
+		it("shows no marker when the viewer cannot see platinums", async () => {
+			const { container } = await renderClosed(
+				[withArt("a", "2026-06-10")],
+				"en",
+				[],
+				null
+			);
+
+			expect(container.querySelector("[data-platinum-badge]")).toBeNull();
+		});
+
+		it("shows no marker in a year without platinums", async () => {
+			const { container } = await renderClosed(
+				[withArt("a", "2026-06-10")],
+				"en",
+				[],
+				[]
+			);
+
+			expect(container.querySelector("[data-platinum-badge]")).toBeNull();
+		});
+
+		it("speaks the marker in Spanish", async () => {
+			const game = withArt("plat", "2026-06-10");
+			const { container } = await renderClosed(
+				[game],
+				"es",
+				[],
+				[platinumOf(game)]
+			);
+
+			expect(
+				container.querySelector("[data-platinum-badge]")
+			).toHaveAttribute("title", "Platino");
+			expect(
+				container.querySelector("[data-platinum-badge]")?.closest("a")
+			).toHaveAttribute("aria-label", "PLAT, 10 jun, platinado");
+		});
+	});
+
 	it("lists only the months that have closed games, in calendar order", async () => {
 		await renderClosed(
 			[

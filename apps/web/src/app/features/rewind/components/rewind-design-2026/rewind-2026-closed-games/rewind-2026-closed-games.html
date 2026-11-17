@@ -72,6 +72,17 @@
 							>close</span
 						></span
 					>
+					} @if (entry.isPlatinum) {
+					<span
+						data-platinum-badge
+						aria-hidden="true"
+						class="absolute top-1.5 right-1.5 grid size-5 place-items-center rounded-full bg-canvas/80 text-platinum shadow-[0_0_0_1px_color-mix(in_oklab,var(--color-platinum)_45%,transparent)] backdrop-blur-sm"
+						[attr.title]="platinumBadge()"
+						><span
+							class="material-icons text-[0.8125rem] leading-none"
+							>emoji_events</span
+						></span
+					>
 					}
 				</a>
 			</li>

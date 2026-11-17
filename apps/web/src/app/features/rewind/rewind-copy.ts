@@ -112,7 +112,9 @@ const ENGLISH: RewindCopy = {
 	timeline: {
 		abandonedGames: count => `${count} abandoned`,
 		abandonedGameLabel: (title, date) => `${title}, ${date}, abandoned`,
-		abandonedBadge: "Abandoned"
+		abandonedBadge: "Abandoned",
+		platinumGameLabel: (title, date) => `${title}, ${date}, platinum`,
+		platinumBadge: "Platinum"
 	},
 	platinums: {
 		heading: "Platinums",
@@ -278,7 +280,9 @@ const SPANISH: RewindCopy = {
 		abandonedGames: count =>
 			spanishPlural(count, "abandonado", "abandonados"),
 		abandonedGameLabel: (title, date) => `${title}, ${date}, abandonado`,
-		abandonedBadge: "Abandonado"
+		abandonedBadge: "Abandonado",
+		platinumGameLabel: (title, date) => `${title}, ${date}, platinado`,
+		platinumBadge: "Platino"
 	},
 	platinums: {
 		heading: "Platinos",

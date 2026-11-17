@@ -46,16 +46,33 @@
 					class="group flex flex-col gap-1.5 rounded-md no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
 					[routerLink]="['/games', game.code]"
 				>
-					<app-game-poster
-						class="aspect-[2/3] rounded-md ring-1 ring-line transition-shadow group-hover:ring-brand"
-						[src]="game.coverUrl ?? game.backgroundUrl"
-						[title]="game.title"
-						[width]="420"
-						titleSize="0.75rem"
-					/>
+					<span class="relative block">
+						<app-game-poster
+							class="aspect-[2/3] rounded-md ring-1 ring-line transition-shadow group-hover:ring-brand"
+							[src]="game.coverUrl ?? game.backgroundUrl"
+							[title]="game.title"
+							[width]="420"
+							titleSize="0.75rem"
+						/>
+						@if (isPlatinum(game)) {
+						<span
+							data-platinum-badge
+							aria-hidden="true"
+							class="absolute top-1.5 right-1.5 grid size-5 place-items-center rounded-full bg-canvas/80 text-platinum shadow-[0_0_0_1px_color-mix(in_oklab,var(--color-platinum)_45%,transparent)] backdrop-blur-sm"
+							[attr.title]="text.platinumBadge"
+							><span
+								class="material-icons text-[0.8125rem] leading-none"
+								>emoji_events</span
+							></span
+						>
+						}
+					</span>
 					<span class="text-xs tabular-nums text-fg-secondary"
 						>{{ dateOf(game) }}</span
 					>
+					@if (isPlatinum(game)) {
+					<span class="sr-only">{{ text.platinumBadge }}</span>
+					}
 				</a>
 			</li>
 			}

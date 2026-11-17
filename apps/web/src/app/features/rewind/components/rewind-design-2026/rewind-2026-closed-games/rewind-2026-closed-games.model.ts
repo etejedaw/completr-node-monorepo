@@ -4,6 +4,7 @@ export interface ClosedGame {
 	key: string;
 	game: RewindFinishedGame;
 	isAbandoned: boolean;
+	isPlatinum: boolean;
 	label: string;
 	portraitUrl: string | null;
 }

@@ -8,7 +8,8 @@ import { RouterLink } from "@angular/router";
 
 import {
 	type RewindFinishedGame,
-	type RewindLanguage
+	type RewindLanguage,
+	type RewindPlatinumGame
 } from "../../../../../core/models/rewind.model";
 import { GamePoster } from "../../../../../shared/components/game-poster/game-poster";
 import { CoverUrlPipe } from "../../../../../shared/pipes/cover-url";
@@ -26,20 +27,33 @@ import {
 	type ClosedMonth
 } from "./rewind-2026-closed-games.model";
 
+function closedGameLabel(
+	game: RewindFinishedGame,
+	date: string,
+	isAbandoned: boolean,
+	isPlatinum: boolean,
+	text: RewindTimelineCopy
+): string {
+	if (isAbandoned) return text.abandonedGameLabel(game.title, date);
+	if (isPlatinum) return text.platinumGameLabel(game.title, date);
+	return `${game.title}, ${date}`;
+}
+
 function toClosedGame(
 	game: RewindFinishedGame,
 	isAbandoned: boolean,
+	platinumGameIds: ReadonlySet<string>,
 	language: RewindLanguage,
 	text: RewindTimelineCopy
 ): ClosedGame {
 	const date = shortDate(game.finishedAt, language);
+	const isPlatinum = !isAbandoned && platinumGameIds.has(game.gameId);
 	return {
 		key: `${isAbandoned ? "abandoned" : "finished"}-${game.gameId}`,
 		game,
 		isAbandoned,
-		label: isAbandoned
-			? text.abandonedGameLabel(game.title, date)
-			: `${game.title}, ${date}`,
+		isPlatinum,
+		label: closedGameLabel(game, date, isAbandoned, isPlatinum, text),
 		portraitUrl: gameArtUrl(game, "portrait")
 	};
 }
@@ -47,12 +61,17 @@ function toClosedGame(
 function interleaveByDate(
 	finished: RewindFinishedGame[],
 	abandoned: RewindFinishedGame[],
+	platinumGameIds: ReadonlySet<string>,
 	language: RewindLanguage
 ): ClosedGame[] {
 	const text = rewindCopy(language).timeline;
 	return [
-		...finished.map(game => toClosedGame(game, false, language, text)),
-		...abandoned.map(game => toClosedGame(game, true, language, text))
+		...finished.map(game =>
+			toClosedGame(game, false, platinumGameIds, language, text)
+		),
+		...abandoned.map(game =>
+			toClosedGame(game, true, platinumGameIds, language, text)
+		)
 	].sort((a, b) => a.game.finishedAt.localeCompare(b.game.finishedAt));
 }
 
@@ -108,6 +127,7 @@ export class Rewind2026ClosedGames {
 	readonly games = input.required<RewindFinishedGame[]>();
 	readonly abandonedGames = input<RewindFinishedGame[]>([]);
 	readonly language = input<RewindLanguage>("en");
+	readonly platinumGames = input<RewindPlatinumGame[] | null>(null);
 
 	protected readonly abandonedPosterClass = REWIND_ABANDONED_POSTER_CLASS;
 
@@ -115,11 +135,20 @@ export class Rewind2026ClosedGames {
 		() => rewindCopy(this.language()).timeline.abandonedBadge
 	);
 
+	protected readonly platinumBadge = computed(
+		() => rewindCopy(this.language()).timeline.platinumBadge
+	);
+
+	private readonly platinumGameIds = computed(
+		() => new Set((this.platinumGames() ?? []).map(game => game.gameId))
+	);
+
 	protected readonly months = computed(() =>
 		groupByMonth(
 			interleaveByDate(
 				this.games(),
 				this.abandonedGames(),
+				this.platinumGameIds(),
 				this.language()
 			),
 			this.language()

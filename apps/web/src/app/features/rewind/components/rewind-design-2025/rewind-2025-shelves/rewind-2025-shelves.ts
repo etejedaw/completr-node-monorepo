@@ -8,7 +8,8 @@ import { RouterLink } from "@angular/router";
 
 import {
 	type RewindFinishedGame,
-	type RewindLanguage
+	type RewindLanguage,
+	type RewindPlatinumGame
 } from "../../../../../core/models/rewind.model";
 import { GamePoster } from "../../../../../shared/components/game-poster/game-poster";
 import { UiEyebrow } from "../../../../../shared/ui";
@@ -73,6 +74,11 @@ export function rewindQuarterShelves(
 export class Rewind2025Shelves {
 	readonly games = input.required<RewindFinishedGame[]>();
 	readonly language = input<RewindLanguage>("en");
+	readonly platinumGames = input<RewindPlatinumGame[] | null>(null);
+
+	private readonly platinumGameIds = computed(
+		() => new Set((this.platinumGames() ?? []).map(game => game.gameId))
+	);
 
 	protected readonly shelves = computed(() =>
 		rewindQuarterShelves(this.games(), this.language())
@@ -81,6 +87,10 @@ export class Rewind2025Shelves {
 	protected readonly copy = computed(() =>
 		rewindDesign2025Copy(this.language())
 	);
+
+	protected isPlatinum(game: RewindFinishedGame): boolean {
+		return this.platinumGameIds().has(game.gameId);
+	}
 
 	protected dateOf(game: RewindFinishedGame): string {
 		return shortDate(game.finishedAt, this.language());

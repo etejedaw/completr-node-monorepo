@@ -62,6 +62,7 @@ export interface RewindDesign2025Copy {
 	quarter: (quarter: number) => string;
 	gamesNoun: (count: number) => string;
 	shelvesLabel: (range: string) => string;
+	platinumBadge: string;
 	fastestAndBestValue: string;
 	ratioUnit: string;
 	favoriteGenre: string;
