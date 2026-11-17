@@ -126,7 +126,6 @@ export interface RewindPageCopy {
 	shareHeadline: (year: number) => string;
 	visitorShareHeadline: (username: string, year: number) => string;
 	shareDescription: string;
-	visitorShareDescription: string;
 	finishedIn: (year: number) => string;
 	closedIn: (year: number) => string;
 	moreRewinds: string;

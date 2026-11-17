@@ -1,0 +1,23 @@
+<section
+	appRewindReveal
+	aria-labelledby="rewind-share-heading"
+	class="flex items-center justify-between gap-4 rounded-card border border-line px-4 py-3 sm:px-6"
+>
+	<h2
+		id="rewind-share-heading"
+		class="m-0 min-w-0 text-base font-medium leading-snug [overflow-wrap:anywhere]"
+	>
+		{{ headline() }}
+	</h2>
+	<button
+		uiButton
+		variant="secondary"
+		class="shrink-0 max-sm:min-h-[44px] tap:min-h-[44px]"
+		(click)="shareLink()"
+	>
+		<span aria-hidden="true" class="material-icons text-base"
+			>ios_share</span
+		>
+		{{ shareCopy.shareLink }}
+	</button>
+</section>

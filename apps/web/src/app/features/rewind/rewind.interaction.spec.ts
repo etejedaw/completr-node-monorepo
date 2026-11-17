@@ -344,29 +344,10 @@ describe("Rewind interaction", () => {
 			.map(region => region.getAttribute("aria-labelledby"));
 	}
 
-	const BANNER_HEADING = "@ada's 2026, ready to share";
+	const BANNER_HEADING = "Share @ada's 2026 Rewind";
 
 	function shareSection() {
 		return screen.getByRole("region", { name: BANNER_HEADING });
-	}
-
-	async function bannerWithImages() {
-		await untilVisible(() => {
-			const section = within(shareSection());
-			expect(
-				section.getByRole("button", { name: "Download" })
-			).toBeInTheDocument();
-			expect(section.getAllByRole("figure")).toHaveLength(2);
-			expect(
-				section.getByRole("img", { name: "@ada's 2026 Rewind" })
-			).toBeInTheDocument();
-			expect(
-				section.getByRole("img", {
-					name: "@ada's 2026 Rewind: finished games"
-				})
-			).toBeInTheDocument();
-		});
-		return shareSection();
 	}
 
 	async function shareActions() {
@@ -605,95 +586,90 @@ describe("Rewind interaction", () => {
 			expect(shareSection()).toBeInTheDocument();
 		});
 
-		it("shows both story images in the banner and downloads them once per double click", async () => {
-			const user = userEvent.setup();
+		it("shows a compact share row for the visitor, without story images or downloads", async () => {
 			await renderRewind();
-			const section = await bannerWithImages();
+			const section = shareSection();
 
-			await user.dblClick(
-				within(section).getByRole("button", { name: "Download" })
-			);
-
-			expect(saveFile.mock.calls.map(([, name]) => name)).toEqual([
-				"completr-rewind-ada-2026.png",
-				"completr-rewind-ada-2026-games.png"
-			]);
-		});
-
-		it("waits in the banner for images still loading and saves each only once", async () => {
-			const user = userEvent.setup();
-			holdStories = true;
-			await renderRewind();
-			const button = within(shareSection()).getByRole("button", {
-				name: "Download"
-			});
-
-			await user.dblClick(button);
-			await user.click(button);
-			expect(saveFile).not.toHaveBeenCalled();
-			expect(button).toHaveAttribute("aria-busy", "true");
-			holdStories = false;
-
-			await untilVisible(() => expect(saveFile).toHaveBeenCalledTimes(2));
-			expect(button).not.toHaveAttribute("aria-busy");
-		});
-
-		it("lets the user retry a failed image from the banner", async () => {
-			const user = userEvent.setup();
-			gamesFailures.push(500);
-			await renderRewind();
-
-			await untilVisible(() =>
-				expect(
-					within(shareSection()).getByText("Couldn't load the image.")
-				).toBeInTheDocument()
-			);
-			await user.click(
-				within(shareSection()).getByRole("button", {
-					name: "Try again"
-				})
-			);
-
-			await bannerWithImages();
+			expect(within(section).getAllByRole("button")).toHaveLength(1);
 			expect(
-				within(shareSection()).queryByText("Couldn't load the image.")
+				within(section).getByRole("button", { name: "Share link" })
+			).toBeInTheDocument();
+			expect(within(section).queryByRole("img")).not.toBeInTheDocument();
+			expect(
+				within(section).queryByRole("figure")
+			).not.toBeInTheDocument();
+			expect(
+				within(section).queryByRole("button", {
+					name: /Download|Copy link|Share both/
+				})
 			).not.toBeInTheDocument();
 		});
 
-		it("shares both files from the banner once and stays quiet when the user cancels", async () => {
+		it("does not request any story image until the visitor opens the Share dialog", async () => {
+			await renderRewind();
+			await new Promise(resolve => setTimeout(resolve, 50));
+
+			expect(imageRequests).toEqual([]);
+		});
+
+		it("shares the link, not images, from the row on a touch device and only once per double click", async () => {
+			const user = userEvent.setup();
+			enableWebShare(() => new Promise<void>(() => undefined));
+			vi.stubGlobal(
+				"matchMedia",
+				vi.fn((query: string) => ({
+					matches: query === "(pointer: coarse)",
+					addEventListener: vi.fn(),
+					removeEventListener: vi.fn(),
+					addListener: vi.fn(),
+					removeListener: vi.fn()
+				}))
+			);
+			await renderRewind();
+
+			await user.dblClick(
+				within(shareSection()).getByRole("button", {
+					name: "Share link"
+				})
+			);
+
+			expect(share).toHaveBeenCalledTimes(1);
+			expect(share).toHaveBeenCalledWith({
+				title: "@ada's 2026 Rewind",
+				url: `${window.location.origin}/share/rewind/ada/2026`
+			});
+			expect(imageRequests).toEqual([]);
+		});
+
+		it("stays quiet when the visitor dismisses the share sheet", async () => {
 			const user = userEvent.setup();
 			enableWebShare(() =>
 				Promise.reject(new DOMException("cancelled", "AbortError"))
 			);
+			vi.stubGlobal(
+				"matchMedia",
+				vi.fn((query: string) => ({
+					matches: query === "(pointer: coarse)",
+					addEventListener: vi.fn(),
+					removeEventListener: vi.fn(),
+					addListener: vi.fn(),
+					removeListener: vi.fn()
+				}))
+			);
 			await renderRewind();
-			const section = await bannerWithImages();
 
-			await user.dblClick(
-				within(section).getByRole("button", { name: "Share both" })
+			await user.click(
+				within(shareSection()).getByRole("button", {
+					name: "Share link"
+				})
 			);
 
 			expect(share).toHaveBeenCalledTimes(1);
-			const [payload] = share!.mock.calls[0] as [ShareData];
-			expect(payload.files?.map(file => file.name)).toEqual([
-				"completr-rewind-ada-2026.png",
-				"completr-rewind-ada-2026-games.png"
-			]);
 			await new Promise(resolve => setTimeout(resolve, 20));
+			expect(screen.queryByText("Link copied")).not.toBeInTheDocument();
 			expect(
-				screen.queryByText(/Couldn't share the image/)
+				screen.queryByText(/Couldn't copy the link/)
 			).not.toBeInTheDocument();
-		});
-
-		it("keeps the banner on Copy link as its main action when the browser cannot share files", async () => {
-			await renderRewind();
-			const section = await bannerWithImages();
-
-			expect(
-				within(section).queryByRole("button", { name: "Share both" })
-			).not.toBeInTheDocument();
-			expect(
-				within(section).getByRole("button", { name: "Copy link" })
-			).toHaveAttribute("data-variant", "primary");
 		});
 
 		it("shows the results of the year in the hero down to the share preview", async () => {
@@ -757,13 +733,6 @@ describe("Rewind interaction", () => {
 					selector: ".sr-only"
 				})
 			).toBeInTheDocument();
-			await untilVisible(() =>
-				expect(
-					within(shareSection()).getByRole("img", {
-						name: "@ada's 2026 Rewind"
-					})
-				).toHaveAttribute("src", expect.stringMatching(/^blob:story-/))
-			);
 			expect(
 				screen.getByRole("region", { name: "Finished in 2026" })
 			).toBeInTheDocument();
@@ -1036,7 +1005,7 @@ describe("Rewind interaction", () => {
 
 			await user.dblClick(
 				within(shareSection()).getByRole("button", {
-					name: "Copy link"
+					name: "Share link"
 				})
 			);
 
@@ -1187,7 +1156,7 @@ describe("Rewind interaction", () => {
 			const user = userEvent.setup();
 			rewindOverrides.set(2024, { finishedGames: [] });
 			await renderRewind();
-			await bannerWithImages();
+			shareSection();
 
 			await user.click(
 				screen.getByRole("button", { name: "Year: 2026" })
@@ -1200,20 +1169,22 @@ describe("Rewind interaction", () => {
 
 			await untilVisible(() =>
 				expect(
-					within(
-						screen.getByRole("region", {
-							name: "@ada's 2024, ready to share"
-						})
-					).getByRole("img", { name: "@ada's 2024 Rewind" })
+					screen.getByRole("region", {
+						name: "Share @ada's 2024 Rewind"
+					})
 				).toBeInTheDocument()
 			);
-			const banner = screen.getByRole("region", {
-				name: "@ada's 2024, ready to share"
-			});
-			expect(within(banner).getAllByRole("figure")).toHaveLength(1);
-			expect(
-				within(banner).getByRole("button", { name: "Download" })
-			).toBeInTheDocument();
+			expect(imageRequests).toEqual([]);
+
+			await user.click(screen.getByRole("button", { name: "Share" }));
+			const dialog = await screen.findByRole("dialog", { name: "Share" });
+			await untilVisible(() =>
+				expect(
+					within(dialog).getByRole("img", {
+						name: "@ada's 2024 Rewind"
+					})
+				).toBeInTheDocument()
+			);
 			expect(imageRequests).not.toContain(
 				"/share/rewind/ada/2024/story-list.png"
 			);
@@ -1278,36 +1249,22 @@ describe("Rewind interaction", () => {
 				screen.getByRole("button", { name: "Año: 2026" })
 			).toBeInTheDocument();
 			const share = screen.getByRole("region", {
-				name: "El 2026 de @ada, listo para compartir"
+				name: "Comparte el Rewind 2026 de @ada"
 			});
 			expect(
 				screen.getByRole("button", { name: "Share" })
 			).toBeInTheDocument();
-			expect(within(share).getByText("Compartir")).toBeInTheDocument();
-			expect(
-				within(share).getByText(
-					"Dos imágenes y un enlace para mostrar su año."
-				)
-			).toBeInTheDocument();
 			expect(
 				screen.getByRole("region", { name: "El juego del año de @ada" })
 			).toBeInTheDocument();
-			for (const name of ["Copy link", "Download"])
-				expect(
-					within(share).getByRole("button", { name })
-				).toBeInTheDocument();
-			await untilVisible(() =>
-				expect(
-					within(share).getByRole("img", {
-						name: "@ada's 2026 Rewind"
-					})
-				).toBeInTheDocument()
-			);
+			expect(
+				within(share).getByRole("button", { name: "Share link" })
+			).toBeInTheDocument();
 			expect(
 				within(share).queryByText(/Descargar|Resumen|Juegos|Copiar/)
 			).not.toBeInTheDocument();
 			await user.click(
-				within(share).getByRole("button", { name: "Copy link" })
+				within(share).getByRole("button", { name: "Share link" })
 			);
 			expect(await screen.findByText("Link copied")).toBeInTheDocument();
 			expect(screen.queryByText("Results")).not.toBeInTheDocument();

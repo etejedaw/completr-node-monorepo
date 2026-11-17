@@ -17,6 +17,7 @@ export const REWIND_SHARE_COPY: RewindShareCopy = {
 	downloadSummary: "Download summary",
 	downloadGames: "Download games",
 	copyLink: "Copy link",
+	shareLink: "Share link",
 	imageFailed: "Couldn't load the image.",
 	downloadFailed: "Couldn't download the image. Try again.",
 	tryAgain: "Try again",

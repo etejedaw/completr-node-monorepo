@@ -46,10 +46,9 @@ const ENGLISH: RewindCopy = {
 		visitorGameOfTheYear: username => `@${username}'s game of the year`,
 		shareHeadline: year => `Your ${year}, ready for your stories`,
 		visitorShareHeadline: (username, year) =>
-			`@${username}'s ${year}, ready to share`,
+			`Share @${username}'s ${year} Rewind`,
 		shareDescription:
 			"Two images and a link so your friends can see your year.",
-		visitorShareDescription: "Two images and a link to show their year.",
 		finishedIn: year => `Finished in ${year}`,
 		closedIn: year => `Closed in ${year}`,
 		moreRewinds: "More Rewinds",
@@ -203,11 +202,9 @@ const SPANISH: RewindCopy = {
 		visitorGameOfTheYear: username => `El juego del año de @${username}`,
 		shareHeadline: year => `Tu ${year}, listo para tus historias`,
 		visitorShareHeadline: (username, year) =>
-			`El ${year} de @${username}, listo para compartir`,
+			`Comparte el Rewind ${year} de @${username}`,
 		shareDescription:
 			"Dos imágenes y un enlace para que tus amigos vean tu año.",
-		visitorShareDescription:
-			"Dos imágenes y un enlace para mostrar su año.",
 		finishedIn: year => `Terminados en ${year}`,
 		closedIn: year => `Cerrados en ${year}`,
 		moreRewinds: "Más Rewinds",
