@@ -440,7 +440,7 @@ describe("RewindDesignOutlet", () => {
 
 			const heading = screen.getByRole("heading", {
 				level: 2,
-				name: "Platinums"
+				name: "This year you completed 1 game to a hundred percent"
 			});
 			expect(
 				isBefore(
