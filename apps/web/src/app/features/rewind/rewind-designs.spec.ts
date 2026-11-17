@@ -426,13 +426,18 @@ describe("RewindDesignOutlet", () => {
 			).toBeInTheDocument();
 		});
 
-		it("puts the 2025 page between the finished games and the abandoned ones", async () => {
+		it("puts the 2025 page right after the highlights and before the finished shelves, like the 2026 section", async () => {
 			await renderWith({
 				year: 2025,
 				design: "2025",
 				finishedGames: [finished],
 				abandonedGames: [abandoned],
-				platinumGames: [platinumGame]
+				platinumGames: [platinumGame],
+				highlights: {
+					...rewindFixture().highlights,
+					firstFinished: finished,
+					lastFinished: finished
+				}
 			});
 
 			const heading = screen.getByRole("heading", {
@@ -441,8 +446,17 @@ describe("RewindDesignOutlet", () => {
 			});
 			expect(
 				isBefore(
-					screen.getByRole("heading", { name: "Finished in 2025" }),
+					screen.getByRole("heading", {
+						level: 2,
+						name: "Highlights"
+					}),
 					heading
+				)
+			).toBe(true);
+			expect(
+				isBefore(
+					heading,
+					screen.getByRole("heading", { name: "Finished in 2025" })
 				)
 			).toBe(true);
 			expect(

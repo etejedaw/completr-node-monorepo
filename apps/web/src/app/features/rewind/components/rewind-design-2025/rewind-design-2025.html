@@ -123,6 +123,13 @@
 			[language]="data.language"
 		/>
 	</section>
+	} @if (platinumGames(); as platinumGames) {
+	<app-rewind-2025-platinums
+		appRewindReveal
+		class="min-w-0"
+		[games]="platinumGames"
+		[language]="data.language"
+	/>
 	} @if (hasYearMix()) {
 	<app-rewind-2025-year-mix
 		class="min-w-0"
@@ -174,13 +181,6 @@
 		</div>
 		}
 	</section>
-	} @if (platinumGames(); as platinumGames) {
-	<app-rewind-2025-platinums
-		appRewindReveal
-		class="min-w-0"
-		[games]="platinumGames"
-		[language]="data.language"
-	/>
 	} @if (data.abandonedGames.length > 0) {
 	<section
 		appRewindReveal
