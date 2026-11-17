@@ -25,10 +25,6 @@ import { REWIND_SHARE_COPY } from "../../rewind-share-copy";
 import { injectRewindStoryImage } from "../../rewind-story-image";
 import { RewindAiRecap } from "../rewind-ai-recap/rewind-ai-recap";
 import { RewindFinishedGames } from "../rewind-finished-games/rewind-finished-games";
-import {
-	presentHighlightKeys,
-	RewindHighlights
-} from "../rewind-highlights/rewind-highlights";
 import { RewindMoreYears } from "../rewind-more-years/rewind-more-years";
 import { RewindOwnerPanel } from "../rewind-owner-panel/rewind-owner-panel";
 import { RewindPersonaRank } from "../rewind-persona-rank/rewind-persona-rank";
@@ -44,6 +40,10 @@ import {
 import { RewindYearOdometer } from "../rewind-year-odometer/rewind-year-odometer";
 import { Rewind2026CoverFan } from "./rewind-2026-cover-fan/rewind-2026-cover-fan";
 import { Rewind2026GameOfTheYear } from "./rewind-2026-game-of-the-year/rewind-2026-game-of-the-year";
+import {
+	hasRewind2026Highlights,
+	Rewind2026Highlights
+} from "./rewind-2026-highlights/rewind-2026-highlights";
 import { Rewind2026ResultsStrip } from "./rewind-2026-results-strip/rewind-2026-results-strip";
 import { Rewind2026ShareBanner } from "./rewind-2026-share-banner/rewind-2026-share-banner";
 
@@ -63,11 +63,11 @@ function backdropOf(rewind: Rewind): string | null {
 		ProfileSectionHeader,
 		Rewind2026CoverFan,
 		Rewind2026GameOfTheYear,
+		Rewind2026Highlights,
 		Rewind2026ResultsStrip,
 		Rewind2026ShareBanner,
 		RewindAiRecap,
 		RewindFinishedGames,
-		RewindHighlights,
 		RewindMoreYears,
 		RewindOwnerPanel,
 		RewindPersonaRank,
@@ -104,8 +104,8 @@ export class RewindDesign2026 implements RewindDesignComponent {
 		hasYearMixCharts(this.rewind().yearMix)
 	);
 
-	protected readonly hasHighlights = computed(
-		() => presentHighlightKeys(this.rewind().highlights).length > 0
+	protected readonly hasHighlights = computed(() =>
+		hasRewind2026Highlights(this.rewind().highlights)
 	);
 
 	protected readonly eyebrow = computed(() =>
