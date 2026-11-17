@@ -78,24 +78,29 @@
 />
 }
 
-<div
-	class="mt-8 grid grid-cols-1 gap-14 lg:grid-cols-[minmax(0,1fr)_auto] lg:gap-x-12 lg:[grid-template-areas:var(--rewind-areas)]"
-	[style.--rewind-areas]="sectionAreas()"
->
-	@if (data.aiRecap; as recap) {
+<div class="mt-8 grid grid-cols-1 gap-14">
+	<app-rewind-2026-share-banner
+		[rewind]="data"
+		[image]="storyImage"
+		[gamesImage]="hasFinishedGames() ? gamesImage : null"
+		[previewAlt]="previewAlt()"
+	/>
+	@if (data.highlights.topRated; as topRated) {
+	<app-rewind-2026-game-of-the-year
+		[game]="topRated"
+		[language]="data.language"
+	/>
+	} @if (data.aiRecap; as recap) {
 	<app-rewind-ai-recap
 		appRewindReveal
-		class="min-w-0 lg:[grid-area:recap]"
+		class="min-w-0"
 		[recap]="recap"
 		[year]="data.year"
 		[language]="data.language"
 		[premiumAccessKind]="data.premiumAccessKind"
 	/>
 	} @if (hasHighlights()) {
-	<section
-		aria-labelledby="rewind-highlights-heading"
-		class="min-w-0 lg:[grid-area:highlights]"
-	>
+	<section aria-labelledby="rewind-highlights-heading" class="min-w-0">
 		<app-profile-section-header
 			headingId="rewind-highlights-heading"
 			[heading]="page.highlights"
@@ -107,13 +112,13 @@
 	</section>
 	} @if (hasYearMix()) {
 	<app-rewind-year-mix
-		class="min-w-0 lg:[grid-area:mix]"
+		class="min-w-0"
 		[mix]="data.yearMix"
 		[language]="data.language"
 	/>
 	} @if (hasPremiumStats() && data.premiumStats; as stats) {
 	<app-rewind-premium-stats
-		class="min-w-0 lg:[grid-area:stats]"
+		class="min-w-0"
 		[stats]="stats"
 		[language]="data.language"
 		[premiumAccessKind]="data.premiumAccessKind"
@@ -122,7 +127,7 @@
 	<section
 		appRewindReveal
 		aria-labelledby="rewind-finished-heading"
-		class="min-w-0 lg:[grid-area:finished]"
+		class="min-w-0"
 	>
 		<app-profile-section-header
 			[heading]="closedGamesHeading()"
@@ -160,28 +165,8 @@
 		</div>
 		}
 	</section>
-	}
-
-	<section
-		appRewindReveal
-		[revealDelay]="120"
-		aria-labelledby="rewind-share-heading"
-		class="min-w-0 lg:[grid-area:share] lg:w-[23rem] lg:self-start"
-	>
-		<app-profile-section-header
-			headingId="rewind-share-heading"
-			[heading]="page.share"
-		/>
-		<app-rewind-share-actions
-			previewSize="fit-row"
-			[image]="storyImage"
-			[gamesImage]="hasFinishedGames() ? gamesImage : null"
-			[previewAlt]="previewAlt()"
-		/>
-	</section>
-
-	@if (data.otherYears.length > 0) {
-	<div class="min-w-0 lg:[grid-area:more]">
+	} @if (data.otherYears.length > 0) {
+	<div class="min-w-0">
 		@defer (on viewport; prefetch on idle) {
 		<app-rewind-more-years
 			[username]="username()"

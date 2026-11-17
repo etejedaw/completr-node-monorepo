@@ -43,7 +43,9 @@ import {
 } from "../rewind-year-mix/rewind-year-mix";
 import { RewindYearOdometer } from "../rewind-year-odometer/rewind-year-odometer";
 import { Rewind2026CoverFan } from "./rewind-2026-cover-fan/rewind-2026-cover-fan";
+import { Rewind2026GameOfTheYear } from "./rewind-2026-game-of-the-year/rewind-2026-game-of-the-year";
 import { Rewind2026ResultsStrip } from "./rewind-2026-results-strip/rewind-2026-results-strip";
+import { Rewind2026ShareBanner } from "./rewind-2026-share-banner/rewind-2026-share-banner";
 
 function backdropOf(rewind: Rewind): string | null {
 	return (
@@ -60,7 +62,9 @@ function backdropOf(rewind: Rewind): string | null {
 		ProfileBackdrop,
 		ProfileSectionHeader,
 		Rewind2026CoverFan,
+		Rewind2026GameOfTheYear,
 		Rewind2026ResultsStrip,
+		Rewind2026ShareBanner,
 		RewindAiRecap,
 		RewindFinishedGames,
 		RewindHighlights,
@@ -165,22 +169,6 @@ export class RewindDesign2026 implements RewindDesignComponent {
 		return this.isOwner()
 			? this.shareCopy.ownerPreviewAlt(year)
 			: this.shareCopy.visitorPreviewAlt(this.username(), year);
-	});
-
-	protected readonly sectionAreas = computed(() => {
-		const rewind = this.rewind();
-		const rows = [
-			rewind.aiRecap ? "recap share" : "share share",
-			this.hasHighlights() ? "highlights highlights" : null,
-			this.hasYearMix() ? "mix mix" : null,
-			this.hasPremiumStats() ? "stats stats" : null,
-			this.hasClosedGames() ? "finished finished" : null,
-			rewind.otherYears.length ? "more more" : null
-		];
-		return rows
-			.filter(row => row !== null)
-			.map(row => `"${row}"`)
-			.join(" ");
 	});
 
 	protected readonly shareCopy = REWIND_SHARE_COPY;
