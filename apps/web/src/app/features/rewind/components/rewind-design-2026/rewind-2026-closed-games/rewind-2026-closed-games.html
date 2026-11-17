@@ -47,25 +47,27 @@
 				[attr.data-abandoned]="entry.isAbandoned || null"
 			>
 				<a
-					class="group block rounded-md no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+					class="group relative block rounded-md no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
 					[routerLink]="['/games', entry.game.code]"
 					[attr.aria-label]="entry.label"
 				>
-					@if (entry.portraitUrl) {
 					<app-game-poster
 						class="aspect-[2/3] rounded-md shadow-card transition"
 						[class]="entry.isAbandoned ? abandonedPosterClass : ''"
 						[src]="entry.portraitUrl"
 						[title]="entry.game.title"
 						[width]="420"
+						titleSize="0.6875rem"
 					/>
-					} @else {
+					@if (entry.isAbandoned) {
 					<span
-						data-poster-placeholder
-						class="flex aspect-[2/3] items-end rounded-md bg-surface-hover p-1.5 text-xs leading-tight font-semibold text-fg-secondary shadow-card"
-						[class]="entry.isAbandoned ? 'opacity-60' : ''"
-						><span class="line-clamp-4 break-words"
-							>{{ entry.game.title }}</span
+						data-abandoned-badge
+						aria-hidden="true"
+						class="absolute top-1.5 right-1.5 grid size-5 place-items-center rounded-full bg-canvas/80 text-danger shadow-[0_0_0_1px_color-mix(in_oklab,var(--color-danger)_45%,transparent)] backdrop-blur-sm"
+						[attr.title]="abandonedBadge()"
+						><span
+							class="material-icons text-[0.8125rem] leading-none"
+							>close</span
 						></span
 					>
 					}

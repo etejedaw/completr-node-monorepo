@@ -111,6 +111,10 @@ export class Rewind2026ClosedGames {
 
 	protected readonly abandonedPosterClass = REWIND_ABANDONED_POSTER_CLASS;
 
+	protected readonly abandonedBadge = computed(
+		() => rewindCopy(this.language()).timeline.abandonedBadge
+	);
+
 	protected readonly months = computed(() =>
 		groupByMonth(
 			interleaveByDate(
