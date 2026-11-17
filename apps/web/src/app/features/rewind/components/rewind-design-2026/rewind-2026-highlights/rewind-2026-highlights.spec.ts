@@ -6,8 +6,10 @@ import { render, screen, within } from "@testing-library/angular";
 import { type RewindHighlights as RewindHighlightsData } from "../../../../../core/models/rewind.model";
 import {
 	hasRewind2026Highlights,
-	Rewind2026Highlights
+	Rewind2026Highlights,
+	rewind2026RecordCells
 } from "./rewind-2026-highlights";
+import { type HighlightRecord } from "./rewind-2026-highlights.model";
 
 const game = (code: string, title: string, finishedAt = "2026-03-04") => ({
 	gameId: code,
@@ -474,6 +476,189 @@ describe("Rewind2026Highlights", () => {
 				within(recordOf("Longest")).getByRole("link")
 			).toHaveTextContent("1,234,567.9 h");
 			expect(statOf("Busiest month")).toHaveTextContent("December");
+		});
+	});
+
+	describe("a sparse year", () => {
+		const fakeRecords = (count: number): HighlightRecord[] =>
+			Array.from({ length: count }, (_, index) => ({
+				key: "classic",
+				label: `Record ${index}`,
+				value: String(index),
+				unit: null,
+				hasLongUnit: false,
+				code: `game-${index}`,
+				title: `Game ${index}`,
+				artUrl: null
+			}));
+		const cellClassesOf = (count: number) =>
+			rewind2026RecordCells(fakeRecords(count)).map(
+				cell => cell.cellClass
+			);
+		const oneRecord = { ...nothing, classic: fullHighlights.classic };
+		const twoRecords = {
+			...oneRecord,
+			bestRatio: fullHighlights.bestRatio
+		};
+		const fourRecords = {
+			...twoRecords,
+			longest: fullHighlights.longest,
+			fastest: fullHighlights.fastest
+		};
+
+		it("spreads the records over as many columns as there are cells, never leaving an empty column", () => {
+			expect(cellClassesOf(0)).toEqual([]);
+			expect(cellClassesOf(1)).toEqual(["col-span-2 lg:col-span-6"]);
+			expect(cellClassesOf(2)).toEqual([
+				"col-span-1 lg:col-span-3",
+				"col-span-1 lg:col-span-3"
+			]);
+			expect(cellClassesOf(3)).toEqual([
+				"col-span-1 lg:col-span-2",
+				"col-span-1 lg:col-span-2",
+				"col-span-2 lg:col-span-2"
+			]);
+			expect(cellClassesOf(4)).toEqual(
+				Array(4).fill("col-span-1 lg:col-span-3")
+			);
+			expect(cellClassesOf(5)).toEqual([
+				"col-span-1 lg:col-span-2",
+				"col-span-1 lg:col-span-2",
+				"col-span-1 lg:col-span-2",
+				"col-span-1 lg:col-span-3",
+				"col-span-2 lg:col-span-3"
+			]);
+			expect(cellClassesOf(6)).toEqual(
+				Array(6).fill("col-span-1 lg:col-span-2")
+			);
+		});
+
+		it("staggers the reveal along each row, starting again on every row", () => {
+			const delaysOf = (count: number) =>
+				rewind2026RecordCells(fakeRecords(count)).map(
+					cell => cell.revealDelay
+				);
+
+			expect(delaysOf(1)).toEqual([0]);
+			expect(delaysOf(4)).toEqual([0, 60, 0, 60]);
+			expect(delaysOf(5)).toEqual([0, 60, 120, 0, 60]);
+		});
+
+		it("lets a single record take the whole row on a phone and on a wide screen", async () => {
+			const { container } = await renderHighlights(oneRecord);
+
+			expect(container.querySelector("ul")).toHaveClass(
+				"grid-cols-2",
+				"lg:grid-cols-6"
+			);
+			expect(records()).toHaveLength(1);
+			expect(records()[0]).toHaveClass(
+				"col-span-2",
+				"lg:col-span-6",
+				"min-w-0",
+				"border-t",
+				"border-l",
+				"border-line"
+			);
+		});
+
+		it("splits two records in halves", async () => {
+			await renderHighlights(twoRecords);
+
+			expect(records()).toHaveLength(2);
+			for (const record of records())
+				expect(record).toHaveClass("col-span-1", "lg:col-span-3");
+		});
+
+		it("lays four records out two by two instead of three and an orphan", async () => {
+			await renderHighlights(fourRecords);
+
+			expect(records()).toHaveLength(4);
+			for (const record of records()) {
+				expect(record).toHaveClass("col-span-1", "lg:col-span-3");
+				expect(record).not.toHaveClass("lg:col-span-2");
+				expect(record).toHaveClass("border-t", "border-l");
+			}
+		});
+
+		it("shows a lone stat across the whole row with no stray hairlines when there are no records", async () => {
+			const { container } = await renderHighlights({
+				...nothing,
+				busiestMonth: fullHighlights.busiestMonth
+			});
+
+			expect(container.querySelector("ul")).toBeNull();
+			const [only] = stats(container);
+			expect(stats(container)).toHaveLength(1);
+			expect(only).toHaveClass(
+				"first:border-l-0",
+				"first:pl-0",
+				"max-lg:last:odd:col-span-2"
+			);
+			expect(container.querySelector("dl")).not.toHaveClass("mt-9");
+			expect(container.querySelector("dl")).toHaveClass(
+				"border-t",
+				"lg:grid-flow-col",
+				"lg:auto-cols-fr"
+			);
+		});
+
+		it("stretches an odd last stat on a phone so its top hairline spans the row", async () => {
+			const { container } = await renderHighlights({
+				...nothing,
+				longestStreak: fullHighlights.longestStreak,
+				busiestMonth: fullHighlights.busiestMonth,
+				topGenres: fullHighlights.topGenres
+			});
+
+			const cells = stats(container);
+			expect(cells).toHaveLength(3);
+			expect(cells[2]).toHaveClass(
+				"max-lg:nth-[n+3]:border-t",
+				"max-lg:last:odd:col-span-2"
+			);
+		});
+
+		it("reflows the columns as the records come and go", async () => {
+			const { fixture } = await renderHighlights(fullHighlights);
+
+			for (const [data, count, span] of [
+				[oneRecord, 1, "lg:col-span-6"],
+				[fourRecords, 4, "lg:col-span-3"],
+				[fullHighlights, 6, "lg:col-span-2"],
+				[twoRecords, 2, "lg:col-span-3"],
+				[oneRecord, 1, "lg:col-span-6"]
+			] as const) {
+				fixture.componentRef.setInput("highlights", data);
+				fixture.detectChanges();
+				expect(records()).toHaveLength(count);
+				for (const record of records()) {
+					expect(record).toHaveClass(span, "border-t", "border-l");
+					expect(
+						[...record.classList].filter(name =>
+							name.startsWith("lg:col-span-")
+						)
+					).toHaveLength(1);
+				}
+			}
+		});
+	});
+
+	describe("labels", () => {
+		it("sets every record and stat label at the readable xs size instead of the shared eyebrow size, keeping its tone", async () => {
+			const { container } = await renderHighlights(fullHighlights);
+
+			const labels = [
+				...container.querySelectorAll<HTMLElement>("[uieyebrow]")
+			];
+			expect(labels).toHaveLength(10);
+			for (const label of labels) {
+				expect(label).toHaveClass(
+					"text-xs!",
+					"uppercase",
+					"text-fg-muted"
+				);
+			}
 		});
 	});
 });

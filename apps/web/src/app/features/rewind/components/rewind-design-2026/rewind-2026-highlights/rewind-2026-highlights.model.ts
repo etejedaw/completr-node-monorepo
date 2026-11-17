@@ -33,3 +33,9 @@ export interface RankedEntry {
 	shortName: string;
 	count: number;
 }
+
+export interface HighlightRecordCell {
+	record: HighlightRecord;
+	cellClass: string;
+	revealDelay: number;
+}

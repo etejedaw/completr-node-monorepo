@@ -27,12 +27,40 @@ import { type RewindHighlightsCopy } from "../../../rewind-copy.model";
 import { RewindReveal } from "../../../rewind-reveal";
 import {
 	type HighlightRecord,
+	type HighlightRecordCell,
 	type HighlightStat,
 	type RankedEntry
 } from "./rewind-2026-highlights.model";
 
 const REVEAL_STAGGER_MS = 60;
-const RECORD_COLUMNS = 3;
+const WIDE_SPAN_BY_CELLS_IN_ROW: Record<number, string> = {
+	1: "lg:col-span-6",
+	2: "lg:col-span-3",
+	3: "lg:col-span-2"
+};
+
+function wideRowSizeOf(count: number): number {
+	return count === 4 ? 2 : Math.min(count, 3);
+}
+
+export function rewind2026RecordCells(
+	records: HighlightRecord[]
+): HighlightRecordCell[] {
+	const count = records.length;
+	const rowSize = wideRowSizeOf(count);
+	const lastRowCells = count % rowSize || rowSize;
+	const lastRowStart = count - lastRowCells;
+	return records.map((record, index) => {
+		const cellsInRow = index >= lastRowStart ? lastRowCells : rowSize;
+		const fillsNarrowRow = count % 2 === 1 && index === count - 1;
+		const narrowSpan = fillsNarrowRow ? "col-span-2" : "col-span-1";
+		return {
+			record,
+			cellClass: `${narrowSpan} ${WIDE_SPAN_BY_CELLS_IN_ROW[cellsInRow]}`,
+			revealDelay: (index % rowSize) * REVEAL_STAGGER_MS
+		};
+	});
+}
 
 function isSameGame(
 	first: RewindFinishedGame | null,
@@ -248,14 +276,10 @@ export class Rewind2026Highlights {
 	readonly highlights = input.required<RewindHighlights>();
 	readonly language = input<RewindLanguage>("en");
 
-	protected readonly records = computed(() =>
-		recordsOf(this.highlights(), this.language())
+	protected readonly recordCells = computed(() =>
+		rewind2026RecordCells(recordsOf(this.highlights(), this.language()))
 	);
 	protected readonly stats = computed(() =>
 		statsOf(this.highlights(), this.language())
 	);
-
-	protected revealDelay(index: number): number {
-		return (index % RECORD_COLUMNS) * REVEAL_STAGGER_MS;
-	}
 }

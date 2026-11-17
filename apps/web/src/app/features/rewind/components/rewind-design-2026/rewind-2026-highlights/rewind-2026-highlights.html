@@ -1,11 +1,12 @@
-@let items = records(); @let facts = stats(); @if (items.length > 0) {
+@let cells = recordCells(); @let facts = stats(); @if (cells.length > 0) {
 <div class="overflow-hidden">
-	<ul class="m-0 -ml-px grid list-none grid-cols-2 p-0 lg:grid-cols-3">
-		@for (record of items; track record.key; let index = $index) {
+	<ul class="m-0 -ml-px grid list-none grid-cols-2 p-0 lg:grid-cols-6">
+		@for (cell of cells; track cell.record.key) { @let record = cell.record;
 		<li
 			appRewindReveal
 			class="min-w-0 border-t border-l border-line"
-			[revealDelay]="revealDelay(index)"
+			[class]="cell.cellClass"
+			[revealDelay]="cell.revealDelay"
 		>
 			<a
 				class="group relative isolate flex h-full min-w-0 flex-col gap-1 overflow-hidden px-3.5 py-5 no-underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand lg:px-6 lg:py-7"
@@ -20,7 +21,7 @@
 					[src]="art | coverUrl: 640"
 				/>
 				}
-				<span uiEyebrow>{{ record.label }}</span>
+				<span uiEyebrow class="text-xs!">{{ record.label }}</span>
 				<span
 					class="order-first font-display text-[2.4rem] leading-none font-bold tracking-[-0.02em] text-fg tabular-nums lg:text-[3.6rem]"
 					>{{ record.value }}@if (record.unit; as unit) {{{ " "
@@ -42,13 +43,13 @@
 <dl
 	appRewindReveal
 	class="m-0 grid grid-cols-2 border-t border-line-hover lg:auto-cols-fr lg:grid-flow-col lg:grid-cols-none"
-	[class.mt-9]="items.length > 0"
+	[class.mt-9]="cells.length > 0"
 >
 	@for (stat of facts; track stat.key) {
 	<div
-		class="grid min-w-0 content-start gap-1 border-l border-line pt-4 pr-5 pl-5 first:border-l-0 first:pl-0 max-lg:odd:border-l-0 max-lg:odd:pl-0 max-lg:nth-[n+3]:mt-3.5 max-lg:nth-[n+3]:border-t"
+		class="grid min-w-0 content-start gap-1 border-l border-line pt-4 pr-5 pl-5 first:border-l-0 first:pl-0 max-lg:odd:border-l-0 max-lg:odd:pl-0 max-lg:nth-[n+3]:mt-3.5 max-lg:nth-[n+3]:border-t max-lg:last:odd:col-span-2"
 	>
-		<dt uiEyebrow>{{ stat.label }}</dt>
+		<dt uiEyebrow class="text-xs!">{{ stat.label }}</dt>
 		<dd
 			class="m-0 font-display text-[1.6rem] leading-[1.1] font-bold text-fg"
 		>
