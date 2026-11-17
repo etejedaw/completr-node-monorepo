@@ -812,8 +812,24 @@ describe("RewindDesign2025", () => {
 			name: "Resident Evil was your home"
 		});
 		const body = article.querySelector<HTMLElement>("[data-recap-body]")!;
-		expect(body.className).toContain("@3xl/page:columns-2");
-		expect(body.className).toContain("columns-1");
+		expect(body.className).toContain("@3xl/page:grid-cols-2");
+		const story = body.querySelector<HTMLElement>("[data-recap-story]")!;
+		const sidebar = body.querySelector<HTMLElement>(
+			"[data-recap-insights]"
+		)!;
+		expect([...body.children]).toEqual([story, sidebar]);
+		expect(
+			within(story).getByRole("heading", {
+				level: 2,
+				name: "Resident Evil was your home"
+			})
+		).toBeInTheDocument();
+		expect(within(story).queryAllByRole("heading", { level: 4 })).toEqual(
+			[]
+		);
+		expect(
+			within(sidebar).getAllByRole("heading", { level: 4 })
+		).toHaveLength(2);
 		expect(
 			within(body).getByText("You finish what grabs you by the story.")
 		).toBeInTheDocument();
@@ -845,6 +861,28 @@ describe("RewindDesign2025", () => {
 			within(article).getByRole("button", { name: "Gift" })
 		).toBeInTheDocument();
 		expect(root.querySelector("app-rewind-ai-recap")).toBeNull();
+	});
+
+	it("spreads the recap paragraphs over two columns when it has no insights", async () => {
+		const fixture = rewindFixture();
+		await renderDesign(
+			rewindFixture({
+				aiRecap: { ...fixture.aiRecap!, insights: [] }
+			})
+		);
+
+		const article = screen.getByRole("article", {
+			name: "Resident Evil was your home"
+		});
+		const body = article.querySelector<HTMLElement>("[data-recap-body]")!;
+		expect(body.className).not.toContain("@3xl/page:grid-cols-2");
+		expect(article.querySelector("[data-recap-insights]")).toBeNull();
+		const story = body.querySelector<HTMLElement>("[data-recap-story]")!;
+		const paragraphs = story.querySelector("p")!.parentElement!;
+		expect(paragraphs.className).toContain("@3xl/page:columns-2");
+		expect(
+			within(story).getByText("You finish what grabs you by the story.")
+		).toBeInTheDocument();
 	});
 
 	it("shows the owner panel only when the Rewind carries owner controls", async () => {

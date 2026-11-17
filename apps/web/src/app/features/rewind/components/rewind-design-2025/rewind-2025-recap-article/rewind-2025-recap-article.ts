@@ -17,6 +17,9 @@ import { REWIND_PREMIUM_FRAME_CLASS } from "../../../rewind-tone";
 import { summaryParagraphs } from "../../rewind-ai-recap/rewind-ai-recap";
 import { type RecapArticleInsight } from "./rewind-2025-recap-article.model";
 
+const BODY_WITH_SIDEBAR_CLASS = "@3xl/page:grid-cols-2";
+const STORY_IN_TWO_COLUMNS_CLASS = "columns-1 gap-10 @3xl/page:columns-2";
+
 const AI_RECAP_PREMIUM_PERK =
 	"The AI recap reads the whole year to describe the player behind it.";
 
@@ -84,6 +87,16 @@ export class Rewind2025RecapArticle {
 				body: insight.body
 			}));
 	});
+
+	private readonly hasInsights = computed(() => this.insights().length > 0);
+
+	protected readonly bodyLayoutClass = computed(() =>
+		this.hasInsights() ? BODY_WITH_SIDEBAR_CLASS : ""
+	);
+
+	protected readonly storyColumnsClass = computed(() =>
+		this.hasInsights() ? "" : STORY_IN_TWO_COLUMNS_CLASS
+	);
 
 	protected readonly funFact = computed(() => {
 		const funFact = this.recap().funFact;
