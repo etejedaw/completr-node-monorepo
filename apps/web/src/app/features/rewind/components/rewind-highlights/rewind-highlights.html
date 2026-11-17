@@ -14,59 +14,7 @@
 <ul
 	class="list-none m-0 p-0 grid grid-cols-2 lg:grid-cols-4 grid-flow-dense gap-3 sm:gap-4"
 >
-	@if (data.topRated; as top) { @let cell = view.topRated!;
-	<li
-		appRewindReveal
-		class="min-w-0"
-		[class]="cell.classes"
-		[revealDelay]="cell.delayMs"
-		[style.--tone]="cell.tone"
-	>
-		<a
-			class="group flex h-full min-h-[18rem] items-end gap-4 p-5 sm:p-6 no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-			[class]="cardClass"
-			[routerLink]="['/games', top.code]"
-		>
-			@if (artOf(top); as art) {
-			<img
-				alt=""
-				aria-hidden="true"
-				loading="lazy"
-				class="motion-safe:group-hover:-rotate-1"
-				[class]="artworkClass"
-				[src]="art | coverUrl: 1280"
-			/>
-			<span aria-hidden="true" [class]="risingVeilClass"></span>
-			}
-			<span class="flex min-w-0 flex-1 flex-col gap-3">
-				<ng-container
-					[ngTemplateOutlet]="cardLabel"
-					[ngTemplateOutletContext]="{ $implicit: icons.topRated, label: text.topRated }"
-				/>
-				<app-star-rating
-					aria-hidden="true"
-					[value]="top.userRating"
-					[readonly]="true"
-					[showValue]="false"
-					size="md"
-				/>
-				<span
-					class="font-display text-3xl sm:text-4xl font-bold leading-[1.05] tracking-tight text-fg text-balance group-hover:underline"
-					>{{ top.title }}</span
-				>
-				<span class="sr-only"
-					>{{ text.ratedOutOf(top.userRating) }}</span
-				>
-			</span>
-			<app-game-poster
-				aria-hidden="true"
-				class="w-24 sm:w-32 shrink-0 aspect-[2/3] rotate-3 rounded-md ring-1 ring-line-hover shadow-[0_24px_48px_-20px_var(--color-canvas)] transition-transform duration-500 ease-out motion-safe:group-hover:rotate-0"
-				[src]="top.coverUrl ?? top.backgroundUrl"
-				[title]="top.title"
-			/>
-		</a>
-	</li>
-	} @if (data.bestRatio; as best) { @let cell = view.bestRatio!;
+	@if (data.bestRatio; as best) { @let cell = view.bestRatio!;
 	<li
 		appRewindReveal
 		class="min-w-0"

@@ -13,7 +13,6 @@ import {
 	type RewindLanguage
 } from "../../../../core/models/rewind.model";
 import { GamePoster } from "../../../../shared/components/game-poster/game-poster";
-import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import { CoverUrlPipe } from "../../../../shared/pipes/cover-url";
 import {
 	formatHours,
@@ -41,7 +40,6 @@ import {
 export const NARROW_COLUMNS = 2;
 export const WIDE_COLUMNS = 4;
 export const HIGHLIGHT_ORDER: HighlightKey[] = [
-	"topRated",
 	"bestRatio",
 	"firstFinished",
 	"lastFinished",
@@ -55,7 +53,6 @@ export const HIGHLIGHT_ORDER: HighlightKey[] = [
 ];
 
 export const HIGHLIGHT_TONE: Record<HighlightKey, RewindTone> = {
-	topRated: "brand",
 	bestRatio: "lists",
 	firstFinished: "tags",
 	lastFinished: "tags",
@@ -69,7 +66,6 @@ export const HIGHLIGHT_TONE: Record<HighlightKey, RewindTone> = {
 };
 
 const HIGHLIGHT_ICON: Record<HighlightKey, string> = {
-	topRated: "star",
 	bestRatio: "bolt",
 	firstFinished: "flag",
 	lastFinished: "sports_score",
@@ -90,9 +86,8 @@ const FLAT_VEIL_CLASS =
 	"absolute inset-0 -z-10 bg-[linear-gradient(to_right,color-mix(in_oklab,var(--color-surface)_90%,transparent),color-mix(in_oklab,var(--color-surface)_72%,transparent))]";
 
 const REVEAL_STAGGER_MS = 60;
-const WIDE_LARGE = new Set<HighlightKey>(["topRated", "bestRatio"]);
+const WIDE_LARGE = new Set<HighlightKey>(["bestRatio"]);
 const NARROW_FULL = new Set<HighlightKey>([
-	"topRated",
 	"bestRatio",
 	"firstFinished",
 	"lastFinished",
@@ -101,7 +96,6 @@ const NARROW_FULL = new Set<HighlightKey>([
 	"classic"
 ]);
 const WIDE_STRETCH_FIRST = new Set<HighlightKey>(["topGenres", "topPlatforms"]);
-const TOP_RATED_TALL_MIN_NEIGHBOURS = 3;
 
 const NARROW_SPAN_CLASS: Record<number, string> = {
 	1: "col-span-1",
@@ -126,7 +120,6 @@ export function presentHighlightKeys(
 	highlights: RewindHighlightsData
 ): HighlightKey[] {
 	const present: Record<HighlightKey, boolean> = {
-		topRated: highlights.topRated !== null,
 		bestRatio: highlights.bestRatio !== null,
 		firstFinished: highlights.firstFinished !== null,
 		lastFinished:
@@ -144,17 +137,11 @@ export function presentHighlightKeys(
 }
 
 function baseCell(key: HighlightKey): HighlightCell {
-	const wideColumns = WIDE_LARGE.has(key) ? 2 : 1;
 	return {
 		key,
 		columns: NARROW_FULL.has(key) ? 2 : 1,
-		wideColumns,
-		wideRows: 1
+		wideColumns: WIDE_LARGE.has(key) ? 2 : 1
 	};
-}
-
-function cellArea(cell: HighlightCell): number {
-	return cell.wideColumns * cell.wideRows;
 }
 
 function missingCells(used: number, columns: number): number {
@@ -174,7 +161,7 @@ function wideFillerFor(
 	wideGap: number
 ): HighlightCell | undefined {
 	const fitsGap = (cell: HighlightCell) =>
-		cell.wideRows === 1 && cell.wideColumns + wideGap <= WIDE_COLUMNS;
+		cell.wideColumns + wideGap <= WIDE_COLUMNS;
 	return (
 		lastMatching(
 			cells,
@@ -185,19 +172,8 @@ function wideFillerFor(
 
 function packIntoFullRows(cells: HighlightCell[]): HighlightCell[] {
 	if (cells.length === 0) return cells;
-	const [first, ...neighbours] = cells;
-	const neighbourArea = neighbours.reduce(
-		(sum, cell) => sum + cellArea(cell),
-		0
-	);
-	if (
-		first.key === "topRated" &&
-		neighbourArea >= TOP_RATED_TALL_MIN_NEIGHBOURS
-	) {
-		first.wideRows = 2;
-	}
 	const narrowArea = cells.reduce((sum, cell) => sum + cell.columns, 0);
-	const wideArea = cells.reduce((sum, cell) => sum + cellArea(cell), 0);
+	const wideArea = cells.reduce((sum, cell) => sum + cell.wideColumns, 0);
 	const narrowGap = missingCells(narrowArea, NARROW_COLUMNS);
 	const wideGap = missingCells(wideArea, WIDE_COLUMNS);
 	const narrowFiller = lastMatching(
@@ -221,13 +197,7 @@ export function highlightLayout(
 }
 
 function cellClass(cell: HighlightCell): string {
-	return [
-		NARROW_SPAN_CLASS[cell.columns],
-		WIDE_SPAN_CLASS[cell.wideColumns],
-		cell.wideRows === 2 ? "lg:row-span-2" : ""
-	]
-		.filter(Boolean)
-		.join(" ");
+	return `${NARROW_SPAN_CLASS[cell.columns]} ${WIDE_SPAN_CLASS[cell.wideColumns]}`;
 }
 
 @Component({
@@ -237,8 +207,7 @@ function cellClass(cell: HighlightCell): string {
 		NgTemplateOutlet,
 		RouterLink,
 		GamePoster,
-		RewindReveal,
-		StarRating
+		RewindReveal
 	],
 	templateUrl: "./rewind-highlights.html",
 	host: { class: "block" },

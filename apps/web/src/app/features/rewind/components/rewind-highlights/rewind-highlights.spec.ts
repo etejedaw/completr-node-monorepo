@@ -70,10 +70,8 @@ describe("RewindHighlights", () => {
 			providers: [provideRouter([])]
 		});
 
-		expect(
-			screen.getByRole("link", { name: /Mejor calificado.*Florence/ })
-		).toBeInTheDocument();
-		expect(screen.getByText("Calificado con 5 de 5")).toBeInTheDocument();
+		expect(screen.queryByText("Mejor calificado")).not.toBeInTheDocument();
+		expect(screen.queryByText("Florence")).not.toBeInTheDocument();
 		expect(screen.getByText("4,2")).toBeInTheDocument();
 		expect(screen.getByText("3,5")).toBeInTheDocument();
 		expect(screen.getByText("h aprox.")).toBeInTheDocument();
@@ -96,10 +94,8 @@ describe("RewindHighlights", () => {
 	it("shows every highlight and links the ones that name a game", async () => {
 		await renderHighlights(fullHighlights);
 
-		expect(
-			screen.getByRole("link", { name: /Top rated.*Florence/ })
-		).toHaveAttribute("href", "/games/florence");
-		expect(screen.getByText("Rated 5 out of 5")).toBeInTheDocument();
+		expect(screen.queryByText("Top rated")).not.toBeInTheDocument();
+		expect(screen.queryByText("Florence")).not.toBeInTheDocument();
 		expect(
 			screen.getByRole("link", { name: /Best value.*Celeste/ })
 		).toHaveAttribute("href", "/games/celeste");
@@ -178,7 +174,6 @@ describe("RewindHighlights", () => {
 	it("omits the highlights that have no data", async () => {
 		await renderHighlights({
 			...fullHighlights,
-			topRated: null,
 			fastest: null,
 			busiestMonth: null,
 			longestStreak: null,
@@ -186,7 +181,6 @@ describe("RewindHighlights", () => {
 			classic: null
 		});
 
-		expect(screen.queryByText("Top rated")).not.toBeInTheDocument();
 		expect(screen.queryByText("Fastest")).not.toBeInTheDocument();
 		expect(screen.queryByText("Busiest month")).not.toBeInTheDocument();
 		expect(screen.queryByText("Longest streak")).not.toBeInTheDocument();
@@ -216,7 +210,6 @@ describe("RewindHighlights", () => {
 		].map(card => card.style.getPropertyValue("--tone"));
 
 		expect(cardTones).toEqual([
-			"var(--color-brand)",
 			"var(--color-nav-lists)",
 			"var(--color-nav-tags)",
 			"var(--color-nav-tags)",
@@ -228,7 +221,7 @@ describe("RewindHighlights", () => {
 			"var(--color-platinum)",
 			"var(--color-nav-sagas)"
 		]);
-		expect(HIGHLIGHT_TONE.topRated).toBe("brand");
+		expect(Object.keys(HIGHLIGHT_TONE)).not.toContain("topRated");
 	});
 });
 
@@ -238,7 +231,7 @@ function highlightsWith(present: HighlightKey[]): RewindHighlightsData {
 	const has = (key: HighlightKey) => present.includes(key);
 	return {
 		...fullHighlights,
-		topRated: has("topRated") ? fullHighlights.topRated : null,
+		topRated: null,
 		bestRatio: has("bestRatio") ? fullHighlights.bestRatio : null,
 		firstFinished: has("firstFinished")
 			? fullHighlights.firstFinished
@@ -299,7 +292,7 @@ function holes(grid: boolean[][]): number {
 }
 
 const wide = (cells: HighlightCell[]) =>
-	cells.map(cell => ({ columns: cell.wideColumns, rows: cell.wideRows }));
+	cells.map(cell => ({ columns: cell.wideColumns, rows: 1 }));
 const narrow = (cells: HighlightCell[]) =>
 	cells.map(cell => ({ columns: cell.columns, rows: 1 }));
 
@@ -325,7 +318,6 @@ describe("highlightLayout", () => {
 		const cells = highlightLayout(fullHighlights);
 
 		expect(cells.map(cell => [cell.key, cell.columns])).toEqual([
-			["topRated", 2],
 			["bestRatio", 2],
 			["firstFinished", 2],
 			["lastFinished", 2],
@@ -389,14 +381,17 @@ describe("highlightLayout", () => {
 		).toEqual([]);
 	});
 
-	it("makes Top rated a 2x2 tile on desktop only when it has neighbours to fill its side", () => {
-		const tall = highlightLayout(fullHighlights)[0];
-		const alone = highlightLayout(
-			highlightsWith(["topRated", "longest"])
-		)[0];
+	it("opens with Best value over two desktop columns, with or without neighbours", () => {
+		const crowded = highlightLayout(fullHighlights)[0];
+		const alone = highlightLayoutOf(["bestRatio", "longest"])[0];
 
-		expect([tall.wideColumns, tall.wideRows]).toEqual([2, 2]);
-		expect([alone.wideColumns, alone.wideRows]).toEqual([2, 1]);
+		expect([crowded.key, crowded.wideColumns]).toEqual(["bestRatio", 2]);
+		expect([alone.key, alone.wideColumns]).toEqual(["bestRatio", 2]);
+	});
+
+	it("never offers Top rated, which now has its own section", () => {
+		expect(HIGHLIGHT_ORDER).not.toContain("topRated");
+		expect(presentHighlightKeys(fullHighlights)).not.toContain("topRated");
 	});
 });
 
@@ -497,10 +492,6 @@ describe("RewindHighlights layout", () => {
 			inputs: {
 				highlights: {
 					...fullHighlights,
-					topRated: {
-						...fullHighlights.topRated!,
-						...withArt("florence")
-					},
 					bestRatio: {
 						...fullHighlights.bestRatio!,
 						...withArt("celeste")
@@ -531,7 +522,6 @@ describe("RewindHighlights layout", () => {
 				.querySelector<HTMLImageElement>("img[aria-hidden='true']")
 				?.getAttribute("src");
 
-		expect(artOf("Top rated")).toBe("https://img.test/florence-bg.jpg");
 		expect(artOf("Best value")).toBe("https://img.test/celeste-bg.jpg");
 		expect(artOf("First of the year")).toBe(
 			"https://img.test/hades-bg.jpg"

@@ -1,5 +1,4 @@
 export type HighlightKey =
-	| "topRated"
 	| "bestRatio"
 	| "firstFinished"
 	| "lastFinished"
@@ -15,7 +14,6 @@ export interface HighlightCell {
 	key: HighlightKey;
 	columns: number;
 	wideColumns: number;
-	wideRows: number;
 }
 
 export interface CellView {
