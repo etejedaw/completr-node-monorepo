@@ -22,10 +22,11 @@ export type Rewind2025FigureKey =
 
 export interface Rewind2025Figure {
 	key: Rewind2025FigureKey;
-	label: string;
-	value: string;
-	spokenValue: string | null;
-	unit: string | null;
-	detail: string;
-	spokenDetail: string | null;
+	lead: string;
+	tail: string;
+}
+
+export interface Rewind2025AwardLayout {
+	lead: Rewind2025Award | null;
+	rest: Rewind2025Award[];
 }

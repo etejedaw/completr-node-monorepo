@@ -69,24 +69,22 @@ export const REWIND_DESIGN_2025_COPY: Record<
 		platinumBadge: "Platinum",
 		fastestAndBestValue: "Fastest and best value",
 		ratioUnit: "ratio",
-		favoriteGenre: "Favorite genre",
-		platform: "Platform",
-		monthsNoun: count => (count === 1 ? "month" : "months"),
-		runsNoun: count => (count === 1 ? "run" : "runs"),
-		thenGenres: genres => `then ${genres}`,
-		platformRuns: (count, platform) => `${count} on ${platform}`,
+		facts: {
+			streak: months => `${months}-month streak`,
+			busiestMonthTail: count =>
+				`, your busiest month, with ${count} ${count === 1 ? "game" : "games"}`,
+			favoriteGenreTail: " as your favorite genre",
+			platformTail: count =>
+				` with ${count} ${count === 1 ? "game" : "games"}`
+		},
 		leftBehind: "What you left behind",
 		leftBehindSummary: count =>
 			count === 1
 				? "1 game you left halfway this year"
 				: `${count} games you left halfway this year`,
 		abandonedGameLabel: (title, date) => `${title}, ${date}, abandoned`,
-		platinums: "Platinums",
-		platinumsHeadline: count =>
-			count === 1
-				? "game completed to a hundred percent"
-				: "games completed to a hundred percent",
-		platinumsSubline: "Every trophy on every list, in the order they came.",
+		platinumsTitle: count =>
+			`This year you completed ${count} ${count === 1 ? "game" : "games"} to a hundred percent`,
 		platinumGameLabel: (title, date) => `${title}, platinum on ${date}`
 	},
 	es: {
@@ -155,24 +153,23 @@ export const REWIND_DESIGN_2025_COPY: Record<
 		platinumBadge: "Platino",
 		fastestAndBestValue: "El más corto y mejor ratio",
 		ratioUnit: "ratio",
-		favoriteGenre: "Género favorito",
-		platform: "Plataforma",
-		monthsNoun: count => (count === 1 ? "mes" : "meses"),
-		runsNoun: count => (count === 1 ? "partida" : "partidas"),
-		thenGenres: genres => `luego ${genres}`,
-		platformRuns: (count, platform) => `${count} en ${platform}`,
+		facts: {
+			streak: months =>
+				`Racha de ${months} ${months === 1 ? "mes" : "meses"}`,
+			busiestMonthTail: count =>
+				`, tu mes más intenso, con ${count} ${count === 1 ? "juego" : "juegos"}`,
+			favoriteGenreTail: " como género favorito",
+			platformTail: count =>
+				` con ${count} ${count === 1 ? "juego" : "juegos"}`
+		},
 		leftBehind: "Los que soltaste",
 		leftBehindSummary: count =>
 			count === 1
 				? "1 juego que dejaste a medias este año"
 				: `${formatRewindNumber(count, "es")} juegos que dejaste a medias este año`,
 		abandonedGameLabel: (title, date) => `${title}, ${date}, abandonado`,
-		platinums: "Platinos",
-		platinumsHeadline: count =>
-			count === 1
-				? "juego completado al cien por cien"
-				: "juegos completados al cien por cien",
-		platinumsSubline: "Cada trofeo de cada lista, en orden de llegada.",
+		platinumsTitle: count =>
+			`Este año completaste ${formatRewindNumber(count, "es")} ${count === 1 ? "juego" : "juegos"} al cien por cien`,
 		platinumGameLabel: (title, date) => `${title}, platino el ${date}`
 	}
 };

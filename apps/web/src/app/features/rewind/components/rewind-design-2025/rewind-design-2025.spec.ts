@@ -697,6 +697,65 @@ describe("RewindDesign2025", () => {
 		}
 	});
 
+	describe("platinums section", () => {
+		const celeste = {
+			gameId: "celeste",
+			code: "celeste",
+			title: "Celeste",
+			coverUrl: null,
+			backgroundUrl: null,
+			platinumedAt: "2025-03-01",
+			platformAbbreviation: "PS5"
+		};
+
+		it("comes right after the highlights with the count in its heading", async () => {
+			const root = await renderDesign(
+				rewindFixture({ platinumGames: [celeste] })
+			);
+
+			const highlights = root.querySelector("app-rewind-2025-awards");
+			const platinums = root.querySelector("app-rewind-2025-platinums");
+			expect(platinums).not.toBeNull();
+			expect(highlights?.closest("section")?.nextElementSibling).toBe(
+				platinums
+			);
+			expect(
+				screen.getByRole("heading", {
+					name: "This year you completed 1 game to a hundred percent"
+				})
+			).toBeInTheDocument();
+		});
+
+		it("renders nothing about platinums when the viewer cannot see them", async () => {
+			const root = await renderDesign(
+				rewindFixture({ platinumGames: null })
+			);
+
+			expect(root.querySelector("app-rewind-2025-platinums")).toBeNull();
+			expect(
+				screen.queryByText(/to a hundred percent/)
+			).not.toBeInTheDocument();
+		});
+
+		it("renders nothing when there are no platinums, and follows the list when it flips", async () => {
+			const root = await renderDesign(
+				rewindFixture({ platinumGames: [] })
+			);
+			expect(root.querySelector("app-rewind-2025-platinums")).toBeNull();
+
+			for (const platinumGames of [[celeste], null, [], [celeste]]) {
+				fixture.componentRef.setInput(
+					"rewind",
+					rewindFixture({ platinumGames })
+				);
+				fixture.detectChanges();
+				expect(
+					root.querySelector("app-rewind-2025-platinums") === null
+				).toBe(!platinumGames || platinumGames.length === 0);
+			}
+		});
+	});
+
 	it("shelves the finished games by quarter in calendar order and skips empty quarters", async () => {
 		const root = await renderDesign(rewindFixture());
 		await renderDeferred();
