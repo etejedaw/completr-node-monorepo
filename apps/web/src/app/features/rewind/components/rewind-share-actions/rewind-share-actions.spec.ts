@@ -6,10 +6,7 @@ import { render, screen, within } from "@testing-library/angular";
 import { ExportService } from "../../../../core/services/export";
 import { ToastService } from "../../../../core/services/toast";
 import { type RewindStoryImage } from "../../rewind-story-image.model";
-import {
-	type RewindPreviewSize,
-	RewindShareActions
-} from "./rewind-share-actions";
+import { RewindShareActions } from "./rewind-share-actions";
 
 interface ControlledImage extends RewindStoryImage {
 	blob: WritableSignal<Blob | null>;
@@ -49,7 +46,6 @@ function stubFileSharing(share = vi.fn(() => Promise.resolve())) {
 }
 
 interface RenderOptions {
-	previewSize?: RewindPreviewSize;
 	image?: RewindStoryImage;
 	gamesImage?: RewindStoryImage | null;
 	toast?: {
@@ -60,7 +56,6 @@ interface RenderOptions {
 }
 
 async function renderShare({
-	previewSize = "full",
 	image = storyImage(),
 	gamesImage = null,
 	toast = { success: vi.fn(), error: vi.fn() },
@@ -70,8 +65,7 @@ async function renderShare({
 		inputs: {
 			image,
 			gamesImage,
-			previewAlt: "Rewind 2026 story",
-			previewSize
+			previewAlt: "Rewind 2026 story"
 		},
 		providers: [
 			{ provide: ToastService, useValue: toast },
@@ -91,34 +85,28 @@ describe("RewindShareActions gallery", () => {
 		vi.unstubAllGlobals();
 	});
 
-	it.each<RewindPreviewSize>(["fit-row", "full"])(
-		"shows both images at once with their own download buttons (%s)",
-		async previewSize => {
-			await renderShare({
-				previewSize,
-				gamesImage: storyImage("blob:games")
-			});
+	it("shows both images at once with their own download buttons", async () => {
+		await renderShare({ gamesImage: storyImage("blob:games") });
 
-			expect(
-				screen.getByRole("img", { name: "Rewind 2026 story" })
-			).toBeInTheDocument();
-			expect(
-				screen.getByRole("img", {
-					name: "Rewind 2026 story: finished games"
-				})
-			).toBeInTheDocument();
-			expect(
-				screen.getByRole("button", { name: "Download summary" })
-			).toBeEnabled();
-			expect(
-				screen.getByRole("button", { name: "Download games" })
-			).toBeEnabled();
-			expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
-			expect(
-				screen.getByRole("group", { name: "Story images" })
-			).toHaveClass("grid-cols-2");
-		}
-	);
+		expect(
+			screen.getByRole("img", { name: "Rewind 2026 story" })
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("img", {
+				name: "Rewind 2026 story: finished games"
+			})
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: "Download summary" })
+		).toBeEnabled();
+		expect(
+			screen.getByRole("button", { name: "Download games" })
+		).toBeEnabled();
+		expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+		expect(screen.getByRole("group", { name: "Story images" })).toHaveClass(
+			"grid-cols-2"
+		);
+	});
 
 	it("names each image in its own bar", async () => {
 		await renderShare({ gamesImage: storyImage("blob:games") });
@@ -131,7 +119,7 @@ describe("RewindShareActions gallery", () => {
 
 	it("centres a single summary image with the same bar and no per-image share", async () => {
 		stubFileSharing();
-		await renderShare({ previewSize: "fit-row" });
+		await renderShare();
 
 		expect(screen.getAllByRole("figure")).toHaveLength(1);
 		expect(screen.getByRole("group", { name: "Story images" })).toHaveClass(
@@ -150,10 +138,7 @@ describe("RewindShareActions gallery", () => {
 	});
 
 	it("makes Copy link the main action and offers no share buttons without file sharing", async () => {
-		await renderShare({
-			previewSize: "fit-row",
-			gamesImage: storyImage("blob:games")
-		});
+		await renderShare({ gamesImage: storyImage("blob:games") });
 
 		expect(
 			screen.queryByRole("button", { name: /Share/ })
@@ -186,10 +171,7 @@ describe("RewindShareActions gallery", () => {
 
 	it("keeps every action visible with a touch-sized hit area class on the row", async () => {
 		stubFileSharing();
-		await renderShare({
-			previewSize: "fit-row",
-			gamesImage: storyImage("blob:games")
-		});
+		await renderShare({ gamesImage: storyImage("blob:games") });
 
 		for (const name of ["Share both", "Copy link"])
 			expect(screen.getByRole("button", { name })).toHaveClass(
