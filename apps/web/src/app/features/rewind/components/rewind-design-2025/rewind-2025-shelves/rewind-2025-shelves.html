@@ -43,7 +43,7 @@
 			@for (game of shelf.games; track game.gameId + game.finishedAt) {
 			<li class="w-[6.5rem] shrink-0 snap-start sm:w-[7.5rem]">
 				<a
-					class="group flex flex-col gap-1.5 rounded-md no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+					class="group relative flex flex-col gap-1.5 rounded-md no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
 					[routerLink]="['/games', game.code]"
 				>
 					<span class="relative block">
