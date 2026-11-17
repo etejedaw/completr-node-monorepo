@@ -98,13 +98,14 @@
 		</div>
 		} @if (challenge(); as nextChallenge) {
 		<div
-			class="flex min-w-0 items-start gap-3 rounded-card border border-premium/40 bg-surface p-4"
+			data-recap-challenge
+			class="flex min-w-0 items-start gap-3 rounded-card border border-brand/40 bg-surface p-4"
 		>
-			<span aria-hidden="true" class="material-icons text-xl text-premium"
+			<span aria-hidden="true" class="material-icons text-xl text-brand"
 				>flag</span
 			>
 			<div class="flex min-w-0 flex-col gap-1">
-				<h3 class="m-0" uiEyebrow tone="premium">
+				<h3 class="m-0" uiEyebrow tone="brand">
 					{{ text.nextYearChallenge(year() + 1) }}
 				</h3>
 				<p

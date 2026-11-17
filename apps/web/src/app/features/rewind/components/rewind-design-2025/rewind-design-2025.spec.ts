@@ -852,6 +852,11 @@ describe("RewindDesign2025", () => {
 		expect(
 			within(article).getByText("Your 2026 challenge")
 		).toBeInTheDocument();
+		const challengeCard = article.querySelector<HTMLElement>(
+			"[data-recap-challenge]"
+		)!;
+		expect(challengeCard.outerHTML).not.toContain("premium");
+		expect(challengeCard.className).toContain("border-brand/40");
 		expect(
 			within(article).getByText(
 				"You finished Celeste on Valentine's Day."
