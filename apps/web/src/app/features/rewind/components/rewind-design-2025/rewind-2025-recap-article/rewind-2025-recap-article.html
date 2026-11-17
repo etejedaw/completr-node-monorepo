@@ -4,70 +4,77 @@
 	class="gap-6 p-5 sm:gap-8 sm:p-8 @3xl/page:p-10"
 	[class]="frameClass"
 >
-	<header class="flex flex-col gap-3">
-		<div class="flex items-center gap-2">
-			<span aria-hidden="true" class="material-icons text-xl text-premium"
-				>auto_awesome</span
-			>
-			<span uiEyebrow tone="premium">{{ text.heading }}</span>
-			@if (premiumLabel(); as label) {
-			<ui-premium-badge
-				class="ml-auto"
-				interactive
-				[label]="label"
-				[message]="premiumPerk"
-			/>
-			}
-		</div>
-		<h2
-			id="rewind-2025-recap-heading"
-			class="m-0 max-w-[24ch] font-display text-3xl font-bold leading-[1.08] tracking-tight text-fg text-balance [overflow-wrap:anywhere] sm:text-4xl @3xl/page:text-5xl"
+	<header class="flex items-center gap-2">
+		<span aria-hidden="true" class="material-icons text-xl text-premium"
+			>auto_awesome</span
 		>
-			{{ recap().headline }}
-		</h2>
+		<span uiEyebrow tone="premium">{{ text.heading }}</span>
+		@if (premiumLabel(); as label) {
+		<ui-premium-badge
+			class="ml-auto"
+			interactive
+			[label]="label"
+			[message]="premiumPerk"
+		/>
+		}
 	</header>
 
 	<div
 		data-recap-body
-		class="columns-1 gap-10 text-base leading-relaxed text-fg-secondary @3xl/page:columns-2"
+		class="grid grid-cols-1 items-start gap-x-10 gap-y-6 text-base leading-relaxed text-fg-secondary sm:gap-y-8"
+		[class]="bodyLayoutClass()"
 	>
-		@if (leadParagraph(); as lead) {
-		<p
-			class="m-0 mb-5 text-pretty [overflow-wrap:anywhere] first-letter:float-left first-letter:mr-2 first-letter:font-display first-letter:text-[3.4em] first-letter:font-bold first-letter:leading-[0.85] first-letter:text-premium"
-		>
-			{{ lead }}
-		</p>
-		} @if (pullQuote(); as quote) {
-		<blockquote
-			aria-hidden="true"
-			data-pull-quote
-			class="m-0 mb-5 break-inside-avoid border-l-4 border-premium py-1 pl-4 font-display text-xl font-semibold leading-snug text-fg text-balance [overflow-wrap:anywhere] sm:text-2xl"
-		>
-			{{ quote }}
-		</blockquote>
-		} @for (paragraph of restParagraphs(); track $index) {
-		<p class="m-0 mb-5 text-pretty [overflow-wrap:anywhere]">
-			{{ paragraph }}
-		</p>
-		} @if (insights().length > 0) {
-		<h3 class="sr-only">{{ text.insights }}</h3>
-		} @for (insight of insights(); track insight.key) {
-		<section
-			appRewindReveal
-			class="mb-5 flex break-inside-avoid flex-col gap-1.5 border-t border-line pt-4"
-		>
-			@if (insight.label) {
-			<span uiEyebrow>{{ insight.label }}</span>
-			}
-			<h4
-				class="m-0 font-display text-lg font-bold leading-tight text-fg [overflow-wrap:anywhere]"
+		<div data-recap-story class="flex min-w-0 flex-col gap-6 sm:gap-8">
+			<h2
+				id="rewind-2025-recap-heading"
+				class="m-0 max-w-[24ch] font-display text-3xl font-bold leading-[1.08] tracking-tight text-fg text-balance [overflow-wrap:anywhere] sm:text-4xl @3xl/page:text-5xl"
 			>
-				{{ insight.title }}
-			</h4>
-			<p class="m-0 text-sm leading-relaxed [overflow-wrap:anywhere]">
-				{{ insight.body }}
-			</p>
-		</section>
+				{{ recap().headline }}
+			</h2>
+			<div [class]="storyColumnsClass()">
+				@if (leadParagraph(); as lead) {
+				<p
+					class="m-0 mb-5 text-pretty [overflow-wrap:anywhere] first-letter:float-left first-letter:mr-2 first-letter:font-display first-letter:text-[3.4em] first-letter:font-bold first-letter:leading-[0.85] first-letter:text-premium"
+				>
+					{{ lead }}
+				</p>
+				} @if (pullQuote(); as quote) {
+				<blockquote
+					aria-hidden="true"
+					data-pull-quote
+					class="m-0 mb-5 break-inside-avoid border-l-4 border-premium py-1 pl-4 font-display text-xl font-semibold leading-snug text-fg text-balance [overflow-wrap:anywhere] sm:text-2xl"
+				>
+					{{ quote }}
+				</blockquote>
+				} @for (paragraph of restParagraphs(); track $index) {
+				<p class="m-0 mb-5 text-pretty [overflow-wrap:anywhere]">
+					{{ paragraph }}
+				</p>
+				}
+			</div>
+		</div>
+		@if (insights().length > 0) {
+		<div data-recap-insights class="flex min-w-0 flex-col">
+			<h3 class="sr-only">{{ text.insights }}</h3>
+			@for (insight of insights(); track insight.key) {
+			<section
+				appRewindReveal
+				class="mb-5 flex flex-col gap-1.5 border-t border-line pt-4 last:mb-0"
+			>
+				@if (insight.label) {
+				<span uiEyebrow>{{ insight.label }}</span>
+				}
+				<h4
+					class="m-0 font-display text-lg font-bold leading-tight text-fg [overflow-wrap:anywhere]"
+				>
+					{{ insight.title }}
+				</h4>
+				<p class="m-0 text-sm leading-relaxed [overflow-wrap:anywhere]">
+					{{ insight.body }}
+				</p>
+			</section>
+			}
+		</div>
 		}
 	</div>
 
@@ -91,13 +98,14 @@
 		</div>
 		} @if (challenge(); as nextChallenge) {
 		<div
-			class="flex min-w-0 items-start gap-3 rounded-card border border-premium/40 bg-surface p-4"
+			data-recap-challenge
+			class="flex min-w-0 items-start gap-3 rounded-card border border-brand/40 bg-surface p-4"
 		>
-			<span aria-hidden="true" class="material-icons text-xl text-premium"
+			<span aria-hidden="true" class="material-icons text-xl text-brand"
 				>flag</span
 			>
 			<div class="flex min-w-0 flex-col gap-1">
-				<h3 class="m-0" uiEyebrow tone="premium">
+				<h3 class="m-0" uiEyebrow tone="brand">
 					{{ text.nextYearChallenge(year() + 1) }}
 				</h3>
 				<p

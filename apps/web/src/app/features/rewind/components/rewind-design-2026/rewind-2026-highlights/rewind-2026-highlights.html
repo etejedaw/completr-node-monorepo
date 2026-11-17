@@ -1,0 +1,68 @@
+@let items = records(); @let facts = stats(); @if (items.length > 0) {
+<div class="overflow-hidden">
+	<ul class="m-0 -ml-px grid list-none grid-cols-2 p-0 lg:grid-cols-3">
+		@for (record of items; track record.key; let index = $index) {
+		<li
+			appRewindReveal
+			class="min-w-0 border-t border-l border-line"
+			[revealDelay]="revealDelay(index)"
+		>
+			<a
+				class="group relative isolate flex h-full min-w-0 flex-col gap-1 overflow-hidden px-3.5 py-5 no-underline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand lg:px-6 lg:py-7"
+				[routerLink]="['/games', record.code]"
+			>
+				@if (record.artUrl; as art) {
+				<img
+					alt=""
+					aria-hidden="true"
+					loading="lazy"
+					class="absolute inset-0 -z-10 size-full object-cover opacity-12 grayscale-40 transition-opacity duration-300 group-hover:opacity-20"
+					[src]="art | coverUrl: 640"
+				/>
+				}
+				<span uiEyebrow>{{ record.label }}</span>
+				<span
+					class="order-first font-display text-[2.4rem] leading-none font-bold tracking-[-0.02em] text-fg tabular-nums lg:text-[3.6rem]"
+					>{{ record.value }}@if (record.unit; as unit) {{{ " "
+					}}<span
+						[class]="record.hasLongUnit ? 'text-base font-semibold text-fg-secondary' : ''"
+						>{{ unit }}</span
+					>}</span
+				>
+				<span
+					class="text-sm text-fg-secondary group-hover:text-fg group-hover:underline"
+					>{{ record.title }}</span
+				>
+			</a>
+		</li>
+		}
+	</ul>
+</div>
+} @if (facts.length > 0) {
+<dl
+	appRewindReveal
+	class="m-0 grid grid-cols-2 border-t border-line-hover lg:auto-cols-fr lg:grid-flow-col lg:grid-cols-none"
+	[class.mt-9]="items.length > 0"
+>
+	@for (stat of facts; track stat.key) {
+	<div
+		class="grid min-w-0 content-start gap-1 border-l border-line pt-4 pr-5 pl-5 first:border-l-0 first:pl-0 max-lg:odd:border-l-0 max-lg:odd:pl-0 max-lg:nth-[n+3]:mt-3.5 max-lg:nth-[n+3]:border-t"
+	>
+		<dt uiEyebrow>{{ stat.label }}</dt>
+		<dd
+			class="m-0 font-display text-[1.6rem] leading-[1.1] font-bold text-fg"
+		>
+			{{ stat.value }}
+		</dd>
+		@if (stat.detail; as detail) {
+		<dd class="m-0 text-sm text-fg-secondary">
+			@if (stat.spokenDetail; as spoken) {
+			<span aria-hidden="true">{{ detail }}</span>
+			<span class="sr-only">{{ spoken }}</span>
+			} @else { {{ detail }} }
+		</dd>
+		}
+	</div>
+	}
+</dl>
+}

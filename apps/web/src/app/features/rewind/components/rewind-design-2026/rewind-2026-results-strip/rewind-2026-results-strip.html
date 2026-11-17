@@ -1,0 +1,33 @@
+<section aria-labelledby="rewind-2026-results-heading">
+	<h2 id="rewind-2026-results-heading" class="sr-only">{{ heading() }}</h2>
+	<dl
+		class="m-0 grid grid-cols-3 gap-y-5 border-t border-line-hover pt-5 lg:auto-cols-fr lg:grid-flow-col lg:grid-cols-none"
+		appInView
+		(inViewChange)="$event && start()"
+	>
+		@for (row of rows(); track row.label; let i = $index) {
+		<div
+			class="flex min-w-0 flex-col gap-1 border-l border-line pr-3 pl-3.5 max-lg:nth-[3n+1]:border-l-0 max-lg:nth-[3n+1]:pl-0 lg:first:border-l-0 lg:first:pl-0"
+			[style.--tone]="toneOf(row)"
+		>
+			<dt class="text-xs leading-tight text-fg-secondary lg:text-sm">
+				{{ row.label }}
+			</dt>
+			<dd
+				class="m-0 order-first flex items-baseline font-display text-[1.8rem] font-bold leading-none tracking-[-0.02em] tabular-nums lg:text-[2.2rem]"
+				[class]="numberClass"
+			>
+				<span aria-hidden="true">{{ displayValue(row, i) }}</span>
+				@if (suffixOf(row); as suffix) {
+				<span
+					aria-hidden="true"
+					class="ml-0.5 text-[0.45em] font-semibold text-fg-secondary"
+					>{{ suffix }}</span
+				>
+				}
+				<span class="sr-only">{{ spoken(row) }}</span>
+			</dd>
+		</div>
+		}
+	</dl>
+</section>

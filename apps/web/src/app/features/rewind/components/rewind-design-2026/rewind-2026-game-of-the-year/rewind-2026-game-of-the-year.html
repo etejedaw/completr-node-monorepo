@@ -1,0 +1,57 @@
+@let top = game(); @let text = highlightsCopy();
+<section
+	appRewindReveal
+	aria-labelledby="rewind-game-of-the-year-heading"
+	class="min-w-0"
+	[style.--tone]="tone"
+>
+	<app-profile-section-header
+		headingId="rewind-game-of-the-year-heading"
+		[heading]="heading()"
+	/>
+	<a
+		class="group flex min-h-[15rem] items-center gap-5 p-5 no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand sm:min-h-[18rem] sm:gap-8 sm:p-8"
+		[class]="cardClass"
+		[routerLink]="['/games', top.code]"
+	>
+		@if (artUrl(); as art) {
+		<img
+			alt=""
+			aria-hidden="true"
+			loading="lazy"
+			[class]="artworkClass"
+			[src]="art | coverUrl: 1280"
+		/>
+		<span aria-hidden="true" [class]="veilClass"></span>
+		}
+		<app-game-poster
+			aria-hidden="true"
+			class="aspect-[2/3] w-28 shrink-0 -rotate-3 rounded-md shadow-popover ring-1 ring-line-hover transition-transform duration-500 ease-out motion-safe:group-hover:rotate-0 sm:w-40"
+			[src]="posterUrl()"
+			[title]="top.title"
+		/>
+		<span class="flex min-w-0 flex-1 flex-col gap-3">
+			<span
+				class="flex min-w-0 items-center gap-2 text-sm font-semibold text-fg-secondary"
+				><span
+					aria-hidden="true"
+					class="material-icons grid size-7 shrink-0 place-items-center rounded-lg text-lead"
+					[class]="capsuleClass"
+					>star</span
+				>{{ text.topRated }}</span
+			>
+			<app-star-rating
+				aria-hidden="true"
+				[value]="top.userRating"
+				[readonly]="true"
+				[showValue]="false"
+				size="md"
+			/>
+			<span
+				class="text-balance font-display text-3xl font-bold leading-[1.05] tracking-tight text-fg group-hover:underline sm:text-5xl"
+				>{{ top.title }}</span
+			>
+			<span class="sr-only">{{ text.ratedOutOf(top.userRating) }}</span>
+		</span>
+	</a>
+</section>

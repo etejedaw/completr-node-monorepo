@@ -338,30 +338,63 @@ describe("Rewind interaction", () => {
 		return fixture;
 	}
 
+	function sectionNames() {
+		return screen
+			.getAllByRole("region")
+			.map(region => region.getAttribute("aria-labelledby"));
+	}
+
+	const BANNER_HEADING = "@ada's 2026, ready to share";
+
 	function shareSection() {
-		return screen.getByRole("region", { name: "Share" });
+		return screen.getByRole("region", { name: BANNER_HEADING });
+	}
+
+	async function bannerWithImages() {
+		await untilVisible(() => {
+			const section = within(shareSection());
+			expect(
+				section.getByRole("button", { name: "Download" })
+			).toBeInTheDocument();
+			expect(section.getAllByRole("figure")).toHaveLength(2);
+			expect(
+				section.getByRole("img", { name: "@ada's 2026 Rewind" })
+			).toBeInTheDocument();
+			expect(
+				section.getByRole("img", {
+					name: "@ada's 2026 Rewind: finished games"
+				})
+			).toBeInTheDocument();
+		});
+		return shareSection();
 	}
 
 	async function shareActions() {
+		const user = userEvent.setup();
+		await user.click(screen.getByRole("button", { name: "Share" }));
+		const dialog = await screen.findByRole("dialog", { name: "Share" });
 		await untilVisible(() =>
 			expect(
-				within(shareSection()).getByRole("button", {
+				within(dialog).getByRole("button", {
 					name: "Download summary"
 				})
 			).toBeInTheDocument()
 		);
-		return shareSection();
+		return dialog;
 	}
 
 	async function untilSingleImage() {
+		const user = userEvent.setup();
+		await user.click(screen.getByRole("button", { name: "Share" }));
+		const dialog = await screen.findByRole("dialog", { name: "Share" });
 		await untilVisible(() =>
 			expect(
-				within(shareSection()).getByRole("img", {
+				within(dialog).getByRole("img", {
 					name: "@ada's 2026 Rewind"
 				})
 			).toBeInTheDocument()
 		);
-		return shareSection();
+		return dialog;
 	}
 
 	async function shareActionsWithImage() {
@@ -452,7 +485,218 @@ describe("Rewind interaction", () => {
 	});
 
 	describe("detail page", () => {
-		it("shows the results of the year from the summary down to the share preview", async () => {
+		it("opens with the results strip and a decorative fan of posters inside the hero, with no separate Results section", async () => {
+			const covered = Array.from({ length: 7 }, (_, index) => ({
+				gameId: `game-${index}`,
+				code: `game-${index}`,
+				title: `Game ${index}`,
+				coverUrl: `https://example.test/cover-${index}.jpg`,
+				backgroundUrl: null,
+				finishedAt: `2026-0${index + 1}-10T00:00:00.000Z`,
+				platformAbbreviation: null
+			}));
+			rewindOverrides.set(2026, { finishedGames: covered });
+			await renderRewind();
+
+			const hero = screen
+				.getByRole("heading", { level: 1 })
+				.closest("header") as HTMLElement;
+			expect(
+				within(hero).getByRole("region", { name: "Results" })
+			).toBeInTheDocument();
+			expect(
+				screen.getAllByRole("region", { name: "Results" })
+			).toHaveLength(1);
+			const posters = [
+				...hero.querySelectorAll<HTMLImageElement>(
+					"app-rewind-2026-cover-fan img"
+				)
+			];
+			expect(posters.map(poster => poster.getAttribute("src"))).toEqual([
+				"https://example.test/cover-6.jpg",
+				"https://example.test/cover-5.jpg",
+				"https://example.test/cover-4.jpg",
+				"https://example.test/cover-3.jpg",
+				"https://example.test/cover-2.jpg"
+			]);
+			for (const poster of posters) {
+				expect(poster).toHaveAttribute("alt", "");
+				expect(poster.closest("[aria-hidden='true']")).not.toBeNull();
+			}
+			expect(
+				screen.queryByRole("img", { name: /Game \d/ })
+			).not.toBeInTheDocument();
+		});
+
+		it("draws no fan when no finished game has art", async () => {
+			await renderRewind();
+
+			expect(
+				document.querySelector("app-rewind-2026-cover-fan img")
+			).toBeNull();
+			expect(
+				screen.getByRole("region", { name: "Results" })
+			).toBeInTheDocument();
+		});
+
+		it("lays every section out full width in one column, with no side-by-side areas", async () => {
+			rewindOverrides.set(2026, { aiRecap: AI_RECAP });
+			await renderRewind();
+
+			const recap = await screen.findByRole("region", {
+				name: "AI recap"
+			});
+
+			const grid = shareSection().closest<HTMLElement>(".gap-14")!;
+			expect(grid).toContainElement(recap);
+			expect(grid.className).not.toMatch(/lg:grid-cols|23rem/);
+			expect(grid.style.getPropertyValue("--rewind-areas")).toBe("");
+		});
+
+		it("puts the share banner first, then the game of the year, then the AI recap", async () => {
+			rewindOverrides.set(2026, { aiRecap: AI_RECAP });
+			await renderRewind();
+			await screen.findByRole("region", { name: "AI recap" });
+
+			expect(sectionNames().slice(0, 5)).toEqual([
+				"rewind-2026-results-heading",
+				"rewind-share-heading",
+				"rewind-game-of-the-year-heading",
+				"rewind-ai-recap-heading",
+				"rewind-highlights-heading"
+			]);
+		});
+
+		it("shows the game of the year as a full width card and keeps Top rated out of the highlights", async () => {
+			await renderRewind();
+
+			const section = screen.getByRole("region", {
+				name: "@ada's game of the year"
+			});
+			expect(
+				within(section).getByRole("link", {
+					name: /Top rated.*Hades 2026/
+				})
+			).toHaveAttribute("href", "/games/hades");
+			const highlights = screen.getByRole("region", {
+				name: "Highlights"
+			});
+			expect(
+				within(highlights).queryByText("Top rated")
+			).not.toBeInTheDocument();
+			expect(shareSection().closest(".gap-14")).toContainElement(section);
+		});
+
+		it("leaves out the game of the year when nothing was rated", async () => {
+			rewindOverrides.set(2026, {
+				highlights: {
+					...rewindFor(2026, []).highlights,
+					topRated: null
+				}
+			});
+			await renderRewind();
+
+			expect(
+				screen.queryByRole("region", {
+					name: "@ada's game of the year"
+				})
+			).not.toBeInTheDocument();
+			expect(screen.queryByText("Top rated")).not.toBeInTheDocument();
+			expect(shareSection()).toBeInTheDocument();
+		});
+
+		it("shows both story images in the banner and downloads them once per double click", async () => {
+			const user = userEvent.setup();
+			await renderRewind();
+			const section = await bannerWithImages();
+
+			await user.dblClick(
+				within(section).getByRole("button", { name: "Download" })
+			);
+
+			expect(saveFile.mock.calls.map(([, name]) => name)).toEqual([
+				"completr-rewind-ada-2026.png",
+				"completr-rewind-ada-2026-games.png"
+			]);
+		});
+
+		it("waits in the banner for images still loading and saves each only once", async () => {
+			const user = userEvent.setup();
+			holdStories = true;
+			await renderRewind();
+			const button = within(shareSection()).getByRole("button", {
+				name: "Download"
+			});
+
+			await user.dblClick(button);
+			await user.click(button);
+			expect(saveFile).not.toHaveBeenCalled();
+			expect(button).toHaveAttribute("aria-busy", "true");
+			holdStories = false;
+
+			await untilVisible(() => expect(saveFile).toHaveBeenCalledTimes(2));
+			expect(button).not.toHaveAttribute("aria-busy");
+		});
+
+		it("lets the user retry a failed image from the banner", async () => {
+			const user = userEvent.setup();
+			gamesFailures.push(500);
+			await renderRewind();
+
+			await untilVisible(() =>
+				expect(
+					within(shareSection()).getByText("Couldn't load the image.")
+				).toBeInTheDocument()
+			);
+			await user.click(
+				within(shareSection()).getByRole("button", {
+					name: "Try again"
+				})
+			);
+
+			await bannerWithImages();
+			expect(
+				within(shareSection()).queryByText("Couldn't load the image.")
+			).not.toBeInTheDocument();
+		});
+
+		it("shares both files from the banner once and stays quiet when the user cancels", async () => {
+			const user = userEvent.setup();
+			enableWebShare(() =>
+				Promise.reject(new DOMException("cancelled", "AbortError"))
+			);
+			await renderRewind();
+			const section = await bannerWithImages();
+
+			await user.dblClick(
+				within(section).getByRole("button", { name: "Share both" })
+			);
+
+			expect(share).toHaveBeenCalledTimes(1);
+			const [payload] = share!.mock.calls[0] as [ShareData];
+			expect(payload.files?.map(file => file.name)).toEqual([
+				"completr-rewind-ada-2026.png",
+				"completr-rewind-ada-2026-games.png"
+			]);
+			await new Promise(resolve => setTimeout(resolve, 20));
+			expect(
+				screen.queryByText(/Couldn't share the image/)
+			).not.toBeInTheDocument();
+		});
+
+		it("keeps the banner on Copy link as its main action when the browser cannot share files", async () => {
+			await renderRewind();
+			const section = await bannerWithImages();
+
+			expect(
+				within(section).queryByRole("button", { name: "Share both" })
+			).not.toBeInTheDocument();
+			expect(
+				within(section).getByRole("button", { name: "Copy link" })
+			).toHaveAttribute("data-variant", "primary");
+		});
+
+		it("shows the results of the year in the hero down to the share preview", async () => {
 			await renderRewind();
 
 			expect(
@@ -462,10 +706,10 @@ describe("Rewind interaction", () => {
 				})
 			).toBeInTheDocument();
 			expect(
-				screen.getByText(
+				screen.queryByText(
 					"18 games finished, 4 left behind and 23 started."
 				)
-			).toBeInTheDocument();
+			).not.toBeInTheDocument();
 			const results = screen.getByRole("region", { name: "Results" });
 			expect(
 				within(results).getByText("Left behind")
@@ -506,12 +750,13 @@ describe("Rewind interaction", () => {
 			expect(
 				screen.getByText("months in a row", { exact: false })
 			).toBeInTheDocument();
+			const genres = screen.getByText("Top genres").closest("div")!;
+			expect(genres).toHaveTextContent("Roguelike");
 			expect(
-				within(
-					screen.getByRole("list", { name: "Top genres" })
-				).getAllByRole("listitem")
-			).toHaveLength(2);
-			await shareActions();
+				within(genres).getByText("7 games, Platformer 4 games", {
+					selector: ".sr-only"
+				})
+			).toBeInTheDocument();
 			await untilVisible(() =>
 				expect(
 					within(shareSection()).getByRole("img", {
@@ -753,31 +998,36 @@ describe("Rewind interaction", () => {
 			expect(games).toBeEnabled();
 		});
 
-		it("switches the preview between the summary and the games list however fast the user taps", async () => {
+		it("shows the summary and the games list together and shares only the pressed one however fast the user taps", async () => {
 			const user = userEvent.setup();
+			enableWebShare(() => Promise.resolve());
 			await renderRewind();
 			const section = await shareActionsWithImage();
-			const tabs = within(section).getByRole("tablist", {
-				name: "Story images"
-			});
-			const summary = within(tabs).getByRole("tab", { name: "Summary" });
-			const games = within(tabs).getByRole("tab", { name: "Games" });
-			expect(summary).toHaveAttribute("aria-selected", "true");
 
-			await user.click(games);
-			await user.click(summary);
-			await user.dblClick(games);
-
-			expect(games).toHaveAttribute("aria-selected", "true");
-			expect(summary).toHaveAttribute("aria-selected", "false");
+			expect(
+				within(section).queryByRole("tablist")
+			).not.toBeInTheDocument();
+			expect(
+				within(section).getByRole("img", { name: "@ada's 2026 Rewind" })
+			).toBeInTheDocument();
 			expect(
 				within(section).getByRole("img", {
 					name: "@ada's 2026 Rewind: finished games"
 				})
 			).toBeInTheDocument();
-			games.focus();
-			await user.keyboard("{ArrowLeft}");
-			expect(summary).toHaveAttribute("aria-selected", "true");
+
+			await user.dblClick(
+				within(section).getByRole("button", {
+					name: "Share games image"
+				})
+			);
+
+			expect(share).toHaveBeenCalledTimes(1);
+			const [data] = share!.mock.calls[0] as unknown as [
+				{ files: File[] }
+			];
+			expect(data.files).toHaveLength(1);
+			expect(data.files[0].name).toContain("games");
 		});
 
 		it("copies the share link once on a double click", async () => {
@@ -802,7 +1052,7 @@ describe("Rewind interaction", () => {
 
 			expect(
 				within(section).queryByRole("button", {
-					name: "Share images"
+					name: "Share both"
 				})
 			).not.toBeInTheDocument();
 			for (const name of ["Download summary", "Download games"]) {
@@ -821,7 +1071,7 @@ describe("Rewind interaction", () => {
 			const section = await shareActionsWithImage();
 
 			await user.dblClick(
-				within(section).getByRole("button", { name: "Share images" })
+				within(section).getByRole("button", { name: "Share both" })
 			);
 
 			expect(share).toHaveBeenCalledTimes(1);
@@ -841,21 +1091,21 @@ describe("Rewind interaction", () => {
 			).not.toBeInTheDocument();
 		});
 
-		it("keeps Share images disabled until both images have loaded", async () => {
+		it("keeps Share both disabled until both images have loaded", async () => {
 			enableWebShare(() => Promise.resolve());
 			holdStories = true;
 			await renderRewind();
 			const section = await shareActions();
 
 			expect(
-				within(section).getByRole("button", { name: "Share images" })
+				within(section).getByRole("button", { name: "Share both" })
 			).toBeDisabled();
 			holdStories = false;
 
 			await untilVisible(() =>
 				expect(
 					within(section).getByRole("button", {
-						name: "Share images"
+						name: "Share both"
 					})
 				).toBeEnabled()
 			);
@@ -870,13 +1120,13 @@ describe("Rewind interaction", () => {
 			await untilVisible(() =>
 				expect(
 					within(section).getByRole("button", {
-						name: "Share images"
+						name: "Share both"
 					})
 				).toBeEnabled()
 			);
 
 			await user.click(
-				within(section).getByRole("button", { name: "Share images" })
+				within(section).getByRole("button", { name: "Share both" })
 			);
 
 			const [payload] = share!.mock.calls[0] as [ShareData];
@@ -897,7 +1147,7 @@ describe("Rewind interaction", () => {
 			const section = await shareActionsWithImage();
 
 			await user.click(
-				within(section).getByRole("button", { name: "Share images" })
+				within(section).getByRole("button", { name: "Share both" })
 			);
 
 			expect(
@@ -933,14 +1183,11 @@ describe("Rewind interaction", () => {
 			expect(imageRequests).toEqual(["/share/rewind/ada/2026/story.png"]);
 		});
 
-		it("falls back to the summary when the user leaves the games tab for a year without finished games", async () => {
+		it("drops the games image when the user moves to a year without finished games", async () => {
 			const user = userEvent.setup();
 			rewindOverrides.set(2024, { finishedGames: [] });
 			await renderRewind();
-			const section = await shareActionsWithImage();
-			await user.click(
-				within(section).getByRole("tab", { name: "Games" })
-			);
+			await bannerWithImages();
 
 			await user.click(
 				screen.getByRole("button", { name: "Year: 2026" })
@@ -953,18 +1200,19 @@ describe("Rewind interaction", () => {
 
 			await untilVisible(() =>
 				expect(
-					within(shareSection()).getByRole("img", {
-						name: "@ada's 2024 Rewind"
-					})
+					within(
+						screen.getByRole("region", {
+							name: "@ada's 2024, ready to share"
+						})
+					).getByRole("img", { name: "@ada's 2024 Rewind" })
 				).toBeInTheDocument()
 			);
+			const banner = screen.getByRole("region", {
+				name: "@ada's 2024, ready to share"
+			});
+			expect(within(banner).getAllByRole("figure")).toHaveLength(1);
 			expect(
-				within(shareSection()).queryByRole("tablist")
-			).not.toBeInTheDocument();
-			expect(
-				within(shareSection()).getByRole("button", {
-					name: "Download image"
-				})
+				within(banner).getByRole("button", { name: "Download" })
 			).toBeInTheDocument();
 			expect(imageRequests).not.toContain(
 				"/share/rewind/ada/2024/story-list.png"
@@ -983,13 +1231,6 @@ describe("Rewind interaction", () => {
 	});
 
 	describe("detail languages and premium sections", () => {
-		function sectionNames() {
-			return screen
-				.getAllByRole("region")
-				.map(region => region.getAttribute("aria-labelledby"))
-				.filter(id => id !== "rewind-share-heading");
-		}
-
 		it("shows the whole page in Spanish when the owner generated it in Spanish", async () => {
 			const user = userEvent.setup();
 			rewindOverrides.set(2026, { language: "es" });
@@ -1005,10 +1246,10 @@ describe("Rewind interaction", () => {
 			);
 			expect(document.querySelector("[lang='es']")).not.toBeNull();
 			expect(
-				screen.getByText(
+				screen.queryByText(
 					"18 juegos terminados, 4 abandonados y 23 empezados."
 				)
-			).toBeInTheDocument();
+			).not.toBeInTheDocument();
 			const results = screen.getByRole("region", { name: "Resultados" });
 			expect(
 				within(results).getByText("Abandonados")
@@ -1036,17 +1277,22 @@ describe("Rewind interaction", () => {
 			expect(
 				screen.getByRole("button", { name: "Año: 2026" })
 			).toBeInTheDocument();
-			const share = screen.getByRole("region", { name: "Compartir" });
+			const share = screen.getByRole("region", {
+				name: "El 2026 de @ada, listo para compartir"
+			});
 			expect(
 				screen.getByRole("button", { name: "Share" })
 			).toBeInTheDocument();
+			expect(within(share).getByText("Compartir")).toBeInTheDocument();
 			expect(
-				within(share).getByRole("tab", { name: "Summary" })
+				within(share).getByText(
+					"Dos imágenes y un enlace para mostrar su año."
+				)
 			).toBeInTheDocument();
 			expect(
-				within(share).getByRole("tab", { name: "Games" })
+				screen.getByRole("region", { name: "El juego del año de @ada" })
 			).toBeInTheDocument();
-			for (const name of ["Download summary", "Download games"])
+			for (const name of ["Copy link", "Download"])
 				expect(
 					within(share).getByRole("button", { name })
 				).toBeInTheDocument();
@@ -1092,8 +1338,10 @@ describe("Rewind interaction", () => {
 			expect(
 				screen.getByRole("region", { name: "Premium stats" })
 			).toBeInTheDocument();
-			expect(sectionNames().slice(0, 5)).toEqual([
-				"rewind-results-heading",
+			expect(sectionNames().slice(0, 7)).toEqual([
+				"rewind-2026-results-heading",
+				"rewind-share-heading",
+				"rewind-game-of-the-year-heading",
 				"rewind-ai-recap-heading",
 				"rewind-highlights-heading",
 				"rewind-year-mix-heading",
@@ -1147,8 +1395,10 @@ describe("Rewind interaction", () => {
 					name: "How long were your games?"
 				})
 			).toBeInTheDocument();
-			expect(sectionNames().slice(0, 3)).toEqual([
-				"rewind-results-heading",
+			expect(sectionNames().slice(0, 5)).toEqual([
+				"rewind-2026-results-heading",
+				"rewind-share-heading",
+				"rewind-game-of-the-year-heading",
 				"rewind-highlights-heading",
 				"rewind-year-mix-heading"
 			]);

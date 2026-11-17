@@ -12,33 +12,40 @@ import {
 import {
 	type RewindLanguage,
 	type RewindTotals
-} from "../../../../core/models/rewind.model";
-import { StarRating } from "../../../../shared/components/star-rating/star-rating";
-import { InView } from "../../../../shared/directives/in-view";
+} from "../../../../../core/models/rewind.model";
+import { InView } from "../../../../../shared/directives/in-view";
 import {
 	formatHours,
 	formatPercent,
 	formatRating,
+	formatRewindNumber,
 	rewindCopy
-} from "../../rewind-copy";
-import { canAnimateRewind } from "../../rewind-motion";
-import { toneVar } from "../../rewind-tone";
+} from "../../../rewind-copy";
+import { canAnimateRewind } from "../../../rewind-motion";
+import { TONE_ACCENT_TEXT_CLASS, toneVar } from "../../../rewind-tone";
 import {
-	type RewindTallyRow,
-	type RewindTallyUnit
-} from "./rewind-tally.model";
+	type Rewind2026ResultsRow,
+	type Rewind2026ResultsUnit
+} from "./rewind-2026-results-strip.model";
 
-export const TALLY_DURATION_MS = 900;
-export const TALLY_STAGGER_MS = 80;
+export const REWIND_2026_RESULTS_DURATION_MS = 900;
+export const REWIND_2026_RESULTS_STAGGER_MS = 80;
 
 const RATING_SCALE = 5;
 
-export function rewindTallyRows(
+const UNIT_SUFFIX: Record<Rewind2026ResultsUnit, string | null> = {
+	count: null,
+	hours: "h",
+	percent: "%",
+	rating: `/${RATING_SCALE}`
+};
+
+export function rewind2026ResultsRows(
 	totals: RewindTotals,
 	language: RewindLanguage = "en"
-): RewindTallyRow[] {
+): Rewind2026ResultsRow[] {
 	const copy = rewindCopy(language).tally;
-	const rows: (RewindTallyRow | null)[] = [
+	const rows: (Rewind2026ResultsRow | null)[] = [
 		{
 			label: copy.finished,
 			value: totals.finished,
@@ -93,21 +100,23 @@ export function rewindTallyRows(
 	return rows.filter(row => row !== null);
 }
 
-export function formatTallyValue(
-	unit: RewindTallyUnit,
+export function formatRewind2026ResultsValue(
+	unit: Rewind2026ResultsUnit,
 	value: number,
 	language: RewindLanguage = "en"
 ): string {
-	if (unit === "percent") return formatPercent(value, language);
+	if (unit === "percent")
+		return formatRewindNumber(value, language, { min: 0, max: 0 });
 	if (unit === "rating") return formatRating(value, language);
 	return formatHours(value, language);
 }
 
-function spokenTallyValue(
-	row: RewindTallyRow,
+function spokenResultsValue(
+	row: Rewind2026ResultsRow,
 	language: RewindLanguage
 ): string {
-	const value = formatTallyValue(row.unit, row.value, language);
+	if (row.unit === "percent") return formatPercent(row.value, language);
+	const value = formatRewind2026ResultsValue(row.unit, row.value, language);
 	return row.unit === "rating"
 		? rewindCopy(language).tally.outOf(value, RATING_SCALE)
 		: value;
@@ -125,14 +134,14 @@ function countedValue(target: number, progress: number): number {
 }
 
 @Component({
-	selector: "app-rewind-tally",
-	imports: [InView, StarRating],
-	templateUrl: "./rewind-tally.html",
+	selector: "app-rewind-2026-results-strip",
+	imports: [InView],
+	templateUrl: "./rewind-2026-results-strip.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class RewindTally {
-	readonly rows = input.required<RewindTallyRow[]>();
+export class Rewind2026ResultsStrip {
+	readonly totals = input.required<RewindTotals>();
 	readonly language = input<RewindLanguage>("en");
 
 	private readonly window = inject(DOCUMENT).defaultView;
@@ -141,8 +150,20 @@ export class RewindTally {
 	private frameId: number | null = null;
 	private hasStarted = false;
 
+	protected readonly numberClass = TONE_ACCENT_TEXT_CLASS;
+
+	protected readonly heading = computed(
+		() => rewindCopy(this.language()).page.results
+	);
+
+	protected readonly rows = computed(() =>
+		rewind2026ResultsRows(this.totals(), this.language())
+	);
+
 	private readonly totalDuration = computed(
-		() => TALLY_DURATION_MS + TALLY_STAGGER_MS * (this.rows().length - 1)
+		() =>
+			REWIND_2026_RESULTS_DURATION_MS +
+			REWIND_2026_RESULTS_STAGGER_MS * (this.rows().length - 1)
 	);
 
 	constructor() {
@@ -165,29 +186,35 @@ export class RewindTally {
 		this.frameId = this.window!.requestAnimationFrame(tick);
 	}
 
-	protected displayValue(row: RewindTallyRow, index: number): string {
+	protected displayValue(row: Rewind2026ResultsRow, index: number): string {
 		const elapsed = this.elapsed();
 		if (elapsed === null) {
-			return formatTallyValue(
+			return formatRewind2026ResultsValue(
 				row.unit,
 				this.animates ? 0 : row.value,
 				this.language()
 			);
 		}
-		const local = (elapsed - index * TALLY_STAGGER_MS) / TALLY_DURATION_MS;
+		const local =
+			(elapsed - index * REWIND_2026_RESULTS_STAGGER_MS) /
+			REWIND_2026_RESULTS_DURATION_MS;
 		const progress = Math.min(1, Math.max(0, local));
-		return formatTallyValue(
+		return formatRewind2026ResultsValue(
 			row.unit,
 			countedValue(row.value, progress),
 			this.language()
 		);
 	}
 
-	protected spoken(row: RewindTallyRow): string {
-		return spokenTallyValue(row, this.language());
+	protected spoken(row: Rewind2026ResultsRow): string {
+		return spokenResultsValue(row, this.language());
 	}
 
-	protected toneOf(row: RewindTallyRow): string {
+	protected suffixOf(row: Rewind2026ResultsRow): string | null {
+		return UNIT_SUFFIX[row.unit];
+	}
+
+	protected toneOf(row: Rewind2026ResultsRow): string {
 		return toneVar(row.tone);
 	}
 

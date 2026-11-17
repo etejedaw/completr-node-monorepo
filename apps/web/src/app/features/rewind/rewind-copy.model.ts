@@ -51,7 +51,6 @@ export interface RewindHighlightsCopy {
 
 export interface RewindTimelineCopy {
 	abandonedGames: (count: number) => string;
-	abandoned: string;
 	abandonedGameLabel: (title: string, date: string) => string;
 }
 
@@ -121,6 +120,12 @@ export interface RewindPageCopy {
 	yearHeading: string;
 	results: string;
 	highlights: string;
+	gameOfTheYear: string;
+	visitorGameOfTheYear: (username: string) => string;
+	shareHeadline: (year: number) => string;
+	visitorShareHeadline: (username: string, year: number) => string;
+	shareDescription: string;
+	visitorShareDescription: string;
 	finishedIn: (year: number) => string;
 	closedIn: (year: number) => string;
 	moreRewinds: string;

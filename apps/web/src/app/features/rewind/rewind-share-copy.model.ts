@@ -6,9 +6,12 @@ export interface RewindShareCopy {
 	shareImage: string;
 	shareImages: string;
 	downloadImage: string;
+	downloadAll: string;
 	imagesLabel: string;
-	summaryTab: string;
-	gamesTab: string;
+	summaryLabel: string;
+	gamesLabel: string;
+	shareSummary: string;
+	shareGames: string;
 	downloadSummary: string;
 	downloadGames: string;
 	copyLink: string;
