@@ -41,6 +41,7 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 		},
 		finishedGames: [],
 		abandonedGames: [],
+		platinumGames: null,
 		highlights: {
 			topRated: null,
 			bestRatio: null,
@@ -229,6 +230,254 @@ describe("RewindDesignOutlet", () => {
 		expect(
 			screen.queryByRole("heading", { name: "Share" })
 		).not.toBeInTheDocument();
+	});
+
+	describe("the summary under the persona of the 2026 design", () => {
+		function heroSummary(sentence: string) {
+			return screen.getByText(sentence, { selector: "header p" });
+		}
+
+		async function renderWith(overrides: Partial<Rewind>) {
+			const result = await renderOutlet();
+			result.fixture.componentInstance.rewind.set(
+				rewindFixture(overrides)
+			);
+			result.fixture.detectChanges();
+			return result;
+		}
+
+		it("tells what was finished, left behind and started, in both languages", async () => {
+			const totals = rewindFixture().totals;
+			const { fixture } = await renderWith({
+				totals: { ...totals, finished: 29, abandoned: 13, started: 0 }
+			});
+			expect(
+				heroSummary("29 games finished and 13 left behind.")
+			).toBeInTheDocument();
+
+			fixture.componentInstance.rewind.set(
+				rewindFixture({
+					language: "es",
+					totals: {
+						...totals,
+						finished: 29,
+						abandoned: 13,
+						started: 0
+					}
+				})
+			);
+			fixture.detectChanges();
+
+			expect(
+				heroSummary("29 juegos terminados y 13 abandonados.")
+			).toBeInTheDocument();
+		});
+
+		it("follows the totals when the Rewind is swapped many times in a row", async () => {
+			const totals = rewindFixture().totals;
+			const { fixture } = await renderWith({});
+
+			for (const finished of [1, 0, 7, 0, 2]) {
+				fixture.componentInstance.rewind.set(
+					rewindFixture({
+						totals: {
+							...totals,
+							finished,
+							abandoned: 0,
+							started: 0
+						}
+					})
+				);
+				fixture.detectChanges();
+			}
+
+			expect(heroSummary("2 games finished.")).toBeInTheDocument();
+			expect(
+				screen.queryByText(/7 games finished/)
+			).not.toBeInTheDocument();
+		});
+
+		it("says the year is empty instead of leaving a blank line", async () => {
+			const totals = rewindFixture().totals;
+			await renderWith({
+				totals: { ...totals, finished: 0, abandoned: 0, started: 0 }
+			});
+
+			expect(heroSummary("No games this year.")).toBeInTheDocument();
+		});
+
+		it("keeps the summary the same for an owner and a visitor", async () => {
+			const { fixture } = await renderOutlet();
+			expect(
+				heroSummary("3 games finished and 4 started.")
+			).toBeVisible();
+
+			fixture.componentInstance.isOwner.set(true);
+			fixture.detectChanges();
+
+			expect(
+				heroSummary("3 games finished and 4 started.")
+			).toBeVisible();
+		});
+	});
+
+	describe("the platinums section of each design", () => {
+		const finished = {
+			gameId: "id-hades",
+			code: "hades",
+			title: "Hades",
+			coverUrl: null,
+			backgroundUrl: null,
+			finishedAt: "2026-03-10",
+			platformAbbreviation: "PC"
+		};
+		const platinumGame = {
+			gameId: "id-hades",
+			code: "hades",
+			title: "Hades",
+			coverUrl: null,
+			backgroundUrl: null,
+			platinumedAt: "2026-04-02",
+			platformAbbreviation: "PS5"
+		};
+		const abandoned = {
+			...finished,
+			gameId: "id-tunic",
+			code: "tunic",
+			title: "Tunic"
+		};
+
+		async function renderWith(overrides: Partial<Rewind>) {
+			const result = await renderOutlet();
+			result.fixture.componentInstance.rewind.set(
+				rewindFixture(overrides)
+			);
+			result.fixture.detectChanges();
+			return result;
+		}
+
+		function isBefore(first: HTMLElement, second: HTMLElement): boolean {
+			return !!(
+				first.compareDocumentPosition(second) &
+				Node.DOCUMENT_POSITION_FOLLOWING
+			);
+		}
+
+		it.each([
+			["2026", "no access", null],
+			["2026", "an empty year", []],
+			["2025", "no access", null],
+			["2025", "an empty year", []]
+		])(
+			"hides the %s section with %s",
+			async (design, _case, platinumGames) => {
+				await renderWith({
+					year: Number(design),
+					design,
+					finishedGames: [finished],
+					platinumGames
+				});
+
+				expect(
+					screen.queryByRole("heading", { name: /^Platinums$/ })
+				).not.toBeInTheDocument();
+				expect(
+					screen.queryByRole("link", { name: /platinum on/ })
+				).not.toBeInTheDocument();
+			}
+		);
+
+		it("puts the 2026 section after the highlights, in the Rewind language", async () => {
+			const { fixture } = await renderWith({
+				platinumGames: [platinumGame],
+				highlights: {
+					...rewindFixture().highlights,
+					firstFinished: finished,
+					lastFinished: finished
+				}
+			});
+
+			const heading = screen.getByRole("heading", {
+				level: 2,
+				name: "Platinums"
+			});
+			expect(
+				isBefore(
+					screen.getByRole("heading", {
+						level: 2,
+						name: "Highlights"
+					}),
+					heading
+				)
+			).toBe(true);
+			expect(
+				screen.getByRole("link", {
+					name: "Hades, platinum on Apr 2"
+				})
+			).toBeInTheDocument();
+
+			fixture.componentInstance.rewind.set(
+				rewindFixture({ language: "es", platinumGames: [platinumGame] })
+			);
+			fixture.detectChanges();
+
+			expect(
+				screen.getByRole("heading", { level: 2, name: "Platinos" })
+			).toBeInTheDocument();
+		});
+
+		it("puts the 2025 page between the finished games and the abandoned ones", async () => {
+			await renderWith({
+				year: 2025,
+				design: "2025",
+				finishedGames: [finished],
+				abandonedGames: [abandoned],
+				platinumGames: [platinumGame]
+			});
+
+			const heading = screen.getByRole("heading", {
+				level: 2,
+				name: "Platinums"
+			});
+			expect(
+				isBefore(
+					screen.getByRole("heading", { name: "Finished in 2025" }),
+					heading
+				)
+			).toBe(true);
+			expect(
+				isBefore(
+					heading,
+					screen.getByRole("heading", {
+						name: "What you left behind"
+					})
+				)
+			).toBe(true);
+			expect(
+				screen.getByRole("link", { name: "Hades, platinum on Apr 2" })
+			).toBeInTheDocument();
+		});
+
+		it("shows and hides the section as the viewer's access flips back and forth", async () => {
+			const { fixture } = await renderWith({});
+
+			for (const platinumGames of [
+				[platinumGame],
+				null,
+				[],
+				[platinumGame],
+				null
+			]) {
+				fixture.componentInstance.rewind.set(
+					rewindFixture({ platinumGames })
+				);
+				fixture.detectChanges();
+			}
+
+			expect(
+				screen.queryByRole("heading", { name: "Platinums" })
+			).not.toBeInTheDocument();
+		});
 	});
 
 	describe("the closed games of the 2026 design", () => {
