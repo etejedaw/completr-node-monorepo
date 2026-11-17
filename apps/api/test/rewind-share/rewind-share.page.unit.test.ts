@@ -54,22 +54,29 @@ void describe("renderSharePage", () => {
 		);
 	});
 
-	void it("describes a Rewind of the 2025 design without any image meta tag", () => {
+	void it("describes a Rewind of the 2025 design with its link preview image", () => {
 		const html = renderSharePage(
 			"esteban",
-			2026,
-			buildRewind({ design: "2025" })
+			2025,
+			buildRewind({ year: 2025, design: "2025" })
 		);
 
 		assert.equal(
 			metaContent(html, "og:title"),
-			"@esteban&#39;s 2026 Rewind"
+			"@esteban&#39;s 2025 Rewind"
 		);
-		assert.equal(metaContent(html, "twitter:card"), "summary");
-		assert.equal(metaContent(html, "og:image"), undefined);
-		assert.equal(metaContent(html, "og:image:width"), undefined);
-		assert.equal(metaContent(html, "twitter:image"), undefined);
-		assert.doesNotMatch(html, /\.png/);
+		assert.equal(
+			metaContent(html, "og:image"),
+			"http://localhost:4200/share/rewind/esteban/2025/og.png"
+		);
+		assert.equal(metaContent(html, "og:image:width"), "1200");
+		assert.equal(metaContent(html, "og:image:height"), "630");
+		assert.equal(metaContent(html, "twitter:card"), "summary_large_image");
+		assert.equal(
+			metaContent(html, "twitter:image"),
+			"http://localhost:4200/share/rewind/esteban/2025/og.png"
+		);
+		assert.doesNotMatch(html, /story(-list)?\.png/);
 	});
 
 	void it("serves a generic page without data or image when the Rewind is not visible", () => {
