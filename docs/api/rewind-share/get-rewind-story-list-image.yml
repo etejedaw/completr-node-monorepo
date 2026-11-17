@@ -29,7 +29,7 @@ docs: |-
 
     The data, privacy, frozen snapshot, language, fonts and cache are the same as `GET /share/rewind/:username/:year/story.png`: the list comes from the `finishedGames` of the Rewind the viewer can see, including the frozen snapshot of a closed season, and the cache keeps it apart from the first story. A Rewind without finished games for this viewer has no list: it answers 404 `REWIND_NOT_FOUND`, like a Rewind the viewer cannot see.
 
-    Only designs with share images draw it. A Rewind whose design is `2025` has no share images at all, so this endpoint answers 404 `REWIND_NOT_FOUND` for it, for the owner and for everyone else, whether the Rewind is live or frozen. The visibility checks run first: a viewer who cannot see the Rewind still gets 403 `USER_PRIVATE`. A frozen Rewind keeps the design it was frozen with, and an unknown design key is drawn with the latest design.
+    Only designs with story images draw it. The `2025` design has only the link preview (`og.png`), so this endpoint answers 404 `REWIND_NOT_FOUND` for it, for the owner and for everyone else, whether the Rewind is live or frozen. The visibility checks run first: a viewer who cannot see the Rewind still gets 403 `USER_PRIVATE`. A frozen Rewind keeps the design it was frozen with, and an unknown design key is drawn with the latest design.
 
     The web app requests it with `HttpClient` as a `Blob` because the token travels in the `Authorization` header.
 
@@ -60,6 +60,6 @@ docs: |-
     |--------|-----------------------|--------------------------------------------------------------------|
     | 404    | USER_NOT_FOUND        | Username does not exist                                            |
     | 403    | USER_PRIVATE          | The viewer cannot see the rewind section (the profile does not matter) |
-    | 404    | REWIND_NOT_FOUND      | The Rewind uses the `2025` design (no share images), the year is not open yet, has no data or no finished games for this viewer, or (for anyone but the owner) is not generated |
+    | 404    | REWIND_NOT_FOUND      | The Rewind uses the `2025` design (no story images), the year is not open yet, has no data or no finished games for this viewer, or (for anyone but the owner) is not generated |
     | 404    | REWIND_NOT_GENERATED  | The owner requests a year they have not generated                  |
     | 422    | COMMON_SCHEMA_INVALID | `year` is not an integer between 2000 and 2100                     |
