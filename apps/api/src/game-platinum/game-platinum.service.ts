@@ -24,9 +24,11 @@ import * as platformsService from "../platforms/platforms.service";
 import { type UpsertGamePlatinumDto } from "./dtos/upsert-game-platinum.dto";
 import * as gamePlatinumServiceError from "./errors/game-platinum.service-error";
 import {
+	EARLIEST_PLATINUMS_FIRST,
 	LATEST_PLATINUMS_FIRST,
 	PLATINUM_RUN_INCLUDE,
-	REWIND_PLATINUM_ATTRS
+	REWIND_PLATINUM_ATTRS,
+	REWIND_PLATINUM_GAME_ATTRS
 } from "./game-platinum.constants";
 import { type UpsertedGamePlatinum } from "./game-platinum.interface";
 import { GamePlatinum } from "./game-platinum.model";
@@ -248,15 +250,39 @@ export async function findPlatinumsForExport(
 	});
 }
 
+function platinumedInYear(userId: string, year: number) {
+	return {
+		userId,
+		platinumedAt: { [Op.between]: [`${year}-01-01`, `${year}-12-31`] }
+	};
+}
+
 export async function countPlatinumsByUserIdAndYear(
 	userId: string,
 	year: number
 ): Promise<number> {
-	return GamePlatinum.count({
-		where: {
-			userId,
-			platinumedAt: { [Op.between]: [`${year}-01-01`, `${year}-12-31`] }
-		}
+	return GamePlatinum.count({ where: platinumedInYear(userId, year) });
+}
+
+export async function findPlatinumsByUserIdAndYear(
+	userId: string,
+	year: number
+) {
+	return GamePlatinum.findAll({
+		where: platinumedInYear(userId, year),
+		attributes: REWIND_PLATINUM_GAME_ATTRS,
+		include: [
+			{
+				model: Game,
+				attributes: ["id", "code", "title", "coverUrl", "backgroundUrl"]
+			},
+			{
+				model: Platform,
+				attributes: ["id", "abbreviation"],
+				required: false
+			}
+		],
+		order: EARLIEST_PLATINUMS_FIRST
 	});
 }
 
