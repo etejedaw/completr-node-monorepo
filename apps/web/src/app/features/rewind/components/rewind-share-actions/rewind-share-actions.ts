@@ -1,4 +1,3 @@
-import { NgTemplateOutlet } from "@angular/common";
 import {
 	afterNextRender,
 	ChangeDetectionStrategy,
@@ -14,14 +13,7 @@ import {
 import { ExportService } from "../../../../core/services/export";
 import { ToastService } from "../../../../core/services/toast";
 import { InView } from "../../../../shared/directives/in-view";
-import {
-	UiButton,
-	UiSkeleton,
-	UiTab,
-	UiTabList,
-	UiTabPanel,
-	UiTabs
-} from "../../../../shared/ui";
+import { UiButton, UiIconButton, UiSkeleton } from "../../../../shared/ui";
 import { rewindShareUrl, type RewindStoryFormat } from "../../rewind";
 import {
 	rewindGamesImageFileName,
@@ -35,31 +27,12 @@ export const REPEATED_ACTIVATION_WINDOW_MS = 800;
 
 export type RewindPreviewSize = "full" | "fit-row";
 
-const PREVIEW_HEIGHT_CLASS: Record<RewindPreviewSize, string> = {
-	full: "h-[min(70vh,34rem)]",
-	"fit-row": "h-[min(70vh,34rem)] lg:h-full"
-};
-
 const LAYOUT_CLASS: Record<RewindPreviewSize, string> = {
-	full: "flex flex-col items-center gap-5 md:flex-row md:gap-8 md:items-end",
-	"fit-row":
-		"relative isolate flex w-full flex-col items-center gap-5 overflow-hidden rounded-card border border-line bg-surface/40 p-5 sm:p-6 lg:w-[23rem] lg:min-h-0 lg:flex-1"
+	full: "mx-auto flex w-full max-w-[min(34rem,70dvh)] flex-col gap-3",
+	"fit-row": "flex w-full flex-col gap-3"
 };
 
-const PREVIEW_COLUMN_CLASS: Record<RewindPreviewSize, string> = {
-	full: "!flex max-w-full shrink-0 flex-col items-center",
-	"fit-row": "!flex w-full flex-col items-center lg:min-h-0 lg:flex-1"
-};
-
-const PANEL_CLASS: Record<RewindPreviewSize, string> = {
-	full: "max-w-full",
-	"fit-row": "w-full lg:min-h-0 lg:flex-1"
-};
-
-const ACTIONS_CLASS: Record<RewindPreviewSize, string> = {
-	full: "w-full md:w-auto flex flex-col gap-2 md:min-w-[14rem]",
-	"fit-row": "w-full grid grid-cols-2 gap-2"
-};
+const SINGLE_PAGE_CLASS = "mx-auto w-[min(100%,14rem)] grid-cols-1";
 
 function isAbortError(error: unknown): boolean {
 	return error instanceof DOMException && error.name === "AbortError";
@@ -83,16 +56,7 @@ function isSettled(page: RewindSharePage): boolean {
 
 @Component({
 	selector: "app-rewind-share-actions",
-	imports: [
-		InView,
-		NgTemplateOutlet,
-		UiButton,
-		UiSkeleton,
-		UiTab,
-		UiTabList,
-		UiTabPanel,
-		UiTabs
-	],
+	imports: [InView, UiButton, UiIconButton, UiSkeleton],
 	templateUrl: "./rewind-share-actions.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -113,7 +77,6 @@ export class RewindShareActions {
 	protected readonly pendingDownloads = signal<
 		ReadonlySet<RewindStoryFormat>
 	>(new Set());
-	private readonly selectedPage = signal<RewindStoryFormat>("story");
 	private readonly lastActivation = new Map<string, number>();
 
 	protected readonly pages = computed<RewindSharePage[]>(() => {
@@ -123,11 +86,12 @@ export class RewindShareActions {
 		const summary: RewindSharePage = {
 			key: "story",
 			image: this.image(),
-			tab: text.summaryTab,
+			label: text.summaryLabel,
 			alt: this.previewAlt(),
 			downloadLabel: gamesImage
 				? text.downloadSummary
 				: text.downloadImage,
+			shareLabel: text.shareSummary,
 			fileName: target
 				? rewindImageFileName(target.username, target.year)
 				: ""
@@ -138,9 +102,10 @@ export class RewindShareActions {
 			{
 				key: "story-list",
 				image: gamesImage,
-				tab: text.gamesTab,
+				label: text.gamesLabel,
 				alt: text.gamesPreviewAlt(this.previewAlt()),
 				downloadLabel: text.downloadGames,
+				shareLabel: text.shareGames,
 				fileName: target
 					? rewindGamesImageFileName(target.username, target.year)
 					: ""
@@ -151,12 +116,6 @@ export class RewindShareActions {
 	protected readonly hasSeveralPages = computed(
 		() => this.pages().length > 1
 	);
-	protected readonly activePage = computed(() => {
-		const selected = this.selectedPage();
-		return this.pages().some(page => page.key === selected)
-			? selected
-			: "story";
-	});
 	protected readonly canShareFiles = computed(() =>
 		supportsFileSharing(this.navigatorRef, this.pages().length)
 	);
@@ -166,32 +125,16 @@ export class RewindShareActions {
 			pages.every(isSettled) && pages.some(page => !!page.image.blob())
 		);
 	});
-	protected readonly pairsShareWithLink = computed(
-		() => this.isStage() && this.hasSeveralPages() && this.canShareFiles()
-	);
 	protected readonly shareLabel = computed(() =>
 		this.hasSeveralPages() ? this.copy.shareImages : this.copy.shareImage
 	);
-
-	protected readonly previewHeightClass = computed(
-		() => PREVIEW_HEIGHT_CLASS[this.previewSize()]
+	protected readonly pagesClass = computed(() =>
+		this.hasSeveralPages() ? "grid-cols-2" : SINGLE_PAGE_CLASS
 	);
+
 	protected readonly layoutClass = computed(
 		() => LAYOUT_CLASS[this.previewSize()]
 	);
-	protected readonly previewColumnClass = computed(
-		() => PREVIEW_COLUMN_CLASS[this.previewSize()]
-	);
-	protected readonly panelClass = computed(
-		() => PANEL_CLASS[this.previewSize()]
-	);
-	protected readonly actionsClass = computed(
-		() => ACTIONS_CLASS[this.previewSize()]
-	);
-	protected readonly isStage = computed(
-		() => this.previewSize() === "fit-row"
-	);
-
 	constructor() {
 		afterNextRender(() => {
 			if (typeof IntersectionObserver === "undefined") this.preload();
@@ -211,20 +154,24 @@ export class RewindShareActions {
 		});
 	}
 
-	protected selectPage(value: string | undefined) {
-		const page = this.pages().find(candidate => candidate.key === value);
-		if (page) this.selectedPage.set(page.key);
+	protected shareImages() {
+		if (!this.isReady()) return Promise.resolve();
+		return this.shareFiles(this.pages(), "share");
 	}
 
-	protected async shareImages() {
-		if (!this.isReady() || this.sharing() || !this.activate("share"))
-			return;
-		const files = this.pages().flatMap(page => {
+	protected sharePage(page: RewindSharePage) {
+		return this.shareFiles([page], `share:${page.key}`);
+	}
+
+	private async shareFiles(pages: RewindSharePage[], action: string) {
+		if (this.sharing() || !this.activate(action)) return;
+		const files = pages.flatMap(page => {
 			const blob = page.image.blob();
 			return blob
 				? [new File([blob], page.fileName, { type: "image/png" })]
 				: [];
 		});
+		if (files.length === 0) return;
 		this.sharing.set(true);
 		try {
 			await this.navigatorRef!.share({ files, title: this.previewAlt() });
