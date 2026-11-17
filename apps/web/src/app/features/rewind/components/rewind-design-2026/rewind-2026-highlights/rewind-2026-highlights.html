@@ -1,4 +1,5 @@
-@let cells = recordCells(); @let facts = stats(); @if (cells.length > 0) {
+@let cells = recordCells(); @let facts = stats(); @let platinumRecord =
+platinum(); @if (cells.length > 0 || platinumRecord) {
 <div class="overflow-hidden">
 	<ul class="m-0 -ml-px grid list-none grid-cols-2 p-0 lg:grid-cols-6">
 		@for (cell of cells; track cell.record.key) { @let record = cell.record;
@@ -35,6 +36,14 @@
 					>{{ record.title }}</span
 				>
 			</a>
+		</li>
+		} @if (platinumRecord; as record) {
+		<li
+			appRewindReveal
+			class="col-span-2 min-w-0 border-t border-l border-line lg:col-span-6"
+			data-platinum-record
+		>
+			<app-rewind-2026-platinum-record [record]="record" />
 		</li>
 		}
 	</ul>

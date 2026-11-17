@@ -50,9 +50,8 @@ export interface RewindHighlightsCopy {
 }
 
 export interface RewindPlatinumsCopy {
-	heading: string;
 	inTheYear: string;
-	platinum: string;
+	dateRange: (from: string, to: string) => string;
 	gameLabel: (title: string, date: string) => string;
 }
 

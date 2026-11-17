@@ -117,9 +117,8 @@ const ENGLISH: RewindCopy = {
 		platinumBadge: "Platinum"
 	},
 	platinums: {
-		heading: "Platinums",
 		inTheYear: "Platinums this year",
-		platinum: "Platinum",
+		dateRange: (from, to) => `${from} to ${to}`,
 		gameLabel: (title, date) => `${title}, platinum on ${date}`
 	},
 	aiRecap: {
@@ -285,9 +284,8 @@ const SPANISH: RewindCopy = {
 		platinumBadge: "Platino"
 	},
 	platinums: {
-		heading: "Platinos",
-		inTheYear: "Platinos en el año",
-		platinum: "Platino",
+		inTheYear: "Platinos del año",
+		dateRange: (from, to) => `Del ${from} al ${to}`,
 		gameLabel: (title, date) => `${title}, platino el ${date}`
 	},
 	aiRecap: {

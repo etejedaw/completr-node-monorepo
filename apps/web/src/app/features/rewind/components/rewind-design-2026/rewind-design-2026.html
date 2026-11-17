@@ -117,17 +117,7 @@
 		/>
 		<app-rewind-2026-highlights
 			[highlights]="data.highlights"
-			[language]="data.language"
-		/>
-	</section>
-	} @if (platinumGames(); as platinumGames) {
-	<section aria-labelledby="rewind-platinums-heading" class="min-w-0">
-		<app-profile-section-header
-			headingId="rewind-platinums-heading"
-			[heading]="platinumsHeading()"
-		/>
-		<app-rewind-2026-platinums
-			[games]="platinumGames"
+			[platinumGames]="data.platinumGames"
 			[language]="data.language"
 		/>
 	</section>

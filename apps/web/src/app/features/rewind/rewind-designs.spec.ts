@@ -9,7 +9,7 @@ import { Component, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
 import { By } from "@angular/platform-browser";
 import { provideRouter } from "@angular/router";
-import { render, screen } from "@testing-library/angular";
+import { render, screen, within } from "@testing-library/angular";
 
 import { type Rewind } from "../../core/models/rewind.model";
 import { RewindDesign2025 } from "./components/rewind-design-2025/rewind-design-2025";
@@ -370,7 +370,7 @@ describe("RewindDesignOutlet", () => {
 			["2025", "no access", null],
 			["2025", "an empty year", []]
 		])(
-			"hides the %s section with %s",
+			"hides the %s platinums with %s",
 			async (design, _case, platinumGames) => {
 				await renderWith({
 					year: Number(design),
@@ -385,10 +385,13 @@ describe("RewindDesignOutlet", () => {
 				expect(
 					screen.queryByRole("link", { name: /platinum on/ })
 				).not.toBeInTheDocument();
+				expect(
+					screen.queryByText("Platinums this year")
+				).not.toBeInTheDocument();
 			}
 		);
 
-		it("puts the 2026 section after the highlights, in the Rewind language", async () => {
+		it("puts the 2026 platinums inside the highlights grid, in the Rewind language, with no section of their own", async () => {
 			const { fixture } = await renderWith({
 				platinumGames: [platinumGame],
 				highlights: {
@@ -398,23 +401,19 @@ describe("RewindDesignOutlet", () => {
 				}
 			});
 
-			const heading = screen.getByRole("heading", {
-				level: 2,
-				name: "Platinums"
-			});
+			const highlights = screen
+				.getByRole("heading", { level: 2, name: "Highlights" })
+				.closest("section") as HTMLElement;
 			expect(
-				isBefore(
-					screen.getByRole("heading", {
-						level: 2,
-						name: "Highlights"
-					}),
-					heading
-				)
-			).toBe(true);
+				screen.queryByRole("heading", { name: "Platinums" })
+			).not.toBeInTheDocument();
 			expect(
-				screen.getByRole("link", {
+				within(highlights).getByRole("link", {
 					name: "Hades, platinum on Apr 2"
 				})
+			).toBeInTheDocument();
+			expect(
+				within(highlights).getByText("Platinums this year")
 			).toBeInTheDocument();
 
 			fixture.componentInstance.rewind.set(
@@ -422,9 +421,7 @@ describe("RewindDesignOutlet", () => {
 			);
 			fixture.detectChanges();
 
-			expect(
-				screen.getByRole("heading", { level: 2, name: "Platinos" })
-			).toBeInTheDocument();
+			expect(screen.getByText("Platinos del año")).toBeInTheDocument();
 		});
 
 		it("puts the 2025 page right after the highlights and before the finished shelves, like the 2026 section", async () => {

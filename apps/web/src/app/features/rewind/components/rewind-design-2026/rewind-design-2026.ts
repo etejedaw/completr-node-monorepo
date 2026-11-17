@@ -42,9 +42,9 @@ import { Rewind2026CoverFan } from "./rewind-2026-cover-fan/rewind-2026-cover-fa
 import { Rewind2026GameOfTheYear } from "./rewind-2026-game-of-the-year/rewind-2026-game-of-the-year";
 import {
 	hasRewind2026Highlights,
+	platinumRecordOf,
 	Rewind2026Highlights
 } from "./rewind-2026-highlights/rewind-2026-highlights";
-import { Rewind2026Platinums } from "./rewind-2026-platinums/rewind-2026-platinums";
 import { Rewind2026ResultsStrip } from "./rewind-2026-results-strip/rewind-2026-results-strip";
 import { Rewind2026ShareBanner } from "./rewind-2026-share-banner/rewind-2026-share-banner";
 
@@ -66,7 +66,6 @@ function backdropOf(rewind: Rewind): string | null {
 		Rewind2026CoverFan,
 		Rewind2026GameOfTheYear,
 		Rewind2026Highlights,
-		Rewind2026Platinums,
 		Rewind2026ResultsStrip,
 		Rewind2026ShareBanner,
 		RewindAiRecap,
@@ -107,22 +106,17 @@ export class RewindDesign2026 implements RewindDesignComponent {
 		return !!stats && hasPremiumCharts(stats);
 	});
 
-	protected readonly platinumGames = computed(() => {
-		const games = this.rewind().platinumGames;
-		return games && games.length > 0 ? games : null;
-	});
-
-	protected readonly platinumsHeading = computed(
-		() => rewindCopy(this.rewind().language).platinums.heading
-	);
-
 	protected readonly hasYearMix = computed(() =>
 		hasYearMixCharts(this.rewind().yearMix)
 	);
 
-	protected readonly hasHighlights = computed(() =>
-		hasRewind2026Highlights(this.rewind().highlights)
-	);
+	protected readonly hasHighlights = computed(() => {
+		const { highlights, platinumGames, language } = this.rewind();
+		return (
+			hasRewind2026Highlights(highlights) ||
+			platinumRecordOf(platinumGames, language) !== null
+		);
+	});
 
 	protected readonly eyebrow = computed(() =>
 		this.isOwner()

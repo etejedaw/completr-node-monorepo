@@ -1,0 +1,79 @@
+@let platinum = record(); @let sole = soleCover();
+<div
+	class="relative isolate flex h-full min-w-0 flex-col gap-4 overflow-hidden px-3.5 py-5 lg:flex-row lg:items-center lg:gap-10 lg:px-6 lg:py-7"
+	[class.group]="sole"
+>
+	@if (sole; as cover) {
+	<a
+		class="absolute inset-0 z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
+		[routerLink]="['/games', cover.code]"
+		[attr.aria-label]="cover.label"
+	></a>
+	} @if (platinum.artUrl; as art) {
+	<img
+		alt=""
+		aria-hidden="true"
+		loading="lazy"
+		class="absolute inset-0 -z-10 size-full object-cover opacity-12 grayscale-40 motion-reduce:transition-none"
+		[class]="
+			sole
+				? 'transition-opacity duration-300 group-hover:opacity-20'
+				: ''
+		"
+		[src]="art | coverUrl: 640"
+	/>
+	}
+	<div class="flex min-w-0 flex-none flex-col gap-1">
+		<span
+			class="font-display text-[2.4rem] leading-none font-bold tracking-[-0.02em] text-fg tabular-nums lg:text-[3.6rem]"
+			>{{ platinum.total }}</span
+		>
+		<span uiEyebrow class="text-xs!"
+			><span
+				aria-hidden="true"
+				class="mr-2 inline-block size-1.5 shrink-0 bg-platinum"
+			></span
+			>{{ platinum.label }}</span
+		>
+		<span
+			class="text-sm text-fg-secondary"
+			[class.group-hover:text-fg]="sole"
+			>{{ platinum.summary }}</span
+		>
+	</div>
+	@if (!sole) {
+	<ul
+		class="m-0 flex min-w-0 list-none gap-px overflow-x-auto p-0 [scrollbar-width:none] max-lg:pr-6 max-lg:[mask-image:linear-gradient(to_right,#000_calc(100%-1.5rem),transparent)] lg:ml-auto [&::-webkit-scrollbar]:hidden"
+	>
+		@for (cover of platinum.covers; track $index) {
+		<li class="w-12 flex-none lg:w-16">
+			<a
+				class="flex flex-col gap-1.5 no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+				[routerLink]="['/games', cover.code]"
+				[attr.aria-label]="cover.label"
+			>
+				@if (cover.artUrl; as art) {
+				<img
+					alt=""
+					aria-hidden="true"
+					loading="lazy"
+					class="block size-12 object-cover lg:size-16"
+					[src]="art | coverUrl: 420"
+				/>
+				} @else {
+				<span
+					aria-hidden="true"
+					class="block size-12 bg-surface lg:size-16"
+				></span>
+				}
+				<span
+					aria-hidden="true"
+					class="text-[11px] leading-tight text-fg-muted"
+					>{{ cover.date }}</span
+				>
+			</a>
+		</li>
+		}
+	</ul>
+	}
+</div>
