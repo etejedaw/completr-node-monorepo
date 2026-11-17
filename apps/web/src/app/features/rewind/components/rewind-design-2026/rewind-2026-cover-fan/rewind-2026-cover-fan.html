@@ -4,16 +4,27 @@
 	class="pointer-events-none relative mx-auto h-[14.5rem] w-full max-w-[24rem] select-none [--poster-w:7.75rem] [--poster-step:3.625rem] sm:h-[18rem] sm:max-w-none sm:[--poster-w:10rem] sm:[--poster-step:4.9rem] lg:h-[20rem] lg:[--poster-w:11.875rem] lg:[--poster-step:5.25rem] motion-safe:animate-[uiFadeUp_600ms_cubic-bezier(0.16,1,0.3,1)_900ms_both]"
 >
 	<div
-		class="absolute inset-x-[8%] -bottom-[6%] h-[38%] bg-[radial-gradient(ellipse_at_center,rgb(0_0_0/0.6),transparent_70%)]"
+		data-fan-halo
+		class="absolute left-1/2 top-[2%] aspect-square w-[calc(var(--poster-w)*2.1)] -translate-x-1/2 bg-[radial-gradient(circle,color-mix(in_oklab,var(--color-brand-hover)_55%,transparent),color-mix(in_oklab,var(--color-brand)_18%,transparent)_40%,transparent_68%)] blur-[10px]"
+	></div>
+	<div
+		data-fan-floor
+		class="absolute inset-x-[8%] -bottom-[4%] h-[22%] bg-[radial-gradient(ellipse_at_50%_0%,rgb(0_0_0/0.65),transparent_70%)]"
 	></div>
 	@for (poster of posters(); track poster.gameId) {
 	<img
 		alt=""
 		decoding="async"
 		draggable="false"
-		class="absolute bottom-0 left-1/2 aspect-[2/3] w-[calc(var(--poster-w)*var(--poster-size))] origin-[50%_120%] translate-x-[calc(-50%+var(--poster-offset)*var(--poster-step))] translate-y-[calc(var(--poster-offset)*var(--poster-offset)*0.25rem)] rotate-[calc(var(--poster-offset)*7deg)] rounded-xl border border-line-hover bg-surface object-cover shadow-[0_1.5rem_3rem_rgb(0_0_0/0.6)]"
+		class="absolute bottom-[12%] left-1/2 aspect-[2/3] w-[calc(var(--poster-w)*var(--poster-size))] origin-[50%_120%] translate-x-[calc(-50%+var(--poster-offset)*var(--poster-step))] translate-y-[calc(var(--poster-offset)*var(--poster-offset)*0.25rem)] rotate-[calc(var(--poster-offset)*6deg)] rounded-xl bg-surface object-cover brightness-[calc(1-var(--poster-depth)*0.2)] [-webkit-box-reflect:below_0.375rem_linear-gradient(transparent_70%,rgb(255_255_255/0.18))]"
+		[class]="
+			poster.offset === 0
+				? 'border border-white/20 shadow-[0_1.875rem_3.75rem_-0.625rem_rgb(0_0_0/0.8),0_0_2.5rem_color-mix(in_oklab,var(--color-brand)_35%,transparent)]'
+				: 'border border-white/10 shadow-[0_1.875rem_3.125rem_-0.625rem_rgb(0_0_0/0.75)]'
+		"
 		[src]="poster.url | coverUrl: 420"
 		[style.--poster-offset]="poster.offset"
+		[style.--poster-depth]="poster.depth"
 		[style.--poster-size]="poster.size"
 		[style.z-index]="poster.layer"
 	/>

@@ -149,6 +149,7 @@ describe("rewind2026FanPosters", () => {
 		);
 
 		expect(posters.map(poster => poster.offset)).toEqual([0, -1, 1, -2, 2]);
+		expect(posters.map(poster => poster.depth)).toEqual([0, 1, 1, 2, 2]);
 		expect(posters.map(poster => poster.layer)).toEqual([5, 4, 3, 2, 1]);
 		for (const poster of posters.slice(1))
 			expect(poster.size).toBeLessThan(1);
@@ -194,6 +195,30 @@ describe("Rewind2026CoverFan", () => {
 		expect(element.querySelectorAll("a, button, [tabindex]")).toHaveLength(
 			0
 		);
+	});
+
+	it("lights the middle poster on a stage and dims the ones further back", () => {
+		const element = render(
+			source(
+				["a", "b", "c", "d"].map(id => finished(id, `${id}.jpg`)),
+				topRated("t", "t.jpg")
+			)
+		);
+
+		expect(element.querySelector("[data-fan-halo]")).not.toBeNull();
+		expect(element.querySelector("[data-fan-floor]")).not.toBeNull();
+		const images = [...element.querySelectorAll<HTMLElement>("img")];
+		const depths = images.map(image =>
+			image.style.getPropertyValue("--poster-depth")
+		);
+		expect(depths).toEqual(["0", "1", "1", "2", "2"]);
+		expect(images[0].className).toContain("border-white/20");
+		for (const image of images.slice(1)) {
+			expect(image.className).toContain("border-white/10");
+			expect(image.className).not.toContain("border-white/20");
+		}
+		for (const image of images)
+			expect(image.className).toContain("brightness-");
 	});
 
 	it("draws nothing when no game has art", () => {

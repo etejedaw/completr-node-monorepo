@@ -67,6 +67,7 @@ export function rewind2026FanPosters(
 			gameId: game.gameId,
 			url: posterUrlOf(game) ?? "",
 			offset,
+			depth: Math.abs(offset),
 			size: 1 - Math.min(Math.abs(offset), 1) * (1 - OUTER_POSTER_SIZE),
 			layer: games.length - rank
 		};

@@ -7,6 +7,7 @@ export interface Rewind2026FanPoster {
 	gameId: string;
 	url: string;
 	offset: number;
+	depth: number;
 	size: number;
 	layer: number;
 }
