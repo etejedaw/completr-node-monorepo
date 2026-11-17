@@ -386,6 +386,7 @@ void describe("buildRewindYears", () => {
 				runs,
 				genres: [],
 				platinums: null,
+				platinumRunIds: new Set(),
 				calendar: calendarOn(MID_2026),
 				visibility: ownerVisibility(),
 				stored: storedView()

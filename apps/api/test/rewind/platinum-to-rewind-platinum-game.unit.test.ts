@@ -33,7 +33,7 @@ function platinumRow(fields: Partial<GamePlatinum>): GamePlatinum {
 }
 
 void describe("platinumToRewindPlatinumGame", () => {
-	void it("keeps the game reference, the date and the platform abbreviation, never the notes or the run", () => {
+	void it("keeps the game reference, the date, the platform abbreviation and the run, never the notes", () => {
 		assert.deepEqual(platinumToRewindPlatinumGame(platinumRow({})), {
 			gameId: "game-hades",
 			code: "hades",
@@ -41,7 +41,8 @@ void describe("platinumToRewindPlatinumGame", () => {
 			coverUrl: "https://img.test/hades.jpg",
 			backgroundUrl: null,
 			platinumedAt: "2026-03-04",
-			platformAbbreviation: "PS5"
+			platformAbbreviation: "PS5",
+			backlogId: "run-1"
 		});
 	});
 
@@ -49,6 +50,14 @@ void describe("platinumToRewindPlatinumGame", () => {
 		assert.equal(
 			platinumToRewindPlatinumGame(platinumRow({ Platform: null }))
 				?.platformAbbreviation,
+			null
+		);
+	});
+
+	void it("leaves the run empty for a platinum of the game without run", () => {
+		assert.equal(
+			platinumToRewindPlatinumGame(platinumRow({ backlogId: null }))
+				?.backlogId,
 			null
 		);
 	});

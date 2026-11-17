@@ -15,6 +15,7 @@ export const REWIND_PLATINUM_ATTRS = ["id", "backlogId", "platinumedAt"];
 export const REWIND_PLATINUM_GAME_ATTRS = [
 	"id",
 	"gameId",
+	"backlogId",
 	"platformId",
 	"platinumedAt"
 ];

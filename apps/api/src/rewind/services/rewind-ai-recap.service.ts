@@ -211,6 +211,7 @@ async function writeAiRecap(
 			runs: sources.runs,
 			genres: sources.genres,
 			platinums: sources.platinums,
+			platinumRunIds: new Set(),
 			calendar,
 			visibility: {
 				generatedYears: new Set(),

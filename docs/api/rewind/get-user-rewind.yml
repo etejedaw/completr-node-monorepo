@@ -76,7 +76,8 @@ docs: |-
             "coverUrl": "https://media.example.com/hades.jpg",
             "backgroundUrl": "https://media.example.com/hades-bg.jpg",
             "finishedAt": "2025-03-10",
-            "platformAbbreviation": "PS5"
+            "platformAbbreviation": "PS5",
+            "isPlatinumRun": true
           }
         ],
         "abandonedGames": [
@@ -87,7 +88,8 @@ docs: |-
             "coverUrl": "https://media.example.com/tunic.jpg",
             "backgroundUrl": "https://media.example.com/tunic-bg.jpg",
             "finishedAt": "2025-08-01",
-            "platformAbbreviation": "PC"
+            "platformAbbreviation": "PC",
+            "isPlatinumRun": false
           }
         ],
         "platinumGames": [
@@ -245,8 +247,8 @@ docs: |-
     - `premiumStats`: `hoursByMonth`, `tasteVsCritics`, `backlogFlow` and `genreShare`, stored with the AI recap; `null` when the year was never generated with premium access.
     - `ownerControls`: only for the owner, `null` for everyone else. `includesPrivateRuns` and `includesNotes` repeat the last generation choices; `regenerationsLeft` is the rolls this Rewind has left (before its first AI use, the quota the owner's current access would get from the open edition); `graceEndsAt` is the `graceEndsAt` of the open edition (`YYYY-MM-DD`) when the Rewind is of the edition year, today is inside the grace window, the grace is unused and the owner has `rewind.premium` access, `null` otherwise; `canRegenerate` is `periodOpen` && year allowed (the edition year, or a previous year with full premium) && `rewind.premium` access && (`graceEndsAt !== null || regenerationsLeft > 0`); `regenerationBlockedBy` is `null` when `canRegenerate` is `true`; otherwise the first applicable reason: `period-closed` (no edition open), `requires-premium` (a previous year without full premium), `no-ai-access` (no `rewind.premium` access) or `no-regenerations-left` (no rolls and no grace left), the same rules that answer the 409/403 of regenerating; `aiRecapState` is `ready` (recap stored), `failed` (failed or still pending), `available` (no recap and `canRegenerate`) or `unavailable`; `periodOpen` says whether an edition is open today; `periodStatus` is `open` (an edition is open), `scheduled` (none is open and a later one exists) or `closed` (no later edition), the same criterion as `period.status` in `GET /users/:username/rewinds`; `closesAt` is the `closesAt` of the open edition (`YYYY-MM-DD`) or `null`; `frozenAt` repeats the Rewind `frozenAt`.
     - `totals`: distinct games `finished` (`completed`) and `abandoned` with `finishedAt` in the year, distinct games `started` (`startedAt` in the year), `hoursPlayed` as in the years list, and `platinums` with `platinumedAt` in the year (`null` without access to the platinums). `finishRate` is `round(finished / (finished + abandoned) * 100)`, `null` when both are 0. `averageRating` is the mean `userRating` of the rated finished runs, 1 decimal, `null` without ratings. `genresPlayed` / `platformsPlayed` count the distinct genres of the finished games and the distinct platforms of the finished runs.
-    - `finishedGames`: one entry per finished game (its latest run of the year), by `finishedAt` ascending and then run id.
-    - `abandonedGames`: one entry per abandoned game (its latest `abandoned` run of the year), with the same fields and order as `finishedGames`; `finishedAt` is the date it was abandoned. It follows the same privacy (visitors only get public runs) and its length matches `totals.abandoned`. A game abandoned and then finished in the same year is in both lists, each with its own date, as `totals` counts it in both. It does not feed the highlights, `yearMix` or the share images. A Rewind frozen before this field existed serves `[]`.
+    - `finishedGames`: one entry per finished game (its latest run of the year), by `finishedAt` ascending and then run id. `isPlatinumRun` is `true` only when that exact run holds a platinum of `platinumGames`: a platinum earned on an earlier run of the game, or saved without a run, marks nothing. It is `false` for every entry without access to the platinums, and for a Rewind frozen before the runs were stored in its snapshot. The run id itself is never returned.
+    - `abandonedGames`: one entry per abandoned game (its latest `abandoned` run of the year), with the same fields (`isPlatinumRun` included) and order as `finishedGames`; `finishedAt` is the date it was abandoned. It follows the same privacy (visitors only get public runs) and its length matches `totals.abandoned`. A game abandoned and then finished in the same year is in both lists, each with its own date, as `totals` counts it in both. It does not feed the highlights, `yearMix` or the share images. A Rewind frozen before this field existed serves `[]`.
     - `platinumGames`: one entry per platinum with `platinumedAt` in the year, the same ones `totals.platinums` counts (its length always matches, including platinums of private runs, as the count does), by `platinumedAt` ascending and then platinum id. Each entry has the game reference, `platinumedAt` and the `platformAbbreviation` of the platinum (`null` if it has none); the platinum notes and its run are never returned. A game has at most one platinum per user, so it appears once. `null` without access to the platinums, `[]` when there are none. A Rewind frozen before this field existed serves `[]` (with access) while `totals.platinums` keeps the count of its snapshot.
     - `topRated`: the finished run with the highest `userRating`; ties go to the latest `finishedAt`, then the run id.
     - `bestRatio`: the finished run with the highest personal ratio (`score` per hour of `realDuration`, same formula as the backlog); ties like `topRated`.

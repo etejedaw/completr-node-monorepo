@@ -357,7 +357,8 @@ void describe("GET /users/:username/rewinds/:year", () => {
 				coverUrl: `https://img.test/${games.tunic.code}.jpg`,
 				backgroundUrl: `https://img.test/${games.tunic.code}-bg.jpg`,
 				finishedAt: "2025-08-01",
-				platformAbbreviation: playstation.abbreviation
+				platformAbbreviation: playstation.abbreviation,
+				isPlatinumRun: false
 			}
 		]);
 		assert.equal(data.highlights.topRated.code, games.secret.code);

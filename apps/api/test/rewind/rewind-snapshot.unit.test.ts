@@ -21,6 +21,7 @@ import {
 	ownerVisibility,
 	platinumGame,
 	platinumGamesOf,
+	publicPlatinumGame,
 	visitorVisibility
 } from "./rewind-run.builder";
 
@@ -306,6 +307,7 @@ void describe("rewindViewToRewind", () => {
 			"coverUrl",
 			"finishedAt",
 			"gameId",
+			"isPlatinumRun",
 			"platformAbbreviation",
 			"title"
 		]);
@@ -361,7 +363,8 @@ void describe("rewindViewToRewind", () => {
 				coverUrl: "https://img.test/tunic.jpg",
 				backgroundUrl: "https://img.test/tunic-bg.jpg",
 				finishedAt: "2026-06-06",
-				platformAbbreviation: "NSW"
+				platformAbbreviation: "NSW",
+				isPlatinumRun: false
 			}
 		]);
 	});
@@ -386,13 +389,92 @@ void describe("rewindViewToRewind", () => {
 			platinumsVisible: false
 		});
 
-		assert.deepEqual(withAccess.platinumGames, view.platinumGames);
+		assert.deepEqual(
+			withAccess.platinumGames,
+			view.platinumGames?.map(publicPlatinumGame)
+		);
 		assert.equal(
 			withAccess.platinumGames?.length,
 			withAccess.totals.platinums
 		);
 		assert.equal(withoutAccess.platinumGames, null);
 		assert.equal(withoutAccess.totals.platinums, null);
+	});
+
+	void describe("platinum run mark", () => {
+		const earlierHadesRun = finishedRun("hades", "2026-02-02");
+		const shownHadesRun = finishedRun("hades", "2026-07-07");
+		const celesteRun = finishedRun("celeste", "2026-04-04");
+		const tunicRun = finishedRun("tunic", "2026-05-05");
+		const markedView = buildRewindView(
+			viewSource([earlierHadesRun, shownHadesRun, celesteRun, tunicRun], {
+				platinumGames: [
+					platinumGame("hades", "2026-02-03", {
+						backlogId: earlierHadesRun.id
+					}),
+					platinumGame("celeste", "2026-04-05", {
+						backlogId: celesteRun.id
+					}),
+					platinumGame("tunic", "2026-05-06", { backlogId: null })
+				]
+			})
+		)!;
+
+		function markedCodes(rewind: {
+			finishedGames: { code: string; isPlatinumRun: boolean }[];
+		}) {
+			return rewind.finishedGames
+				.filter(game => game.isPlatinumRun)
+				.map(game => game.code);
+		}
+
+		void it("stores the run of each game in the photo", () => {
+			assert.deepEqual(
+				markedView.finishedGames.map(game => [
+					game.code,
+					game.backlogId
+				]),
+				[
+					["celeste", celesteRun.id],
+					["tunic", tunicRun.id],
+					["hades", shownHadesRun.id]
+				]
+			);
+		});
+
+		void it("marks only the shown run that holds the platinum, never a platinum without run", () => {
+			assert.deepEqual(
+				markedCodes(rewindViewToRewind(markedView, live)),
+				["celeste"]
+			);
+		});
+
+		void it("marks nothing for a viewer without access to the platinums", () => {
+			assert.deepEqual(
+				markedCodes(
+					rewindViewToRewind(markedView, {
+						...live,
+						platinumsVisible: false
+					})
+				),
+				[]
+			);
+		});
+
+		void it("marks nothing in a photo frozen before the runs were stored", () => {
+			const viewBeforeRuns = {
+				...markedView,
+				finishedGames: markedView.finishedGames.map(
+					({ backlogId: _backlogId, ...game }) => game
+				),
+				platinumGames: markedView.platinumGames?.map(publicPlatinumGame)
+			};
+
+			assert.deepEqual(
+				markedCodes(rewindViewToRewind(viewBeforeRuns, live)),
+				[]
+			);
+		});
 	});
 
 	void it("reads a photo frozen before the platinum games existed as an empty list, still hidden without access", () => {
@@ -425,7 +507,7 @@ void describe("rewindViewToRewind", () => {
 		const rewind = rewindViewToRewind(tampered, live);
 
 		assert.deepEqual(rewind.platinumGames, [
-			platinumGame("tunic", "2026-05-05")
+			publicPlatinumGame(platinumGame("tunic", "2026-05-05"))
 		]);
 	});
 

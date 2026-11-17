@@ -162,6 +162,7 @@ void describe("buildRewind yearMix", () => {
 			runs,
 			genres: [],
 			platinums: 0,
+			platinumRunIds: new Set(),
 			calendar: calendarOn(new Date("2026-06-15T12:00:00.000Z")),
 			visibility: ownerVisibility(),
 			stored: storedView()

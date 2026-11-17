@@ -1,15 +1,19 @@
 import {
 	type Rewind,
-	type RewindFinishedGame,
+	type RewindClosedGame,
 	type RewindPlatinumGame,
 	type RewindTotals,
 	type RewindView,
 	type RewindViewGame
 } from "../rewind.interface";
 import { type RewindLiveFields } from "../rewind-freeze.interface";
+import { collectPlatinumRunIds } from "../utils/collect-platinum-run-ids.util";
 import { pickVisiblePersona } from "../utils/pick-visible-persona.util";
 
-function toFinishedGame(game: RewindViewGame): RewindFinishedGame {
+function toClosedGame(
+	game: RewindViewGame,
+	platinumRunIds: ReadonlySet<string>
+): RewindClosedGame {
 	return {
 		gameId: game.gameId,
 		code: game.code,
@@ -17,7 +21,9 @@ function toFinishedGame(game: RewindViewGame): RewindFinishedGame {
 		coverUrl: game.coverUrl,
 		backgroundUrl: game.backgroundUrl,
 		finishedAt: game.finishedAt,
-		platformAbbreviation: game.platformAbbreviation
+		platformAbbreviation: game.platformAbbreviation,
+		isPlatinumRun:
+			game.backlogId !== undefined && platinumRunIds.has(game.backlogId)
 	};
 }
 
@@ -52,6 +58,12 @@ export function rewindViewToRewind(
 	view: RewindView,
 	live: RewindLiveFields
 ): Rewind {
+	const platinumRunIds = live.platinumsVisible
+		? collectPlatinumRunIds(view.platinumGames)
+		: new Set<string>();
+	const toVisibleClosedGame = (game: RewindViewGame) =>
+		toClosedGame(game, platinumRunIds);
+
 	return {
 		year: view.year,
 		persona: pickVisiblePersona(view, live.platinumsVisible),
@@ -59,8 +71,8 @@ export function rewindViewToRewind(
 		isSpotlight: live.isSpotlight,
 		otherYears: live.otherYears,
 		totals: visibleTotals(view.totals, live.platinumsVisible),
-		finishedGames: view.finishedGames.map(toFinishedGame),
-		abandonedGames: (view.abandonedGames ?? []).map(toFinishedGame),
+		finishedGames: view.finishedGames.map(toVisibleClosedGame),
+		abandonedGames: (view.abandonedGames ?? []).map(toVisibleClosedGame),
 		platinumGames: visiblePlatinumGames(view, live.platinumsVisible),
 		highlights: {
 			...view.highlights,

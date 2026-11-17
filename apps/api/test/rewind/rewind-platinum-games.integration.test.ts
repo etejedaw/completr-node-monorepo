@@ -433,3 +433,187 @@ void describe("platinum games of a frozen Rewind", () => {
 		);
 	});
 });
+
+void describe("platinum mark on the exact run", () => {
+	interface RunMarkFixture {
+		owner: Account;
+		visitor: Account;
+		runIds: string[];
+		platinumOfShownHades: () => Promise<unknown>;
+	}
+
+	interface ClosedGameBody {
+		title: string;
+		isPlatinumRun: boolean;
+	}
+
+	interface RunMarkBody {
+		body: {
+			data: {
+				finishedGames: ClosedGameBody[];
+				abandonedGames: ClosedGameBody[];
+			};
+		};
+	}
+
+	async function seedRunMarkFixture(): Promise<RunMarkFixture> {
+		const [owner, visitor] = await Promise.all([
+			signUpOn("2025-01-15T00:00:00.000Z"),
+			signUpOn("2025-01-15T00:00:00.000Z")
+		]);
+		const hades = await createGame({ title: "Hades" });
+		const celeste = await createGame({ title: "Celeste" });
+		const tunic = await createGame({ title: "Tunic" });
+		const inside = await createGame({ title: "Inside" });
+		const outer = await createGame({ title: "Outer Wilds" });
+		const earlierHades = await addRun(owner, hades, platform, {
+			finishedAt: "2026-02-01"
+		});
+		const shownHades = await addRun(owner, hades, platform, {
+			finishedAt: "2026-06-01"
+		});
+		const celesteRun = await addRun(owner, celeste, platform, {
+			finishedAt: "2026-03-03"
+		});
+		const tunicRun = await addRun(owner, tunic, platform, {
+			finishedAt: "2026-04-04"
+		});
+		const insideRun = await addRun(owner, inside, platform, {
+			status: "abandoned",
+			finishedAt: "2026-05-05"
+		});
+		const privateOuter = await addRun(owner, outer, platform, {
+			finishedAt: "2026-07-07",
+			isPublic: false
+		});
+		const hadesPlatinum = await platinumOf(owner, hades, {
+			platinumedAt: "2026-02-02",
+			backlogId: earlierHades.id
+		});
+		await platinumOf(owner, celeste, {
+			platinumedAt: "2026-03-04",
+			backlogId: celesteRun.id
+		});
+		await platinumOf(owner, tunic, { platinumedAt: "2026-04-05" });
+		await platinumOf(owner, inside, {
+			platinumedAt: "2026-05-06",
+			backlogId: insideRun.id
+		});
+		await platinumOf(owner, outer, {
+			platinumedAt: "2026-07-08",
+			backlogId: privateOuter.id
+		});
+		await storeRewind(owner, 2026);
+		await setPrivacy(owner, {});
+		return {
+			owner,
+			visitor,
+			runIds: [
+				earlierHades.id,
+				shownHades.id,
+				celesteRun.id,
+				tunicRun.id,
+				insideRun.id,
+				privateOuter.id
+			],
+			platinumOfShownHades: () =>
+				hadesPlatinum.update({ backlogId: shownHades.id })
+		};
+	}
+
+	function markedTitles(response: RunMarkBody) {
+		const { finishedGames, abandonedGames } = response.body.data;
+		return [...finishedGames, ...abandonedGames]
+			.filter(game => game.isPlatinumRun)
+			.map(game => game.title)
+			.sort();
+	}
+
+	function readMarks(fixture: RunMarkFixture, authorization?: string) {
+		return readRewind(
+			fixture.owner.user.username,
+			2026,
+			authorization
+		).expect(200) as Promise<RunMarkBody>;
+	}
+
+	function assertNoRunIds(fixture: RunMarkFixture, response: RunMarkBody) {
+		const body = JSON.stringify(response.body);
+		for (const runId of fixture.runIds)
+			assert.equal(body.includes(runId), false);
+		assert.equal(body.includes("backlogId"), false);
+	}
+
+	void it("marks only the shown run that holds the platinum, never a platinum without run or an earlier run of the game", async () => {
+		const fixture = await seedRunMarkFixture();
+
+		const owner = await readMarks(fixture, fixture.owner.authorization);
+		const visitor = await readMarks(fixture, fixture.visitor.authorization);
+
+		assert.deepEqual(markedTitles(owner), [
+			"Celeste",
+			"Inside",
+			"Outer Wilds"
+		]);
+		assert.deepEqual(markedTitles(visitor), ["Celeste", "Inside"]);
+		assertNoRunIds(fixture, owner);
+		assertNoRunIds(fixture, visitor);
+	});
+
+	void it("follows the platinum when it moves to the shown run while the Rewind is live", async () => {
+		const fixture = await seedRunMarkFixture();
+		await fixture.platinumOfShownHades();
+
+		const owner = await readMarks(fixture, fixture.owner.authorization);
+
+		assert.ok(markedTitles(owner).includes("Hades"));
+	});
+
+	void it("marks nothing for a visitor without platinum access", async () => {
+		const fixture = await seedRunMarkFixture();
+		await setPrivacy(fixture.owner, { platinumVisibility: "private" });
+
+		const visitor = await readMarks(fixture, fixture.visitor.authorization);
+		const anonymous = await readMarks(fixture);
+
+		assert.deepEqual(markedTitles(visitor), []);
+		assert.deepEqual(markedTitles(anonymous), []);
+	});
+
+	void it("keeps the marks of the photo, hides them live without access and ignores a photo frozen without runs", async () => {
+		const fixture = await seedRunMarkFixture();
+		await closeEdition(2026);
+		const frozenOwner = await readMarks(
+			fixture,
+			fixture.owner.authorization
+		);
+		await fixture.platinumOfShownHades();
+
+		const owner = await readMarks(fixture, fixture.owner.authorization);
+		const visitor = await readMarks(fixture, fixture.visitor.authorization);
+		await setPrivacy(fixture.owner, { platinumVisibility: "private" });
+		const hidden = await readMarks(fixture, fixture.visitor.authorization);
+		await setPrivacy(fixture.owner, {});
+		const row = await findRewindRow(fixture.owner, 2026);
+		const snapshot = structuredClone(row!.snapshot!);
+		for (const view of [snapshot.owner, snapshot.public])
+			for (const game of view?.finishedGames ?? []) delete game.backlogId;
+		await Rewind.update({ snapshot }, { where: { id: row!.id } });
+		const beforeRuns = await readMarks(
+			fixture,
+			fixture.owner.authorization
+		);
+
+		assert.deepEqual(markedTitles(frozenOwner), [
+			"Celeste",
+			"Inside",
+			"Outer Wilds"
+		]);
+		assert.deepEqual(markedTitles(owner), markedTitles(frozenOwner));
+		assert.deepEqual(markedTitles(visitor), ["Celeste", "Inside"]);
+		assert.deepEqual(markedTitles(hidden), []);
+		assert.deepEqual(markedTitles(beforeRuns), ["Inside"]);
+		assertNoRunIds(fixture, owner);
+		assertNoRunIds(fixture, visitor);
+	});
+});

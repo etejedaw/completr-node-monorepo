@@ -15,7 +15,7 @@ import { rewindViewToRewind } from "./mappers/rewind-view-to-rewind.mapper";
 import { userToRewindOwner } from "./mappers/user-to-rewind-owner.mapper";
 import {
 	type Rewind,
-	type RewindPlatinumGame,
+	type RewindPlatinumRun,
 	type RewindSnapshot,
 	type RewindView,
 	type RewindYears
@@ -43,6 +43,7 @@ import { findRewindRuns } from "./services/rewind-runs.service";
 import { buildRewind } from "./utils/build-rewind.util";
 import { buildRewindOwnerControls } from "./utils/build-rewind-owner-controls.util";
 import { buildRewindYears } from "./utils/build-rewind-years.util";
+import { collectPlatinumRunIds } from "./utils/collect-platinum-run-ids.util";
 import { collectYearRuns } from "./utils/collect-year-runs.util";
 import { listRewindYears } from "./utils/list-rewind-years.util";
 import { listVisibleRewindYears } from "./utils/list-visible-rewind-years.util";
@@ -217,7 +218,7 @@ function countVisiblePlatinums(
 function findVisiblePlatinumGames(
 	context: RewindViewerContext,
 	year: number
-): Promise<RewindPlatinumGame[] | null> {
+): Promise<RewindPlatinumRun[] | null> {
 	if (!context.access.platinum) return Promise.resolve(null);
 	return findRewindPlatinumGames(context.owner.id, year);
 }
@@ -338,6 +339,7 @@ async function buildRewindForContext(
 			runs: context.runs,
 			genres,
 			platinums: platinumGames?.length ?? null,
+			platinumRunIds: collectPlatinumRunIds(platinumGames),
 			calendar: context.calendar,
 			visibility: yearVisibility(context),
 			stored: toRewindStoredView(

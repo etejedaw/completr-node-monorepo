@@ -3,6 +3,7 @@ import { type RewindViewSource } from "../rewind-freeze.interface";
 import { buildRewind } from "./build-rewind.util";
 import { buildRewindViewGames } from "./build-rewind-view-games.util";
 import { buildYearTotals } from "./build-year-totals.util";
+import { collectPlatinumRunIds } from "./collect-platinum-run-ids.util";
 import { collectYearRuns } from "./collect-year-runs.util";
 import { listLatestFinishedRuns } from "./list-latest-finished-runs.util";
 import { listRewindYears } from "./list-rewind-years.util";
@@ -22,6 +23,7 @@ export function buildRewindView(source: RewindViewSource): RewindView | null {
 		runs,
 		genres,
 		platinums: source.platinumGames.length,
+		platinumRunIds: collectPlatinumRunIds(source.platinumGames),
 		calendar,
 		visibility: source.visibility,
 		stored: toRewindStoredView(record, null)

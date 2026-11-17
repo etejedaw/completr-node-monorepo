@@ -25,6 +25,7 @@ export function buildRewindViewGames(
 	const namesByGame = groupGenreNamesByGame(genres);
 	return listLatestFinishedRuns(closedRuns).map(run => ({
 		...toRewindFinishedGame(run),
+		backlogId: run.id,
 		platformName: run.platform?.name ?? null,
 		genres: namesByGame.get(run.gameId) ?? []
 	}));

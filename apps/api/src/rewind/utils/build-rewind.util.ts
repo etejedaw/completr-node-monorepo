@@ -9,6 +9,7 @@ import { listVisibleRewindYears } from "./list-visible-rewind-years.util";
 import { pickYearPersona } from "./pick-year-persona.util";
 import { resolveRewindDesign } from "./resolve-rewind-design.util";
 import { resolveSpotlightYear } from "./resolve-spotlight-year.util";
+import { toRewindClosedGame } from "./to-rewind-closed-game.util";
 import { toRewindFinishedGame } from "./to-rewind-finished-game.util";
 
 export function buildRewind(
@@ -36,9 +37,11 @@ export function buildRewind(
 			source.visibility
 		).filter(other => other !== year),
 		totals,
-		finishedGames,
-		abandonedGames: listLatestFinishedRuns(yearRuns.abandoned).map(
-			toRewindFinishedGame
+		finishedGames: latestFinishedRuns.map(run =>
+			toRewindClosedGame(run, source.platinumRunIds)
+		),
+		abandonedGames: listLatestFinishedRuns(yearRuns.abandoned).map(run =>
+			toRewindClosedGame(run, source.platinumRunIds)
 		),
 		highlights: calculateRewindHighlights({
 			year,

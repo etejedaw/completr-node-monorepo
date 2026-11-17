@@ -32,6 +32,7 @@ function rewindOf(
 		year?: number;
 		genres?: RewindGameGenre[];
 		platinums?: number | null;
+		platinumRunIds?: ReadonlySet<string>;
 		today?: Date;
 		firstYear?: number;
 		visibility?: RewindYearVisibility;
@@ -43,6 +44,7 @@ function rewindOf(
 		runs,
 		genres: options.genres ?? [],
 		platinums: options.platinums === undefined ? 0 : options.platinums,
+		platinumRunIds: options.platinumRunIds ?? new Set(),
 		calendar: calendarOn(options.today ?? MID_2026, options.firstYear),
 		visibility: options.visibility ?? ownerVisibility(),
 		stored: storedView()
@@ -96,6 +98,7 @@ void describe("buildRewind", () => {
 				runs: [finishedRun("a", "2025-01-01")],
 				genres: [],
 				platinums: null,
+				platinumRunIds: new Set(),
 				calendar: calendarOn(MID_2026),
 				visibility: ownerVisibility([2025]),
 				stored
@@ -246,6 +249,45 @@ void describe("buildRewind", () => {
 
 			assert.deepEqual(rewindOf(runs, { year: 2025 }).finishedGames, []);
 		});
+
+		void it("marks as platinum only the shown run that holds the platinum", () => {
+			const earlierRun = finishedRun("twice", "2025-01-10");
+			const shownRun = finishedRun("twice", "2025-06-01");
+			const platinumedRun = finishedRun("hades", "2025-03-03");
+			const unmarkedRun = finishedRun("tunic", "2025-04-04");
+
+			const markedByEarlierRun = rewindOf(
+				[earlierRun, shownRun, platinumedRun, unmarkedRun],
+				{ platinumRunIds: new Set([earlierRun.id, platinumedRun.id]) }
+			).finishedGames;
+
+			assert.deepEqual(
+				markedByEarlierRun.map(game => [game.code, game.isPlatinumRun]),
+				[
+					["hades", true],
+					["tunic", false],
+					["twice", false]
+				]
+			);
+			assert.equal(
+				rewindOf([earlierRun, shownRun], {
+					platinumRunIds: new Set([shownRun.id])
+				}).finishedGames[0]?.isPlatinumRun,
+				true
+			);
+		});
+
+		void it("marks nothing without platinum runs", () => {
+			const runs = [
+				finishedRun("hades", "2025-03-03"),
+				finishedRun("tunic", "2025-04-04")
+			];
+
+			assert.equal(
+				rewindOf(runs).finishedGames.some(game => game.isPlatinumRun),
+				false
+			);
+		});
 	});
 
 	void describe("abandonedGames", () => {
@@ -300,8 +342,19 @@ void describe("buildRewind", () => {
 				coverUrl: "https://img.test/art.jpg",
 				backgroundUrl: "https://img.test/art-bg.jpg",
 				finishedAt: "2025-03-03",
-				platformAbbreviation: "NSW"
+				platformAbbreviation: "NSW",
+				isPlatinumRun: false
 			});
+		});
+
+		void it("marks the abandoned run that holds the platinum", () => {
+			const run = abandonedRun("dropped", "2025-05-05");
+
+			const [game] = rewindOf([run], {
+				platinumRunIds: new Set([run.id])
+			}).abandonedGames;
+
+			assert.equal(game?.isPlatinumRun, true);
 		});
 
 		void it("keeps a game abandoned and then finished in the same year in both lists, as the totals count it", () => {
@@ -799,7 +852,10 @@ void describe("buildRewind", () => {
 
 			const { highlights, finishedGames } = rewindOf(runs);
 
-			assert.deepEqual(highlights.firstFinished, finishedGames[0]);
+			assert.equal(
+				highlights.firstFinished?.gameId,
+				finishedGames[0]?.gameId
+			);
 			assert.equal(highlights.firstFinished?.code, "early");
 			assert.equal(highlights.firstFinished?.finishedAt, "2025-06-01");
 			assert.equal(highlights.lastFinished?.code, "late");

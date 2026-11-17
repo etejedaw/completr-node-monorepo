@@ -1,4 +1,8 @@
-import { type RewindPlatinumGame } from "../../src/rewind/rewind.interface";
+import {
+	type RewindPlatinumGame,
+	type RewindPlatinumRun,
+	type RewindStoredPlatinumGame
+} from "../../src/rewind/rewind.interface";
 import { type RewindYearVisibility } from "../../src/rewind/rewind-record.interface";
 import { type RewindStoredView } from "../../src/rewind/rewind-record.types";
 import {
@@ -125,8 +129,8 @@ export function storedView(
 export function platinumGame(
 	gameCode: string,
 	platinumedAt: string,
-	overrides: Partial<RewindPlatinumGame> = {}
-): RewindPlatinumGame {
+	overrides: Partial<RewindPlatinumRun> = {}
+): RewindPlatinumRun {
 	return {
 		gameId: `id-${gameCode}`,
 		code: gameCode,
@@ -135,6 +139,7 @@ export function platinumGame(
 		backgroundUrl: `https://img.test/${gameCode}-bg.jpg`,
 		platinumedAt,
 		platformAbbreviation: "PS5",
+		backlogId: null,
 		...overrides
 	};
 }
@@ -142,11 +147,18 @@ export function platinumGame(
 export function platinumGamesOf(
 	count: number,
 	year = 2026
-): RewindPlatinumGame[] {
+): RewindPlatinumRun[] {
 	return Array.from({ length: count }, (_, index) =>
 		platinumGame(
 			`platinum-${index + 1}`,
 			`${year}-${String(index + 1).padStart(2, "0")}-01`
 		)
 	);
+}
+
+export function publicPlatinumGame({
+	backlogId: _backlogId,
+	...game
+}: RewindStoredPlatinumGame): RewindPlatinumGame {
+	return game;
 }

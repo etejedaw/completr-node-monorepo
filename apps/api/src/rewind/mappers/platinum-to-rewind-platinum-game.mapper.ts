@@ -1,9 +1,9 @@
 import { type GamePlatinum } from "../../game-platinum/game-platinum.model";
-import { type RewindPlatinumGame } from "../rewind.interface";
+import { type RewindPlatinumRun } from "../rewind.interface";
 
 export function platinumToRewindPlatinumGame(
 	platinum: GamePlatinum
-): RewindPlatinumGame | null {
+): RewindPlatinumRun | null {
 	const { Game: game, platinumedAt } = platinum;
 	if (!game || !platinumedAt) return null;
 	return {
@@ -13,6 +13,7 @@ export function platinumToRewindPlatinumGame(
 		coverUrl: game.coverUrl ?? null,
 		backgroundUrl: game.backgroundUrl ?? null,
 		platinumedAt,
-		platformAbbreviation: platinum.Platform?.abbreviation ?? null
+		platformAbbreviation: platinum.Platform?.abbreviation ?? null,
+		backlogId: platinum.backlogId ?? null
 	};
 }
