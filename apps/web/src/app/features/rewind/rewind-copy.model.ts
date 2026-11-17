@@ -51,7 +51,6 @@ export interface RewindHighlightsCopy {
 
 export interface RewindTimelineCopy {
 	abandonedGames: (count: number) => string;
-	abandoned: string;
 	abandonedGameLabel: (title: string, date: string) => string;
 }
 

@@ -112,7 +112,6 @@ const ENGLISH: RewindCopy = {
 	},
 	timeline: {
 		abandonedGames: count => `${count} abandoned`,
-		abandoned: "abandoned",
 		abandonedGameLabel: (title, date) => `${title}, ${date}, abandoned`
 	},
 	aiRecap: {
@@ -274,7 +273,6 @@ const SPANISH: RewindCopy = {
 	timeline: {
 		abandonedGames: count =>
 			spanishPlural(count, "abandonado", "abandonados"),
-		abandoned: "abandonado",
 		abandonedGameLabel: (title, date) => `${title}, ${date}, abandonado`
 	},
 	aiRecap: {
