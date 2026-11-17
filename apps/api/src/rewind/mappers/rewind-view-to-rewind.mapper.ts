@@ -1,6 +1,7 @@
 import {
 	type Rewind,
 	type RewindFinishedGame,
+	type RewindPlatinumGame,
 	type RewindTotals,
 	type RewindView,
 	type RewindViewGame
@@ -27,6 +28,26 @@ function visibleTotals(
 	return platinumsVisible ? totals : { ...totals, platinums: null };
 }
 
+function toPlatinumGame(game: RewindPlatinumGame): RewindPlatinumGame {
+	return {
+		gameId: game.gameId,
+		code: game.code,
+		title: game.title,
+		coverUrl: game.coverUrl,
+		backgroundUrl: game.backgroundUrl,
+		platinumedAt: game.platinumedAt,
+		platformAbbreviation: game.platformAbbreviation
+	};
+}
+
+function visiblePlatinumGames(
+	view: RewindView,
+	platinumsVisible: boolean
+): RewindPlatinumGame[] | null {
+	if (!platinumsVisible) return null;
+	return (view.platinumGames ?? []).map(toPlatinumGame);
+}
+
 export function rewindViewToRewind(
 	view: RewindView,
 	live: RewindLiveFields
@@ -40,6 +61,7 @@ export function rewindViewToRewind(
 		totals: visibleTotals(view.totals, live.platinumsVisible),
 		finishedGames: view.finishedGames.map(toFinishedGame),
 		abandonedGames: (view.abandonedGames ?? []).map(toFinishedGame),
+		platinumGames: visiblePlatinumGames(view, live.platinumsVisible),
 		highlights: {
 			...view.highlights,
 			classic: view.highlights.classic ?? null

@@ -21,7 +21,7 @@ export function buildRewindView(source: RewindViewSource): RewindView | null {
 		owner: source.owner,
 		runs,
 		genres,
-		platinums: source.platinums,
+		platinums: source.platinumGames.length,
 		calendar,
 		visibility: source.visibility,
 		stored: toRewindStoredView(record, null)
@@ -38,6 +38,7 @@ export function buildRewindView(source: RewindViewSource): RewindView | null {
 		totals: rewind.totals,
 		finishedGames: buildRewindViewGames(yearRuns.finished, genres),
 		abandonedGames: buildRewindViewGames(yearRuns.abandoned, genres),
+		platinumGames: source.platinumGames,
 		personaWithoutPlatinums: pickYearPersona(
 			{ ...rewind.totals, platinums: null },
 			latestFinishedRuns

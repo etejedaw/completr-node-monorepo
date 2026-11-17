@@ -1,5 +1,9 @@
 import { type RewindEditionRecord } from "../rewind-editions/rewind-editions.interface";
-import { type Rewind, type RewindOwner } from "./rewind.interface";
+import {
+	type Rewind,
+	type RewindOwner,
+	type RewindPlatinumGame
+} from "./rewind.interface";
 import { type Rewind as RewindModel } from "./rewind.model";
 import { type RewindFreezeOutcomeKind } from "./rewind-freeze.types";
 import {
@@ -17,7 +21,7 @@ export interface RewindViewSource {
 	owner: RewindOwner;
 	runs: RewindRun[];
 	genres: RewindGameGenre[];
-	platinums: number;
+	platinumGames: RewindPlatinumGame[];
 	previousYearPlatinums: number;
 	calendar: RewindCalendar;
 	visibility: RewindYearVisibility;
@@ -29,7 +33,7 @@ export interface RewindViewSource {
 export interface RewindSnapshotContext {
 	calendar: RewindCalendar;
 	generatedYears: ReadonlySet<number>;
-	platinums: number;
+	platinumGames: RewindPlatinumGame[];
 	previousYearPlatinums: number;
 	design: string;
 	frozenAt: string;

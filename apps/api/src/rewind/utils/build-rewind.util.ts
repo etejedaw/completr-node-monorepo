@@ -13,7 +13,7 @@ import { toRewindFinishedGame } from "./to-rewind-finished-game.util";
 
 export function buildRewind(
 	source: RewindSource
-): Omit<Rewind, "premiumAccess"> {
+): Omit<Rewind, "premiumAccess" | "platinumGames"> {
 	const { year, runs, genres, calendar } = source;
 	const yearRuns = collectYearRuns(runs, year);
 	const latestFinishedRuns = listLatestFinishedRuns(yearRuns.finished);

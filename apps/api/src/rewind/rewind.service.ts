@@ -15,6 +15,7 @@ import { rewindViewToRewind } from "./mappers/rewind-view-to-rewind.mapper";
 import { userToRewindOwner } from "./mappers/user-to-rewind-owner.mapper";
 import {
 	type Rewind,
+	type RewindPlatinumGame,
 	type RewindSnapshot,
 	type RewindView,
 	type RewindYears
@@ -33,6 +34,7 @@ import {
 	storePremiumStats
 } from "./services/rewind-ai-recap.service";
 import { freezeRewind } from "./services/rewind-freeze.service";
+import { findRewindPlatinumGames } from "./services/rewind-platinums.service";
 import {
 	requireGenerationAllowed,
 	reserveGeneration
@@ -212,6 +214,14 @@ function countVisiblePlatinums(
 	);
 }
 
+function findVisiblePlatinumGames(
+	context: RewindViewerContext,
+	year: number
+): Promise<RewindPlatinumGame[] | null> {
+	if (!context.access.platinum) return Promise.resolve(null);
+	return findRewindPlatinumGames(context.owner.id, year);
+}
+
 function listFinishedGameIds(runs: RewindRun[], years: number[]): string[] {
 	const gameIds = years.flatMap(year =>
 		collectYearRuns(runs, year).finished.map(run => run.gameId)
@@ -314,11 +324,11 @@ async function buildRewindForContext(
 			: rewindServiceError.notFoundError();
 	}
 
-	const [genres, platinums] = await Promise.all([
+	const [genres, platinumGames] = await Promise.all([
 		gameGenreService.findGenresByGameIds(
 			listFinishedGameIds(context.runs, [year])
 		),
-		countVisiblePlatinums(context, year)
+		findVisiblePlatinumGames(context, year)
 	]);
 
 	return {
@@ -327,7 +337,7 @@ async function buildRewindForContext(
 			owner: userToRewindOwner(context.owner),
 			runs: context.runs,
 			genres,
-			platinums,
+			platinums: platinumGames?.length ?? null,
 			calendar: context.calendar,
 			visibility: yearVisibility(context),
 			stored: toRewindStoredView(
@@ -335,6 +345,7 @@ async function buildRewindForContext(
 				ownerControlsFor(context, record)
 			)
 		}),
+		platinumGames,
 		premiumAccess: context.premiumAccess
 	};
 }

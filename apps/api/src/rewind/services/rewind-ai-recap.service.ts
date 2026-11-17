@@ -222,6 +222,7 @@ async function writeAiRecap(
 				premiumStats: sources.premiumStats
 			}
 		}),
+		platinumGames: null,
 		premiumAccess
 	};
 	return generateRewindAiRecap({
