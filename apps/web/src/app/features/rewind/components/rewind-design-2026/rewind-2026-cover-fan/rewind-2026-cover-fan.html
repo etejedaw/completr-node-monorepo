@@ -1,0 +1,22 @@
+@if (posters().length > 0) {
+<div
+	aria-hidden="true"
+	class="pointer-events-none relative mx-auto h-[14.5rem] w-full max-w-[24rem] select-none [--poster-w:7.75rem] [--poster-step:3.625rem] sm:h-[18rem] sm:max-w-none sm:[--poster-w:10rem] sm:[--poster-step:4.9rem] lg:h-[20rem] lg:[--poster-w:11.875rem] lg:[--poster-step:5.25rem] motion-safe:animate-[uiFadeUp_600ms_cubic-bezier(0.16,1,0.3,1)_900ms_both]"
+>
+	<div
+		class="absolute inset-x-[8%] -bottom-[6%] h-[38%] bg-[radial-gradient(ellipse_at_center,rgb(0_0_0/0.6),transparent_70%)]"
+	></div>
+	@for (poster of posters(); track poster.gameId) {
+	<img
+		alt=""
+		decoding="async"
+		draggable="false"
+		class="absolute bottom-0 left-1/2 aspect-[2/3] w-[calc(var(--poster-w)*var(--poster-size))] origin-[50%_120%] translate-x-[calc(-50%+var(--poster-offset)*var(--poster-step))] translate-y-[calc(var(--poster-offset)*var(--poster-offset)*0.25rem)] rotate-[calc(var(--poster-offset)*7deg)] rounded-xl border border-line-hover bg-surface object-cover shadow-[0_1.5rem_3rem_rgb(0_0_0/0.6)]"
+		[src]="poster.url | coverUrl: 420"
+		[style.--poster-offset]="poster.offset"
+		[style.--poster-size]="poster.size"
+		[style.z-index]="poster.layer"
+	/>
+	}
+</div>
+}
