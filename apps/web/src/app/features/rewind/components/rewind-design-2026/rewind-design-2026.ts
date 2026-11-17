@@ -18,7 +18,7 @@ import {
 	type UiPickerOption,
 	UiSkeleton
 } from "../../../../shared/ui";
-import { rewindCopy, rewindSummarySentence } from "../../rewind-copy";
+import { rewindCopy } from "../../rewind-copy";
 import { type RewindDesignComponent } from "../../rewind-designs.model";
 import { RewindReveal } from "../../rewind-reveal";
 import { REWIND_SHARE_COPY } from "../../rewind-share-copy";
@@ -37,12 +37,13 @@ import {
 	RewindPremiumStats
 } from "../rewind-premium-stats/rewind-premium-stats";
 import { RewindShareActions } from "../rewind-share-actions/rewind-share-actions";
-import { RewindTally, rewindTallyRows } from "../rewind-tally/rewind-tally";
 import {
 	hasYearMixCharts,
 	RewindYearMix
 } from "../rewind-year-mix/rewind-year-mix";
 import { RewindYearOdometer } from "../rewind-year-odometer/rewind-year-odometer";
+import { Rewind2026CoverFan } from "./rewind-2026-cover-fan/rewind-2026-cover-fan";
+import { Rewind2026ResultsStrip } from "./rewind-2026-results-strip/rewind-2026-results-strip";
 
 function backdropOf(rewind: Rewind): string | null {
 	return (
@@ -58,6 +59,8 @@ function backdropOf(rewind: Rewind): string | null {
 		UiOptionPicker,
 		ProfileBackdrop,
 		ProfileSectionHeader,
+		Rewind2026CoverFan,
+		Rewind2026ResultsStrip,
 		RewindAiRecap,
 		RewindFinishedGames,
 		RewindHighlights,
@@ -67,7 +70,6 @@ function backdropOf(rewind: Rewind): string | null {
 		RewindPremiumStats,
 		RewindReveal,
 		RewindShareActions,
-		RewindTally,
 		RewindYearMix,
 		RewindYearOdometer,
 		UiButton,
@@ -107,16 +109,6 @@ export class RewindDesign2026 implements RewindDesignComponent {
 			? this.text().ownerEyebrow
 			: this.text().visitorEyebrow(this.username())
 	);
-
-	protected readonly summary = computed(() => {
-		const rewind = this.rewind();
-		return rewindSummarySentence(rewind.totals, rewind.language);
-	});
-
-	protected readonly tally = computed(() => {
-		const rewind = this.rewind();
-		return rewindTallyRows(rewind.totals, rewind.language);
-	});
 
 	protected readonly backdropUrl = computed(() => backdropOf(this.rewind()));
 
@@ -178,8 +170,7 @@ export class RewindDesign2026 implements RewindDesignComponent {
 	protected readonly sectionAreas = computed(() => {
 		const rewind = this.rewind();
 		const rows = [
-			"results share",
-			rewind.aiRecap ? "recap recap" : null,
+			rewind.aiRecap ? "recap share" : "share share",
 			this.hasHighlights() ? "highlights highlights" : null,
 			this.hasYearMix() ? "mix mix" : null,
 			this.hasPremiumStats() ? "stats stats" : null,
