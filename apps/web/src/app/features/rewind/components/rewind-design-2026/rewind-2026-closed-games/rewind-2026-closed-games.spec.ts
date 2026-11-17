@@ -498,4 +498,100 @@ describe("Rewind2026ClosedGames", () => {
 			expect(screen.queryByText("Jan 10")).toBeNull();
 		});
 	});
+
+	describe("a sparse year", () => {
+		it("shows a year with a single month and a single poster as one complete row", async () => {
+			const { container } = await renderClosed([
+				withArt("solo", "2026-09-14")
+			]);
+
+			expect(monthHeadings()).toEqual(["September, 1 game"]);
+			const row = monthRow(/September/);
+			expect(row).toHaveClass("rounded-card", "overflow-hidden");
+			expect(backgroundOf(row)).toBe(
+				"https://img.test/solo-background.jpg"
+			);
+			expect(row.querySelector("[data-month-veil]")).not.toBeNull();
+			expect(row).not.toHaveClass("bg-surface");
+			const posters = container.querySelectorAll("[data-posters] > li");
+			expect(posters).toHaveLength(1);
+			expect(within(row).getByRole("link")).toHaveAttribute(
+				"href",
+				"/games/solo"
+			);
+			expect(row.querySelector("[data-abandoned-count]")).toBeNull();
+		});
+
+		it("gives a month without any art its own surface instead of a veil over nothing", async () => {
+			await renderClosed([game("bare", "2026-04-02")]);
+
+			const row = monthRow(/April/);
+			expect(row).toHaveClass("bg-surface", "rounded-card");
+			expect(row.querySelector("[data-month-art]")).toBeNull();
+			expect(row.querySelector("[data-month-veil]")).toBeNull();
+		});
+
+		it("keeps the surface only on the bare months when art comes and goes", async () => {
+			const { fixture } = await renderClosed([
+				withArt("lit", "2026-02-02"),
+				game("bare", "2026-03-02")
+			]);
+
+			expect(monthRow(/February/)).not.toHaveClass("bg-surface");
+			expect(monthRow(/March/)).toHaveClass("bg-surface");
+
+			fixture.componentRef.setInput("games", [
+				game("lit", "2026-02-02"),
+				withArt("bare", "2026-03-02")
+			]);
+			fixture.detectChanges();
+
+			expect(monthRow(/February/)).toHaveClass("bg-surface");
+			expect(monthRow(/March/)).not.toHaveClass("bg-surface");
+			expect(
+				monthRow(/March/).querySelector("[data-month-veil]")
+			).not.toBeNull();
+		});
+
+		it("shows a year of only abandoned games with their counts, badges and month art", async () => {
+			const { container } = await renderClosed([], "en", [
+				withArt("quit-a", "2026-01-20"),
+				withArt("quit-b", "2026-01-25"),
+				game("quit-c", "2026-08-03")
+			]);
+
+			expect(monthHeadings()).toEqual([
+				"January, 2 abandoned",
+				"August, 1 abandoned"
+			]);
+			const january = monthRow(/January/);
+			expect(backgroundOf(january)).toBe(
+				"https://img.test/quit-a-background.jpg"
+			);
+			expect(monthRow(/August/)).toHaveClass("bg-surface");
+			expect(container.querySelectorAll("[data-abandoned]")).toHaveLength(
+				3
+			);
+			expect(
+				container.querySelectorAll("[data-abandoned-badge]")
+			).toHaveLength(3);
+			expect(
+				container.querySelectorAll(
+					"[data-posters] > li:not([data-abandoned])"
+				)
+			).toHaveLength(0);
+		});
+
+		it("writes the title on a fallback poster one step above the old caption size", async () => {
+			const { container } = await renderClosed([
+				game("no-art", "2026-06-20")
+			]);
+
+			const title = container.querySelector<HTMLElement>(
+				"app-game-poster [role='img'] span:last-child"
+			);
+			expect(title).toHaveTextContent("NO-ART");
+			expect(title?.style.fontSize).toBe("0.75rem");
+		});
+	});
 });

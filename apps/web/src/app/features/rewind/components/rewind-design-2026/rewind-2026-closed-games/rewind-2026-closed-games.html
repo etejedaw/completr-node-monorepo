@@ -3,6 +3,7 @@
 	<li
 		class="relative isolate grid min-w-0 gap-3 overflow-hidden rounded-card px-4 py-4 md:grid-cols-[170px_minmax(0,1fr)] md:items-center md:gap-5 md:px-5"
 		[attr.aria-labelledby]="'rewind-month-' + group.month"
+		[class.bg-surface]="!group.artUrl"
 	>
 		@if (group.artUrl; as art) {
 		<img
@@ -13,11 +14,12 @@
 			class="absolute inset-0 -z-20 size-full object-cover opacity-18 grayscale-30"
 			[src]="art | coverUrl: 640"
 		/>
-		}
 		<span
 			aria-hidden="true"
+			data-month-veil
 			class="absolute inset-0 -z-10 bg-linear-to-r from-canvas from-10% to-canvas/40"
 		></span>
+		}
 		<h3 class="m-0 grid min-w-0 gap-1" [id]="'rewind-month-' + group.month">
 			<span
 				class="font-display text-[1.5rem] leading-tight font-bold text-fg"
@@ -57,7 +59,7 @@
 						[src]="entry.portraitUrl"
 						[title]="entry.game.title"
 						[width]="420"
-						titleSize="0.6875rem"
+						titleSize="0.75rem"
 					/>
 					@if (entry.isAbandoned) {
 					<span
