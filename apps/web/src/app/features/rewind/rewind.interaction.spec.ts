@@ -64,7 +64,8 @@ function rewindFor(year: number, otherYears: number[]): Rewind {
 		coverUrl: null,
 		backgroundUrl: null,
 		finishedAt: `${year}-03-04T00:00:00.000Z`,
-		platformAbbreviation: "PS5"
+		platformAbbreviation: "PS5",
+		isPlatinumRun: false
 	};
 	const celeste = {
 		...hades,
@@ -475,7 +476,8 @@ describe("Rewind interaction", () => {
 				coverUrl: `https://example.test/cover-${index}.jpg`,
 				backgroundUrl: null,
 				finishedAt: `2026-0${index + 1}-10T00:00:00.000Z`,
-				platformAbbreviation: null
+				platformAbbreviation: null,
+				isPlatinumRun: false
 			}));
 			rewindOverrides.set(2026, { finishedGames: covered });
 			await renderRewind();

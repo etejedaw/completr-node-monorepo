@@ -1,8 +1,8 @@
-import { type RewindFinishedGame } from "../../../../../core/models/rewind.model";
+import { type RewindClosedGame } from "../../../../../core/models/rewind.model";
 
 export interface ClosedGame {
 	key: string;
-	game: RewindFinishedGame;
+	game: RewindClosedGame;
 	isAbandoned: boolean;
 	isPlatinum: boolean;
 	label: string;

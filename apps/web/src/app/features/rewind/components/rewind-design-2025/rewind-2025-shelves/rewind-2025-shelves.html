@@ -54,7 +54,7 @@
 							[width]="420"
 							titleSize="0.75rem"
 						/>
-						@if (isPlatinum(game)) {
+						@if (game.isPlatinumRun) {
 						<span
 							data-platinum-badge
 							aria-hidden="true"
@@ -70,7 +70,7 @@
 					<span class="text-xs tabular-nums text-fg-secondary"
 						>{{ dateOf(game) }}</span
 					>
-					@if (isPlatinum(game)) {
+					@if (game.isPlatinumRun) {
 					<span class="sr-only">{{ text.platinumBadge }}</span>
 					}
 				</a>

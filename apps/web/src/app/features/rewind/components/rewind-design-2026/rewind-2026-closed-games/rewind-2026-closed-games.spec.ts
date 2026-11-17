@@ -4,17 +4,16 @@ import { provideRouter } from "@angular/router";
 import { render, screen, within } from "@testing-library/angular";
 
 import {
-	type RewindFinishedGame,
-	type RewindLanguage,
-	type RewindPlatinumGame
+	type RewindClosedGame,
+	type RewindLanguage
 } from "../../../../../core/models/rewind.model";
 import { Rewind2026ClosedGames } from "./rewind-2026-closed-games";
 
 function game(
 	code: string,
 	finishedAt: string,
-	art: Partial<RewindFinishedGame> = {}
-): RewindFinishedGame {
+	art: Partial<RewindClosedGame> = {}
+): RewindClosedGame {
 	return {
 		gameId: `id-${code}`,
 		code,
@@ -23,29 +22,33 @@ function game(
 		backgroundUrl: null,
 		finishedAt,
 		platformAbbreviation: "PS5",
+		isPlatinumRun: false,
 		...art
 	};
 }
 
-function withArt(code: string, finishedAt: string): RewindFinishedGame {
+function withArt(
+	code: string,
+	finishedAt: string,
+	art: Partial<RewindClosedGame> = {}
+): RewindClosedGame {
 	return game(code, finishedAt, {
 		coverUrl: `https://img.test/${code}-cover.jpg`,
-		backgroundUrl: `https://img.test/${code}-background.jpg`
+		backgroundUrl: `https://img.test/${code}-background.jpg`,
+		...art
 	});
 }
 
 async function renderClosed(
-	games: RewindFinishedGame[],
+	games: RewindClosedGame[],
 	language: RewindLanguage = "en",
-	abandonedGames?: RewindFinishedGame[],
-	platinumGames?: RewindPlatinumGame[] | null
+	abandonedGames?: RewindClosedGame[]
 ) {
 	return render(Rewind2026ClosedGames, {
 		inputs: {
 			games,
 			language,
-			...(abandonedGames && { abandonedGames }),
-			...(platinumGames !== undefined && { platinumGames })
+			...(abandonedGames && { abandonedGames })
 		},
 		providers: [provideRouter([])]
 	});
@@ -67,27 +70,11 @@ function backgroundOf(row: HTMLElement) {
 
 describe("Rewind2026ClosedGames", () => {
 	describe("platinum marker", () => {
-		function platinumOf(game: RewindFinishedGame): RewindPlatinumGame {
-			return {
-				gameId: game.gameId,
-				code: game.code,
-				title: game.title,
-				coverUrl: game.coverUrl,
-				backgroundUrl: game.backgroundUrl,
-				platinumedAt: "2026-06-30",
-				platformAbbreviation: "PS5"
-			};
-		}
-
-		it("marks only the finished games that were platinumed, with a badge hidden from screen readers", async () => {
-			const platinumed = withArt("plat", "2026-06-10");
-			const plain = withArt("plain", "2026-06-12");
-			const { container } = await renderClosed(
-				[platinumed, plain],
-				"en",
-				[],
-				[platinumOf(platinumed)]
-			);
+		it("marks only the finished entries whose run holds the platinum, with a badge hidden from screen readers", async () => {
+			const { container } = await renderClosed([
+				withArt("plat", "2026-06-10", { isPlatinumRun: true }),
+				withArt("plain", "2026-06-12")
+			]);
 
 			const badges = container.querySelectorAll("[data-platinum-badge]");
 			expect(badges).toHaveLength(1);
@@ -103,14 +90,27 @@ describe("Rewind2026ClosedGames", () => {
 			).toBeInTheDocument();
 		});
 
-		it("never marks an abandoned run as platinum, even for a platinumed game", async () => {
-			const game = withArt("both", "2026-06-10");
-			const { container } = await renderClosed(
-				[],
-				"en",
-				[game],
-				[platinumOf(game)]
+		it("gives no badge to a game whose shown run is not the platinum run, even if the game has a platinum elsewhere", async () => {
+			const { container } = await renderClosed([
+				withArt("hades", "2026-03-10", { isPlatinumRun: false }),
+				withArt("hades", "2026-06-10", { isPlatinumRun: true })
+			]);
+
+			const badges = container.querySelectorAll("[data-platinum-badge]");
+			expect(badges).toHaveLength(1);
+			expect(badges[0].closest("a")).toHaveAttribute(
+				"aria-label",
+				"HADES, Jun 10, platinum"
 			);
+			expect(
+				screen.getByRole("link", { name: "HADES, Mar 10" })
+			).toBeInTheDocument();
+		});
+
+		it("never marks an abandoned run as platinum, even when it says it holds the platinum", async () => {
+			const { container } = await renderClosed([], "en", [
+				withArt("both", "2026-06-10", { isPlatinumRun: true })
+			]);
 
 			expect(container.querySelector("[data-platinum-badge]")).toBeNull();
 			expect(
@@ -118,35 +118,43 @@ describe("Rewind2026ClosedGames", () => {
 			).not.toBeNull();
 		});
 
-		it("shows no marker when the viewer cannot see platinums", async () => {
+		it("shows no marker when no entry holds the platinum", async () => {
 			const { container } = await renderClosed(
-				[withArt("a", "2026-06-10")],
+				[withArt("a", "2026-06-10"), withArt("b", "2026-06-11")],
 				"en",
-				[],
-				null
-			);
-
-			expect(container.querySelector("[data-platinum-badge]")).toBeNull();
-		});
-
-		it("shows no marker in a year without platinums", async () => {
-			const { container } = await renderClosed(
-				[withArt("a", "2026-06-10")],
-				"en",
-				[],
 				[]
 			);
 
 			expect(container.querySelector("[data-platinum-badge]")).toBeNull();
 		});
 
+		it("follows the flag when the games change under the same component", async () => {
+			const { container, fixture } = await renderClosed([
+				withArt("a", "2026-06-10", { isPlatinumRun: true })
+			]);
+			expect(
+				container.querySelectorAll("[data-platinum-badge]")
+			).toHaveLength(1);
+
+			fixture.componentRef.setInput("games", [
+				withArt("a", "2026-06-10")
+			]);
+			fixture.detectChanges();
+			expect(container.querySelector("[data-platinum-badge]")).toBeNull();
+
+			fixture.componentRef.setInput("games", [
+				withArt("a", "2026-06-10", { isPlatinumRun: true })
+			]);
+			fixture.detectChanges();
+			expect(
+				container.querySelectorAll("[data-platinum-badge]")
+			).toHaveLength(1);
+		});
+
 		it("speaks the marker in Spanish", async () => {
-			const game = withArt("plat", "2026-06-10");
 			const { container } = await renderClosed(
-				[game],
-				"es",
-				[],
-				[platinumOf(game)]
+				[withArt("plat", "2026-06-10", { isPlatinumRun: true })],
+				"es"
 			);
 
 			expect(

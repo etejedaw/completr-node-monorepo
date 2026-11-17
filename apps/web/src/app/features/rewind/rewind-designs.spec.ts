@@ -329,7 +329,8 @@ describe("RewindDesignOutlet", () => {
 			coverUrl: null,
 			backgroundUrl: null,
 			finishedAt: "2026-03-10",
-			platformAbbreviation: "PC"
+			platformAbbreviation: "PC",
+			isPlatinumRun: false
 		};
 		const platinumGame = {
 			gameId: "id-hades",
@@ -502,7 +503,8 @@ describe("RewindDesignOutlet", () => {
 			coverUrl: null,
 			backgroundUrl: null,
 			finishedAt: "2026-03-10",
-			platformAbbreviation: "PC"
+			platformAbbreviation: "PC",
+			isPlatinumRun: false
 		};
 		const tunic = {
 			...hades,

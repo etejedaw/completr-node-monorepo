@@ -18,7 +18,7 @@ import { type Mock } from "vitest";
 import {
 	type Rewind,
 	type RewindAiRecap,
-	type RewindFinishedGame,
+	type RewindClosedGame,
 	type RewindOwnerControls,
 	type RewindPremiumStats
 } from "../../../../core/models/rewind.model";
@@ -36,8 +36,12 @@ function finished(
 	gameId: string,
 	title: string,
 	finishedAt: string,
-	art: { coverUrl?: string | null; backgroundUrl?: string | null } = {}
-): RewindFinishedGame {
+	art: {
+		coverUrl?: string | null;
+		backgroundUrl?: string | null;
+		isPlatinumRun?: boolean;
+	} = {}
+): RewindClosedGame {
 	return {
 		gameId,
 		code: gameId,
@@ -48,11 +52,12 @@ function finished(
 				: art.coverUrl,
 		backgroundUrl: art.backgroundUrl ?? null,
 		finishedAt,
-		platformAbbreviation: "PC"
+		platformAbbreviation: "PC",
+		isPlatinumRun: art.isPlatinumRun ?? false
 	};
 }
 
-const FINISHED_GAMES: RewindFinishedGame[] = [
+const FINISHED_GAMES: RewindClosedGame[] = [
 	finished("re4", "Resident Evil 4", "2025-11-20T10:00:00.000Z"),
 	finished("celeste", "Celeste", "2025-02-14T10:00:00.000Z"),
 	finished("hades", "Hades", "2025-01-03T10:00:00.000Z"),
@@ -626,18 +631,28 @@ describe("RewindDesign2025", () => {
 		});
 	});
 
-	it("marks the platinumed games on the shelves, only when the viewer can see platinums", async () => {
-		const hades = FINISHED_GAMES.find(game => game.gameId === "hades")!;
+	it("marks on the shelves only the entries whose run holds the platinum", async () => {
 		const root = await renderDesign(
 			rewindFixture({
+				finishedGames: [
+					finished("hades", "Hades", "2025-01-03T10:00:00.000Z", {
+						isPlatinumRun: true
+					}),
+					finished("celeste", "Celeste", "2025-02-14T10:00:00.000Z"),
+					finished(
+						"re4",
+						"Resident Evil 4",
+						"2025-11-20T10:00:00.000Z"
+					)
+				],
 				platinumGames: [
 					{
-						gameId: hades.gameId,
-						code: hades.code,
-						title: hades.title,
-						coverUrl: hades.coverUrl,
-						backgroundUrl: hades.backgroundUrl,
-						platinumedAt: "2025-02-01",
+						gameId: "celeste",
+						code: "celeste",
+						title: "Celeste",
+						coverUrl: null,
+						backgroundUrl: null,
+						platinumedAt: "2025-03-01",
 						platformAbbreviation: "PS5"
 					}
 				]
@@ -650,14 +665,36 @@ describe("RewindDesign2025", () => {
 		expect(badges[0]).toHaveAttribute("aria-hidden", "true");
 		expect(badges[0].closest("a")).toHaveAttribute("href", "/games/hades");
 		expect(badges[0].closest("a")).toHaveTextContent("Platinum");
+	});
 
-		fixture.componentRef.setInput(
-			"rewind",
-			rewindFixture({ platinumGames: null })
-		);
-		fixture.detectChanges();
+	it("shows no platinum badge when the viewer cannot see platinums and no run holds one", async () => {
+		const root = await renderDesign(rewindFixture({ platinumGames: null }));
 		await renderDeferred();
+
 		expect(root.querySelector("[data-platinum-badge]")).toBeNull();
+	});
+
+	it("follows the flag when the finished games flip between platinum and plain runs", async () => {
+		const root = await renderDesign(rewindFixture());
+		await renderDeferred();
+
+		for (const isPlatinumRun of [true, false, true, false]) {
+			fixture.componentRef.setInput(
+				"rewind",
+				rewindFixture({
+					finishedGames: [
+						finished("hades", "Hades", "2025-01-03T10:00:00.000Z", {
+							isPlatinumRun
+						})
+					]
+				})
+			);
+			fixture.detectChanges();
+			await renderDeferred();
+			expect(root.querySelectorAll("[data-platinum-badge]")).toHaveLength(
+				isPlatinumRun ? 1 : 0
+			);
+		}
 	});
 
 	it("shelves the finished games by quarter in calendar order and skips empty quarters", async () => {
@@ -683,7 +720,7 @@ describe("RewindDesign2025", () => {
 	});
 
 	describe("what the player left behind", () => {
-		const ABANDONED_GAMES: RewindFinishedGame[] = [
+		const ABANDONED_GAMES: RewindClosedGame[] = [
 			finished("tunic", "Tunic", "2025-09-30T10:00:00.000Z"),
 			finished("inside", "Inside", "2025-01-02T10:00:00.000Z", {
 				coverUrl: null,
