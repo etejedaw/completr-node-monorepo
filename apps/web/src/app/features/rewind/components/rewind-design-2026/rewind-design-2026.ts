@@ -24,7 +24,6 @@ import { RewindReveal } from "../../rewind-reveal";
 import { REWIND_SHARE_COPY } from "../../rewind-share-copy";
 import { injectRewindStoryImage } from "../../rewind-story-image";
 import { RewindAiRecap } from "../rewind-ai-recap/rewind-ai-recap";
-import { RewindFinishedGames } from "../rewind-finished-games/rewind-finished-games";
 import { RewindMoreYears } from "../rewind-more-years/rewind-more-years";
 import { RewindOwnerPanel } from "../rewind-owner-panel/rewind-owner-panel";
 import { RewindPersonaRank } from "../rewind-persona-rank/rewind-persona-rank";
@@ -38,6 +37,7 @@ import {
 	RewindYearMix
 } from "../rewind-year-mix/rewind-year-mix";
 import { RewindYearOdometer } from "../rewind-year-odometer/rewind-year-odometer";
+import { Rewind2026ClosedGames } from "./rewind-2026-closed-games/rewind-2026-closed-games";
 import { Rewind2026CoverFan } from "./rewind-2026-cover-fan/rewind-2026-cover-fan";
 import { Rewind2026GameOfTheYear } from "./rewind-2026-game-of-the-year/rewind-2026-game-of-the-year";
 import {
@@ -61,13 +61,13 @@ function backdropOf(rewind: Rewind): string | null {
 		UiOptionPicker,
 		ProfileBackdrop,
 		ProfileSectionHeader,
+		Rewind2026ClosedGames,
 		Rewind2026CoverFan,
 		Rewind2026GameOfTheYear,
 		Rewind2026Highlights,
 		Rewind2026ResultsStrip,
 		Rewind2026ShareBanner,
 		RewindAiRecap,
-		RewindFinishedGames,
 		RewindMoreYears,
 		RewindOwnerPanel,
 		RewindPersonaRank,
@@ -173,6 +173,5 @@ export class RewindDesign2026 implements RewindDesignComponent {
 
 	protected readonly shareCopy = REWIND_SHARE_COPY;
 	protected readonly shareOpen = signal(false);
-	protected readonly skeletonMonths = [0, 1];
-	protected readonly skeletonPosters = [0, 1, 2, 3, 4, 5];
+	protected readonly skeletonMonths = [0, 1, 2];
 }

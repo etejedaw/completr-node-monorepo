@@ -1,0 +1,78 @@
+<ol class="m-0 flex list-none flex-col gap-3 p-0">
+	@for (group of months(); track group.month) {
+	<li
+		class="relative isolate grid min-w-0 gap-3 overflow-hidden rounded-card px-4 py-4 md:grid-cols-[170px_minmax(0,1fr)] md:items-center md:gap-5 md:px-5"
+		[attr.aria-labelledby]="'rewind-month-' + group.month"
+	>
+		@if (group.artUrl; as art) {
+		<img
+			alt=""
+			aria-hidden="true"
+			loading="lazy"
+			data-month-art
+			class="absolute inset-0 -z-20 size-full object-cover opacity-18 grayscale-30"
+			[src]="art | coverUrl: 640"
+		/>
+		}
+		<span
+			aria-hidden="true"
+			class="absolute inset-0 -z-10 bg-linear-to-r from-canvas from-10% to-canvas/40"
+		></span>
+		<h3 class="m-0 grid min-w-0 gap-1" [id]="'rewind-month-' + group.month">
+			<span
+				class="font-display text-[1.5rem] leading-tight font-bold text-fg"
+				>{{ group.name }}</span
+			><span class="sr-only">, </span>
+			<span
+				class="inline-flex flex-wrap items-baseline gap-x-1.5 text-sm font-normal tabular-nums text-fg-secondary"
+			>
+				@if (group.count) {
+				<span>{{ group.count }}</span>
+				} @if (group.count && group.abandonedCount) {
+				<span aria-hidden="true">·</span><span class="sr-only">, </span>
+				} @if (group.abandonedCount) {
+				<span class="text-fg-muted" data-abandoned-count
+					>{{ group.abandonedCount }}</span
+				>
+				}
+			</span>
+		</h3>
+		<ul
+			data-posters
+			class="m-0 flex min-w-0 list-none snap-x snap-mandatory gap-2.5 overflow-x-auto p-0 pt-1 pb-3 md:snap-none md:flex-wrap md:overflow-visible md:pb-1"
+		>
+			@for (entry of group.games; track entry.key) {
+			<li
+				class="w-[84px] shrink-0 snap-start"
+				[attr.data-abandoned]="entry.isAbandoned || null"
+			>
+				<a
+					class="group block rounded-md no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+					[routerLink]="['/games', entry.game.code]"
+					[attr.aria-label]="entry.label"
+				>
+					@if (entry.portraitUrl) {
+					<app-game-poster
+						class="aspect-[2/3] rounded-md shadow-card transition"
+						[class]="entry.isAbandoned ? abandonedPosterClass : ''"
+						[src]="entry.portraitUrl"
+						[title]="entry.game.title"
+						[width]="420"
+					/>
+					} @else {
+					<span
+						data-poster-placeholder
+						class="flex aspect-[2/3] items-end rounded-md bg-surface-hover p-1.5 text-xs leading-tight font-semibold text-fg-secondary shadow-card"
+						[class]="entry.isAbandoned ? 'opacity-60' : ''"
+						><span class="line-clamp-4 break-words"
+							>{{ entry.game.title }}</span
+						></span
+					>
+					}
+				</a>
+			</li>
+			}
+		</ul>
+	</li>
+	}
+</ol>
