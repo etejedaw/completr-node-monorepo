@@ -8,7 +8,10 @@ export const SHARE_COLORS = {
 	brand: "#8b5cf6",
 	brandLight: "#a78bfa",
 	brandPale: "#c4b5fd",
-	brandDeep: "#6d28d9"
+	brandDeep: "#6d28d9",
+	brandSolid: "#7c3aed",
+	navQueue: "#fb7185",
+	navShelf: "#fb923c"
 } as const;
 
 export const SHARE_FONT_FAMILY = {
