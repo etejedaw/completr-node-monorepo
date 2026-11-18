@@ -183,7 +183,8 @@ export async function seedPersonalData(owner: User) {
 	await MoodTagMeta.create({
 		userId: owner.id,
 		tag: "cozy",
-		description: "Rainy days"
+		description: "Rainy days",
+		favoriteOrder: 0
 	});
 	await UserFranchise.create({ userId: owner.id, franchiseId: franchise.id });
 	await GamePlatinum.create({

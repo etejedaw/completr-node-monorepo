@@ -100,6 +100,7 @@ void describe("GET /admin/users/:userId/data-export", () => {
 
 		assert.equal(body.account.email, owner.email);
 		assert.equal(body.privacySettings.profileVisibility, "public");
+		assert.equal(body.privacySettings.tagVisibility, "public");
 		assert.equal(
 			"rewindIgnoresProfileVisibility" in body.privacySettings,
 			false
@@ -150,6 +151,7 @@ void describe("GET /admin/users/:userId/data-export", () => {
 		assert.equal(body.activity.length, 1);
 		assert.equal(body.activity[0].game.id, seeded.game.id);
 		assert.equal(body.moodTags.tags[0].description, "Rainy days");
+		assert.equal(body.moodTags.tags[0].favoriteOrder, 0);
 		assert.equal(body.moodTags.gameTags[0].game.slug, seeded.game.code);
 		assert.equal(
 			body.trackedFranchises[0].franchise.name,

@@ -82,6 +82,7 @@ function privacySection(user: User) {
 		platinumVisibility: user.platinumVisibility,
 		franchiseVisibility: user.franchiseVisibility,
 		rewindVisibility: user.rewindVisibility,
+		tagVisibility: user.tagVisibility,
 		acceptFollowRequests: user.acceptFollowRequests
 	};
 }
@@ -274,6 +275,7 @@ function moodTagsSection(bundle: PersonalDataBundle) {
 		tags: bundle.tagMetas.map(meta => ({
 			tag: meta.tag,
 			description: meta.description,
+			favoriteOrder: meta.favoriteOrder ?? null,
 			createdAt: meta.createdAt
 		})),
 		gameTags: bundle.gameTags.map(gameTag => ({
