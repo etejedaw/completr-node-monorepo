@@ -141,6 +141,7 @@
 			label="Tags"
 			hint="Entries that match all selected tags."
 		>
+			@if (!hasNoOwnTags()) {
 			<a
 				sectionAction
 				routerLink="/tags"
@@ -148,11 +149,20 @@
 				(click)="closed.emit()"
 				>Manage tags →</a
 			>
-			<app-mood-tags-input
-				[tags]="selectedMoodTags()"
-				[suggestions]="moodTagsSuggestions()"
-				placeholder="e.g. relajante, corto…"
-				(tagsChange)="selectedMoodTags.set($event)"
+			}
+			<app-backlog-tag-filter
+				[showHeading]="false"
+				[source]="tagSource()"
+				[options]="tagOptions()"
+				[selected]="selectedTags()"
+				[selectedMineCount]="selectedMoodTags().length"
+				[selectedCommunityCount]="selectedCommunityTags().length"
+				[status]="tagStatus()"
+				(sourceChange)="tagSourceChange.emit($event)"
+				(selectedChange)="setTags($event)"
+				(limitReached)="tagLimitReached.emit($event)"
+				(retried)="tagsRetried.emit()"
+				(manageOpened)="closed.emit()"
 			/>
 		</app-filter-section>
 

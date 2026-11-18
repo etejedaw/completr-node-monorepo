@@ -188,7 +188,12 @@
 	<app-backlog-filters-panel
 		[allPlatforms]="allPlatforms()"
 		[allGenres]="allGenres()"
-		[moodTagsSuggestions]="moodTagsSuggestions()"
+		[tagSource]="tagSource()"
+		[tagOptions]="tagFilterOptions()"
+		[tagStatus]="tagFilterStatus()"
+		(tagSourceChange)="setTagSource($event)"
+		(tagLimitReached)="warnTagLimit($event)"
+		(tagsRetried)="retryTagFilter()"
 		[activeFiltersCount]="activeFiltersCount()"
 		[advancedFiltersActive]="hasAdvancedFiltersActive()"
 		[hasActiveView]="!!activeFilterId()"
@@ -220,6 +225,7 @@
 		[(minPersonalRatio)]="minPersonalRatio"
 		[(maxPersonalRatio)]="maxPersonalRatio"
 		[(selectedMoodTags)]="selectedMoodTags"
+		[(selectedCommunityTags)]="selectedCommunityTags"
 		[(sortBy)]="sortBy"
 		[(showAdvancedFilters)]="showAdvancedFilters"
 		[(newFilterName)]="newFilterName"
@@ -239,6 +245,21 @@
 		(statToggle)="viewStats.toggleKey($event)"
 		(resetRequested)="viewStats.resetConfig()"
 		(closed)="closeStatsPanel()"
+	/>
+	} @if (!isInitialLoad() && (entries().length > 0 || hasActiveFilters() ||
+	searchQuery().trim())) {
+	<app-backlog-tag-filter
+		class="mb-4"
+		[source]="tagSource()"
+		[options]="tagFilterOptions()"
+		[selected]="tagFilterSelected()"
+		[selectedMineCount]="selectedMoodTags().length"
+		[selectedCommunityCount]="selectedCommunityTags().length"
+		[status]="tagFilterStatus()"
+		(sourceChange)="setTagSource($event)"
+		(selectedChange)="setTagSelection($event)"
+		(limitReached)="warnTagLimit($event)"
+		(retried)="retryTagFilter()"
 	/>
 	} @if (isInitialLoad() && isLoading()) {
 	<div class="flex flex-col gap-3">

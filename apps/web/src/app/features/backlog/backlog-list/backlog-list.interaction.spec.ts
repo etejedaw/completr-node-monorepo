@@ -12,6 +12,7 @@ import {
 	Component
 } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { Router } from "@angular/router";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
@@ -119,6 +120,22 @@ describe("BacklogList interaction", () => {
 	let favoriteGameIds: string[];
 	let reportedTotal: number | null;
 	let secondPage: BacklogEntry[];
+	let myTags: {
+		tag: string;
+		usageCount: number;
+		description: string | null;
+	}[];
+	let popularTags: { tag: string; games: number; players: number }[];
+	let popularTagsStatus: number;
+	let popularTagsRequests: number;
+	let communityTagsByGame: Record<string, string[]>;
+
+	function hasAllTags(
+		owned: readonly string[] | undefined,
+		wanted: string[]
+	) {
+		return wanted.every(tag => owned?.includes(tag));
+	}
 
 	function listBacklog(req: TestRequest) {
 		const params = req.request.params;
@@ -126,6 +143,8 @@ describe("BacklogList interaction", () => {
 		const statuses = params.get("status")?.split(",");
 		const search = params.get("search")?.toLowerCase();
 		const platinumedOnly = params.get("platinumed_only") === "true";
+		const moodTags = params.get("mood_tags")?.split(",") ?? [];
+		const communityTags = params.get("community_tags")?.split(",") ?? [];
 		if (Number(params.get("offset") ?? 0) > 0) {
 			return req.flush({
 				data: {
@@ -138,7 +157,9 @@ describe("BacklogList interaction", () => {
 			item =>
 				(!statuses || statuses.includes(item.status)) &&
 				(!search || item.game.title.toLowerCase().includes(search)) &&
-				(!platinumedOnly || !!item.platinum)
+				(!platinumedOnly || !!item.platinum) &&
+				hasAllTags(item.moodTags, moodTags) &&
+				hasAllTags(communityTagsByGame[item.game.id], communityTags)
 		);
 		req.flush({
 			data: { backlog, total: reportedTotal ?? backlog.length }
@@ -248,6 +269,17 @@ describe("BacklogList interaction", () => {
 			return req.flush({ data: { progress: [], members: [] } });
 		if (url.endsWith("/stats"))
 			return req.flush({}, { status: 500, statusText: "Server Error" });
+		if (url === `${api}/tags/popular`) {
+			popularTagsRequests++;
+			if (popularTagsStatus !== 200)
+				return req.flush(
+					{ title: "Failed" },
+					{ status: popularTagsStatus, statusText: "Failed" }
+				);
+			return req.flush({ data: { tags: popularTags } });
+		}
+		if (url === `${api}/users/me/mood-tags`)
+			return req.flush({ data: { tags: myTags } });
 		if (url.endsWith("/mood-tags"))
 			return req.flush({ data: { tags: [] } });
 		if (url === `${api}/users/me/queue/backlog-ids`)
@@ -367,6 +399,11 @@ describe("BacklogList interaction", () => {
 		favoriteGameIds = [];
 		reportedTotal = null;
 		secondPage = [];
+		myTags = [];
+		popularTags = [];
+		popularTagsStatus = 200;
+		popularTagsRequests = 0;
+		communityTagsByGame = {};
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -1645,6 +1682,430 @@ describe("BacklogList interaction", () => {
 				"true"
 			);
 			expect(bulkCalls).toHaveLength(1);
+		});
+	});
+
+	describe("tag chips", () => {
+		function tagLibrary(): BacklogEntry[] {
+			return initialLibrary().map(item => ({
+				...item,
+				moodTags:
+					{
+						b1: ["cozy", "short"],
+						b2: ["cozy"],
+						b3: []
+					}[item.id] ?? []
+			}));
+		}
+
+		function outsidePanel(elements: HTMLElement[]) {
+			return elements.find(element => !element.closest("[role=dialog]"))!;
+		}
+
+		function tagChips() {
+			return within(
+				outsidePanel(
+					screen.getAllByRole("group", { name: /^Filter by/ })
+				)
+			);
+		}
+
+		function panelTags() {
+			return within(
+				within(screen.getByRole("dialog")).getByRole("group", {
+					name: "Tags"
+				})
+			);
+		}
+
+		function tagChip(name: string) {
+			return tagChips().getByRole("button", {
+				name: new RegExp(`^${name}\\b`)
+			});
+		}
+
+		function tagSource(name: "My tags" | "Community") {
+			return within(
+				outsidePanel(
+					screen.getAllByRole("radiogroup", { name: "Tag source" })
+				)
+			).getByRole("radio", { name: new RegExp(`^${name}`) });
+		}
+
+		function filtersButton() {
+			return screen
+				.getAllByRole("button", { name: /^Filters/ })
+				.find(button => button.classList.contains("max-sm:!hidden"))!;
+		}
+
+		function lastLibraryQuery() {
+			return backlogQueries
+				.filter(query => query.get("limit") !== "1")
+				.at(-1)!;
+		}
+
+		function currentUrl() {
+			return new URL(TestBed.inject(Router).url, "http://app.test");
+		}
+
+		beforeEach(() => {
+			library = tagLibrary();
+			myTags = [
+				{ tag: "cozy", usageCount: 2, description: null },
+				{ tag: "short", usageCount: 1, description: "Under 5 hours" }
+			];
+			popularTags = [
+				{ tag: "relaxing", games: 2, players: 6 },
+				{ tag: "metroidvania", games: 1, players: 3 }
+			];
+			communityTagsByGame = {
+				g1: ["relaxing"],
+				g2: ["metroidvania", "relaxing"],
+				g3: []
+			};
+		});
+
+		it("filters by several of your tags at once and keeps them in the URL", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+
+			await user.click(tagChip("cozy"));
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades", "Hollow Knight"])
+			);
+			await user.click(tagChip("short"));
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+			expect(lastLibraryQuery().get("mood_tags")).toBe("cozy,short");
+			await waitFor(() =>
+				expect(currentUrl().searchParams.get("mood_tags")).toBe(
+					"cozy,short"
+				)
+			);
+			expect(within(filtersButton()).getByText("1")).toBeInTheDocument();
+			expect(popularTagsRequests).toBe(0);
+		});
+
+		it("ends unfiltered after a double click on the same chip", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+
+			await user.dblClick(tagChip("cozy"));
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual([
+					"Hades",
+					"Hollow Knight",
+					"Celeste"
+				])
+			);
+			expect(tagChip("cozy")).toHaveAttribute("aria-pressed", "false");
+			expect(lastLibraryQuery().has("mood_tags")).toBe(false);
+			await waitFor(() =>
+				expect(currentUrl().searchParams.has("mood_tags")).toBe(false)
+			);
+		});
+
+		it("filters by community tags, and Surprise me inherits them", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+
+			await user.click(tagSource("Community"));
+			await untilVisible(() =>
+				expect(tagChip("relaxing")).toBeInTheDocument()
+			);
+			await user.click(tagChip("relaxing"));
+			await user.click(tagChip("metroidvania"));
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight"])
+			);
+			expect(lastLibraryQuery().get("community_tags")).toBe(
+				"relaxing,metroidvania"
+			);
+			expect(lastLibraryQuery().has("mood_tags")).toBe(false);
+			await waitFor(() =>
+				expect(currentUrl().searchParams.get("community_tags")).toBe(
+					"relaxing,metroidvania"
+				)
+			);
+
+			backlogQueries.length = 0;
+			await user.click(
+				screen.getByRole("button", { name: /Surprise me/ })
+			);
+			await untilVisible(() =>
+				expect(backlogQueries.length).toBeGreaterThan(0)
+			);
+			expect(
+				backlogQueries.every(
+					query =>
+						query.get("community_tags") === "relaxing,metroidvania"
+				)
+			).toBe(true);
+		});
+
+		it("keeps the selection of each source when switching between them", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+
+			await user.click(tagChip("cozy"));
+			await user.click(tagSource("Community"));
+			await untilVisible(() =>
+				expect(tagChip("relaxing")).toBeInTheDocument()
+			);
+			await user.click(tagChip("relaxing"));
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades", "Hollow Knight"])
+			);
+			expect(lastLibraryQuery().get("mood_tags")).toBe("cozy");
+			expect(lastLibraryQuery().get("community_tags")).toBe("relaxing");
+			expect(tagSource("My tags")).toHaveTextContent("1");
+			expect(within(filtersButton()).getByText("2")).toBeInTheDocument();
+
+			await user.click(tagSource("My tags"));
+			expect(tagChip("cozy")).toHaveAttribute("aria-pressed", "true");
+			expect(popularTagsRequests).toBe(1);
+		});
+
+		it("opens with the community tags of a link on the Community chips", async () => {
+			await render(BacklogList, {
+				providers: [provideHttpClient(), provideHttpClientTesting()],
+				routes: [{ path: "**", component: BacklogList }],
+				initialRoute: "/?community_tags=metroidvania"
+			});
+			httpTesting = TestBed.inject(HttpTestingController);
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight"])
+			);
+			expect(tagSource("Community")).toHaveAttribute(
+				"aria-checked",
+				"true"
+			);
+			expect(tagChip("metroidvania")).toHaveAttribute(
+				"aria-pressed",
+				"true"
+			);
+		});
+
+		it("cleans up garbage tags in the URL before asking the API", async () => {
+			await render(BacklogList, {
+				providers: [provideHttpClient(), provideHttpClientTesting()],
+				routes: [{ path: "**", component: BacklogList }],
+				initialRoute: "/?mood_tags=,, COZY ,cozy,,"
+			});
+			httpTesting = TestBed.inject(HttpTestingController);
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades", "Hollow Knight"])
+			);
+			expect(
+				backlogQueries
+					.filter(query => query.get("limit") !== "1")
+					.every(query => query.get("mood_tags") === "cozy")
+			).toBe(true);
+			await waitFor(() =>
+				expect(currentUrl().searchParams.get("mood_tags")).toBe("cozy")
+			);
+		});
+
+		it("shows your tags in the filters panel as chips, most used first", async () => {
+			const user = userEvent.setup();
+			myTags = [
+				{ tag: "short", usageCount: 1, description: null },
+				{ tag: "cozy", usageCount: 2, description: null }
+			];
+			await renderBacklog();
+
+			await user.click(filtersButton());
+			const chips = panelTags()
+				.getAllByRole("button")
+				.filter(button => button.hasAttribute("data-chip-value"));
+
+			expect(
+				chips.map(chip => chip.getAttribute("data-chip-value"))
+			).toEqual(["cozy", "short"]);
+			expect(panelTags().queryByRole("textbox")).not.toBeInTheDocument();
+		});
+
+		it("shares the selection between the chip row, the filters panel and the URL", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			await user.click(tagChip("cozy"));
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades", "Hollow Knight"])
+			);
+
+			await user.click(filtersButton());
+			const panelCozy = panelTags().getByRole("button", {
+				name: /^cozy\b/
+			});
+			expect(panelCozy).toHaveAttribute("aria-pressed", "true");
+
+			await user.click(panelCozy);
+			await user.click(
+				panelTags().getByRole("button", { name: /^short\b/ })
+			);
+
+			expect(tagChip("cozy")).toHaveAttribute("aria-pressed", "false");
+			expect(tagChip("short")).toHaveAttribute("aria-pressed", "true");
+			await user.click(
+				screen.getByRole("button", { name: /^(Save & )?[Ss]how/ })
+			);
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+			expect(lastLibraryQuery().get("mood_tags")).toBe("short");
+			await waitFor(() =>
+				expect(currentUrl().searchParams.get("mood_tags")).toBe("short")
+			);
+		});
+
+		it("switches the tag source of the row from the filters panel", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			await user.click(filtersButton());
+
+			await user.click(
+				panelTags().getByRole("radio", { name: /^Community/ })
+			);
+			await untilVisible(() =>
+				expect(
+					panelTags().getByRole("button", { name: /^relaxing\b/ })
+				).toBeInTheDocument()
+			);
+			await user.click(
+				panelTags().getByRole("button", { name: /^relaxing\b/ })
+			);
+
+			expect(tagSource("Community")).toHaveAttribute(
+				"aria-checked",
+				"true"
+			);
+			expect(tagChip("relaxing")).toHaveAttribute("aria-pressed", "true");
+			expect(popularTagsRequests).toBe(1);
+			await user.click(
+				screen.getByRole("button", { name: /^(Save & )?[Ss]how/ })
+			);
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades", "Hollow Knight"])
+			);
+			expect(lastLibraryQuery().get("community_tags")).toBe("relaxing");
+		});
+
+		it("invites a user without tags to manage them from the filters panel", async () => {
+			const user = userEvent.setup();
+			myTags = [];
+			await renderBacklog();
+			await user.click(filtersButton());
+
+			expect(panelTags().getByText(/No tags yet/)).toBeInTheDocument();
+			expect(
+				panelTags().getByRole("link", { name: "Manage tags" })
+			).toHaveAttribute("href", "/tags");
+		});
+
+		it("clears every tag with the Clear button of the toolbar", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			await user.click(tagChip("cozy"));
+			await user.click(tagSource("Community"));
+			await untilVisible(() =>
+				expect(tagChip("relaxing")).toBeInTheDocument()
+			);
+			await user.click(tagChip("relaxing"));
+
+			await user.click(
+				await screen.findByRole("button", {
+					name: "Clear 2 active filters"
+				})
+			);
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual([
+					"Hades",
+					"Hollow Knight",
+					"Celeste"
+				])
+			);
+			expect(lastLibraryQuery().has("mood_tags")).toBe(false);
+			expect(lastLibraryQuery().has("community_tags")).toBe(false);
+			expect(tagSource("My tags")).not.toHaveTextContent("1");
+			await waitFor(() => {
+				expect(currentUrl().searchParams.has("mood_tags")).toBe(false);
+				expect(currentUrl().searchParams.has("community_tags")).toBe(
+					false
+				);
+			});
+		});
+
+		it("lets the user retry when the community tags fail to load", async () => {
+			const user = userEvent.setup();
+			popularTagsStatus = 503;
+			await renderBacklog();
+
+			await user.click(tagSource("Community"));
+			await untilVisible(() =>
+				expect(
+					screen.getByText("Couldn't load these tags.")
+				).toBeInTheDocument()
+			);
+			popularTagsStatus = 200;
+			await user.click(screen.getByRole("button", { name: "Try again" }));
+
+			await untilVisible(() =>
+				expect(tagChip("relaxing")).toBeInTheDocument()
+			);
+			expect(visibleTitles()).toEqual([
+				"Hades",
+				"Hollow Knight",
+				"Celeste"
+			]);
+		});
+
+		it("saves the community tags with a new view", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			await user.click(tagSource("Community"));
+			await untilVisible(() =>
+				expect(tagChip("relaxing")).toBeInTheDocument()
+			);
+			await user.click(tagChip("relaxing"));
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades", "Hollow Knight"])
+			);
+
+			await user.click(filtersButton());
+			await user.type(
+				await screen.findByRole("textbox", { name: "View name" }),
+				"Chill"
+			);
+			await user.click(
+				screen.getByRole("button", { name: /^Save & [Ss]how/ })
+			);
+			answerPending();
+
+			const created = savedViewWrites.find(
+				write => write.method === "POST"
+			);
+			expect(created?.body).toMatchObject({
+				name: "Chill",
+				filters: { community_tags: "relaxing" }
+			});
+		});
+
+		it("shows the tags of each entry on its Diary card", async () => {
+			await renderBacklog();
+
+			expect(within(card("Hades")).getByText("cozy")).toBeInTheDocument();
+			expect(
+				within(card("Hades")).getByText("short")
+			).toBeInTheDocument();
 		});
 	});
 });
