@@ -6,7 +6,9 @@ title: "Jump to any month in your calendars"
 icon: calendar_month
 tint: purple
 landing:
-    pitch: "En los calendarios de My Games y My Shelf puedes saltar directo a cualquier mes y año, sin avanzar mes a mes."
+    pitch:
+        es: "En los calendarios de My Games y My Shelf puedes saltar directo a cualquier mes y año, sin avanzar mes a mes."
+        en: "In the My Games and My Shelf calendars you can jump straight to any month and year, without going month by month."
 highlights:
     - icon: event
       tint: purple

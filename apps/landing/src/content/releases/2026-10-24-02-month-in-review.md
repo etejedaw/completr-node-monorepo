@@ -6,7 +6,9 @@ title: "Month in review shows your best personal Ratio"
 icon: emoji_events
 tint: brand
 landing:
-    pitch: "El resumen del mes en tu perfil ahora muestra el juego que más te rindió por hora, junto al más largo y al mejor valorado, con los mismos nombres que en tus vistas guardadas."
+    pitch:
+        es: "El resumen del mes en tu perfil ahora muestra el juego que más te rindió por hora, junto al más largo y al mejor valorado, con los mismos nombres que en tus vistas guardadas."
+        en: "The monthly summary on your profile now shows the game that paid off best per hour, next to the longest and the highest rated, with the same names as in your saved views."
 highlights:
     - icon: bolt
       tint: brand

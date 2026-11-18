@@ -6,7 +6,9 @@ title: "Fewer buttons, each one where you expect it"
 icon: tune
 tint: purple
 landing:
-    pitch: "Las páginas tienen menos botones y cada uno en su lugar: arriba lo que agrega o cambia tus juegos, y en la barra de búsqueda lo que cambia cómo ves la lista, siempre en el mismo orden."
+    pitch:
+        es: "Las páginas tienen menos botones y cada uno en su lugar: arriba lo que agrega o cambia tus juegos, y en la barra de búsqueda lo que cambia cómo ves la lista, siempre en el mismo orden."
+        en: "Pages have fewer buttons, each in its place: at the top, what adds or changes your games, and in the search bar, what changes how you see the list, always in the same order."
 highlights:
     - icon: download
       tint: brand

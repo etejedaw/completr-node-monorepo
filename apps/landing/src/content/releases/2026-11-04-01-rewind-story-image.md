@@ -6,7 +6,9 @@ title: "A new look for your shared Rewind"
 icon: ios_share
 tint: brand
 landing:
-    pitch: "La imagen del Rewind que compartes en tus historias se renovó: tus portadas del año de fondo, los juegos que terminaste en grande y tus cifras más claras, sin tarjetas de colores compitiendo entre sí."
+    pitch:
+        es: "La imagen del Rewind que compartes en tus historias se renovó: tus portadas del año de fondo, los juegos que terminaste en grande y tus cifras más claras, sin tarjetas de colores compitiendo entre sí."
+        en: "The Rewind image you share in your stories was renewed: your year's covers in the background, the games you finished in large type and clearer numbers, without colored cards competing with each other."
 highlights:
     - icon: auto_awesome_mosaic
       tint: brand

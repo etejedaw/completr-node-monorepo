@@ -6,7 +6,9 @@ title: Track your gaming sagas
 icon: collections_bookmark
 tint: purple
 landing:
-    pitch: "Sigue tus sagas favoritas y mira tu progreso por franquicia: cuántos Resident Evil o Zelda llevas completados. Marca las sagas que quieres seguir y aparecen en tu perfil con su barra de progreso."
+    pitch:
+        es: "Sigue tus sagas favoritas y mira tu progreso por franquicia: cuántos Resident Evil o Zelda llevas completados. Marca las sagas que quieres seguir y aparecen en tu perfil con su barra de progreso."
+        en: "Follow your favorite sagas and see your progress per franchise: how many Resident Evil or Zelda games you've completed. Mark the sagas you want to follow and they show up on your profile with their progress bar."
 highlights:
     - icon: collections_bookmark
       tint: brand

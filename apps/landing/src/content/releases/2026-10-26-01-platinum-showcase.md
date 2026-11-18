@@ -6,7 +6,9 @@ title: "Show off your platinums on your profile"
 icon: emoji_events
 tint: brand
 landing:
-    pitch: "Tu perfil ahora muestra tus últimos platinos, y tienen su propia página con todos los que has conseguido. Tú decides quién puede verlos."
+    pitch:
+        es: "Tu perfil ahora muestra tus últimos platinos, y tienen su propia página con todos los que has conseguido. Tú decides quién puede verlos."
+        en: "Your profile now shows your latest platinums, and they have their own page with every one you've earned. You decide who can see them."
 highlights:
     - icon: emoji_events
       tint: brand

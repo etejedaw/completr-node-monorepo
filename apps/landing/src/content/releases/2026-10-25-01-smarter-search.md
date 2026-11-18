@@ -6,7 +6,9 @@ title: "Search finds games no matter how you type them"
 icon: manage_search
 tint: success
 landing:
-    pitch: "Todos los buscadores siguen ahora las mismas reglas: ignoran acentos, mayúsculas y guiones, aceptan las palabras en cualquier orden y en la búsqueda global el título exacto sale primero."
+    pitch:
+        es: "Todos los buscadores siguen ahora las mismas reglas: ignoran acentos, mayúsculas y guiones, aceptan las palabras en cualquier orden y en la búsqueda global el título exacto sale primero."
+        en: "Every search now follows the same rules: they ignore accents, capitals and hyphens, accept words in any order, and in the global search the exact title comes first."
 highlights:
     - icon: spellcheck
       tint: success

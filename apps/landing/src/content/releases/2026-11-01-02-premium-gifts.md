@@ -6,7 +6,9 @@ title: "Premium gifts you claim right where you use them"
 icon: redeem
 tint: brand
 landing:
-    pitch: "Cuando hay un regalo premium, aparece dentro de la sección donde lo vas a usar y lo activas con un toque. Dura hasta la fecha que ves en la tarjeta y, cuando termina, conservas todo lo que creaste."
+    pitch:
+        es: "Cuando hay un regalo premium, aparece dentro de la sección donde lo vas a usar y lo activas con un toque. Dura hasta la fecha que ves en la tarjeta y, cuando termina, conservas todo lo que creaste."
+        en: "When there's a premium gift, it appears inside the section where you'll use it and you activate it with one tap. It lasts until the date you see on the card and, when it ends, you keep everything you created."
 highlights:
     - icon: redeem
       tint: brand

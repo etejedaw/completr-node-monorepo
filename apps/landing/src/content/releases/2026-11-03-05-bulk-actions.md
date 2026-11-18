@@ -6,7 +6,9 @@ title: "Edit many games at once in the Hardcore view"
 icon: library_add_check
 tint: brand
 landing:
-    pitch: "En la vista Hardcore ahora puedes marcar varios juegos y cambiarlos todos de una vez: estado, nota, favoritos, Up Next, privacidad o borrarlos, en My Games, My Shelf y Platinums."
+    pitch:
+        es: "En la vista Hardcore ahora puedes marcar varios juegos y cambiarlos todos de una vez: estado, nota, favoritos, Up Next, privacidad o borrarlos, en My Games, My Shelf y Platinums."
+        en: "In the Hardcore view you can now select several games and change them all at once: status, rating, favorites, Up Next, privacy or delete them, in My Games, My Shelf and Platinums."
 highlights:
     - icon: check_box
       tint: brand

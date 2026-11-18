@@ -6,7 +6,9 @@ title: Quick actions on every game cover and drag to reorder
 icon: drag_indicator
 tint: purple
 landing:
-    pitch: "Atajos rápidos al pasar el cursor sobre cada carátula: añadir a tu librería o marcar como Want to Get. Y tanto Up Next como las listas se reordenan arrastrando."
+    pitch:
+        es: "Atajos rápidos al pasar el cursor sobre cada carátula: añadir a tu librería o marcar como Want to Get. Y tanto Up Next como las listas se reordenan arrastrando."
+        en: "Quick shortcuts when you hover over each cover: add it to your library or mark it as Want to Get. And both Up Next and lists can be reordered by dragging."
 highlights:
     - icon: add_circle
       tint: brand

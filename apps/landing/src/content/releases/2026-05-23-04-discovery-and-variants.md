@@ -6,7 +6,9 @@ title: List discovery, multi-edition support and ratio at full scale
 icon: explore
 tint: purple
 landing:
-    pitch: "Descubre listas curadas en el catálogo, gestiona ediciones múltiples del mismo juego y lee el ratio en escala 0–100. El catálogo se vuelve más útil para explorar y comparar."
+    pitch:
+        es: "Descubre listas curadas en el catálogo, gestiona ediciones múltiples del mismo juego y lee el ratio en escala 0–100. El catálogo se vuelve más útil para explorar y comparar."
+        en: "Discover curated lists in the catalog, manage multiple editions of the same game and read the Ratio on a 0–100 scale. The catalog becomes more useful for exploring and comparing."
 highlights:
     - icon: explore
       tint: purple

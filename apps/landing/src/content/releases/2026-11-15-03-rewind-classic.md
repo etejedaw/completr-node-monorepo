@@ -6,7 +6,9 @@ title: "Your Rewind now spots the classic of your year"
 icon: history_edu
 tint: purple
 landing:
-    pitch: "Tu Rewind ahora destaca el clásico de tu año: el juego más antiguo que terminaste. Y el juego más largo y el más corto del año aparecen con su portada."
+    pitch:
+        es: "Tu Rewind ahora destaca el clásico de tu año: el juego más antiguo que terminaste. Y el juego más largo y el más corto del año aparecen con su portada."
+        en: "Your Rewind now highlights the classic of your year: the oldest game you finished. And the longest and shortest games of the year appear with their cover."
 highlights:
     - icon: history_edu
       tint: purple

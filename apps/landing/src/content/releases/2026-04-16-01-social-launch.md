@@ -7,7 +7,9 @@ icon: group_add
 tint: brand
 landing:
     featured: true
-    pitch: "Completr deja de ser un tracker personal: ahora puedes seguir a tus amigos, ver lo que juegan y compartir tus listas y reseñas."
+    pitch:
+        es: "Completr deja de ser un tracker personal: ahora puedes seguir a tus amigos, ver lo que juegan y compartir tus listas y reseñas."
+        en: "Completr stops being a personal tracker: now you can follow your friends, see what they play and share your lists and reviews."
 highlights:
     - icon: person_add
       tint: brand

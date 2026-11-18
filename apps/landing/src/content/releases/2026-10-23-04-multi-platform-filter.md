@@ -6,7 +6,9 @@ title: "Filter My Games by several platforms at once"
 icon: devices
 tint: brand
 landing:
-    pitch: "Ahora puedes filtrar tus juegos por varias plataformas a la vez, por ejemplo PS2 y PS3, y guardar esa combinación como vista para usarla cuando quieras."
+    pitch:
+        es: "Ahora puedes filtrar tus juegos por varias plataformas a la vez, por ejemplo PS2 y PS3, y guardar esa combinación como vista para usarla cuando quieras."
+        en: "You can now filter your games by several platforms at once, for example PS2 and PS3, and save that combination as a view to use whenever you want."
 highlights:
     - icon: library_add_check
       tint: brand

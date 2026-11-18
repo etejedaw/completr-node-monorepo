@@ -6,7 +6,9 @@ title: "The status menu works with your keyboard"
 icon: build
 tint: warning
 landing:
-    pitch: "El menú para cambiar el estado de un juego en My Games ahora se cierra con Escape y se puede recorrer con las flechas."
+    pitch:
+        es: "El menú para cambiar el estado de un juego en My Games ahora se cierra con Escape y se puede recorrer con las flechas."
+        en: "The menu to change a game's status in My Games now closes with Escape and can be navigated with the arrow keys."
 highlights:
     - icon: keyboard
       tint: brand

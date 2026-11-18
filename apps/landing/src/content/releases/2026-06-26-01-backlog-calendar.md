@@ -6,7 +6,9 @@ title: See your backlog on a calendar
 icon: calendar_month
 tint: brand
 landing:
-    pitch: "Tu backlog ahora también es un calendario. Cada juego aparece como una barra que va desde que lo empezaste hasta que lo terminaste — mira de un vistazo qué jugaste y cuándo, mes a mes."
+    pitch:
+        es: "Tu backlog ahora también es un calendario. Cada juego aparece como una barra que va desde que lo empezaste hasta que lo terminaste — mira de un vistazo qué jugaste y cuándo, mes a mes."
+        en: "Your backlog is now a calendar too. Each game shows up as a bar from when you started it to when you finished it: see at a glance what you played and when, month by month."
 highlights:
     - icon: calendar_month
       tint: brand

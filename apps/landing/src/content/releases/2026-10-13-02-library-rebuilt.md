@@ -6,7 +6,9 @@ title: "My Games, Up Next and your collections, rebuilt"
 icon: sports_esports
 tint: brand
 landing:
-    pitch: "My Games, Up Next, My Shelf, Want to Get y Favorites estrenan diseño: tarjetas que se voltean, gestos en el celular, deshacer al quitar y favoritos que puedes reordenar."
+    pitch:
+        es: "My Games, Up Next, My Shelf, Want to Get y Favorites estrenan diseño: tarjetas que se voltean, gestos en el celular, deshacer al quitar y favoritos que puedes reordenar."
+        en: "My Games, Up Next, My Shelf, Want to Get and Favorites get a new design: cards that flip, gestures on mobile, undo when removing and favorites you can reorder."
 highlights:
     - icon: flip
       tint: purple

@@ -6,7 +6,9 @@ title: "Sharper catalog filters and genre pages"
 icon: build
 tint: warning
 landing:
-    pitch: "Los filtros de nota del catálogo ahora usan la misma escala de 0 a 5 que ves, las páginas de género ya no repiten juegos y la sección de últimos reseñados siempre se llena."
+    pitch:
+        es: "Los filtros de nota del catálogo ahora usan la misma escala de 0 a 5 que ves, las páginas de género ya no repiten juegos y la sección de últimos reseñados siempre se llena."
+        en: "The catalog's rating filters now use the same 0 to 5 scale you see, genre pages no longer repeat games and the latest reviewed section always fills up."
 highlights:
     - icon: star_half
       tint: brand

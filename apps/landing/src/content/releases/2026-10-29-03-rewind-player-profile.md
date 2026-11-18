@@ -6,7 +6,9 @@ title: "Your AI recap now tells you what kind of player you are"
 icon: auto_awesome
 tint: brand
 landing:
-    pitch: "El resumen con IA del Rewind ahora habla de ti como jugador: qué valoras, qué te hace soltar un juego y cómo juegas. Si quieres, puede leer tus notas para entenderte mejor, sin citarlas ni nombrar a nadie."
+    pitch:
+        es: "El resumen con IA del Rewind ahora habla de ti como jugador: qué valoras, qué te hace soltar un juego y cómo juegas. Si quieres, puede leer tus notas para entenderte mejor, sin citarlas ni nombrar a nadie."
+        en: "The AI summary in your Rewind now talks about you as a player: what you value, what makes you drop a game and how you play. If you want, it can read your notes to understand you better, without quoting them or naming anyone."
 highlights:
     - icon: psychology
       tint: brand

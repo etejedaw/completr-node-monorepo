@@ -6,7 +6,9 @@ title: "Find your runs from anywhere, and filter each list on its own"
 icon: search
 tint: brand
 landing:
-    pitch: "La búsqueda de arriba ahora abre un buscador que empieza por tu propia biblioteca, así encuentras tu run desde cualquier página. Y cada lista tiene su propio filtro, que te dice cuántos juegos hay y cuántos coinciden."
+    pitch:
+        es: "La búsqueda de arriba ahora abre un buscador que empieza por tu propia biblioteca, así encuentras tu run desde cualquier página. Y cada lista tiene su propio filtro, que te dice cuántos juegos hay y cuántos coinciden."
+        en: "The search at the top now opens a search box that starts with your own library, so you find your run from any page. And each list has its own filter, which tells you how many games there are and how many match."
 highlights:
     - icon: search
       tint: brand

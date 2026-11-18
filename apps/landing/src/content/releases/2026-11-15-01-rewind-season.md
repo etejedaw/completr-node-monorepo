@@ -6,7 +6,9 @@ title: "Rewind gets a season, and your year is kept as it was"
 icon: event_available
 tint: brand
 landing:
-    pitch: "Tu Rewind ahora tiene temporada: lo generas en el cierre del año y, cuando la temporada termina, queda guardado como la versión final de tu año, tal como lo viste. Mientras está abierta, se actualiza solo a medida que agregas juegos."
+    pitch:
+        es: "Tu Rewind ahora tiene temporada: lo generas en el cierre del año y, cuando la temporada termina, queda guardado como la versión final de tu año, tal como lo viste. Mientras está abierta, se actualiza solo a medida que agregas juegos."
+        en: "Your Rewind now has a season: you generate it at the end of the year and, when the season ends, it's saved as the final version of your year, just as you saw it. While it's open, it updates itself as you add games."
 highlights:
     - icon: event_available
       tint: brand

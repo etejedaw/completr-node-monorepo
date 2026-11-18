@@ -74,11 +74,6 @@ function formatDate(iso: string): string {
 	}).format(date);
 }
 
-function pitchFor(entry: (typeof sorted)[number]): string | undefined {
-	if (lang === "es") return entry.data.landing?.pitch;
-	return entry.data.highlights.map(item => item.text).join(" ");
-}
-
 const [majorVersion, minorVersion] = version.split(".");
 const currentVersion = `v${majorVersion}.${minorVersion}`;
 
@@ -212,12 +207,12 @@ const stats = [
 							>
 								{entry.data.title}
 							</h3>
-							{pitchFor(entry) && (
+							{entry.data.landing?.pitch && (
 								<p
 									class="m-0 text-sm text-[var(--color-fg-secondary)] leading-relaxed"
 									class:list={[index !== 0 && "line-clamp-2"]}
 								>
-									{pitchFor(entry)}
+									{entry.data.landing.pitch[lang]}
 								</p>
 							)}
 						</article>

@@ -6,7 +6,9 @@ title: "Browse every official and community list"
 icon: format_list_bulleted
 tint: purple
 landing:
-    pitch: "La página de listas ahora separa las oficiales de las de la comunidad y te deja recorrerlas todas, no solo las primeras."
+    pitch:
+        es: "La página de listas ahora separa las oficiales de las de la comunidad y te deja recorrerlas todas, no solo las primeras."
+        en: "The lists page now separates official lists from community ones and lets you go through all of them, not just the first few."
 highlights:
     - icon: verified
       tint: brand

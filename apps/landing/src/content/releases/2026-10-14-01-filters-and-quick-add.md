@@ -6,7 +6,9 @@ title: "Easier filters, faster game adding and a fresh look"
 icon: tune
 tint: brand
 landing:
-    pitch: "Filtrar My Games y Browse es más simple, agregar un juego ahora es buscar y completar en dos pasos, y Completr estrena tipografía e íconos nuevos."
+    pitch:
+        es: "Filtrar My Games y Browse es más simple, agregar un juego ahora es buscar y completar en dos pasos, y Completr estrena tipografía e íconos nuevos."
+        en: "Filtering My Games and Browse is simpler, adding a game is now search and complete in two steps, and Completr debuts a new typeface and icons."
 highlights:
     - icon: tune
       tint: brand

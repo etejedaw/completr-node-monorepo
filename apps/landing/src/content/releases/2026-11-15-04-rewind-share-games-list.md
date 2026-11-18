@@ -6,7 +6,9 @@ title: "Share two images of your Rewind"
 icon: ios_share
 tint: brand
 landing:
-    pitch: "Ahora compartes tu Rewind en dos imágenes: el resumen de tu año y la lista de los juegos que terminaste. Además, los highlights estrenan un look nuevo que muestra la imagen de cada juego."
+    pitch:
+        es: "Ahora compartes tu Rewind en dos imágenes: el resumen de tu año y la lista de los juegos que terminaste. Además, los highlights estrenan un look nuevo que muestra la imagen de cada juego."
+        en: "You now share your Rewind as two images: the summary of your year and the list of games you finished. Plus, highlights get a new look that shows each game's image."
 highlights:
     - icon: ios_share
       tint: brand

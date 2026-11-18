@@ -6,7 +6,9 @@ title: Rate a game without writing a full review
 icon: star_half
 tint: warning
 landing:
-    pitch: "Valora un juego con estrellas sin obligación de escribir el texto. Tu nota cuenta igual y aparece en la lista de reseñas de tu perfil."
+    pitch:
+        es: "Valora un juego con estrellas sin obligación de escribir el texto. Tu nota cuenta igual y aparece en la lista de reseñas de tu perfil."
+        en: "Rate a game with stars without having to write anything. Your rating counts just the same and shows up in the reviews list on your profile."
 highlights:
     - icon: star
       tint: warning

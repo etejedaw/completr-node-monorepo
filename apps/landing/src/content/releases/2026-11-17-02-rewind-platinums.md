@@ -6,7 +6,9 @@ title: "Your platinums of the year, right in your Rewind"
 icon: emoji_events
 tint: brand
 landing:
-    pitch: "Tu Rewind ahora muestra los juegos que completaste al cien por cien en el año, junto a lo más destacado, y marca con un trofeo la partida exacta en la que lo lograste."
+    pitch:
+        es: "Tu Rewind ahora muestra los juegos que completaste al cien por cien en el año, junto a lo más destacado, y marca con un trofeo la partida exacta en la que lo lograste."
+        en: "Your Rewind now shows the games you completed at 100% during the year, next to your highlights, and marks with a trophy the exact run where you did it."
 highlights:
     - icon: emoji_events
       tint: brand

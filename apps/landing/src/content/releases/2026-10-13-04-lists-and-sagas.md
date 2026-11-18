@@ -6,7 +6,9 @@ title: "Lists and sagas you can act on"
 icon: format_list_bulleted
 tint: success
 landing:
-    pitch: "Las listas muestran sus juegos y tu progreso, puedes compararte con un amigo y agregar juegos a My Games directo desde una saga."
+    pitch:
+        es: "Las listas muestran sus juegos y tu progreso, puedes compararte con un amigo y agregar juegos a My Games directo desde una saga."
+        en: "Lists show their games and your progress, you can compare yourself with a friend and add games to My Games straight from a saga."
 highlights:
     - icon: collections
       tint: success

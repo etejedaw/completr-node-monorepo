@@ -6,7 +6,9 @@ title: "One search bar for everything"
 icon: manage_search
 tint: brand
 landing:
-    pitch: "Ya no hay dos buscadores en pantalla: la barra de arriba filtra la página en la que estás y, con un toque, busca en todo Completr. Además es más grande y fácil de usar."
+    pitch:
+        es: "Ya no hay dos buscadores en pantalla: la barra de arriba filtra la página en la que estás y, con un toque, busca en todo Completr. Además es más grande y fácil de usar."
+        en: "No more two search boxes on screen: the top bar filters the page you're on and, with one tap, searches all of Completr. It's also bigger and easier to use."
 highlights:
     - icon: filter_list
       tint: brand

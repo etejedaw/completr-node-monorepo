@@ -6,7 +6,9 @@ title: Personalize, duplicate and share your saved views
 icon: bookmarks
 tint: brand
 landing:
-    pitch: "Tus vistas guardadas ahora son tuyas de verdad: dales un ícono y un color, duplícalas para experimentar, reordénalas arrastrando y comparte cualquiera como un link público de tu backlog filtrado."
+    pitch:
+        es: "Tus vistas guardadas ahora son tuyas de verdad: dales un ícono y un color, duplícalas para experimentar, reordénalas arrastrando y comparte cualquiera como un link público de tu backlog filtrado."
+        en: "Your saved views are now truly yours: give them an icon and a color, duplicate them to experiment, reorder them by dragging and share any of them as a public link to your filtered backlog."
 highlights:
     - icon: share
       tint: brand

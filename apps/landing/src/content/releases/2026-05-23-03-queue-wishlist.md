@@ -6,7 +6,9 @@ title: Up Next and Want to Get — two separate lists
 icon: playlist_play
 tint: brand
 landing:
-    pitch: "Dos secciones separadas: Up Next mantiene corta tu cola de lo que ya tienes y vas a jugar; Want to Get rastrea los juegos que aún no compraste sin ensuciar tu librería."
+    pitch:
+        es: "Dos secciones separadas: Up Next mantiene corta tu cola de lo que ya tienes y vas a jugar; Want to Get rastrea los juegos que aún no compraste sin ensuciar tu librería."
+        en: "Two separate sections: Up Next keeps a short queue of what you own and are going to play; Want to Get tracks the games you haven't bought yet without cluttering your library."
 highlights:
     - icon: playlist_play
       tint: brand

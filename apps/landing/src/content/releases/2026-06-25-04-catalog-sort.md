@@ -7,7 +7,9 @@ icon: sort
 tint: purple
 landing:
     featured: true
-    pitch: "Ordena el catálogo por rating, duración, ratio o popularidad real — combinado con cualquiera de los filtros existentes."
+    pitch:
+        es: "Ordena el catálogo por rating, duración, ratio o popularidad real — combinado con cualquiera de los filtros existentes."
+        en: "Sort the catalog by rating, length, Ratio or real popularity, combined with any of the existing filters."
 highlights:
     - icon: star_rate
       tint: warning

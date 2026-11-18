@@ -6,7 +6,9 @@ title: "Saving never leaves things half done"
 icon: task_alt
 tint: warning
 landing:
-    pitch: "Al añadir un juego o guardarlo en tus listas, ahora se guarda todo o nada: si algo falla, ves el error y nada queda a medias."
+    pitch:
+        es: "Al añadir un juego o guardarlo en tus listas, ahora se guarda todo o nada: si algo falla, ves el error y nada queda a medias."
+        en: "When you add a game or save it to your lists, it now saves all or nothing: if something fails, you see the error and nothing is left half done."
 highlights:
     - icon: playlist_add_check
       tint: brand

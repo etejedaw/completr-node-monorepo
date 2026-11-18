@@ -6,7 +6,9 @@ title: "Smoother taps and keyboard controls"
 icon: build_circle
 tint: warning
 landing:
-    pitch: "Arreglamos varios detalles al usar Completr con el teclado o con el dedo: los interruptores responden a la barra espaciadora y un doble toque ya no abre la misma ventana dos veces."
+    pitch:
+        es: "Arreglamos varios detalles al usar Completr con el teclado o con el dedo: los interruptores responden a la barra espaciadora y un doble toque ya no abre la misma ventana dos veces."
+        en: "We fixed several details when using Completr with the keyboard or with your finger: switches respond to the space bar and a double tap no longer opens the same window twice."
 highlights:
     - icon: toggle_on
       tint: warning

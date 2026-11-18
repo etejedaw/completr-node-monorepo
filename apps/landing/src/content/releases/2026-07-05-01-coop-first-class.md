@@ -6,7 +6,9 @@ title: Co-op, front and center in your backlog
 icon: group
 tint: purple
 landing:
-    pitch: "El co-op ahora es de primera clase: filtra tu backlog para ver solo lo que jugaste acompañado, mira con quién jugaste cada juego desde su ficha, y en el feed las actividades de co-op por fin dicen a qué se jugó."
+    pitch:
+        es: "El co-op ahora es de primera clase: filtra tu backlog para ver solo lo que jugaste acompañado, mira con quién jugaste cada juego desde su ficha, y en el feed las actividades de co-op por fin dicen a qué se jugó."
+        en: "Co-op is now first-class: filter your backlog to see only what you played with others, see who you played each game with from its page, and co-op activities in the feed finally say what was played."
 highlights:
     - icon: filter_alt
       tint: brand

@@ -6,7 +6,9 @@ title: "Your private stuff stays private"
 icon: shield
 tint: purple
 landing:
-    pitch: "Reforzamos la privacidad: tu Up Next público ya no muestra partidas privadas, notas ni mood tags, y los seguidores de una lista privada solo los ves tú."
+    pitch:
+        es: "Reforzamos la privacidad: tu Up Next público ya no muestra partidas privadas, notas ni mood tags, y los seguidores de una lista privada solo los ves tú."
+        en: "We strengthened privacy: your public Up Next no longer shows private runs, notes or mood tags, and only you see the followers of a private list."
 highlights:
     - icon: visibility_off
       tint: purple

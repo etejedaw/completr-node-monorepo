@@ -6,7 +6,9 @@ title: "Know who writes your Rewind recap, and an updated guide"
 icon: privacy_tip
 tint: brand
 landing:
-    pitch: "Al generar tu Rewind puedes ver qué servicio escribe el resumen con IA y qué datos recibe, y la política de privacidad lo explica en detalle. La guía de la app suma el Rewind, los platinos, las sagas y la exportación."
+    pitch:
+        es: "Al generar tu Rewind puedes ver qué servicio escribe el resumen con IA y qué datos recibe, y la política de privacidad lo explica en detalle. La guía de la app suma el Rewind, los platinos, las sagas y la exportación."
+        en: "When you generate your Rewind you can see which service writes the AI summary and what data it receives, and the privacy policy explains it in detail. The app guide adds Rewind, platinums, sagas and export."
 highlights:
     - icon: help_outline
       tint: brand

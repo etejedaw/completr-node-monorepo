@@ -6,7 +6,9 @@ title: "Smoother sign-in, safer plan limits and cleaner feeds"
 icon: build
 tint: warning
 landing:
-    pitch: "Varios arreglos para que todo se comporte como esperas: el login acepta tu email con mayúsculas, un doble clic ya no se salta los límites de tu plan, las listas que pasan a privadas desaparecen del feed de quienes las seguían y tu sesión ya no se cierra sola ante un problema momentáneo."
+    pitch:
+        es: "Varios arreglos para que todo se comporte como esperas: el login acepta tu email con mayúsculas, un doble clic ya no se salta los límites de tu plan, las listas que pasan a privadas desaparecen del feed de quienes las seguían y tu sesión ya no se cierra sola ante un problema momentáneo."
+        en: "Several fixes so everything behaves as you expect: sign-in accepts your email with capitals, a double click no longer gets around your plan's limits, lists that turn private disappear from their followers' feed and your session no longer ends by itself on a momentary problem."
 highlights:
     - icon: login
       tint: success

@@ -6,7 +6,9 @@ title: Reviews per game and secure multi-device sessions
 icon: rate_review
 tint: success
 landing:
-    pitch: "Escribe reseñas por juego y mantén tu sesión activa en varios dispositivos sin perder seguridad. Las reseñas se integran al feed y a la ficha del juego."
+    pitch:
+        es: "Escribe reseñas por juego y mantén tu sesión activa en varios dispositivos sin perder seguridad. Las reseñas se integran al feed y a la ficha del juego."
+        en: "Write reviews for each game and stay signed in on several devices without losing security. Reviews show up in the feed and on the game page."
 highlights:
     - icon: rate_review
       tint: success

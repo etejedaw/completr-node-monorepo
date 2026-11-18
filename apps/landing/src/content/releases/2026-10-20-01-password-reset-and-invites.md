@@ -6,7 +6,9 @@ title: "Reset your password and join by invitation"
 icon: lock_reset
 tint: brand
 landing:
-    pitch: "Si olvidas tu contraseña, ahora puedes recuperarla tú mismo desde el inicio de sesión con un link que llega a tu correo. Y para sumarte a la beta basta con una invitación: eliges tu usuario, tu nombre y tu contraseña."
+    pitch:
+        es: "Si olvidas tu contraseña, ahora puedes recuperarla tú mismo desde el inicio de sesión con un link que llega a tu correo. Y para sumarte a la beta basta con una invitación: eliges tu usuario, tu nombre y tu contraseña."
+        en: "If you forget your password, you can now recover it yourself from the sign-in screen with a link sent to your email. And joining the beta only takes an invitation: you choose your username, your name and your password."
 highlights:
     - icon: lock_reset
       tint: brand

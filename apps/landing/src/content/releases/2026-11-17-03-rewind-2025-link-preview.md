@@ -6,7 +6,9 @@ title: "Your 2025 Rewind link now shows a preview"
 icon: link
 tint: purple
 landing:
-    pitch: "Cuando compartes el enlace de tu Rewind 2025, ahora se ve una vista previa con su estilo de revista: tu año, tu perfil de jugador y tus portadas."
+    pitch:
+        es: "Cuando compartes el enlace de tu Rewind 2025, ahora se ve una vista previa con su estilo de revista: tu año, tu perfil de jugador y tus portadas."
+        en: "When you share your 2025 Rewind link, it now shows a magazine-style preview: your year, your player profile and your covers."
 highlights:
     - icon: link
       tint: purple

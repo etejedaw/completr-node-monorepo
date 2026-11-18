@@ -6,7 +6,9 @@ title: "Keep any run to yourself"
 icon: lock
 tint: purple
 landing:
-    pitch: "Ahora eliges si cada run es pública o privada al agregarla o editarla, y un candado te recuerda cuáles solo ves tú."
+    pitch:
+        es: "Ahora eliges si cada run es pública o privada al agregarla o editarla, y un candado te recuerda cuáles solo ves tú."
+        en: "You now choose whether each run is public or private when you add or edit it, and a padlock reminds you which ones only you can see."
 highlights:
     - icon: public
       tint: purple

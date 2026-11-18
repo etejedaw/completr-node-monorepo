@@ -6,7 +6,9 @@ title: "Steadier when you click fast, switch pages or lose connection"
 icon: build
 tint: warning
 landing:
-    pitch: "Una tanda de arreglos para que la app se comporte bien aunque hagas doble clic, cambies rápido de página o se corte la conexión. Además, volver a la inicial de tu nombre en vez de un avatar ahora sí se guarda y la ficha de un juego siempre sabe si lo tienes en My Shelf."
+    pitch:
+        es: "Una tanda de arreglos para que la app se comporte bien aunque hagas doble clic, cambies rápido de página o se corte la conexión. Además, volver a la inicial de tu nombre en vez de un avatar ahora sí se guarda y la ficha de un juego siempre sabe si lo tienes en My Shelf."
+        en: "A batch of fixes so the app behaves well even if you double-click, switch pages quickly or lose your connection. Plus, going back to your name's initial instead of an avatar now actually saves, and a game page always knows whether you have it in My Shelf."
 highlights:
     - icon: face
       tint: success

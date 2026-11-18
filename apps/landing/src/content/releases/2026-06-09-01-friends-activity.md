@@ -6,7 +6,9 @@ title: See what your friends play on every game page
 icon: diversity_3
 tint: brand
 landing:
-    pitch: "En la ficha de cada juego ves qué amigos lo tienen y en qué estado. Y en cada perfil ajeno, los juegos que ambos completaron están a un clic."
+    pitch:
+        es: "En la ficha de cada juego ves qué amigos lo tienen y en qué estado. Y en cada perfil ajeno, los juegos que ambos completaron están a un clic."
+        en: "On each game page you see which friends own it and in what status. And on someone else's profile, the games you both completed are one click away."
 highlights:
     - icon: groups
       tint: brand

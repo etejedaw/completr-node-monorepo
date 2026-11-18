@@ -6,7 +6,9 @@ title: "Pages open at the top and every game shows its art"
 icon: vertical_align_top
 tint: warning
 landing:
-    pitch: "Al abrir otra página ya no quedas a mitad de camino, y al volver atrás regresas a donde estabas. Además, los juegos que solo tienen portada ya no aparecen en blanco."
+    pitch:
+        es: "Al abrir otra página ya no quedas a mitad de camino, y al volver atrás regresas a donde estabas. Además, los juegos que solo tienen portada ya no aparecen en blanco."
+        en: "Opening another page no longer leaves you halfway down, and going back returns you to where you were. Plus, games that only have a cover no longer appear blank."
 highlights:
     - icon: vertical_align_top
       tint: warning

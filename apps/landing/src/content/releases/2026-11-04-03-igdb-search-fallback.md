@@ -6,7 +6,9 @@ title: "Game search keeps working when RAWG is down"
 icon: travel_explore
 tint: brand
 landing:
-    pitch: "Cuando buscas un juego que todavía no está en Completr y RAWG no responde, ahora lo buscamos en IGDB y lo agregamos con su portada, fondo, plataformas y nota. Si ninguna de las dos fuentes responde, te lo decimos en vez de mostrar una lista vacía."
+    pitch:
+        es: "Cuando buscas un juego que todavía no está en Completr y RAWG no responde, ahora lo buscamos en IGDB y lo agregamos con su portada, fondo, plataformas y nota. Si ninguna de las dos fuentes responde, te lo decimos en vez de mostrar una lista vacía."
+        en: "When you search for a game that isn't in Completr yet and RAWG doesn't respond, we now look it up on IGDB and add it with its cover, background, platforms and rating. If neither source responds, we tell you instead of showing an empty list."
 highlights:
     - icon: travel_explore
       tint: brand

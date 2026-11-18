@@ -6,7 +6,9 @@ title: "See which runs are private at a glance"
 icon: lock
 tint: purple
 landing:
-    pitch: "Ahora sabes si una run es privada también al abrir su detalle, y el candado y el trofeo aparecen justo al lado del nombre del juego."
+    pitch:
+        es: "Ahora sabes si una run es privada también al abrir su detalle, y el candado y el trofeo aparecen justo al lado del nombre del juego."
+        en: "You now know whether a run is private when you open its detail too, and the padlock and the trophy appear right next to the game's name."
 highlights:
     - icon: lock
       tint: purple

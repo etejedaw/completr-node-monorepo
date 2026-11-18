@@ -6,7 +6,9 @@ title: "Abandoned games are easier to spot in your Rewind"
 icon: cancel
 tint: warning
 landing:
-    pitch: "En tu Rewind 2026, los juegos que abandonaste llevan ahora una marca además del gris, y los juegos sin carátula se ven con su póster de color en vez de un recuadro negro."
+    pitch:
+        es: "En tu Rewind 2026, los juegos que abandonaste llevan ahora una marca además del gris, y los juegos sin carátula se ven con su póster de color en vez de un recuadro negro."
+        en: "In your 2026 Rewind, the games you abandoned now carry a mark besides the gray, and games without a cover show their colored poster instead of a black box."
 highlights:
     - icon: cancel
       tint: danger

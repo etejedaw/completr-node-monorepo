@@ -6,7 +6,9 @@ title: "Share your Rewind by link, even if your profile is private"
 icon: link
 tint: purple
 landing:
-    pitch: "Si tienes el perfil privado, igual puedes compartir el enlace de tu Rewind: quien lo abra verá el resumen de tu año según la visibilidad que le diste. Tu perfil y tu biblioteca siguen ocultos y tu Rewind no aparece en ellos."
+    pitch:
+        es: "Si tienes el perfil privado, igual puedes compartir el enlace de tu Rewind: quien lo abra verá el resumen de tu año según la visibilidad que le diste. Tu perfil y tu biblioteca siguen ocultos y tu Rewind no aparece en ellos."
+        en: "If your profile is private, you can still share your Rewind link: whoever opens it sees the summary of your year according to the visibility you gave it. Your profile and your library stay hidden and your Rewind doesn't appear on them."
 highlights:
     - icon: link
       tint: purple

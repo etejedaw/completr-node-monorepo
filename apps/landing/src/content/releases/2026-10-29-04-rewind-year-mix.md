@@ -6,7 +6,9 @@ title: "More of your year: game lengths and release decades in every Rewind"
 icon: bar_chart
 tint: success
 landing:
-    pitch: "Todos los Rewind suman dos gráficas nuevas: cuánto duraron los juegos que terminaste y de qué décadas eran. Sin Premium, para todos."
+    pitch:
+        es: "Todos los Rewind suman dos gráficas nuevas: cuánto duraron los juegos que terminaste y de qué décadas eran. Sin Premium, para todos."
+        en: "Every Rewind gets two new charts: how long the games you finished lasted and which decades they were from. No Premium needed, for everyone."
 highlights:
     - icon: schedule
       tint: success

@@ -6,7 +6,9 @@ title: "Up Next keeps every game when you reorder it"
 icon: build
 tint: warning
 landing:
-    pitch: "Reordenar Up Next ya no hace desaparecer juegos, aunque tengas una búsqueda activa. Además, los enlaces del Rewind ahora usan la dirección de Completr, los correos para recuperar la contraseña no se repiten y los intentos fallidos de otra persona ya no te bloquean el inicio de sesión."
+    pitch:
+        es: "Reordenar Up Next ya no hace desaparecer juegos, aunque tengas una búsqueda activa. Además, los enlaces del Rewind ahora usan la dirección de Completr, los correos para recuperar la contraseña no se repiten y los intentos fallidos de otra persona ya no te bloquean el inicio de sesión."
+        en: "Reordering Up Next no longer makes games disappear, even with an active search. Also, Rewind links now use Completr's address, password recovery emails are no longer sent twice and someone else's failed attempts no longer lock you out of sign-in."
 highlights:
     - icon: swap_vert
       tint: warning

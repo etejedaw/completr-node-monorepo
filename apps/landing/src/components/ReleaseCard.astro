@@ -9,12 +9,9 @@ interface Props {
 
 const { release } = Astro.props;
 const lang = toLocale(Astro.currentLocale);
-const { date, tint, icon, tag, title, landing, highlights } = release.data;
+const { date, tint, icon, tag, title, landing } = release.data;
 
-const pitch =
-	lang === "es"
-		? landing?.pitch
-		: highlights.map(item => item.text).join(" ");
+const pitch = landing?.pitch[lang];
 
 function formatDate(iso: string): string {
 	const [year, month, day] = iso.split("-").map(Number);

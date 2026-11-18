@@ -6,7 +6,9 @@ title: Organize your saved views the way you want
 icon: bookmarks
 tint: brand
 landing:
-    pitch: "Tus vistas guardadas ahora se guardan más rápido y se ordenan como tú quieras. Crea una vista sin salir del panel de filtros, ordénalas en la página de gestión y decide en qué orden aparecen tus vistas fijadas en My Games."
+    pitch:
+        es: "Tus vistas guardadas ahora se guardan más rápido y se ordenan como tú quieras. Crea una vista sin salir del panel de filtros, ordénalas en la página de gestión y decide en qué orden aparecen tus vistas fijadas en My Games."
+        en: "Your saved views now save faster and sort however you like. Create a view without leaving the filters panel, sort them on the management page and decide the order of your pinned views in My Games."
 highlights:
     - icon: bookmark_add
       tint: brand

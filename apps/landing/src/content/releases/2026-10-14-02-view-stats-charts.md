@@ -6,7 +6,9 @@ title: "Charts for your saved views"
 icon: insights
 tint: brand
 landing:
-    pitch: "Las stats de tus vistas guardadas ahora tienen gráficos: cuántos juegos terminaste cada mes, cómo se reparten por estado y cómo puntúas lo que juegas."
+    pitch:
+        es: "Las stats de tus vistas guardadas ahora tienen gráficos: cuántos juegos terminaste cada mes, cómo se reparten por estado y cómo puntúas lo que juegas."
+        en: "The stats of your saved views now have charts: how many games you finished each month, how they split by status and how you rate what you play."
 highlights:
     - icon: bar_chart
       tint: brand

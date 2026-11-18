@@ -6,7 +6,9 @@ title: "Your Rewind's AI recap, on your terms"
 icon: auto_awesome
 tint: brand
 landing:
-    pitch: "Ahora decides si tu Rewind trae resumen con IA y qué lee la IA antes de escribirlo. Puedes generarlo sin resumen y sumarlo después desde el mismo botón, y los juegos sin carátula ya muestran su arte."
+    pitch:
+        es: "Ahora decides si tu Rewind trae resumen con IA y qué lee la IA antes de escribirlo. Puedes generarlo sin resumen y sumarlo después desde el mismo botón, y los juegos sin carátula ya muestran su arte."
+        en: "You now decide whether your Rewind includes an AI summary and what the AI reads before writing it. You can generate it without a summary and add it later from the same button, and games without a cover now show their art."
 highlights:
     - icon: toggle_on
       tint: brand

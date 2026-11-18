@@ -6,7 +6,9 @@ title: Progress notes per run
 icon: bookmark
 tint: brand
 landing:
-    pitch: "Deja notas breves dentro de cada juego — capítulo 3, atascado en el puzzle del agua — para que sepas dónde quedaste cuando vuelvas meses después."
+    pitch:
+        es: "Deja notas breves dentro de cada juego — capítulo 3, atascado en el puzzle del agua — para que sepas dónde quedaste cuando vuelvas meses después."
+        en: "Leave short notes inside each game (chapter 3, stuck on the water puzzle) so you know where you left off when you come back months later."
 highlights:
     - icon: bookmark
       tint: brand

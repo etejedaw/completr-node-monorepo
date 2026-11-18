@@ -6,7 +6,9 @@ title: "Followers and following load page by page"
 icon: group
 tint: purple
 landing:
-    pitch: "Las listas de seguidores y seguidos ahora se cargan por páginas y la búsqueda encuentra a cualquiera, no solo a los que ya cargaron."
+    pitch:
+        es: "Las listas de seguidores y seguidos ahora se cargan por páginas y la búsqueda encuentra a cualquiera, no solo a los que ya cargaron."
+        en: "Followers and following lists now load page by page, and search finds anyone, not just those already loaded."
 highlights:
     - icon: last_page
       tint: brand

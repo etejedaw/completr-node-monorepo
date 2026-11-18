@@ -6,7 +6,9 @@ title: "Adding a game tells you what's missing"
 icon: add_task
 tint: brand
 landing:
-    pitch: "Al añadir un juego ahora ves de inmediato qué falta para guardarlo, la plataforma y la nota y duración de referencia están siempre a la vista, y los valores se ajustan solos a un máximo de 5 y dos decimales."
+    pitch:
+        es: "Al añadir un juego ahora ves de inmediato qué falta para guardarlo, la plataforma y la nota y duración de referencia están siempre a la vista, y los valores se ajustan solos a un máximo de 5 y dos decimales."
+        en: "When you add a game you now see right away what's missing to save it, the platform and the reference rating and length are always in view, and values adjust automatically to a maximum of 5 and two decimals."
 highlights:
     - icon: view_agenda
       tint: brand

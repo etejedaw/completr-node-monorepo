@@ -6,7 +6,9 @@ title: "A lighter changelog page you can keep scrolling"
 icon: history
 tint: purple
 landing:
-    pitch: "La página de novedades abre más rápido: muestra las más recientes primero y, con Ver más, sigues bajando por el historial sin cambiar de página."
+    pitch:
+        es: "La página de novedades abre más rápido: muestra las más recientes primero y, con Ver más, sigues bajando por el historial sin cambiar de página."
+        en: "The What's new page opens faster: it shows the most recent first and, with See more, you keep scrolling through the history without changing pages."
 highlights:
     - icon: bolt
       tint: success

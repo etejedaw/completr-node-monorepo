@@ -6,7 +6,9 @@ title: "Easier to read, and notifications that don't pile up"
 icon: contrast
 tint: purple
 landing:
-    pitch: "Las fechas, etiquetas y textos secundarios ahora se leen mejor en los tres temas, y las notificaciones ya no se amontonan: nunca ves más de cuatro y una repetida reemplaza a la anterior. La app además carga un poco más rápido."
+    pitch:
+        es: "Las fechas, etiquetas y textos secundarios ahora se leen mejor en los tres temas, y las notificaciones ya no se amontonan: nunca ves más de cuatro y una repetida reemplaza a la anterior. La app además carga un poco más rápido."
+        en: "Dates, labels and secondary text are now easier to read in all three themes, and notifications no longer pile up: you never see more than four, and a repeated one replaces the previous one. The app also loads a bit faster."
 highlights:
     - icon: contrast
       tint: purple

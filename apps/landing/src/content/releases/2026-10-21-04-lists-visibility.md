@@ -6,7 +6,9 @@ title: "Friends-only means friends, and your profile rules your lists"
 icon: visibility
 tint: purple
 landing:
-    pitch: "Ahora la privacidad de tu perfil manda sobre tus listas: si tu perfil o tus listas son solo para amigos, solo las ven quienes se siguen contigo, en todas partes."
+    pitch:
+        es: "Ahora la privacidad de tu perfil manda sobre tus listas: si tu perfil o tus listas son solo para amigos, solo las ven quienes se siguen contigo, en todas partes."
+        en: "Your profile's privacy now governs your lists: if your profile or your lists are friends-only, only people who follow each other with you see them, everywhere."
 highlights:
     - icon: lock
       tint: purple

@@ -6,7 +6,9 @@ title: "Download your collections"
 icon: download
 tint: brand
 landing:
-    pitch: "Ahora puedes descargar tus juegos, tu cola, tu estantería, tus deseos, tus favoritos, tus platinos y tus listas como CSV para abrirlos en Excel o donde quieras. El archivo trae exactamente lo que estás viendo, con tus filtros y tu orden."
+    pitch:
+        es: "Ahora puedes descargar tus juegos, tu cola, tu estantería, tus deseos, tus favoritos, tus platinos y tus listas como CSV para abrirlos en Excel o donde quieras. El archivo trae exactamente lo que estás viendo, con tus filtros y tu orden."
+        en: "You can now download your games, your queue, your shelf, your wishlist, your favorites, your platinums and your lists as CSV to open them in Excel or anywhere you like. The file has exactly what you're seeing, with your filters and your order."
 highlights:
     - icon: download
       tint: brand

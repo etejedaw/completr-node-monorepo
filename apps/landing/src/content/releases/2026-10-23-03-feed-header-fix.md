@@ -6,7 +6,9 @@ title: "Your Feed header shows the games from your Feed"
 icon: build
 tint: warning
 landing:
-    pitch: "La cabecera del Feed vuelve a mostrar los juegos de la actividad reciente, en vez de repetir siempre el mismo."
+    pitch:
+        es: "La cabecera del Feed vuelve a mostrar los juegos de la actividad reciente, en vez de repetir siempre el mismo."
+        en: "The Feed header shows the games from your recent activity again, instead of always repeating the same one."
 highlights:
     - icon: dynamic_feed
       tint: brand

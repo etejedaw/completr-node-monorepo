@@ -6,7 +6,9 @@ title: Friends-level privacy and follow requests
 icon: lock
 tint: purple
 landing:
-    pitch: "Decide quién ve cada parte de tu perfil: solo tú, tus amigos o todos. Y si quieres llevarlo más lejos, los perfiles privados pueden filtrar a nuevos seguidores con solicitudes."
+    pitch:
+        es: "Decide quién ve cada parte de tu perfil: solo tú, tus amigos o todos. Y si quieres llevarlo más lejos, los perfiles privados pueden filtrar a nuevos seguidores con solicitudes."
+        en: "Decide who sees each part of your profile: only you, your friends or everyone. And if you want to go further, private profiles can screen new followers with requests."
 highlights:
     - icon: tune
       tint: purple

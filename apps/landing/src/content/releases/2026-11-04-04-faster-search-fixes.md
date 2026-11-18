@@ -6,7 +6,9 @@ title: "Faster game search while RAWG is down"
 icon: bolt
 tint: warning
 landing:
-    pitch: "Mientras RAWG no responde, la búsqueda de juegos ya no se queda esperando: pasa a IGDB en segundos. Y más juegos reciben su nota de Metacritic cuando se agregan al catálogo."
+    pitch:
+        es: "Mientras RAWG no responde, la búsqueda de juegos ya no se queda esperando: pasa a IGDB en segundos. Y más juegos reciben su nota de Metacritic cuando se agregan al catálogo."
+        en: "While RAWG isn't responding, game search no longer keeps waiting: it switches to IGDB in seconds. And more games get their Metacritic score when they're added to the catalog."
 highlights:
     - icon: bolt
       tint: warning
