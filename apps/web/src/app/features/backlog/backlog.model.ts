@@ -9,6 +9,16 @@ export interface BacklogListResponse {
 	data: { backlog: BacklogEntry[]; total: number };
 }
 
+export interface PopularTag {
+	tag: string;
+	games: number;
+	players: number;
+}
+
+export interface PopularTagsResponse {
+	data: { tags: PopularTag[] };
+}
+
 export interface BacklogSingleResponse {
 	data: { backlog: BacklogEntry };
 }
@@ -49,6 +59,7 @@ export interface BacklogFilters extends Record<string, Appendable> {
 	min_personal_ratio?: number;
 	max_personal_ratio?: number;
 	mood_tags?: string;
+	community_tags?: string;
 	search?: string;
 	limit?: number;
 	offset?: number;

@@ -13,8 +13,11 @@ import {
 	type BacklogSingleResponse,
 	type BacklogUpdateResponse,
 	type CreateBacklogDto,
+	type PopularTagsResponse,
 	type UpdateBacklogDto
 } from "./backlog.model";
+
+const POPULAR_TAGS_LIMIT = 20;
 
 @Injectable({ providedIn: "root" })
 export class BacklogService {
@@ -24,6 +27,14 @@ export class BacklogService {
 	getMyBacklog(filters: BacklogFilters = {}) {
 		const params = buildHttpParams(filters);
 		return this.http.get<BacklogListResponse>(this.baseUrl, { params });
+	}
+
+	getPopularTags(limit = POPULAR_TAGS_LIMIT) {
+		return this.http
+			.get<PopularTagsResponse>(`${environment.apiUrl}/tags/popular`, {
+				params: { limit }
+			})
+			.pipe(map(res => res.data.tags));
 	}
 
 	create(dto: CreateBacklogDto) {
