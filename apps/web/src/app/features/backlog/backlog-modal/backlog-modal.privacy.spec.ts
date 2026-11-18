@@ -82,6 +82,7 @@ describe("BacklogModal run privacy", () => {
 			});
 		if (url.endsWith("/mood-tags"))
 			return req.flush({ data: { tags: [] } });
+		if (url.endsWith("/tags")) return req.flush({ data: { tags: [] } });
 		if (url.endsWith("/progress"))
 			return req.flush({ data: { progress: [] } });
 		if (url.endsWith("/coop")) return req.flush({ data: { members: [] } });
