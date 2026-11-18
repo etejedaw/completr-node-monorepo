@@ -1,7 +1,7 @@
 import { computed, DestroyRef, inject, signal } from "@angular/core";
 import { catchError, of, type Subscription } from "rxjs";
 
-import { MoodTagsService } from "../../mood-tags/mood-tags";
+import { MoodTagsService } from "../../../core/services/mood-tags";
 import {
 	type CommunityTagSuggestionsOptions,
 	type LoadedCommunityTags

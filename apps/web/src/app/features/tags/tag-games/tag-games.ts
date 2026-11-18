@@ -8,6 +8,8 @@ import {
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 
+import { MoodTagsService } from "../../../core/services/mood-tags";
+import { type TagGame } from "../../../core/services/mood-tags.model";
 import { CoverGrid } from "../../../shared/components/cover-grid/cover-grid";
 import { GameCoverCard } from "../../../shared/components/game-cover-card/game-cover-card";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
@@ -20,8 +22,6 @@ import {
 } from "../../../shared/ui";
 import { gameArtUrl } from "../../../shared/utils/game-art";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
-import { MoodTagsService } from "../../mood-tags/mood-tags";
-import { type TagGame } from "../../mood-tags/mood-tags.model";
 import { type TagGamesStatus } from "./tag-games.model";
 
 const PAGE_SIZE = 24;

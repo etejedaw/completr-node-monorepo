@@ -12,7 +12,7 @@ import { Router, RouterOutlet } from "@angular/router";
 import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
-import { type TagGame } from "../../mood-tags/mood-tags.model";
+import { type TagGame } from "../../../core/services/mood-tags.model";
 import { TagGames } from "./tag-games";
 
 @Component({

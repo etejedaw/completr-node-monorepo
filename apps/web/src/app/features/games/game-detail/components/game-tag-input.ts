@@ -20,14 +20,14 @@ import {
 	switchMap
 } from "rxjs";
 
-import { UiEyebrow, UiFieldError, UiInput } from "../../../../shared/ui";
-import { MoodTagsService } from "../../../mood-tags/mood-tags";
+import { MoodTagsService } from "../../../../core/services/mood-tags";
+import { type PopularTag } from "../../../../core/services/mood-tags.model";
 import {
 	MAX_TAG_LENGTH,
 	TAG_SEARCH_MAX_LENGTH
-} from "../../../mood-tags/mood-tags.constants";
-import { type PopularTag } from "../../../mood-tags/mood-tags.model";
-import { normalizeTag } from "../../../mood-tags/normalize-tag";
+} from "../../../../shared/constants/mood-tags";
+import { UiEyebrow, UiFieldError, UiInput } from "../../../../shared/ui";
+import { normalizeTag } from "../../../../shared/utils/normalize-tag";
 import {
 	type GameTagSearchResult,
 	type GameTagSuggestion

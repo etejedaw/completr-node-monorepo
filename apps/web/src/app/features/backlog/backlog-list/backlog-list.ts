@@ -41,6 +41,7 @@ import {
 import { DialogService } from "../../../core/services/dialog";
 import { FavoritesService } from "../../../core/services/favorites";
 import { GamesService } from "../../../core/services/games";
+import { MoodTagsService } from "../../../core/services/mood-tags";
 import { PlatinumService } from "../../../core/services/platinum";
 import { PointerService } from "../../../core/services/pointer";
 import { QueueService } from "../../../core/services/queue";
@@ -85,7 +86,6 @@ import {
 } from "../../../shared/utils/http-failure";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
-import { MoodTagsService } from "../../mood-tags/mood-tags";
 import { BacklogService } from "../backlog";
 import { type BacklogFilters } from "../backlog.model";
 import {
@@ -441,7 +441,7 @@ export class BacklogList implements OnInit {
 	);
 	private readonly popularTagsResource = rxResource({
 		params: () => (this.communityTagsRequested() ? true : undefined),
-		stream: () => this.backlogService.getPopularTags()
+		stream: () => this.moodTagsService.getPopularTags()
 	});
 	private readonly communityTagOptions = computed(() =>
 		this.popularTagsResource.hasValue()

@@ -1,4 +1,4 @@
-import { type CommunityTag } from "../../../mood-tags/mood-tags.model";
+import { type CommunityTag } from "../../../../core/services/mood-tags.model";
 import { type GameTagChip } from "./game-tags.model";
 
 export function buildGameTagChips(

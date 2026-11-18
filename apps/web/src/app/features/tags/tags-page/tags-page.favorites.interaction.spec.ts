@@ -14,8 +14,8 @@ import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { AuthService } from "../../../core/services/auth";
+import { type UserTag } from "../../../core/services/mood-tags.model";
 import { ToastService } from "../../../core/services/toast";
-import { type UserTag } from "../../mood-tags/mood-tags.model";
 import TagsPage from "./tags-page";
 
 const api = environment.apiUrl;

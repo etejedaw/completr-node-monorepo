@@ -10,11 +10,18 @@ import {
 import { Router, RouterLink } from "@angular/router";
 
 import { AuthService } from "../../../core/services/auth";
+import { MoodTagsService } from "../../../core/services/mood-tags";
+import {
+	type PopularTag,
+	type UpdateTagDto,
+	type UserTag
+} from "../../../core/services/mood-tags.model";
 import { ToastService } from "../../../core/services/toast";
 import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
+import { MAX_FAVORITE_TAGS } from "../../../shared/constants/mood-tags";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiBadge,
@@ -30,15 +37,8 @@ import {
 	UiSkeleton
 } from "../../../shared/ui";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
+import { injectTagListSync } from "../../../shared/utils/inject-tag-list-sync";
 import { injectLibraryPosters } from "../../backlog/library-posters";
-import { injectTagListSync } from "../../mood-tags/inject-tag-list-sync";
-import { MoodTagsService } from "../../mood-tags/mood-tags";
-import { MAX_FAVORITE_TAGS } from "../../mood-tags/mood-tags.constants";
-import {
-	type PopularTag,
-	type UpdateTagDto,
-	type UserTag
-} from "../../mood-tags/mood-tags.model";
 import { TagCreateDialog } from "../tag-create-dialog/tag-create-dialog";
 import { TagRow } from "../tag-row/tag-row";
 import { type TagEdit } from "../tag-row/tag-row.model";

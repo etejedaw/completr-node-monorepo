@@ -10,15 +10,15 @@ import {
 } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
+import { MoodTagsService } from "../../../../core/services/mood-tags";
+import { type CommunityTag } from "../../../../core/services/mood-tags.model";
+import { MAX_TAGS_PER_GAME } from "../../../../shared/constants/mood-tags";
 import { UiButton, UiSkeleton } from "../../../../shared/ui";
 import { injectLatestLoader } from "../../../../shared/utils/inject-latest-loader";
 import {
 	injectTagListSync,
 	sameTagSet
-} from "../../../mood-tags/inject-tag-list-sync";
-import { MoodTagsService } from "../../../mood-tags/mood-tags";
-import { MAX_TAGS_PER_GAME } from "../../../mood-tags/mood-tags.constants";
-import { type CommunityTag } from "../../../mood-tags/mood-tags.model";
+} from "../../../../shared/utils/inject-tag-list-sync";
 import { buildGameTagChips } from "./game-tag-chips";
 import { GameTagInput } from "./game-tag-input";
 import { type GameTagChip, type GameTagsStatus } from "./game-tags.model";

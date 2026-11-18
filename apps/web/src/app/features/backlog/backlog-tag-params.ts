@@ -1,18 +1,15 @@
+import { type PopularTag } from "../../core/services/mood-tags.model";
 import { type UiChipOption } from "../../shared/ui";
-import { type PopularTag } from "./backlog.model";
+import { normalizeTag } from "../../shared/utils/normalize-tag";
 
 export const TAG_FILTER_LIMIT = 10;
 const MAX_TAG_LENGTH = 40;
-
-export function normalizeTagFilter(raw: string): string {
-	return raw.trim().toLowerCase().replace(/\s+/g, " ");
-}
 
 export function parseTagList(raw: string | null | undefined): string[] {
 	if (!raw) return [];
 	const tags = raw
 		.split(",")
-		.map(normalizeTagFilter)
+		.map(normalizeTag)
 		.filter(tag => tag.length > 0 && tag.length <= MAX_TAG_LENGTH);
 	return [...new Set(tags)].slice(0, TAG_FILTER_LIMIT);
 }

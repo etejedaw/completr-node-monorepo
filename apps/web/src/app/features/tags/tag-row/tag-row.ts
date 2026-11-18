@@ -13,6 +13,8 @@ import {
 import { form, FormField, maxLength, validate } from "@angular/forms/signals";
 import { RouterLink } from "@angular/router";
 
+import { type UserTag } from "../../../core/services/mood-tags.model";
+import { MAX_FAVORITE_TAGS } from "../../../shared/constants/mood-tags";
 import {
 	UiActionMenu,
 	type UiActionMenuItem,
@@ -27,8 +29,6 @@ import {
 	UiLabel,
 	UiProgress
 } from "../../../shared/ui";
-import { MAX_FAVORITE_TAGS } from "../../mood-tags/mood-tags.constants";
-import { type UserTag } from "../../mood-tags/mood-tags.model";
 import { type TagEdit } from "./tag-row.model";
 
 const MOBILE_ACTIONS: readonly UiActionMenuItem[] = [

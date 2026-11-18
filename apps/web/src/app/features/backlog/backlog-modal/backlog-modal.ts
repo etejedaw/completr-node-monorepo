@@ -21,6 +21,7 @@ import { type GamePlatinum } from "../../../core/models";
 import { type Game } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { GamesService } from "../../../core/services/games";
+import { MoodTagsService } from "../../../core/services/mood-tags";
 import { PlatinumService } from "../../../core/services/platinum";
 import { QueueService } from "../../../core/services/queue";
 import { ReviewsService } from "../../../core/services/reviews";
@@ -35,6 +36,7 @@ import { SelectedGameRow } from "../../../shared/components/game-search/selected
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import { PlatinumTrophy } from "../../../shared/components/platinum-trophy/platinum-trophy";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
+import { MAX_TAGS_PER_GAME } from "../../../shared/constants/mood-tags";
 import { GameArtPipe } from "../../../shared/pipes/game-art";
 import {
 	UiAlert,
@@ -70,8 +72,6 @@ import {
 	reportHttpFailure
 } from "../../../shared/utils/http-failure";
 import { injectGameSearch } from "../../../shared/utils/inject-game-search";
-import { MoodTagsService } from "../../mood-tags/mood-tags";
-import { MAX_TAGS_PER_GAME } from "../../mood-tags/mood-tags.constants";
 import { BacklogService } from "../backlog";
 import {
 	type BacklogReviewDraft,

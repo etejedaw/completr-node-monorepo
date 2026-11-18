@@ -1,4 +1,4 @@
-import { type PopularTag } from "../../../mood-tags/mood-tags.model";
+import { type PopularTag } from "../../../../core/services/mood-tags.model";
 
 export interface GameTagChip {
 	tag: string;

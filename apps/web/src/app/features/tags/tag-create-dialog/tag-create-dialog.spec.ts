@@ -5,8 +5,8 @@ import { render, screen } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 import { NEVER, of } from "rxjs";
 
+import { MoodTagsService } from "../../../core/services/mood-tags";
 import { ViewportService } from "../../../core/services/viewport";
-import { MoodTagsService } from "../../mood-tags/mood-tags";
 import { TagCreateDialog } from "./tag-create-dialog";
 
 async function renderDialog(createTag = vi.fn().mockReturnValue(of({}))) {

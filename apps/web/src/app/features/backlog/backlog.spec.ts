@@ -52,21 +52,6 @@ describe("BacklogService", () => {
 		req.flush({ data: { backlog: [], total: 0 } });
 	});
 
-	it("loads the popular community tags with the default limit", () => {
-		let result: unknown;
-		service.getPopularTags().subscribe(tags => (result = tags));
-
-		const req = httpTesting.expectOne(
-			r => r.url === `${environment.apiUrl}/tags/popular`
-		);
-		expect(req.request.method).toBe("GET");
-		expect(req.request.params.get("limit")).toBe("20");
-		req.flush({
-			data: { tags: [{ tag: "relaxing", games: 12, players: 30 }] }
-		});
-		expect(result).toEqual([{ tag: "relaxing", games: 12, players: 30 }]);
-	});
-
 	it("sends the filters as query params and skips empty ones", () => {
 		service
 			.getMyBacklog({

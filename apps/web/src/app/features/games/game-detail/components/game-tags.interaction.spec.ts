@@ -18,8 +18,8 @@ import {
 import userEvent from "@testing-library/user-event";
 
 import { environment } from "../../../../../environments/environment";
+import { type CommunityTag } from "../../../../core/services/mood-tags.model";
 import { ToastService } from "../../../../core/services/toast";
-import { type CommunityTag } from "../../../mood-tags/mood-tags.model";
 import { GameTags } from "./game-tags";
 
 const api = environment.apiUrl;

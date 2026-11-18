@@ -8,15 +8,7 @@ import {
 } from "@angular/core";
 
 import { UiIconButton } from "../../ui";
-
-function normalizeTag(input: string): string {
-	return input
-		.normalize("NFD")
-		.replace(/[̀-ͯ]/g, "")
-		.trim()
-		.toLowerCase()
-		.replace(/\s+/g, " ");
-}
+import { normalizeTag } from "../../utils/normalize-tag";
 
 @Component({
 	selector: "app-mood-tags-input",

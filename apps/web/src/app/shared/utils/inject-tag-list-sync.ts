@@ -1,7 +1,7 @@
 import { computed, DestroyRef, inject, signal } from "@angular/core";
 
 import { ToastService } from "../../core/services/toast";
-import { reportHttpFailure } from "../../shared/utils/http-failure";
+import { reportHttpFailure } from "./http-failure";
 import { type TagListSyncOptions } from "./inject-tag-list-sync.model";
 
 export function sameTagOrder(a: readonly string[], b: readonly string[]) {

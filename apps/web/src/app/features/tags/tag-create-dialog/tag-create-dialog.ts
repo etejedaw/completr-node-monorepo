@@ -9,6 +9,7 @@ import {
 } from "@angular/core";
 import { form, FormField, maxLength, validate } from "@angular/forms/signals";
 
+import { MoodTagsService } from "../../../core/services/mood-tags";
 import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
 import {
 	UiAlert,
@@ -22,7 +23,6 @@ import {
 	UiInput,
 	UiLabel
 } from "../../../shared/ui";
-import { MoodTagsService } from "../../mood-tags/mood-tags";
 
 const TAG_NAME_MAX_LENGTH = 40;
 const TAG_DESCRIPTION_MAX_LENGTH = 255;

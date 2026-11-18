@@ -9,16 +9,6 @@ export interface BacklogListResponse {
 	data: { backlog: BacklogEntry[]; total: number };
 }
 
-export interface PopularTag {
-	tag: string;
-	games: number;
-	players: number;
-}
-
-export interface PopularTagsResponse {
-	data: { tags: PopularTag[] };
-}
-
 export interface BacklogSingleResponse {
 	data: { backlog: BacklogEntry };
 }

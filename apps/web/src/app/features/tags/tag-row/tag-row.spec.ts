@@ -3,7 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { render, screen, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
-import { type UserTag } from "../../mood-tags/mood-tags.model";
+import { type UserTag } from "../../../core/services/mood-tags.model";
 import { TagRow } from "./tag-row";
 
 const cozy: UserTag = {

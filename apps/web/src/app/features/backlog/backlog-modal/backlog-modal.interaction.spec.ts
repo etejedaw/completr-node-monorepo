@@ -13,7 +13,7 @@ import { NgpDialogRef } from "ng-primitives/dialog";
 
 import { environment } from "../../../../environments/environment";
 import { type Game } from "../../../core/models";
-import { type CommunityTag } from "../../mood-tags/mood-tags.model";
+import { type CommunityTag } from "../../../core/services/mood-tags.model";
 import { BacklogModal } from "./backlog-modal";
 import { type BacklogModalData } from "./backlog-modal.model";
 
