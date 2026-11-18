@@ -3,11 +3,12 @@ import BetaSignup from "../components/BetaSignup.astro";
 import Changelog from "../components/Changelog.astro";
 import Footer from "../components/Footer.astro";
 import Hero from "../components/Hero.astro";
+import Moods from "../components/Moods.astro";
 import MoreFeatures from "../components/MoreFeatures.astro";
 import OpenSource from "../components/OpenSource.astro";
 import ProductTour from "../components/ProductTour.astro";
 import Ratio from "../components/Ratio.astro";
-import ReleaseHighlights from "../components/ReleaseHighlights.astro";
+import Rewind from "../components/Rewind.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import Layout from "../layouts/Layout.astro";
 ---
@@ -16,12 +17,13 @@ import Layout from "../layouts/Layout.astro";
 	<SiteHeader />
 	<main id="main-content" class="relative overflow-x-clip">
 		<Hero />
-		<ReleaseHighlights />
 		<Ratio />
+		<Moods />
+		<Rewind />
 		<ProductTour />
 		<MoreFeatures />
-		<Changelog />
 		<OpenSource />
+		<Changelog />
 		<BetaSignup />
 		<Footer />
 	</main>
