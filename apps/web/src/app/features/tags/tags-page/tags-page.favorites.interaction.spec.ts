@@ -21,7 +21,14 @@ import TagsPage from "./tags-page";
 const api = environment.apiUrl;
 
 function userTag(tag: string, favoriteOrder: number | null): UserTag {
-	return { tag, usageCount: 2, description: null, favoriteOrder };
+	return {
+		tag,
+		usageCount: 2,
+		description: null,
+		favoriteOrder,
+		icon: null,
+		color: null
+	};
 }
 
 describe("Tags page favorites and popular tags", () => {

@@ -77,6 +77,44 @@ describe("MoodTagsService", () => {
 		expect(result).toBe("coop");
 	});
 
+	it("sends the icon and color of a tag and null to clear them", () => {
+		service.updateTag("cozy", { icon: "bolt", color: null }).subscribe();
+
+		const req = httpTesting.expectOne(`${me}/mood-tags/cozy`);
+		expect(req.request.method).toBe("PATCH");
+		expect(req.request.body).toEqual({ icon: "bolt", color: null });
+		req.flush({ data: { tag: "cozy" } });
+	});
+
+	it("creates a tag with its icon and color", () => {
+		let result: unknown;
+
+		service
+			.createTag({ tag: "cozy", icon: "star", color: "rose" })
+			.subscribe(r => (result = r));
+
+		const req = httpTesting.expectOne(`${me}/mood-tags`);
+		expect(req.request.body).toEqual({
+			tag: "cozy",
+			icon: "star",
+			color: "rose"
+		});
+		req.flush({
+			data: {
+				tag: "cozy",
+				description: null,
+				icon: "star",
+				color: "rose"
+			}
+		});
+		expect(result).toEqual({
+			tag: "cozy",
+			description: null,
+			icon: "star",
+			color: "rose"
+		});
+	});
+
 	it("deletes a tag encoding it in the url", () => {
 		service.deleteTag("a b").subscribe();
 

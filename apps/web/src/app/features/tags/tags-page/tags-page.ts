@@ -21,6 +21,7 @@ import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-s
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
+import { TagIcon } from "../../../shared/components/tag-icon/tag-icon";
 import { MAX_FAVORITE_TAGS } from "../../../shared/constants/mood-tags";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
@@ -78,7 +79,8 @@ const SORT_PICKER_OPTIONS: readonly (UiPickerOption & { value: TagSort })[] = [
 		PremiumOnly,
 		UiPremiumBadge,
 		PageSearch,
-		RouterLink
+		RouterLink,
+		TagIcon
 	],
 	templateUrl: "./tags-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -117,6 +119,10 @@ export default class TagsPage implements OnInit {
 	);
 	protected readonly favoritesFull = computed(
 		() => this.favorites.desired().length >= MAX_FAVORITE_TAGS
+	);
+
+	protected readonly tagsByName = computed(
+		() => new Map(this.tags().map(tag => [tag.tag, tag]))
 	);
 
 	protected readonly totalUsage = computed(() =>
@@ -219,12 +225,15 @@ export default class TagsPage implements OnInit {
 	}
 
 	commitEdit(tag: UserTag, edit: TagEdit) {
+		if (this.saving()) return;
 		const dto: UpdateTagDto = {};
 		if (edit.name !== tag.tag) dto.newTag = edit.name;
 		const description = edit.description.trim();
 		if (description !== (tag.description ?? "")) {
 			dto.description = description || null;
 		}
+		if (edit.icon !== tag.icon) dto.icon = edit.icon;
+		if (edit.color !== tag.color) dto.color = edit.color;
 		if (Object.keys(dto).length === 0) {
 			this.cancelEdit();
 			return;

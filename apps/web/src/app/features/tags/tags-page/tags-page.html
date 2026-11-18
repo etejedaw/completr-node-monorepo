@@ -67,11 +67,12 @@
 			<span
 				class="min-w-0 flex-1 inline-flex items-center gap-1 text-sm font-medium text-fg"
 			>
-				<span
-					aria-hidden="true"
-					class="material-icons text-sm text-brand"
-					>label</span
-				>
+				@let favorite = tagsByName().get(tag);
+				<app-tag-icon
+					class="text-sm"
+					[icon]="favorite?.icon"
+					[color]="favorite?.color"
+				/>
 				<span class="truncate">{{ tag }}</span>
 			</span>
 			<button

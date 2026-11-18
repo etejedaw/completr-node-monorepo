@@ -1,4 +1,9 @@
-export interface UserTag {
+export interface TagAppearance {
+	icon: string | null;
+	color: string | null;
+}
+
+export interface UserTag extends TagAppearance {
 	tag: string;
 	usageCount: number;
 	description: string | null;
@@ -16,15 +21,19 @@ export interface UpdateTagResponse {
 export interface UpdateTagDto {
 	newTag?: string;
 	description?: string | null;
+	icon?: string | null;
+	color?: string | null;
 }
 
 export interface CreateTagDto {
 	tag: string;
 	description?: string | null;
+	icon?: string | null;
+	color?: string | null;
 }
 
 export interface CreateTagResponse {
-	data: { tag: string; description: string | null };
+	data: TagAppearance & { tag: string; description: string | null };
 }
 
 export interface GameTagsResponse {

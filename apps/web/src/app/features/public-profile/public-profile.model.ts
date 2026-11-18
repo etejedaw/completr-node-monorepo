@@ -88,6 +88,8 @@ export interface PublicProfile {
 export interface PublicFavoriteTag {
 	tag: string;
 	description: string | null;
+	icon: string | null;
+	color: string | null;
 }
 
 export interface PublicFavoriteTagsResponse {

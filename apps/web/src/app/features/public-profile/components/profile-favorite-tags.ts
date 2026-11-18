@@ -2,11 +2,12 @@ import { ChangeDetectionStrategy, Component, input } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
 import { ProfileSectionHeader } from "../../../shared/components/profile-section-header/profile-section-header";
+import { TagIcon } from "../../../shared/components/tag-icon/tag-icon";
 import { type PublicFavoriteTag } from "../public-profile.model";
 
 @Component({
 	selector: "app-profile-favorite-tags",
-	imports: [ProfileSectionHeader, RouterLink],
+	imports: [ProfileSectionHeader, RouterLink, TagIcon],
 	template: `
 		<section aria-labelledby="favorite-tags-heading">
 			<app-profile-section-header
@@ -24,11 +25,11 @@ import { type PublicFavoriteTag } from "../public-profile.model";
 							<span
 								class="inline-flex items-center gap-1.5 min-w-0 text-sm font-semibold text-fg group-hover:text-brand"
 							>
-								<span
-									aria-hidden="true"
-									class="material-icons text-base text-nav-tags"
-									>sell</span
-								>
+								<app-tag-icon
+									class="text-base"
+									[icon]="favorite.icon"
+									[color]="favorite.color"
+								/>
 								<span class="truncate">{{ favorite.tag }}</span>
 							</span>
 							@if (favorite.description) {

@@ -14,7 +14,12 @@ import { form, FormField, maxLength, validate } from "@angular/forms/signals";
 import { RouterLink } from "@angular/router";
 
 import { type UserTag } from "../../../core/services/mood-tags.model";
-import { MAX_FAVORITE_TAGS } from "../../../shared/constants/mood-tags";
+import { AppearancePicker } from "../../../shared/components/appearance-picker/appearance-picker";
+import { TagIcon } from "../../../shared/components/tag-icon/tag-icon";
+import {
+	DEFAULT_TAG_ICON,
+	MAX_FAVORITE_TAGS
+} from "../../../shared/constants/mood-tags";
 import {
 	UiActionMenu,
 	type UiActionMenuItem,
@@ -29,6 +34,8 @@ import {
 	UiLabel,
 	UiProgress
 } from "../../../shared/ui";
+import { supportedAppearanceColor } from "../../../shared/utils/appearance";
+import { tagColorOf } from "../../../shared/utils/tag-appearance";
 import { type TagEdit } from "./tag-row.model";
 
 const MOBILE_ACTIONS: readonly UiActionMenuItem[] = [
@@ -57,7 +64,9 @@ let nextRowId = 0;
 		UiFormField,
 		UiInput,
 		UiLabel,
-		UiFieldError
+		UiFieldError,
+		AppearancePicker,
+		TagIcon
 	],
 	templateUrl: "./tag-row.html",
 	host: { class: "block" },
@@ -85,6 +94,12 @@ export class TagRow {
 		name: this.tag().tag,
 		description: this.tag().description ?? ""
 	}));
+	protected readonly draftIcon = linkedSignal(() => this.tag().icon);
+	protected readonly draftColor = linkedSignal(() =>
+		supportedAppearanceColor(this.tag().color)
+	);
+	protected readonly defaultIcon = DEFAULT_TAG_ICON;
+	protected readonly accent = computed(() => tagColorOf(this.tag().color));
 	protected readonly form = form(this.draft, path => {
 		validate(path.name, ({ value }) =>
 			value().trim()
@@ -148,7 +163,12 @@ export class TagRow {
 			return;
 		}
 		const { name, description } = this.draft();
-		this.saved.emit({ name: name.trim(), description });
+		this.saved.emit({
+			name: name.trim(),
+			description,
+			icon: this.draftIcon(),
+			color: this.draftColor()
+		});
 	}
 
 	protected cancel() {
@@ -156,6 +176,8 @@ export class TagRow {
 			name: this.tag().tag,
 			description: this.tag().description ?? ""
 		});
+		this.draftIcon.set(this.tag().icon);
+		this.draftColor.set(supportedAppearanceColor(this.tag().color));
 		this.cancelled.emit();
 	}
 }
