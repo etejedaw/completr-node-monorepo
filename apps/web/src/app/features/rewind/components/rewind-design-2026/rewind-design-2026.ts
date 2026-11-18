@@ -83,7 +83,7 @@ function backdropOf(rewind: Rewind): string | null {
 		UiSkeleton
 	],
 	templateUrl: "./rewind-design-2026.html",
-	host: { class: "contents" },
+	host: { class: "contents [&_*]:rounded-none!" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RewindDesign2026 implements RewindDesignComponent {
