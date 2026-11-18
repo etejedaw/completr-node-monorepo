@@ -38,7 +38,7 @@ const COLLECTION_GUIDE: readonly { route: string; text: string }[] = [
 	},
 	{
 		route: "/tags",
-		text: "Your own labels, like cozy or co-op, to slice My Games however you like."
+		text: "Your own labels, like cozy or co-op. When at least 2 players use the same tag on a game it shows up there for everyone, without saying who added it. Filter My Games by your tags or the community's, find games by tag from the search, and pick up to 5 favorites for your profile."
 	}
 ];
 
