@@ -187,7 +187,7 @@ function distributeInColumns(posters: ShowcasePoster[]): ShowcasePoster[][] {
 			<h2
 				class="m-0 font-display font-bold tracking-tight text-fg leading-[0.95] text-3xl sm:text-4xl lg:text-5xl xl:text-6xl"
 			>
-				Play what's<br />worth your time.
+				You'll always know<br />what to play.
 			</h2>
 			<p
 				class="hidden sm:block m-0 mt-3 lg:mt-4 max-w-md text-fg-secondary leading-relaxed"

@@ -83,7 +83,7 @@ describe("AuthPage", () => {
 
 		httpTesting.expectOne(`${api}/games/showcase`);
 		expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
-			/Play what's\s*worth your time\./
+			/You'll always know\s*what to play\./
 		);
 	});
 });
