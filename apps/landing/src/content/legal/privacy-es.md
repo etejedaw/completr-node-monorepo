@@ -1,7 +1,7 @@
 ---
 lang: es
-version: "2.6"
-updated: 2026-11-16
+version: "2.7"
+updated: 2026-11-18
 title: Política de privacidad
 summary: "La idea de fondo es simple: recojo lo mínimo para que la app funcione, no vendo tus datos ni los cedo con fines comerciales, y puedes pedir una copia o el borrado de todo cuando quieras."
 highlights:
@@ -82,18 +82,19 @@ La aplicación usa una sola cookie: la estrictamente necesaria para que no tenga
 
 Completr es una app social: parte de lo que registras está pensado para que otros lo vean. Tú decides cuánto, pero conviene que sepas cómo funciona.
 
-Cada sección de tu cuenta (perfil, My Games, My Shelf, Platinums, Sagas, Rewind, Up Next, Want to Get, Favorites, Lists y tu feed de actividad) tiene su propio nivel de visibilidad, y puedes cambiarlo por separado cuando quieras:
+Cada sección de tu cuenta (perfil, My Games, My Shelf, Platinums, Sagas, Rewind, Up Next, Want to Get, Favorites, Lists, Tags y tu feed de actividad) tiene su propio nivel de visibilidad, y puedes cambiarlo por separado cuando quieras:
 
 - **Everyone (todos):** lo ve cualquiera, incluso alguien sin cuenta en Completr.
 - **Friends (amigos):** lo ven solo las personas a las que sigues y que además te siguen a ti.
 - **Only you (solo tú):** nadie más lo ve.
 
-**Por defecto esas once secciones las ve todo el mundo.** Es una decisión de diseño: una app para compartir backlogs sin nada visible no sirve de mucho. Pero significa que si no cambias nada, tu perfil y lo que anotas son visibles desde internet. Si prefieres lo contrario, puedes dejarlo todo en Only you desde los ajustes.
+**Por defecto esas doce secciones las ve todo el mundo.** Es una decisión de diseño: una app para compartir backlogs sin nada visible no sirve de mucho. Pero significa que si no cambias nada, tu perfil y lo que anotas son visibles desde internet. Si prefieres lo contrario, puedes dejarlo todo en Only you desde los ajustes.
 
 Hay algunas excepciones, y van en sentidos opuestos:
 
 - **Las listas nacen privadas.** Cada lista que creas empieza siendo solo tuya; la publicas por separado cuando tú decides.
 - **El Rewind queda oculto hasta que lo generas.** Aunque su sección esté en Everyone, nadie ve el Rewind de un año hasta que lo creas desde tu perfil. Quien pueda verlo ve también su resumen con IA, que puede parafrasear tus reseñas y etiquetas, y tus notas si las incluiste, pero nunca las cita. Su reto para el año siguiente puede nombrar un juego de tu lista Up Next.
+- **Tus etiquetas cuentan de forma anónima.** Cuando al menos dos personas le ponen la misma etiqueta a un juego, esa etiqueta aparece en la ficha del juego, en su página y en la búsqueda, con la cantidad de jugadores que la usan, nunca con sus nombres. Una etiqueta que solo usas tú no la ve nadie más, sin importar el nivel de tus secciones. Las etiquetas favoritas que eliges mostrar en tu perfil sí siguen el nivel de la sección Tags.
 - **Las reseñas no tienen control de visibilidad.** Si escribes una reseña o pones una nota a un juego, cualquier persona con cuenta en Completr puede verla en la ficha de ese juego, aunque el resto de tu perfil esté en privado. Si no quieres que algo se vea, no lo publiques como reseña.
 
 ## Por dónde pasan tus datos
