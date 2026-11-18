@@ -64,7 +64,22 @@
 				(valueChange)="onSearch($event)"
 			/>
 
-			@if (viewPickerViews().length > 0) {
+			@if (tagPickerOptions().length > 0) {
+			<ui-multi-option-picker
+				variant="compact"
+				size="md"
+				label="Tags"
+				heading="Filter by your tags"
+				placeholder="Any"
+				placeholderIcon="sell"
+				noun="tags"
+				nounSingular="tag"
+				searchLabel="Search your tags"
+				[options]="tagPickerOptions()"
+				[values]="selectedMoodTags()"
+				(valuesChange)="setTagSelection($event)"
+			/>
+			} @if (viewPickerViews().length > 0) {
 			<ui-option-picker
 				variant="compact"
 				size="md"
@@ -188,10 +203,8 @@
 	<app-backlog-filters-panel
 		[allPlatforms]="allPlatforms()"
 		[allGenres]="allGenres()"
-		[tagSource]="tagSource()"
-		[tagOptions]="tagFilterOptions()"
-		[tagStatus]="tagFilterStatus()"
-		(tagSourceChange)="setTagSource($event)"
+		[tagOptions]="tagOptions()"
+		[tagStatus]="tagStatus()"
 		(tagLimitReached)="warnTagLimit($event)"
 		(tagsRetried)="retryTagFilter()"
 		[activeFiltersCount]="activeFiltersCount()"
@@ -225,7 +238,6 @@
 		[(minPersonalRatio)]="minPersonalRatio"
 		[(maxPersonalRatio)]="maxPersonalRatio"
 		[(selectedMoodTags)]="selectedMoodTags"
-		[(selectedCommunityTags)]="selectedCommunityTags"
 		[(sortBy)]="sortBy"
 		[(showAdvancedFilters)]="showAdvancedFilters"
 		[(newFilterName)]="newFilterName"
@@ -245,21 +257,6 @@
 		(statToggle)="viewStats.toggleKey($event)"
 		(resetRequested)="viewStats.resetConfig()"
 		(closed)="closeStatsPanel()"
-	/>
-	} @if (!isInitialLoad() && (entries().length > 0 || hasActiveFilters() ||
-	searchQuery().trim())) {
-	<app-backlog-tag-filter
-		class="mb-4"
-		[source]="tagSource()"
-		[options]="tagFilterOptions()"
-		[selected]="tagFilterSelected()"
-		[selectedMineCount]="selectedMoodTags().length"
-		[selectedCommunityCount]="selectedCommunityTags().length"
-		[status]="tagFilterStatus()"
-		(sourceChange)="setTagSource($event)"
-		(selectedChange)="setTagSelection($event)"
-		(limitReached)="warnTagLimit($event)"
-		(retried)="retryTagFilter()"
 	/>
 	} @if (isInitialLoad() && isLoading()) {
 	<div class="flex flex-col gap-3">
@@ -355,6 +352,7 @@
 					[flipped]="isFlipped(entry.id)"
 					[statusUpdating]="isStatusUpdating(entry)"
 					[coarsePointer]="pointer.isCoarse()"
+					[tagAppearance]="tagAppearance()"
 					(opened)="openEdit(entry, $event)"
 					(favoriteToggled)="toggleFavorite(entry.game.id, $event)"
 					(queueToggled)="toggleQueue(entry); $event.stopPropagation()"
@@ -383,6 +381,7 @@
 		[queuedBacklogIds]="queueBacklogIds()"
 		[updatingStatusIds]="updatingStatusIds()"
 		[selection]="bulk.selection"
+		[tagAppearance]="tagAppearance()"
 		(sortChange)="sort($event)"
 		(entryOpen)="openEdit($event.entry, $event.event)"
 		(statusChange)="selectNewStatus($event.entry, $event.status)"

@@ -1,33 +1,17 @@
-<section
-	class="flex flex-col gap-2"
-	[attr.aria-labelledby]="showHeading() ? 'backlog-tag-filter-heading' : null"
->
-	<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-		@if (showHeading()) {
-		<h2 uiEyebrow id="backlog-tag-filter-heading" class="m-0">Tags</h2>
-		}
-		<ui-segmented-control
-			label="Tag source"
-			[options]="sourceOptions()"
-			[value]="source()"
-			(valueChange)="changeSource($event)"
-		/>
-		@if (hasSelection()) {
-		<button
-			uiButton
-			type="button"
-			variant="link"
-			size="sm"
-			class="tap:min-h-[44px]"
-			[attr.aria-label]="'Clear ' + selected().length + ' selected ' + (selected().length === 1 ? 'tag' : 'tags')"
-			(click)="clear()"
-		>
-			Clear tags
-		</button>
-		}
-	</div>
-
-	@switch (status()) { @case ('loading') {
+<div class="flex flex-col gap-2">
+	@if (hasSelection()) {
+	<button
+		uiButton
+		type="button"
+		variant="link"
+		size="sm"
+		class="self-start tap:min-h-[44px]"
+		[attr.aria-label]="'Clear ' + selected().length + ' selected ' + (selected().length === 1 ? 'tag' : 'tags')"
+		(click)="clear()"
+	>
+		Clear tags
+	</button>
+	} @switch (status()) { @case ('loading') {
 	<div
 		class="flex flex-wrap gap-2"
 		aria-busy="true"
@@ -56,22 +40,19 @@
 	</p>
 	} @default { @if (visibleOptions().length === 0) {
 	<p class="m-0 text-sm text-fg-muted">
-		@if (source() === 'mine') { No tags yet. Tag your games to filter by
-		them here.
+		No tags yet. Tag your games to filter by them here.
 		<a
 			routerLink="/tags"
 			class="tap-area font-medium text-brand no-underline hover:underline"
 			(click)="manageOpened.emit()"
 			>Manage tags</a
 		>
-		} @else { No community tags yet. A tag shows up here once at least 2
-		players use it on the same game. }
 	</p>
 	} @else {
 	<div
 		role="group"
 		class="flex flex-wrap gap-2"
-		[attr.aria-label]="groupLabel()"
+		aria-label="Filter by your tags"
 	>
 		@for (option of visibleOptions(); track option.value) { @let pressed =
 		isSelected(option.value);
@@ -84,8 +65,19 @@
 			[attr.title]="option.hint ?? null"
 			(click)="toggle(option.value)"
 		>
-			<span aria-hidden="true" [class]="chipIconClass(pressed)">
-				<span class="material-icons text-sm">sell</span>
+			<span
+				aria-hidden="true"
+				[class]="chipIconClass(pressed)"
+				[style.color]="pressed ? null : (option.iconColor ?? null)"
+				[style.background-color]="
+					pressed || !option.iconColor
+						? null
+						: 'color-mix(in srgb, ' + option.iconColor + ' 16%, transparent)'
+				"
+			>
+				<span class="material-icons text-sm"
+					>{{ option.icon ?? 'sell' }}</span
+				>
 			</span>
 			{{ option.label }} @if (option.count !== undefined && option.count
 			!== null) {
@@ -108,4 +100,4 @@
 		tags }
 	</button>
 	} } } }
-</section>
+</div>

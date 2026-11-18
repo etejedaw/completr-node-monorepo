@@ -6,7 +6,6 @@ import { render, screen, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { type UiChipOption } from "../../../../shared/ui";
-import { type BacklogTagSource } from "../../backlog-list/backlog-list.model";
 import { BacklogTagFilter } from "./backlog-tag-filter";
 import { type BacklogTagFilterStatus } from "./backlog-tag-filter.model";
 
@@ -22,15 +21,10 @@ function options(count: number, prefix = "tag"): UiChipOption[] {
 	imports: [BacklogTagFilter],
 	template: `
 		<app-backlog-tag-filter
-			[source]="source()"
 			[options]="options()"
 			[selected]="selected()"
-			[selectedMineCount]="mineCount()"
-			[selectedCommunityCount]="communityCount()"
 			[status]="status()"
-			[showHeading]="showHeading()"
 			(manageOpened)="manageOpenings = manageOpenings + 1"
-			(sourceChange)="changeSource($event)"
 			(selectedChange)="changeSelected($event)"
 			(limitReached)="limits.push($event)"
 			(retried)="retries = retries + 1"
@@ -39,23 +33,13 @@ function options(count: number, prefix = "tag"): UiChipOption[] {
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 class TagFilterHost {
-	readonly source = signal<BacklogTagSource>("mine");
 	readonly options = signal<UiChipOption[]>(options(3));
 	readonly selected = signal<string[]>([]);
-	readonly mineCount = signal(0);
-	readonly communityCount = signal(0);
 	readonly status = signal<BacklogTagFilterStatus>("ready");
-	readonly showHeading = signal(true);
 	manageOpenings = 0;
-	readonly sourceChanges: BacklogTagSource[] = [];
 	readonly selections: string[][] = [];
 	readonly limits: number[] = [];
 	retries = 0;
-
-	changeSource(source: BacklogTagSource) {
-		this.sourceChanges.push(source);
-		this.source.set(source);
-	}
 
 	changeSelected(tags: string[]) {
 		this.selections.push(tags);
@@ -85,7 +69,7 @@ describe("BacklogTagFilter", () => {
 
 	function chip(name: string) {
 		return within(
-			screen.getByRole("group", { name: /Filter by/ })
+			screen.getByRole("group", { name: "Filter by your tags" })
 		).getByRole("button", { name: new RegExp(`^${name}\\b`) });
 	}
 
@@ -167,23 +151,35 @@ describe("BacklogTagFilter", () => {
 		).toHaveLength(13);
 	});
 
-	it("switches the source and shows how many tags the other source has selected", async () => {
-		const user = userEvent.setup();
-		const { host } = await renderFilter(host => host.communityCount.set(2));
+	it("offers only your own tags, with no source switch", async () => {
+		await renderFilter();
 
-		const sources = screen.getByRole("radiogroup", { name: "Tag source" });
-		const community = within(sources).getByRole("radio", {
-			name: /Community/
-		});
-		expect(community).toHaveTextContent("2");
-
-		await user.click(community);
-		await user.click(community);
-
-		expect(host.sourceChanges).toEqual(["community"]);
+		expect(
+			screen.queryByRole("radiogroup", { name: "Tag source" })
+		).not.toBeInTheDocument();
+		expect(screen.queryByText(/Community/)).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("heading", { name: "Tags" })
+		).not.toBeInTheDocument();
 	});
 
-	it("clears the selection of the shown source", async () => {
+	it("toggles and clears in a rapid burst and ends with the last state", async () => {
+		const user = userEvent.setup();
+		const { host } = await renderFilter();
+
+		await user.click(chip("tag1"));
+		await user.click(chip("tag3"));
+		await user.click(
+			screen.getByRole("button", { name: "Clear 2 selected tags" })
+		);
+		await user.click(chip("tag2"));
+
+		expect(host.selections.at(-1)).toEqual(["tag2"]);
+		expect(chip("tag2")).toHaveAttribute("aria-pressed", "true");
+		expect(chip("tag1")).toHaveAttribute("aria-pressed", "false");
+	});
+
+	it("clears the selection", async () => {
 		const user = userEvent.setup();
 		const { host } = await renderFilter(host =>
 			host.selected.set(["tag1", "tag3"])
@@ -210,28 +206,6 @@ describe("BacklogTagFilter", () => {
 		await user.click(manage);
 
 		expect(host.manageOpenings).toBe(1);
-	});
-
-	it("drops its own heading when a surrounding section already names it", async () => {
-		await renderFilter(host => host.showHeading.set(false));
-
-		expect(
-			screen.queryByRole("heading", { name: "Tags" })
-		).not.toBeInTheDocument();
-		expect(
-			screen.getByRole("radiogroup", { name: "Tag source" })
-		).toBeInTheDocument();
-	});
-
-	it("explains when a tag becomes a community tag", async () => {
-		await renderFilter(host => {
-			host.source.set("community");
-			host.options.set([]);
-		});
-
-		expect(
-			screen.getByText(/at least 2 players use it on the same game/)
-		).toBeInTheDocument();
 	});
 
 	it("shows chip placeholders while loading", async () => {

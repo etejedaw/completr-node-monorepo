@@ -38,17 +38,12 @@ describe("BacklogService", () => {
 		expect(result).toEqual(body);
 	});
 
-	it("sends both tag filters together", () => {
-		service
-			.getMyBacklog({
-				mood_tags: "cozy",
-				community_tags: "relaxing,short"
-			})
-			.subscribe();
+	it("sends the selected tags as one comma-separated param", () => {
+		service.getMyBacklog({ mood_tags: "cozy,short" }).subscribe();
 
 		const req = httpTesting.expectOne(r => r.url === url);
-		expect(req.request.params.get("mood_tags")).toBe("cozy");
-		expect(req.request.params.get("community_tags")).toBe("relaxing,short");
+		expect(req.request.params.get("mood_tags")).toBe("cozy,short");
+		expect(req.request.params.has("community_tags")).toBe(false);
 		req.flush({ data: { backlog: [], total: 0 } });
 	});
 

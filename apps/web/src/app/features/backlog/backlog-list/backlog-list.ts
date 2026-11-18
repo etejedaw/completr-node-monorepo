@@ -14,7 +14,6 @@ import {
 	viewChild
 } from "@angular/core";
 import {
-	rxResource,
 	takeUntilDestroyed,
 	toObservable,
 	toSignal
@@ -42,6 +41,10 @@ import { DialogService } from "../../../core/services/dialog";
 import { FavoritesService } from "../../../core/services/favorites";
 import { GamesService } from "../../../core/services/games";
 import { MoodTagsService } from "../../../core/services/mood-tags";
+import {
+	type TagAppearance,
+	type UserTag
+} from "../../../core/services/mood-tags.model";
 import { PlatinumService } from "../../../core/services/platinum";
 import { PointerService } from "../../../core/services/pointer";
 import { QueueService } from "../../../core/services/queue";
@@ -61,11 +64,11 @@ import {
 	UiActionMenu,
 	type UiActionMenuItem,
 	UiButton,
-	type UiChipOption,
 	UiCountBadge,
 	UiEmptyState,
 	UiFiltersButton,
 	UiLoadError,
+	UiMultiOptionPicker,
 	UiNoMatches,
 	UiOptionPicker,
 	UiPagination,
@@ -73,6 +76,7 @@ import {
 	type UiPickerOption,
 	UiSkeleton
 } from "../../../shared/ui";
+import { appearanceColorHex } from "../../../shared/utils/appearance";
 import {
 	BACKLOG_STATUS_PICKER_OPTIONS,
 	backlogStatusIcon,
@@ -102,14 +106,13 @@ import {
 	joinTagList,
 	myTagOption,
 	parseTagList,
-	popularTagOption
+	TAG_FILTER_LIMIT
 } from "../backlog-tag-params";
 import {
 	BacklogFiltersPanel,
 	type SortOrder
 } from "../components/backlog-filters-panel/backlog-filters-panel";
 import { BacklogTable } from "../components/backlog-table/backlog-table";
-import { BacklogTagFilter } from "../components/backlog-tag-filter/backlog-tag-filter";
 import { type BacklogTagFilterStatus } from "../components/backlog-tag-filter/backlog-tag-filter.model";
 import { BulkRatingDialog } from "../components/bulk-rating-dialog/bulk-rating-dialog";
 import { BulkStatusDialog } from "../components/bulk-status-dialog/bulk-status-dialog";
@@ -119,11 +122,10 @@ import { SavedViewStats } from "../components/saved-view-stats/saved-view-stats"
 import { SavedViewStatsPanel } from "../components/saved-view-stats-panel/saved-view-stats-panel";
 import { StatusChangeDialog } from "../components/status-change-dialog/status-change-dialog";
 import { type PendingStatusUpdate } from "../components/status-change-dialog/status-change-dialog.model";
-import { savedFilterColorHex } from "../saved-filter-appearance";
 import { SavedFiltersService } from "../saved-filters";
 import { type SavedFilter } from "../saved-filters.model";
 import { SurpriseMe } from "../surprise-me/surprise-me";
-import { type BacklogTagSource, type ClearAction } from "./backlog-list.model";
+import { type ClearAction } from "./backlog-list.model";
 import { injectViewStats } from "./inject-view-stats";
 
 const MIXED_STATUS_VALUE = "__mixed__";
@@ -160,19 +162,13 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 ];
 
 const VIEW_MODE_STORAGE_KEY = "completr.backlog.viewMode";
-const TAG_SOURCE_STORAGE_KEY = "completr.backlog.tagSource";
 const MOOD_TAGS_PARAM = "mood_tags";
-const COMMUNITY_TAGS_PARAM = "community_tags";
-const TAG_PARAMS: ReadonlySet<string> = new Set([
-	MOOD_TAGS_PARAM,
-	COMMUNITY_TAGS_PARAM
-]);
 
 function differsOnlyInTagParams(previous: ParamMap, next: ParamMap) {
 	const keys = new Set([...previous.keys, ...next.keys]);
 	return [...keys].every(
 		key =>
-			TAG_PARAMS.has(key) ||
+			key === MOOD_TAGS_PARAM ||
 			JSON.stringify(previous.getAll(key)) ===
 				JSON.stringify(next.getAll(key))
 	);
@@ -184,8 +180,8 @@ function differsOnlyInTagParams(previous: ParamMap, next: ParamMap) {
 		ExportActions,
 		ViewModeToggle,
 		BacklogTable,
-		BacklogTagFilter,
 		BacklogStatusPills,
+		UiMultiOptionPicker,
 		UiOptionPicker,
 		BacklogCalendar,
 		SurpriseMe,
@@ -383,7 +379,6 @@ export class BacklogList implements OnInit {
 				this.eagerlyAppliedParams === params &&
 				(params.get("status") !== null ||
 					params.get(MOOD_TAGS_PARAM) !== null ||
-					params.get(COMMUNITY_TAGS_PARAM) !== null ||
 					params.get("search") !== null ||
 					!hasDefault)
 			) {
@@ -428,47 +423,34 @@ export class BacklogList implements OnInit {
 	protected readonly minPersonalRatio = signal<number | null>(null);
 	protected readonly maxPersonalRatio = signal<number | null>(null);
 	protected readonly selectedMoodTags = signal<string[]>([]);
-	protected readonly selectedCommunityTags = signal<string[]>([]);
-	private readonly myTagOptions = signal<UiChipOption[]>([]);
-	private readonly myTagsStatus = signal<BacklogTagFilterStatus>("loading");
-	protected readonly tagSource = signal<BacklogTagSource>(
-		this.storage.get(TAG_SOURCE_STORAGE_KEY) === "community"
-			? "community"
-			: "mine"
+	private readonly myTags = signal<readonly UserTag[]>([]);
+	protected readonly tagOptions = computed<UiPickerOption[]>(() =>
+		[...this.myTags()]
+			.sort(
+				(a, b) =>
+					b.usageCount - a.usageCount || a.tag.localeCompare(b.tag)
+			)
+			.map(myTagOption)
 	);
-	private readonly communityTagsRequested = signal(
-		this.tagSource() === "community"
+	protected readonly tagAppearance = computed<
+		ReadonlyMap<string, TagAppearance>
+	>(
+		() =>
+			new Map(
+				this.myTags().map(userTag => [
+					userTag.tag,
+					{ icon: userTag.icon, color: userTag.color }
+				])
+			)
 	);
-	private readonly popularTagsResource = rxResource({
-		params: () => (this.communityTagsRequested() ? true : undefined),
-		stream: () => this.moodTagsService.getPopularTags()
+	protected readonly tagStatus = signal<BacklogTagFilterStatus>("loading");
+	protected readonly tagPickerOptions = computed<UiPickerOption[]>(() => {
+		const known = new Set(this.tagOptions().map(option => option.value));
+		const missingSelected = this.selectedMoodTags()
+			.filter(tag => !known.has(tag))
+			.map(tag => ({ value: tag, label: tag }));
+		return [...missingSelected, ...this.tagOptions()];
 	});
-	private readonly communityTagOptions = computed(() =>
-		this.popularTagsResource.hasValue()
-			? this.popularTagsResource.value().map(popularTagOption)
-			: []
-	);
-	private readonly communityTagsStatus = computed<BacklogTagFilterStatus>(
-		() => {
-			if (this.popularTagsResource.error()) return "error";
-			return this.popularTagsResource.hasValue() ? "ready" : "loading";
-		}
-	);
-	protected readonly tagFilterOptions = computed(() =>
-		this.tagSource() === "mine"
-			? this.myTagOptions()
-			: this.communityTagOptions()
-	);
-	protected readonly tagFilterSelected = computed(() =>
-		this.tagSource() === "mine"
-			? this.selectedMoodTags()
-			: this.selectedCommunityTags()
-	);
-	protected readonly tagFilterStatus = computed(() =>
-		this.tagSource() === "mine"
-			? this.myTagsStatus()
-			: this.communityTagsStatus()
-	);
 	protected readonly coopOnly = signal(false);
 	protected readonly platinumedOnly = signal(false);
 
@@ -478,7 +460,7 @@ export class BacklogList implements OnInit {
 	);
 	protected readonly savedFilters = signal<SavedFilter[]>([]);
 	protected readonly backlogFilters = signal<SavedFilter[]>([]);
-	protected readonly colorHex = savedFilterColorHex;
+	protected readonly colorHex = appearanceColorHex;
 	protected readonly activeFilterId = signal<string | null>(null);
 	protected readonly activeFilterDescription = signal("");
 	protected readonly newFilterName = signal("");
@@ -513,7 +495,6 @@ export class BacklogList implements OnInit {
 			count++;
 		if (this.activeStatuses().size > 0) count++;
 		if (this.selectedMoodTags().length > 0) count++;
-		if (this.selectedCommunityTags().length > 0) count++;
 		if (this.coopOnly()) count++;
 		if (this.platinumedOnly()) count++;
 		return count;
@@ -598,45 +579,32 @@ export class BacklogList implements OnInit {
 	}
 
 	private loadMyTags() {
-		this.myTagsStatus.set("loading");
+		this.tagStatus.set("loading");
 		this.moodTagsService
 			.getMyTags()
 			.pipe(takeUntilDestroyed(this.destroyRef))
 			.subscribe({
 				next: tags => {
-					this.myTagOptions.set(
-						[...tags]
-							.sort(
-								(a, b) =>
-									b.usageCount - a.usageCount ||
-									a.tag.localeCompare(b.tag)
-							)
-							.map(t =>
-								myTagOption(t.tag, t.usageCount, t.description)
-							)
-					);
-					this.myTagsStatus.set("ready");
+					this.myTags.set(tags);
+					this.tagStatus.set("ready");
 				},
-				error: () => this.myTagsStatus.set("error")
+				error: () => this.tagStatus.set("error")
 			});
 	}
 
-	protected setTagSource(source: BacklogTagSource) {
-		this.tagSource.set(source);
-		this.storage.set(TAG_SOURCE_STORAGE_KEY, source);
-		if (source === "community") this.communityTagsRequested.set(true);
-	}
-
-	protected setTagSelection(tags: string[]) {
-		if (this.tagSource() === "mine") this.selectedMoodTags.set(tags);
-		else this.selectedCommunityTags.set(tags);
+	protected setTagSelection(tags: readonly string[]) {
+		if (tags.length > TAG_FILTER_LIMIT) {
+			this.warnTagLimit(TAG_FILTER_LIMIT);
+			this.selectedMoodTags.set([...this.selectedMoodTags()]);
+			return;
+		}
+		this.selectedMoodTags.set([...tags]);
 		this.applyFilters();
 	}
 
 	protected retryTagFilter() {
-		if (this.tagFilterStatus() !== "error") return;
-		if (this.tagSource() === "mine") this.loadMyTags();
-		else this.popularTagsResource.reload();
+		if (this.tagStatus() !== "error") return;
+		this.loadMyTags();
 	}
 
 	protected warnTagLimit(limit: number) {
@@ -644,56 +612,33 @@ export class BacklogList implements OnInit {
 	}
 
 	private applyTagParams(params: ParamMap) {
-		const moodTags = parseTagList(params.get(MOOD_TAGS_PARAM));
-		const communityTags = parseTagList(params.get(COMMUNITY_TAGS_PARAM));
-		this.selectedMoodTags.set(moodTags);
-		this.selectedCommunityTags.set(communityTags);
-		if (communityTags.length > 0 && moodTags.length === 0)
-			this.setTagSource("community");
-		else if (moodTags.length > 0 && communityTags.length === 0)
-			this.setTagSource("mine");
+		this.selectedMoodTags.set(parseTagList(params.get(MOOD_TAGS_PARAM)));
 	}
 
 	private hasTagParams(params: ParamMap): boolean {
-		return (
-			parseTagList(params.get(MOOD_TAGS_PARAM)).length > 0 ||
-			parseTagList(params.get(COMMUNITY_TAGS_PARAM)).length > 0
-		);
+		return parseTagList(params.get(MOOD_TAGS_PARAM)).length > 0;
 	}
 
 	private isOwnTagSync(previous: ParamMap, next: ParamMap): boolean {
 		return (
 			previous !== next &&
 			differsOnlyInTagParams(previous, next) &&
-			next.get(MOOD_TAGS_PARAM) === this.tagParamValue("mine") &&
-			next.get(COMMUNITY_TAGS_PARAM) === this.tagParamValue("community")
+			next.get(MOOD_TAGS_PARAM) === this.tagParamValue()
 		);
 	}
 
-	private tagParamValue(source: BacklogTagSource): string | null {
+	private tagParamValue(): string | null {
 		if (this.activeFilterId()) return null;
-		return joinTagList(
-			source === "mine"
-				? this.selectedMoodTags()
-				: this.selectedCommunityTags()
-		);
+		return joinTagList(this.selectedMoodTags());
 	}
 
 	private syncTagParamsToUrl() {
-		const moodTags = this.tagParamValue("mine");
-		const communityTags = this.tagParamValue("community");
-		const current = this.route.snapshot.queryParamMap;
-		if (
-			current.get(MOOD_TAGS_PARAM) === moodTags &&
-			current.get(COMMUNITY_TAGS_PARAM) === communityTags
-		)
+		const moodTags = this.tagParamValue();
+		if (this.route.snapshot.queryParamMap.get(MOOD_TAGS_PARAM) === moodTags)
 			return;
 		void this.router.navigate([], {
 			relativeTo: this.route,
-			queryParams: {
-				[MOOD_TAGS_PARAM]: moodTags,
-				[COMMUNITY_TAGS_PARAM]: communityTags
-			},
+			queryParams: { [MOOD_TAGS_PARAM]: moodTags },
 			queryParamsHandling: "merge",
 			replaceUrl: true
 		});
@@ -782,7 +727,6 @@ export class BacklogList implements OnInit {
 			f["max_personal_ratio"] ? Number(f["max_personal_ratio"]) : null
 		);
 		this.selectedMoodTags.set(parseTagList(f[MOOD_TAGS_PARAM]));
-		this.selectedCommunityTags.set(parseTagList(f[COMMUNITY_TAGS_PARAM]));
 		this.coopOnly.set(f["coop_only"] === "true");
 		this.platinumedOnly.set(f["platinumed_only"] === "true");
 
@@ -826,7 +770,6 @@ export class BacklogList implements OnInit {
 		this.minPersonalRatio.set(null);
 		this.maxPersonalRatio.set(null);
 		this.selectedMoodTags.set([]);
-		this.selectedCommunityTags.set([]);
 		this.activeStatuses.set(new Set());
 		this.coopOnly.set(false);
 		this.platinumedOnly.set(false);
@@ -1028,7 +971,6 @@ export class BacklogList implements OnInit {
 		this.minPersonalRatio.set(null);
 		this.maxPersonalRatio.set(null);
 		this.selectedMoodTags.set([]);
-		this.selectedCommunityTags.set([]);
 		this.activeStatuses.set(new Set());
 		this.coopOnly.set(false);
 		this.platinumedOnly.set(false);
@@ -1185,9 +1127,6 @@ export class BacklogList implements OnInit {
 			filters["max_personal_ratio"] = String(this.maxPersonalRatio());
 		if (this.selectedMoodTags().length > 0)
 			filters[MOOD_TAGS_PARAM] = this.selectedMoodTags().join(",");
-		if (this.selectedCommunityTags().length > 0)
-			filters[COMMUNITY_TAGS_PARAM] =
-				this.selectedCommunityTags().join(",");
 		if (this.coopOnly()) filters["coop_only"] = "true";
 		if (this.platinumedOnly()) filters["platinumed_only"] = "true";
 		return filters;
@@ -1588,8 +1527,6 @@ export class BacklogList implements OnInit {
 			filters.max_personal_ratio = this.maxPersonalRatio()!;
 		if (this.selectedMoodTags().length > 0)
 			filters.mood_tags = this.selectedMoodTags().join(",");
-		if (this.selectedCommunityTags().length > 0)
-			filters.community_tags = this.selectedCommunityTags().join(",");
 		if (this.coopOnly()) filters.coop_only = true;
 		if (this.platinumedOnly()) filters.platinumed_only = true;
 		if (this.searchQuery().trim())

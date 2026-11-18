@@ -30,7 +30,6 @@ import {
 	UiSwitch
 } from "../../../../shared/ui";
 import { BACKLOG_STATUS_FILTERS } from "../../../../shared/utils/backlog-status";
-import { type BacklogTagSource } from "../../backlog-list/backlog-list.model";
 import { BacklogTagFilter } from "../backlog-tag-filter/backlog-tag-filter";
 import { type BacklogTagFilterStatus } from "../backlog-tag-filter/backlog-tag-filter.model";
 
@@ -87,8 +86,7 @@ export class BacklogFiltersPanel {
 
 	readonly allPlatforms = input<Platform[]>([]);
 	readonly allGenres = input<Genre[]>([]);
-	readonly tagSource = input<BacklogTagSource>("mine");
-	readonly tagOptions = input<readonly UiChipOption[]>([]);
+	readonly tagOptions = input<readonly UiPickerOption[]>([]);
 	readonly tagStatus = input<BacklogTagFilterStatus>("ready");
 	readonly activeFiltersCount = input(0);
 	readonly advancedFiltersActive = input(false);
@@ -115,7 +113,6 @@ export class BacklogFiltersPanel {
 	readonly minPersonalRatio = model<number | null>(null);
 	readonly maxPersonalRatio = model<number | null>(null);
 	readonly selectedMoodTags = model<string[]>([]);
-	readonly selectedCommunityTags = model<string[]>([]);
 	readonly coopOnly = model(false);
 	readonly platinumedOnly = model(false);
 	readonly sortBy = model("createdAt");
@@ -129,19 +126,11 @@ export class BacklogFiltersPanel {
 	readonly cleared = output<void>();
 	readonly applied = output<void>();
 	readonly closed = output<void>();
-	readonly tagSourceChange = output<BacklogTagSource>();
 	readonly tagLimitReached = output<number>();
 	readonly tagsRetried = output<void>();
 
-	protected readonly selectedTags = computed(() =>
-		this.tagSource() === "mine"
-			? this.selectedMoodTags()
-			: this.selectedCommunityTags()
-	);
-
 	protected readonly hasNoOwnTags = computed(
 		() =>
-			this.tagSource() === "mine" &&
 			this.tagStatus() === "ready" &&
 			this.tagOptions().length === 0 &&
 			this.selectedMoodTags().length === 0
@@ -188,8 +177,7 @@ export class BacklogFiltersPanel {
 	});
 
 	protected setTags(tags: string[]) {
-		if (this.tagSource() === "mine") this.selectedMoodTags.set(tags);
-		else this.selectedCommunityTags.set(tags);
+		this.selectedMoodTags.set(tags);
 	}
 
 	protected setPlatforms(codes: readonly string[]) {

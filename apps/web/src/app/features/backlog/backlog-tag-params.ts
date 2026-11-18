@@ -1,6 +1,7 @@
-import { type PopularTag } from "../../core/services/mood-tags.model";
-import { type UiChipOption } from "../../shared/ui";
+import { type UserTag } from "../../core/services/mood-tags.model";
+import { type UiPickerOption } from "../../shared/ui";
 import { normalizeTag } from "../../shared/utils/normalize-tag";
+import { tagColorOf, tagIconOf } from "../../shared/utils/tag-appearance";
 
 export const TAG_FILTER_LIMIT = 10;
 const MAX_TAG_LENGTH = 40;
@@ -18,23 +19,13 @@ export function joinTagList(tags: readonly string[]): string | null {
 	return tags.length > 0 ? tags.join(",") : null;
 }
 
-export function myTagOption(
-	tag: string,
-	usageCount: number,
-	description: string | null
-): UiChipOption {
+export function myTagOption(userTag: UserTag): UiPickerOption {
 	return {
-		value: tag,
-		label: tag,
-		count: usageCount,
-		hint: description ?? `On ${usageCount} of your games`
-	};
-}
-
-export function popularTagOption(popular: PopularTag): UiChipOption {
-	return {
-		value: popular.tag,
-		label: popular.tag,
-		hint: `Community tag on ${popular.games} ${popular.games === 1 ? "game" : "games"}`
+		value: userTag.tag,
+		label: userTag.tag,
+		icon: tagIconOf(userTag.icon),
+		iconColor: tagColorOf(userTag.color),
+		count: userTag.usageCount,
+		hint: userTag.description ?? `On ${userTag.usageCount} of your games`
 	};
 }

@@ -204,7 +204,10 @@
 				</td>
 				<td class="min-w-[8rem] max-w-[16rem]">
 					@if (entry.moodTags?.length) {
-					<app-mood-tags-chips [tags]="entry.moodTags" />
+					<app-mood-tags-chips
+						[tags]="entry.moodTags"
+						[appearance]="tagAppearance()"
+					/>
 					} @else {
 					<span class="text-fg-muted">—</span>
 					}

@@ -49,7 +49,6 @@ export interface BacklogFilters extends Record<string, Appendable> {
 	min_personal_ratio?: number;
 	max_personal_ratio?: number;
 	mood_tags?: string;
-	community_tags?: string;
 	search?: string;
 	limit?: number;
 	offset?: number;

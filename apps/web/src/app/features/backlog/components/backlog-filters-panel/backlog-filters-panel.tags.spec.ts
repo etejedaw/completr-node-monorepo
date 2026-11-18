@@ -38,16 +38,12 @@ describe("BacklogFiltersPanel tags", () => {
 		});
 		const panel = result.fixture.componentInstance;
 		const events = {
-			source: vi.fn(),
 			moodTags: vi.fn(),
-			communityTags: vi.fn(),
 			closed: vi.fn(),
 			limit: vi.fn(),
 			retried: vi.fn()
 		};
-		panel.tagSourceChange.subscribe(events.source);
 		panel.selectedMoodTags.subscribe(events.moodTags);
-		panel.selectedCommunityTags.subscribe(events.communityTags);
 		panel.closed.subscribe(events.closed);
 		panel.tagLimitReached.subscribe(events.limit);
 		panel.tagsRetried.subscribe(events.retried);
@@ -80,7 +76,7 @@ describe("BacklogFiltersPanel tags", () => {
 		expect(chip("cozy")).toHaveAttribute("aria-pressed", "false");
 	});
 
-	it("writes the chosen tags to the shared selection of the source shown", async () => {
+	it("writes the chosen tags to the shared selection", async () => {
 		const { user, fixture, events } = await renderPanel();
 
 		await user.click(chip("cozy"));
@@ -88,33 +84,24 @@ describe("BacklogFiltersPanel tags", () => {
 		await user.click(chip("short"));
 
 		expect(events.moodTags).toHaveBeenLastCalledWith(["cozy", "short"]);
-		expect(events.communityTags).not.toHaveBeenCalled();
 	});
 
-	it("writes community tags to the community selection", async () => {
-		const { user, events } = await renderPanel({
-			tagSource: "community",
-			tagOptions: [{ value: "relaxing", label: "relaxing" }],
-			selectedMoodTags: ["cozy"]
-		});
-
-		await user.click(chip("relaxing"));
-
-		expect(events.communityTags).toHaveBeenLastCalledWith(["relaxing"]);
-		expect(events.moodTags).not.toHaveBeenCalled();
-		expect(
-			tagsSection().getByRole("radio", { name: /^My tags/ })
-		).toHaveTextContent("1");
-	});
-
-	it("asks the page to switch the tag source with the same My tags / Community selector", async () => {
+	it("survives a double click on a chip and ends unselected", async () => {
 		const { user, events } = await renderPanel();
 
-		await user.click(
-			tagsSection().getByRole("radio", { name: /^Community/ })
-		);
+		await user.dblClick(chip("cozy"));
 
-		expect(events.source).toHaveBeenCalledWith("community");
+		expect(events.moodTags).toHaveBeenLastCalledWith([]);
+		expect(chip("cozy")).toHaveAttribute("aria-pressed", "false");
+	});
+
+	it("only offers the user's own tags, with no community source", async () => {
+		await renderPanel();
+
+		expect(
+			tagsSection().queryByRole("radiogroup", { name: "Tag source" })
+		).not.toBeInTheDocument();
+		expect(tagsSection().queryByText(/Community/)).not.toBeInTheDocument();
 	});
 
 	it("shows a short empty state with Manage tags when the user has no tags", async () => {

@@ -9,6 +9,7 @@ import {
 import { RouterLink } from "@angular/router";
 
 import { type BacklogEntry, type BacklogStatus } from "../../../core/models";
+import { type TagAppearance } from "../../../core/services/mood-tags.model";
 import { GameArtPipe } from "../../pipes/game-art";
 import { UiAvatar, UiBadge, UiEyebrow, UiIconButton } from "../../ui";
 import { canChangeStatus, canQuickRate } from "../../utils/backlog-eligibility";
@@ -67,6 +68,9 @@ export class BacklogEntryCard {
 	readonly flipped = input(false);
 	readonly statusUpdating = input(false);
 	readonly coarsePointer = input(false);
+	readonly tagAppearance = input<ReadonlyMap<string, TagAppearance> | null>(
+		null
+	);
 
 	readonly opened = output<Event>();
 	readonly favoriteToggled = output<Event>();

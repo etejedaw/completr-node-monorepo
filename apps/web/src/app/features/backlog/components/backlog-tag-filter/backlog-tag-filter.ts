@@ -11,13 +11,9 @@ import { RouterLink } from "@angular/router";
 
 import {
 	UiButton,
-	type UiChipOption,
-	UiEyebrow,
-	UiSegmentedControl,
-	type UiSegmentedOption,
+	type UiPickerOption,
 	UiSkeleton
 } from "../../../../shared/ui";
-import { type BacklogTagSource } from "../../backlog-list/backlog-list.model";
 import { TAG_FILTER_LIMIT } from "../../backlog-tag-params";
 import {
 	tagChipClass,
@@ -29,33 +25,18 @@ import { type BacklogTagFilterStatus } from "./backlog-tag-filter.model";
 const COLLAPSED_CHIP_COUNT = 12;
 const SKELETON_CHIP_WIDTHS = ["w-16", "w-20", "w-14", "w-24", "w-16", "w-20"];
 
-const SOURCE_LABELS: Record<BacklogTagSource, string> = {
-	mine: "My tags",
-	community: "Community"
-};
-
-const SOURCE_HINTS: Record<BacklogTagSource, string> = {
-	mine: "Filter by the tags you put on your games",
-	community: "Filter by tags at least 2 players use on a game"
-};
-
 @Component({
 	selector: "app-backlog-tag-filter",
-	imports: [RouterLink, UiButton, UiEyebrow, UiSegmentedControl, UiSkeleton],
+	imports: [RouterLink, UiButton, UiSkeleton],
 	templateUrl: "./backlog-tag-filter.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BacklogTagFilter {
-	readonly source = input.required<BacklogTagSource>();
-	readonly options = input.required<readonly UiChipOption[]>();
+	readonly options = input.required<readonly UiPickerOption[]>();
 	readonly selected = input.required<readonly string[]>();
-	readonly selectedMineCount = input(0);
-	readonly selectedCommunityCount = input(0);
 	readonly status = input<BacklogTagFilterStatus>("ready");
-	readonly showHeading = input(true);
 
-	readonly sourceChange = output<BacklogTagSource>();
 	readonly selectedChange = output<string[]>();
 	readonly limitReached = output<number>();
 	readonly retried = output();
@@ -73,20 +54,7 @@ export class BacklogTagFilter {
 		() => new Set(this.pendingSelection())
 	);
 
-	protected readonly sourceOptions = computed<
-		UiSegmentedOption<BacklogTagSource>[]
-	>(() => [
-		this.sourceOption("mine", this.selectedMineCount()),
-		this.sourceOption("community", this.selectedCommunityCount())
-	]);
-
-	protected readonly groupLabel = computed(() =>
-		this.source() === "mine"
-			? "Filter by your tags"
-			: "Filter by community tags"
-	);
-
-	private readonly allOptions = computed<UiChipOption[]>(() => {
+	private readonly allOptions = computed<UiPickerOption[]>(() => {
 		const known = new Set(this.options().map(option => option.value));
 		const missingSelected = this.selected()
 			.filter(tag => !known.has(tag))
@@ -114,12 +82,6 @@ export class BacklogTagFilter {
 		() => this.selected().length > 0
 	);
 
-	protected changeSource(source: BacklogTagSource) {
-		if (source === this.source()) return;
-		this.expanded.set(false);
-		this.sourceChange.emit(source);
-	}
-
 	protected isSelected(tag: string): boolean {
 		return this.selectedSet().has(tag);
 	}
@@ -141,17 +103,5 @@ export class BacklogTagFilter {
 		if (!this.hasSelection()) return;
 		this.pendingSelection.set([]);
 		this.selectedChange.emit([]);
-	}
-
-	private sourceOption(
-		source: BacklogTagSource,
-		count: number
-	): UiSegmentedOption<BacklogTagSource> {
-		return {
-			value: source,
-			label: SOURCE_LABELS[source],
-			hint: SOURCE_HINTS[source],
-			count: count > 0 ? count : undefined
-		};
 	}
 }

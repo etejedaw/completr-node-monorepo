@@ -42,6 +42,7 @@
 			placeholder="All platforms"
 			placeholderIcon="devices"
 			noun="platforms"
+			nounSingular="platform"
 			searchLabel="Search platforms"
 			[options]="platformPickerOptions()"
 			[values]="platformValues()"
@@ -151,14 +152,9 @@
 			>
 			}
 			<app-backlog-tag-filter
-				[showHeading]="false"
-				[source]="tagSource()"
 				[options]="tagOptions()"
-				[selected]="selectedTags()"
-				[selectedMineCount]="selectedMoodTags().length"
-				[selectedCommunityCount]="selectedCommunityTags().length"
+				[selected]="selectedMoodTags()"
 				[status]="tagStatus()"
-				(sourceChange)="tagSourceChange.emit($event)"
 				(selectedChange)="setTags($event)"
 				(limitReached)="tagLimitReached.emit($event)"
 				(retried)="tagsRetried.emit()"

@@ -10,6 +10,7 @@ import {
 
 import { type BacklogEntry, type BacklogStatus } from "../../../../core/models";
 import { FavoritesService } from "../../../../core/services/favorites";
+import { type TagAppearance } from "../../../../core/services/mood-tags.model";
 import { BacklogStatusBadge } from "../../../../shared/components/backlog-status-badge/backlog-status-badge";
 import { BacklogStatusPicker } from "../../../../shared/components/backlog-status-picker/backlog-status-picker";
 import { GameTitleCell } from "../../../../shared/components/game-title-cell/game-title-cell";
@@ -131,6 +132,9 @@ export class BacklogTable {
 	readonly updatingStatusIds = input<ReadonlySet<string>>(new Set());
 	readonly readonly = input(false);
 	readonly selection = input<RowSelection<BacklogEntry> | null>(null);
+	readonly tagAppearance = input<ReadonlyMap<string, TagAppearance> | null>(
+		null
+	);
 
 	readonly sortChange = output<string>();
 	readonly entryOpen = output<BacklogTableEntryEvent>();
