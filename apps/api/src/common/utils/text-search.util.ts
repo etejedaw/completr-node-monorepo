@@ -54,6 +54,15 @@ export function buildTextSearchWhere(
 	return { [Op.and]: tokens.map(token => tokenWhere(token, columns)) };
 }
 
+export function buildTextSearchSqlCondition(query: string, column: string) {
+	const tokens = tokenizeSearchQuery(query);
+	if (tokens.length === 0) return null;
+	const normalized = normalizedColumnSql(column);
+	return tokens
+		.map(token => `${normalized} LIKE ${sequelize.escape(`%${token}%`)}`)
+		.join(" AND ");
+}
+
 export function buildTextSearchRelevanceOrder(
 	query: string,
 	column: string
