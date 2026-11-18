@@ -12,7 +12,8 @@ export const VISIBILITY_SECTIONS = [
 	"list",
 	"platinum",
 	"franchise",
-	"rewind"
+	"rewind",
+	"tag"
 ] as const;
 export type VisibilitySection = (typeof VISIBILITY_SECTIONS)[number];
 
@@ -27,5 +28,6 @@ export const VISIBILITY_FIELDS = [
 	"listVisibility",
 	"platinumVisibility",
 	"franchiseVisibility",
-	"rewindVisibility"
+	"rewindVisibility",
+	"tagVisibility"
 ] as const;

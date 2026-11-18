@@ -164,7 +164,8 @@ void describe("fullProfileSerializer", () => {
 				list: true,
 				platinum: false,
 				franchise: false,
-				rewind: false
+				rewind: false,
+				tag: false
 			}
 		};
 	}
