@@ -18,6 +18,7 @@ import { UnfollowConfirmDialog } from "../../shared/components/unfollow-confirm-
 import { UiButton, UiPlainEmptyState, UiSkeleton } from "../../shared/ui";
 import { ProfileActivity } from "./components/profile-activity";
 import { ProfileCollections } from "./components/profile-collections";
+import { ProfileFavoriteTags } from "./components/profile-favorite-tags";
 import { ProfileGuestCta } from "./components/profile-guest-cta";
 import { ProfileHero } from "./components/profile-hero";
 import { ProfileInCommon } from "./components/profile-in-common";
@@ -57,6 +58,7 @@ const MONTH_LABEL_FORMAT = new Intl.DateTimeFormat("en-US", {
 		ProfileAccessState,
 		ProfileActivity,
 		ProfileCollections,
+		ProfileFavoriteTags,
 		ProfileGuestCta,
 		ProfileHero,
 		ProfileInCommon,
@@ -104,6 +106,7 @@ export class PublicProfileComponent {
 	protected readonly retry = this.state.retry;
 	protected readonly queueData = this.state.queueData;
 	protected readonly favoritesData = this.state.favoritesData;
+	protected readonly favoriteTags = this.state.favoriteTags;
 	protected readonly platinumsData = this.state.platinumsData;
 	protected readonly platinumsTotal = this.state.platinumsTotal;
 	protected readonly sagas = this.state.sagas;
