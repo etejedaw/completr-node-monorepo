@@ -5,7 +5,6 @@ import {
 	buildRangeWhere
 } from "../../common/utils/sequelize-range.util";
 import { sequelize } from "../../database/sequelize.database";
-import * as moodTagsService from "../../mood-tags/mood-tags.service";
 import { type BacklogQuery } from "../schemas/backlog-query.schema";
 
 export function buildBacklogWhere(
@@ -164,15 +163,6 @@ export function buildBacklogWhere(
 			});
 		}
 	}
-
-	if (filters.community_tags && filters.community_tags.length > 0)
-		andConditions.push({
-			gameId: {
-				[Op.in]: literal(
-					`(${moodTagsService.communityTaggedGameIdsSql(filters.community_tags)})`
-				)
-			}
-		});
 
 	if (filters.platinumed_only) {
 		const ownerId = base.userId as string | undefined;

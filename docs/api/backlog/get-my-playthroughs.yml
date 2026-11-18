@@ -53,7 +53,6 @@ docs: |-
     | min_personal_ratio | number | No  | Filter by personal ratio (score / realDuration) >= value                    |
     | max_personal_ratio | number | No  | Filter by personal ratio (score / realDuration) <= value                    |
     | mood_tags     | string | No       | Comma-separated mood tags. AND semantics: entry must match all tags (e.g. `relajante,corto`) |
-    | community_tags | string | No      | Comma-separated community tags, normalized like mood tags (case, accents, spaces) and deduped, 1 to 10. AND semantics: the entry's game must have every tag public (used by at least 2 distinct active players) |
     | sort_by       | string | No       | Sort field: `title`, `status`, `score`, `duration`, `startedAt`, `finishedAt`, `realDuration`, `userRating`, `createdAt`, `ratio`, `personalRatio` (default: `createdAt`) |
     | sort_order    | string | No       | Sort direction: `asc` or `desc` (default: `desc`)                          |
 

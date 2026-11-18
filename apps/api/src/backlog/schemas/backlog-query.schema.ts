@@ -1,6 +1,5 @@
 import z from "zod";
 
-import { normalizeTags } from "../../mood-tags/normalize-tag.util";
 import { BACKLOG_STATUSES } from "../backlog.model";
 
 const SORT_FIELDS = [
@@ -63,11 +62,6 @@ export const BacklogQuerySchema = z
 			.string()
 			.transform(val => val.split(",").filter(Boolean))
 			.pipe(z.string().array().min(1))
-			.optional(),
-		community_tags: z
-			.string()
-			.transform(val => normalizeTags(val.split(",")))
-			.pipe(z.string().array().min(1).max(10))
 			.optional(),
 		sort_by: z.enum(SORT_FIELDS).optional(),
 		sort_order: z.enum(["asc", "desc"]).optional(),

@@ -43,7 +43,7 @@ docs: |-
 
     | Param | Type | Required | Description |
     |-------|------|----------|-------------|
-    | *every param of* `GET /users/me/backlog` | — | No | `status`, `game_id`, `platform_id`, `platforms`, `genres`, `release_year_from`/`_to`, `started_from`/`_to`, `finished_from`/`_to`, `active_from`/`_to`, `no_finished_date`, `undated`, `coop_only`, `platinumed_only`, `min_`/`max_score`, `min_`/`max_duration`, `min_`/`max_real_duration`, `min_`/`max_rating`, `min_`/`max_ratio`, `min_`/`max_personal_ratio`, `search`, `mood_tags`, `community_tags`, `sort_by`, `sort_order` — same validation and semantics (`BacklogQuerySchema` without `limit`/`offset`) |
+    | *every param of* `GET /users/me/backlog` | — | No | `status`, `game_id`, `platform_id`, `platforms`, `genres`, `release_year_from`/`_to`, `started_from`/`_to`, `finished_from`/`_to`, `active_from`/`_to`, `no_finished_date`, `undated`, `coop_only`, `platinumed_only`, `min_`/`max_score`, `min_`/`max_duration`, `min_`/`max_real_duration`, `min_`/`max_rating`, `min_`/`max_ratio`, `min_`/`max_personal_ratio`, `search`, `mood_tags`, `sort_by`, `sort_order` — same validation and semantics (`BacklogQuerySchema` without `limit`/`offset`) |
 
     ### Format (content negotiation)
 

@@ -49,7 +49,6 @@ docs: |-
     | max_real_duration | number | No       | Filter by realDuration <= value (hours)                                     |
     | min_rating    | number | No       | Filter by userRating >= value                                               |
     | max_rating    | number | No       | Filter by userRating <= value                                               |
-    | community_tags | string | No      | Comma-separated community tags (1 to 10, normalized and deduped). The entry's game must have every tag public (used by at least 2 distinct active players) |
     | sort_by       | string | No       | Sort field: `status`, `score`, `duration`, `startedAt`, `finishedAt`, `realDuration`, `userRating`, `createdAt` (default: `createdAt`) |
     | sort_order    | string | No       | Sort direction: `asc` or `desc` (default: `desc`)                          |
 
