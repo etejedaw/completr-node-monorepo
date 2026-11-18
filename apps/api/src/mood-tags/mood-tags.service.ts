@@ -3,19 +3,35 @@ import { Op, QueryTypes, type Transaction } from "sequelize";
 import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
+import { buildTextSearchSqlCondition } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import * as gamesService from "../games/games.service";
 import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import * as moodTagsServiceError from "./errors/mood-tags.service-error";
 import { MoodTagMeta } from "./mood-tag-meta.model";
 import {
+	COMMUNITY_TAG_MIN_PLAYERS,
 	FREE_TAG_LIMIT,
+	GAME_COMMUNITY_TAGS_LIMIT,
+	MAX_FAVORITE_TAGS,
 	MAX_TAG_DESCRIPTION_LENGTH,
 	MAX_TAG_LENGTH,
 	MAX_TAGS_PER_GAME
 } from "./mood-tags.constants";
+import {
+	type CommunityTagStatsRow,
+	type GameCommunityTagRow,
+	type PublicTaggedGameRow,
+	type TaggedGamesPage,
+	type TotalRow
+} from "./mood-tags.interface";
 import { normalizeTag, normalizeTags } from "./normalize-tag.util";
+import { type TagGamesQuery } from "./schemas/tag-games-query.schema";
 import { UserGameTag } from "./user-game-tag.model";
+
+const COMMUNITY_VOTES_FROM = `"UserGameTags" AS "vote"
+	JOIN "Users" AS "voter" ON "voter"."id" = "vote"."userId" AND "voter"."isActive" = true`;
+const ACTIVE_VOTED_GAME_JOIN = `JOIN "Games" AS "votedGame" ON "votedGame"."id" = "vote"."gameId" AND "votedGame"."isActive" = true`;
 
 async function lockUserTags(userId: string, transaction: Transaction) {
 	await acquireAdvisoryLock(`mood-tags:${userId}`, transaction);
@@ -118,14 +134,15 @@ export async function findTagsByUser(userId: string) {
 			GROUP BY "tag"
 		),
 		mtm AS (
-			SELECT "tag", "description"
+			SELECT "tag", "description", "favoriteOrder"
 			FROM "MoodTagMetas"
 			WHERE "userId" = :userId
 		)
 		SELECT
 			COALESCE(ugt."tag", mtm."tag") AS "tag",
 			COALESCE(ugt."usageCount", 0) AS "usageCount",
-			mtm."description" AS "description"
+			mtm."description" AS "description",
+			mtm."favoriteOrder" AS "favoriteOrder"
 		FROM ugt
 		FULL OUTER JOIN mtm ON mtm."tag" = ugt."tag"
 		ORDER BY "usageCount" DESC, "tag" ASC`,
@@ -137,6 +154,7 @@ export async function findTagsByUser(userId: string) {
 		tag: string;
 		usageCount: number;
 		description: string | null;
+		favoriteOrder: number | null;
 	}[];
 	return rows;
 }
@@ -215,6 +233,7 @@ export async function renameTag(
 	if (!exists) throw moodTagsServiceError.tagNotFoundError();
 
 	await sequelize.transaction(async transaction => {
+		await lockUserTags(userId, transaction);
 		await sequelize.query(
 			`INSERT INTO "UserGameTags" ("userId", "gameId", "tag", "createdAt")
 			SELECT "userId", "gameId", :newTag, now()
@@ -241,18 +260,44 @@ export async function renameTag(
 		});
 		if (existingMeta) {
 			if (targetMeta) {
-				if (!targetMeta.description && existingMeta.description) {
-					await targetMeta.update(
-						{ description: existingMeta.description },
-						{ transaction }
-					);
-				}
+				await targetMeta.update(
+					{
+						description:
+							targetMeta.description || existingMeta.description,
+						favoriteOrder: earliestFavoriteOrder(
+							targetMeta.favoriteOrder,
+							existingMeta.favoriteOrder
+						)
+					},
+					{ transaction }
+				);
 				await existingMeta.destroy({ transaction });
+				await compactFavoriteOrder(userId, transaction);
 			} else {
 				await existingMeta.update({ tag: newTag }, { transaction });
 			}
 		}
 	});
+}
+
+function earliestFavoriteOrder(...orders: (number | null)[]) {
+	const favorites = orders.filter(order => typeof order === "number");
+	return favorites.length > 0 ? Math.min(...favorites) : null;
+}
+
+async function compactFavoriteOrder(userId: string, transaction: Transaction) {
+	await sequelize.query(
+		`UPDATE "MoodTagMetas" AS "meta"
+		SET "favoriteOrder" = "ranked"."position" - 1
+		FROM (
+			SELECT "id", ROW_NUMBER() OVER (ORDER BY "favoriteOrder" ASC, "id" ASC) AS "position"
+			FROM "MoodTagMetas"
+			WHERE "userId" = :userId AND "favoriteOrder" IS NOT NULL
+		) AS "ranked"
+		WHERE "meta"."id" = "ranked"."id"
+			AND "meta"."favoriteOrder" <> "ranked"."position" - 1`,
+		{ replacements: { userId }, transaction }
+	);
 }
 
 export async function deleteTag(userId: string, rawTag: string) {
@@ -265,8 +310,10 @@ export async function deleteTag(userId: string, rawTag: string) {
 		throw moodTagsServiceError.tagNotFoundError();
 
 	await sequelize.transaction(async transaction => {
+		await lockUserTags(userId, transaction);
 		await UserGameTag.destroy({ where: { userId, tag }, transaction });
 		await MoodTagMeta.destroy({ where: { userId, tag }, transaction });
+		await compactFavoriteOrder(userId, transaction);
 	});
 }
 
@@ -344,4 +391,205 @@ export async function findTagMetasForDataExport(userId: string) {
 		where: { userId },
 		order: CHRONOLOGICAL_ORDER
 	});
+}
+
+export async function replaceFavoriteTags(
+	userId: string,
+	rawTags: readonly string[]
+) {
+	if (rawTags.length > MAX_FAVORITE_TAGS)
+		throw moodTagsServiceError.tooManyFavoritesError(MAX_FAVORITE_TAGS);
+	const tags = rawTags.map(normalizeValidTag);
+	const duplicated = tags.find((tag, index) => tags.indexOf(tag) !== index);
+	if (duplicated !== undefined)
+		throw moodTagsServiceError.duplicatedFavoriteError(duplicated);
+
+	return sequelize.transaction(async transaction => {
+		await lockUserTags(userId, transaction);
+		const owned = await findTagNamesByUser(userId, transaction);
+		const unknown = tags.filter(tag => !owned.has(tag));
+		if (unknown.length > 0)
+			throw moodTagsServiceError.unknownFavoriteTagError(unknown);
+
+		await MoodTagMeta.update(
+			{ favoriteOrder: null },
+			{
+				where: { userId, favoriteOrder: { [Op.ne]: null } },
+				transaction
+			}
+		);
+		if (tags.length > 0)
+			await sequelize.query(
+				`INSERT INTO "MoodTagMetas" ("userId", "tag", "favoriteOrder", "createdAt", "updatedAt")
+				SELECT :userId, "favorite"."tag", "favorite"."position" - 1, now(), now()
+				FROM unnest(ARRAY[:tags]::varchar[]) WITH ORDINALITY AS "favorite"("tag", "position")
+				ON CONFLICT ("userId", "tag")
+				DO UPDATE SET "favoriteOrder" = EXCLUDED."favoriteOrder", "updatedAt" = now()`,
+				{ replacements: { userId, tags }, transaction }
+			);
+		return tags;
+	});
+}
+
+export async function findFavoriteTagsByUser(userId: string) {
+	return MoodTagMeta.findAll({
+		where: { userId, favoriteOrder: { [Op.ne]: null } },
+		attributes: ["tag", "description"],
+		order: [
+			["favoriteOrder", "ASC"],
+			["id", "ASC"]
+		]
+	});
+}
+
+export async function findGameCommunityTags(
+	gameId: string,
+	viewerId: string | undefined
+) {
+	if (!(await gamesService.existsActiveGameById(gameId)))
+		throw moodTagsServiceError.gameNotFoundError();
+
+	const rows = await sequelize.query<GameCommunityTagRow>(
+		`SELECT "vote"."tag",
+			COUNT(DISTINCT "vote"."userId")::int AS "players",
+			COALESCE(BOOL_OR("vote"."userId" = :viewerId), false) AS "mine"
+		FROM ${COMMUNITY_VOTES_FROM}
+		WHERE "vote"."gameId" = :gameId
+		GROUP BY "vote"."tag"
+		HAVING COUNT(DISTINCT "vote"."userId") >= :minPlayers
+			OR COALESCE(BOOL_OR("vote"."userId" = :viewerId), false)
+		ORDER BY "players" DESC, "vote"."tag" ASC`,
+		{
+			replacements: {
+				gameId,
+				viewerId: viewerId ?? null,
+				minPlayers: COMMUNITY_TAG_MIN_PLAYERS
+			},
+			type: QueryTypes.SELECT
+		}
+	);
+
+	const publicTags = rows
+		.filter(row => row.players >= COMMUNITY_TAG_MIN_PLAYERS)
+		.slice(0, GAME_COMMUNITY_TAGS_LIMIT);
+	const shownTags = new Set(publicTags.map(row => row.tag));
+	const ownHiddenTags = rows.filter(
+		row => row.mine && !shownTags.has(row.tag)
+	);
+	return [...publicTags, ...ownHiddenTags];
+}
+
+function communityTagStatsSql(searchCondition: string | null) {
+	const searchWhere = searchCondition ? `WHERE ${searchCondition}` : "";
+	return `WITH "publicPairs" AS (
+			SELECT "vote"."tag", "vote"."gameId"
+			FROM ${COMMUNITY_VOTES_FROM}
+			${ACTIVE_VOTED_GAME_JOIN}
+			${searchWhere}
+			GROUP BY "vote"."tag", "vote"."gameId"
+			HAVING COUNT(DISTINCT "vote"."userId") >= :minPlayers
+		)
+		SELECT "publicPairs"."tag",
+			COUNT(DISTINCT "publicPairs"."gameId")::int AS "games",
+			COUNT(DISTINCT "vote"."userId")::int AS "players"
+		FROM "publicPairs"
+		JOIN "UserGameTags" AS "vote"
+			ON "vote"."tag" = "publicPairs"."tag" AND "vote"."gameId" = "publicPairs"."gameId"
+		JOIN "Users" AS "voter" ON "voter"."id" = "vote"."userId" AND "voter"."isActive" = true
+		GROUP BY "publicPairs"."tag"
+		ORDER BY "games" DESC, "players" DESC, "publicPairs"."tag" ASC
+		LIMIT :limit`;
+}
+
+async function findCommunityTagStats(
+	searchCondition: string | null,
+	limit: number
+) {
+	return sequelize.query<CommunityTagStatsRow>(
+		communityTagStatsSql(searchCondition),
+		{
+			replacements: { minPlayers: COMMUNITY_TAG_MIN_PLAYERS, limit },
+			type: QueryTypes.SELECT
+		}
+	);
+}
+
+export async function findPopularCommunityTags(limit: number) {
+	return findCommunityTagStats(null, limit);
+}
+
+export async function searchCommunityTags(search: string, limit: number) {
+	const searchCondition = buildTextSearchSqlCondition(search, "vote.tag");
+	if (!searchCondition) return [];
+	return findCommunityTagStats(searchCondition, limit);
+}
+
+const PUBLIC_TAGGED_GAMES_CTE = `WITH "taggedGames" AS (
+		SELECT "vote"."gameId", COUNT(DISTINCT "vote"."userId")::int AS "players"
+		FROM ${COMMUNITY_VOTES_FROM}
+		${ACTIVE_VOTED_GAME_JOIN}
+		WHERE "vote"."tag" = :tag
+		GROUP BY "vote"."gameId"
+		HAVING COUNT(DISTINCT "vote"."userId") >= :minPlayers
+	)`;
+
+export async function findPublicGamesByTag(
+	rawTag: string,
+	page: TagGamesQuery
+): Promise<TaggedGamesPage> {
+	const tag = normalizeTag(rawTag);
+	if (!tag || tag.length > MAX_TAG_LENGTH)
+		return { tag, total: 0, games: [] };
+
+	const replacements = {
+		tag,
+		minPlayers: COMMUNITY_TAG_MIN_PLAYERS,
+		limit: page.limit,
+		offset: page.offset
+	};
+	const [totalRows, rows] = await Promise.all([
+		sequelize.query<TotalRow>(
+			`${PUBLIC_TAGGED_GAMES_CTE}
+			SELECT COUNT(*)::int AS "total" FROM "taggedGames"`,
+			{ replacements, type: QueryTypes.SELECT }
+		),
+		sequelize.query<PublicTaggedGameRow>(
+			`${PUBLIC_TAGGED_GAMES_CTE}
+			SELECT "taggedGames"."gameId", "taggedGames"."players"
+			FROM "taggedGames"
+			JOIN "Games" AS "game" ON "game"."id" = "taggedGames"."gameId"
+			ORDER BY "taggedGames"."players" DESC, "game"."title" ASC, "game"."id" ASC
+			LIMIT :limit OFFSET :offset`,
+			{ replacements, type: QueryTypes.SELECT }
+		)
+	]);
+
+	const games = await gamesService.findActiveGamesWithRatioByIds(
+		rows.map(row => row.gameId)
+	);
+	const gameById = new Map(games.map(game => [game.id, game]));
+	return {
+		tag,
+		total: totalRows[0]?.total ?? 0,
+		games: rows.flatMap(row => {
+			const game = gameById.get(row.gameId);
+			return game ? [{ game, players: row.players }] : [];
+		})
+	};
+}
+
+export function communityTaggedGameIdsSql(tags: readonly string[]) {
+	const escapedTags = tags.map(tag => sequelize.escape(tag)).join(", ");
+	return `SELECT "publicPairs"."gameId"
+		FROM (
+			SELECT "communityVote"."gameId", "communityVote"."tag"
+			FROM "UserGameTags" AS "communityVote"
+			JOIN "Users" AS "communityVoter"
+				ON "communityVoter"."id" = "communityVote"."userId" AND "communityVoter"."isActive" = true
+			WHERE "communityVote"."tag" IN (${escapedTags})
+			GROUP BY "communityVote"."gameId", "communityVote"."tag"
+			HAVING COUNT(DISTINCT "communityVote"."userId") >= ${COMMUNITY_TAG_MIN_PLAYERS}
+		) AS "publicPairs"
+		GROUP BY "publicPairs"."gameId"
+		HAVING COUNT(*) = ${tags.length}`;
 }

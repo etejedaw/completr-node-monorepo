@@ -38,6 +38,7 @@ async function getMyTags(authorization: string) {
 		tag: string;
 		usageCount: number;
 		description: string | null;
+		favoriteOrder: number | null;
 	}[];
 }
 
@@ -425,6 +426,8 @@ void describe("GET /users/me/mood-tags", () => {
 
 		const tags = await getMyTags(owner.authorization);
 
-		assert.deepEqual(tags, [{ tag, usageCount: 1, description: null }]);
+		assert.deepEqual(tags, [
+			{ tag, usageCount: 1, description: null, favoriteOrder: null }
+		]);
 	});
 });

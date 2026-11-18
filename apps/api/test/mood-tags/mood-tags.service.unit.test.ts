@@ -350,14 +350,22 @@ void describe("moodTagsService.renameTag", () => {
 				options.where.tag === "old"
 					? asModel({
 							description: "from old",
+							favoriteOrder: null,
 							destroy: sourceDestroy
 						})
-					: asModel({ description: "from new", update: targetUpdate })
+					: asModel({
+							description: "from new",
+							favoriteOrder: null,
+							update: targetUpdate
+						})
 		);
 
 		await moodTagsService.renameTag("u", "old", "new");
 
-		assert.equal(targetUpdate.mock.callCount(), 0);
+		assert.deepEqual(targetUpdate.mock.calls[0]?.arguments[0], {
+			description: "from new",
+			favoriteOrder: null
+		});
 		assert.equal(sourceDestroy.mock.callCount(), 1);
 	});
 
@@ -374,15 +382,21 @@ void describe("moodTagsService.renameTag", () => {
 				options.where.tag === "old"
 					? asModel({
 							description: "from old",
+							favoriteOrder: 3,
 							destroy: async () => undefined
 						})
-					: asModel({ description: null, update: targetUpdate })
+					: asModel({
+							description: null,
+							favoriteOrder: null,
+							update: targetUpdate
+						})
 		);
 
 		await moodTagsService.renameTag("u", "old", "new");
 
 		assert.deepEqual(targetUpdate.mock.calls[0]?.arguments[0], {
-			description: "from old"
+			description: "from old",
+			favoriteOrder: 3
 		});
 	});
 });
@@ -418,6 +432,7 @@ void describe("moodTagsService.deleteTag", () => {
 		stub(UserGameTag, "count", async () => 1);
 		stub(MoodTagMeta, "count", async () => 0);
 		const { transaction } = stubTransaction();
+		stub(sequelize, "query", async () => []);
 		const destroyAssignments = stub(UserGameTag, "destroy", async () => 1);
 		const destroyMeta = stub(MoodTagMeta, "destroy", async () => 0);
 

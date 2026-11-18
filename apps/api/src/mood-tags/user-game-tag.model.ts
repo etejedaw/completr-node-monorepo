@@ -36,7 +36,8 @@ UserGameTag.init(
 		indexes: [
 			{ unique: true, fields: ["userId", "gameId", "tag"] },
 			{ fields: ["userId", "tag"] },
-			{ fields: ["gameId", "tag"] }
+			{ fields: ["gameId", "tag"] },
+			{ fields: ["tag", "gameId"] }
 		],
 		updatedAt: false
 	}
