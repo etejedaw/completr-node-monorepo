@@ -3,3 +3,5 @@ export interface ClearAction {
 	description: string;
 	icon: string;
 }
+
+export type BacklogTagSource = "mine" | "community";
