@@ -610,7 +610,7 @@ describe("Rewind2026ClosedGames", () => {
 
 			expect(monthHeadings()).toEqual(["September, 1 game"]);
 			const row = monthRow(/September/);
-			expect(row).toHaveClass("rounded-card", "overflow-hidden");
+			expect(row).toHaveClass("rounded-none", "overflow-hidden");
 			expect(backgroundOf(row)).toBe(
 				"https://img.test/solo-background.jpg"
 			);
@@ -629,7 +629,7 @@ describe("Rewind2026ClosedGames", () => {
 			await renderClosed([game("bare", "2026-04-02")]);
 
 			const row = monthRow(/April/);
-			expect(row).toHaveClass("bg-surface", "rounded-card");
+			expect(row).toHaveClass("bg-surface", "rounded-none");
 			expect(row.querySelector("[data-month-art]")).toBeNull();
 			expect(row.querySelector("[data-month-veil]")).toBeNull();
 		});

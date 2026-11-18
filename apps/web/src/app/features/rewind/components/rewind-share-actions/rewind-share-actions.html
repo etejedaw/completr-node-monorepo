@@ -14,7 +14,7 @@
 		@for (page of pages(); track page.key) { @let pending =
 		pendingDownloads().has(page.key);
 		<figure
-			class="relative m-0 aspect-[9/16] min-w-0 overflow-hidden rounded-card border border-line bg-surface shadow-popover"
+			class="relative m-0 aspect-[9/16] min-w-0 overflow-hidden rounded-none border border-line bg-surface shadow-popover"
 			[attr.aria-busy]="page.image.isLoading() || null"
 		>
 			@if (page.image.objectUrl(); as url) {

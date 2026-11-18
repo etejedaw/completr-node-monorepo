@@ -4,7 +4,7 @@
 	appInView
 	inViewRootMargin="200px"
 	aria-labelledby="rewind-share-heading"
-	class="relative isolate grid grid-cols-1 gap-8 overflow-hidden rounded-card border border-line p-6 transition-colors hover:border-line-hover sm:p-8 lg:grid-cols-[minmax(0,1fr)_27rem] lg:items-center lg:gap-6 lg:px-10 lg:py-8"
+	class="relative isolate grid grid-cols-1 gap-8 overflow-hidden rounded-none border border-line p-6 transition-colors hover:border-line-hover sm:p-8 lg:grid-cols-[minmax(0,1fr)_27rem] lg:items-center lg:gap-6 lg:px-10 lg:py-8"
 	(inViewChange)="$event && actions.preload()"
 >
 	@if (collage().length > 0) {
@@ -18,7 +18,7 @@
 			loading="lazy"
 			decoding="async"
 			draggable="false"
-			class="aspect-[2/3] w-full rounded-md object-cover"
+			class="aspect-[2/3] w-full rounded-none object-cover"
 			[src]="url | coverUrl: 420"
 		/>
 		}
@@ -91,7 +91,7 @@
 	>
 		@for (page of actions.pages(); track page.key; let index = $index) {
 		<figure
-			class="absolute m-0 aspect-[9/16] w-[8.5rem] overflow-hidden rounded-xl border border-line-hover bg-surface shadow-popover sm:w-[12rem]"
+			class="absolute m-0 aspect-[9/16] w-[8.5rem] overflow-hidden rounded-none border border-line-hover bg-surface shadow-popover sm:w-[12rem]"
 			[class]="imageClasses()[index]"
 			[attr.aria-busy]="page.image.isLoading() || null"
 		>

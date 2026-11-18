@@ -1,7 +1,7 @@
 <ol class="m-0 flex list-none flex-col gap-3 p-0">
 	@for (group of months(); track group.month) {
 	<li
-		class="relative isolate grid min-w-0 gap-3 overflow-hidden rounded-card px-4 py-4 md:grid-cols-[170px_minmax(0,1fr)] md:items-center md:gap-5 md:px-5"
+		class="relative isolate grid min-w-0 gap-3 overflow-hidden rounded-none px-4 py-4 md:grid-cols-[170px_minmax(0,1fr)] md:items-center md:gap-5 md:px-5"
 		[attr.aria-labelledby]="'rewind-month-' + group.month"
 		[class.bg-surface]="!group.artUrl"
 	>
@@ -49,12 +49,12 @@
 				[attr.data-abandoned]="entry.isAbandoned || null"
 			>
 				<a
-					class="group relative block rounded-md no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+					class="group relative block rounded-none no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
 					[routerLink]="['/games', entry.game.code]"
 					[attr.aria-label]="entry.label"
 				>
 					<app-game-poster
-						class="aspect-[2/3] rounded-md shadow-card transition"
+						class="aspect-[2/3] rounded-none shadow-card transition"
 						[class]="entry.isAbandoned ? abandonedPosterClass : ''"
 						[src]="entry.portraitUrl"
 						[title]="entry.game.title"

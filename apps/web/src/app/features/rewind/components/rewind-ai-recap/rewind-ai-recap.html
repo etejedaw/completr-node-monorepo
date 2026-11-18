@@ -51,7 +51,7 @@
 		@for (insight of insights(); track insight.key) {
 		<li
 			appRewindReveal
-			class="flex min-w-0 flex-col gap-2 rounded-card border-t-4 border-t-(--tone) bg-[color-mix(in_oklab,var(--tone)_12%,var(--color-surface))] p-4"
+			class="flex min-w-0 flex-col gap-2 rounded-none border-t-4 border-t-(--tone) bg-[color-mix(in_oklab,var(--tone)_12%,var(--color-surface))] p-4"
 			[revealDelay]="insight.delayMs"
 			[style.--tone]="insight.tone"
 		>
@@ -85,7 +85,7 @@
 		@if (recap().funFact) {
 		<div
 			appRewindReveal
-			class="flex min-w-0 items-start gap-3 rounded-card border border-line p-4"
+			class="flex min-w-0 items-start gap-3 rounded-none border border-line p-4"
 			[style.--tone]="funFactTone"
 		>
 			<span
@@ -110,7 +110,7 @@
 		<div
 			appRewindReveal
 			[revealDelay]="80"
-			class="flex min-w-0 items-start gap-3 rounded-card border border-[color-mix(in_oklab,var(--tone)_45%,transparent)] bg-[color-mix(in_oklab,var(--tone)_10%,var(--color-surface))] p-4"
+			class="flex min-w-0 items-start gap-3 rounded-none border border-[color-mix(in_oklab,var(--tone)_45%,transparent)] bg-[color-mix(in_oklab,var(--tone)_10%,var(--color-surface))] p-4"
 			[style.--tone]="challengeTone"
 		>
 			<span
