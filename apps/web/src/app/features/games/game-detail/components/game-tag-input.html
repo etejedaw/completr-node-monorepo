@@ -1,0 +1,93 @@
+<div class="relative max-w-md">
+	<label [for]="inputId" class="sr-only">Add a tag</label>
+	<div class="relative">
+		<span
+			aria-hidden="true"
+			class="material-icons pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-fg-muted"
+			>add</span
+		>
+		<input
+			uiInput
+			size="sm"
+			type="text"
+			role="combobox"
+			class="!pl-9"
+			autocomplete="off"
+			autocapitalize="off"
+			spellcheck="false"
+			enterkeyhint="done"
+			aria-autocomplete="list"
+			placeholder="Add a tag…"
+			[id]="inputId"
+			[disabled]="disabled()"
+			[value]="query()"
+			[attr.aria-expanded]="listOpen()"
+			[attr.aria-controls]="listboxId"
+			[attr.aria-activedescendant]="activeOptionId()"
+			[attr.aria-invalid]="tooLong()"
+			[attr.aria-describedby]="tooLong() ? errorId : null"
+			(focus)="onFocus()"
+			(blur)="onBlur()"
+			(input)="onInput($event)"
+			(keydown)="onKeydown($event)"
+		/>
+	</div>
+	@if (tooLong()) {
+	<ui-field-error [id]="errorId"
+		>Use {{ maxLength }} characters or fewer.</ui-field-error
+	>
+	} @else if (alreadyTagged()) {
+	<p class="m-0 mt-1 text-caption text-fg-muted" role="status">
+		“{{ normalizedQuery() }}” is already one of your tags here.
+	</p>
+	} @if (listOpen()) {
+	<div
+		class="absolute left-0 right-0 top-full z-30 mt-1 max-h-72 overflow-y-auto overscroll-contain rounded-card border border-line-hover bg-sidebar py-1 shadow-popover"
+		(mousedown)="$event.preventDefault()"
+	>
+		@if (!normalizedQuery()) {
+		<p aria-hidden="true" uiEyebrow class="m-0 px-3 pt-2 pb-1">
+			Popular tags
+		</p>
+		}
+		<ul
+			role="listbox"
+			class="list-none m-0 p-0"
+			[id]="listboxId"
+			[attr.aria-label]="listLabel()"
+		>
+			@for (suggestion of suggestions(); track suggestion.tag; let i =
+			$index) {
+			<li
+				role="option"
+				tabindex="-1"
+				class="flex items-center gap-2 px-3 py-2 tap:min-h-[44px] cursor-pointer text-sm text-fg transition-colors aria-selected:bg-surface-hover aria-selected:shadow-[inset_2px_0_0_var(--color-brand)]"
+				[id]="optionId(i)"
+				[attr.aria-selected]="i === activeIndex()"
+				(mousemove)="activeIndex.set(i)"
+				(click)="pick(suggestion)"
+				(keydown.enter)="pick(suggestion)"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-base shrink-0"
+					[class.text-brand]="suggestion.isNew"
+					[class.text-fg-muted]="!suggestion.isNew"
+					>{{ suggestion.isNew ? 'add_circle' : 'label' }}</span
+				>
+				<span class="flex-1 min-w-0 truncate">
+					@if (suggestion.isNew) { Add “{{ suggestion.tag }}” } @else
+					{ {{ suggestion.tag }} }
+				</span>
+				@if (suggestion.games !== null) {
+				<span class="shrink-0 text-xs text-fg-muted tabular-nums"
+					>{{ suggestion.games }} {{ suggestion.games === 1 ? 'game' :
+					'games' }}</span
+				>
+				}
+			</li>
+			}
+		</ul>
+	</div>
+	}
+</div>

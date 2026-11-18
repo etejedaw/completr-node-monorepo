@@ -184,6 +184,7 @@ describe("GameDetail interaction", () => {
 			return req.flush({ data: { queue: [], total: 0 } });
 		if (url.endsWith("/mood-tags"))
 			return req.flush({ data: { tags: [] } });
+		if (url.endsWith("/tags")) return req.flush({ data: { tags: [] } });
 		throw new Error(`Unexpected request: ${method} ${url}`);
 	}
 

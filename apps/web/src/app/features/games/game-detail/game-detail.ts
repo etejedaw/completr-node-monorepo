@@ -24,7 +24,6 @@ import { QueueService } from "../../../core/services/queue";
 import { ScoreSourcesService } from "../../../core/services/score-sources";
 import { ToastService } from "../../../core/services/toast";
 import { ExpandableText } from "../../../shared/components/expandable-text/expandable-text";
-import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import { InView } from "../../../shared/directives/in-view";
 import {
 	UiAlert,
@@ -89,10 +88,10 @@ import { GameRuns } from "./components/game-runs";
 import { GameScoreCard } from "./components/game-score-card";
 import { GameSection } from "./components/game-section";
 import { GameSocialActivity } from "./components/game-social-activity";
+import { GameTags } from "./components/game-tags";
 import { injectGameAdminActions } from "./game-admin-actions";
 import { type ExternalLinkView } from "./game-detail.model";
 import { EXTERNAL_LINK_SOURCES } from "./game-external-links";
-import { injectGameMoodTags } from "./game-mood-tags";
 import { injectGameReport } from "./game-report";
 import { resolveQueueIntent } from "./queue-intent";
 import { type QueueIntent } from "./queue-intent.model";
@@ -133,7 +132,7 @@ const SIMILAR_GAMES_SHOWN = 8;
 		GameAdminBar,
 		GameSocialActivity,
 		GameReviews,
-		MoodTagsInput,
+		GameTags,
 		ExpandableText,
 		UiDialog,
 		UiSkeleton
@@ -191,16 +190,6 @@ export class GameDetail implements OnInit {
 		const franchise = this.trackableFranchise();
 		return franchise ? this.franchiseTracking.isPending(franchise) : false;
 	});
-	private readonly moodTagsFlow = injectGameMoodTags(this.game);
-	protected readonly moodTags = this.moodTagsFlow.tags;
-	protected readonly moodTagsDraft = this.moodTagsFlow.draft;
-	protected readonly moodTagsSuggestions = this.moodTagsFlow.suggestions;
-	protected readonly editingMoodTags = this.moodTagsFlow.editing;
-	protected readonly savingMoodTags = this.moodTagsFlow.saving;
-	protected readonly startEditMoodTags = this.moodTagsFlow.startEdit;
-	protected readonly cancelEditMoodTags = this.moodTagsFlow.cancelEdit;
-	protected readonly commitMoodTags = this.moodTagsFlow.commit;
-	protected readonly updateMoodTagsDraft = this.moodTagsFlow.draft.set;
 	protected readonly isLoading = signal(true);
 	protected readonly loadFailed = signal(false);
 	private requestedCode = "";
@@ -378,7 +367,6 @@ export class GameDetail implements OnInit {
 						this.myLists.set(data.myLists);
 					}
 				);
-				this.moodTagsFlow.showFor(game);
 			},
 			error: error => {
 				this.loadFailed.set(!isNotFound(error));
