@@ -127,6 +127,7 @@ describe("BacklogTable", () => {
 				"Rating",
 				"Finished",
 				"Status",
+				"Tags",
 				"Favorite",
 				"Up Next"
 			]);
@@ -135,7 +136,7 @@ describe("BacklogTable", () => {
 		it("drops the favorite and queue columns when readonly", () => {
 			const { element } = render([], { readonly: true });
 
-			expect(headers(element)).toHaveLength(10);
+			expect(headers(element)).toHaveLength(11);
 		});
 
 		it("marks only the active column with aria-sort and an arrow", () => {
@@ -235,6 +236,37 @@ describe("BacklogTable", () => {
 			const text = cells(element).map(td => td.textContent?.trim());
 			expect(text.filter(t => t === "-")).toHaveLength(5);
 			expect(text).toContain("—");
+		});
+
+		it("shows the tags of an entry in their own column, not under the title", () => {
+			const { element } = render([
+				entry({ moodTags: ["relaxing", "co-op"] })
+			]);
+
+			const columnIndex = headers(element).findIndex(
+				th => th.textContent?.trim() === "Tags"
+			);
+			const tagsCell = element.querySelectorAll("tbody tr td")[
+				columnIndex
+			] as HTMLElement;
+			expect(
+				Array.from(tagsCell.querySelectorAll("span")).map(chip =>
+					chip.textContent?.trim()
+				)
+			).toEqual(["relaxing", "co-op"]);
+			const titleCell = cells(element)[0] as HTMLElement;
+			expect(titleCell).not.toHaveTextContent("relaxing");
+		});
+
+		it("shows a dash in the tags column of an untagged entry", () => {
+			const { element } = render([entry({ moodTags: [] })], {
+				readonly: true
+			});
+
+			const columnIndex = headers(element).findIndex(
+				th => th.textContent?.trim() === "Tags"
+			);
+			expect(cells(element)[columnIndex].textContent?.trim()).toBe("—");
 		});
 
 		it("formats the finished date", () => {
@@ -656,7 +688,7 @@ describe("BacklogTable", () => {
 
 		it("adds a leading checkbox column only when a selection is given", () => {
 			const { element } = renderSelectable();
-			expect(headers(element)).toHaveLength(13);
+			expect(headers(element)).toHaveLength(14);
 			expect(
 				checkbox("Select all runs on this page")
 			).toBeInTheDocument();

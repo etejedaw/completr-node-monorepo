@@ -82,7 +82,6 @@
 						[coverUrl]="entry.game | gameArt: 'portrait'"
 						[title]="entry.game.title"
 						[code]="entry.game.code"
-						[moodTags]="entry.moodTags"
 					>
 						@if (!readonly() && !entry.isPublic) {
 						<app-private-run-lock
@@ -201,6 +200,13 @@
 					/>
 					} @else {
 					<app-backlog-status-badge [status]="entry.status" />
+					}
+				</td>
+				<td class="min-w-[8rem] max-w-[16rem]">
+					@if (entry.moodTags?.length) {
+					<app-mood-tags-chips [tags]="entry.moodTags" />
+					} @else {
+					<span class="text-fg-muted">—</span>
 					}
 				</td>
 				@if (!readonly()) {

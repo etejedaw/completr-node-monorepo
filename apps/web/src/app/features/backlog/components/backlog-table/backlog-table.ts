@@ -13,6 +13,7 @@ import { FavoritesService } from "../../../../core/services/favorites";
 import { BacklogStatusBadge } from "../../../../shared/components/backlog-status-badge/backlog-status-badge";
 import { BacklogStatusPicker } from "../../../../shared/components/backlog-status-picker/backlog-status-picker";
 import { GameTitleCell } from "../../../../shared/components/game-title-cell/game-title-cell";
+import { MoodTagsChips } from "../../../../shared/components/mood-tags-chips/mood-tags-chips";
 import { PlatinumTrophy } from "../../../../shared/components/platinum-trophy/platinum-trophy";
 import { PrivateRunLock } from "../../../../shared/components/private-run-lock/private-run-lock";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
@@ -81,7 +82,13 @@ const BACKLOG_TABLE_COLUMNS: readonly BacklogTableColumn[] = [
 	}),
 	sortableColumn("Rating", "userRating", "start"),
 	sortableColumn("Finished", "finishedAt", "start"),
-	sortableColumn("Status", "status", "start")
+	sortableColumn("Status", "status", "start"),
+	{
+		label: "Tags",
+		sortKey: null,
+		align: "start",
+		headerClass: `${HEADER_BASE_CLASS} ${MUTED_HEADER_CLASS} min-w-[8rem]`
+	}
 ];
 
 const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
@@ -98,6 +105,7 @@ const PROGRESS_VISIBLE_STATUSES: ReadonlySet<BacklogStatus> = new Set([
 		DatePipe,
 		FloatingXScrollbar,
 		GameTitleCell,
+		MoodTagsChips,
 		PlatinumTrophy,
 		PrivateRunLock,
 		SelectionCell,
