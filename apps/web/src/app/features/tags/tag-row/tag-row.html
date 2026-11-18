@@ -96,6 +96,21 @@
 		</div>
 	</div>
 	<div class="relative z-10 shrink-0 flex items-center gap-0.5">
+		<button
+			uiIconButton
+			type="button"
+			class="tap:min-h-[44px] tap:min-w-[44px]"
+			[class.text-brand]="favorite()"
+			[attr.aria-label]="'Favorite ' + item.tag"
+			[attr.aria-pressed]="favorite()"
+			[attr.aria-disabled]="!favorite() && favoriteLocked()"
+			[title]="favoriteTitle()"
+			(click)="toggleFavorite()"
+		>
+			<span aria-hidden="true" class="material-icons text-lg"
+				>{{ favorite() ? 'star' : 'star_border' }}</span
+			>
+		</button>
 		<div class="sm:hidden">
 			<ui-action-menu
 				[label]="'More actions for ' + item.tag"

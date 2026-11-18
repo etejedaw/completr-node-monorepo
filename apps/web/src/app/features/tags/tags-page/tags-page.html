@@ -26,6 +26,107 @@
 	</button>
 </app-library-hero>
 
+@if (!loading() && !tagsLoader.failed() && tags().length > 0) {
+<section
+	class="mb-8 rounded-card border border-line bg-surface/60 p-4"
+	aria-labelledby="favorite-tags-heading"
+>
+	<header
+		class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1"
+	>
+		<h2
+			id="favorite-tags-heading"
+			class="m-0 flex items-center gap-2 font-display text-lg font-semibold text-fg"
+		>
+			<span aria-hidden="true" class="material-icons text-xl text-brand"
+				>star</span
+			>
+			Favorite tags
+		</h2>
+		<span class="text-caption text-fg-muted tabular-nums"
+			>{{ favorites.desired().length }}/{{ maxFavorites }} · shown on your
+			profile in this order</span
+		>
+	</header>
+	@if (favorites.desired().length === 0) {
+	<p class="m-0 mt-2 text-sm text-fg-muted text-pretty">
+		Star up to {{ maxFavorites }} of your tags below to show them on your
+		profile. Who sees them depends on
+		<a routerLink="/settings/privacy">your privacy settings</a>.
+	</p>
+	} @else {
+	<ol class="list-none m-0 mt-2 p-0 divide-y divide-line">
+		@for (tag of favorites.desired(); track tag; let i = $index, first =
+		$first, last = $last) {
+		<li class="flex items-center gap-2 py-1">
+			<span
+				aria-hidden="true"
+				class="w-5 shrink-0 text-center text-xs font-semibold text-fg-muted tabular-nums"
+				>{{ i + 1 }}</span
+			>
+			<span
+				class="min-w-0 flex-1 inline-flex items-center gap-1 text-sm font-medium text-fg"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-sm text-brand"
+					>label</span
+				>
+				<span class="truncate">{{ tag }}</span>
+			</span>
+			<button
+				uiIconButton
+				type="button"
+				class="tap:min-h-[44px] tap:min-w-[44px]"
+				[attr.aria-label]="'Move ' + tag + ' up'"
+				[attr.aria-disabled]="first"
+				title="Move up"
+				(click)="moveFavorite(i, -1)"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>keyboard_arrow_up</span
+				>
+			</button>
+			<button
+				uiIconButton
+				type="button"
+				class="tap:min-h-[44px] tap:min-w-[44px]"
+				[attr.aria-label]="'Move ' + tag + ' down'"
+				[attr.aria-disabled]="last"
+				title="Move down"
+				(click)="moveFavorite(i, 1)"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>keyboard_arrow_down</span
+				>
+			</button>
+			<button
+				uiIconButton
+				type="button"
+				class="tap:min-h-[44px] tap:min-w-[44px] text-brand"
+				[attr.aria-label]="'Remove ' + tag + ' from favorites'"
+				title="Remove from favorites"
+				(click)="toggleFavorite(tag)"
+			>
+				<span aria-hidden="true" class="material-icons text-lg"
+					>star</span
+				>
+			</button>
+		</li>
+		}
+	</ol>
+	}
+	<p class="sr-only" role="status">{{ favoritesAnnouncement() }}</p>
+</section>
+}
+
+<h2
+	id="your-tags-heading"
+	class="m-0 mb-3 font-display text-xl font-semibold text-fg"
+>
+	Your tags
+</h2>
+
 @if (loading() || (tags().length > 0 && !tagsLoader.failed())) {
 <app-library-toolbar>
 	<app-page-search
@@ -102,6 +203,9 @@
 			[maxUsage]="maxUsage()"
 			[editing]="editingTag() === tag.tag"
 			[saving]="saving() === tag.tag"
+			[favorite]="favoriteSet().has(tag.tag)"
+			[favoriteLocked]="favoritesFull()"
+			(favoriteToggled)="toggleFavorite(tag.tag)"
 			(editRequested)="startEdit(tag)"
 			(deleteRequested)="requestDelete(tag)"
 			(showGamesRequested)="showInMyGames(tag)"
@@ -111,7 +215,70 @@
 	</li>
 	}
 </ul>
-} @if (pendingDelete(); as tag) {
+}
+
+<section class="mt-12" aria-labelledby="popular-tags-heading">
+	<header class="mb-4">
+		<h2
+			id="popular-tags-heading"
+			class="m-0 font-display text-xl font-semibold text-fg"
+		>
+			Popular tags
+		</h2>
+		<p class="m-0 mt-1 text-sm text-fg-muted text-pretty">
+			How players label their games. A tag counts on a game once 2 players
+			use it.
+		</p>
+	</header>
+	@if (popularLoading()) {
+	<ul
+		class="list-none m-0 p-0 flex flex-wrap gap-2"
+		aria-busy="true"
+		aria-label="Loading popular tags"
+	>
+		@for (i of skeletonRange; track i) {
+		<li><ui-skeleton class="block h-9 w-28 rounded-full" /></li>
+		}
+	</ul>
+	} @else if (popularLoader.failed()) {
+	<p
+		role="alert"
+		class="m-0 flex flex-wrap items-center gap-x-2 text-sm text-fg-muted"
+	>
+		Couldn't load popular tags.
+		<button uiButton variant="link" type="button" (click)="loadPopular()">
+			Try again
+		</button>
+	</p>
+	} @else if (popularTags().length === 0) {
+	<p class="m-0 text-sm text-fg-muted text-pretty">
+		No popular tags yet. They show up once 2 players tag the same game the
+		same way.
+	</p>
+	} @else {
+	<ul class="list-none m-0 p-0 flex flex-wrap gap-2">
+		@for (popular of popularTags(); track popular.tag) {
+		<li>
+			<a
+				class="inline-flex max-w-full items-center gap-1.5 h-9 tap:min-h-[44px] px-3 rounded-full border border-line bg-input-bg text-sm font-medium text-fg-secondary no-underline transition hover:border-brand hover:text-brand"
+				[routerLink]="['/tags', popular.tag]"
+				[attr.aria-label]="popular.tag + ', ' + popular.games + (popular.games === 1 ? ' game' : ' games')"
+			>
+				<span aria-hidden="true" class="material-icons text-sm"
+					>label</span
+				>
+				<span class="truncate">{{ popular.tag }}</span>
+				<span class="text-xs text-fg-muted tabular-nums"
+					>{{ popular.games }}</span
+				>
+			</a>
+		</li>
+		}
+	</ul>
+	}
+</section>
+
+@if (pendingDelete(); as tag) {
 <ui-dialog
 	eyebrow="Tags"
 	icon="delete"

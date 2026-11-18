@@ -27,6 +27,7 @@ import {
 	UiLabel,
 	UiProgress
 } from "../../../shared/ui";
+import { MAX_FAVORITE_TAGS } from "../../mood-tags/mood-tags.constants";
 import { type UserTag } from "../../mood-tags/mood-tags.model";
 import { type TagEdit } from "./tag-row.model";
 
@@ -67,12 +68,15 @@ export class TagRow {
 	readonly maxUsage = input(1);
 	readonly editing = input(false);
 	readonly saving = input(false);
+	readonly favorite = input(false);
+	readonly favoriteLocked = input(false);
 
 	readonly editRequested = output<void>();
 	readonly deleteRequested = output<void>();
 	readonly showGamesRequested = output<void>();
 	readonly saved = output<TagEdit>();
 	readonly cancelled = output<void>();
+	readonly favoriteToggled = output<void>();
 
 	private readonly injector = inject(Injector);
 
@@ -113,6 +117,18 @@ export class TagRow {
 				injector: this.injector
 			});
 		});
+	}
+
+	protected readonly favoriteTitle = computed(() => {
+		if (this.favorite()) return "Remove from favorites";
+		return this.favoriteLocked()
+			? `You can pick up to ${MAX_FAVORITE_TAGS} favorites`
+			: "Add to favorites";
+	});
+
+	protected toggleFavorite() {
+		if (!this.favorite() && this.favoriteLocked()) return;
+		this.favoriteToggled.emit();
 	}
 
 	protected runMobileAction(id: string) {
