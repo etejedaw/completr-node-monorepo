@@ -1,0 +1,69 @@
+<app-library-hero
+	[heading]="tag()"
+	[backLink]="backLink"
+	[posters]="heroPosters()"
+>
+	<span
+		heroEyebrow
+		uiEyebrow
+		tone="brand"
+		class="inline-flex items-center gap-1.5"
+	>
+		<span aria-hidden="true" class="material-icons text-sm">label</span>
+		Tag
+	</span>
+	<p heroSubtitle class="m-0 mt-2 max-w-xl text-sm text-fg-secondary">
+		@if (status() === "ready") {
+		<span class="font-semibold text-fg tabular-nums">{{ total() }}</span>
+		{{ total() === 1 ? 'game' : 'games' }} ·{{ " " }} } Games at least 2
+		players tagged this way, most-tagged first.
+	</p>
+</app-library-hero>
+
+@switch (status()) { @case ("loading") {
+<app-cover-grid [loading]="true" loadingLabel="Loading games" />
+} @case ("error") {
+<ui-load-error title="Couldn't load this tag" (retried)="reload()" />
+} @default { @if (games().length === 0) {
+<ui-empty-state
+	icon="label"
+	title="No games with this tag yet"
+	hint="A tag shows up on a game once at least 2 players use it. Add it to the games you play and see who joins in."
+>
+	<a uiButton variant="secondary" routerLink="/tags">Browse tags</a>
+</ui-empty-state>
+} @else {
+<app-cover-grid>
+	@for (game of games(); track game.id) {
+	<li>
+		<app-game-cover-card
+			[game]="game"
+			[ratio]="game.ratio"
+			[subtitle]="playersLabel(game)"
+		/>
+	</li>
+	}
+</app-cover-grid>
+<div class="mt-8 flex flex-col items-center gap-3">
+	<p class="m-0 text-caption text-fg-muted tabular-nums" role="status">
+		Showing {{ games().length }} of {{ total() }}
+	</p>
+	@if (loadMoreFailed()) {
+	<p class="m-0 text-sm text-danger" role="alert">
+		Couldn't load more games.
+	</p>
+	} @if (hasMore()) {
+	<button
+		uiButton
+		variant="secondary"
+		type="button"
+		[attr.aria-busy]="loadingMore()"
+		[disabled]="loadingMore()"
+		(click)="loadMore()"
+	>
+		@if (loadingMore()) { Loading… } @else if (loadMoreFailed()) { Try again
+		} @else { Load more }
+	</button>
+	}
+</div>
+} } }
