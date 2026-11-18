@@ -1,6 +1,4 @@
 ---
-import { getRelativeLocaleUrl } from "astro:i18n";
-
 import { type Locale, toLocale } from "../i18n/locales";
 
 const lang = toLocale(Astro.currentLocale);
@@ -66,10 +64,7 @@ const copy = {
 				description:
 					"Cada parte de tu perfil puede ser pública, solo para amigos o privada."
 			}
-		],
-		ctaTitle: "¿Quieres probarlo?",
-		ctaText: "El acceso es por invitación. Pide la tuya.",
-		ctaButton: "Pedir invitación"
+		]
 	},
 	en: {
 		eyebrow: "And more",
@@ -131,10 +126,7 @@ const copy = {
 				description:
 					"Each part of your profile can be public, friends-only or private."
 			}
-		],
-		ctaTitle: "Want to try it?",
-		ctaText: "Access is by invitation. Request yours.",
-		ctaButton: "Request an invite"
+		]
 	}
 } satisfies Record<Locale, unknown>;
 
@@ -183,30 +175,5 @@ const t = copy[lang];
 				))
 			}
 		</ul>
-
-		<div
-			class="mt-12 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-2xl border border-[var(--color-brand)]/30"
-			style="background: linear-gradient(135deg, color-mix(in srgb, var(--color-brand) 14%, transparent), transparent 70%), var(--color-surface);"
-		>
-			<div>
-				<p
-					class="m-0 font-display text-xl font-bold text-[var(--color-fg)]"
-				>
-					{t.ctaTitle}
-				</p>
-				<p class="m-0 mt-1 text-sm text-[var(--color-fg-secondary)]">
-					{t.ctaText}
-				</p>
-			</div>
-			<a
-				href={`${getRelativeLocaleUrl(lang)}#beta-signup`}
-				class="btn-primary shrink-0"
-			>
-				{t.ctaButton}
-				<span class="material-icons text-[1.125rem]" aria-hidden="true"
-					>arrow_forward</span
-				>
-			</a>
-		</div>
 	</div>
 </section>
