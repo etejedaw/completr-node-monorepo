@@ -6,8 +6,8 @@ import DeviceFrames from "./DeviceFrames.astro";
 
 const promises = [
 	{ icon: "devices", label: "Web y celular" },
-	{ icon: "install_mobile", label: "Instalable como app" },
-	{ icon: "code", label: "Código abierto" }
+	{ icon: "code", label: "Código abierto" },
+	{ icon: "block", label: "Sin anuncios" }
 ];
 ---
 
@@ -29,35 +29,20 @@ const promises = [
 		class="relative max-w-6xl mx-auto grid gap-14 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-10 items-center"
 	>
 		<div class="flex flex-col items-start gap-6">
-			<a
-				href="#v1"
-				class="hero-reveal group inline-flex items-center gap-2 min-h-[44px] pl-1.5 pr-3 rounded-full text-sm font-medium no-underline text-[var(--color-fg-secondary)] border border-[var(--color-line-strong)] bg-[var(--color-surface)]/70 transition-colors hover:border-[var(--color-brand)]/50 hover:text-[var(--color-fg)]"
-			>
-				<span
-					class="inline-flex items-center h-7 px-2.5 rounded-full font-display font-bold text-xs tracking-wide text-white"
-					style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep));"
-					>1.1</span
-				>
-				Ya salió Completr 1.1
-				<span
-					class="material-icons text-[1rem] transition-transform group-hover:translate-x-0.5"
-					aria-hidden="true">arrow_forward</span
-				>
-			</a>
-
 			<h1
 				class="hero-reveal font-display m-0 text-[2.5rem] sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-[1.05] text-balance"
 			>
-				Juega lo que <span class="text-gradient">vale tu tiempo</span>.
+				Siempre sabrás <span class="text-gradient">qué jugar</span>.
 			</h1>
 
 			<p
 				class="hero-reveal m-0 text-base md:text-lg text-[var(--color-fg-secondary)] leading-relaxed max-w-xl"
 			>
-				Tu backlog crece más rápido que tu tiempo libre. Completr cruza
-				la nota de cada juego con lo que dura y te dice cuál jugar a
-				continuación. La 1.1 renueva tu Rewind y suma runs privadas y
-				búsqueda desde cualquier pantalla.
+				Completr ordena tu backlog con el <a
+					href="#ratio"
+					class="font-semibold text-[var(--color-fg)] underline decoration-[var(--color-brand)] decoration-2 underline-offset-4 transition-colors hover:text-[var(--color-brand)]"
+					>Ratio</a
+				> y te recomienda el siguiente.
 			</p>
 
 			<div class="hero-reveal w-full max-w-xl flex flex-col gap-3">
@@ -68,7 +53,7 @@ const promises = [
 						class="material-icons text-[1.125rem] text-[var(--color-brand)]"
 						aria-hidden="true">mail</span
 					>
-					Acceso por invitación. Pide la tuya.
+					Acceso por invitación.
 				</p>
 				<div class="[&_form]:mx-0 [&_p]:text-left">
 					<BetaSignupForm />
@@ -95,10 +80,6 @@ const promises = [
 		</div>
 
 		<div class="hero-reveal relative lg:mt-32 lg:-mr-24 xl:-mr-40">
-			<span
-				class="hero-version font-display absolute -top-16 right-2 sm:-top-24 lg:-top-44 lg:right-24 xl:right-40 font-bold leading-none select-none pointer-events-none"
-				aria-hidden="true">1.1</span
-			>
 			<DeviceFrames
 				desktop={backlogDesktop}
 				desktopAlt="My Games: la biblioteca con el Ratio de cada juego, tu nota y tu run"
@@ -114,20 +95,6 @@ const promises = [
 </section>
 
 <style>
-	.hero-version {
-		font-size: clamp(7rem, 22vw, 17rem);
-		letter-spacing: -0.04em;
-		color: transparent;
-		-webkit-text-stroke: 1.5px rgba(196, 168, 255, 0.35);
-		background-image: linear-gradient(
-			180deg,
-			color-mix(in srgb, var(--color-brand) 22%, transparent),
-			transparent 75%
-		);
-		-webkit-background-clip: text;
-		background-clip: text;
-	}
-
 	.hero-reveal {
 		animation: hero-reveal 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
 	}
@@ -142,10 +109,6 @@ const promises = [
 
 	.hero-reveal:nth-child(4) {
 		animation-delay: 240ms;
-	}
-
-	.hero-reveal:nth-child(5) {
-		animation-delay: 320ms;
 	}
 
 	@keyframes hero-reveal {
