@@ -13,7 +13,8 @@ const ALL_SCOPE_LIMITS: Record<ResultScope, number> = {
 	library: 3,
 	games: 5,
 	players: 4,
-	lists: 4
+	lists: 4,
+	tags: 4
 };
 
 function limitFor(scope: SearchPaletteScope, section: ResultScope) {
@@ -32,14 +33,14 @@ function libraryItems(
 	const items: SearchPaletteItem[] = entries.map(entry => ({
 		kind: "library",
 		id: `library-${entry.id}`,
-		path: `/games/${entry.game.code}`,
+		path: ["/games", entry.game.code],
 		entry
 	}));
 	if (entries.length > 0 && results.library.total > entries.length)
 		items.push({
 			kind: "library-all",
 			id: "library-all",
-			path: "/backlog",
+			path: ["/backlog"],
 			queryParams: { search: query },
 			total: results.library.total
 		});
@@ -60,22 +61,29 @@ function resultItems(
 			return results.games.slice(0, limit).map(game => ({
 				kind: "game",
 				id: `game-${game.id}`,
-				path: `/games/${game.code}`,
+				path: ["/games", game.code],
 				game
 			}));
 		case "players":
 			return results.users.slice(0, limit).map(user => ({
 				kind: "player",
 				id: `player-${user.id}`,
-				path: `/user/${user.username}`,
+				path: ["/user", user.username],
 				user
 			}));
 		case "lists":
 			return results.lists.slice(0, limit).map(list => ({
 				kind: "list",
 				id: `list-${list.id}`,
-				path: `/lists/${list.id}`,
+				path: ["/lists", list.id],
 				list
+			}));
+		case "tags":
+			return results.tags.slice(0, limit).map(tag => ({
+				kind: "tag",
+				id: `tag-${encodeURIComponent(tag.tag)}`,
+				path: ["/tags", tag.tag],
+				tag
 			}));
 	}
 }
@@ -84,7 +92,8 @@ const RESULT_SECTION_HEADINGS: Record<ResultScope, string> = {
 	library: "In your library",
 	games: "Games",
 	players: "Players",
-	lists: "Lists"
+	lists: "Lists",
+	tags: "Tags"
 };
 
 export function buildResultSections(
@@ -117,7 +126,7 @@ export function buildCatalogSection(
 			{
 				kind: "catalog",
 				id: "catalog",
-				path: "/games",
+				path: ["/games"],
 				queryParams: { q: query }
 			}
 		]

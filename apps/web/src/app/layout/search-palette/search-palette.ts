@@ -45,7 +45,8 @@ const SCOPE_OPTIONS: readonly UiChipOption[] = [
 	{ value: "library", label: "My library", icon: "list_alt" },
 	{ value: "games", label: "Games", icon: "sports_esports" },
 	{ value: "players", label: "Players", icon: "group" },
-	{ value: "lists", label: "Lists", icon: "format_list_bulleted" }
+	{ value: "lists", label: "Lists", icon: "format_list_bulleted" },
+	{ value: "tags", label: "Tags", icon: "label" }
 ];
 
 const SCOPES: readonly SearchPaletteScope[] = [
@@ -53,7 +54,8 @@ const SCOPES: readonly SearchPaletteScope[] = [
 	"library",
 	"games",
 	"players",
-	"lists"
+	"lists",
+	"tags"
 ];
 
 function isScope(value: string | undefined): value is SearchPaletteScope {
@@ -229,7 +231,7 @@ export class SearchPalette {
 	}
 
 	protected open(item: SearchPaletteItem) {
-		this.router.navigate([item.path], { queryParams: item.queryParams });
+		this.router.navigate(item.path, { queryParams: item.queryParams });
 		this.close();
 	}
 
