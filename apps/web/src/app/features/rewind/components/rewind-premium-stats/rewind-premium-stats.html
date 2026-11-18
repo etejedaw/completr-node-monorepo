@@ -28,7 +28,7 @@
 		@if (hoursBars().length > 0) {
 		<figure
 			appRewindReveal
-			class="m-0 flex min-w-0 flex-col gap-4 rounded-card border border-line bg-canvas/40 p-4"
+			class="m-0 flex min-w-0 flex-col gap-4 rounded-none border border-line bg-canvas/40 p-4"
 			aria-labelledby="rewind-stats-hours-title"
 		>
 			<figcaption class="flex flex-col gap-0.5">
@@ -53,7 +53,7 @@
 					[title]="barHint(bar.month, hours(bar.hours))"
 				>
 					<span
-						class="relative block w-full max-w-7 rounded-t-[4px] transition-[filter] group-hover:brightness-125"
+						class="relative block w-full max-w-7 transition-[filter] group-hover:brightness-125"
 						[class]="bar.isPeak ? 'bg-brand' : 'bg-brand/55'"
 						[style.height.%]="bar.heightPercent"
 						[style.min-height.px]="bar.hours > 0 ? 3 : 0"
@@ -99,7 +99,7 @@
 		<figure
 			appRewindReveal
 			[revealDelay]="80"
-			class="m-0 flex min-w-0 flex-col gap-4 rounded-card border border-line bg-canvas/40 p-4"
+			class="m-0 flex min-w-0 flex-col gap-4 rounded-none border border-line bg-canvas/40 p-4"
 			aria-labelledby="rewind-stats-flow-title"
 		>
 			<figcaption class="flex flex-col gap-0.5">
@@ -138,15 +138,11 @@
 					class="m-0 flex list-none flex-wrap gap-3 p-0 text-xs text-fg-secondary"
 				>
 					<li class="flex items-center gap-1.5">
-						<span
-							class="size-2.5 rounded-[3px] bg-nav-queue"
-						></span>
+						<span class="size-2.5 bg-nav-queue"></span>
 						{{ text.added }} · {{ number(totals.added) }}
 					</li>
 					<li class="flex items-center gap-1.5">
-						<span
-							class="size-2.5 rounded-[3px] bg-nav-lists"
-						></span>
+						<span class="size-2.5 bg-nav-lists"></span>
 						{{ text.finished }} · {{ number(totals.finished) }}
 					</li>
 				</ul>
@@ -162,12 +158,12 @@
 					[title]="barHint(bar.month, text.added + ' ' + number(bar.added) + ' · ' + text.finished + ' ' + number(bar.finished))"
 				>
 					<span
-						class="block w-1/2 max-w-3 rounded-t-[4px] bg-nav-queue group-hover:brightness-125"
+						class="block w-1/2 max-w-3 bg-nav-queue group-hover:brightness-125"
 						[style.height.%]="bar.addedPercent"
 						[style.min-height.px]="bar.added > 0 ? 3 : 0"
 					></span>
 					<span
-						class="block w-1/2 max-w-3 rounded-t-[4px] bg-nav-lists group-hover:brightness-125"
+						class="block w-1/2 max-w-3 bg-nav-lists group-hover:brightness-125"
 						[style.height.%]="bar.finishedPercent"
 						[style.min-height.px]="bar.finished > 0 ? 3 : 0"
 					></span>
@@ -223,7 +219,7 @@
 		} @if (gapRows().length > 0) {
 		<figure
 			appRewindReveal
-			class="m-0 flex min-w-0 flex-col gap-4 rounded-card border border-line bg-canvas/40 p-4"
+			class="m-0 flex min-w-0 flex-col gap-4 rounded-none border border-line bg-canvas/40 p-4"
 			aria-labelledby="rewind-stats-critics-title"
 		>
 			<figcaption class="flex flex-col gap-0.5">
@@ -249,7 +245,7 @@
 					[attr.data-direction]="row.direction"
 				>
 					<app-game-poster
-						class="row-span-2 aspect-[2/3] w-8 rounded-[4px] ring-1 ring-line"
+						class="row-span-2 aspect-[2/3] w-8 ring-1 ring-line"
 						[src]="row.coverUrl ?? row.backgroundUrl"
 						[title]="row.title"
 						[width]="420"
@@ -280,7 +276,7 @@
 							} @else {
 							<span
 								class="absolute inset-y-0"
-								[class]="row.direction === 'more' ? 'left-1/2 rounded-r-[4px] bg-brand' : 'right-1/2 rounded-l-[4px] bg-nav-shelf'"
+								[class]="row.direction === 'more' ? 'left-1/2 bg-brand' : 'right-1/2 bg-nav-shelf'"
 								[style.width.%]="row.widthPercent"
 								[style.min-width.px]="3"
 							></span>
@@ -324,7 +320,7 @@
 		<figure
 			appRewindReveal
 			[revealDelay]="80"
-			class="m-0 flex min-w-0 flex-col gap-4 rounded-card border border-line bg-canvas/40 p-4"
+			class="m-0 flex min-w-0 flex-col gap-4 rounded-none border border-line bg-canvas/40 p-4"
 			aria-labelledby="rewind-stats-genres-title"
 		>
 			<figcaption class="flex flex-col gap-0.5">
@@ -363,9 +359,9 @@
 							number(row.count) }}</span
 						>
 					</div>
-					<span class="block h-2 w-full rounded-[4px] bg-line">
+					<span class="block h-2 w-full bg-line">
 						<span
-							class="block h-full rounded-[4px] group-hover:brightness-125"
+							class="block h-full group-hover:brightness-125"
 							[class.bg-nav-sagas]="!row.isOthers"
 							[class.bg-fg-muted]="row.isOthers"
 							[style.width.%]="row.widthPercent"

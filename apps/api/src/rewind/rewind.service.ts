@@ -15,6 +15,7 @@ import { rewindViewToRewind } from "./mappers/rewind-view-to-rewind.mapper";
 import { userToRewindOwner } from "./mappers/user-to-rewind-owner.mapper";
 import {
 	type Rewind,
+	type RewindPlatinumRun,
 	type RewindSnapshot,
 	type RewindView,
 	type RewindYears
@@ -33,6 +34,7 @@ import {
 	storePremiumStats
 } from "./services/rewind-ai-recap.service";
 import { freezeRewind } from "./services/rewind-freeze.service";
+import { findRewindPlatinumGames } from "./services/rewind-platinums.service";
 import {
 	requireGenerationAllowed,
 	reserveGeneration
@@ -41,6 +43,7 @@ import { findRewindRuns } from "./services/rewind-runs.service";
 import { buildRewind } from "./utils/build-rewind.util";
 import { buildRewindOwnerControls } from "./utils/build-rewind-owner-controls.util";
 import { buildRewindYears } from "./utils/build-rewind-years.util";
+import { collectPlatinumRunIds } from "./utils/collect-platinum-run-ids.util";
 import { collectYearRuns } from "./utils/collect-year-runs.util";
 import { listRewindYears } from "./utils/list-rewind-years.util";
 import { listVisibleRewindYears } from "./utils/list-visible-rewind-years.util";
@@ -212,6 +215,14 @@ function countVisiblePlatinums(
 	);
 }
 
+function findVisiblePlatinumGames(
+	context: RewindViewerContext,
+	year: number
+): Promise<RewindPlatinumRun[] | null> {
+	if (!context.access.platinum) return Promise.resolve(null);
+	return findRewindPlatinumGames(context.owner.id, year);
+}
+
 function listFinishedGameIds(runs: RewindRun[], years: number[]): string[] {
 	const gameIds = years.flatMap(year =>
 		collectYearRuns(runs, year).finished.map(run => run.gameId)
@@ -314,11 +325,11 @@ async function buildRewindForContext(
 			: rewindServiceError.notFoundError();
 	}
 
-	const [genres, platinums] = await Promise.all([
+	const [genres, platinumGames] = await Promise.all([
 		gameGenreService.findGenresByGameIds(
 			listFinishedGameIds(context.runs, [year])
 		),
-		countVisiblePlatinums(context, year)
+		findVisiblePlatinumGames(context, year)
 	]);
 
 	return {
@@ -327,7 +338,8 @@ async function buildRewindForContext(
 			owner: userToRewindOwner(context.owner),
 			runs: context.runs,
 			genres,
-			platinums,
+			platinums: platinumGames?.length ?? null,
+			platinumRunIds: collectPlatinumRunIds(platinumGames),
 			calendar: context.calendar,
 			visibility: yearVisibility(context),
 			stored: toRewindStoredView(
@@ -335,6 +347,7 @@ async function buildRewindForContext(
 				ownerControlsFor(context, record)
 			)
 		}),
+		platinumGames,
 		premiumAccess: context.premiumAccess
 	};
 }

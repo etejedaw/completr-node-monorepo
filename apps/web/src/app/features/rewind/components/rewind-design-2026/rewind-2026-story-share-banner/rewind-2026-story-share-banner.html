@@ -1,0 +1,133 @@
+@let copy = shareCopy;
+<section
+	appRewindReveal
+	appInView
+	inViewRootMargin="200px"
+	aria-labelledby="rewind-share-heading"
+	class="relative isolate grid grid-cols-1 gap-8 overflow-hidden rounded-none border border-line p-6 transition-colors hover:border-line-hover sm:p-8 lg:grid-cols-[minmax(0,1fr)_27rem] lg:items-center lg:gap-6 lg:px-10 lg:py-8"
+	(inViewChange)="$event && actions.preload()"
+>
+	@if (collage().length > 0) {
+	<div
+		aria-hidden="true"
+		class="pointer-events-none absolute -inset-10 -z-20 grid -rotate-6 scale-110 grid-cols-4 gap-2 opacity-45 sm:grid-cols-6 lg:grid-cols-8"
+	>
+		@for (url of collage(); track $index) {
+		<img
+			alt=""
+			loading="lazy"
+			decoding="async"
+			draggable="false"
+			class="aspect-[2/3] w-full rounded-none object-cover"
+			[src]="url | coverUrl: 420"
+		/>
+		}
+	</div>
+	}
+	<div
+		aria-hidden="true"
+		class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_80%_50%,color-mix(in_oklab,var(--color-brand)_40%,transparent),transparent_60%),linear-gradient(180deg,color-mix(in_oklab,var(--color-canvas)_95%,transparent)_30%,color-mix(in_oklab,var(--color-canvas)_55%,transparent))] lg:bg-[radial-gradient(ellipse_at_80%_50%,color-mix(in_oklab,var(--color-brand)_40%,transparent),transparent_60%),linear-gradient(90deg,color-mix(in_oklab,var(--color-canvas)_95%,transparent)_25%,color-mix(in_oklab,var(--color-canvas)_55%,transparent))]"
+	></div>
+
+	<div class="flex min-w-0 flex-col gap-3">
+		<span uiEyebrow tone="brand">{{ text().share }}</span>
+		<h2
+			id="rewind-share-heading"
+			class="m-0 max-w-[16ch] text-balance font-display text-[clamp(1.9rem,6vw,2.6rem)] font-bold leading-[1.05] tracking-tight"
+		>
+			{{ headline() }}
+		</h2>
+		<p class="m-0 max-w-[42ch] text-fg-secondary">
+			{{ text().shareDescription }}
+		</p>
+		<div class="mt-2 flex flex-wrap items-center gap-2">
+			@if (actions.canShareFiles()) {
+			<button
+				uiButton
+				variant="primary"
+				class="max-sm:min-h-[44px] tap:min-h-[44px]"
+				[disabled]="!actions.isReady() || actions.sharing()"
+				[attr.aria-busy]="actions.sharing() || null"
+				(click)="actions.shareImages()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>ios_share</span
+				>
+				{{ actions.shareLabel() }}
+			</button>
+			}
+			<button
+				uiButton
+				class="max-sm:min-h-[44px] tap:min-h-[44px]"
+				[variant]="actions.canShareFiles() ? 'secondary' : 'primary'"
+				(click)="actions.copyLink()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>link</span
+				>
+				{{ copy.copyLink }}
+			</button>
+			<button
+				uiButton
+				variant="secondary"
+				class="max-sm:min-h-[44px] tap:min-h-[44px]"
+				[disabled]="hasPendingDownload()"
+				[attr.aria-busy]="hasPendingDownload() || null"
+				(click)="actions.downloadAll()"
+			>
+				<span aria-hidden="true" class="material-icons text-base"
+					>{{ hasPendingDownload() ? "hourglass_top" : "download"
+					}}</span
+				>
+				{{ copy.downloadAll }}
+			</button>
+		</div>
+	</div>
+
+	<div
+		role="group"
+		class="relative mx-auto h-[17.5rem] w-full max-w-[24rem] sm:h-[22rem] sm:max-w-[27rem]"
+		[attr.aria-label]="copy.imagesLabel"
+	>
+		@for (page of actions.pages(); track page.key; let index = $index) {
+		<figure
+			class="absolute m-0 aspect-[9/16] w-[8.5rem] overflow-hidden rounded-none border border-line-hover bg-surface shadow-popover sm:w-[12rem]"
+			[class]="imageClasses()[index]"
+			[attr.aria-busy]="page.image.isLoading() || null"
+		>
+			@if (page.image.objectUrl(); as url) {
+			<img
+				[src]="url"
+				[alt]="page.alt"
+				class="h-full w-full object-cover"
+			/>
+			} @else if (page.image.hasError()) {
+			<div
+				class="absolute inset-0 flex flex-col items-center justify-center gap-2 p-3 text-center"
+			>
+				<span
+					aria-hidden="true"
+					class="material-icons text-2xl text-fg-secondary"
+					>broken_image</span
+				>
+				<p class="m-0 text-xs text-fg-secondary">
+					{{ copy.imageFailed }}
+				</p>
+				<button
+					uiButton
+					variant="secondary"
+					size="sm"
+					class="tap:min-h-[44px]"
+					(click)="actions.retryPreview(page)"
+				>
+					{{ copy.tryAgain }}
+				</button>
+			</div>
+			} @else {
+			<ui-skeleton variant="rect" class="absolute inset-0" />
+			<span class="sr-only">{{ copy.preparingImage }}</span>
+			}
+		</figure>
+		}
+	</div>
+</section>

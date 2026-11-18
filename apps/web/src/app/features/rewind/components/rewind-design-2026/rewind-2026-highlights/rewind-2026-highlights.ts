@@ -9,7 +9,8 @@ import { RouterLink } from "@angular/router";
 import {
 	type RewindFinishedGame,
 	type RewindHighlights,
-	type RewindLanguage
+	type RewindLanguage,
+	type RewindPlatinumGame
 } from "../../../../../core/models/rewind.model";
 import { CoverUrlPipe } from "../../../../../shared/pipes/cover-url";
 import { UiEyebrow } from "../../../../../shared/ui";
@@ -27,12 +28,42 @@ import { type RewindHighlightsCopy } from "../../../rewind-copy.model";
 import { RewindReveal } from "../../../rewind-reveal";
 import {
 	type HighlightRecord,
+	type HighlightRecordCell,
 	type HighlightStat,
+	type PlatinumRecord,
 	type RankedEntry
 } from "./rewind-2026-highlights.model";
+import { Rewind2026PlatinumRecord } from "./rewind-2026-platinum-record/rewind-2026-platinum-record";
 
 const REVEAL_STAGGER_MS = 60;
-const RECORD_COLUMNS = 3;
+const WIDE_SPAN_BY_CELLS_IN_ROW: Record<number, string> = {
+	1: "lg:col-span-6",
+	2: "lg:col-span-3",
+	3: "lg:col-span-2"
+};
+
+function wideRowSizeOf(count: number): number {
+	return count === 4 ? 2 : Math.min(count, 3);
+}
+
+export function rewind2026RecordCells(
+	records: HighlightRecord[]
+): HighlightRecordCell[] {
+	const count = records.length;
+	const rowSize = wideRowSizeOf(count);
+	const lastRowCells = count % rowSize || rowSize;
+	const lastRowStart = count - lastRowCells;
+	return records.map((record, index) => {
+		const cellsInRow = index >= lastRowStart ? lastRowCells : rowSize;
+		const fillsNarrowRow = count % 2 === 1 && index === count - 1;
+		const narrowSpan = fillsNarrowRow ? "col-span-2" : "col-span-1";
+		return {
+			record,
+			cellClass: `${narrowSpan} ${WIDE_SPAN_BY_CELLS_IN_ROW[cellsInRow]}`,
+			revealDelay: (index % rowSize) * REVEAL_STAGGER_MS
+		};
+	});
+}
 
 function isSameGame(
 	first: RewindFinishedGame | null,
@@ -148,6 +179,42 @@ function classicRecord(
 	};
 }
 
+export function platinumRecordOf(
+	games: RewindPlatinumGame[] | null,
+	language: RewindLanguage
+): PlatinumRecord | null {
+	if (!games || games.length === 0) return null;
+	const text = rewindCopy(language).platinums;
+	const sorted = [...games].sort((a, b) =>
+		a.platinumedAt.localeCompare(b.platinumedAt)
+	);
+	const first = sorted[0];
+	const last = sorted[sorted.length - 1];
+	const summary =
+		sorted.length === 1
+			? `${first.title} · ${shortDate(first.platinumedAt, language)}`
+			: text.dateRange(
+					shortDate(first.platinumedAt, language),
+					shortDate(last.platinumedAt, language)
+				);
+	return {
+		total: formatRewindNumber(sorted.length, language),
+		label: text.inTheYear,
+		summary,
+		artUrl: gameArtUrl(first, "landscape"),
+		covers: sorted.map(game => {
+			const date = shortDate(game.platinumedAt, language);
+			return {
+				code: game.code,
+				title: game.title,
+				date,
+				label: text.gameLabel(game.title, date),
+				artUrl: gameArtUrl(game, "portrait")
+			};
+		})
+	};
+}
+
 function rankedStat(
 	key: "topGenres" | "topPlatforms",
 	label: string,
@@ -239,23 +306,29 @@ export function hasRewind2026Highlights(highlights: RewindHighlights): boolean {
 
 @Component({
 	selector: "app-rewind-2026-highlights",
-	imports: [CoverUrlPipe, RewindReveal, RouterLink, UiEyebrow],
+	imports: [
+		CoverUrlPipe,
+		Rewind2026PlatinumRecord,
+		RewindReveal,
+		RouterLink,
+		UiEyebrow
+	],
 	templateUrl: "./rewind-2026-highlights.html",
 	host: { class: "block" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Rewind2026Highlights {
 	readonly highlights = input.required<RewindHighlights>();
+	readonly platinumGames = input<RewindPlatinumGame[] | null>(null);
 	readonly language = input<RewindLanguage>("en");
 
-	protected readonly records = computed(() =>
-		recordsOf(this.highlights(), this.language())
+	protected readonly recordCells = computed(() =>
+		rewind2026RecordCells(recordsOf(this.highlights(), this.language()))
+	);
+	protected readonly platinum = computed(() =>
+		platinumRecordOf(this.platinumGames(), this.language())
 	);
 	protected readonly stats = computed(() =>
 		statsOf(this.highlights(), this.language())
 	);
-
-	protected revealDelay(index: number): number {
-		return (index % RECORD_COLUMNS) * REVEAL_STAGGER_MS;
-	}
 }

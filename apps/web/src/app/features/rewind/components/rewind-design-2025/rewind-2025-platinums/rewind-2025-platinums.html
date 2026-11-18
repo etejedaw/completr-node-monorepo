@@ -1,0 +1,94 @@
+@let text = copy(); @let all = entries();
+<section
+	class="min-w-0 border-t border-line pt-10 @3xl/page:pt-14"
+	data-platinums
+	[attr.aria-labelledby]="headingId"
+>
+	<app-profile-section-header
+		[headingId]="headingId"
+		[heading]="text.platinumsTitle(all.length)"
+	/>
+	@if (all.length === 1) { @let entry = all[0];
+	<a
+		data-platinum-card
+		class="group mt-6 flex items-end gap-4 rounded-md no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand @3xl/page:gap-7"
+		[routerLink]="['/games', entry.code]"
+		[attr.aria-label]="entry.label"
+	>
+		<span
+			aria-hidden="true"
+			class="relative block w-[36%] max-w-40 shrink-0 overflow-hidden rounded-md"
+		>
+			<app-game-poster
+				class="aspect-[2/3] rounded-md ring-1 ring-line transition-shadow group-hover:ring-brand"
+				[src]="entry.posterUrl"
+				[title]="entry.title"
+				[width]="640"
+				titleSize="0.875rem"
+			/>
+			<span class="absolute inset-x-0 bottom-0 h-0.5 bg-platinum"></span>
+		</span>
+		<span class="flex min-w-0 flex-col gap-1.5 pb-1">
+			<span uiEyebrow
+				><span
+					aria-hidden="true"
+					class="mr-1.5 inline-block size-[5px] rounded-full bg-platinum align-[1px]"
+				></span
+				>{{ text.platinumBadge }}</span
+			>
+			<span
+				class="font-display text-lg leading-tight font-semibold text-balance text-fg [overflow-wrap:anywhere] group-hover:underline @3xl/page:text-[1.375rem]"
+				>{{ entry.title }}</span
+			>
+			<span class="text-sm tabular-nums text-fg-secondary"
+				>{{ entry.detail }}</span
+			>
+		</span>
+	</a>
+	} @else {
+	<ol
+		data-platinum-strip
+		class="m-0 mt-6 flex list-none snap-x snap-proximity gap-4 overflow-x-auto overscroll-x-contain p-0 pb-2 [scrollbar-width:thin] @3xl/page:gap-5"
+	>
+		@for (entry of all; track $index) {
+		<li class="w-[42%] max-w-40 shrink-0 snap-start @3xl/page:w-40">
+			<a
+				class="group flex flex-col gap-1 rounded-md no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+				[routerLink]="['/games', entry.code]"
+				[attr.aria-label]="entry.label"
+			>
+				<span
+					aria-hidden="true"
+					class="relative mb-2 block overflow-hidden rounded-md"
+				>
+					<app-game-poster
+						class="aspect-[2/3] rounded-md ring-1 ring-line transition-shadow group-hover:ring-brand"
+						[src]="entry.posterUrl"
+						[title]="entry.title"
+						[width]="420"
+						titleSize="0.75rem"
+					/>
+					<span
+						class="absolute inset-x-0 bottom-0 h-0.5 bg-platinum"
+					></span>
+				</span>
+				<span uiEyebrow
+					><span
+						aria-hidden="true"
+						class="mr-1.5 inline-block size-[5px] rounded-full bg-platinum align-[1px]"
+					></span
+					>{{ text.platinumBadge }}</span
+				>
+				<span
+					class="font-display text-sm leading-tight font-semibold text-fg [overflow-wrap:anywhere] group-hover:underline"
+					>{{ entry.title }}</span
+				>
+				<span class="text-xs tabular-nums text-fg-muted"
+					>{{ entry.detail }}</span
+				>
+			</a>
+		</li>
+		}
+	</ol>
+	}
+</section>

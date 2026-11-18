@@ -18,7 +18,7 @@ import { type Mock } from "vitest";
 import {
 	type Rewind,
 	type RewindAiRecap,
-	type RewindFinishedGame,
+	type RewindClosedGame,
 	type RewindOwnerControls,
 	type RewindPremiumStats
 } from "../../../../core/models/rewind.model";
@@ -36,8 +36,12 @@ function finished(
 	gameId: string,
 	title: string,
 	finishedAt: string,
-	art: { coverUrl?: string | null; backgroundUrl?: string | null } = {}
-): RewindFinishedGame {
+	art: {
+		coverUrl?: string | null;
+		backgroundUrl?: string | null;
+		isPlatinumRun?: boolean;
+	} = {}
+): RewindClosedGame {
 	return {
 		gameId,
 		code: gameId,
@@ -48,11 +52,12 @@ function finished(
 				: art.coverUrl,
 		backgroundUrl: art.backgroundUrl ?? null,
 		finishedAt,
-		platformAbbreviation: "PC"
+		platformAbbreviation: "PC",
+		isPlatinumRun: art.isPlatinumRun ?? false
 	};
 }
 
-const FINISHED_GAMES: RewindFinishedGame[] = [
+const FINISHED_GAMES: RewindClosedGame[] = [
 	finished("re4", "Resident Evil 4", "2025-11-20T10:00:00.000Z"),
 	finished("celeste", "Celeste", "2025-02-14T10:00:00.000Z"),
 	finished("hades", "Hades", "2025-01-03T10:00:00.000Z"),
@@ -133,6 +138,7 @@ function rewindFixture(overrides: Partial<Rewind> = {}): Rewind {
 		},
 		finishedGames: FINISHED_GAMES,
 		abandonedGames: [],
+		platinumGames: null,
 		highlights: {
 			topRated: {
 				...FINISHED_GAMES[0],
@@ -625,6 +631,131 @@ describe("RewindDesign2025", () => {
 		});
 	});
 
+	it("marks on the shelves only the entries whose run holds the platinum", async () => {
+		const root = await renderDesign(
+			rewindFixture({
+				finishedGames: [
+					finished("hades", "Hades", "2025-01-03T10:00:00.000Z", {
+						isPlatinumRun: true
+					}),
+					finished("celeste", "Celeste", "2025-02-14T10:00:00.000Z"),
+					finished(
+						"re4",
+						"Resident Evil 4",
+						"2025-11-20T10:00:00.000Z"
+					)
+				],
+				platinumGames: [
+					{
+						gameId: "celeste",
+						code: "celeste",
+						title: "Celeste",
+						coverUrl: null,
+						backgroundUrl: null,
+						platinumedAt: "2025-03-01",
+						platformAbbreviation: "PS5"
+					}
+				]
+			})
+		);
+		await renderDeferred();
+
+		const badges = root.querySelectorAll("[data-platinum-badge]");
+		expect(badges).toHaveLength(1);
+		expect(badges[0]).toHaveAttribute("aria-hidden", "true");
+		expect(badges[0].closest("a")).toHaveAttribute("href", "/games/hades");
+		expect(badges[0].closest("a")).toHaveTextContent("Platinum");
+	});
+
+	it("shows no platinum badge when the viewer cannot see platinums and no run holds one", async () => {
+		const root = await renderDesign(rewindFixture({ platinumGames: null }));
+		await renderDeferred();
+
+		expect(root.querySelector("[data-platinum-badge]")).toBeNull();
+	});
+
+	it("follows the flag when the finished games flip between platinum and plain runs", async () => {
+		const root = await renderDesign(rewindFixture());
+		await renderDeferred();
+
+		for (const isPlatinumRun of [true, false, true, false]) {
+			fixture.componentRef.setInput(
+				"rewind",
+				rewindFixture({
+					finishedGames: [
+						finished("hades", "Hades", "2025-01-03T10:00:00.000Z", {
+							isPlatinumRun
+						})
+					]
+				})
+			);
+			fixture.detectChanges();
+			await renderDeferred();
+			expect(root.querySelectorAll("[data-platinum-badge]")).toHaveLength(
+				isPlatinumRun ? 1 : 0
+			);
+		}
+	});
+
+	describe("platinums section", () => {
+		const celeste = {
+			gameId: "celeste",
+			code: "celeste",
+			title: "Celeste",
+			coverUrl: null,
+			backgroundUrl: null,
+			platinumedAt: "2025-03-01",
+			platformAbbreviation: "PS5"
+		};
+
+		it("comes right after the highlights with the count in its heading", async () => {
+			const root = await renderDesign(
+				rewindFixture({ platinumGames: [celeste] })
+			);
+
+			const highlights = root.querySelector("app-rewind-2025-awards");
+			const platinums = root.querySelector("app-rewind-2025-platinums");
+			expect(platinums).not.toBeNull();
+			expect(highlights?.closest("section")?.nextElementSibling).toBe(
+				platinums
+			);
+			expect(
+				screen.getByRole("heading", {
+					name: "This year you completed 1 game to a hundred percent"
+				})
+			).toBeInTheDocument();
+		});
+
+		it("renders nothing about platinums when the viewer cannot see them", async () => {
+			const root = await renderDesign(
+				rewindFixture({ platinumGames: null })
+			);
+
+			expect(root.querySelector("app-rewind-2025-platinums")).toBeNull();
+			expect(
+				screen.queryByText(/to a hundred percent/)
+			).not.toBeInTheDocument();
+		});
+
+		it("renders nothing when there are no platinums, and follows the list when it flips", async () => {
+			const root = await renderDesign(
+				rewindFixture({ platinumGames: [] })
+			);
+			expect(root.querySelector("app-rewind-2025-platinums")).toBeNull();
+
+			for (const platinumGames of [[celeste], null, [], [celeste]]) {
+				fixture.componentRef.setInput(
+					"rewind",
+					rewindFixture({ platinumGames })
+				);
+				fixture.detectChanges();
+				expect(
+					root.querySelector("app-rewind-2025-platinums") === null
+				).toBe(!platinumGames || platinumGames.length === 0);
+			}
+		});
+	});
+
 	it("shelves the finished games by quarter in calendar order and skips empty quarters", async () => {
 		const root = await renderDesign(rewindFixture());
 		await renderDeferred();
@@ -648,7 +779,7 @@ describe("RewindDesign2025", () => {
 	});
 
 	describe("what the player left behind", () => {
-		const ABANDONED_GAMES: RewindFinishedGame[] = [
+		const ABANDONED_GAMES: RewindClosedGame[] = [
 			finished("tunic", "Tunic", "2025-09-30T10:00:00.000Z"),
 			finished("inside", "Inside", "2025-01-02T10:00:00.000Z", {
 				coverUrl: null,
@@ -866,6 +997,33 @@ describe("RewindDesign2025", () => {
 			within(article).getByRole("button", { name: "Gift" })
 		).toBeInTheDocument();
 		expect(root.querySelector("app-rewind-ai-recap")).toBeNull();
+	});
+
+	it("keeps the gold on the recap frame and header and draws the inner accents in the brand colour", async () => {
+		await renderDesign(rewindFixture());
+
+		const article = screen.getByRole("article", {
+			name: "Resident Evil was your home"
+		});
+		const header = article.querySelector("header")!;
+		const lead = article.querySelector<HTMLElement>(
+			"[data-recap-story] p"
+		)!;
+		const quote = article.querySelector<HTMLElement>("[data-pull-quote]")!;
+		const funFact = article.querySelector<HTMLElement>(
+			"[data-recap-fun-fact]"
+		)!;
+		const bulb = within(funFact).getByText("lightbulb");
+
+		expect(article.className).toContain("border-premium/45");
+		expect(header.querySelector(".material-icons")).toHaveClass(
+			"text-premium"
+		);
+		expect(lead.className).toContain("first-letter:text-brand");
+		expect(quote).toHaveClass("border-brand");
+		expect(bulb).toHaveClass("text-brand");
+		for (const inner of [lead, quote, funFact])
+			expect(inner.outerHTML).not.toContain("premium");
 	});
 
 	it("spreads the recap paragraphs over two columns when it has no insights", async () => {

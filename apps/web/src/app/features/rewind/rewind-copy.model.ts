@@ -49,10 +49,18 @@ export interface RewindHighlightsCopy {
 	runs: (count: number) => string;
 }
 
+export interface RewindPlatinumsCopy {
+	inTheYear: string;
+	dateRange: (from: string, to: string) => string;
+	gameLabel: (title: string, date: string) => string;
+}
+
 export interface RewindTimelineCopy {
 	abandonedGames: (count: number) => string;
 	abandonedGameLabel: (title: string, date: string) => string;
 	abandonedBadge: string;
+	platinumGameLabel: (title: string, date: string) => string;
+	platinumBadge: string;
 }
 
 export interface RewindAiRecapCopy {
@@ -126,7 +134,6 @@ export interface RewindPageCopy {
 	shareHeadline: (year: number) => string;
 	visitorShareHeadline: (username: string, year: number) => string;
 	shareDescription: string;
-	visitorShareDescription: string;
 	finishedIn: (year: number) => string;
 	closedIn: (year: number) => string;
 	moreRewinds: string;
@@ -153,6 +160,7 @@ export interface RewindCopy {
 	tally: RewindTallyCopy;
 	highlights: RewindHighlightsCopy;
 	timeline: RewindTimelineCopy;
+	platinums: RewindPlatinumsCopy;
 	aiRecap: RewindAiRecapCopy;
 	premiumStats: RewindPremiumStatsCopy;
 	yearMix: RewindYearMixCopy;

@@ -22,8 +22,9 @@ import {
 	rewindCopy
 } from "../../../rewind-copy";
 import { canAnimateRewind } from "../../../rewind-motion";
-import { TONE_ACCENT_TEXT_CLASS, toneVar } from "../../../rewind-tone";
 import {
+	type PhoneColumns,
+	type Rewind2026PhoneLayout,
 	type Rewind2026ResultsRow,
 	type Rewind2026ResultsUnit
 } from "./rewind-2026-results-strip.model";
@@ -40,6 +41,35 @@ const UNIT_SUFFIX: Record<Rewind2026ResultsUnit, string | null> = {
 	rating: `/${RATING_SCALE}`
 };
 
+const COMPACT_ROW_COUNT = 4;
+
+const PHONE_GRID_CLASS: Record<PhoneColumns, string> = {
+	2: "grid-cols-2",
+	3: "grid-cols-3"
+};
+
+const PHONE_LEAD_SPAN_CLASS: Record<PhoneColumns, string> = {
+	2: "max-lg:col-span-2",
+	3: "max-lg:col-span-3"
+};
+
+const PHONE_ROW_START_CLASS = "max-lg:border-l-0 max-lg:pl-0";
+
+export function phoneLayoutFor(count: number): Rewind2026PhoneLayout {
+	if (count % 3 === 0) return { columns: 3, hasLead: false };
+	if (count % 2 === 0) return { columns: 2, hasLead: false };
+	if ((count - 1) % 3 === 0) return { columns: 3, hasLead: true };
+	return { columns: 2, hasLead: true };
+}
+
+export function startsPhoneRow(
+	layout: Rewind2026PhoneLayout,
+	index: number
+): boolean {
+	if (!layout.hasLead) return index % layout.columns === 0;
+	return index === 0 || (index - 1) % layout.columns === 0;
+}
+
 export function rewind2026ResultsRows(
 	totals: RewindTotals,
 	language: RewindLanguage = "en"
@@ -49,34 +79,29 @@ export function rewind2026ResultsRows(
 		{
 			label: copy.finished,
 			value: totals.finished,
-			tone: "success",
 			unit: "count"
 		},
 		{
 			label: copy.abandoned,
 			value: totals.abandoned,
-			tone: "danger",
 			unit: "count"
 		},
 		totals.started > 0
 			? {
 					label: copy.started,
 					value: totals.started,
-					tone: "playing",
 					unit: "count"
 				}
 			: null,
 		{
 			label: copy.hoursPlayed,
 			value: totals.hoursPlayed,
-			tone: "playing",
 			unit: "hours"
 		},
 		totals.platinums
 			? {
 					label: copy.platinums,
 					value: totals.platinums,
-					tone: "platinum",
 					unit: "count"
 				}
 			: null,
@@ -84,7 +109,6 @@ export function rewind2026ResultsRows(
 			? {
 					label: copy.finishRate,
 					value: totals.finishRate,
-					tone: "lists",
 					unit: "percent"
 				}
 			: null,
@@ -92,7 +116,6 @@ export function rewind2026ResultsRows(
 			? {
 					label: copy.averageRating,
 					value: totals.averageRating,
-					tone: "brand",
 					unit: "rating"
 				}
 			: null
@@ -150,14 +173,16 @@ export class Rewind2026ResultsStrip {
 	private frameId: number | null = null;
 	private hasStarted = false;
 
-	protected readonly numberClass = TONE_ACCENT_TEXT_CLASS;
-
 	protected readonly heading = computed(
 		() => rewindCopy(this.language()).page.results
 	);
 
 	protected readonly rows = computed(() =>
 		rewind2026ResultsRows(this.totals(), this.language())
+	);
+
+	private readonly layout = computed(() =>
+		phoneLayoutFor(this.rows().length)
 	);
 
 	private readonly totalDuration = computed(
@@ -214,8 +239,28 @@ export class Rewind2026ResultsStrip {
 		return UNIT_SUFFIX[row.unit];
 	}
 
-	protected toneOf(row: Rewind2026ResultsRow): string {
-		return toneVar(row.tone);
+	protected gridClass(): string {
+		const layout = this.layout();
+		return `${PHONE_GRID_CLASS[layout.columns]} ${
+			this.rows().length <= COMPACT_ROW_COUNT
+				? "lg:auto-cols-[minmax(0,12rem)]"
+				: "lg:auto-cols-fr"
+		}`;
+	}
+
+	protected cellClass(index: number): string {
+		const layout = this.layout();
+		const isLead = layout.hasLead && index === 0;
+		const classes = [];
+		if (isLead) classes.push(PHONE_LEAD_SPAN_CLASS[layout.columns]);
+		if (startsPhoneRow(layout, index)) classes.push(PHONE_ROW_START_CLASS);
+		return classes.join(" ");
+	}
+
+	protected numberClass(index: number): string {
+		return this.layout().hasLead && index === 0
+			? "max-lg:text-[2.4rem]"
+			: "";
 	}
 
 	private canAnimate(): boolean {

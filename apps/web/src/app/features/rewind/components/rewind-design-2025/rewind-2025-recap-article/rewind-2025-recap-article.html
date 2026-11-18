@@ -34,7 +34,7 @@
 			<div [class]="storyColumnsClass()">
 				@if (leadParagraph(); as lead) {
 				<p
-					class="m-0 mb-5 text-pretty [overflow-wrap:anywhere] first-letter:float-left first-letter:mr-2 first-letter:font-display first-letter:text-[3.4em] first-letter:font-bold first-letter:leading-[0.85] first-letter:text-premium"
+					class="m-0 mb-5 text-pretty [overflow-wrap:anywhere] first-letter:float-left first-letter:mr-2 first-letter:font-display first-letter:text-[3.4em] first-letter:font-bold first-letter:leading-[0.85] first-letter:text-brand"
 				>
 					{{ lead }}
 				</p>
@@ -42,7 +42,7 @@
 				<blockquote
 					aria-hidden="true"
 					data-pull-quote
-					class="m-0 mb-5 break-inside-avoid border-l-4 border-premium py-1 pl-4 font-display text-xl font-semibold leading-snug text-fg text-balance [overflow-wrap:anywhere] sm:text-2xl"
+					class="m-0 mb-5 break-inside-avoid border-l-4 border-brand py-1 pl-4 font-display text-xl font-semibold leading-snug text-fg text-balance [overflow-wrap:anywhere] sm:text-2xl"
 				>
 					{{ quote }}
 				</blockquote>
@@ -82,9 +82,10 @@
 	<footer class="grid grid-cols-1 gap-3 @3xl/page:grid-cols-2">
 		@if (funFact(); as fact) {
 		<div
+			data-recap-fun-fact
 			class="flex min-w-0 items-start gap-3 rounded-card border border-line bg-surface p-4"
 		>
-			<span aria-hidden="true" class="material-icons text-xl text-premium"
+			<span aria-hidden="true" class="material-icons text-xl text-brand"
 				>lightbulb</span
 			>
 			<div class="flex min-w-0 flex-col gap-1">

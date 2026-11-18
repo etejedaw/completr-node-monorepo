@@ -23,6 +23,15 @@ export interface RewindFinishedGame extends RewindGameRef {
 	platformAbbreviation: string | null;
 }
 
+export interface RewindClosedGame extends RewindFinishedGame {
+	isPlatinumRun: boolean;
+}
+
+export interface RewindPlatinumGame extends RewindGameRef {
+	platinumedAt: string;
+	platformAbbreviation: string | null;
+}
+
 export const REWIND_PERIOD_STATUSES = ["scheduled", "open", "closed"] as const;
 export type RewindPeriodStatus = (typeof REWIND_PERIOD_STATUSES)[number];
 
@@ -176,8 +185,9 @@ export interface Rewind {
 	isSpotlight: boolean;
 	otherYears: number[];
 	totals: RewindTotals;
-	finishedGames: RewindFinishedGame[];
-	abandonedGames: RewindFinishedGame[];
+	finishedGames: RewindClosedGame[];
+	abandonedGames: RewindClosedGame[];
+	platinumGames: RewindPlatinumGame[] | null;
 	highlights: RewindHighlights;
 	yearMix: RewindYearMix;
 	language: RewindLanguage;

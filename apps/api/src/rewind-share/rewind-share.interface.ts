@@ -75,6 +75,16 @@ export interface ShareCopy {
 	};
 }
 
+export interface Share2025Copy {
+	eyebrow: (username: string) => string;
+	tally: {
+		finished: string;
+		leftBehind: string;
+		hoursPlayed: string;
+		averageRating: string;
+	};
+}
+
 export interface GuestRewindLookup {
 	rewind: Rewind | null;
 	status: number;

@@ -11,7 +11,9 @@ import {
 } from "../../../../../core/models/rewind.model";
 import {
 	hasRewind2025Awards,
+	layoutRewind2025Awards,
 	MAX_AWARD_COLUMNS,
+	MIN_AWARD_COLUMNS,
 	Rewind2025Awards,
 	rewind2025Awards,
 	rewind2025Figures
@@ -160,8 +162,8 @@ describe("Rewind2025Awards", () => {
 		);
 
 		expect(awardKeys(root)).toEqual([
-			"firstFinished",
 			"longest",
+			"firstFinished",
 			"fastest",
 			"bestRatio",
 			"classic",
@@ -172,8 +174,8 @@ describe("Rewind2025Awards", () => {
 				.getAllByRole("heading", { level: 3 })
 				.map(h => h.textContent?.trim())
 		).toEqual([
-			"Dead Space 2",
 			"Horizon Chase Turbo",
+			"Dead Space 2",
 			"Metro Exodus The Two Colonels",
 			"Celeste",
 			"Parasite Eve",
@@ -188,8 +190,8 @@ describe("Rewind2025Awards", () => {
 		const root = await renderAwards(fullHighlights());
 
 		expect(awardKeys(root)).toEqual([
-			"firstFinished",
 			"longest",
+			"firstFinished",
 			"fastestAndBestValue",
 			"classic",
 			"lastFinished"
@@ -228,11 +230,11 @@ describe("Rewind2025Awards", () => {
 		);
 		expect(figureKeys(root)).toEqual(["busiestMonth", "platform"]);
 		expect(
-			normalized(root.querySelector('[data-figure="platform"]'))
-		).toContain("Switch");
-		expect(
-			normalized(root.querySelector('[data-figure="platform"]'))
-		).not.toContain("·");
+			normalized(root.querySelector('[data-figure="busiestMonth"]'))
+		).toBe("March, your busiest month, with 1 game");
+		expect(normalized(root.querySelector('[data-figure="platform"]'))).toBe(
+			"Switch with 3 games"
+		);
 	});
 
 	it("leaves out the awards row when no game won anything", async () => {
@@ -287,19 +289,19 @@ describe("Rewind2025Awards", () => {
 		]);
 		expect(
 			normalized(root.querySelector('[data-figure="longestStreak"]'))
-		).toContain("12 months");
+		).toBe("12-month streak");
 		expect(
 			normalized(root.querySelector('[data-figure="busiestMonth"]'))
-		).toContain("September");
+		).toBe("September, your busiest month, with 4 games");
 		expect(
 			normalized(root.querySelector('[data-figure="favoriteGenre"]'))
-		).toContain("Action · then Adventure and Shooter");
-		expect(
-			normalized(root.querySelector('[data-figure="favoriteGenre"]'))
-		).not.toContain("Puzzle");
-		expect(
-			normalized(root.querySelector('[data-figure="platform"]'))
-		).toContain("Steam · 1 on PlayStation");
+		).toBe("Action as your favorite genre");
+		expect(normalized(root.querySelector("[data-figures]"))).not.toContain(
+			"Puzzle"
+		);
+		expect(normalized(root.querySelector('[data-figure="platform"]'))).toBe(
+			"Steam with 28 games"
+		);
 	});
 
 	it("speaks Spanish with Spanish numbers and dates", async () => {
@@ -324,30 +326,129 @@ describe("Rewind2025Awards", () => {
 		);
 		expect(
 			normalized(root.querySelector('[data-figure="longestStreak"]'))
-		).toContain("12 meses");
+		).toBe("Racha de 12 meses");
+		expect(
+			normalized(root.querySelector('[data-figure="busiestMonth"]'))
+		).toBe("Septiembre, tu mes más intenso, con 4 juegos");
 		expect(
 			normalized(root.querySelector('[data-figure="favoriteGenre"]'))
-		).toContain("Action · luego Adventure y Shooter");
-		expect(
-			normalized(root.querySelector('[data-figure="platform"]'))
-		).toContain("Steam · 1 en PlayStation");
+		).toBe("Action como género favorito");
+		expect(normalized(root.querySelector('[data-figure="platform"]'))).toBe(
+			"Steam con 28 juegos"
+		);
 		expect(root).toHaveTextContent("Septiembre");
 		expect(root).not.toHaveTextContent("Fastest");
 	});
 
-	it("turns the awards into a swipeable row inside narrow pages", async () => {
+	it("turns the poster row into a swipeable row with a peek of the next one inside narrow pages", async () => {
 		const root = await renderAwards(fullHighlights());
-		const row = root.querySelector<HTMLElement>("[data-awards]");
-
-		expect(row?.className).toContain("auto-cols-[62%]");
+		const row = root.querySelector<HTMLElement>("[data-award-row]");
+		expect(row?.className).toContain("auto-cols-[44%]");
 		expect(row?.className).toContain("grid-flow-col");
 		expect(row?.className).toContain("overflow-x-auto");
 		expect(row?.className).toContain("@3xl/page:grid-flow-row");
-		expect(row?.style.getPropertyValue("--award-columns")).toBe("5");
+		expect(row?.style.getPropertyValue("--award-columns")).toBe("4");
 	});
 
-	it("caps the wide grid at six columns", () => {
-		expect(MAX_AWARD_COLUMNS).toBe(6);
+	it("fills the width with fractional columns and never stretches sparse rows beyond four tracks", async () => {
+		expect(MIN_AWARD_COLUMNS).toBe(4);
+		expect(MAX_AWARD_COLUMNS).toBe(5);
+		const root = await renderAwards({
+			...emptyHighlights(),
+			longest: { ...HORIZON, hours: 12, isEstimate: false },
+			classic: { ...PARASITE_EVE, releaseYear: 1998 }
+		});
+		const row = root.querySelector<HTMLElement>("[data-award-row]");
+		expect(row?.className).toContain(
+			"@3xl/page:grid-cols-[repeat(var(--award-columns),minmax(0,1fr))]"
+		);
+		expect(row?.className).not.toContain("15rem");
+		expect(row?.style.getPropertyValue("--award-columns")).toBe("4");
+	});
+
+	it("gives the longest game the large landscape slot and the rest a poster with caption", async () => {
+		const root = await renderAwards(
+			fullHighlights({
+				longest: {
+					...HORIZON,
+					backgroundUrl: "https://img/horizon-wide.jpg",
+					hours: 73.5,
+					isEstimate: false
+				}
+			})
+		);
+		const lead = root.querySelector('[data-award="longest"]');
+		expect(lead?.closest("[data-award-row]")).toBeNull();
+		expect(lead?.querySelector("img")?.getAttribute("src")).toContain(
+			"horizon-wide.jpg"
+		);
+		expect(lead).toHaveTextContent("Longest");
+		expect(lead).toHaveTextContent("73.5h");
+		const posters = root.querySelectorAll("[data-award-row] > li");
+		expect(posters).toHaveLength(4);
+		for (const poster of posters) {
+			expect(poster.querySelector("h3")).not.toBeNull();
+			expect(poster.querySelector("p")).not.toBeNull();
+			expect(poster.querySelector("[class*='backdrop-blur']")).toBeNull();
+		}
+	});
+
+	it("promotes the next record to the large slot when the longest is missing", async () => {
+		const root = await renderAwards(fullHighlights({ longest: null }));
+		expect(awardKeys(root)).toEqual([
+			"firstFinished",
+			"fastestAndBestValue",
+			"classic",
+			"lastFinished"
+		]);
+		expect(
+			root
+				.querySelector('[data-award="firstFinished"]')
+				?.closest("[data-award-row]")
+		).toBeNull();
+		expect(root.querySelector("[data-award-row]")?.children).toHaveLength(
+			3
+		);
+	});
+
+	it("looks right with a single record and no poster row", async () => {
+		const root = await renderAwards({
+			...emptyHighlights(),
+			lastFinished: FIREWATCH
+		});
+		expect(awardKeys(root)).toEqual(["lastFinished"]);
+		expect(root.querySelector("[data-award-row]")).toBeNull();
+		expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(
+			"Firewatch"
+		);
+	});
+
+	it("looks right with two records: the longest leads and the other is the only poster", async () => {
+		const root = await renderAwards({
+			...emptyHighlights(),
+			longest: { ...HORIZON, hours: 12, isEstimate: false },
+			classic: { ...PARASITE_EVE, releaseYear: 1998 }
+		});
+		expect(awardKeys(root)).toEqual(["longest", "classic"]);
+		expect(root.querySelectorAll("[data-award-row] > li")).toHaveLength(1);
+		expect(
+			root
+				.querySelector<HTMLElement>("[data-award-row]")
+				?.style.getPropertyValue("--award-columns")
+		).toBe("4");
+	});
+
+	it("splits the awards into the lead and the rest", () => {
+		const awards = rewind2025Awards(fullHighlights(), "en");
+		const { lead, rest } = layoutRewind2025Awards(awards);
+		expect(lead?.key).toBe("longest");
+		expect(rest.map(award => award.key)).toEqual([
+			"firstFinished",
+			"fastestAndBestValue",
+			"classic",
+			"lastFinished"
+		]);
+		expect(layoutRewind2025Awards([])).toEqual({ lead: null, rest: [] });
 	});
 
 	it("keeps up when the highlights and language flip back and forth", async () => {
@@ -382,9 +483,13 @@ describe("Rewind2025Awards", () => {
 			"en"
 		);
 
-		expect(figures.map(figure => figure.key)).toEqual(["favoriteGenre"]);
-		expect(figures[0].detail).toBe("RPG");
-		expect(figures[0].unit).toBe("games");
+		expect(figures).toEqual([
+			{
+				key: "favoriteGenre",
+				lead: "RPG",
+				tail: " as your favorite genre"
+			}
+		]);
 	});
 
 	it("links each award to its game for keyboard users", async () => {

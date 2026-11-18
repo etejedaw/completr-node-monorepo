@@ -8,7 +8,7 @@
 		@if (lengthRows().length > 0) {
 		<figure
 			appRewindReveal
-			class="m-0 flex min-w-0 flex-col gap-4 rounded-card border border-line bg-canvas/40 p-4"
+			class="m-0 flex min-w-0 flex-col gap-4 rounded-none border border-line bg-canvas/40 p-4"
 			aria-labelledby="rewind-year-mix-length-title"
 		>
 			<figcaption class="flex flex-col gap-0.5">
@@ -47,9 +47,9 @@
 							· {{ percent(row.sharePercent) }}</span
 						>
 					</div>
-					<span class="block h-2 w-full rounded-[4px] bg-line">
+					<span class="block h-2 w-full bg-line">
 						<span
-							class="block h-full rounded-[4px] bg-nav-lists group-hover:brightness-125"
+							class="block h-full bg-nav-lists group-hover:brightness-125"
 							[style.width.%]="row.widthPercent"
 							[style.min-width.px]="row.count > 0 ? 3 : 0"
 						></span>
@@ -91,7 +91,7 @@
 		<figure
 			appRewindReveal
 			[revealDelay]="80"
-			class="m-0 flex min-w-0 flex-col gap-4 rounded-card border border-line bg-canvas/40 p-4"
+			class="m-0 flex min-w-0 flex-col gap-4 rounded-none border border-line bg-canvas/40 p-4"
 			aria-labelledby="rewind-year-mix-decades-title"
 		>
 			<figcaption class="flex flex-col gap-0.5">
@@ -118,7 +118,7 @@
 						[attr.data-peak]="column.isPeak"
 					>
 						<span
-							class="relative block w-full max-w-9 rounded-t-[4px] transition-[filter] group-hover:brightness-125"
+							class="relative block w-full max-w-9 transition-[filter] group-hover:brightness-125"
 							[class]="column.isPeak ? 'bg-brand' : 'bg-brand/35'"
 							[style.height.%]="column.heightPercent"
 							[style.min-height.px]="3"

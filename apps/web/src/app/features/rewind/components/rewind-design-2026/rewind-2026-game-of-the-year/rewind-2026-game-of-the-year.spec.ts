@@ -126,4 +126,24 @@ describe("Rewind2026GameOfTheYear", () => {
 			"motion-safe:group-hover:rotate-0"
 		);
 	});
+
+	it("keeps the card whole without art: no backdrop or veil, the coloured fallback poster and the title", async () => {
+		const { container } = await renderGame(
+			topRated({ coverUrl: "  ", backgroundUrl: null })
+		);
+
+		const link = screen.getByRole("link", { name: /Resident Evil 4/ });
+		expect(link).toHaveAttribute("href", "/games/resident-evil-4");
+		expect(link.className).toContain("min-h-[15rem]");
+		expect(container.querySelector("img")).toBeNull();
+		expect(
+			container.querySelector("[class*='bg-[linear-gradient(to_right']")
+		).toBeNull();
+		const poster = container.querySelector("app-game-poster")!;
+		expect(poster.querySelector("[role='img']")).toHaveAttribute(
+			"aria-label",
+			"Resident Evil 4"
+		);
+		expect(screen.getByText("Rated 4.5 out of 5")).toHaveClass("sr-only");
+	});
 });

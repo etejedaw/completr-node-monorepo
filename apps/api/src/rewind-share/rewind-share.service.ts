@@ -25,8 +25,8 @@ import {
 	type ShareFormatTemplate
 } from "./rewind-share-template.interface";
 import {
-	hasShareImages,
-	shareDesignTemplates
+	hasShareImage,
+	shareFormatTemplate
 } from "./templates/share-designs.template";
 import { sharePageTemplate } from "./templates/share-page.template";
 import { fetchImageDataUri } from "./utils/fetch-image.util";
@@ -94,9 +94,8 @@ export async function renderRewindImage(
 	rewind: Rewind,
 	format: RewindImageFormat
 ): Promise<RenderedImage> {
-	const templates = shareDesignTemplates(rewind.design);
-	if (!templates) throw rewindServiceError.notFoundError();
-	const template = templates[format];
+	const template = shareFormatTemplate(rewind.design, format);
+	if (!template) throw rewindServiceError.notFoundError();
 	const artwork = await loadArtwork(rewind, template);
 	const { width, height } = SHARE_IMAGE_SIZES[format];
 	const svg = await satori(imageTemplate(rewind, artwork, template), {
@@ -117,7 +116,7 @@ export function hasRewindImage(
 	rewind: Rewind,
 	format: RewindImageFormat
 ): boolean {
-	if (!hasShareImages(rewind.design)) return false;
+	if (!hasShareImage(rewind.design, format)) return false;
 	return format !== "story-list" || rewind.finishedGames.length > 0;
 }
 
@@ -197,7 +196,7 @@ function sharePageMeta(
 		language: copy.language,
 		title: copy.pageTitle(rewind.user.username, rewind.year),
 		description: rewindSummary(rewind.totals, copy),
-		imageUrl: hasShareImages(rewind.design)
+		imageUrl: hasShareImage(rewind.design, "og")
 			? ogImageUrl(rewind.user.username, rewind.year)
 			: null,
 		continueLink: copy.continueLink,

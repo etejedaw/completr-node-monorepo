@@ -70,6 +70,7 @@ export interface RewindSource {
 	runs: RewindRun[];
 	genres: RewindGameGenre[];
 	platinums: number | null;
+	platinumRunIds: ReadonlySet<string>;
 	calendar: RewindCalendar;
 	visibility: RewindYearVisibility;
 	stored: RewindStoredView;

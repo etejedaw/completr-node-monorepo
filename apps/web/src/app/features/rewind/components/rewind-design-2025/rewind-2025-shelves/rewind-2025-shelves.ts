@@ -7,7 +7,7 @@ import {
 import { RouterLink } from "@angular/router";
 
 import {
-	type RewindFinishedGame,
+	type RewindClosedGame,
 	type RewindLanguage
 } from "../../../../../core/models/rewind.model";
 import { GamePoster } from "../../../../../shared/components/game-poster/game-poster";
@@ -30,15 +30,15 @@ function quarterOf(isoDate: string): number | null {
 	return Math.ceil(month / MONTHS_PER_QUARTER);
 }
 
-function byFinishedAt(a: RewindFinishedGame, b: RewindFinishedGame): number {
+function byFinishedAt(a: RewindClosedGame, b: RewindClosedGame): number {
 	return a.finishedAt.localeCompare(b.finishedAt);
 }
 
 export function rewindQuarterShelves(
-	games: RewindFinishedGame[],
+	games: RewindClosedGame[],
 	language: RewindLanguage
 ): RewindQuarterShelf[] {
-	const quarters = new Map<number, RewindFinishedGame[]>();
+	const quarters = new Map<number, RewindClosedGame[]>();
 	for (const game of games) {
 		const quarter = quarterOf(game.finishedAt);
 		if (quarter === null) continue;
@@ -71,9 +71,8 @@ export function rewindQuarterShelves(
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Rewind2025Shelves {
-	readonly games = input.required<RewindFinishedGame[]>();
+	readonly games = input.required<RewindClosedGame[]>();
 	readonly language = input<RewindLanguage>("en");
-
 	protected readonly shelves = computed(() =>
 		rewindQuarterShelves(this.games(), this.language())
 	);
@@ -82,7 +81,7 @@ export class Rewind2025Shelves {
 		rewindDesign2025Copy(this.language())
 	);
 
-	protected dateOf(game: RewindFinishedGame): string {
+	protected dateOf(game: RewindClosedGame): string {
 		return shortDate(game.finishedAt, this.language());
 	}
 }

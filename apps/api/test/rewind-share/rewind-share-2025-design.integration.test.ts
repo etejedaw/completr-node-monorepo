@@ -23,9 +23,10 @@ import {
 	openRewindEdition2026,
 	signUpOn
 } from "../rewind/rewind-generation.helper";
-import { hasPngSignature } from "./png.helper";
+import { hasPngSignature, pngDimensions } from "./png.helper";
 
 const IMAGE_PATHS = ["story.png", "story-list.png", "og.png"] as const;
+const STORY_PATHS = ["story.png", "story-list.png"] as const;
 
 useTestDatabase();
 
@@ -81,68 +82,110 @@ function pageOf(player: Account) {
 	return api().get(`/share/rewind/${player.user.username}/2026`);
 }
 
-async function assertNoImagesFor(player: Account, authorization?: string) {
-	for (const path of IMAGE_PATHS) {
-		const request = imageOf(player, path);
-		const response = await (authorization
-			? request.set("Authorization", authorization)
-			: request);
+async function withAuthorization(
+	request: ReturnType<typeof imageOf>,
+	authorization?: string
+) {
+	return authorization
+		? request.set("Authorization", authorization)
+		: request;
+}
+
+async function assertNoStoriesFor(player: Account, authorization?: string) {
+	for (const path of STORY_PATHS) {
+		const response = await withAuthorization(
+			imageOf(player, path),
+			authorization
+		);
 		assert.equal(response.status, 404, path);
 		assert.equal(response.body.type, "REWIND_NOT_FOUND", path);
 	}
 }
 
-function assertPageWithoutImage(html: string) {
+async function assertLinkPreviewFor(player: Account, authorization?: string) {
+	const response = await withAuthorization(
+		imageOf(player, "og.png"),
+		authorization
+	);
+	assert.equal(response.status, 200);
+	assert.match(response.headers["content-type"] ?? "", /^image\/png/);
+	const png = response.body as Buffer;
+	assert.ok(hasPngSignature(png));
+	assert.deepEqual(pngDimensions(png), { width: 1200, height: 630 });
+	return png;
+}
+
+function assertPageWithImage(html: string, username: string) {
+	const ogUrl = new RegExp(
+		`content="[^"]+/share/rewind/${username}/2026/og\\.png"`
+	);
 	assert.match(html, /<meta property="og:title"/);
-	assert.match(html, /<meta name="twitter:card" content="summary">/);
-	assert.doesNotMatch(html, /og:image/);
-	assert.doesNotMatch(html, /twitter:image/);
-	assert.doesNotMatch(html, /summary_large_image/);
-	assert.doesNotMatch(html, /\.png/);
+	assert.match(html, new RegExp(`<meta property="og:image" ${ogUrl.source}>`));
+	assert.match(html, /<meta property="og:image:width" content="1200">/);
+	assert.match(html, /<meta property="og:image:height" content="630">/);
+	assert.match(
+		html,
+		/<meta name="twitter:card" content="summary_large_image">/
+	);
+	assert.match(html, new RegExp(`<meta name="twitter:image" ${ogUrl.source}>`));
+	assert.doesNotMatch(html, /story(-list)?\.png/);
 }
 
 void describe("share images of a Rewind with the 2025 design", () => {
-	void it("answers 404 to the three images of a frozen Rewind and never renders or caches anything", async () => {
+	void it("serves only the link preview of a frozen Rewind and answers 404 to both stories", async () => {
 		const player = await frozenPlayer("2025");
 
-		await assertNoImagesFor(player);
+		await assertNoStoriesFor(player);
+		await assertLinkPreviewFor(player);
 
-		assert.equal(rewindImageCacheSize(), 0);
+		assert.equal(rewindImageCacheSize(), 1);
 	});
 
-	void it("answers 404 to the three images of a live Rewind", async () => {
+	void it("serves only the link preview of a live Rewind", async () => {
 		const player = await generatedPlayer("2025");
 
-		await assertNoImagesFor(player);
+		await assertNoStoriesFor(player);
+		await assertLinkPreviewFor(player);
 
-		assert.equal(rewindImageCacheSize(), 0);
+		assert.equal(rewindImageCacheSize(), 1);
 	});
 
-	void it("answers 404 to the owner too, since the design has no images for anyone", async () => {
+	void it("treats the owner like everyone else: link preview yes, stories no", async () => {
 		const player = await frozenPlayer("2025");
 
-		await assertNoImagesFor(player, player.authorization);
+		await assertNoStoriesFor(player, player.authorization);
+		await assertLinkPreviewFor(player, player.authorization);
 	});
 
-	void it("keeps the preview page working, without image meta tags, for a frozen Rewind", async () => {
+	void it("serves the cached link preview again without rendering a second copy", async () => {
+		const player = await frozenPlayer("2025");
+
+		const first = await assertLinkPreviewFor(player);
+		const second = await assertLinkPreviewFor(player);
+
+		assert.ok(first.equals(second));
+		assert.equal(rewindImageCacheSize(), 1);
+	});
+
+	void it("announces the link preview on the share page of a frozen Rewind", async () => {
 		const player = await frozenPlayer("2025");
 
 		const page = await pageOf(player).expect(200);
 
-		assertPageWithoutImage(page.text);
+		assertPageWithImage(page.text, player.user.username);
 		assert.match(page.text, /1 game finished/);
 		assert.match(page.text, /http-equiv="refresh"/);
 	});
 
-	void it("keeps the preview page working, without image meta tags, for a live Rewind", async () => {
+	void it("announces the link preview on the share page of a live Rewind", async () => {
 		const player = await generatedPlayer("2025");
 
 		const page = await pageOf(player).expect(200);
 
-		assertPageWithoutImage(page.text);
+		assertPageWithImage(page.text, player.user.username);
 	});
 
-	void it("answers 404 to a burst of simultaneous requests for every route without rendering", async () => {
+	void it("answers a burst of simultaneous requests for every route with one rendered preview", async () => {
 		const player = await frozenPlayer("2025");
 
 		const responses = await Promise.all(
@@ -153,9 +196,9 @@ void describe("share images of a Rewind with the 2025 design", () => {
 
 		assert.deepEqual(
 			responses.map(response => response.status),
-			Array(9).fill(404)
+			Array.from({ length: 3 }, () => [404, 404, 200]).flat()
 		);
-		assert.equal(rewindImageCacheSize(), 0);
+		assert.equal(rewindImageCacheSize(), 1);
 	});
 
 	void it("answers 403 USER_PRIVATE to a visitor when the owner hid the Rewind, before looking at the design", async () => {
@@ -173,6 +216,7 @@ void describe("share images of a Rewind with the 2025 design", () => {
 		const page = await pageOf(player).expect(200);
 		assert.match(page.text, /<title>Completr Rewind<\/title>/);
 		assert.doesNotMatch(page.text, /og:image/);
+		assert.equal(rewindImageCacheSize(), 0);
 	});
 
 	void it("answers 404 REWIND_NOT_GENERATED to the owner of a year that was never generated", async () => {
@@ -184,33 +228,39 @@ void describe("share images of a Rewind with the 2025 design", () => {
 		const player = await signUpOn("2025-01-15T00:00:00.000Z");
 		await addRun(player, game, platform, { finishedAt: "2026-03-10" });
 
-		const response = await imageOf(player, "og.png")
-			.set("Authorization", player.authorization)
-			.expect(404);
-
-		assert.equal(response.body.type, "REWIND_NOT_GENERATED");
+		for (const path of IMAGE_PATHS) {
+			const response = await imageOf(player, path)
+				.set("Authorization", player.authorization)
+				.expect(404);
+			assert.equal(response.body.type, "REWIND_NOT_GENERATED", path);
+		}
 	});
 
-	void it("answers 404 when a frozen 2026 snapshot is switched to the 2025 design and serves images again when switched back", async () => {
+	void it("follows the design of a frozen snapshot when it switches between 2026 and 2025", async () => {
 		const player = await frozenPlayer("2026");
 		await imageOf(player, "story.png").expect(200);
+		const preview2026 = await assertLinkPreviewFor(player);
 
 		await freezeDesignOf(player, "2025");
-		await assertNoImagesFor(player);
+		await assertNoStoriesFor(player);
+		const preview2025 = await assertLinkPreviewFor(player);
 		await freezeDesignOf(player, "2026");
 		const story = await imageOf(player, "story.png").expect(200);
 
+		assert.ok(!preview2025.equals(preview2026));
 		assert.ok(hasPngSignature(story.body as Buffer));
 	});
 
-	void it("keeps the latest templates for a snapshot with an unknown design", async () => {
+	void it("keeps the latest templates for a snapshot with an unknown or garbage design", async () => {
 		const player = await frozenPlayer("2026");
-		await freezeDesignOf(player, "../2025");
 
-		for (const path of IMAGE_PATHS) await imageOf(player, path).expect(200);
-		const page = await pageOf(player).expect(200);
-
-		assert.match(page.text, /og:image/);
+		for (const design of ["../2025", "__proto__", "2025 ", ""]) {
+			await freezeDesignOf(player, design);
+			for (const path of IMAGE_PATHS)
+				await imageOf(player, path).expect(200);
+			const page = await pageOf(player).expect(200);
+			assert.match(page.text, /og:image/, design);
+		}
 	});
 });
 

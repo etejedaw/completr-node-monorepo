@@ -1,12 +1,12 @@
 import {
 	type Rewind,
-	type RewindFinishedGame,
+	type RewindClosedGame,
 	type RewindTotals
 } from "../../src/rewind/rewind.interface";
 
 export function finishedGame(
-	overrides: Partial<RewindFinishedGame> = {}
-): RewindFinishedGame {
+	overrides: Partial<RewindClosedGame> = {}
+): RewindClosedGame {
 	return {
 		gameId: "game-1",
 		code: "hades",
@@ -15,6 +15,7 @@ export function finishedGame(
 		backgroundUrl: null,
 		finishedAt: "2026-03-04T00:00:00.000Z",
 		platformAbbreviation: "PC",
+		isPlatinumRun: false,
 		...overrides
 	};
 }
@@ -65,6 +66,7 @@ export function buildRewind(overrides: Partial<Rewind> = {}): Rewind {
 		},
 		finishedGames: games,
 		abandonedGames: [],
+		platinumGames: [],
 		highlights: {
 			topRated: { ...games[3]!, userRating: 5 },
 			bestRatio: { ...games[1]!, personalRatio: 1.2 },

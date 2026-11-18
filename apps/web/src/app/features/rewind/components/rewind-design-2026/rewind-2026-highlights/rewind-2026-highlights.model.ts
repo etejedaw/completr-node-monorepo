@@ -33,3 +33,25 @@ export interface RankedEntry {
 	shortName: string;
 	count: number;
 }
+
+export interface HighlightRecordCell {
+	record: HighlightRecord;
+	cellClass: string;
+	revealDelay: number;
+}
+
+export interface PlatinumCover {
+	code: string;
+	title: string;
+	date: string;
+	label: string;
+	artUrl: string | null;
+}
+
+export interface PlatinumRecord {
+	total: string;
+	label: string;
+	summary: string;
+	artUrl: string | null;
+	covers: PlatinumCover[];
+}

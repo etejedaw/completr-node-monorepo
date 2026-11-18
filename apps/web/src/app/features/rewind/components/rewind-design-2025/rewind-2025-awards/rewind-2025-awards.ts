@@ -9,47 +9,37 @@ import { RouterLink } from "@angular/router";
 import {
 	type RewindDurationGame,
 	type RewindFinishedGame,
-	type RewindGenre,
 	type RewindHighlights,
 	type RewindLanguage,
-	type RewindPlatform,
 	type RewindRatioGame
 } from "../../../../../core/models/rewind.model";
 import { GamePoster } from "../../../../../shared/components/game-poster/game-poster";
 import { UiEyebrow } from "../../../../../shared/ui";
+import { gameArtUrl } from "../../../../../shared/utils/game-art";
 import {
 	formatHours,
 	formatRewindNumber,
 	monthName,
-	monthRange,
 	rewindCopy,
-	shortDate,
-	shortMonthName,
-	spokenMonthRange
+	shortDate
 } from "../../../rewind-copy";
 import { RewindReveal } from "../../../rewind-reveal";
 import { rewindDesign2025Copy } from "../rewind-design-2025.copy";
 import {
 	type Rewind2025Award,
 	type Rewind2025AwardKey,
+	type Rewind2025AwardLayout,
 	type Rewind2025Figure
 } from "./rewind-2025-awards.model";
 
-export const MAX_AWARD_COLUMNS = 6;
-const RUNNER_UP_GENRES = 2;
+export const MIN_AWARD_COLUMNS = 4;
+export const MAX_AWARD_COLUMNS = 5;
 
 function isSameGame(
 	first: RewindFinishedGame | null,
 	second: RewindFinishedGame | null
 ): boolean {
 	return !!first && !!second && first.gameId === second.gameId;
-}
-
-function listOf(items: string[], language: RewindLanguage): string {
-	return new Intl.ListFormat(language, {
-		style: "long",
-		type: "conjunction"
-	}).format(items);
 }
 
 function present<T>(value: T | null): value is T {
@@ -146,101 +136,57 @@ function rankedOrFallback<T>(ranked: T[], fallback: T | null): T[] {
 	return fallback ? [fallback] : [];
 }
 
-function genreFigure(
-	genres: RewindGenre[],
-	language: RewindLanguage
-): Rewind2025Figure | null {
-	const [favorite, ...rest] = genres;
-	if (!favorite) return null;
-	const copy = rewindDesign2025Copy(language);
-	const runnersUp = rest.slice(0, RUNNER_UP_GENRES).map(genre => genre.name);
-	return {
-		key: "favoriteGenre",
-		label: copy.favoriteGenre,
-		value: formatRewindNumber(favorite.count, language),
-		spokenValue: null,
-		unit: copy.gamesNoun(favorite.count),
-		detail:
-			runnersUp.length > 0
-				? `${favorite.name} · ${copy.thenGenres(listOf(runnersUp, language))}`
-				: favorite.name,
-		spokenDetail: null
-	};
-}
-
-function platformFigure(
-	platforms: RewindPlatform[],
-	language: RewindLanguage
-): Rewind2025Figure | null {
-	const [main, ...others] = platforms;
-	if (!main) return null;
-	const copy = rewindDesign2025Copy(language);
-	const otherRuns = others.map(platform =>
-		copy.platformRuns(
-			formatRewindNumber(platform.count, language),
-			platform.name
-		)
-	);
-	return {
-		key: "platform",
-		label: copy.platform,
-		value: formatRewindNumber(main.count, language),
-		spokenValue: null,
-		unit: copy.runsNoun(main.count),
-		detail:
-			otherRuns.length > 0
-				? `${main.name} · ${listOf(otherRuns, language)}`
-				: main.name,
-		spokenDetail: null
-	};
+export function layoutRewind2025Awards(
+	awards: Rewind2025Award[]
+): Rewind2025AwardLayout {
+	const lead = awards.find(award => award.key === "longest") ?? awards[0];
+	if (!lead) return { lead: null, rest: [] };
+	return { lead, rest: awards.filter(award => award !== lead) };
 }
 
 export function rewind2025Figures(
 	highlights: RewindHighlights,
 	language: RewindLanguage
 ): Rewind2025Figure[] {
-	const text = rewindCopy(language).highlights;
-	const copy = rewindDesign2025Copy(language);
+	const { facts } = rewindDesign2025Copy(language);
 	const { longestStreak, busiestMonth } = highlights;
+	const favoriteGenre = rankedOrFallback(
+		highlights.topGenres,
+		highlights.favoriteGenre
+	)[0];
+	const mainPlatform = rankedOrFallback(
+		highlights.topPlatforms,
+		highlights.topPlatform
+	)[0];
 	return [
 		longestStreak
 			? {
 					key: "longestStreak" as const,
-					label: text.longestStreak,
-					value: formatRewindNumber(longestStreak.months, language),
-					spokenValue: null,
-					unit: copy.monthsNoun(longestStreak.months),
-					detail: monthRange(
-						longestStreak.fromMonth,
-						longestStreak.toMonth,
-						language
-					),
-					spokenDetail: spokenMonthRange(
-						longestStreak.fromMonth,
-						longestStreak.toMonth,
-						language
-					)
+					lead: facts.streak(longestStreak.months),
+					tail: ""
 				}
 			: null,
 		busiestMonth
 			? {
 					key: "busiestMonth" as const,
-					label: text.busiestMonth,
-					value: shortMonthName(busiestMonth.month, language),
-					spokenValue: monthName(busiestMonth.month, language),
-					unit: null,
-					detail: text.gamesFinished(busiestMonth.count),
-					spokenDetail: null
+					lead: monthName(busiestMonth.month, language),
+					tail: facts.busiestMonthTail(busiestMonth.count)
 				}
 			: null,
-		genreFigure(
-			rankedOrFallback(highlights.topGenres, highlights.favoriteGenre),
-			language
-		),
-		platformFigure(
-			rankedOrFallback(highlights.topPlatforms, highlights.topPlatform),
-			language
-		)
+		favoriteGenre
+			? {
+					key: "favoriteGenre" as const,
+					lead: favoriteGenre.name,
+					tail: facts.favoriteGenreTail
+				}
+			: null,
+		mainPlatform
+			? {
+					key: "platform" as const,
+					lead: mainPlatform.name,
+					tail: facts.platformTail(mainPlatform.count)
+				}
+			: null
 	].filter(present);
 }
 
@@ -270,7 +216,16 @@ export class Rewind2025Awards {
 		rewind2025Figures(this.highlights(), this.language())
 	);
 
+	protected readonly layout = computed(() =>
+		layoutRewind2025Awards(this.awards())
+	);
 	protected readonly awardColumns = computed(() =>
-		Math.min(this.awards().length, MAX_AWARD_COLUMNS)
+		Math.min(
+			Math.max(this.layout().rest.length, MIN_AWARD_COLUMNS),
+			MAX_AWARD_COLUMNS
+		)
+	);
+	protected readonly leadArt = computed(() =>
+		gameArtUrl(this.layout().lead?.game, "landscape")
 	);
 }

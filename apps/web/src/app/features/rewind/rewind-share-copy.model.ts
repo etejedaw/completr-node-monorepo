@@ -15,6 +15,7 @@ export interface RewindShareCopy {
 	downloadSummary: string;
 	downloadGames: string;
 	copyLink: string;
+	shareLink: string;
 	imageFailed: string;
 	downloadFailed: string;
 	tryAgain: string;

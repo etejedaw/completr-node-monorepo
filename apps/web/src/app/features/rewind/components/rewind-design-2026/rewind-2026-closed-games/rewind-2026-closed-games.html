@@ -1,8 +1,9 @@
 <ol class="m-0 flex list-none flex-col gap-3 p-0">
 	@for (group of months(); track group.month) {
 	<li
-		class="relative isolate grid min-w-0 gap-3 overflow-hidden rounded-card px-4 py-4 md:grid-cols-[170px_minmax(0,1fr)] md:items-center md:gap-5 md:px-5"
+		class="relative isolate grid min-w-0 gap-3 overflow-hidden rounded-none px-4 py-4 md:grid-cols-[170px_minmax(0,1fr)] md:items-center md:gap-5 md:px-5"
 		[attr.aria-labelledby]="'rewind-month-' + group.month"
+		[class.bg-surface]="!group.artUrl"
 	>
 		@if (group.artUrl; as art) {
 		<img
@@ -13,11 +14,12 @@
 			class="absolute inset-0 -z-20 size-full object-cover opacity-18 grayscale-30"
 			[src]="art | coverUrl: 640"
 		/>
-		}
 		<span
 			aria-hidden="true"
+			data-month-veil
 			class="absolute inset-0 -z-10 bg-linear-to-r from-canvas from-10% to-canvas/40"
 		></span>
+		}
 		<h3 class="m-0 grid min-w-0 gap-1" [id]="'rewind-month-' + group.month">
 			<span
 				class="font-display text-[1.5rem] leading-tight font-bold text-fg"
@@ -47,17 +49,17 @@
 				[attr.data-abandoned]="entry.isAbandoned || null"
 			>
 				<a
-					class="group relative block rounded-md no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+					class="group relative block rounded-none no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
 					[routerLink]="['/games', entry.game.code]"
 					[attr.aria-label]="entry.label"
 				>
 					<app-game-poster
-						class="aspect-[2/3] rounded-md shadow-card transition"
+						class="aspect-[2/3] rounded-none shadow-card transition"
 						[class]="entry.isAbandoned ? abandonedPosterClass : ''"
 						[src]="entry.portraitUrl"
 						[title]="entry.game.title"
 						[width]="420"
-						titleSize="0.6875rem"
+						titleSize="0.75rem"
 					/>
 					@if (entry.isAbandoned) {
 					<span
@@ -68,6 +70,17 @@
 						><span
 							class="material-icons text-[0.8125rem] leading-none"
 							>close</span
+						></span
+					>
+					} @if (entry.isPlatinum) {
+					<span
+						data-platinum-badge
+						aria-hidden="true"
+						class="absolute top-1.5 right-1.5 grid size-5 place-items-center rounded-full bg-canvas/80 text-platinum shadow-[0_0_0_1px_color-mix(in_oklab,var(--color-platinum)_45%,transparent)] backdrop-blur-sm"
+						[attr.title]="platinumBadge()"
+						><span
+							class="material-icons text-[0.8125rem] leading-none"
+							>emoji_events</span
 						></span
 					>
 					}

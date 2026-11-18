@@ -32,6 +32,7 @@ import { isAiRecapInProgress } from "../utils/is-ai-recap-in-progress.util";
 import { listActiveGameIds } from "../utils/list-active-game-ids.util";
 import { resolveCurrentRewindDay } from "../utils/resolve-current-rewind-day.util";
 import { runWithRewindFreezeLock } from "../utils/run-with-rewind-freeze-lock.util";
+import { findRewindPlatinumGames } from "./rewind-platinums.service";
 import { findRewindRuns } from "./rewind-runs.service";
 
 const logger = new PinoLogger("Rewind Freeze");
@@ -67,7 +68,7 @@ async function buildViewFor(
 		owner: userToRewindOwner(owner),
 		runs,
 		genres,
-		platinums: context.platinums,
+		platinumGames: context.platinumGames,
 		previousYearPlatinums: context.previousYearPlatinums,
 		calendar: context.calendar,
 		visibility: {
@@ -117,16 +118,13 @@ async function buildRewindSnapshot(
 		ownerRuns,
 		publicRuns,
 		generatedYears,
-		platinums,
+		platinumGames,
 		previousPlatinums
 	] = await Promise.all([
 		findRewindRuns(owner.id, { publicOnly: false, includeNotes: false }),
 		findRewindRuns(owner.id, { publicOnly: true, includeNotes: false }),
 		findGeneratedYears(owner.id),
-		gamePlatinumService.countPlatinumsByUserIdAndYear(
-			owner.id,
-			record.year
-		),
+		findRewindPlatinumGames(owner.id, record.year),
 		gamePlatinumService.countPlatinumsByUserIdAndYear(
 			owner.id,
 			record.year - 1
@@ -140,7 +138,7 @@ async function buildRewindSnapshot(
 			upcomingEdition: null
 		},
 		generatedYears,
-		platinums,
+		platinumGames,
 		previousYearPlatinums: previousPlatinums,
 		design: edition.design,
 		frozenAt: frozenAt.toISOString()

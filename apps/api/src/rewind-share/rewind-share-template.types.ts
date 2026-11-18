@@ -15,12 +15,8 @@ export type CreditsArrangement = "stacked" | "billed";
 
 export type CoverMarkerSide = "flex-start" | "center" | "flex-end";
 
-export type ShareDesignTemplates = Record<
-	RewindImageFormat,
-	ShareFormatTemplate
+export type ShareDesignFormats = Partial<
+	Record<RewindImageFormat, ShareFormatTemplate>
 >;
 
-export type ShareDesignCatalog = Record<
-	RewindDesign,
-	ShareDesignTemplates | null
->;
+export type ShareDesignCatalog = Record<RewindDesign, ShareDesignFormats>;

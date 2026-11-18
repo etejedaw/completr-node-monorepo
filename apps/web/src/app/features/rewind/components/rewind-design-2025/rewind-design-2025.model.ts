@@ -52,6 +52,13 @@ export interface Rewind2025YearMixCopy {
 	share: string;
 }
 
+export interface Rewind2025FactsCopy {
+	streak: (months: number) => string;
+	busiestMonthTail: (count: number) => string;
+	favoriteGenreTail: string;
+	platformTail: (count: number) => string;
+}
+
 export interface RewindDesign2025Copy {
 	locale: string;
 	tally: Rewind2025TallyCopy;
@@ -62,15 +69,13 @@ export interface RewindDesign2025Copy {
 	quarter: (quarter: number) => string;
 	gamesNoun: (count: number) => string;
 	shelvesLabel: (range: string) => string;
+	platinumBadge: string;
 	fastestAndBestValue: string;
 	ratioUnit: string;
-	favoriteGenre: string;
-	platform: string;
-	monthsNoun: (count: number) => string;
-	runsNoun: (count: number) => string;
-	thenGenres: (genres: string) => string;
-	platformRuns: (count: string, platform: string) => string;
+	facts: Rewind2025FactsCopy;
 	leftBehind: string;
 	leftBehindSummary: (count: number) => string;
 	abandonedGameLabel: (title: string, date: string) => string;
+	platinumsTitle: (count: number) => string;
+	platinumGameLabel: (title: string, date: string) => string;
 }

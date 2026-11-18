@@ -3,11 +3,17 @@ import "@testing-library/jest-dom/vitest";
 import { provideRouter } from "@angular/router";
 import { render, screen, within } from "@testing-library/angular";
 
-import { type RewindHighlights as RewindHighlightsData } from "../../../../../core/models/rewind.model";
+import {
+	type RewindHighlights as RewindHighlightsData,
+	type RewindPlatinumGame
+} from "../../../../../core/models/rewind.model";
 import {
 	hasRewind2026Highlights,
-	Rewind2026Highlights
+	platinumRecordOf,
+	Rewind2026Highlights,
+	rewind2026RecordCells
 } from "./rewind-2026-highlights";
+import { type HighlightRecord } from "./rewind-2026-highlights.model";
 
 const game = (code: string, title: string, finishedAt = "2026-03-04") => ({
 	gameId: code,
@@ -474,6 +480,386 @@ describe("Rewind2026Highlights", () => {
 				within(recordOf("Longest")).getByRole("link")
 			).toHaveTextContent("1,234,567.9 h");
 			expect(statOf("Busiest month")).toHaveTextContent("December");
+		});
+	});
+
+	describe("a sparse year", () => {
+		const fakeRecords = (count: number): HighlightRecord[] =>
+			Array.from({ length: count }, (_, index) => ({
+				key: "classic",
+				label: `Record ${index}`,
+				value: String(index),
+				unit: null,
+				hasLongUnit: false,
+				code: `game-${index}`,
+				title: `Game ${index}`,
+				artUrl: null
+			}));
+		const cellClassesOf = (count: number) =>
+			rewind2026RecordCells(fakeRecords(count)).map(
+				cell => cell.cellClass
+			);
+		const oneRecord = { ...nothing, classic: fullHighlights.classic };
+		const twoRecords = {
+			...oneRecord,
+			bestRatio: fullHighlights.bestRatio
+		};
+		const fourRecords = {
+			...twoRecords,
+			longest: fullHighlights.longest,
+			fastest: fullHighlights.fastest
+		};
+
+		it("spreads the records over as many columns as there are cells, never leaving an empty column", () => {
+			expect(cellClassesOf(0)).toEqual([]);
+			expect(cellClassesOf(1)).toEqual(["col-span-2 lg:col-span-6"]);
+			expect(cellClassesOf(2)).toEqual([
+				"col-span-1 lg:col-span-3",
+				"col-span-1 lg:col-span-3"
+			]);
+			expect(cellClassesOf(3)).toEqual([
+				"col-span-1 lg:col-span-2",
+				"col-span-1 lg:col-span-2",
+				"col-span-2 lg:col-span-2"
+			]);
+			expect(cellClassesOf(4)).toEqual(
+				Array(4).fill("col-span-1 lg:col-span-3")
+			);
+			expect(cellClassesOf(5)).toEqual([
+				"col-span-1 lg:col-span-2",
+				"col-span-1 lg:col-span-2",
+				"col-span-1 lg:col-span-2",
+				"col-span-1 lg:col-span-3",
+				"col-span-2 lg:col-span-3"
+			]);
+			expect(cellClassesOf(6)).toEqual(
+				Array(6).fill("col-span-1 lg:col-span-2")
+			);
+		});
+
+		it("staggers the reveal along each row, starting again on every row", () => {
+			const delaysOf = (count: number) =>
+				rewind2026RecordCells(fakeRecords(count)).map(
+					cell => cell.revealDelay
+				);
+
+			expect(delaysOf(1)).toEqual([0]);
+			expect(delaysOf(4)).toEqual([0, 60, 0, 60]);
+			expect(delaysOf(5)).toEqual([0, 60, 120, 0, 60]);
+		});
+
+		it("lets a single record take the whole row on a phone and on a wide screen", async () => {
+			const { container } = await renderHighlights(oneRecord);
+
+			expect(container.querySelector("ul")).toHaveClass(
+				"grid-cols-2",
+				"lg:grid-cols-6"
+			);
+			expect(records()).toHaveLength(1);
+			expect(records()[0]).toHaveClass(
+				"col-span-2",
+				"lg:col-span-6",
+				"min-w-0",
+				"border-t",
+				"border-l",
+				"border-line"
+			);
+		});
+
+		it("splits two records in halves", async () => {
+			await renderHighlights(twoRecords);
+
+			expect(records()).toHaveLength(2);
+			for (const record of records())
+				expect(record).toHaveClass("col-span-1", "lg:col-span-3");
+		});
+
+		it("lays four records out two by two instead of three and an orphan", async () => {
+			await renderHighlights(fourRecords);
+
+			expect(records()).toHaveLength(4);
+			for (const record of records()) {
+				expect(record).toHaveClass("col-span-1", "lg:col-span-3");
+				expect(record).not.toHaveClass("lg:col-span-2");
+				expect(record).toHaveClass("border-t", "border-l");
+			}
+		});
+
+		it("shows a lone stat across the whole row with no stray hairlines when there are no records", async () => {
+			const { container } = await renderHighlights({
+				...nothing,
+				busiestMonth: fullHighlights.busiestMonth
+			});
+
+			expect(container.querySelector("ul")).toBeNull();
+			const [only] = stats(container);
+			expect(stats(container)).toHaveLength(1);
+			expect(only).toHaveClass(
+				"first:border-l-0",
+				"first:pl-0",
+				"max-lg:last:odd:col-span-2"
+			);
+			expect(container.querySelector("dl")).not.toHaveClass("mt-9");
+			expect(container.querySelector("dl")).toHaveClass(
+				"border-t",
+				"lg:grid-flow-col",
+				"lg:auto-cols-fr"
+			);
+		});
+
+		it("stretches an odd last stat on a phone so its top hairline spans the row", async () => {
+			const { container } = await renderHighlights({
+				...nothing,
+				longestStreak: fullHighlights.longestStreak,
+				busiestMonth: fullHighlights.busiestMonth,
+				topGenres: fullHighlights.topGenres
+			});
+
+			const cells = stats(container);
+			expect(cells).toHaveLength(3);
+			expect(cells[2]).toHaveClass(
+				"max-lg:nth-[n+3]:border-t",
+				"max-lg:last:odd:col-span-2"
+			);
+		});
+
+		it("reflows the columns as the records come and go", async () => {
+			const { fixture } = await renderHighlights(fullHighlights);
+
+			for (const [data, count, span] of [
+				[oneRecord, 1, "lg:col-span-6"],
+				[fourRecords, 4, "lg:col-span-3"],
+				[fullHighlights, 6, "lg:col-span-2"],
+				[twoRecords, 2, "lg:col-span-3"],
+				[oneRecord, 1, "lg:col-span-6"]
+			] as const) {
+				fixture.componentRef.setInput("highlights", data);
+				fixture.detectChanges();
+				expect(records()).toHaveLength(count);
+				for (const record of records()) {
+					expect(record).toHaveClass(span, "border-t", "border-l");
+					expect(
+						[...record.classList].filter(name =>
+							name.startsWith("lg:col-span-")
+						)
+					).toHaveLength(1);
+				}
+			}
+		});
+	});
+
+	describe("labels", () => {
+		it("sets every record and stat label at the readable xs size instead of the shared eyebrow size, keeping its tone", async () => {
+			const { container } = await renderHighlights(fullHighlights);
+
+			const labels = [
+				...container.querySelectorAll<HTMLElement>("[uieyebrow]")
+			];
+			expect(labels).toHaveLength(10);
+			for (const label of labels) {
+				expect(label).toHaveClass(
+					"text-xs!",
+					"uppercase",
+					"text-fg-muted"
+				);
+			}
+		});
+	});
+
+	describe("the platinum record", () => {
+		const platinum = (
+			code: string,
+			title: string,
+			platinumedAt: string,
+			art: Partial<RewindPlatinumGame> = {}
+		): RewindPlatinumGame => ({
+			gameId: `id-${code}`,
+			code,
+			title,
+			coverUrl: null,
+			backgroundUrl: null,
+			platinumedAt,
+			platformAbbreviation: "PS5",
+			...art
+		});
+		const RE4 = platinum("re4", "Resident Evil 4", "2026-03-02", {
+			backgroundUrl: "https://img.test/re4-bg.jpg",
+			coverUrl: "https://img.test/re4.jpg"
+		});
+		const INSIDE = platinum("inside", "Inside", "2026-05-25", {
+			coverUrl: "https://img.test/inside.jpg"
+		});
+		const PARTY_HARD = platinum("party-hard", "Party Hard", "2026-10-26");
+
+		async function renderWithPlatinums(
+			platinumGames: RewindPlatinumGame[] | null,
+			highlights: RewindHighlightsData = fullHighlights,
+			language: "en" | "es" = "en"
+		) {
+			return render(Rewind2026Highlights, {
+				inputs: { highlights, platinumGames, language },
+				providers: [provideRouter([])]
+			});
+		}
+
+		const row = () =>
+			document.querySelector<HTMLElement>("[data-platinum-record]");
+
+		it.each([
+			["no access", null],
+			["an empty year", []]
+		])(
+			"draws no row with %s and leaves the records as they are",
+			async (_case, games) => {
+				await renderWithPlatinums(games);
+
+				expect(row()).toBeNull();
+				expect(records()).toHaveLength(6);
+				expect(screen.queryByText("Platinums this year")).toBeNull();
+			}
+		);
+
+		it("makes the whole row one link to the game with one platinum", async () => {
+			await renderWithPlatinums([RE4]);
+
+			expect(records()).toHaveLength(7);
+			const link = within(row() as HTMLElement).getByRole("link", {
+				name: "Resident Evil 4, platinum on Mar 2"
+			});
+			expect(link).toHaveAttribute("href", "/games/re4");
+			expect(row()).toHaveTextContent("1");
+			expect(row()).toHaveTextContent("Platinums this year");
+			expect(row()).toHaveTextContent("Resident Evil 4 · Mar 2");
+			expect(row()?.querySelector("img")).toHaveAttribute(
+				"aria-hidden",
+				"true"
+			);
+			expect(row()).toHaveClass(
+				"col-span-2",
+				"lg:col-span-6",
+				"border-t",
+				"border-l"
+			);
+		});
+
+		it("lists square covers as links with a date range, sorted, with several platinums", async () => {
+			await renderWithPlatinums([PARTY_HARD, RE4, INSIDE]);
+
+			const cell = row() as HTMLElement;
+			expect(cell).toHaveTextContent("3");
+			expect(cell).toHaveTextContent("Mar 2 to Oct 26");
+			const links = within(cell).getAllByRole("link");
+			expect(links.map(link => link.getAttribute("aria-label"))).toEqual([
+				"Resident Evil 4, platinum on Mar 2",
+				"Inside, platinum on May 25",
+				"Party Hard, platinum on Oct 26"
+			]);
+			expect(links[1]).toHaveAttribute("href", "/games/inside");
+			expect(
+				links[1].querySelector("img")?.getAttribute("src")
+			).toContain("inside.jpg");
+			expect(links[1]).toHaveTextContent("May 25");
+			expect(links[2].querySelector("img")).toBeNull();
+			expect(
+				cell.querySelector("img.absolute")?.getAttribute("src")
+			).toContain("re4-bg.jpg");
+		});
+
+		it("keeps the marker square and decorative", async () => {
+			await renderWithPlatinums([RE4, INSIDE]);
+
+			const marker = (row() as HTMLElement).querySelector(
+				"[uieyebrow] span"
+			);
+			expect(marker).toHaveAttribute("aria-hidden", "true");
+			expect(marker).toHaveClass("bg-platinum", "size-1.5");
+			expect(marker).not.toHaveClass("rounded-full");
+		});
+
+		it("speaks Spanish", async () => {
+			await renderWithPlatinums([RE4, INSIDE], fullHighlights, "es");
+
+			const cell = row() as HTMLElement;
+			expect(cell).toHaveTextContent("Platinos del año");
+			expect(cell).toHaveTextContent("Del 2 mar al 25 may");
+			expect(
+				within(cell).getByRole("link", {
+					name: "Inside, platino el 25 may"
+				})
+			).toBeInTheDocument();
+		});
+
+		it("sits before the facts strip and alone when there are no records", async () => {
+			const { container } = await renderWithPlatinums([RE4, INSIDE], {
+				...nothing,
+				busiestMonth: { month: 3, count: 5 }
+			});
+
+			expect(records()).toHaveLength(3);
+			expect(row()).not.toBeNull();
+			const strip = container.querySelector("dl") as HTMLElement;
+			expect(
+				(row() as HTMLElement).compareDocumentPosition(strip) &
+					Node.DOCUMENT_POSITION_FOLLOWING
+			).toBeTruthy();
+		});
+
+		it("keeps the sparse-year column logic of the records beside the row", async () => {
+			await renderWithPlatinums([RE4], {
+				...nothing,
+				bestRatio: {
+					...game("celeste", "Celeste"),
+					personalRatio: 4.2
+				},
+				longest: {
+					...game("elden-ring", "Elden Ring"),
+					hours: 120,
+					isEstimate: false
+				},
+				fastest: {
+					...game("gris", "Gris"),
+					hours: 3.5,
+					isEstimate: true
+				}
+			});
+
+			const cells = records();
+			expect(cells).toHaveLength(4);
+			expect(cells[0]).toHaveClass("lg:col-span-2");
+			expect(cells[3]).toHaveClass("lg:col-span-6");
+		});
+
+		it("follows the platinums when they flip many times in a row", async () => {
+			const { rerender } = await renderWithPlatinums([RE4]);
+
+			for (const platinumGames of [[RE4, INSIDE], null, [], [INSIDE]])
+				await rerender({
+					inputs: {
+						highlights: fullHighlights,
+						platinumGames,
+						language: "en"
+					}
+				});
+
+			expect(
+				within(row() as HTMLElement).getByRole("link", {
+					name: "Inside, platinum on May 25"
+				})
+			).toBeInTheDocument();
+		});
+
+		it("builds the record without touching the input and skips an empty list", () => {
+			const games = [PARTY_HARD, RE4];
+
+			const record = platinumRecordOf(games, "en");
+
+			expect(games.map(item => item.code)).toEqual(["party-hard", "re4"]);
+			expect(record?.covers.map(cover => cover.code)).toEqual([
+				"re4",
+				"party-hard"
+			]);
+			expect(platinumRecordOf([], "en")).toBeNull();
+			expect(platinumRecordOf(null, "es")).toBeNull();
 		});
 	});
 });

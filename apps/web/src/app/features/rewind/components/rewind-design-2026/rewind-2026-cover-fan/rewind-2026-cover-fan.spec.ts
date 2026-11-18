@@ -8,6 +8,7 @@ import {
 	REWIND_2026_FAN_LIMIT,
 	Rewind2026CoverFan,
 	rewind2026FanPosters,
+	rewind2026FanReach,
 	selectRewind2026FanGames
 } from "./rewind-2026-cover-fan";
 import { type Rewind2026FanSource } from "./rewind-2026-cover-fan.model";
@@ -168,6 +169,60 @@ describe("rewind2026FanPosters", () => {
 	});
 });
 
+describe("a sparse fan", () => {
+	it("stands a single poster in the middle as the lead, full size and undimmed", () => {
+		const [poster] = rewind2026FanPosters([finished("a", "a.jpg")]);
+
+		expect(poster).toMatchObject({
+			offset: 0,
+			depth: 0,
+			size: 1,
+			isLead: true
+		});
+	});
+
+	it("keeps a pair centred and still lights the first one as the lead", () => {
+		const posters = rewind2026FanPosters([
+			finished("a", "a.jpg"),
+			finished("b", "b.jpg")
+		]);
+
+		expect(posters.reduce((sum, poster) => sum + poster.offset, 0)).toBe(0);
+		expect(posters.map(poster => poster.isLead)).toEqual([true, false]);
+		expect(posters[0]).toMatchObject({ depth: 0, size: 1, layer: 2 });
+		expect(posters[1].depth).toBe(0.5);
+		expect(posters[1].size).toBeLessThan(1);
+		expect(posters[1].layer).toBe(1);
+	});
+
+	it("measures how far the fan reaches from the middle so the floor fits it", () => {
+		const fan = (count: number) =>
+			rewind2026FanPosters(
+				Array.from({ length: count }, (_, index) =>
+					finished(`g${index}`, `g${index}.jpg`)
+				)
+			);
+
+		expect(rewind2026FanReach([])).toBe(0);
+		expect(rewind2026FanReach(fan(1))).toBe(0);
+		expect(rewind2026FanReach(fan(2))).toBe(0.5);
+		expect(rewind2026FanReach(fan(3))).toBe(1);
+		expect(rewind2026FanReach(fan(5))).toBe(2);
+	});
+
+	it("leads with only one poster when the only finished game is also the top rated, finished twice", () => {
+		const picked = selectRewind2026FanGames(
+			source(
+				[finished("t", "t.jpg"), finished("t", "t.jpg")],
+				topRated("t", "t.jpg")
+			)
+		);
+
+		expect(ids(picked)).toEqual(["t"]);
+		expect(rewind2026FanPosters(picked)[0].isLead).toBe(true);
+	});
+});
+
 describe("Rewind2026CoverFan", () => {
 	function render(input: Rewind2026FanSource) {
 		const fixture = TestBed.createComponent(Rewind2026CoverFan);
@@ -219,6 +274,47 @@ describe("Rewind2026CoverFan", () => {
 		}
 		for (const image of images)
 			expect(image.className).toContain("brightness-");
+	});
+
+	it("stages a single poster in the middle with its halo, floor and reflection", () => {
+		const element = render(source([finished("a", "a.jpg")]));
+
+		const images = [...element.querySelectorAll<HTMLElement>("img")];
+		expect(images).toHaveLength(1);
+		expect(images[0].className).toContain("border-white/20");
+		expect(images[0].className).toContain("-webkit-box-reflect");
+		expect(images[0].style.getPropertyValue("--poster-offset")).toBe("0");
+		expect(element.querySelector("[data-fan-halo]")).not.toBeNull();
+		const stage = element.querySelector<HTMLElement>(
+			"[aria-hidden='true']"
+		)!;
+		expect(stage.style.getPropertyValue("--fan-reach")).toBe("0");
+		const floor = element.querySelector("[data-fan-floor]")!;
+		expect(floor.className).toContain("var(--fan-reach)");
+		expect(floor.className).toContain("left-1/2");
+		expect(floor.className).not.toContain("inset-x-");
+	});
+
+	it("lights the lead of a pair even though neither poster sits in the middle", () => {
+		const element = render(
+			source([finished("a", "a.jpg")], topRated("t", "t.jpg"))
+		);
+
+		const images = [...element.querySelectorAll<HTMLElement>("img")];
+		expect(images.map(image => image.getAttribute("src"))).toEqual([
+			"t.jpg",
+			"a.jpg"
+		]);
+		expect(images[0].className).toContain("border-white/20");
+		expect(images[1].className).toContain("border-white/10");
+		expect(images[1].className).not.toContain("border-white/20");
+		expect(
+			images.map(image => image.style.getPropertyValue("--poster-depth"))
+		).toEqual(["0", "0.5"]);
+		const stage = element.querySelector<HTMLElement>(
+			"[aria-hidden='true']"
+		)!;
+		expect(stage.style.getPropertyValue("--fan-reach")).toBe("0.5");
 	});
 
 	it("draws nothing when no game has art", () => {

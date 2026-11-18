@@ -33,6 +33,12 @@
 						[code]="data.persona"
 						[language]="data.language"
 					/>
+					<p
+						class="m-0 mt-3 max-w-xl text-base text-fg-secondary"
+						animate.enter="motion-safe:animate-[uiFadeUp_480ms_cubic-bezier(0.16,1,0.3,1)_1150ms_both]"
+					>
+						{{ summary() }}
+					</p>
 				</div>
 				<div class="flex flex-wrap items-center gap-2">
 					<button
@@ -111,6 +117,7 @@
 		/>
 		<app-rewind-2026-highlights
 			[highlights]="data.highlights"
+			[platinumGames]="data.platinumGames"
 			[language]="data.language"
 		/>
 	</section>
@@ -146,7 +153,7 @@
 		} @placeholder {
 		<div class="flex flex-col gap-3" aria-hidden="true">
 			@for (row of skeletonMonths; track row) {
-			<ui-skeleton variant="rect" class="h-[132px] rounded-card" />
+			<ui-skeleton variant="rect" class="h-[132px] rounded-none" />
 			}
 		</div>
 		}

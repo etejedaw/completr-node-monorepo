@@ -4,7 +4,7 @@ import { provideRouter } from "@angular/router";
 import { render, screen, within } from "@testing-library/angular";
 
 import {
-	type RewindFinishedGame,
+	type RewindClosedGame,
 	type RewindLanguage
 } from "../../../../../core/models/rewind.model";
 import { Rewind2026ClosedGames } from "./rewind-2026-closed-games";
@@ -12,8 +12,8 @@ import { Rewind2026ClosedGames } from "./rewind-2026-closed-games";
 function game(
 	code: string,
 	finishedAt: string,
-	art: Partial<RewindFinishedGame> = {}
-): RewindFinishedGame {
+	art: Partial<RewindClosedGame> = {}
+): RewindClosedGame {
 	return {
 		gameId: `id-${code}`,
 		code,
@@ -22,21 +22,27 @@ function game(
 		backgroundUrl: null,
 		finishedAt,
 		platformAbbreviation: "PS5",
+		isPlatinumRun: false,
 		...art
 	};
 }
 
-function withArt(code: string, finishedAt: string): RewindFinishedGame {
+function withArt(
+	code: string,
+	finishedAt: string,
+	art: Partial<RewindClosedGame> = {}
+): RewindClosedGame {
 	return game(code, finishedAt, {
 		coverUrl: `https://img.test/${code}-cover.jpg`,
-		backgroundUrl: `https://img.test/${code}-background.jpg`
+		backgroundUrl: `https://img.test/${code}-background.jpg`,
+		...art
 	});
 }
 
 async function renderClosed(
-	games: RewindFinishedGame[],
+	games: RewindClosedGame[],
 	language: RewindLanguage = "en",
-	abandonedGames?: RewindFinishedGame[]
+	abandonedGames?: RewindClosedGame[]
 ) {
 	return render(Rewind2026ClosedGames, {
 		inputs: {
@@ -63,6 +69,103 @@ function backgroundOf(row: HTMLElement) {
 }
 
 describe("Rewind2026ClosedGames", () => {
+	describe("platinum marker", () => {
+		it("marks only the finished entries whose run holds the platinum, with a badge hidden from screen readers", async () => {
+			const { container } = await renderClosed([
+				withArt("plat", "2026-06-10", { isPlatinumRun: true }),
+				withArt("plain", "2026-06-12")
+			]);
+
+			const badges = container.querySelectorAll("[data-platinum-badge]");
+			expect(badges).toHaveLength(1);
+			expect(badges[0]).toHaveAttribute("aria-hidden", "true");
+			expect(badges[0]).toHaveAttribute("title", "Platinum");
+			expect(badges[0].className).toContain("text-platinum");
+			expect(badges[0].closest("a")).toHaveAttribute(
+				"aria-label",
+				"PLAT, Jun 10, platinum"
+			);
+			expect(
+				screen.getByRole("link", { name: "PLAIN, Jun 12" })
+			).toBeInTheDocument();
+		});
+
+		it("gives no badge to a game whose shown run is not the platinum run, even if the game has a platinum elsewhere", async () => {
+			const { container } = await renderClosed([
+				withArt("hades", "2026-03-10", { isPlatinumRun: false }),
+				withArt("hades", "2026-06-10", { isPlatinumRun: true })
+			]);
+
+			const badges = container.querySelectorAll("[data-platinum-badge]");
+			expect(badges).toHaveLength(1);
+			expect(badges[0].closest("a")).toHaveAttribute(
+				"aria-label",
+				"HADES, Jun 10, platinum"
+			);
+			expect(
+				screen.getByRole("link", { name: "HADES, Mar 10" })
+			).toBeInTheDocument();
+		});
+
+		it("never marks an abandoned run as platinum, even when it says it holds the platinum", async () => {
+			const { container } = await renderClosed([], "en", [
+				withArt("both", "2026-06-10", { isPlatinumRun: true })
+			]);
+
+			expect(container.querySelector("[data-platinum-badge]")).toBeNull();
+			expect(
+				container.querySelector("[data-abandoned-badge]")
+			).not.toBeNull();
+		});
+
+		it("shows no marker when no entry holds the platinum", async () => {
+			const { container } = await renderClosed(
+				[withArt("a", "2026-06-10"), withArt("b", "2026-06-11")],
+				"en",
+				[]
+			);
+
+			expect(container.querySelector("[data-platinum-badge]")).toBeNull();
+		});
+
+		it("follows the flag when the games change under the same component", async () => {
+			const { container, fixture } = await renderClosed([
+				withArt("a", "2026-06-10", { isPlatinumRun: true })
+			]);
+			expect(
+				container.querySelectorAll("[data-platinum-badge]")
+			).toHaveLength(1);
+
+			fixture.componentRef.setInput("games", [
+				withArt("a", "2026-06-10")
+			]);
+			fixture.detectChanges();
+			expect(container.querySelector("[data-platinum-badge]")).toBeNull();
+
+			fixture.componentRef.setInput("games", [
+				withArt("a", "2026-06-10", { isPlatinumRun: true })
+			]);
+			fixture.detectChanges();
+			expect(
+				container.querySelectorAll("[data-platinum-badge]")
+			).toHaveLength(1);
+		});
+
+		it("speaks the marker in Spanish", async () => {
+			const { container } = await renderClosed(
+				[withArt("plat", "2026-06-10", { isPlatinumRun: true })],
+				"es"
+			);
+
+			expect(
+				container.querySelector("[data-platinum-badge]")
+			).toHaveAttribute("title", "Platino");
+			expect(
+				container.querySelector("[data-platinum-badge]")?.closest("a")
+			).toHaveAttribute("aria-label", "PLAT, 10 jun, platinado");
+		});
+	});
+
 	it("lists only the months that have closed games, in calendar order", async () => {
 		await renderClosed(
 			[
@@ -496,6 +599,102 @@ describe("Rewind2026ClosedGames", () => {
 				container.querySelector("li > span.rounded-full")
 			).toBeNull();
 			expect(screen.queryByText("Jan 10")).toBeNull();
+		});
+	});
+
+	describe("a sparse year", () => {
+		it("shows a year with a single month and a single poster as one complete row", async () => {
+			const { container } = await renderClosed([
+				withArt("solo", "2026-09-14")
+			]);
+
+			expect(monthHeadings()).toEqual(["September, 1 game"]);
+			const row = monthRow(/September/);
+			expect(row).toHaveClass("rounded-none", "overflow-hidden");
+			expect(backgroundOf(row)).toBe(
+				"https://img.test/solo-background.jpg"
+			);
+			expect(row.querySelector("[data-month-veil]")).not.toBeNull();
+			expect(row).not.toHaveClass("bg-surface");
+			const posters = container.querySelectorAll("[data-posters] > li");
+			expect(posters).toHaveLength(1);
+			expect(within(row).getByRole("link")).toHaveAttribute(
+				"href",
+				"/games/solo"
+			);
+			expect(row.querySelector("[data-abandoned-count]")).toBeNull();
+		});
+
+		it("gives a month without any art its own surface instead of a veil over nothing", async () => {
+			await renderClosed([game("bare", "2026-04-02")]);
+
+			const row = monthRow(/April/);
+			expect(row).toHaveClass("bg-surface", "rounded-none");
+			expect(row.querySelector("[data-month-art]")).toBeNull();
+			expect(row.querySelector("[data-month-veil]")).toBeNull();
+		});
+
+		it("keeps the surface only on the bare months when art comes and goes", async () => {
+			const { fixture } = await renderClosed([
+				withArt("lit", "2026-02-02"),
+				game("bare", "2026-03-02")
+			]);
+
+			expect(monthRow(/February/)).not.toHaveClass("bg-surface");
+			expect(monthRow(/March/)).toHaveClass("bg-surface");
+
+			fixture.componentRef.setInput("games", [
+				game("lit", "2026-02-02"),
+				withArt("bare", "2026-03-02")
+			]);
+			fixture.detectChanges();
+
+			expect(monthRow(/February/)).toHaveClass("bg-surface");
+			expect(monthRow(/March/)).not.toHaveClass("bg-surface");
+			expect(
+				monthRow(/March/).querySelector("[data-month-veil]")
+			).not.toBeNull();
+		});
+
+		it("shows a year of only abandoned games with their counts, badges and month art", async () => {
+			const { container } = await renderClosed([], "en", [
+				withArt("quit-a", "2026-01-20"),
+				withArt("quit-b", "2026-01-25"),
+				game("quit-c", "2026-08-03")
+			]);
+
+			expect(monthHeadings()).toEqual([
+				"January, 2 abandoned",
+				"August, 1 abandoned"
+			]);
+			const january = monthRow(/January/);
+			expect(backgroundOf(january)).toBe(
+				"https://img.test/quit-a-background.jpg"
+			);
+			expect(monthRow(/August/)).toHaveClass("bg-surface");
+			expect(container.querySelectorAll("[data-abandoned]")).toHaveLength(
+				3
+			);
+			expect(
+				container.querySelectorAll("[data-abandoned-badge]")
+			).toHaveLength(3);
+			expect(
+				container.querySelectorAll(
+					"[data-posters] > li:not([data-abandoned])"
+				)
+			).toHaveLength(0);
+		});
+
+		it("writes the title on a fallback poster one step above the old caption size", async () => {
+			const { container } = await renderClosed([
+				game("no-art", "2026-06-20")
+			]);
+
+			const title = container.querySelector<HTMLElement>(
+				"app-game-poster [role='img'] span:last-child"
+			);
+			expect(title).toHaveTextContent("NO-ART");
+			expect(title?.style.fontSize).toBe("0.75rem");
 		});
 	});
 });

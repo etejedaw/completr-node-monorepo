@@ -1,4 +1,4 @@
-import { type RewindFinishedGame } from "../../../../../core/models/rewind.model";
+import { type RewindClosedGame } from "../../../../../core/models/rewind.model";
 
 export interface RewindQuarterShelf {
 	quarter: number;
@@ -7,5 +7,5 @@ export interface RewindQuarterShelf {
 	spokenRange: string;
 	count: number;
 	countLabel: string;
-	games: RewindFinishedGame[];
+	games: RewindClosedGame[];
 }

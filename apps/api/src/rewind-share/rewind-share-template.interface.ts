@@ -68,6 +68,23 @@ export interface CoverMosaicLayout {
 	tiltDegrees: number;
 }
 
+export interface CoverCollageLayout {
+	columns: number;
+	rows: number;
+	tileWidth: number;
+	tileHeight: number;
+	gap: number;
+	top: number;
+	left: number;
+	tiltDegrees: number;
+}
+
+export interface TallyFigure {
+	label: string;
+	value: string;
+	suffix: string | null;
+}
+
 export interface CreditLine {
 	text: string;
 	isOverflow: boolean;

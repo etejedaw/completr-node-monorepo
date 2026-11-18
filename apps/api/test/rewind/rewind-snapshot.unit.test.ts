@@ -19,6 +19,9 @@ import {
 	editionOf,
 	finishedRun,
 	ownerVisibility,
+	platinumGame,
+	platinumGamesOf,
+	publicPlatinumGame,
 	visitorVisibility
 } from "./rewind-run.builder";
 
@@ -60,7 +63,7 @@ function viewSource(
 		owner: OWNER,
 		runs,
 		genres: [],
-		platinums: 2,
+		platinumGames: platinumGamesOf(2),
 		previousYearPlatinums: 1,
 		calendar: calendarOn(AFTER_CLOSING, 2020, editionOf(2026)),
 		visibility: ownerVisibility([2026]),
@@ -214,6 +217,17 @@ void describe("buildRewindView", () => {
 		assert.deepEqual(view?.abandonedGames, []);
 	});
 
+	void it("stores the platinum games of the year with the count matching the list", () => {
+		const platinumGames = platinumGamesOf(4);
+
+		const view = buildRewindView(
+			viewSource([finishedRun("hades", "2026-03-10")], { platinumGames })
+		);
+
+		assert.deepEqual(view?.platinumGames, platinumGames);
+		assert.equal(view?.totals.platinums, view?.platinumGames?.length);
+	});
+
 	void it("drops the AI recap that is not ready and keeps the access kind only with premium content", () => {
 		const view = buildRewindView(
 			viewSource([finishedRun("hades", "2026-03-10")], {
@@ -237,7 +251,9 @@ void describe("persona and covers of the view", () => {
 			finishedRun("tunic", "2025-01-01", { userRating: 5 })
 		];
 
-		const view = buildRewindView(viewSource(runs, { platinums: 3 }));
+		const view = buildRewindView(
+			viewSource(runs, { platinumGames: platinumGamesOf(3) })
+		);
 
 		assert.equal(view?.persona, "trophy-hunter");
 		assert.equal(view?.personaWithoutPlatinums, "steady-player");
@@ -249,7 +265,9 @@ void describe("persona and covers of the view", () => {
 
 	void it("keeps one persona when the platinums do not decide it", () => {
 		const view = buildRewindView(
-			viewSource([finishedRun("hades", "2026-03-10")], { platinums: 0 })
+			viewSource([finishedRun("hades", "2026-03-10")], {
+				platinumGames: []
+			})
 		);
 
 		assert.equal(view?.persona, view?.personaWithoutPlatinums);
@@ -263,7 +281,7 @@ void describe("rewindViewToRewind", () => {
 				finishedRun("hades", "2026-03-10", { releaseYear: 1998 }),
 				finishedRun("celeste", "2025-04-04")
 			],
-			{ platinums: 3 }
+			{ platinumGames: platinumGamesOf(3) }
 		)
 	)!;
 	const live = {
@@ -289,6 +307,7 @@ void describe("rewindViewToRewind", () => {
 			"coverUrl",
 			"finishedAt",
 			"gameId",
+			"isPlatinumRun",
 			"platformAbbreviation",
 			"title"
 		]);
@@ -344,7 +363,8 @@ void describe("rewindViewToRewind", () => {
 				coverUrl: "https://img.test/tunic.jpg",
 				backgroundUrl: "https://img.test/tunic-bg.jpg",
 				finishedAt: "2026-06-06",
-				platformAbbreviation: "NSW"
+				platformAbbreviation: "NSW",
+				isPlatinumRun: false
 			}
 		]);
 	});
@@ -360,6 +380,135 @@ void describe("rewindViewToRewind", () => {
 			rewind.finishedGames.map(game => game.code),
 			view.finishedGames.map(game => game.code)
 		);
+	});
+
+	void it("serves the platinum games of the photo only to a viewer with access to them", () => {
+		const withAccess = rewindViewToRewind(view, live);
+		const withoutAccess = rewindViewToRewind(view, {
+			...live,
+			platinumsVisible: false
+		});
+
+		assert.deepEqual(
+			withAccess.platinumGames,
+			view.platinumGames?.map(publicPlatinumGame)
+		);
+		assert.equal(
+			withAccess.platinumGames?.length,
+			withAccess.totals.platinums
+		);
+		assert.equal(withoutAccess.platinumGames, null);
+		assert.equal(withoutAccess.totals.platinums, null);
+	});
+
+	void describe("platinum run mark", () => {
+		const earlierHadesRun = finishedRun("hades", "2026-02-02");
+		const shownHadesRun = finishedRun("hades", "2026-07-07");
+		const celesteRun = finishedRun("celeste", "2026-04-04");
+		const tunicRun = finishedRun("tunic", "2026-05-05");
+		const markedView = buildRewindView(
+			viewSource([earlierHadesRun, shownHadesRun, celesteRun, tunicRun], {
+				platinumGames: [
+					platinumGame("hades", "2026-02-03", {
+						backlogId: earlierHadesRun.id
+					}),
+					platinumGame("celeste", "2026-04-05", {
+						backlogId: celesteRun.id
+					}),
+					platinumGame("tunic", "2026-05-06", { backlogId: null })
+				]
+			})
+		)!;
+
+		function markedCodes(rewind: {
+			finishedGames: { code: string; isPlatinumRun: boolean }[];
+		}) {
+			return rewind.finishedGames
+				.filter(game => game.isPlatinumRun)
+				.map(game => game.code);
+		}
+
+		void it("stores the run of each game in the photo", () => {
+			assert.deepEqual(
+				markedView.finishedGames.map(game => [
+					game.code,
+					game.backlogId
+				]),
+				[
+					["celeste", celesteRun.id],
+					["tunic", tunicRun.id],
+					["hades", shownHadesRun.id]
+				]
+			);
+		});
+
+		void it("marks only the shown run that holds the platinum, never a platinum without run", () => {
+			assert.deepEqual(
+				markedCodes(rewindViewToRewind(markedView, live)),
+				["celeste"]
+			);
+		});
+
+		void it("marks nothing for a viewer without access to the platinums", () => {
+			assert.deepEqual(
+				markedCodes(
+					rewindViewToRewind(markedView, {
+						...live,
+						platinumsVisible: false
+					})
+				),
+				[]
+			);
+		});
+
+		void it("marks nothing in a photo frozen before the runs were stored", () => {
+			const viewBeforeRuns = {
+				...markedView,
+				finishedGames: markedView.finishedGames.map(
+					({ backlogId: _backlogId, ...game }) => game
+				),
+				platinumGames: markedView.platinumGames?.map(publicPlatinumGame)
+			};
+
+			assert.deepEqual(
+				markedCodes(rewindViewToRewind(viewBeforeRuns, live)),
+				[]
+			);
+		});
+	});
+
+	void it("reads a photo frozen before the platinum games existed as an empty list, still hidden without access", () => {
+		const viewBeforePlatinumGames = { ...view };
+		delete viewBeforePlatinumGames.platinumGames;
+
+		const withAccess = rewindViewToRewind(viewBeforePlatinumGames, live);
+		const withoutAccess = rewindViewToRewind(viewBeforePlatinumGames, {
+			...live,
+			platinumsVisible: false
+		});
+
+		assert.deepEqual(withAccess.platinumGames, []);
+		assert.equal(withAccess.totals.platinums, 3);
+		assert.equal(withoutAccess.platinumGames, null);
+	});
+
+	void it("serves only the known fields of a photo entry that carries extra data", () => {
+		const tampered = {
+			...view,
+			platinumGames: [
+				{
+					...platinumGame("tunic", "2026-05-05"),
+					notes: "private note",
+					backlogId: "run-0001"
+				}
+			]
+		};
+
+		const rewind = rewindViewToRewind(tampered, live);
+
+		assert.deepEqual(rewind.platinumGames, [
+			publicPlatinumGame(platinumGame("tunic", "2026-05-05"))
+		]);
 	});
 
 	void it("serves the persona and totals without platinums to a viewer without access to them", () => {
@@ -419,7 +568,7 @@ void describe("listing frozen years", () => {
 					finishedRun("tunic", "2026-02-02"),
 					finishedRun("gris", "2026-04-04")
 				],
-				{ platinums: 3 }
+				{ platinumGames: platinumGamesOf(3) }
 			)
 		)!;
 		const source = {

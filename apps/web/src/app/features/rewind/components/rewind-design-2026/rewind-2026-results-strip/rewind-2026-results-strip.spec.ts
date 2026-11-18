@@ -6,10 +6,12 @@ import {
 } from "../../../../../core/models/rewind.model";
 import {
 	formatRewind2026ResultsValue,
+	phoneLayoutFor,
 	REWIND_2026_RESULTS_DURATION_MS,
 	REWIND_2026_RESULTS_STAGGER_MS,
 	rewind2026ResultsRows,
-	Rewind2026ResultsStrip
+	Rewind2026ResultsStrip,
+	startsPhoneRow
 } from "./rewind-2026-results-strip";
 
 const totals: RewindTotals = {
@@ -51,18 +53,19 @@ describe("rewind2026ResultsRows", () => {
 		]);
 	});
 
-	it("gives every row its colour and unit", () => {
-		expect(
-			rewind2026ResultsRows(totals).map(row => [row.tone, row.unit])
-		).toEqual([
-			["success", "count"],
-			["danger", "count"],
-			["playing", "count"],
-			["playing", "hours"],
-			["platinum", "count"],
-			["lists", "percent"],
-			["brand", "rating"]
+	it("gives every row its unit and no colour of its own", () => {
+		const rows = rewind2026ResultsRows(totals);
+
+		expect(rows.map(row => row.unit)).toEqual([
+			"count",
+			"count",
+			"count",
+			"hours",
+			"count",
+			"percent",
+			"rating"
 		]);
+		expect(rows.every(row => !("tone" in row))).toBe(true);
 	});
 
 	it("hides the finish rate and the average rating when there is nothing to rate", () => {
@@ -124,6 +127,63 @@ describe("rewind2026ResultsRows", () => {
 			"Platinos",
 			"Tasa de finalización",
 			"Nota promedio"
+		]);
+	});
+});
+
+describe("phone layout", () => {
+	function rowsOfPhoneGrid(count: number) {
+		const layout = phoneLayoutFor(count);
+		const rows: number[][] = [];
+		let current: number[] = [];
+		for (let index = 0; index < count; index++) {
+			if (layout.hasLead && index === 0) {
+				rows.push([0]);
+				continue;
+			}
+			current.push(index);
+			if (current.length === layout.columns) {
+				rows.push(current);
+				current = [];
+			}
+		}
+		if (current.length > 0) rows.push(current);
+		return { layout, rows };
+	}
+
+	it.each([3, 4, 5, 6, 7])(
+		"fills every row of %i cells without leaving one alone",
+		count => {
+			const { layout, rows } = rowsOfPhoneGrid(count);
+			const bodyRows = layout.hasLead ? rows.slice(1) : rows;
+
+			expect(rows.flat()).toHaveLength(count);
+			expect(bodyRows.every(row => row.length === layout.columns)).toBe(
+				true
+			);
+			if (!layout.hasLead) expect(rows.length).toBeGreaterThan(0);
+		}
+	);
+
+	it.each([3, 4, 5, 6, 7])(
+		"starts a row, and drops its separator, exactly where %i cells wrap",
+		count => {
+			const { layout, rows } = rowsOfPhoneGrid(count);
+			const starts = [...Array(count).keys()].filter(index =>
+				startsPhoneRow(layout, index)
+			);
+
+			expect(starts).toEqual(rows.map(row => row[0]));
+		}
+	);
+
+	it("uses a lead cell only when the cells would otherwise be uneven", () => {
+		expect([3, 4, 5, 6, 7].map(count => phoneLayoutFor(count))).toEqual([
+			{ columns: 3, hasLead: false },
+			{ columns: 2, hasLead: false },
+			{ columns: 2, hasLead: true },
+			{ columns: 3, hasLead: false },
+			{ columns: 3, hasLead: true }
 		]);
 	});
 });
@@ -282,23 +342,29 @@ describe("Rewind2026ResultsStrip", () => {
 		]);
 	});
 
-	it("paints each number with its own tone", async () => {
+	it("paints every number white, with no tone left on any cell", async () => {
 		stubBrowser();
 		const element = (await render()).nativeElement as HTMLElement;
 
-		expect(
-			[...element.querySelectorAll<HTMLElement>("dl > div")].map(cell =>
-				cell.style.getPropertyValue("--tone")
-			)
-		).toEqual([
-			"var(--color-success)",
-			"var(--color-danger)",
-			"var(--color-playing)",
-			"var(--color-playing)",
-			"var(--color-platinum)",
-			"var(--color-nav-lists)",
-			"var(--color-brand)"
-		]);
+		const numbers = [...element.querySelectorAll<HTMLElement>("dd")];
+		expect(numbers).toHaveLength(7);
+		for (const number of numbers) {
+			expect(number.classList).toContain("text-fg");
+			expect(number.className).not.toContain("--tone");
+		}
+		for (const cell of element.querySelectorAll<HTMLElement>("dl > div")) {
+			expect(cell.style.getPropertyValue("--tone")).toBe("");
+		}
+	});
+
+	it("keeps the labels at a readable size on a phone", async () => {
+		stubBrowser();
+		const element = (await render()).nativeElement as HTMLElement;
+
+		for (const label of element.querySelectorAll("dt")) {
+			expect(label.classList).toContain("text-sm");
+			expect(label.classList).not.toContain("text-xs");
+		}
 	});
 
 	it("leaves out the rows that have nothing to say", async () => {
@@ -440,6 +506,104 @@ describe("Rewind2026ResultsStrip", () => {
 		const element = fixture.nativeElement as HTMLElement;
 		expect(element.querySelectorAll("dt")).toHaveLength(5);
 		expect(frames.size).toBe(0);
+	});
+
+	function cellClasses(element: HTMLElement) {
+		return [...element.querySelectorAll<HTMLElement>("dl > div")].map(
+			cell => cell.className
+		);
+	}
+
+	it.each([
+		[
+			3,
+			{
+				...totals,
+				started: 0,
+				platinums: null,
+				finishRate: null,
+				averageRating: null
+			}
+		],
+		[
+			4,
+			{
+				...totals,
+				platinums: null,
+				finishRate: null,
+				averageRating: null
+			}
+		],
+		[5, { ...totals, started: 0, platinums: 0 }],
+		[6, { ...totals, platinums: null }],
+		[7, totals]
+	] as [number, RewindTotals][])(
+		"lays %i cells on a phone with no stray separator",
+		async (count, value) => {
+			reducedMotion = true;
+			stubBrowser();
+			const element = (await render(value)).nativeElement as HTMLElement;
+			const classes = cellClasses(element);
+			const layout = phoneLayoutFor(count);
+			const dl = element.querySelector("dl")!;
+
+			expect(classes).toHaveLength(count);
+			expect(dl.classList).toContain(`grid-cols-${layout.columns}`);
+			classes.forEach((className, index) => {
+				const hasNoSeparator = className.includes("max-lg:border-l-0");
+				expect(hasNoSeparator).toBe(startsPhoneRow(layout, index));
+				expect(className.includes("col-span-")).toBe(
+					layout.hasLead && index === 0
+				);
+			});
+		}
+	);
+
+	it("makes Finished a wide lead cell on a phone when seven figures would leave one alone", async () => {
+		reducedMotion = true;
+		stubBrowser();
+		const element = (await render()).nativeElement as HTMLElement;
+
+		const [lead, second, third] = cellClasses(element);
+		expect(lead).toContain("max-lg:col-span-3");
+		expect(second).not.toContain("col-span");
+		expect(second).toContain("max-lg:border-l-0");
+		expect(third).not.toContain("max-lg:border-l-0");
+	});
+
+	it("keeps a Rewind with almost nothing in it to a tidy row of three", async () => {
+		reducedMotion = true;
+		stubBrowser();
+		const element = (
+			await render({ ...bareTotals, finished: 1, hoursPlayed: 12 })
+		).nativeElement as HTMLElement;
+
+		const dl = element.querySelector("dl")!;
+		expect(visibleNumbers(element)).toEqual(["1", "0", "12"]);
+		expect(dl.classList).toContain("grid-cols-3");
+		expect(dl.className).toContain("lg:auto-cols-[minmax(0,12rem)]");
+		expect(dl.className).not.toContain("lg:auto-cols-fr");
+		expect(
+			cellClasses(element).filter(name => name.includes("col-span"))
+		).toEqual([]);
+	});
+
+	it("changes the phone grid when the number of figures changes", async () => {
+		reducedMotion = true;
+		stubBrowser();
+		const fixture = await render();
+		const element = fixture.nativeElement as HTMLElement;
+		expect(element.querySelector("dl")!.classList).toContain("grid-cols-3");
+
+		fixture.componentRef.setInput("totals", {
+			...totals,
+			started: 0,
+			platinums: 0
+		});
+		fixture.detectChanges();
+
+		expect(element.querySelector("dl")!.classList).toContain("grid-cols-2");
+		expect(cellClasses(element)[0]).toContain("max-lg:col-span-2");
 	});
 
 	it("stops the animation when the page is left mid-count", async () => {

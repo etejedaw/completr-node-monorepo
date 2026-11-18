@@ -18,7 +18,7 @@ import {
 	type UiPickerOption,
 	UiSkeleton
 } from "../../../../shared/ui";
-import { rewindCopy } from "../../rewind-copy";
+import { rewindCopy, rewindSummarySentence } from "../../rewind-copy";
 import { type RewindDesignComponent } from "../../rewind-designs.model";
 import { RewindReveal } from "../../rewind-reveal";
 import { REWIND_SHARE_COPY } from "../../rewind-share-copy";
@@ -42,6 +42,7 @@ import { Rewind2026CoverFan } from "./rewind-2026-cover-fan/rewind-2026-cover-fa
 import { Rewind2026GameOfTheYear } from "./rewind-2026-game-of-the-year/rewind-2026-game-of-the-year";
 import {
 	hasRewind2026Highlights,
+	platinumRecordOf,
 	Rewind2026Highlights
 } from "./rewind-2026-highlights/rewind-2026-highlights";
 import { Rewind2026ResultsStrip } from "./rewind-2026-results-strip/rewind-2026-results-strip";
@@ -82,7 +83,7 @@ function backdropOf(rewind: Rewind): string | null {
 		UiSkeleton
 	],
 	templateUrl: "./rewind-design-2026.html",
-	host: { class: "contents" },
+	host: { class: "contents [&_*]:rounded-none!" },
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RewindDesign2026 implements RewindDesignComponent {
@@ -95,6 +96,11 @@ export class RewindDesign2026 implements RewindDesignComponent {
 		() => rewindCopy(this.rewind().language).page
 	);
 
+	protected readonly summary = computed(() => {
+		const { totals, language } = this.rewind();
+		return rewindSummarySentence(totals, language);
+	});
+
 	protected readonly hasPremiumStats = computed(() => {
 		const stats = this.rewind().premiumStats;
 		return !!stats && hasPremiumCharts(stats);
@@ -104,9 +110,13 @@ export class RewindDesign2026 implements RewindDesignComponent {
 		hasYearMixCharts(this.rewind().yearMix)
 	);
 
-	protected readonly hasHighlights = computed(() =>
-		hasRewind2026Highlights(this.rewind().highlights)
-	);
+	protected readonly hasHighlights = computed(() => {
+		const { highlights, platinumGames, language } = this.rewind();
+		return (
+			hasRewind2026Highlights(highlights) ||
+			platinumRecordOf(platinumGames, language) !== null
+		);
+	});
 
 	protected readonly eyebrow = computed(() =>
 		this.isOwner()

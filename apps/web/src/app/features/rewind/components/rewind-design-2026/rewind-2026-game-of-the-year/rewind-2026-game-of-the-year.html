@@ -26,7 +26,7 @@
 		}
 		<app-game-poster
 			aria-hidden="true"
-			class="aspect-[2/3] w-28 shrink-0 -rotate-3 rounded-md shadow-popover ring-1 ring-line-hover transition-transform duration-500 ease-out motion-safe:group-hover:rotate-0 sm:w-40"
+			class="aspect-[2/3] w-28 shrink-0 -rotate-3 rounded-none shadow-popover ring-1 ring-line-hover transition-transform duration-500 ease-out motion-safe:group-hover:rotate-0 sm:w-40"
 			[src]="posterUrl()"
 			[title]="top.title"
 		/>
@@ -35,7 +35,7 @@
 				class="flex min-w-0 items-center gap-2 text-sm font-semibold text-fg-secondary"
 				><span
 					aria-hidden="true"
-					class="material-icons grid size-7 shrink-0 place-items-center rounded-lg text-lead"
+					class="material-icons grid size-7 shrink-0 place-items-center rounded-none text-lead"
 					[class]="capsuleClass"
 					>star</span
 				>{{ text.topRated }}</span

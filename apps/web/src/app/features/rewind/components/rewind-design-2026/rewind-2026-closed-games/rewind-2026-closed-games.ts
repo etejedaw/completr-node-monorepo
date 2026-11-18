@@ -7,7 +7,7 @@ import {
 import { RouterLink } from "@angular/router";
 
 import {
-	type RewindFinishedGame,
+	type RewindClosedGame,
 	type RewindLanguage
 } from "../../../../../core/models/rewind.model";
 import { GamePoster } from "../../../../../shared/components/game-poster/game-poster";
@@ -26,27 +26,39 @@ import {
 	type ClosedMonth
 } from "./rewind-2026-closed-games.model";
 
+function closedGameLabel(
+	game: RewindClosedGame,
+	date: string,
+	isAbandoned: boolean,
+	isPlatinum: boolean,
+	text: RewindTimelineCopy
+): string {
+	if (isAbandoned) return text.abandonedGameLabel(game.title, date);
+	if (isPlatinum) return text.platinumGameLabel(game.title, date);
+	return `${game.title}, ${date}`;
+}
+
 function toClosedGame(
-	game: RewindFinishedGame,
+	game: RewindClosedGame,
 	isAbandoned: boolean,
 	language: RewindLanguage,
 	text: RewindTimelineCopy
 ): ClosedGame {
 	const date = shortDate(game.finishedAt, language);
+	const isPlatinum = !isAbandoned && game.isPlatinumRun;
 	return {
 		key: `${isAbandoned ? "abandoned" : "finished"}-${game.gameId}`,
 		game,
 		isAbandoned,
-		label: isAbandoned
-			? text.abandonedGameLabel(game.title, date)
-			: `${game.title}, ${date}`,
+		isPlatinum,
+		label: closedGameLabel(game, date, isAbandoned, isPlatinum, text),
 		portraitUrl: gameArtUrl(game, "portrait")
 	};
 }
 
 function interleaveByDate(
-	finished: RewindFinishedGame[],
-	abandoned: RewindFinishedGame[],
+	finished: RewindClosedGame[],
+	abandoned: RewindClosedGame[],
 	language: RewindLanguage
 ): ClosedGame[] {
 	const text = rewindCopy(language).timeline;
@@ -105,14 +117,18 @@ function groupByMonth(
 	changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Rewind2026ClosedGames {
-	readonly games = input.required<RewindFinishedGame[]>();
-	readonly abandonedGames = input<RewindFinishedGame[]>([]);
+	readonly games = input.required<RewindClosedGame[]>();
+	readonly abandonedGames = input<RewindClosedGame[]>([]);
 	readonly language = input<RewindLanguage>("en");
 
 	protected readonly abandonedPosterClass = REWIND_ABANDONED_POSTER_CLASS;
 
 	protected readonly abandonedBadge = computed(
 		() => rewindCopy(this.language()).timeline.abandonedBadge
+	);
+
+	protected readonly platinumBadge = computed(
+		() => rewindCopy(this.language()).timeline.platinumBadge
 	);
 
 	protected readonly months = computed(() =>

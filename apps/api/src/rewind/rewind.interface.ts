@@ -25,6 +25,23 @@ export interface RewindFinishedGame extends RewindGameRef {
 	platformAbbreviation: string | null;
 }
 
+export interface RewindClosedGame extends RewindFinishedGame {
+	isPlatinumRun: boolean;
+}
+
+export interface RewindPlatinumGame extends RewindGameRef {
+	platinumedAt: string;
+	platformAbbreviation: string | null;
+}
+
+export interface RewindPlatinumRun extends RewindPlatinumGame {
+	backlogId: string | null;
+}
+
+export interface RewindStoredPlatinumGame extends RewindPlatinumGame {
+	backlogId?: string | null;
+}
+
 export interface RewindPeriod {
 	status: RewindPeriodStatus;
 	year: number;
@@ -157,8 +174,9 @@ export interface Rewind {
 	isSpotlight: boolean;
 	otherYears: number[];
 	totals: RewindTotals;
-	finishedGames: RewindFinishedGame[];
-	abandonedGames: RewindFinishedGame[];
+	finishedGames: RewindClosedGame[];
+	abandonedGames: RewindClosedGame[];
+	platinumGames: RewindPlatinumGame[] | null;
 	highlights: RewindHighlights;
 	yearMix: RewindYearMix;
 	language: RewindLanguage;
@@ -173,6 +191,7 @@ export interface Rewind {
 }
 
 export interface RewindViewGame extends RewindFinishedGame {
+	backlogId?: string;
 	platformName: string | null;
 	genres: string[];
 }
@@ -186,12 +205,14 @@ export interface RewindView extends Omit<
 	Rewind,
 	| "finishedGames"
 	| "abandonedGames"
+	| "platinumGames"
 	| "highlights"
 	| "ownerControls"
 	| "premiumAccess"
 > {
 	finishedGames: RewindViewGame[];
 	abandonedGames?: RewindViewGame[];
+	platinumGames?: RewindStoredPlatinumGame[];
 	highlights: RewindStoredHighlights;
 	personaWithoutPlatinums: RewindPersonaCode;
 	covers: RewindGameRef[];

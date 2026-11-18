@@ -46,10 +46,9 @@ const ENGLISH: RewindCopy = {
 		visitorGameOfTheYear: username => `@${username}'s game of the year`,
 		shareHeadline: year => `Your ${year}, ready for your stories`,
 		visitorShareHeadline: (username, year) =>
-			`@${username}'s ${year}, ready to share`,
+			`Share @${username}'s ${year} Rewind`,
 		shareDescription:
 			"Two images and a link so your friends can see your year.",
-		visitorShareDescription: "Two images and a link to show their year.",
 		finishedIn: year => `Finished in ${year}`,
 		closedIn: year => `Closed in ${year}`,
 		moreRewinds: "More Rewinds",
@@ -113,7 +112,14 @@ const ENGLISH: RewindCopy = {
 	timeline: {
 		abandonedGames: count => `${count} abandoned`,
 		abandonedGameLabel: (title, date) => `${title}, ${date}, abandoned`,
-		abandonedBadge: "Abandoned"
+		abandonedBadge: "Abandoned",
+		platinumGameLabel: (title, date) => `${title}, ${date}, platinum`,
+		platinumBadge: "Platinum"
+	},
+	platinums: {
+		inTheYear: "Platinums this year",
+		dateRange: (from, to) => `${from} to ${to}`,
+		gameLabel: (title, date) => `${title}, platinum on ${date}`
 	},
 	aiRecap: {
 		heading: "AI recap",
@@ -203,11 +209,9 @@ const SPANISH: RewindCopy = {
 		visitorGameOfTheYear: username => `El juego del año de @${username}`,
 		shareHeadline: year => `Tu ${year}, listo para tus historias`,
 		visitorShareHeadline: (username, year) =>
-			`El ${year} de @${username}, listo para compartir`,
+			`Comparte el Rewind ${year} de @${username}`,
 		shareDescription:
 			"Dos imágenes y un enlace para que tus amigos vean tu año.",
-		visitorShareDescription:
-			"Dos imágenes y un enlace para mostrar su año.",
 		finishedIn: year => `Terminados en ${year}`,
 		closedIn: year => `Cerrados en ${year}`,
 		moreRewinds: "Más Rewinds",
@@ -275,7 +279,14 @@ const SPANISH: RewindCopy = {
 		abandonedGames: count =>
 			spanishPlural(count, "abandonado", "abandonados"),
 		abandonedGameLabel: (title, date) => `${title}, ${date}, abandonado`,
-		abandonedBadge: "Abandonado"
+		abandonedBadge: "Abandonado",
+		platinumGameLabel: (title, date) => `${title}, ${date}, platinado`,
+		platinumBadge: "Platino"
+	},
+	platinums: {
+		inTheYear: "Platinos del año",
+		dateRange: (from, to) => `Del ${from} al ${to}`,
+		gameLabel: (title, date) => `${title}, platino el ${date}`
 	},
 	aiRecap: {
 		heading: "Resumen con IA",
@@ -459,6 +470,21 @@ export function spokenMonthRange(
 		return `${monthName(fromMonth, language)} a ${rawMonthName(toMonth, language, "long")}`;
 	}
 	return `${monthName(fromMonth, language)} to ${monthName(toMonth, language)}`;
+}
+
+export function spokenMonthList(
+	months: number[],
+	language: RewindLanguage = DEFAULT_REWIND_LANGUAGE
+): string {
+	const names = months
+		.filter(isMonth)
+		.map((month, index) =>
+			index === 0 || language !== "es"
+				? monthName(month, language)
+				: rawMonthName(month, language, "long")
+		);
+	if (names.length === 0) return "";
+	return joinWithAnd(names, rewindCopy(language).summary.and);
 }
 
 export function utcMonth(isoDate: string): number {

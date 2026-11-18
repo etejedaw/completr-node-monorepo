@@ -1,5 +1,7 @@
 import {
 	type Rewind,
+	type RewindClosedGame,
+	type RewindPlatinumGame,
 	type RewindYears,
 	type RewindYearSummary
 } from "./rewind.interface";
@@ -29,6 +31,33 @@ export function rewindYearsSerializer(rewindYears: RewindYears): RewindYears {
 	};
 }
 
+function rewindClosedGameSerializer(game: RewindClosedGame): RewindClosedGame {
+	return {
+		gameId: game.gameId,
+		code: game.code,
+		title: game.title,
+		coverUrl: game.coverUrl,
+		backgroundUrl: game.backgroundUrl,
+		finishedAt: game.finishedAt,
+		platformAbbreviation: game.platformAbbreviation,
+		isPlatinumRun: game.isPlatinumRun
+	};
+}
+
+function rewindPlatinumGameSerializer(
+	game: RewindPlatinumGame
+): RewindPlatinumGame {
+	return {
+		gameId: game.gameId,
+		code: game.code,
+		title: game.title,
+		coverUrl: game.coverUrl,
+		backgroundUrl: game.backgroundUrl,
+		platinumedAt: game.platinumedAt,
+		platformAbbreviation: game.platformAbbreviation
+	};
+}
+
 export function rewindSerializer(rewind: Rewind): Rewind {
 	return {
 		year: rewind.year,
@@ -37,8 +66,10 @@ export function rewindSerializer(rewind: Rewind): Rewind {
 		isSpotlight: rewind.isSpotlight,
 		otherYears: rewind.otherYears,
 		totals: rewind.totals,
-		finishedGames: rewind.finishedGames,
-		abandonedGames: rewind.abandonedGames,
+		finishedGames: rewind.finishedGames.map(rewindClosedGameSerializer),
+		abandonedGames: rewind.abandonedGames.map(rewindClosedGameSerializer),
+		platinumGames:
+			rewind.platinumGames?.map(rewindPlatinumGameSerializer) ?? null,
 		highlights: rewind.highlights,
 		yearMix: rewind.yearMix,
 		language: rewind.language,

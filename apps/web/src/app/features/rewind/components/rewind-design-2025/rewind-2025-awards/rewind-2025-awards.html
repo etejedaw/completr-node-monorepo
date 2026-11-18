@@ -1,20 +1,75 @@
-@if (awards().length > 0) {
-<ul
+@let lead = layout().lead; @if (lead) {
+<div
 	appRewindReveal
 	data-awards
-	class="m-0 grid min-w-0 list-none auto-cols-[62%] grid-flow-col snap-x snap-proximity gap-4 overflow-x-auto overscroll-x-contain p-0 pb-2 [scrollbar-width:thin] pointer-coarse:pt-[8px] @3xl/page:auto-cols-auto @3xl/page:grid-flow-row @3xl/page:grid-cols-[repeat(var(--award-columns),minmax(0,15rem))] @3xl/page:gap-5 @3xl/page:overflow-visible @3xl/page:pb-0 @3xl/page:pt-0"
-	[style.--award-columns]="awardColumns()"
+	class="flex min-w-0 flex-col gap-6 @3xl/page:gap-8"
 >
-	@for (award of awards(); track award.key) {
-	<li
-		class="group flex min-w-0 snap-start flex-col gap-2.5"
-		[attr.data-award]="award.key"
+	<article
+		class="group relative isolate aspect-[4/3.2] min-w-0 overflow-hidden rounded-lg bg-surface ring-1 ring-line @3xl/page:aspect-[2.7/1]"
+		[attr.data-award]="lead.key"
 	>
-		<div class="relative">
+		<a
+			aria-hidden="true"
+			tabindex="-1"
+			class="absolute inset-0 block"
+			[routerLink]="['/games', lead.game.code]"
+		>
+			<app-game-poster
+				class="size-full"
+				[src]="leadArt()"
+				[title]="lead.game.title"
+				[width]="640"
+				titleSize="1rem"
+			/>
+		</a>
+		<div
+			aria-hidden="true"
+			class="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,color-mix(in_oklab,var(--color-canvas)_94%,transparent)_0%,color-mix(in_oklab,var(--color-canvas)_80%,transparent)_50%,color-mix(in_oklab,var(--color-canvas)_35%,transparent)_80%,transparent_100%)]"
+		></div>
+		<div
+			class="pointer-events-none absolute inset-x-[18px] bottom-[18px] flex flex-col items-start gap-2.5 @3xl/page:inset-x-8 @3xl/page:bottom-7 @3xl/page:flex-row @3xl/page:items-end @3xl/page:justify-between @3xl/page:gap-6"
+		>
+			<div class="flex min-w-0 flex-col gap-2">
+				<span
+					uiEyebrow
+					class="text-fg-secondary! [text-shadow:0_1px_8px_rgb(0_0_0/0.6)]"
+					>{{ lead.label }}</span
+				>
+				<h3
+					class="m-0 font-display text-[1.3125rem] leading-[1.15] [text-shadow:0_1px_10px_rgb(0_0_0/0.55)] font-semibold text-balance [overflow-wrap:anywhere] @3xl/page:text-[1.75rem]"
+				>
+					<a
+						class="pointer-events-auto text-fg no-underline group-hover:text-brand focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+						[routerLink]="['/games', lead.game.code]"
+						>{{ lead.game.title }}</a
+					>
+				</h3>
+			</div>
+			<p
+				class="m-0 font-display text-[2.125rem] leading-none font-semibold whitespace-nowrap tabular-nums text-fg @3xl/page:text-[2.75rem]"
+			>
+				{{ lead.value }}@if (lead.unit) {<small
+					class="ml-1 font-sans text-sm font-medium text-fg-secondary"
+					>{{ lead.unit }}</small
+				>}
+			</p>
+		</div>
+	</article>
+	@if (layout().rest.length > 0) {
+	<ul
+		data-award-row
+		class="m-0 grid min-w-0 list-none auto-cols-[44%] grid-flow-col snap-x snap-proximity gap-4 overflow-x-auto overscroll-x-contain p-0 pb-2 [scrollbar-width:none] @3xl/page:auto-cols-auto @3xl/page:grid-flow-row @3xl/page:grid-cols-[repeat(var(--award-columns),minmax(0,1fr))] @3xl/page:gap-5 @3xl/page:overflow-visible @3xl/page:pb-0"
+		[style.--award-columns]="awardColumns()"
+	>
+		@for (award of layout().rest; track award.key) {
+		<li
+			class="group flex min-w-0 snap-start flex-col gap-1"
+			[attr.data-award]="award.key"
+		>
 			<a
 				aria-hidden="true"
 				tabindex="-1"
-				class="block"
+				class="mb-2 block"
 				[routerLink]="['/games', award.game.code]"
 			>
 				<app-game-poster
@@ -25,60 +80,41 @@
 					titleSize="0.875rem"
 				/>
 			</a>
+			<span uiEyebrow>{{ award.label }}</span>
+			<h3
+				class="m-0 font-display text-sm leading-tight font-semibold text-balance [overflow-wrap:anywhere]"
+			>
+				<a
+					class="text-fg no-underline group-hover:text-brand focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+					[routerLink]="['/games', award.game.code]"
+					>{{ award.game.title }}</a
+				>
+			</h3>
 			<p
-				class="pointer-events-none absolute inset-x-2.5 bottom-2.5 m-0 rounded-lg bg-canvas/80 px-2.5 py-2 font-display text-xl font-bold leading-none tabular-nums text-fg backdrop-blur-sm"
+				class="m-0 mt-0.5 font-display text-lg leading-tight tabular-nums text-fg"
 			>
 				{{ award.value }}@if (award.unit) {<small
-					class="ml-1 font-sans text-xs font-medium text-fg-secondary"
+					class="ml-1 font-sans text-xs font-medium text-fg-muted"
 					>{{ award.unit }}</small
 				>}
 			</p>
-		</div>
-		<span uiEyebrow>{{ award.label }}</span>
-		<h3
-			class="m-0 font-display text-base font-semibold leading-tight text-balance [overflow-wrap:anywhere]"
-		>
-			<a
-				class="text-fg no-underline group-hover:text-brand focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-				[routerLink]="['/games', award.game.code]"
-				>{{ award.game.title }}</a
-			>
-		</h3>
-	</li>
+		</li>
+		}
+	</ul>
 	}
-</ul>
+</div>
 } @if (figures().length > 0) {
-<dl
+<p
 	appRewindReveal
 	data-figures
-	class="m-0 grid grid-cols-2 border-t-2 border-fg @3xl/page:grid-cols-[repeat(var(--figure-columns),minmax(0,1fr))]"
-	[class.mt-8]="awards().length > 0"
-	[style.--figure-columns]="figures().length"
+	class="m-0 text-sm leading-7 text-fg-secondary text-pretty"
+	[class.mt-8]="!!layout().lead"
 >
-	@for (figure of figures(); track figure.key) {
-	<div
-		class="flex min-w-0 flex-col gap-1.5 pt-4 pr-4 pb-1 even:border-l even:border-line even:pl-4 nth-[n+3]:border-t nth-[n+3]:border-line @3xl/page:pr-5 @3xl/page:nth-[n+3]:border-t-0 @3xl/page:not-first:border-l @3xl/page:not-first:border-line @3xl/page:not-first:pl-5"
-		[attr.data-figure]="figure.key"
-	>
-		<dt uiEyebrow>{{ figure.label }}</dt>
-		<dd
-			class="m-0 flex flex-wrap items-baseline gap-x-1 font-display text-[2.4rem] font-bold leading-[0.9] tabular-nums text-fg"
-		>
-			@if (figure.spokenValue) {
-			<span aria-hidden="true">{{ figure.value }}</span
-			><span class="sr-only">{{ figure.spokenValue }}</span> } @else { {{
-			figure.value }} } @if (figure.unit) {<span
-				class="font-sans text-[0.45em] font-medium text-fg-secondary"
-				>{{ figure.unit }}</span
-			>}
-		</dd>
-		<dd class="m-0 text-sm text-fg-secondary text-pretty">
-			@if (figure.spokenDetail) {
-			<span aria-hidden="true">{{ figure.detail }}</span
-			><span class="sr-only">{{ figure.spokenDetail }}</span>
-			} @else { {{ figure.detail }} }
-		</dd>
-	</div>
-	}
-</dl>
+	@for (figure of figures(); track figure.key; let last = $last) {
+	<span [attr.data-figure]="figure.key"
+		><b class="font-semibold text-fg">{{ figure.lead }}</b>{{ figure.tail
+		}}</span
+	>@if (!last) {<span aria-hidden="true" class="px-2.5 text-fg-muted">·</span
+	>} }
+</p>
 }

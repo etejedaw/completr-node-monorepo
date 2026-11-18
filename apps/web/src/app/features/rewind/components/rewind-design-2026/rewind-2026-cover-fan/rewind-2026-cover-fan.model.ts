@@ -10,6 +10,7 @@ export interface Rewind2026FanPoster {
 	depth: number;
 	size: number;
 	layer: number;
+	isLead: boolean;
 }
 
 export interface Rewind2026FanSource {

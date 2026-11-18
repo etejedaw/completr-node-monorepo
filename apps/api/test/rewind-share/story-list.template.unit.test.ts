@@ -233,18 +233,24 @@ void describe("story list template", () => {
 		assert.equal(fetchMock.mock.callCount(), 12);
 	});
 
-	void it("has no image of any format for a design without share images", () => {
-		const rewind = buildRewind({ design: "2025" });
-
-		for (const format of ["story", "story-list", "og"] as const)
-			assert.equal(hasRewindImage(rewind, format), false, format);
+	void it("has only the link preview image for the 2025 design, even without finished games", () => {
+		for (const rewind of [
+			buildRewind({ design: "2025" }),
+			{ ...emptyRewind(), design: "2025" }
+		]) {
+			assert.equal(hasRewindImage(rewind, "og"), true);
+			assert.equal(hasRewindImage(rewind, "story"), false);
+			assert.equal(hasRewindImage(rewind, "story-list"), false);
+		}
 	});
 
-	void it("refuses to render an image for a design without share images", async () => {
-		await assert.rejects(
-			renderRewindImage(buildRewind({ design: "2025" }), "story"),
-			{ code: "REWIND_NOT_FOUND" }
-		);
+	void it("refuses to render the story images of the 2025 design", async () => {
+		for (const format of ["story", "story-list"] as const)
+			await assert.rejects(
+				renderRewindImage(buildRewind({ design: "2025" }), format),
+				{ code: "REWIND_NOT_FOUND" },
+				format
+			);
 	});
 
 	void it("has no list image for a year without finished games", () => {
