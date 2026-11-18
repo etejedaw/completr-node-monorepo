@@ -22,9 +22,11 @@ import {
 import { ViewportService } from "../../../core/services/viewport";
 import { UiBottomSheet } from "../bottom-sheet/ui-bottom-sheet";
 import { UiEyebrow } from "../label/ui-eyebrow";
+import { compactPickerTriggerClass } from "./ui-compact-picker-trigger";
 import {
 	type UiPickerAction,
-	type UiPickerOption
+	type UiPickerOption,
+	type UiPickerTriggerSize
 } from "./ui-option-picker.model";
 
 @Component({
@@ -52,7 +54,7 @@ export class UiOptionPicker {
 	readonly actions = input<readonly UiPickerAction[]>([]);
 	readonly variant = input<"field" | "compact" | "input">("field");
 	readonly triggerId = input<string | null>(null);
-	readonly size = input<"sm" | "md">("sm");
+	readonly size = input<UiPickerTriggerSize>("sm");
 	readonly placeholder = input("None");
 	readonly placeholderIcon = input("tune");
 	readonly invalid = input(false);
@@ -61,6 +63,7 @@ export class UiOptionPicker {
 	readonly lockedSelected = output<UiPickerOption>();
 
 	protected readonly isMobile = inject(ViewportService).isMobile;
+	protected readonly compactTriggerClass = compactPickerTriggerClass;
 	protected readonly sheetOpen = signal(false);
 	private readonly menuTrigger = viewChild(NgpMenuTrigger);
 

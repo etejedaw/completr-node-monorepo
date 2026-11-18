@@ -17,3 +17,7 @@ export interface UiPickerAction {
 	label: string;
 	icon: string;
 }
+
+export type UiPickerTriggerSize = "sm" | "md";
+
+export type UiMultiPickerVariant = "field" | "compact";

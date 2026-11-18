@@ -6,10 +6,28 @@
 	[ngpPopoverTriggerOffset]="6"
 	aria-haspopup="dialog"
 	[attr.aria-label]="label() + ': ' + summary()"
-	class="w-full h-12 min-h-[44px] px-3.5 flex items-center gap-2.5 rounded-card border bg-surface/70 backdrop-blur text-left cursor-pointer transition hover:border-line-hover active:bg-surface-hover"
-	[class]="values().length > 0 ? 'border-brand/60' : 'border-line'"
+	[class]="
+		variant() === 'compact'
+			? compactTriggerClass(size(), values().length > 0)
+			: 'w-full h-12 min-h-[44px] px-3.5 flex items-center gap-2.5 rounded-card border bg-surface/70 backdrop-blur text-left cursor-pointer transition hover:border-line-hover active:bg-surface-hover ' +
+				(values().length > 0 ? 'border-brand/60' : 'border-line')
+	"
 	(click)="openSheet()"
 >
+	@if (variant() === "compact") {
+	<span aria-hidden="true" class="material-icons shrink-0 text-base"
+		>{{ placeholderIcon() }}</span
+	>
+	<span class="text-fg-muted">{{ label() }}</span>
+	<span class="max-w-[10rem] truncate" [class.text-fg]="values().length === 0"
+		>{{ summary() }}</span
+	>
+	<span
+		aria-hidden="true"
+		class="material-icons shrink-0 text-base text-fg-muted"
+		>expand_more</span
+	>
+	} @else {
 	<span
 		aria-hidden="true"
 		class="material-icons shrink-0 text-lg"
@@ -25,6 +43,7 @@
 	<span aria-hidden="true" class="material-icons shrink-0 text-fg-muted"
 		>expand_more</span
 	>
+	}
 </button>
 
 <ng-template #popover>
@@ -56,7 +75,7 @@
 		<div class="flex items-center justify-between gap-2 px-1.5 pt-0.5">
 			<p uiEyebrow class="m-0" aria-live="polite">
 				{{ values().length === 0 ? heading() : values().length + ' ' +
-				noun() }}
+				nounFor(values().length) }}
 			</p>
 			<button
 				type="button"
@@ -104,12 +123,28 @@
 						>check</span
 					>
 				</span>
+				@if (option.icon) {
+				<span
+					aria-hidden="true"
+					class="material-icons text-base shrink-0"
+					[class]="option.iconClass ?? 'text-fg-muted'"
+					[style.color]="option.iconColor ?? null"
+					>{{ option.icon }}</span
+				>
+				}
 				<span class="flex-1 min-w-0 truncate">{{ option.label }}</span>
 				@if (option.shortLabel && option.shortLabel !== option.label) {
 				<span
 					aria-hidden="true"
 					class="text-xs text-fg-muted tabular-nums"
 					>{{ option.shortLabel }}</span
+				>
+				} @else if (option.count !== undefined && option.count !== null)
+				{
+				<span
+					aria-hidden="true"
+					class="text-xs text-fg-muted tabular-nums"
+					>{{ option.count }}</span
 				>
 				}
 			</div>
