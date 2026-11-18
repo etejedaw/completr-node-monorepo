@@ -53,7 +53,7 @@ describe("privacy options", () => {
 		}
 	});
 
-	it("covers the eleven profile sections", () => {
+	it("covers the twelve profile sections", () => {
 		expect([...SECTION_KEYS].sort()).toEqual([
 			"backlogVisibility",
 			"favoriteVisibility",
