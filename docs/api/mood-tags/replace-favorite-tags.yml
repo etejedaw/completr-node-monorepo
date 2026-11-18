@@ -1,0 +1,61 @@
+info:
+    name: Replace Favorite Mood Tags
+    type: http
+    seq: 7
+
+http:
+    method: PUT
+    url: "{{BASE_URL}}/users/me/mood-tags/favorites"
+    headers:
+        - name: Content-Type
+          value: application/json
+    auth: inherit
+    body:
+        type: json
+        data: |-
+            {
+              "tags": ["relajante", "co-op"]
+            }
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Replace Favorite Mood Tags
+
+    Replaces the authenticated user's favorite tags with the given ordered list. The favorites are shown on the profile through `GET /users/:username/tags`, gated by `tagVisibility`. Send `tags: []` to clear them. Idempotent: sending the same body twice yields the same result.
+
+    Each tag is normalized like the rest of the module (lowercase, trimmed, whitespace collapsed, diacritics stripped) and must be one of the user's existing tags (assigned to a game or created with `POST /users/me/mood-tags`). The position of each tag is exposed as `favoriteOrder` in `GET /users/me/mood-tags`. A renamed favorite keeps its position and a deleted one leaves the list.
+
+    **Authentication:** Bearer token required.
+    **Rate Limit:** 100 requests per minute.
+
+    ### Request Body
+
+    | Field | Type     | Required | Description                                                  |
+    |-------|----------|----------|--------------------------------------------------------------|
+    | tags  | string[] | Yes      | Up to 5 tags, in display order. Each 1–40 chars. `[]` clears. |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "tags": ["relajante", "co-op"]
+      }
+    }
+    ```
+
+    Returns the normalized favorites in order.
+
+    ### Errors
+
+    | Status | Type                             | Reason                                                   |
+    |--------|----------------------------------|----------------------------------------------------------|
+    | 422    | `COMMON_SCHEMA_INVALID`          | Body shape invalid (missing `tags`, non-string, empty or longer than 40 chars, extra keys) |
+    | 422    | `MOOD_TAGS_TOO_MANY_FAVORITES`   | More than 5 tags                                         |
+    | 422    | `MOOD_TAGS_DUPLICATED_FAVORITE`  | Two entries are the same tag after normalization         |
+    | 422    | `MOOD_TAGS_FAVORITE_UNKNOWN_TAG` | A tag is not one of the user's tags                      |
+    | 422    | `MOOD_TAGS_INVALID_TAG`          | A tag is empty after normalization                       |
+    | 422    | `AUTH_SCHEMA_INVALID`            | Missing or malformed `Authorization` header              |
+    | 401    | `AUTH_INVALID_TOKEN`             | Invalid or expired token                                 |

@@ -69,6 +69,8 @@ docs: |-
     Returns the final (normalized) tag name. Re-fetch `GET /users/me/mood-tags` to read the
     updated row.
 
+    A renamed favorite keeps its position among the favorites. When it is merged into a tag that already exists, the merged tag keeps the earlier of the two positions and the remaining favorites close the gap.
+
     ### Errors
 
     | Status | Type                       | Reason                                              |

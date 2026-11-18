@@ -54,7 +54,7 @@ docs: |-
         "dataSource": "All the data in this file was provided by you while using Completr ..."
       },
       "account": { "id": "uuid", "username": "johndoe", "email": "johndoe@example.com", "name": "John", "bio": null, "avatarUrl": null, "role": "user", "theme": "refined-dark", "isActive": true, "createdAt": "...", "updatedAt": "..." },
-      "privacySettings": { "profileVisibility": "public", "backlogVisibility": "friends", "acceptFollowRequests": true },
+      "privacySettings": { "profileVisibility": "public", "backlogVisibility": "friends", "tagVisibility": "public", "acceptFollowRequests": true },
       "premium": { "status": { "active": false, "source": null, "expiresAt": null }, "grants": [] },
       "backlog": [{ "id": "uuid", "game": { "id": "uuid", "title": "Hades", "slug": "hades" }, "compilationGame": null, "platform": "PC", "status": "completed", "notes": "...", "progress": [{ "id": "uuid", "note": "Reached Elysium", "createdAt": "..." }], "coopPartners": ["janedoe"] }],
       "queue": [{ "position": 1, "backlogId": "uuid", "game": { "id": "uuid", "title": "Hades", "slug": "hades" }, "createdAt": "..." }],
@@ -67,7 +67,7 @@ docs: |-
       "reviews": [],
       "social": { "followers": [{ "username": "janedoe", "since": "..." }], "following": [], "followRequests": [{ "direction": "received", "username": "alex", "createdAt": "..." }] },
       "activity": [{ "id": "uuid", "type": "backlog_completed", "game": { "id": "uuid", "title": "Hades", "slug": "hades" }, "list": null, "targetUsername": null, "metadata": null, "createdAt": "..." }],
-      "moodTags": { "tags": [{ "tag": "cozy", "description": "Rainy days", "createdAt": "..." }], "gameTags": [] },
+      "moodTags": { "tags": [{ "tag": "cozy", "description": "Rainy days", "favoriteOrder": 0, "createdAt": "..." }], "gameTags": [] },
       "trackedFranchises": [],
       "platinums": [],
       "rewinds": [{ "year": 2025, "aiRecap": {}, "premiumStats": {} }],

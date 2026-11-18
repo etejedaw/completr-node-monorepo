@@ -27,9 +27,9 @@ docs: |-
     {
       "data": {
         "tags": [
-          { "tag": "relajante", "usageCount": 12, "description": "Para una sesión chill" },
-          { "tag": "corto", "usageCount": 7, "description": null },
-          { "tag": "podcast game", "usageCount": 3, "description": null }
+          { "tag": "relajante", "usageCount": 12, "description": "Para una sesión chill", "favoriteOrder": 0 },
+          { "tag": "corto", "usageCount": 7, "description": null, "favoriteOrder": null },
+          { "tag": "podcast game", "usageCount": 3, "description": null, "favoriteOrder": 1 }
         ]
       }
     }
@@ -38,3 +38,5 @@ docs: |-
     `description` is `null` unless the user explicitly set one via
     `PATCH /users/me/mood-tags/:tag`. Tags that exist only as metadata (no game uses them
     yet) appear with `usageCount = 0`.
+
+    `favoriteOrder` is the 0-based position of the tag among the user's favorites (set with `PUT /users/me/mood-tags/favorites`), or `null` when the tag is not a favorite.

@@ -1,0 +1,73 @@
+info:
+    name: Get Community Tag Games
+    type: http
+    seq: 11
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/tags/:tag/games?limit=24&offset=0"
+    params:
+        - name: tag
+          value: relajante
+          type: path
+        - name: limit
+          value: "24"
+          type: query
+        - name: offset
+          value: "0"
+          type: query
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Community Tag Games
+
+    Returns the active games where the tag is public (used by at least 2 distinct players with an active account), paginated. `:tag` is normalized like any mood tag (case, accents, spaces). Order: `players` descending, `title` ascending, `id` ascending.
+
+    `ratio` is the same value the game detail shows (`null` without the Completr score or duration). `coverUrl` and `backgroundUrl` may be `null`. An unknown tag answers `total: 0` and `games: []`, not 404.
+
+    **Authentication:** Optional.
+    **Rate Limit:** public limiter.
+
+    ### Path Parameters
+
+    | Param | Type   | Required | Description    |
+    |-------|--------|----------|----------------|
+    | tag   | string | Yes      | 1 to 40 chars  |
+
+    ### Query Parameters
+
+    | Param  | Type    | Required | Description           |
+    |--------|---------|----------|-----------------------|
+    | limit  | integer | No       | 1 to 48 (default: 24) |
+    | offset | integer | No       | ≥ 0 (default: 0)      |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "tag": "relajante",
+        "total": 12,
+        "games": [
+          {
+            "id": "<uuid>",
+            "code": "a-short-hike",
+            "title": "A Short Hike",
+            "coverUrl": "https://images.igdb.com/igdb/image/upload/t_cover_big/co1xyz.jpg",
+            "backgroundUrl": "https://images.igdb.com/igdb/image/upload/t_1080p/sc1xyz.jpg",
+            "ratio": 57.33,
+            "players": 5
+          }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Type                    | Reason                                              |
+    |--------|-------------------------|-----------------------------------------------------|
+    | 422    | `COMMON_SCHEMA_INVALID` | `tag` longer than 40 chars, or `limit`/`offset` out of range |

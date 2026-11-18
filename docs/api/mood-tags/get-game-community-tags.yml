@@ -1,0 +1,55 @@
+info:
+    name: Get Game Community Tags
+    type: http
+    seq: 8
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/games/:gameId/tags"
+    params:
+        - name: gameId
+          value: ""
+          type: path
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Game Community Tags
+
+    Returns the community tags of a game. The tags every user assigns to their games count as anonymous votes: a tag is public on a game once at least 2 distinct players with an active account use it. Computed on every read.
+
+    Public tags come first, top 10 by `players` (descending) then `tag` (ascending). With a session, the requester's own tags on the game are flagged `mine: true`, and those that are not among the public ones (not public yet, or outside the top 10) are appended after them in the same order. The response never says who used a tag.
+
+    **Authentication:** Optional (used to compute `mine`).
+    **Rate Limit:** public limiter.
+
+    ### Path Parameters
+
+    | Param  | Type | Required | Description   |
+    |--------|------|----------|---------------|
+    | gameId | uuid | Yes      | The game UUID |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "tags": [
+          { "tag": "relajante", "players": 4, "mine": true },
+          { "tag": "co-op", "players": 2, "mine": false },
+          { "tag": "para la tarde", "players": 1, "mine": true }
+        ]
+      }
+    }
+    ```
+
+    Anonymous requests always get `mine: false` and only public tags. To add a community tag to your own game, send your current tags plus the new one to `PUT /users/me/games/:gameId/mood-tags`.
+
+    ### Errors
+
+    | Status | Type                       | Reason                              |
+    |--------|----------------------------|-------------------------------------|
+    | 404    | `MOOD_TAGS_GAME_NOT_FOUND` | The game does not exist or is inactive |
+    | 422    | `COMMON_SCHEMA_INVALID`    | `gameId` is not a UUID              |
