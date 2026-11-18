@@ -15,11 +15,11 @@ import {
 	UiBadge,
 	UiIconButton
 } from "../../../shared/ui";
+import { appearanceColorHex } from "../../../shared/utils/appearance";
 import {
 	backlogStatusIcon,
 	backlogStatusLabel
 } from "../../../shared/utils/backlog-status";
-import { savedFilterColorHex } from "../saved-filter-appearance";
 import { type SavedFilter } from "../saved-filters.model";
 import { type ViewChip } from "./saved-view-card.model";
 
@@ -120,7 +120,7 @@ export class SavedViewCard {
 	readonly edited = output<void>();
 
 	protected readonly accent = computed(
-		() => savedFilterColorHex(this.view().color) ?? "var(--color-brand)"
+		() => appearanceColorHex(this.view().color) ?? "var(--color-brand)"
 	);
 	protected readonly menuItems = MENU_ITEMS;
 	protected readonly chips = computed(() => buildChips(this.view()));

@@ -220,74 +220,7 @@
 			</div>
 		</div>
 
-		<fieldset class="m-0 p-0 border-0">
-			<legend uiFieldLabel>Icon <ui-field-optional /></legend>
-			<div class="flex flex-wrap gap-1.5">
-				<button
-					type="button"
-					uiSwatchButton
-					[selected]="!editIcon()"
-					aria-label="No icon"
-					title="No icon"
-					(click)="editIcon.set(null)"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-base"
-						[class]="!editIcon() ? 'text-brand' : 'text-fg-muted'"
-						>block</span
-					>
-				</button>
-				@for (ic of iconOptions; track ic) {
-				<button
-					type="button"
-					uiSwatchButton
-					[selected]="editIcon() === ic"
-					[attr.aria-label]="iconLabel(ic)"
-					[title]="iconLabel(ic)"
-					(click)="editIcon.set(ic)"
-				>
-					<span
-						aria-hidden="true"
-						class="material-icons text-base"
-						[style.color]="colorHex(editColor())"
-						>{{ ic }}</span
-					>
-				</button>
-				}
-			</div>
-		</fieldset>
-
-		<fieldset class="m-0 p-0 border-0">
-			<legend uiFieldLabel>Color <ui-field-optional /></legend>
-			<div class="flex flex-wrap items-center gap-2">
-				<button
-					type="button"
-					uiSwatchButton
-					shape="circle"
-					[selected]="!editColor()"
-					aria-label="No color"
-					title="No color"
-					(click)="editColor.set(null)"
-				>
-					<span aria-hidden="true" class="material-icons text-sm"
-						>block</span
-					>
-				</button>
-				@for (c of colorOptions; track c.key) {
-				<button
-					type="button"
-					uiSwatchButton
-					shape="circle"
-					[color]="c.hex"
-					[selected]="editColor() === c.key"
-					[attr.aria-label]="c.label"
-					[title]="c.label"
-					(click)="editColor.set(c.key)"
-				></button>
-				}
-			</div>
-		</fieldset>
+		<app-appearance-picker [(icon)]="editIcon" [(color)]="editColor" />
 	</div>
 
 	<ng-container dialogFooter>

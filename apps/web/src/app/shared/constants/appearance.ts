@@ -1,4 +1,6 @@
-export const SAVED_FILTER_ICONS = [
+import { type AppearanceColor } from "./appearance.model";
+
+export const APPEARANCE_ICONS = [
 	"bookmark",
 	"star",
 	"favorite",
@@ -20,7 +22,7 @@ export const SAVED_FILTER_ICONS = [
 	"visibility"
 ];
 
-export const SAVED_FILTER_ICON_LABELS: Record<string, string> = {
+export const APPEARANCE_ICON_LABELS: Record<string, string> = {
 	bookmark: "Bookmark",
 	star: "Star",
 	favorite: "Heart",
@@ -42,15 +44,7 @@ export const SAVED_FILTER_ICON_LABELS: Record<string, string> = {
 	visibility: "Eye"
 };
 
-export function savedFilterIconLabel(icon: string) {
-	return SAVED_FILTER_ICON_LABELS[icon] ?? icon;
-}
-
-export const SAVED_FILTER_COLORS: {
-	key: string;
-	hex: string;
-	label: string;
-}[] = [
+export const APPEARANCE_COLORS: readonly AppearanceColor[] = [
 	{ key: "brand", hex: "var(--color-brand)", label: "Theme color" },
 	{ key: "sky", hex: "var(--color-view-sky)", label: "Sky blue" },
 	{ key: "emerald", hex: "var(--color-view-emerald)", label: "Green" },
@@ -59,12 +53,3 @@ export const SAVED_FILTER_COLORS: {
 	{ key: "teal", hex: "var(--color-view-teal)", label: "Teal" },
 	{ key: "slate", hex: "var(--color-view-slate)", label: "Gray" }
 ];
-
-export function savedFilterColorHex(color: string | null | undefined) {
-	if (!color) return null;
-	return SAVED_FILTER_COLORS.find(c => c.key === color)?.hex ?? null;
-}
-
-export function supportedSavedFilterColor(color: string | null | undefined) {
-	return SAVED_FILTER_COLORS.find(c => c.key === color)?.key ?? null;
-}

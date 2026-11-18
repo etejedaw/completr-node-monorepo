@@ -1,0 +1,75 @@
+<fieldset class="m-0 p-0 border-0">
+	<legend uiFieldLabel>Icon <ui-field-optional /></legend>
+	<div class="flex flex-wrap gap-1.5">
+		<button
+			type="button"
+			uiSwatchButton
+			[selected]="!icon()"
+			[attr.aria-label]="noIconLabel()"
+			[title]="noIconLabel()"
+			(click)="icon.set(null)"
+		>
+			@if (defaultIcon(); as fallback) {
+			<span
+				aria-hidden="true"
+				class="material-icons text-base"
+				[style.color]="colorHex()"
+				>{{ fallback }}</span
+			>
+			} @else {
+			<span
+				aria-hidden="true"
+				class="material-icons text-base"
+				[class]="!icon() ? 'text-brand' : 'text-fg-muted'"
+				>block</span
+			>
+			}
+		</button>
+		@for (option of iconOptions; track option) {
+		<button
+			type="button"
+			uiSwatchButton
+			[selected]="icon() === option"
+			[attr.aria-label]="iconLabel(option)"
+			[title]="iconLabel(option)"
+			(click)="icon.set(option)"
+		>
+			<span
+				aria-hidden="true"
+				class="material-icons text-base"
+				[style.color]="colorHex()"
+				>{{ option }}</span
+			>
+		</button>
+		}
+	</div>
+</fieldset>
+
+<fieldset class="m-0 p-0 border-0">
+	<legend uiFieldLabel>Color <ui-field-optional /></legend>
+	<div class="flex flex-wrap items-center gap-2">
+		<button
+			type="button"
+			uiSwatchButton
+			shape="circle"
+			[selected]="!color()"
+			aria-label="No color"
+			title="No color"
+			(click)="color.set(null)"
+		>
+			<span aria-hidden="true" class="material-icons text-sm">block</span>
+		</button>
+		@for (option of colorOptions; track option.key) {
+		<button
+			type="button"
+			uiSwatchButton
+			shape="circle"
+			[color]="option.hex"
+			[selected]="color() === option.key"
+			[attr.aria-label]="option.label"
+			[title]="option.label"
+			(click)="color.set(option.key)"
+		></button>
+		}
+	</div>
+</fieldset>
