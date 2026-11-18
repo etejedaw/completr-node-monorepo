@@ -31,6 +31,7 @@ import {
 } from "../game-platinum/schemas/platinums-bulk-query.schema";
 import * as gameShelfController from "../game-shelf/game-shelf.controller";
 import gameShelfRouter from "../game-shelf/game-shelf.routes";
+import * as moodTagsController from "../mood-tags/mood-tags.controller";
 import * as queueController from "../queue/queue.controller";
 import queueRouter from "../queue/queue.routes";
 import savedFiltersRouter from "../saved-filters/saved-filters.routes";
@@ -228,6 +229,17 @@ router.get(
 		requireVisibleProfileMiddleware("favorite")
 	],
 	favoritesController.getUserFavorites
+);
+
+router.get(
+	"/users/:username/tags",
+	[
+		authOptionalMiddleware,
+		rateLimiterMiddleware(publicLimiter),
+		validateSchemaMiddleware(UsernameParamSchema, "params"),
+		requireVisibleProfileMiddleware("tag")
+	],
+	moodTagsController.getUserFavoriteTags
 );
 
 router.post(
