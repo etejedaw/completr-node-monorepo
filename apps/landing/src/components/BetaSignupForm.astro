@@ -1,9 +1,60 @@
 ---
+import { getRelativeLocaleUrl } from "astro:i18n";
+
+import { type Locale, toLocale } from "../i18n/locales";
+
+const lang = toLocale(Astro.currentLocale);
+
 const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
+
+const copy = {
+	es: {
+		placeholder: "tu@correo.com",
+		emailLabel: "Correo electrónico",
+		submit: "Pedir invitación",
+		noscriptStart:
+			"El formulario necesita JavaScript. Si lo tienes desactivado, escríbeme a",
+		noscriptEnd: "y te aviso del acceso.",
+		privacyNote: "Solo lo uso para avisarte del acceso.",
+		privacyLink: "Cómo manejo tu correo",
+		messages: {
+			missingEndpoint: "Configuración incompleta. Inténtalo más tarde.",
+			invalidEmail: "Ingresa un correo válido.",
+			sending: "Enviando…",
+			tooManyAttempts:
+				"Demasiados intentos. Espera un momento e inténtalo de nuevo.",
+			saveFailed:
+				"No pudimos guardar tu correo. Inténtalo de nuevo en un momento.",
+			offline: "Sin conexión. Verifica tu red e inténtalo de nuevo."
+		}
+	},
+	en: {
+		placeholder: "you@email.com",
+		emailLabel: "Email",
+		submit: "Request an invite",
+		noscriptStart:
+			"The form needs JavaScript. If you have it turned off, email me at",
+		noscriptEnd: "and I'll let you know about access.",
+		privacyNote: "I only use it to let you know about access.",
+		privacyLink: "How I handle your email",
+		messages: {
+			missingEndpoint: "Setup is incomplete. Please try again later.",
+			invalidEmail: "Enter a valid email.",
+			sending: "Sending…",
+			tooManyAttempts: "Too many attempts. Wait a moment and try again.",
+			saveFailed: "We couldn't save your email. Try again in a moment.",
+			offline: "No connection. Check your network and try again."
+		}
+	}
+} satisfies Record<Locale, unknown>;
+
+const t = copy[lang];
 ---
 
 <form
 	data-endpoint={endpoint}
+	data-success-url={getRelativeLocaleUrl(lang, "gracias/")}
+	data-messages={JSON.stringify(t.messages)}
 	class="beta-signup-form flex flex-col sm:flex-row gap-3 w-full max-w-xl mx-auto"
 	novalidate
 >
@@ -12,8 +63,8 @@ const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
 		name="email"
 		required
 		autocomplete="email"
-		placeholder="tu@correo.com"
-		aria-label="Correo electrónico"
+		placeholder={t.placeholder}
+		aria-label={t.emailLabel}
 		class="beta-signup-email flex-1 px-4 py-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-line)] text-[var(--color-fg)] placeholder:text-[var(--color-fg-muted)] focus:outline-none focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--color-brand)]/30 transition-colors w-full"
 	/>
 	<input
@@ -29,7 +80,7 @@ const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
 		class="px-6 py-3 rounded-xl font-semibold text-white border-0 cursor-pointer transition-transform hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
 		style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 8px 24px -4px var(--color-brand-glow);"
 	>
-		Pedir invitación
+		{t.submit}
 	</button>
 </form>
 
@@ -37,14 +88,13 @@ const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
 	<p
 		class="m-0 mt-3 text-sm text-center text-[var(--color-fg-muted)] max-w-xl mx-auto"
 	>
-		El formulario necesita JavaScript. Si lo tienes desactivado, escríbeme a{
-			" "
-		}
+		{t.noscriptStart}{" "}
 		<a
 			href="mailto:completr@etejeda.dev"
 			class="text-[var(--color-brand)] hover:underline"
 			>completr@etejeda.dev</a
-		> y te aviso del acceso.
+		>
+		{t.noscriptEnd}
 	</p>
 </noscript>
 
@@ -56,14 +106,25 @@ const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
 </p>
 
 <p class="m-0 mt-2 text-xs text-[var(--color-fg-muted)] text-center">
-	Solo lo uso para avisarte del acceso. <a
-		href="/privacy"
+	{t.privacyNote}{" "}
+	<a
+		href={getRelativeLocaleUrl(lang, "privacy/")}
 		class="text-[var(--color-fg-secondary)] underline underline-offset-2 decoration-[var(--color-fg-muted)] hover:text-[var(--color-brand)] hover:decoration-[var(--color-brand)] transition-colors"
-		>Cómo manejo tu correo</a
+		>{t.privacyLink}</a
 	>.
 </p>
 
 <script>
+	type SignupMessages = Record<
+		| "missingEndpoint"
+		| "invalidEmail"
+		| "sending"
+		| "tooManyAttempts"
+		| "saveFailed"
+		| "offline",
+		string
+	>;
+
 	function setStatus(
 		el: HTMLElement,
 		message: string,
@@ -94,29 +155,30 @@ const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
 
 			if (!submitBtn || !emailInput || !status) return;
 
+			const messages = JSON.parse(
+				form.dataset.messages ?? "{}"
+			) as SignupMessages;
+			const successUrl = form.dataset.successUrl ?? "/";
+
 			form.addEventListener("submit", async event => {
 				event.preventDefault();
 				if (submitBtn.disabled) return;
 
 				const endpoint = form.dataset.endpoint;
 				if (!endpoint) {
-					setStatus(
-						status,
-						"Configuración incompleta. Inténtalo más tarde.",
-						"error"
-					);
+					setStatus(status, messages.missingEndpoint, "error");
 					return;
 				}
 
 				const email = emailInput.value.trim();
 				if (!email || !emailInput.checkValidity()) {
-					setStatus(status, "Ingresa un correo válido.", "error");
+					setStatus(status, messages.invalidEmail, "error");
 					emailInput.focus();
 					return;
 				}
 
 				submitBtn.disabled = true;
-				setStatus(status, "Enviando…", "info");
+				setStatus(status, messages.sending, "info");
 				let isRedirecting = false;
 
 				try {
@@ -135,26 +197,14 @@ const endpoint = import.meta.env.PUBLIC_CONTACT_ENDPOINT ?? "";
 					if (response.ok) {
 						form.reset();
 						isRedirecting = true;
-						window.location.assign("/gracias");
+						window.location.assign(successUrl);
 					} else if (response.status === 429) {
-						setStatus(
-							status,
-							"Demasiados intentos. Espera un momento e inténtalo de nuevo.",
-							"error"
-						);
+						setStatus(status, messages.tooManyAttempts, "error");
 					} else {
-						setStatus(
-							status,
-							"No pudimos guardar tu correo. Inténtalo de nuevo en un momento.",
-							"error"
-						);
+						setStatus(status, messages.saveFailed, "error");
 					}
 				} catch {
-					setStatus(
-						status,
-						"Sin conexión. Verifica tu red e inténtalo de nuevo.",
-						"error"
-					);
+					setStatus(status, messages.offline, "error");
 				} finally {
 					submitBtn.disabled = isRedirecting;
 				}

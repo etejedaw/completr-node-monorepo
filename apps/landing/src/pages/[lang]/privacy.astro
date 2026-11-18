@@ -1,12 +1,44 @@
 ---
-import Footer from "../components/Footer.astro";
-import SiteHeader from "../components/SiteHeader.astro";
-import Layout from "../layouts/Layout.astro";
-import { loadPrivacyPolicy } from "../utils/privacy-policy";
+import Footer from "../../components/Footer.astro";
+import SiteHeader from "../../components/SiteHeader.astro";
+import {
+	getLocaleStaticPaths,
+	type Locale,
+	toLocale
+} from "../../i18n/locales";
+import Layout from "../../layouts/Layout.astro";
+import { loadPrivacyPolicy } from "../../utils/privacy-policy";
 
-const policy = await loadPrivacyPolicy("es");
+export const getStaticPaths = getLocaleStaticPaths;
 
-const updatedLabel = new Intl.DateTimeFormat("es", {
+const lang = toLocale(Astro.currentLocale);
+
+const copy = {
+	es: {
+		pageTitle: "Privacidad — Completr",
+		description:
+			"Qué datos recojo en Completr, para qué los uso, quiénes más los ven, cuánto los conservo y qué control tienes sobre ellos.",
+		version: "Versión",
+		updated: "última actualización:",
+		sectionsLabel: "Secciones de la política",
+		summaryLabel: "En resumen"
+	},
+	en: {
+		pageTitle: "Privacy — Completr",
+		description:
+			"What data I collect in Completr, what I use it for, who else sees it, how long I keep it and what control you have over it.",
+		version: "Version",
+		updated: "last updated:",
+		sectionsLabel: "Policy sections",
+		summaryLabel: "In short"
+	}
+} satisfies Record<Locale, unknown>;
+
+const t = copy[lang];
+
+const policy = await loadPrivacyPolicy(lang);
+
+const updatedLabel = new Intl.DateTimeFormat(lang, {
 	day: "numeric",
 	month: "long",
 	year: "numeric",
@@ -21,10 +53,7 @@ const tocLinkClass =
 	"toc-link flex items-center gap-2.5 min-h-[44px] px-3 rounded-lg text-sm text-[var(--color-fg-secondary)] no-underline transition-colors hover:text-[var(--color-fg)] hover:bg-[var(--color-surface)]";
 ---
 
-<Layout
-	title="Privacidad — Completr"
-	description="Qué datos recojo en Completr, para qué los uso, quiénes más los ven, cuánto los conservo y qué control tienes sobre ellos."
->
+<Layout title={t.pageTitle} description={t.description}>
 	<SiteHeader />
 	<main id="main-content" class="relative overflow-x-clip">
 		<section
@@ -54,7 +83,8 @@ const tocLinkClass =
 					{policy.summary}
 				</p>
 				<p class="m-0 mt-4 text-sm text-[var(--color-fg-muted)]">
-					Versión {policy.version} · última actualización:{" "}
+					{t.version}{" "}
+					{policy.version} · {t.updated}{" "}
 					<time datetime={policy.updated}>{updatedLabel}</time>
 				</p>
 			</div>
@@ -64,10 +94,7 @@ const tocLinkClass =
 			class="max-w-6xl mx-auto px-6 py-12 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-12 xl:gap-16"
 		>
 			<aside class="hidden lg:block">
-				<nav
-					aria-label="Secciones de la política"
-					class="sticky top-24"
-				>
+				<nav aria-label={t.sectionsLabel} class="sticky top-24">
 					<ul class="m-0 p-0 list-none flex flex-col">
 						{
 							policy.sections.map(section => (
@@ -103,17 +130,14 @@ const tocLinkClass =
 								class="material-icons text-[1.25rem] text-[var(--color-brand)]"
 								aria-hidden="true">toc</span
 							>
-							Secciones de la política
+							{t.sectionsLabel}
 						</span>
 						<span
 							class="toc-chevron material-icons text-[var(--color-fg-muted)] transition-transform"
 							aria-hidden="true">expand_more</span
 						>
 					</summary>
-					<nav
-						aria-label="Secciones de la política"
-						class="px-2 pb-2"
-					>
+					<nav aria-label={t.sectionsLabel} class="px-2 pb-2">
 						<ul class="m-0 p-0 list-none grid sm:grid-cols-2">
 							{
 								policy.sections.map(section => (
@@ -138,7 +162,7 @@ const tocLinkClass =
 				</details>
 
 				<ul
-					aria-label="En resumen"
+					aria-label={t.summaryLabel}
 					class="m-0 p-0 list-none grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4"
 				>
 					{

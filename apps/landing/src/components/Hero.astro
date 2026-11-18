@@ -1,14 +1,48 @@
 ---
 import backlogDesktop from "../assets/screenshots/backlog-completed-desktop.webp";
 import queueMobile from "../assets/screenshots/queue-mobile.webp";
+import { type Locale, toLocale } from "../i18n/locales";
 import BetaSignupForm from "./BetaSignupForm.astro";
 import DeviceFrames from "./DeviceFrames.astro";
 
-const promises = [
-	{ icon: "devices", label: "Web y celular" },
-	{ icon: "code", label: "Código abierto" },
-	{ icon: "block", label: "Sin anuncios" }
-];
+const lang = toLocale(Astro.currentLocale);
+
+const copy = {
+	es: {
+		titleStart: "Siempre sabrás",
+		titleHighlight: "qué jugar",
+		leadStart: "Completr ordena tu backlog con el",
+		leadEnd: "y te recomienda el siguiente.",
+		invite: "Acceso por invitación.",
+		promises: [
+			{ icon: "devices", label: "Web y celular" },
+			{ icon: "code", label: "Código abierto" },
+			{ icon: "block", label: "Sin anuncios" }
+		],
+		desktopAlt:
+			"My Games: la biblioteca con el Ratio de cada juego, tu nota y tu run",
+		mobileAlt:
+			"Up Next en el celular: el próximo juego a jugar y la cola ordenada"
+	},
+	en: {
+		titleStart: "You'll always know",
+		titleHighlight: "what to play",
+		leadStart: "Completr sorts your backlog with the",
+		leadEnd: "and recommends what's next.",
+		invite: "Invite-only access.",
+		promises: [
+			{ icon: "devices", label: "Web and mobile" },
+			{ icon: "code", label: "Open source" },
+			{ icon: "block", label: "No ads" }
+		],
+		desktopAlt:
+			"My Games: the library with each game's Ratio, your rating and your run",
+		mobileAlt:
+			"Up Next on a phone: the next game to play and the ordered queue"
+	}
+} satisfies Record<Locale, unknown>;
+
+const t = copy[lang];
 ---
 
 <section class="relative px-6 pt-14 pb-20 md:pt-20 lg:pb-28 overflow-hidden">
@@ -32,17 +66,20 @@ const promises = [
 			<h1
 				class="hero-reveal font-display m-0 text-[2.5rem] sm:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-[1.05] text-balance"
 			>
-				Siempre sabrás <span class="text-gradient">qué jugar</span>.
+				{t.titleStart}{" "}
+				<span class="text-gradient">{t.titleHighlight}</span>.
 			</h1>
 
 			<p
 				class="hero-reveal m-0 text-base md:text-lg text-[var(--color-fg-secondary)] leading-relaxed max-w-xl"
 			>
-				Completr ordena tu backlog con el <a
+				{t.leadStart}{" "}
+				<a
 					href="#ratio"
 					class="font-semibold text-[var(--color-fg)] underline decoration-[var(--color-brand)] decoration-2 underline-offset-4 transition-colors hover:text-[var(--color-brand)]"
 					>Ratio</a
-				> y te recomienda el siguiente.
+				>{" "}
+				{t.leadEnd}
 			</p>
 
 			<div class="hero-reveal w-full max-w-xl flex flex-col gap-3">
@@ -53,7 +90,7 @@ const promises = [
 						class="material-icons text-[1.125rem] text-[var(--color-brand)]"
 						aria-hidden="true">mail</span
 					>
-					Acceso por invitación.
+					{t.invite}
 				</p>
 				<div class="[&_form]:mx-0 [&_p]:text-left">
 					<BetaSignupForm />
@@ -64,7 +101,7 @@ const promises = [
 				class="hero-reveal m-0 p-0 list-none flex flex-wrap gap-x-5 gap-y-2 text-sm text-[var(--color-fg-muted)]"
 			>
 				{
-					promises.map(item => (
+					t.promises.map(item => (
 						<li class="inline-flex items-center gap-1.5">
 							<span
 								class="material-icons text-[1.125rem] text-[var(--color-brand)]"
@@ -82,9 +119,9 @@ const promises = [
 		<div class="hero-reveal relative lg:mt-32 lg:-mr-24 xl:-mr-40">
 			<DeviceFrames
 				desktop={backlogDesktop}
-				desktopAlt="My Games: la biblioteca con el Ratio de cada juego, tu nota y tu run"
+				desktopAlt={t.desktopAlt}
 				mobile={queueMobile}
-				mobileAlt="Up Next en el celular: el próximo juego a jugar y la cola ordenada"
+				mobileAlt={t.mobileAlt}
 				windowTitle="My Games · Completr"
 				phoneSide="left"
 				phoneInside

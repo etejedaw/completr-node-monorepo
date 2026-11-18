@@ -1,8 +1,42 @@
 ---
 import { getCollection } from "astro:content";
+import { getRelativeLocaleUrl } from "astro:i18n";
 
 import { version } from "../../../../package.json";
+import { type Locale, toLocale } from "../i18n/locales";
 import { releaseTintStyle } from "../utils/release-tint";
+
+const lang = toLocale(Astro.currentLocale);
+
+const copy = {
+	es: {
+		badge: "Mantenido activamente",
+		titleStart: "Crece con",
+		titleHighlight: "quienes lo usan",
+		lead: "Completr llegó a la v1.1 escuchando a sus primeros testers. Las ideas y los reportes de quienes lo usan son los que deciden qué viene después.",
+		releasesLabel: () => "releases",
+		weeksLabel: () => "semanas de desarrollo",
+		versionLabel: "versión actual",
+		cta: (count: number) => `Ver las ${count} novedades`,
+		latest: "Último release"
+	},
+	en: {
+		badge: "Actively maintained",
+		titleStart: "Grows with",
+		titleHighlight: "the people who use it",
+		lead: "Completr reached v1.1 by listening to its first testers. Ideas and reports from the people who use it decide what comes next.",
+		releasesLabel: (count: number) =>
+			count === 1 ? "release" : "releases",
+		weeksLabel: (count: number) =>
+			count === 1 ? "week of development" : "weeks of development",
+		versionLabel: "current version",
+		cta: (count: number) =>
+			count === 1 ? "See the update" : `See all ${count} updates`,
+		latest: "Latest release"
+	}
+} satisfies Record<Locale, unknown>;
+
+const t = copy[lang];
 
 const all = await getCollection("releases");
 
@@ -33,20 +67,25 @@ const spanWeeks = weeksBetween(firstDate, lastDate);
 function formatDate(iso: string): string {
 	const [year, month, day] = iso.split("-").map(Number);
 	const date = new Date(Date.UTC(year, month - 1, day));
-	return new Intl.DateTimeFormat("es", {
+	return new Intl.DateTimeFormat(lang, {
 		day: "numeric",
 		month: "short",
 		timeZone: "UTC"
 	}).format(date);
 }
 
+function pitchFor(entry: (typeof sorted)[number]): string | undefined {
+	if (lang === "es") return entry.data.landing?.pitch;
+	return entry.data.highlights.map(item => item.text).join(" ");
+}
+
 const [majorVersion, minorVersion] = version.split(".");
 const currentVersion = `v${majorVersion}.${minorVersion}`;
 
 const stats = [
-	{ value: String(totalReleases), label: "releases" },
-	{ value: String(spanWeeks), label: "semanas de desarrollo" },
-	{ value: currentVersion, label: "versión actual" }
+	{ value: String(totalReleases), label: t.releasesLabel(totalReleases) },
+	{ value: String(spanWeeks), label: t.weeksLabel(spanWeeks) },
+	{ value: currentVersion, label: t.versionLabel }
 ];
 ---
 
@@ -76,17 +115,16 @@ const stats = [
 						class="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-brand)]"
 					></span>
 				</span>
-				Mantenido activamente
+				{t.badge}
 			</span>
 			<h2
 				class="font-display mt-4 mb-4 text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance"
 			>
-				Crece con <span class="text-gradient">quienes lo usan</span>.
+				{t.titleStart}{" "}
+				<span class="text-gradient">{t.titleHighlight}</span>.
 			</h2>
 			<p class="m-0 text-[var(--color-fg-secondary)] leading-relaxed">
-				Completr llegó a la v1.1 escuchando a sus primeros testers. Las
-				ideas y los reportes de quienes lo usan son los que deciden qué
-				viene después.
+				{t.lead}
 			</p>
 
 			<dl
@@ -106,8 +144,11 @@ const stats = [
 				}
 			</dl>
 
-			<a href="/changelog" class="btn-primary mt-8">
-				Ver las {totalReleases} novedades
+			<a
+				href={getRelativeLocaleUrl(lang, "changelog/")}
+				class="btn-primary mt-8"
+			>
+				{t.cta(totalReleases)}
 				<span class="material-icons text-[1.125rem]" aria-hidden="true"
 					>arrow_forward</span
 				>
@@ -145,7 +186,7 @@ const stats = [
 							<div class="flex items-center gap-2 mb-2 flex-wrap">
 								{index === 0 && (
 									<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.625rem] font-bold uppercase tracking-wider bg-[var(--color-brand)] text-white">
-										Último release
+										{t.latest}
 									</span>
 								)}
 								<span
@@ -171,12 +212,12 @@ const stats = [
 							>
 								{entry.data.title}
 							</h3>
-							{entry.data.landing?.pitch && (
+							{pitchFor(entry) && (
 								<p
 									class="m-0 text-sm text-[var(--color-fg-secondary)] leading-relaxed"
 									class:list={[index !== 0 && "line-clamp-2"]}
 								>
-									{entry.data.landing.pitch}
+									{pitchFor(entry)}
 								</p>
 							)}
 						</article>

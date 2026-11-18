@@ -1,4 +1,5 @@
 ---
+import { toLocale } from "../i18n/locales";
 import { releaseTintStyle } from "../utils/release-tint";
 import type { Release } from "../utils/releases";
 
@@ -7,12 +8,18 @@ interface Props {
 }
 
 const { release } = Astro.props;
-const { date, tint, icon, tag, title, landing } = release.data;
+const lang = toLocale(Astro.currentLocale);
+const { date, tint, icon, tag, title, landing, highlights } = release.data;
+
+const pitch =
+	lang === "es"
+		? landing?.pitch
+		: highlights.map(item => item.text).join(" ");
 
 function formatDate(iso: string): string {
 	const [year, month, day] = iso.split("-").map(Number);
 	const value = new Date(Date.UTC(year, month - 1, day));
-	return new Intl.DateTimeFormat("es", {
+	return new Intl.DateTimeFormat(lang, {
 		day: "numeric",
 		month: "long",
 		year: "numeric",
@@ -56,9 +63,9 @@ function formatDate(iso: string): string {
 			{title}
 		</h2>
 		{
-			landing?.pitch && (
+			pitch && (
 				<p class="m-0 text-[0.875rem] text-[var(--color-fg-secondary)] leading-relaxed">
-					{landing.pitch}
+					{pitch}
 				</p>
 			)
 		}

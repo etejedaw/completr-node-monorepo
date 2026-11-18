@@ -3,29 +3,68 @@ import { Picture } from "astro:assets";
 
 import rewindStoryList from "../assets/screenshots/rewind-story-list-mobile.webp";
 import rewindStory from "../assets/screenshots/rewind-story-mobile.webp";
+import { type Locale, toLocale } from "../i18n/locales";
 
-const shareImages = [
-	{
-		src: rewindStory,
-		alt: "Primera imagen del Rewind 2026 para historias: las portadas del año, los juegos terminados, el tipo de jugador y las horas jugadas"
-	},
-	{
-		src: rewindStoryList,
-		alt: "Segunda imagen del Rewind 2026 para historias: la lista de los juegos terminados en el año, como los créditos de una película"
-	}
-];
+const lang = toLocale(Astro.currentLocale);
 
-const points = [
-	{ icon: "ios_share", label: "Dos imágenes para tus historias" },
-	{
-		icon: "link",
-		label: "Un enlace para compartir, aunque tu perfil sea privado"
+const copy = {
+	es: {
+		eyebrow: "Rewind",
+		titleStart: "Tu año en juegos,",
+		titleHighlight: "tal como lo viviste",
+		lead: "Al cerrar el año, Completr arma tu Rewind: lo que terminaste, lo que soltaste y lo que completaste al cien por cien. Cada temporada estrena diseño, y tu año queda guardado tal como cerró.",
+		shareImages: [
+			{
+				src: rewindStory,
+				alt: "Primera imagen del Rewind 2026 para historias: las portadas del año, los juegos terminados, el tipo de jugador y las horas jugadas"
+			},
+			{
+				src: rewindStoryList,
+				alt: "Segunda imagen del Rewind 2026 para historias: la lista de los juegos terminados en el año, como los créditos de una película"
+			}
+		],
+		points: [
+			{ icon: "ios_share", label: "Dos imágenes para tus historias" },
+			{
+				icon: "link",
+				label: "Un enlace para compartir, aunque tu perfil sea privado"
+			},
+			{
+				icon: "auto_awesome",
+				label: "Un resumen escrito con IA, si lo pides. Tú decides si usa tus notas"
+			}
+		]
 	},
-	{
-		icon: "auto_awesome",
-		label: "Un resumen escrito con IA, si lo pides. Tú decides si usa tus notas"
+	en: {
+		eyebrow: "Rewind",
+		titleStart: "Your year in games,",
+		titleHighlight: "just as you lived it",
+		lead: "When the year ends, Completr builds your Rewind: what you finished, what you dropped and what you completed at 100%. Every season brings a new design, and your year stays saved just as it closed.",
+		shareImages: [
+			{
+				src: rewindStory,
+				alt: "First Rewind 2026 image for stories: the year's covers, the games finished, the player type and the hours played"
+			},
+			{
+				src: rewindStoryList,
+				alt: "Second Rewind 2026 image for stories: the list of games finished during the year, like movie credits"
+			}
+		],
+		points: [
+			{ icon: "ios_share", label: "Two images for your stories" },
+			{
+				icon: "link",
+				label: "A link to share, even if your profile is private"
+			},
+			{
+				icon: "auto_awesome",
+				label: "A summary written with AI, if you ask for it. You decide whether it uses your notes"
+			}
+		]
 	}
-];
+} satisfies Record<Locale, unknown>;
+
+const t = copy[lang];
 ---
 
 <section
@@ -43,27 +82,23 @@ const points = [
 		class="relative max-w-6xl mx-auto grid gap-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16 items-center"
 	>
 		<div class="flex flex-col items-start gap-5">
-			<span class="eyebrow">Rewind</span>
+			<span class="eyebrow">{t.eyebrow}</span>
 			<h2
 				class="font-display m-0 text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance"
 			>
-				Tu año en juegos, <span class="rewind-gradient"
-					>tal como lo viviste</span
-				>.
+				{t.titleStart}{" "}
+				<span class="rewind-gradient">{t.titleHighlight}</span>.
 			</h2>
 			<p
 				class="m-0 text-[var(--color-fg-secondary)] leading-relaxed max-w-xl"
 			>
-				Al cerrar el año, Completr arma tu Rewind: lo que terminaste, lo
-				que soltaste y lo que completaste al cien por cien. Cada
-				temporada estrena diseño, y tu año queda guardado tal como
-				cerró.
+				{t.lead}
 			</p>
 			<ul
 				class="m-0 p-0 list-none flex flex-col gap-3 text-[var(--color-fg-secondary)]"
 			>
 				{
-					points.map(point => (
+					t.points.map(point => (
 						<li class="flex items-start gap-3">
 							<span
 								class="flex items-center justify-center w-9 h-9 shrink-0 rounded-xl bg-[var(--color-brand)]/15 text-[var(--color-brand)]"
@@ -86,7 +121,7 @@ const points = [
 			class="relative mx-auto flex items-start w-[min(24rem,100%)] lg:w-full lg:max-w-[28rem] pb-10"
 		>
 			{
-				shareImages.map(image => (
+				t.shareImages.map(image => (
 					<div
 						class="rewind-card relative w-[58%] shrink-0 rounded-[1.25rem] overflow-hidden border border-white/10"
 						style="box-shadow: 0 40px 80px -30px rgba(0,0,0,0.95), 0 0 60px -20px var(--color-brand-glow);"

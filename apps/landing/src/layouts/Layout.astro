@@ -1,21 +1,52 @@
 ---
 import "../styles/global.css";
 
+import { getAbsoluteLocaleUrl } from "astro:i18n";
+
+import {
+	type Locale,
+	locales,
+	pathWithoutLocale,
+	toLocale
+} from "../i18n/locales";
+
 interface Props {
 	title?: string;
 	description?: string;
+	noindex?: boolean;
 }
 
-const {
-	title = "Completr · Siempre sabrás qué jugar",
-	description = "Completr ordena tu backlog de videojuegos con el Ratio, que cruza la nota de cada juego con lo que dura, y te recomienda cuál jugar a continuación."
-} = Astro.props;
+const defaults = {
+	es: {
+		title: "Completr · Siempre sabrás qué jugar",
+		description:
+			"Completr ordena tu backlog de videojuegos con el Ratio, que cruza la nota de cada juego con lo que dura, y te recomienda cuál jugar a continuación.",
+		skipLink: "Saltar al contenido"
+	},
+	en: {
+		title: "Completr · You'll always know what to play",
+		description:
+			"Completr sorts your video game backlog with the Ratio, which weighs each game's rating against how long it takes to beat, and recommends what to play next.",
+		skipLink: "Skip to content"
+	}
+} satisfies Record<Locale, unknown>;
 
-const ogImage = new URL("/og.png", Astro.site ?? Astro.url).toString();
-const canonical = new URL(
-	Astro.url.pathname,
-	Astro.site ?? Astro.url
-).toString();
+const { noindex = false } = Astro.props;
+const lang = toLocale(Astro.currentLocale);
+const path = pathWithoutLocale(Astro.url.pathname, lang);
+const t = defaults[lang];
+const title = Astro.props.title ?? t.title;
+const description = Astro.props.description ?? t.description;
+
+const siteUrl = Astro.site ?? Astro.url;
+const absoluteUrl = (pathname: string) => new URL(pathname, siteUrl).toString();
+const ogImage = absoluteUrl(lang === "es" ? "/og.png" : "/og-en.png");
+const canonical = getAbsoluteLocaleUrl(lang, path);
+const alternates = locales.map(locale => ({
+	locale,
+	href: getAbsoluteLocaleUrl(locale, path)
+}));
+const defaultAlternate = absoluteUrl(`/${path}`);
 
 const structuredData = {
 	"@context": "https://schema.org",
@@ -34,19 +65,32 @@ const structuredData = {
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang={lang}>
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="description" content={description} />
 		<meta name="theme-color" content="#0a0a0c" />
 		<link rel="canonical" href={canonical} />
-		<link rel="alternate" hreflang="es" href={canonical} />
-		<link rel="alternate" hreflang="x-default" href={canonical} />
+		{
+			alternates.map(alternate => (
+				<link
+					rel="alternate"
+					hreflang={alternate.locale}
+					href={alternate.href}
+				/>
+			))
+		}
+		<link rel="alternate" hreflang="x-default" href={defaultAlternate} />
+		{noindex && <meta name="robots" content="noindex" />}
 		<link rel="sitemap" href="/sitemap-index.xml" />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
 		<meta property="og:type" content="website" />
+		<meta
+			property="og:locale"
+			content={lang === "es" ? "es_ES" : "en_US"}
+		/>
 		<meta property="og:url" content={canonical} />
 		<meta property="og:image" content={ogImage} />
 		<meta property="og:image:width" content="1200" />
@@ -87,7 +131,7 @@ const structuredData = {
 		<a
 			href="#main-content"
 			class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-xl focus:bg-[var(--color-brand)] focus:text-white"
-			>Saltar al contenido</a
+			>{t.skipLink}</a
 		>
 		<slot />
 	</body>

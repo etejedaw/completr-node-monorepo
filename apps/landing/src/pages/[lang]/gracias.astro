@@ -1,11 +1,38 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import { getRelativeLocaleUrl } from "astro:i18n";
+
+import {
+	getLocaleStaticPaths,
+	type Locale,
+	toLocale
+} from "../../i18n/locales";
+import Layout from "../../layouts/Layout.astro";
+
+export const getStaticPaths = getLocaleStaticPaths;
+
+const lang = toLocale(Astro.currentLocale);
+
+const copy = {
+	es: {
+		pageTitle: "¡Listo! — Completr",
+		description: "Tu pedido de invitación a Completr quedó registrado.",
+		heading: "Recibí tu correo.",
+		message: "Te escribo con tu invitación.",
+		back: "← Volver al inicio"
+	},
+	en: {
+		pageTitle: "Done! — Completr",
+		description: "Your invitation request to Completr was received.",
+		heading: "Got your email.",
+		message: "I'll write to you with your invitation.",
+		back: "← Back to home"
+	}
+} satisfies Record<Locale, unknown>;
+
+const t = copy[lang];
 ---
 
-<Layout
-	title="¡Listo! — Completr"
-	description="Tu pedido de invitación a Completr quedó registrado."
->
+<Layout title={t.pageTitle} description={t.description} noindex>
 	<main
 		id="main-content"
 		class="relative min-h-screen flex flex-col items-center justify-center px-6 text-center"
@@ -41,21 +68,21 @@ import Layout from "../layouts/Layout.astro";
 			<h1
 				class="font-[var(--font-display)] m-0 text-4xl md:text-5xl font-bold tracking-tight leading-[1.1]"
 			>
-				Recibí tu correo.
+				{t.heading}
 			</h1>
 
 			<p
 				class="m-0 text-base md:text-lg text-[var(--color-fg-secondary)] leading-relaxed"
 			>
-				Te escribo con tu invitación.
+				{t.message}
 			</p>
 
 			<a
-				href="/"
+				href={getRelativeLocaleUrl(lang)}
 				class="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white no-underline transition-transform hover:-translate-y-0.5"
 				style="background: linear-gradient(135deg, var(--color-brand), var(--color-brand-deep)); box-shadow: 0 8px 24px -4px var(--color-brand-glow);"
 			>
-				← Volver al inicio
+				{t.back}
 			</a>
 		</div>
 	</main>

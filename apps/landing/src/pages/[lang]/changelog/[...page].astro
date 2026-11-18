@@ -1,19 +1,23 @@
 ---
 import type { GetStaticPaths, Page } from "astro";
+import { getRelativeLocaleUrl } from "astro:i18n";
 
-import Footer from "../../components/Footer.astro";
-import ReleaseCard from "../../components/ReleaseCard.astro";
-import SiteHeader from "../../components/SiteHeader.astro";
-import Layout from "../../layouts/Layout.astro";
+import Footer from "../../../components/Footer.astro";
+import ReleaseCard from "../../../components/ReleaseCard.astro";
+import SiteHeader from "../../../components/SiteHeader.astro";
+import { type Locale, locales, toLocale } from "../../../i18n/locales";
+import Layout from "../../../layouts/Layout.astro";
 import {
 	getReleasesNewestFirst,
 	type Release,
 	RELEASES_PER_PAGE
-} from "../../utils/releases";
+} from "../../../utils/releases";
 
 export const getStaticPaths = (async ({ paginate }) => {
 	const releases = await getReleasesNewestFirst();
-	return paginate(releases, { pageSize: RELEASES_PER_PAGE });
+	return locales.flatMap(lang =>
+		paginate(releases, { params: { lang }, pageSize: RELEASES_PER_PAGE })
+	);
 }) satisfies GetStaticPaths;
 
 interface Props {
@@ -21,6 +25,53 @@ interface Props {
 }
 
 const { page } = Astro.props;
+const lang = toLocale(Astro.currentLocale);
+
+const copy = {
+	es: {
+		firstPageTitle: "Novedades — Completr",
+		pageTitle: (current: number, last: number) =>
+			`Novedades, página ${current} de ${last} — Completr`,
+		description:
+			"Todas las mejoras y funcionalidades que llegaron a Completr.",
+		heading: "Novedades",
+		intro: "Todas las mejoras y funcionalidades que llegaron a Completr, desde el primer commit hasta el último release.",
+		pageOf: (current: number, last: number) =>
+			`Página ${current} de ${last}.`,
+		latest: "Ver las más recientes",
+		loadMore: "Ver más novedades",
+		loading: "Cargando…",
+		addedOne: "Se cargó 1 novedad más.",
+		addedMany: "Se cargaron {count} novedades más.",
+		loadError: "No se pudieron cargar más novedades. Inténtalo de nuevo.",
+		ctaTitle: "¿Quieres ser parte de esto?",
+		ctaText:
+			"Completr 1.1 ya salió. El acceso es por invitación: pide la tuya.",
+		ctaButton: "Pedir invitación"
+	},
+	en: {
+		firstPageTitle: "What's new — Completr",
+		pageTitle: (current: number, last: number) =>
+			`What's new, page ${current} of ${last} — Completr`,
+		description:
+			"Every improvement and feature that has shipped in Completr.",
+		heading: "What's new",
+		intro: "Every improvement and feature that has shipped in Completr, from the first commit to the latest release.",
+		pageOf: (current: number, last: number) =>
+			`Page ${current} of ${last}.`,
+		latest: "See the latest",
+		loadMore: "Show more updates",
+		loading: "Loading…",
+		addedOne: "1 more update loaded.",
+		addedMany: "{count} more updates loaded.",
+		loadError: "Couldn't load more updates. Please try again.",
+		ctaTitle: "Want to be part of this?",
+		ctaText: "Completr 1.1 is out. Access is by invitation: request yours.",
+		ctaButton: "Request an invite"
+	}
+} satisfies Record<Locale, unknown>;
+
+const t = copy[lang];
 
 function withTrailingSlash(path: string): string {
 	return path.endsWith("/") ? path : `${path}/`;
@@ -30,14 +81,11 @@ const isFirstPage = page.currentPage === 1;
 const nextPageHref = page.url.next ? withTrailingSlash(page.url.next) : null;
 const remaining = page.total - page.end - 1;
 const pageTitle = isFirstPage
-	? "Novedades — Completr"
-	: `Novedades, página ${page.currentPage} de ${page.lastPage} — Completr`;
+	? t.firstPageTitle
+	: t.pageTitle(page.currentPage, page.lastPage);
 ---
 
-<Layout
-	title={pageTitle}
-	description="Todas las mejoras y funcionalidades que llegaron a Completr."
->
+<Layout title={pageTitle} description={t.description}>
 	<SiteHeader />
 	<main class="relative px-6 pt-16 pb-24 max-w-3xl mx-auto">
 		<div class="flex items-start gap-4 mb-10">
@@ -53,23 +101,22 @@ const pageTitle = isFirstPage
 				<h1
 					class="font-[var(--font-display)] m-0 text-3xl md:text-4xl font-bold tracking-tight"
 				>
-					Novedades
+					{t.heading}
 				</h1>
 				<p
 					class="text-[var(--color-fg-muted)] mt-2 text-sm leading-snug"
 				>
-					Todas las mejoras y funcionalidades que llegaron a Completr,
-					desde el primer commit hasta el último release.
+					{t.intro}
 				</p>
 				{
 					!isFirstPage && (
 						<p class="m-0 mt-3 text-sm text-[var(--color-fg-secondary)]">
-							Página {page.currentPage} de {page.lastPage}.{" "}
+							{t.pageOf(page.currentPage, page.lastPage)}{" "}
 							<a
-								href="/changelog/"
+								href={getRelativeLocaleUrl(lang, "changelog/")}
 								class="text-[var(--color-brand)] underline underline-offset-2"
 							>
-								Ver las más recientes
+								{t.latest}
 							</a>
 						</p>
 					)
@@ -77,7 +124,14 @@ const pageTitle = isFirstPage
 			</div>
 		</div>
 
-		<div data-release-list class="flex flex-col gap-4">
+		<div
+			data-release-list
+			data-loading-label={t.loading}
+			data-added-one={t.addedOne}
+			data-added-many={t.addedMany}
+			data-load-error={t.loadError}
+			class="flex flex-col gap-4"
+		>
 			{page.data.map(release => <ReleaseCard release={release} />)}
 		</div>
 
@@ -100,7 +154,7 @@ const pageTitle = isFirstPage
 						>
 							expand_more
 						</span>
-						<span data-release-more-label>Ver más novedades</span>
+						<span data-release-more-label>{t.loadMore}</span>
 						<span
 							data-release-more-count
 							class="font-normal text-[var(--color-fg-muted)] tabular-nums"
@@ -131,19 +185,18 @@ const pageTitle = isFirstPage
 			<h2
 				class="relative font-[var(--font-display)] m-0 mb-3 text-2xl md:text-4xl font-bold text-white tracking-tight"
 			>
-				¿Quieres ser parte de esto?
+				{t.ctaTitle}
 			</h2>
 			<p
 				class="relative m-0 mb-7 text-sm md:text-base text-white/85 max-w-md mx-auto leading-relaxed"
 			>
-				Completr 1.1 ya salió. El acceso es por invitación: pide la
-				tuya.
+				{t.ctaText}
 			</p>
 			<a
-				href="/#beta-signup"
+				href={`${getRelativeLocaleUrl(lang)}#beta-signup`}
 				class="relative inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-white text-[var(--color-brand-deep)] font-semibold text-base no-underline transition-transform hover:scale-[1.03] shadow-lg"
 			>
-				Pedir invitación
+				{t.ctaButton}
 				<span class="material-icons text-[1.125rem]" aria-hidden="true"
 					>arrow_forward</span
 				>
@@ -154,8 +207,6 @@ const pageTitle = isFirstPage
 </Layout>
 
 <script>
-	const LOADING_LABEL = "Cargando…";
-
 	function isPlainLeftClick(event: MouseEvent): boolean {
 		return (
 			event.button === 0 &&
@@ -166,11 +217,11 @@ const pageTitle = isFirstPage
 		);
 	}
 
-	function describeAdded(amount: number): string {
+	function describeAdded(list: HTMLElement, amount: number): string {
 		if (amount === 0) return "";
 		return amount === 1
-			? "Se cargó 1 novedad más."
-			: `Se cargaron ${amount} novedades más.`;
+			? (list.dataset.addedOne ?? "")
+			: (list.dataset.addedMany ?? "").replace("{count}", String(amount));
 	}
 
 	async function fetchNextPage(href: string): Promise<Document> {
@@ -214,7 +265,9 @@ const pageTitle = isFirstPage
 			loading = busy;
 			if (!button || !label || !icon) return;
 			button.setAttribute("aria-busy", String(busy));
-			label.textContent = busy ? LOADING_LABEL : idleLabel;
+			label.textContent = busy
+				? (list?.dataset.loadingLabel ?? "")
+				: idleLabel;
 			icon.textContent = busy ? "autorenew" : "expand_more";
 		}
 
@@ -256,12 +309,11 @@ const pageTitle = isFirstPage
 				}
 
 				status.classList.add("sr-only");
-				status.textContent = describeAdded(added.length);
+				status.textContent = describeAdded(list, added.length);
 				added[0]?.focus({ preventScroll: true });
 			} catch {
 				status.classList.remove("sr-only");
-				status.textContent =
-					"No se pudieron cargar más novedades. Inténtalo de nuevo.";
+				status.textContent = list.dataset.loadError ?? "";
 			} finally {
 				setBusy(false);
 			}

@@ -1,10 +1,42 @@
 ---
-const moods = [
-	{ id: "corto", label: "Corto" },
-	{ id: "relajado", label: "Relajado" },
-	{ id: "acompanado", label: "Para jugar acompañado" },
-	{ id: "desafio", label: "Un desafío" }
-];
+import { type Locale, toLocale } from "../i18n/locales";
+
+const lang = toLocale(Astro.currentLocale);
+
+const copy = {
+	es: {
+		eyebrow: "Tags de ánimo",
+		titleStart: "Y según cómo",
+		titleHighlight: "te sientas hoy",
+		lead: "No todas las noches piden lo mismo. Etiqueta tus juegos con tus propios tags y filtra tu backlog por lo que te apetece. Si aun así no te decides, Surprise me elige uno por ti.",
+		legend: "¿Qué te apetece hoy?",
+		surprise: "Surprise me",
+		tonightPrefix: "Hoy toca:",
+		moods: [
+			{ id: "corto", label: "Corto" },
+			{ id: "relajado", label: "Relajado" },
+			{ id: "acompanado", label: "Para jugar acompañado" },
+			{ id: "desafio", label: "Un desafío" }
+		]
+	},
+	en: {
+		eyebrow: "Mood tags",
+		titleStart: "And based on how you",
+		titleHighlight: "feel today",
+		lead: "Not every night calls for the same thing. Tag your games with your own tags and filter your backlog by what you're in the mood for. If you still can't decide, Surprise me picks one for you.",
+		legend: "What are you in the mood for?",
+		surprise: "Surprise me",
+		tonightPrefix: "Tonight's pick:",
+		moods: [
+			{ id: "corto", label: "Short" },
+			{ id: "relajado", label: "Relaxing" },
+			{ id: "acompanado", label: "To play together" },
+			{ id: "desafio", label: "A challenge" }
+		]
+	}
+} satisfies Record<Locale, unknown>;
+
+const t = copy[lang];
 
 const initialMood = "relajado";
 
@@ -18,7 +50,7 @@ const games = [
 ];
 
 const moodLabel = (id: string) =>
-	moods.find(mood => mood.id === id)?.label ?? id;
+	t.moods.find(mood => mood.id === id)?.label ?? id;
 ---
 
 <section
@@ -29,18 +61,17 @@ const moodLabel = (id: string) =>
 		class="relative max-w-6xl mx-auto grid gap-12 lg:grid-cols-2 lg:gap-16 items-center"
 	>
 		<div class="flex flex-col items-start gap-5">
-			<span class="eyebrow">Tags de ánimo</span>
+			<span class="eyebrow">{t.eyebrow}</span>
 			<h2
 				class="font-display m-0 text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance"
 			>
-				Y según cómo <span class="text-gradient">te sientas hoy</span>.
+				{t.titleStart}{" "}
+				<span class="text-gradient">{t.titleHighlight}</span>.
 			</h2>
 			<p
 				class="m-0 text-[var(--color-fg-secondary)] leading-relaxed max-w-xl"
 			>
-				No todas las noches piden lo mismo. Etiqueta tus juegos con tus
-				propios tags y filtra tu backlog por lo que te apetece. Si aun
-				así no te decides, Surprise me elige uno por ti.
+				{t.lead}
 			</p>
 		</div>
 
@@ -48,16 +79,17 @@ const moodLabel = (id: string) =>
 			class="moods-demo flex flex-col gap-5 p-5 sm:p-7 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-line)]"
 			style="box-shadow: 0 30px 60px -30px var(--color-brand-glow);"
 			data-mood={initialMood}
+			data-tonight-prefix={t.tonightPrefix}
 		>
 			<fieldset class="m-0 p-0 border-0 min-w-0">
 				<legend
 					class="mb-3 p-0 text-xs font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]"
 				>
-					¿Qué te apetece hoy?
+					{t.legend}
 				</legend>
 				<div class="flex flex-wrap gap-2">
 					{
-						moods.map(mood => (
+						t.moods.map(mood => (
 							<label class="mood-chip relative inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-full border border-[var(--color-line-strong)] text-sm font-medium text-[var(--color-fg-secondary)] cursor-pointer transition-colors hover:text-[var(--color-fg)]">
 								<input
 									type="radio"
@@ -120,7 +152,7 @@ const moodLabel = (id: string) =>
 						class="material-icons text-[1.125rem]"
 						aria-hidden="true">casino</span
 					>
-					Surprise me
+					{t.surprise}
 				</button>
 				<p
 					class="mood-status m-0 text-sm text-[var(--color-fg-secondary)]"
@@ -209,7 +241,7 @@ const moodLabel = (id: string) =>
 			picked.dataset.picked = "true";
 			lastPicked = picked;
 			if (status)
-				status.textContent = `Hoy toca: ${picked.dataset.title}`;
+				status.textContent = `${demo.dataset.tonightPrefix} ${picked.dataset.title}`;
 		});
 	});
 </script>

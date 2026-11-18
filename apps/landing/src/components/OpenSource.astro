@@ -1,41 +1,96 @@
 ---
+import { type Locale, toLocale } from "../i18n/locales";
 import {
 	getRepoLanguages,
 	getRepoLicense,
 	type GitHubLanguages
 } from "../providers/github";
 
+const lang = toLocale(Astro.currentLocale);
+
 const repo = "etejedaw/completr-node-monorepo";
 const repoUrl = `https://github.com/${repo}`;
 
-const folders = [
-	{
-		path: "apps/api",
-		description: "API REST",
-		stack: "Node.js · Express · PostgreSQL"
+const copy = {
+	es: {
+		eyebrow: "Código abierto",
+		titleStart: "Completr es",
+		titleHighlight: "100% open source",
+		leadStart:
+			"La app, la API y esta misma página están publicadas en GitHub con licencia",
+		leadEnd: ".",
+		points: [
+			"Revisa cómo se calcula el Ratio",
+			"Mira cómo se guardan tus datos",
+			"Propón mejoras o reporta errores"
+		],
+		cta: "Ver el código en GitHub",
+		folders: [
+			{
+				path: "apps/api",
+				description: "API REST",
+				stack: "Node.js · Express · PostgreSQL"
+			},
+			{
+				path: "apps/web",
+				description: "App web",
+				stack: "Angular · Tailwind · PWA"
+			},
+			{
+				path: "apps/landing",
+				description: "Esta página",
+				stack: "Astro · Tailwind"
+			},
+			{
+				path: "docs",
+				description: "Documentación técnica",
+				stack: "Arquitectura · changelogs"
+			}
+		],
+		others: "Otros",
+		languagesLabel: "Lenguajes del repositorio"
 	},
-	{
-		path: "apps/web",
-		description: "App web",
-		stack: "Angular · Tailwind · PWA"
-	},
-	{
-		path: "apps/landing",
-		description: "Esta página",
-		stack: "Astro · Tailwind"
-	},
-	{
-		path: "docs",
-		description: "Documentación técnica",
-		stack: "Arquitectura · changelogs"
+	en: {
+		eyebrow: "Open source",
+		titleStart: "Completr is",
+		titleHighlight: "100% open source",
+		leadStart:
+			"The app, the API and this very page are published on GitHub under the",
+		leadEnd: " license.",
+		points: [
+			"See how the Ratio is calculated",
+			"See how your data is stored",
+			"Suggest improvements or report bugs"
+		],
+		cta: "View the code on GitHub",
+		folders: [
+			{
+				path: "apps/api",
+				description: "REST API",
+				stack: "Node.js · Express · PostgreSQL"
+			},
+			{
+				path: "apps/web",
+				description: "Web app",
+				stack: "Angular · Tailwind · PWA"
+			},
+			{
+				path: "apps/landing",
+				description: "This page",
+				stack: "Astro · Tailwind"
+			},
+			{
+				path: "docs",
+				description: "Technical documentation",
+				stack: "Architecture · changelogs"
+			}
+		],
+		others: "Other",
+		languagesLabel: "Repository languages"
 	}
-];
+} satisfies Record<Locale, unknown>;
 
-const openSourcePoints = [
-	"Revisa cómo se calcula el Ratio",
-	"Mira cómo se guardan tus datos",
-	"Propón mejoras o reporta errores"
-];
+const t = copy[lang];
 
 const languageColors: Record<string, string> = {
 	TypeScript: "#3178c6",
@@ -84,7 +139,7 @@ const languages = [
 		color: languageColors[language.name] ?? otherColor
 	})),
 	...(otherPercent >= 0.1
-		? [{ name: "Otros", percent: otherPercent, color: otherColor }]
+		? [{ name: t.others, percent: otherPercent, color: otherColor }]
 		: [])
 ].map(language => ({
 	...language,
@@ -107,23 +162,24 @@ const languages = [
 		class="relative max-w-6xl mx-auto grid gap-12 lg:grid-cols-12 lg:gap-16 items-center"
 	>
 		<div class="min-w-0 lg:col-span-5">
-			<span class="eyebrow">Código abierto</span>
+			<span class="eyebrow">{t.eyebrow}</span>
 			<h2
 				class="font-display mt-3 mb-4 text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance"
 			>
-				Completr es <span class="text-gradient">100% open source</span>.
+				{t.titleStart}{" "}
+				<span class="text-gradient">{t.titleHighlight}</span>.
 			</h2>
 			<p
 				class="m-0 mb-6 text-[var(--color-fg-secondary)] leading-relaxed"
 			>
-				La app, la API y esta misma página están publicadas en GitHub
-				con licencia {license}.
+				{t.leadStart}{" "}
+				{license}{t.leadEnd}
 			</p>
 			<ul
 				class="m-0 mb-8 p-0 list-none flex flex-col gap-2 text-sm text-[var(--color-fg-secondary)]"
 			>
 				{
-					openSourcePoints.map(point => (
+					t.points.map(point => (
 						<li class="flex gap-2">
 							<span
 								class="material-icons text-[1.125rem] text-[var(--color-brand)]"
@@ -142,7 +198,7 @@ const languages = [
 				rel="noopener noreferrer"
 				class="btn-primary"
 			>
-				Ver el código en GitHub
+				{t.cta}
 				<span class="material-icons text-[1.125rem]" aria-hidden="true"
 					>arrow_forward</span
 				>
@@ -197,7 +253,7 @@ const languages = [
 
 				<ul class="list-none m-0 p-0">
 					{
-						folders.map(folder => (
+						t.folders.map(folder => (
 							<li class="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-3 gap-y-0.5 sm:flex sm:items-center sm:gap-4 px-5 py-3 border-b border-[var(--color-line)] text-sm">
 								<span class="flex items-center gap-2 sm:w-40 shrink-0 font-mono text-[var(--color-fg)] self-center">
 									<span
@@ -223,7 +279,7 @@ const languages = [
 					<div
 						class="flex h-2 rounded-full overflow-hidden"
 						role="img"
-						aria-label="Lenguajes del repositorio"
+						aria-label={t.languagesLabel}
 					>
 						{
 							languages.map(language => (
