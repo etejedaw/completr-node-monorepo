@@ -5,28 +5,28 @@ import rewindStory from "../assets/screenshots/rewind-story-mobile.webp";
 
 const highlights = [
 	{
-		icon: "emoji_events",
-		title: "Platinos",
+		icon: "lock",
+		title: "Runs privadas",
 		description:
-			"Marca los juegos que completaste al cien por ciento y lúcelos en una vitrina propia de tu perfil."
+			"Guarda solo para ti cualquier run: no aparece en tu perfil ni en lo que ven los demás."
 	},
 	{
-		icon: "collections_bookmark",
-		title: "Sagas",
+		icon: "search",
+		title: "Búsqueda desde cualquier pantalla",
 		description:
-			"Explora las sagas del catálogo, sigue las que te importan y muéstralas en tu perfil."
+			"Una sola barra encuentra juegos y tus propias runs sin salir de donde estás."
 	},
 	{
-		icon: "auto_awesome",
-		title: "Duración y nota solas",
+		icon: "format_list_bulleted",
+		title: "Listas de la comunidad",
 		description:
-			"Al agregar un juego, Completr busca cuánto dura y qué nota tiene. Tú solo decides si lo juegas."
+			"Explora las listas oficiales y las que arman otros jugadores, y sigue las que te sirvan."
 	},
 	{
-		icon: "download",
-		title: "Tus datos son tuyos",
+		icon: "folder_shared",
+		title: "Tus datos, cuando los pidas",
 		description:
-			"Descarga tu biblioteca o cualquier lista cuando quieras, en un archivo que abre cualquier planilla."
+			"Pide una copia de todo lo que Completr guarda de ti o borra tu cuenta cuando quieras."
 	}
 ];
 ---
@@ -44,18 +44,19 @@ const highlights = [
 
 	<div class="relative max-w-6xl mx-auto">
 		<div class="max-w-2xl mb-12">
-			<span class="eyebrow">Novedades de la 1.0</span>
+			<span class="eyebrow">Novedades de la 1.1</span>
 			<h2
 				class="font-display mt-3 mb-4 text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance"
 			>
-				Más que un backlog: <span class="text-gradient"
-					>tu año en juegos</span
+				Tu año en juegos, <span class="text-gradient"
+					>tal como lo viviste</span
 				>.
 			</h2>
 			<p class="m-0 text-[var(--color-fg-secondary)] leading-relaxed">
-				La 1.0 cierra la etapa en que Completr era solo una lista
-				ordenada. Ahora también te cuenta qué jugaste, qué conseguiste y
-				qué te falta.
+				La 1.1 gira en torno al Rewind: cada año queda guardado como
+				cerró, con tus platinos y lo que dejaste a medias. Y suma runs
+				privadas, búsqueda desde cualquier pantalla y listas de la
+				comunidad.
 			</p>
 		</div>
 
@@ -77,17 +78,16 @@ const highlights = [
 					<h3
 						class="font-display m-0 text-2xl md:text-4xl font-bold tracking-tight leading-tight text-balance"
 					>
-						Tu año en juegos, listo para <span
-							class="rewind-gradient">compartir</span
+						Cada año, su propio <span class="rewind-gradient"
+							>Rewind</span
 						>.
 					</h3>
 					<p
 						class="m-0 text-[var(--color-fg-secondary)] leading-relaxed"
 					>
-						Desde diciembre generas el resumen de tu año: lo que
-						terminaste, lo que dejaste, tu mejor juego y el tipo de
-						jugador que fuiste. Después lo subes a tus historias con
-						un toque.
+						Cada temporada estrena diseño y, al cerrar, tu año queda
+						guardado tal como lo viviste: lo que terminaste, lo que
+						soltaste y lo que completaste al cien por cien.
 					</p>
 					<ul
 						class="m-0 p-0 list-none flex flex-col gap-2 text-sm text-[var(--color-fg-secondary)]"
@@ -95,23 +95,23 @@ const highlights = [
 						<li class="inline-flex items-center gap-2">
 							<span
 								class="material-icons text-[1.125rem] text-[var(--color-brand)]"
-								aria-hidden="true">auto_stories</span
-							>
-							En español o en inglés
-						</li>
-						<li class="inline-flex items-center gap-2">
-							<span
-								class="material-icons text-[1.125rem] text-[var(--color-brand)]"
 								aria-hidden="true">ios_share</span
 							>
-							Imagen para historias y enlace con vista previa
+							Dos imágenes para tus historias
 						</li>
 						<li class="inline-flex items-center gap-2">
 							<span
 								class="material-icons text-[1.125rem] text-[var(--color-brand)]"
-								aria-hidden="true">lock</span
+								aria-hidden="true">link</span
 							>
-							Tú decides quién lo ve
+							Por enlace, aunque tu perfil sea privado
+						</li>
+						<li class="inline-flex items-center gap-2">
+							<span
+								class="material-icons text-[1.125rem] text-[var(--color-brand)]"
+								aria-hidden="true">auto_awesome</span
+							>
+							El resumen con IA, solo si lo pides
 						</li>
 					</ul>
 				</div>
@@ -123,7 +123,7 @@ const highlights = [
 					>
 						<Picture
 							src={rewindStory}
-							alt="Imagen del Rewind 2026 lista para compartir: las portadas del año, los juegos terminados, el tipo de jugador y las horas jugadas"
+							alt="Imagen del Rewind 2026 para historias: las portadas del año, los juegos terminados, el tipo de jugador y las horas jugadas"
 							formats={["avif", "webp"]}
 							fallbackFormat="webp"
 							widths={[240, 360, 480, 720]}
