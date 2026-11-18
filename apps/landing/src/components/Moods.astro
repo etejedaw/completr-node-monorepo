@@ -1,0 +1,215 @@
+---
+const moods = [
+	{ id: "corto", label: "Corto" },
+	{ id: "relajado", label: "Relajado" },
+	{ id: "acompanado", label: "Para jugar acompañado" },
+	{ id: "desafio", label: "Un desafío" }
+];
+
+const initialMood = "relajado";
+
+const games = [
+	{ title: "A Short Hike", moods: ["corto", "relajado"] },
+	{ title: "It Takes Two", moods: ["acompanado"] },
+	{ title: "Unpacking", moods: ["corto", "relajado"] },
+	{ title: "Celeste", moods: ["corto", "desafio"] },
+	{ title: "Portal 2", moods: ["acompanado", "desafio"] },
+	{ title: "Stardew Valley", moods: ["relajado", "acompanado"] }
+];
+
+const moodLabel = (id: string) =>
+	moods.find(mood => mood.id === id)?.label ?? id;
+---
+
+<section
+	id="moods"
+	class="relative py-24 px-6 border-t border-[var(--color-line)] overflow-hidden"
+>
+	<div
+		class="relative max-w-6xl mx-auto grid gap-12 lg:grid-cols-2 lg:gap-16 items-center"
+	>
+		<div class="flex flex-col items-start gap-5">
+			<span class="eyebrow">Tags de ánimo</span>
+			<h2
+				class="font-display m-0 text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance"
+			>
+				Y según cómo <span class="text-gradient">te sientas hoy</span>.
+			</h2>
+			<p
+				class="m-0 text-[var(--color-fg-secondary)] leading-relaxed max-w-xl"
+			>
+				No todas las noches piden lo mismo. Etiqueta tus juegos con tus
+				propios tags y filtra tu backlog por lo que te apetece. Si aun
+				así no te decides, Surprise me elige uno por ti.
+			</p>
+		</div>
+
+		<div
+			class="moods-demo flex flex-col gap-5 p-5 sm:p-7 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-line)]"
+			style="box-shadow: 0 30px 60px -30px var(--color-brand-glow);"
+			data-mood={initialMood}
+		>
+			<fieldset class="m-0 p-0 border-0 min-w-0">
+				<legend
+					class="mb-3 p-0 text-xs font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]"
+				>
+					¿Qué te apetece hoy?
+				</legend>
+				<div class="flex flex-wrap gap-2">
+					{
+						moods.map(mood => (
+							<label class="mood-chip relative inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-full border border-[var(--color-line-strong)] text-sm font-medium text-[var(--color-fg-secondary)] cursor-pointer transition-colors hover:text-[var(--color-fg)]">
+								<input
+									type="radio"
+									name="mood"
+									value={mood.id}
+									checked={mood.id === initialMood}
+									class="sr-only"
+								/>
+								<span
+									class="material-icons text-[1rem]"
+									aria-hidden="true"
+								>
+									sell
+								</span>
+								{mood.label}
+							</label>
+						))
+					}
+				</div>
+			</fieldset>
+
+			<ul class="m-0 p-0 list-none flex flex-col gap-2">
+				{
+					games.map(game => (
+						<li
+							class="mood-row flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 min-h-[52px] px-4 py-2.5 rounded-xl border border-[var(--color-line)] transition-[opacity,border-color,background-color] duration-200"
+							data-title={game.title}
+							data-moods={game.moods.join(" ")}
+							data-match={String(
+								game.moods.includes(initialMood)
+							)}
+						>
+							<span class="inline-flex items-center gap-2 font-semibold text-[var(--color-fg)]">
+								<span
+									class="mood-pick-icon material-icons text-[1.125rem] text-[var(--color-brand)]"
+									aria-hidden="true"
+								>
+									casino
+								</span>
+								{game.title}
+							</span>
+							<span class="flex flex-wrap gap-1.5">
+								{game.moods.map(mood => (
+									<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--color-brand)]/12 text-[var(--color-fg-secondary)]">
+										{moodLabel(mood)}
+									</span>
+								))}
+							</span>
+						</li>
+					))
+				}
+			</ul>
+
+			<div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+				<button
+					type="button"
+					class="mood-surprise btn-primary inline-flex items-center gap-2 text-sm"
+				>
+					<span
+						class="material-icons text-[1.125rem]"
+						aria-hidden="true">casino</span
+					>
+					Surprise me
+				</button>
+				<p
+					class="mood-status m-0 text-sm text-[var(--color-fg-secondary)]"
+					role="status"
+					aria-live="polite"
+				>
+				</p>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	.mood-chip:has(input:checked) {
+		border-color: var(--color-brand);
+		background: color-mix(in srgb, var(--color-brand) 18%, transparent);
+		color: var(--color-fg);
+	}
+
+	.mood-chip:has(input:focus-visible) {
+		outline: 2px solid var(--color-brand);
+		outline-offset: 2px;
+	}
+
+	.mood-row[data-match="false"] {
+		opacity: 0.35;
+	}
+
+	.mood-pick-icon {
+		display: none;
+	}
+
+	.mood-row[data-picked="true"] {
+		border-color: var(--color-brand);
+		background: color-mix(in srgb, var(--color-brand) 12%, transparent);
+	}
+
+	.mood-row[data-picked="true"] .mood-pick-icon {
+		display: inline-block;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.mood-row {
+			transition: none;
+		}
+	}
+</style>
+
+<script>
+	document.querySelectorAll<HTMLElement>(".moods-demo").forEach(demo => {
+		const rows = [...demo.querySelectorAll<HTMLElement>(".mood-row")];
+		const status = demo.querySelector<HTMLElement>(".mood-status");
+		const surprise =
+			demo.querySelector<HTMLButtonElement>(".mood-surprise");
+		let lastPicked: HTMLElement | undefined;
+
+		const matchingRows = () =>
+			rows.filter(row => row.dataset.match === "true");
+
+		const clearPick = () => {
+			rows.forEach(row => delete row.dataset.picked);
+			if (status) status.textContent = "";
+		};
+
+		demo.addEventListener("change", event => {
+			const input = event.target as HTMLInputElement;
+			if (input.name !== "mood") return;
+			demo.dataset.mood = input.value;
+			rows.forEach(row => {
+				const moods = (row.dataset.moods ?? "").split(" ");
+				row.dataset.match = String(moods.includes(input.value));
+			});
+			lastPicked = undefined;
+			clearPick();
+		});
+
+		surprise?.addEventListener("click", () => {
+			const candidates = matchingRows();
+			if (candidates.length === 0) return;
+			const pool =
+				candidates.length > 1
+					? candidates.filter(row => row !== lastPicked)
+					: candidates;
+			const picked = pool[Math.floor(Math.random() * pool.length)];
+			clearPick();
+			picked.dataset.picked = "true";
+			lastPicked = picked;
+			if (status)
+				status.textContent = `Hoy toca: ${picked.dataset.title}`;
+		});
+	});
+</script>
