@@ -6,7 +6,12 @@ import userEvent from "@testing-library/user-event";
 import { type UserTag } from "../../mood-tags/mood-tags.model";
 import { TagRow } from "./tag-row";
 
-const cozy: UserTag = { tag: "cozy", usageCount: 4, description: "Rainy days" };
+const cozy: UserTag = {
+	tag: "cozy",
+	usageCount: 4,
+	description: "Rainy days",
+	favoriteOrder: null
+};
 
 function stubViewport(mobile: boolean) {
 	vi.stubGlobal(

@@ -101,4 +101,67 @@ describe("MoodTagsService", () => {
 		req.flush({ data: { tag: "cozy", description: "Relaxing" } });
 		expect(result).toEqual({ tag: "cozy", description: "Relaxing" });
 	});
+
+	it("replaces my favorite tags keeping their order", () => {
+		let result: unknown;
+
+		service
+			.replaceFavoriteTags(["short", "cozy"])
+			.subscribe(r => (result = r));
+
+		const req = httpTesting.expectOne(`${me}/mood-tags/favorites`);
+		expect(req.request.method).toBe("PUT");
+		expect(req.request.body).toEqual({ tags: ["short", "cozy"] });
+		req.flush({ data: { tags: ["short", "cozy"] } });
+		expect(result).toEqual(["short", "cozy"]);
+	});
+
+	it("reads the community tags of a game", () => {
+		let result: unknown;
+
+		service.getCommunityTags("g1").subscribe(r => (result = r));
+
+		const req = httpTesting.expectOne(`${api}/games/g1/tags`);
+		expect(req.request.method).toBe("GET");
+		req.flush({
+			data: { tags: [{ tag: "cozy", players: 3, mine: true }] }
+		});
+		expect(result).toEqual([{ tag: "cozy", players: 3, mine: true }]);
+	});
+
+	it("asks for the popular tags with a limit", () => {
+		let result: unknown;
+
+		service.getPopularTags(5).subscribe(r => (result = r));
+
+		const req = httpTesting.expectOne(r => r.url === `${api}/tags/popular`);
+		expect(req.request.params.get("limit")).toBe("5");
+		req.flush({ data: { tags: [{ tag: "cozy", games: 2, players: 4 }] } });
+		expect(result).toEqual([{ tag: "cozy", games: 2, players: 4 }]);
+	});
+
+	it("searches tags sending the text and the limit as params", () => {
+		service.searchTags("co op&x").subscribe();
+
+		const req = httpTesting.expectOne(r => r.url === `${api}/tags/search`);
+		expect(req.request.params.get("search")).toBe("co op&x");
+		expect(req.request.params.get("limit")).toBe("10");
+		req.flush({ data: { tags: [] } });
+	});
+
+	it("pages the games of a tag encoding the tag in the url", () => {
+		let result: unknown;
+
+		service
+			.getTagGames("co op/fun", { limit: 24, offset: 48 })
+			.subscribe(r => (result = r));
+
+		const req = httpTesting.expectOne(
+			r => r.url === `${api}/tags/co%20op%2Ffun/games`
+		);
+		expect(req.request.params.get("limit")).toBe("24");
+		expect(req.request.params.get("offset")).toBe("48");
+		req.flush({ data: { tag: "co op/fun", total: 0, games: [] } });
+		expect(result).toEqual({ tag: "co op/fun", total: 0, games: [] });
+	});
 });

@@ -2,6 +2,7 @@ export interface UserTag {
 	tag: string;
 	usageCount: number;
 	description: string | null;
+	favoriteOrder: number | null;
 }
 
 export interface MyTagsResponse {
@@ -27,5 +28,54 @@ export interface CreateTagResponse {
 }
 
 export interface GameTagsResponse {
+	data: { tags: string[] };
+}
+
+export interface CommunityTag {
+	tag: string;
+	players: number;
+	mine: boolean;
+}
+
+export interface CommunityTagsResponse {
+	data: { tags: CommunityTag[] };
+}
+
+export interface PopularTag {
+	tag: string;
+	games: number;
+	players: number;
+}
+
+export interface PopularTagsResponse {
+	data: { tags: PopularTag[] };
+}
+
+export interface TagGame {
+	id: string;
+	code: string;
+	title: string;
+	coverUrl?: string;
+	backgroundUrl?: string;
+	ratio: number | null;
+	players: number;
+}
+
+export interface TagGamesPage {
+	tag: string;
+	total: number;
+	games: TagGame[];
+}
+
+export interface TagGamesResponse {
+	data: TagGamesPage;
+}
+
+export interface TagGamesQuery {
+	limit: number;
+	offset: number;
+}
+
+export interface FavoriteTagsResponse {
 	data: { tags: string[] };
 }
