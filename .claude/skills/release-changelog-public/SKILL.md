@@ -71,7 +71,8 @@ Una por grupo confirmado, siguiendo [`release-template.md`](./release-template.m
 | `title`            | Inglés  | Landing y app                        | Una línea. Lo que gana el usuario, no el nombre técnico. Comillas si lleva `:` o `—`.                                   |
 | `icon`             | —       | Landing y app                        | Nombre de [Material Icons](https://fonts.google.com/icons?icon.set=Material+Icons) en snake_case.                       |
 | `tint`             | —       | Landing y app                        | `brand`, `purple`, `warning`, `success` o `danger`. `warning` para fixes, `brand` para features principales.            |
-| `landing.pitch`    | Español | Landing (`/` y `/changelog`)         | Una o dos frases. Qué puede hacer ahora el usuario.                                                                     |
+| `landing.pitch.es` | Español | Landing en español (`/es/`)          | Una o dos frases. Qué puede hacer ahora el usuario.                                                                     |
+| `landing.pitch.en` | Inglés  | Landing en inglés (`/en/`)           | La misma idea que `pitch.es`, en inglés: dice lo mismo, no un resumen distinto.                                         |
 | `landing.featured` | —       | —                                    | `true` solo en releases grandes (versión nueva, feature principal). Si no, se omite.                                    |
 | `highlights`       | Inglés  | App ("What's new", vía `/changelog`) | De 2 a 6 ítems con `icon`, `tint` y `text`. Cada `text` es un cambio concreto contado desde el lado del usuario.        |
 
@@ -106,12 +107,12 @@ Toma como referencia de estilo las entradas más recientes de `apps/landing/src/
 ## Reglas
 
 - **Nunca tocar entradas ya publicadas.** Si algo cambia después, va en una entrada nueva. Las viejas son historia y deben quedar fieles a la fecha que llevan.
-- **`pitch` en español; `tag`, `title` y `highlights` en inglés.** Es la única mezcla de idiomas del repo y es intencional: la landing es en español y la app, en inglés.
+- **`pitch` en español y en inglés, con el mismo contenido; `tag`, `title` y `highlights` en inglés.** La landing tiene una versión por idioma y cada una muestra su `pitch`; la app está en inglés y usa `title` y `highlights`.
 
 ## Anti-patterns
 
 - Entrada pública para cambios internos (refactor, tooling, deploy) o con jerga técnica.
-- `pitch` en inglés o `title` / `highlights` en español.
+- Un `pitch.en` que no dice lo mismo que el `pitch.es`, o `title` / `highlights` en español.
 - Copiar el `Summary` del changelog técnico: está escrito para devs.
 - Inventar campos o secciones que el schema no define.
 

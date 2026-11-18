@@ -304,7 +304,7 @@ Antes de crear uno nuevo, se reutiliza uno de estos. Los inputs están en el có
 
 ## Landing
 
-- **El changelog público mezcla dos idiomas por entrada: `tag`, `title` y `highlights` en inglés (como la UI de la app) y `landing.pitch` en español.** La API reexpone `/changelog.json` en `GET /changelog` y `apps/web` lo muestra en "What's new" con los `highlights`. En la landing, `/es/` muestra el `pitch` y `/en/` los `highlights` unidos, porque el `pitch` solo existe en español.
+- **El changelog público tiene `tag`, `title` y `highlights` en inglés (como la UI de la app) y `landing.pitch` en los dos idiomas (`es` y `en`), con el mismo contenido.** La API reexpone `/changelog.json` en `GET /changelog` y `apps/web` lo muestra en "What's new" con los `highlights`; la landing muestra en cada idioma su `pitch`.
 - **El changelog público (`src/content/releases/`) es distinto de `docs/changelogs/`, que es técnico y referencia commits.** El nombre de cada entrada sigue `YYYY-MM-DD-NN-<slug>.md` y `order` desempata las del mismo día.
 - **La API lee el changelog de `CHANGELOG_SOURCE_URL`** (por defecto `http://localhost:4321/changelog.json`, la landing en desarrollo; en producción `https://www.completr.app/changelog.json`) y guarda la respuesta 5 minutos; se reinicia para ver al instante una entrada nueva. Si la landing no está corriendo, `GET /changelog` responde 503.
 - **`/changelog.json` y `/privacy.json` se sirven con `Access-Control-Allow-Origin: *`.** Otros orígenes (la web, la API) tienen que poder leerlos.
