@@ -3,6 +3,10 @@ import { randomUUID } from "node:crypto";
 import { describe, it } from "node:test";
 
 import { Backlog } from "../../src/backlog/backlog.model";
+import {
+	APPEARANCE_COLORS,
+	APPEARANCE_ICONS
+} from "../../src/common/constants/appearance.constants";
 import { SavedFilter } from "../../src/saved-filters/saved-filter.model";
 import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
@@ -236,6 +240,50 @@ void describe("PATCH /users/me/saved-filters/:filterId", () => {
 		assert.equal(response.body.data.savedFilter.name, "Hidden view");
 		assert.equal(response.body.data.savedFilter.showInBacklog, false);
 		assert.equal(response.body.data.savedFilter.isDefault, false);
+	});
+
+	void it("accepts every shared appearance icon and color on update", async () => {
+		const owner = await createUserWithSession();
+		const filter = await createSavedFilter(owner.user.id);
+
+		for (const icon of APPEARANCE_ICONS) {
+			const response = await api()
+				.patch(`${FILTERS_PATH}/${filter.id}`)
+				.set("Authorization", owner.authorization)
+				.send({ icon });
+			assert.equal(response.status, 200, icon);
+			assert.equal(response.body.data.savedFilter.icon, icon);
+		}
+		for (const color of APPEARANCE_COLORS) {
+			const response = await api()
+				.patch(`${FILTERS_PATH}/${filter.id}`)
+				.set("Authorization", owner.authorization)
+				.send({ color });
+			assert.equal(response.status, 200, color);
+			assert.equal(response.body.data.savedFilter.color, color);
+		}
+	});
+
+	void it("rejects an icon or a color outside the shared appearance lists on update", async () => {
+		const owner = await createUserWithSession();
+		const filter = await createSavedFilter(owner.user.id);
+		await filter.update({ icon: "star", color: "sky" });
+
+		for (const body of [
+			{ icon: "rocket" },
+			{ icon: "" },
+			{ color: "#ff0000" },
+			{ color: "Rose" }
+		]) {
+			const response = await api()
+				.patch(`${FILTERS_PATH}/${filter.id}`)
+				.set("Authorization", owner.authorization)
+				.send(body);
+			assert.equal(response.status, 422, JSON.stringify(body));
+			assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		}
+		const stored = await SavedFilter.findByPk(filter.id);
+		assert.deepEqual([stored?.icon, stored?.color], ["star", "sky"]);
 	});
 
 	void it("accepts a platform icon on update", async () => {

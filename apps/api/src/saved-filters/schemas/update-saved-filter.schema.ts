@@ -1,11 +1,10 @@
 import z from "zod";
 
 import {
-	SAVED_FILTER_COLORS,
-	SAVED_FILTER_ICONS,
-	SORT_ORDERS,
-	STAT_KEYS
-} from "../saved-filter.model";
+	APPEARANCE_COLORS,
+	APPEARANCE_ICONS
+} from "../../common/constants/appearance.constants";
+import { SORT_ORDERS, STAT_KEYS } from "../saved-filter.model";
 import { SavedFilterFiltersSchema } from "./saved-filter-filters.schema";
 
 export const UpdateSavedFilterSchema = z
@@ -18,8 +17,8 @@ export const UpdateSavedFilterSchema = z
 		showInBacklog: z.boolean().optional(),
 		isDefault: z.boolean().optional(),
 		enabledStats: z.array(z.enum(STAT_KEYS)).nullable().optional(),
-		icon: z.enum(SAVED_FILTER_ICONS).nullable().optional(),
-		color: z.enum(SAVED_FILTER_COLORS).nullable().optional()
+		icon: z.enum(APPEARANCE_ICONS).nullable().optional(),
+		color: z.enum(APPEARANCE_COLORS).nullable().optional()
 	})
 	.strict()
 	.readonly();
