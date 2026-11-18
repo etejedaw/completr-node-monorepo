@@ -10,7 +10,8 @@ export type SectionVisibilityKey =
 	| "feedVisibility"
 	| "platinumVisibility"
 	| "franchiseVisibility"
-	| "rewindVisibility";
+	| "rewindVisibility"
+	| "tagVisibility";
 
 export interface PrivacyDraft extends Record<
 	SectionVisibilityKey | "profileVisibility",

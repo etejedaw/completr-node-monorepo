@@ -53,7 +53,7 @@ describe("privacy options", () => {
 		}
 	});
 
-	it("covers the ten profile sections", () => {
+	it("covers the eleven profile sections", () => {
 		expect([...SECTION_KEYS].sort()).toEqual([
 			"backlogVisibility",
 			"favoriteVisibility",
@@ -64,6 +64,7 @@ describe("privacy options", () => {
 			"queueVisibility",
 			"rewindVisibility",
 			"shelfVisibility",
+			"tagVisibility",
 			"wishlistVisibility"
 		]);
 	});
@@ -113,6 +114,33 @@ describe("privacy options", () => {
 			icon: "history",
 			iconColor: "text-brand"
 		});
+	});
+
+	it("lists Tags in the Collections group with the Tags menu icon", () => {
+		const collections = PRIVACY_SECTION_GROUPS.find(
+			group => group.title === "Collections"
+		)!;
+		const tags = collections.sections.find(
+			section => section.key === "tagVisibility"
+		);
+
+		expect(tags).toMatchObject({
+			title: "Tags",
+			iconColor: "text-nav-tags"
+		});
+		expect(tags?.description).toContain("favorite tags on your profile");
+	});
+
+	it("caps the Tags section by the profile level like any other section", () => {
+		const draft = {
+			...allAt("public"),
+			profileVisibility: "friends",
+			acceptFollowRequests: true
+		} as PrivacyDraft;
+
+		expect(effectiveSectionVisibility(draft, "tagVisibility")).toBe(
+			"friends"
+		);
 	});
 
 	describe("effectiveVisibility", () => {

@@ -60,6 +60,7 @@ const DEFAULT_DRAFT: PrivacyDraft = {
 	platinumVisibility: "public",
 	franchiseVisibility: "public",
 	rewindVisibility: "public",
+	tagVisibility: "public",
 	acceptFollowRequests: true
 };
 
@@ -78,6 +79,7 @@ function draftFromUser(user: User): PrivacyDraft {
 		platinumVisibility: user.platinumVisibility,
 		franchiseVisibility: user.franchiseVisibility,
 		rewindVisibility: user.rewindVisibility,
+		tagVisibility: user.tagVisibility,
 		acceptFollowRequests: user.acceptFollowRequests
 	};
 }
