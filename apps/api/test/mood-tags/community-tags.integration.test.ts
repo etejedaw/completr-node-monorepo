@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { describe, it } from "node:test";
 
+import { MoodTagMeta } from "../../src/mood-tags/mood-tag-meta.model";
 import { UserGameTag } from "../../src/mood-tags/user-game-tag.model";
 import { User } from "../../src/users/user.model";
 import { api } from "../helpers/app.helper";
@@ -594,5 +595,58 @@ void describe("GET /tags/:tag/games", () => {
 			assert.equal(response.status, 422);
 			assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
 		}
+	});
+});
+
+void describe("Community tags and personal tag appearance", () => {
+	void it("never exposes the icon or the color the players gave their tags", async () => {
+		const game = await createGame();
+		const voters = await createVoters(2);
+		const tag = uniqueTag("styled");
+		await vote(
+			voters.map(voter => voter.id),
+			game.id,
+			[tag]
+		);
+		await MoodTagMeta.bulkCreate(
+			voters.map(voter => ({
+				userId: voter.id,
+				tag,
+				icon: "rocket_launch",
+				color: "emerald"
+			}))
+		);
+
+		const responses = await Promise.all([
+			api().get(`/games/${game.id}/tags`),
+			api().get("/tags/popular?limit=50"),
+			api().get("/tags/search").query({ search: tag, limit: 20 }),
+			api().get(`/tags/${encodeURIComponent(tag)}/games`)
+		]);
+
+		for (const response of responses) {
+			assert.equal(response.status, 200);
+			const serialized = JSON.stringify(response.body);
+			assert.equal(serialized.includes(tag), true);
+			for (const hidden of [
+				'"icon"',
+				'"color"',
+				"rocket_launch",
+				"emerald"
+			])
+				assert.equal(serialized.includes(hidden), false, hidden);
+		}
+		const [gameTag] = onlyTags(await getGameTags(game.id), [tag]);
+		assert.deepEqual(Object.keys(gameTag!).sort(), [
+			"mine",
+			"players",
+			"tag"
+		]);
+		const [popular] = onlyTags(await getPopular(), [tag]);
+		assert.deepEqual(Object.keys(popular!).sort(), [
+			"games",
+			"players",
+			"tag"
+		]);
 	});
 });

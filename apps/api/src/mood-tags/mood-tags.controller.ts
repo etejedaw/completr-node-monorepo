@@ -54,15 +54,20 @@ export async function postTag(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
 	const body = request.locals.body as CreateTagDto;
 
-	const result = await moodTagsService.createTag(
-		user,
-		body.tag,
-		body.description ?? null
-	);
+	const result = await moodTagsService.createTag(user, body.tag, {
+		description: body.description,
+		icon: body.icon,
+		color: body.color
+	});
 
-	return response
-		.status(result.created ? 201 : 200)
-		.json({ data: { tag: result.tag, description: result.description } });
+	return response.status(result.created ? 201 : 200).json({
+		data: {
+			tag: result.tag,
+			description: result.description,
+			icon: result.icon,
+			color: result.color
+		}
+	});
 }
 
 export async function patchTag(request: Request, response: Response) {
@@ -74,12 +79,13 @@ export async function patchTag(request: Request, response: Response) {
 		await moodTagsService.renameTag(user.id, params.tag, body.newTag);
 	}
 	const finalTag = body.newTag ?? params.tag;
-	if (body.description !== undefined) {
-		await moodTagsService.setTagDescription(
-			user,
-			finalTag,
-			body.description
-		);
+	const details = {
+		description: body.description,
+		icon: body.icon,
+		color: body.color
+	};
+	if (Object.values(details).some(value => value !== undefined)) {
+		await moodTagsService.updateTagDetails(user, finalTag, details);
 	}
 
 	return response.status(200).json({ data: { tag: finalTag } });

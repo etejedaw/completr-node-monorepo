@@ -152,6 +152,8 @@ void describe("GET /admin/users/:userId/data-export", () => {
 		assert.equal(body.activity[0].game.id, seeded.game.id);
 		assert.equal(body.moodTags.tags[0].description, "Rainy days");
 		assert.equal(body.moodTags.tags[0].favoriteOrder, 0);
+		assert.equal(body.moodTags.tags[0].icon, "bolt");
+		assert.equal(body.moodTags.tags[0].color, "rose");
 		assert.equal(body.moodTags.gameTags[0].game.slug, seeded.game.code);
 		assert.equal(
 			body.trackedFranchises[0].franchise.name,
@@ -173,6 +175,45 @@ void describe("GET /admin/users/:userId/data-export", () => {
 		assert.equal(body.gameReports[0].message, "Wrong duration");
 		assert.equal(body.dataRequests.length, 1);
 		await auditEntry("user_data_exported", owner.id);
+	});
+
+	void it("exports every tag with its icon and color, null when the tag has none", async () => {
+		const admin = await createUserWithSession("admin");
+		const owner = await createUserWithSession();
+		await api()
+			.post("/users/me/mood-tags")
+			.set("Authorization", owner.authorization)
+			.send({ tag: "styled", icon: "star", color: "teal" })
+			.expect(201);
+		await api()
+			.post("/users/me/mood-tags")
+			.set("Authorization", owner.authorization)
+			.send({ tag: "plain" })
+			.expect(201);
+		await api()
+			.patch("/users/me/mood-tags/styled")
+			.set("Authorization", owner.authorization)
+			.send({ color: null })
+			.expect(200);
+
+		const response = await api()
+			.get(`/admin/users/${owner.user.id}/data-export`)
+			.set("Authorization", admin.authorization)
+			.expect(200);
+
+		assert.deepEqual(
+			response.body.moodTags.tags.map(
+				(entry: {
+					tag: string;
+					icon: string | null;
+					color: string | null;
+				}) => [entry.tag, entry.icon, entry.color]
+			),
+			[
+				["styled", "star", null],
+				["plain", null, null]
+			]
+		);
 	});
 
 	void it("never includes the password hash or session tokens", async () => {

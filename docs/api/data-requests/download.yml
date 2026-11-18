@@ -67,7 +67,7 @@ docs: |-
       "reviews": [],
       "social": { "followers": [{ "username": "janedoe", "since": "..." }], "following": [], "followRequests": [{ "direction": "received", "username": "alex", "createdAt": "..." }] },
       "activity": [{ "id": "uuid", "type": "backlog_completed", "game": { "id": "uuid", "title": "Hades", "slug": "hades" }, "list": null, "targetUsername": null, "metadata": null, "createdAt": "..." }],
-      "moodTags": { "tags": [{ "tag": "cozy", "description": "Rainy days", "favoriteOrder": 0, "createdAt": "..." }], "gameTags": [] },
+      "moodTags": { "tags": [{ "tag": "cozy", "description": "Rainy days", "favoriteOrder": 0, "icon": "bolt", "color": "rose", "createdAt": "..." }], "gameTags": [] },
       "trackedFranchises": [],
       "platinums": [],
       "rewinds": [{ "year": 2025, "aiRecap": {}, "premiumStats": {} }],

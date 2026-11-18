@@ -31,5 +31,10 @@ export function taggedGamesPageSerializer(page: TaggedGamesPage) {
 }
 
 export function favoriteTagSerializer(meta: MoodTagMeta) {
-	return { tag: meta.tag, description: meta.description };
+	return {
+		tag: meta.tag,
+		description: meta.description,
+		icon: meta.icon,
+		color: meta.color
+	};
 }

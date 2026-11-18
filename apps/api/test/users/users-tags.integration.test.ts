@@ -67,8 +67,13 @@ void describe("GET /users/:username/tags", () => {
 		assert.deepEqual(response.body, {
 			data: {
 				tags: [
-					{ tag: first, description: null },
-					{ tag: second, description: "Rainy afternoons" }
+					{ tag: first, description: null, icon: null, color: null },
+					{
+						tag: second,
+						description: "Rainy afternoons",
+						icon: null,
+						color: null
+					}
 				]
 			}
 		});
@@ -76,6 +81,39 @@ void describe("GET /users/:username/tags", () => {
 			JSON.stringify(response.body).includes(owner.user.id),
 			false
 		);
+	});
+
+	void it("returns the icon and color of every favorite and keeps them when the favorites are replaced", async () => {
+		const owner = await createUserWithSession();
+		const { first, second } = await seedFavorites(owner);
+		await api()
+			.patch(`/users/me/mood-tags/${encodeURIComponent(first)}`)
+			.set("Authorization", owner.authorization)
+			.send({ icon: "emoji_events", color: "purple" })
+			.expect(200);
+		await api()
+			.put("/users/me/mood-tags/favorites")
+			.set("Authorization", owner.authorization)
+			.send({ tags: [second, first] })
+			.expect(200);
+
+		const response = await api().get(tagsPath(owner.user.username));
+
+		assert.equal(response.status, 200);
+		assert.deepEqual(response.body.data.tags, [
+			{
+				tag: second,
+				description: "Rainy afternoons",
+				icon: null,
+				color: null
+			},
+			{
+				tag: first,
+				description: null,
+				icon: "emoji_events",
+				color: "purple"
+			}
+		]);
 	});
 
 	void it("answers an empty list when the user has no favorites", async () => {

@@ -22,8 +22,10 @@ import {
 	type CommunityTagStatsRow,
 	type GameCommunityTagRow,
 	type PublicTaggedGameRow,
+	type TagDetails,
 	type TaggedGamesPage,
-	type TotalRow
+	type TotalRow,
+	type UserTagRow
 } from "./mood-tags.interface";
 import { normalizeTag, normalizeTags } from "./normalize-tag.util";
 import { type TagGamesQuery } from "./schemas/tag-games-query.schema";
@@ -48,6 +50,16 @@ function normalizeValidTag(rawTag: string) {
 function normalizeDescription(description: string | null | undefined) {
 	if (description === null || description === undefined) return null;
 	return description.trim().slice(0, MAX_TAG_DESCRIPTION_LENGTH) || null;
+}
+
+function definedTagDetails(details: TagDetails) {
+	return {
+		...(details.description !== undefined && {
+			description: normalizeDescription(details.description)
+		}),
+		...(details.icon !== undefined && { icon: details.icon }),
+		...(details.color !== undefined && { color: details.color })
+	};
 }
 
 async function findTagNamesByUser(userId: string, transaction?: Transaction) {
@@ -126,7 +138,7 @@ export async function findTagsByGame(userId: string, gameId: string) {
 }
 
 export async function findTagsByUser(userId: string) {
-	const rows = (await sequelize.query(
+	return sequelize.query<UserTagRow>(
 		`WITH ugt AS (
 			SELECT "tag", COUNT(*)::int AS "usageCount"
 			FROM "UserGameTags"
@@ -134,7 +146,7 @@ export async function findTagsByUser(userId: string) {
 			GROUP BY "tag"
 		),
 		mtm AS (
-			SELECT "tag", "description", "favoriteOrder"
+			SELECT "tag", "description", "favoriteOrder", "icon", "color"
 			FROM "MoodTagMetas"
 			WHERE "userId" = :userId
 		)
@@ -142,7 +154,9 @@ export async function findTagsByUser(userId: string) {
 			COALESCE(ugt."tag", mtm."tag") AS "tag",
 			COALESCE(ugt."usageCount", 0) AS "usageCount",
 			mtm."description" AS "description",
-			mtm."favoriteOrder" AS "favoriteOrder"
+			mtm."favoriteOrder" AS "favoriteOrder",
+			mtm."icon" AS "icon",
+			mtm."color" AS "color"
 		FROM ugt
 		FULL OUTER JOIN mtm ON mtm."tag" = ugt."tag"
 		ORDER BY "usageCount" DESC, "tag" ASC`,
@@ -150,13 +164,7 @@ export async function findTagsByUser(userId: string) {
 			replacements: { userId },
 			type: QueryTypes.SELECT
 		}
-	)) as {
-		tag: string;
-		usageCount: number;
-		description: string | null;
-		favoriteOrder: number | null;
-	}[];
-	return rows;
+	);
 }
 
 async function resolveUnlimitedTags(user: RequestUser) {
@@ -167,11 +175,15 @@ async function resolveUnlimitedTags(user: RequestUser) {
 export async function createTag(
 	user: RequestUser,
 	rawTag: string,
-	description: string | null | undefined
+	details: TagDetails
 ) {
 	const userId = user.id;
 	const tag = normalizeValidTag(rawTag);
-	const trimmed = normalizeDescription(description);
+	const newTagDetails = {
+		description: normalizeDescription(details.description),
+		icon: details.icon ?? null,
+		color: details.color ?? null
+	};
 	const unlimited = await resolveUnlimitedTags(user);
 
 	return sequelize.transaction(async transaction => {
@@ -181,26 +193,32 @@ export async function createTag(
 			transaction
 		});
 		if (existing)
-			return { tag, description: existing.description, created: false };
+			return {
+				tag,
+				description: existing.description,
+				icon: existing.icon,
+				color: existing.color,
+				created: false
+			};
 
 		await assertWithinTagLimit(user, [tag], transaction, unlimited);
 
 		await MoodTagMeta.create(
-			{ userId, tag, description: trimmed },
+			{ userId, tag, ...newTagDetails },
 			{ transaction }
 		);
-		return { tag, description: trimmed, created: true };
+		return { tag, ...newTagDetails, created: true };
 	});
 }
 
-export async function setTagDescription(
+export async function updateTagDetails(
 	user: RequestUser,
 	rawTag: string,
-	description: string | null
+	details: TagDetails
 ) {
 	const userId = user.id;
 	const tag = normalizeValidTag(rawTag);
-	const trimmed = normalizeDescription(description);
+	const changedDetails = definedTagDetails(details);
 	const unlimited = await resolveUnlimitedTags(user);
 
 	return sequelize.transaction(async transaction => {
@@ -208,7 +226,7 @@ export async function setTagDescription(
 		await assertWithinTagLimit(user, [tag], transaction, unlimited);
 
 		const [meta] = await MoodTagMeta.upsert(
-			{ userId, tag, description: trimmed },
+			{ userId, tag, ...changedDetails },
 			{ transaction }
 		);
 		return meta;
@@ -264,6 +282,8 @@ export async function renameTag(
 					{
 						description:
 							targetMeta.description || existingMeta.description,
+						icon: targetMeta.icon ?? existingMeta.icon,
+						color: targetMeta.color ?? existingMeta.color,
 						favoriteOrder: earliestFavoriteOrder(
 							targetMeta.favoriteOrder,
 							existingMeta.favoriteOrder
@@ -434,7 +454,7 @@ export async function replaceFavoriteTags(
 export async function findFavoriteTagsByUser(userId: string) {
 	return MoodTagMeta.findAll({
 		where: { userId, favoriteOrder: { [Op.ne]: null } },
-		attributes: ["tag", "description"],
+		attributes: ["tag", "description", "icon", "color"],
 		order: [
 			["favoriteOrder", "ASC"],
 			["id", "ASC"]
@@ -576,20 +596,4 @@ export async function findPublicGamesByTag(
 			return game ? [{ game, players: row.players }] : [];
 		})
 	};
-}
-
-export function communityTaggedGameIdsSql(tags: readonly string[]) {
-	const escapedTags = tags.map(tag => sequelize.escape(tag)).join(", ");
-	return `SELECT "publicPairs"."gameId"
-		FROM (
-			SELECT "communityVote"."gameId", "communityVote"."tag"
-			FROM "UserGameTags" AS "communityVote"
-			JOIN "Users" AS "communityVoter"
-				ON "communityVoter"."id" = "communityVote"."userId" AND "communityVoter"."isActive" = true
-			WHERE "communityVote"."tag" IN (${escapedTags})
-			GROUP BY "communityVote"."gameId", "communityVote"."tag"
-			HAVING COUNT(DISTINCT "communityVote"."userId") >= ${COMMUNITY_TAG_MIN_PLAYERS}
-		) AS "publicPairs"
-		GROUP BY "publicPairs"."gameId"
-		HAVING COUNT(*) = ${tags.length}`;
 }

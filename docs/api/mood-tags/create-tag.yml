@@ -15,7 +15,9 @@ http:
         data: |-
             {
               "tag": "podcast game",
-              "description": "Para jugar mientras escucho un podcast"
+              "description": "Para jugar mientras escucho un podcast",
+              "icon": "schedule",
+              "color": "teal"
             }
 
 settings:
@@ -41,6 +43,8 @@ docs: |-
     |-------------|----------------|----------|------------------------------------------|
     | tag         | string         | Yes      | 1–40 chars. Will be normalized.          |
     | description | string \| null | No       | Optional description (max 255 chars).    |
+    | icon        | string \| null | No       | Icon of the tag. `null` or omitted leaves it without one. Same values as saved views: `bookmark`, `star`, `favorite`, `sports_esports`, `smartphone`, `computer`, `tv`, `emoji_events`, `flag`, `check_circle`, `schedule`, `bolt`, `local_fire_department`, `filter_alt`, `list`, `calendar_month`, `military_tech`, `rocket_launch`, `visibility` |
+    | color       | string \| null | No       | Color token of the tag. `null` or omitted leaves it without one. Same values as saved views: `brand`, `sky`, `emerald`, `rose`, `purple`, `teal`, `slate` |
 
     ### Response (201 created)
 
@@ -48,20 +52,21 @@ docs: |-
     {
       "data": {
         "tag": "podcast game",
-        "description": "Para jugar mientras escucho un podcast"
+        "description": "Para jugar mientras escucho un podcast",
+        "icon": "schedule",
+        "color": "teal"
       }
     }
     ```
 
     ### Response (200 already exists)
 
-    Same shape, returns the existing record. The existing description is **not** overwritten —
-    use `PATCH /users/me/mood-tags/:tag` to update it.
+    Same shape, returns the existing record. The existing description, icon and color are **not** overwritten — use `PATCH /users/me/mood-tags/:tag` to update them.
 
     ### Errors
 
     | Status | Type                     | Reason                                    |
     |--------|--------------------------|-------------------------------------------|
-    | 422    | `COMMON_SCHEMA_INVALID`  | Body validation failed (empty, too long)  |
+    | 422    | `COMMON_SCHEMA_INVALID`  | Body validation failed (empty, too long, icon or color outside the allowed values) |
     | 422    | `MOOD_TAGS_INVALID_TAG`  | Tag empty after normalization or > 40 chars |
     | 402    | `MOOD_TAGS_LIMIT_REACHED`  | Free plan limit (25 distinct tags) reached by a new tag name; premium roles have no limit |

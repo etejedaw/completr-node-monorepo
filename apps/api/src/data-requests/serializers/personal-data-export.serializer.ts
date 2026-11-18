@@ -276,6 +276,8 @@ function moodTagsSection(bundle: PersonalDataBundle) {
 			tag: meta.tag,
 			description: meta.description,
 			favoriteOrder: meta.favoriteOrder ?? null,
+			icon: meta.icon ?? null,
+			color: meta.color ?? null,
 			createdAt: meta.createdAt
 		})),
 		gameTags: bundle.gameTags.map(gameTag => ({

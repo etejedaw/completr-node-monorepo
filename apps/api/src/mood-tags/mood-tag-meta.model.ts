@@ -8,6 +8,8 @@ class MoodTagMeta extends Model {
 	declare tag: string;
 	declare description: string | null;
 	declare favoriteOrder: number | null;
+	declare icon: string | null;
+	declare color: string | null;
 	declare createdAt: Date;
 	declare updatedAt: Date;
 }
@@ -35,6 +37,16 @@ MoodTagMeta.init(
 		favoriteOrder: {
 			type: DataTypes.INTEGER,
 			allowNull: true
+		},
+		icon: {
+			type: DataTypes.STRING(50),
+			allowNull: true,
+			defaultValue: null
+		},
+		color: {
+			type: DataTypes.STRING(20),
+			allowNull: true,
+			defaultValue: null
 		}
 	},
 	{

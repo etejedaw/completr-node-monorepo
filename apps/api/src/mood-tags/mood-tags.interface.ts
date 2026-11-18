@@ -17,6 +17,21 @@ export interface PublicTaggedGameRow {
 	players: number;
 }
 
+export interface UserTagRow {
+	tag: string;
+	usageCount: number;
+	description: string | null;
+	favoriteOrder: number | null;
+	icon: string | null;
+	color: string | null;
+}
+
+export interface TagDetails {
+	description?: string | null;
+	icon?: string | null;
+	color?: string | null;
+}
+
 export interface TotalRow {
 	total: number;
 }

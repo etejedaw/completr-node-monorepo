@@ -27,9 +27,9 @@ docs: |-
     {
       "data": {
         "tags": [
-          { "tag": "relajante", "usageCount": 12, "description": "Para una sesión chill", "favoriteOrder": 0 },
-          { "tag": "corto", "usageCount": 7, "description": null, "favoriteOrder": null },
-          { "tag": "podcast game", "usageCount": 3, "description": null, "favoriteOrder": 1 }
+          { "tag": "relajante", "usageCount": 12, "description": "Para una sesión chill", "favoriteOrder": 0, "icon": "bolt", "color": "rose" },
+          { "tag": "corto", "usageCount": 7, "description": null, "favoriteOrder": null, "icon": null, "color": null },
+          { "tag": "podcast game", "usageCount": 3, "description": null, "favoriteOrder": 1, "icon": "schedule", "color": null }
         ]
       }
     }
@@ -38,5 +38,7 @@ docs: |-
     `description` is `null` unless the user explicitly set one via
     `PATCH /users/me/mood-tags/:tag`. Tags that exist only as metadata (no game uses them
     yet) appear with `usageCount = 0`.
+
+    `icon` and `color` are the appearance the user chose with `POST` or `PATCH /users/me/mood-tags`, or `null` when the tag has none. Only the owner's endpoints return them: the community tag endpoints never do.
 
     `favoriteOrder` is the 0-based position of the tag among the user's favorites (set with `PUT /users/me/mood-tags/favorites`), or `null` when the tag is not a favorite.

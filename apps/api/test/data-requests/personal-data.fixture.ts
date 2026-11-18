@@ -184,7 +184,9 @@ export async function seedPersonalData(owner: User) {
 		userId: owner.id,
 		tag: "cozy",
 		description: "Rainy days",
-		favoriteOrder: 0
+		favoriteOrder: 0,
+		icon: "bolt",
+		color: "rose"
 	});
 	await UserFranchise.create({ userId: owner.id, franchiseId: franchise.id });
 	await GamePlatinum.create({
