@@ -18,7 +18,6 @@ import { exportFormatNegotiationMiddleware } from "../common/middlewares/export-
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateBulkBodyMiddleware } from "../common/middlewares/validate-bulk-body.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { ExportPlatformSearchQuerySchema } from "../common/schemas/export-platform-search-query.schema";
 import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
 import { PaginationQuerySchema } from "../common/schemas/pagination-query.schema";
 import * as favoritesController from "../favorites/favorites.controller";
@@ -29,6 +28,8 @@ import {
 	type PlatinumsBulkQuery,
 	PlatinumsBulkQuerySchema
 } from "../game-platinum/schemas/platinums-bulk-query.schema";
+import { PlatinumsExportQuerySchema } from "../game-platinum/schemas/platinums-export-query.schema";
+import { PlatinumsQuerySchema } from "../game-platinum/schemas/platinums-query.schema";
 import * as gameShelfController from "../game-shelf/game-shelf.controller";
 import gameShelfRouter from "../game-shelf/game-shelf.routes";
 import * as moodTagsController from "../mood-tags/mood-tags.controller";
@@ -260,7 +261,7 @@ router.get(
 	[
 		authMiddleware("user", "premium", "moderator"),
 		rateLimiterMiddleware(userLimiter),
-		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
+		validateSchemaMiddleware(PlatinumsQuerySchema, "query")
 	],
 	gamePlatinumController.getMyPlatinums
 );
@@ -270,7 +271,7 @@ router.get(
 	[
 		authMiddleware("user", "premium", "moderator"),
 		rateLimiterMiddleware(userLimiter),
-		validateSchemaMiddleware(ExportPlatformSearchQuerySchema, "query"),
+		validateSchemaMiddleware(PlatinumsExportQuerySchema, "query"),
 		exportFormatNegotiationMiddleware,
 		exportFormatAccessMiddleware
 	],

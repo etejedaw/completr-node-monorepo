@@ -2,7 +2,6 @@ import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { type ExportFormat } from "../common/types/export-format.types";
 import { sendExport } from "../common/utils/send-export.util";
@@ -20,6 +19,8 @@ import {
 import * as gamePlatinumService from "./game-platinum.service";
 import { type GamePlatinumParams } from "./schemas/game-platinum-params.schema";
 import { type PlatinumsBulkQuery } from "./schemas/platinums-bulk-query.schema";
+import { type PlatinumsExportQuery } from "./schemas/platinums-export-query.schema";
+import { type PlatinumsQuery } from "./schemas/platinums-query.schema";
 
 export async function putPlatinum(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
@@ -40,7 +41,7 @@ export async function putPlatinum(request: Request, response: Response) {
 
 export async function getMyPlatinums(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
-	const query = (request.locals.query ?? {}) as PaginatedSearchQuery;
+	const query = request.locals.query as PlatinumsQuery;
 
 	const { rows, total } =
 		await gamePlatinumService.findPlatinumsByUserIdPaginated(
@@ -94,7 +95,7 @@ export async function getMyPlatinumsExport(
 ) {
 	const user = request.locals.user as RequestUser;
 	const format = request.locals.exportFormat as ExportFormat;
-	const query = request.locals.query as ExportPlatformSearchQuery;
+	const query = request.locals.query as PlatinumsExportQuery;
 
 	const entries = await gamePlatinumService.findPlatinumsForExport(
 		user.id,
