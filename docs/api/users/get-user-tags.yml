@@ -17,7 +17,7 @@ settings:
 docs: |-
     ## Get User Favorite Tags
 
-    Returns the user's favorite tags (up to 5) in the order the owner chose with `PUT /users/me/mood-tags/favorites`, with the description, icon and color the owner gave each one (`null` when unset). Empty list when the user has no favorites.
+    Returns the user's favorite tags (up to 5) in the order the owner chose with `PUT /users/me/mood-tags/favorites`, with the icon and color the owner gave each one (`null` when unset). The tag's description is private and never included. Empty list when the user has no favorites.
 
     The profile must be visible (`profileVisibility`) and then the `tag` section (`tagVisibility`): `friends` only for mutual followers, `private` only for the owner. The owner always sees their own.
 
@@ -36,8 +36,8 @@ docs: |-
     {
       "data": {
         "tags": [
-          { "tag": "relajante", "description": "Para una sesión chill", "icon": "bolt", "color": "rose" },
-          { "tag": "co-op", "description": null, "icon": null, "color": null }
+          { "tag": "relajante", "icon": "bolt", "color": "rose" },
+          { "tag": "co-op", "icon": null, "color": null }
         ]
       }
     }

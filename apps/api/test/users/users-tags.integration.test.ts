@@ -57,7 +57,7 @@ async function seedFavorites(owner: Account) {
 }
 
 void describe("GET /users/:username/tags", () => {
-	void it("returns the favorite tags in order with their description and nothing that identifies the owner", async () => {
+	void it("returns the favorite tags in order without their private description or anything that identifies the owner", async () => {
 		const owner = await createUserWithSession();
 		const { first, second } = await seedFavorites(owner);
 
@@ -67,16 +67,15 @@ void describe("GET /users/:username/tags", () => {
 		assert.deepEqual(response.body, {
 			data: {
 				tags: [
-					{ tag: first, description: null, icon: null, color: null },
-					{
-						tag: second,
-						description: "Rainy afternoons",
-						icon: null,
-						color: null
-					}
+					{ tag: first, icon: null, color: null },
+					{ tag: second, icon: null, color: null }
 				]
 			}
 		});
+		assert.equal(
+			JSON.stringify(response.body).includes("Rainy afternoons"),
+			false
+		);
 		assert.equal(
 			JSON.stringify(response.body).includes(owner.user.id),
 			false
@@ -101,18 +100,8 @@ void describe("GET /users/:username/tags", () => {
 
 		assert.equal(response.status, 200);
 		assert.deepEqual(response.body.data.tags, [
-			{
-				tag: second,
-				description: "Rainy afternoons",
-				icon: null,
-				color: null
-			},
-			{
-				tag: first,
-				description: null,
-				icon: "emoji_events",
-				color: "purple"
-			}
+			{ tag: second, icon: null, color: null },
+			{ tag: first, icon: "emoji_events", color: "purple" }
 		]);
 	});
 
