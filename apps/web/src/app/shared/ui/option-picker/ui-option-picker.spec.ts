@@ -1,10 +1,39 @@
-import { signal } from "@angular/core";
+import "@testing-library/jest-dom/vitest";
+
+import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { provideRouter } from "@angular/router";
+import { provideRouter, Router } from "@angular/router";
+import {
+	render as renderPicker,
+	screen,
+	waitFor,
+	within
+} from "@testing-library/angular";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
 
 import { ViewportService } from "../../../core/services/viewport";
 import { UiOptionPicker } from "./ui-option-picker";
-import { type UiPickerOption } from "./ui-option-picker.model";
+import {
+	type UiPickerAction,
+	type UiPickerOption
+} from "./ui-option-picker.model";
+
+@Component({
+	selector: "ui-blank-page",
+	template: "",
+	changeDetection: ChangeDetectionStrategy.OnPush
+})
+class BlankPage {}
+
+const linkActions: UiPickerAction[] = [
+	{ id: "reorder", label: "Reorder pinned views", icon: "swap_vert" },
+	{
+		id: "manage",
+		label: "Manage saved views",
+		icon: "settings",
+		link: { routerLink: ["/saved-views"], queryParams: { from: "games" } }
+	}
+];
 
 const options: UiPickerOption[] = [
 	{ value: "", label: "All", icon: "apps", count: 10 },
@@ -324,6 +353,107 @@ describe("UiOptionPicker", () => {
 
 			const anchor = document.body.querySelector("ui-bottom-sheet li a");
 			expect(anchor?.getAttribute("href")).toBe("/help#a");
+		});
+	});
+
+	describe("action links", () => {
+		async function renderWithLinks(mobile: boolean) {
+			const actionSelected = vi.fn();
+			await renderPicker(UiOptionPicker, {
+				inputs: {
+					label: "View",
+					heading: "Saved views",
+					options,
+					actions: linkActions
+				},
+				on: { actionSelected },
+				providers: [
+					{
+						provide: ViewportService,
+						useValue: { isMobile: signal(mobile) }
+					}
+				],
+				routes: [{ path: "**", component: BlankPage }]
+			});
+			return { actionSelected, router: TestBed.inject(Router) };
+		}
+
+		async function clickTwiceWherePointerIs(
+			user: UserEvent,
+			target: HTMLElement
+		) {
+			await user.click(target);
+			await user.click(target.isConnected ? target : document.body);
+		}
+
+		function pickerTrigger() {
+			return screen.getByRole("button", { name: /^View:/ });
+		}
+
+		it("navigates from the desktop menu with a real link and closes it", async () => {
+			const user = userEvent.setup();
+			const { actionSelected, router } = await renderWithLinks(false);
+
+			await user.click(pickerTrigger());
+			const menu = await screen.findByRole("menu");
+			const manage = within(menu).getByRole("menuitem", {
+				name: "Manage saved views"
+			});
+			expect(manage.tagName).toBe("A");
+			expect(manage).toHaveAttribute("href", "/saved-views?from=games");
+			await clickTwiceWherePointerIs(user, manage);
+
+			await waitFor(() =>
+				expect(router.url).toBe("/saved-views?from=games")
+			);
+			await waitFor(() =>
+				expect(screen.queryByRole("menu")).not.toBeInTheDocument()
+			);
+			expect(actionSelected).not.toHaveBeenCalled();
+		});
+
+		it("still emits a plain action next to a link in the desktop menu", async () => {
+			const user = userEvent.setup();
+			const { actionSelected, router } = await renderWithLinks(false);
+
+			await user.click(pickerTrigger());
+			const menu = await screen.findByRole("menu");
+			await user.click(
+				within(menu).getByRole("menuitem", {
+					name: "Reorder pinned views"
+				})
+			);
+
+			expect(actionSelected).toHaveBeenCalledExactlyOnceWith("reorder");
+			expect(router.url).toBe("/");
+		});
+
+		it("navigates from the mobile sheet with a real link and closes it, even on a double tap", async () => {
+			const user = userEvent.setup();
+			const { actionSelected, router } = await renderWithLinks(true);
+
+			await user.click(pickerTrigger());
+			const sheet = await screen.findByRole("dialog", {
+				name: "Saved views"
+			});
+			const manage = within(sheet).getByRole("link", {
+				name: "Manage saved views"
+			});
+			expect(manage).toHaveAttribute("href", "/saved-views?from=games");
+			expect(
+				within(sheet).getByRole("button", {
+					name: "Reorder pinned views"
+				})
+			).toBeInTheDocument();
+			await clickTwiceWherePointerIs(user, manage);
+
+			await waitFor(() =>
+				expect(router.url).toBe("/saved-views?from=games")
+			);
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+			expect(actionSelected).not.toHaveBeenCalled();
 		});
 	});
 
