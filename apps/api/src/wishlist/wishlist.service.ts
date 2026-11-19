@@ -2,8 +2,6 @@ import { Op, type Transaction } from "sequelize";
 
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
-import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
 import { compactPositions as compactPositionsOf } from "../common/utils/compact-positions.util";
 import { buildPlatformFilterWhere } from "../common/utils/platform-filter-where.util";
@@ -11,9 +9,12 @@ import { buildTextSearchWhere } from "../common/utils/text-search.util";
 import { sequelize } from "../database/sequelize.database";
 import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as platformsService from "../platforms/platforms.service";
 import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import * as wishlistServiceError from "./errors/wishlist.service-error";
+import { type WishlistExportQuery } from "./schemas/wishlist-export-query.schema";
+import { type WishlistQuery } from "./schemas/wishlist-query.schema";
 import { FREE_WISHLIST_LIMIT, WISHLIST_ORDER } from "./wishlist.constants";
 import { Wishlist } from "./wishlist.model";
 
@@ -200,7 +201,7 @@ export async function findGameEntriesByUserId(
 
 export async function findWishlistByUserIdPaginated(
 	userId: string,
-	pagination: PaginatedSearchQuery = {}
+	pagination: WishlistQuery = {}
 ) {
 	const gameInclude: Record<string, unknown> = {
 		...gamesService.gameInclude()
@@ -214,7 +215,15 @@ export async function findWishlistByUserIdPaginated(
 	}
 
 	const query: Record<string, unknown> = {
-		where: { userId },
+		where: {
+			userId,
+			...(pagination.mood_tags && {
+				gameId: moodTagsService.taggedGameIdsFilter(
+					userId,
+					pagination.mood_tags
+				)
+			})
+		},
 		include: [gameInclude, { ...platformsService.platformInclude() }],
 		order: WISHLIST_ORDER
 	};
@@ -227,14 +236,23 @@ export async function findWishlistByUserIdPaginated(
 
 export async function findWishlistForExport(
 	userId: string,
-	filters: ExportPlatformSearchQuery = {}
+	filters: WishlistExportQuery = {}
 ) {
 	const titleWhere = filters.search
 		? buildTextSearchWhere(filters.search, ["Game.title"])
 		: null;
 
 	return Wishlist.findAll({
-		where: { userId, ...buildPlatformFilterWhere(filters.platform) },
+		where: {
+			userId,
+			...buildPlatformFilterWhere(filters.platform),
+			...(filters.mood_tags && {
+				gameId: moodTagsService.taggedGameIdsFilter(
+					userId,
+					filters.mood_tags
+				)
+			})
+		},
 		include: [
 			{
 				...gamesService.gameInclude(),
