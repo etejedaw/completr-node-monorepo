@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { authMiddleware } from "../auth/auth.middleware";
+import { BacklogQuerySchema } from "../backlog/schemas/backlog-query.schema";
 import { userLimiter } from "../common/config/rate-limiter.config";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
@@ -48,7 +49,8 @@ router.get(
 	[
 		authMiddleware("user", "premium", "moderator"),
 		rateLimiterMiddleware(userLimiter),
-		validateSchemaMiddleware(SavedFilterIdParamsSchema, "params")
+		validateSchemaMiddleware(SavedFilterIdParamsSchema, "params"),
+		validateSchemaMiddleware(BacklogQuerySchema, "query")
 	],
 	savedFiltersController.getSavedFilterStats
 );
