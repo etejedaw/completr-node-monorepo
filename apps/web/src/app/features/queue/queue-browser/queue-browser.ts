@@ -26,6 +26,7 @@ import {
 	UiPagination,
 	UiPlainEmptyState
 } from "../../../shared/ui";
+import { joinTagList } from "../../../shared/utils/tag-filter-params";
 import { QueueListSection } from "../queue-list-section/queue-list-section";
 import { QueueNextCard } from "../queue-next-card/queue-next-card";
 import {
@@ -69,6 +70,7 @@ export class QueueBrowser {
 	readonly isLoading = input.required<boolean>();
 	readonly loadFailed = input(false);
 	readonly searchQuery = input.required<string>();
+	readonly moodTags = input<readonly string[]>([]);
 	readonly noMatchesScope = input.required<string>();
 	readonly offset = input.required<number>();
 	readonly limit = input.required<number>();
@@ -82,10 +84,12 @@ export class QueueBrowser {
 	readonly sortBy = model<QueueSort>("manual");
 	protected readonly exportParams = computed<ExportParams>(() => ({
 		search: this.searchQuery().trim() || undefined,
+		mood_tags: joinTagList(this.moodTags()) ?? undefined,
 		sort: this.sortBy()
 	}));
 
 	readonly searchChange = output<string>();
+	readonly filtersCleared = output();
 	readonly offsetChange = output<number>();
 	readonly retried = output();
 	readonly saveOrder = output<QueueEntry[]>();
@@ -104,11 +108,19 @@ export class QueueBrowser {
 
 	protected readonly pointer = inject(PointerService);
 
+	protected readonly hasTagFilter = computed(
+		() => this.moodTags().length > 0
+	);
 	protected readonly sortedEntries = computed(() =>
 		sortQueueEntries(this.entries(), this.sortBy())
 	);
 	protected readonly featured = computed(() => {
-		if (this.offset() > 0 || this.searchQuery().trim()) return null;
+		if (
+			this.offset() > 0 ||
+			this.searchQuery().trim() ||
+			this.hasTagFilter()
+		)
+			return null;
 		return this.sortedEntries()[0] ?? null;
 	});
 	protected readonly rest = computed(() =>
@@ -119,10 +131,20 @@ export class QueueBrowser {
 	protected readonly featuredEyebrow = computed(() =>
 		queueFeaturedEyebrow(this.sortBy())
 	);
-	protected readonly noMatchesMessage = computed(
-		() =>
-			`Nothing in ${this.noMatchesScope()} matches "${this.searchQuery().trim()}".`
-	);
+	protected readonly noMatchesMessage = computed(() => {
+		const scope = this.noMatchesScope();
+		const query = this.searchQuery().trim();
+		if (!this.hasTagFilter())
+			return `Nothing in ${scope} matches "${query}".`;
+		return query
+			? `Nothing in ${scope} matches "${query}" with every tag you picked.`
+			: `Nothing in ${scope} has every tag you picked.`;
+	});
+
+	protected clearNoMatches() {
+		if (this.hasTagFilter()) this.filtersCleared.emit();
+		else this.searchChange.emit("");
+	}
 
 	protected isFavorite(entry: QueueEntry): boolean {
 		return this.favoriteGameIds().has(entry.backlog.game.id);

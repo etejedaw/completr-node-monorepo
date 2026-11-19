@@ -144,6 +144,8 @@ describe("QueueView interaction", () => {
 				}
 			});
 		}
+		if (method === "GET" && url === `${api}/users/me/mood-tags`)
+			return req.flush({ data: { tags: [] } });
 		throw new Error(`Unexpected request: ${method} ${url}`);
 	}
 

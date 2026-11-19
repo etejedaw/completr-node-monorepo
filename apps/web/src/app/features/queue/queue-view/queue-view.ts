@@ -28,6 +28,7 @@ import { QueueService } from "../../../core/services/queue";
 import { ToastService } from "../../../core/services/toast";
 import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { MyTagFilter } from "../../../shared/components/my-tag-filter/my-tag-filter";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiButton,
@@ -40,6 +41,7 @@ import {
 import { arrangeIntoFullOrder } from "../../../shared/utils/full-order";
 import { gameArtUrl } from "../../../shared/utils/game-art";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
+import { injectMyTagFilter } from "../../../shared/utils/inject-my-tag-filter";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { PendingRemovals } from "../../../shared/utils/pending-removals";
 import { BacklogService } from "../../backlog/backlog";
@@ -54,6 +56,7 @@ import { type QueueWrite } from "./queue-view.model";
 	selector: "app-queue-view",
 	imports: [
 		LibraryHero,
+		MyTagFilter,
 		QueueBrowser,
 		UiEmptyState,
 		UiButton,
@@ -86,6 +89,15 @@ export class QueueView implements OnInit {
 	protected readonly entries = signal<QueueEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
+	protected readonly tagFilter = injectMyTagFilter({
+		changed: () => {
+			this.offset.set(0);
+			this.loadQueue();
+		}
+	});
+	protected readonly isFiltered = computed(
+		() => !!this.searchQuery().trim() || this.tagFilter.active()
+	);
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
 	protected readonly limit = 100;
@@ -170,6 +182,11 @@ export class QueueView implements OnInit {
 			return;
 		}
 		this.searchSubject.next(query);
+	}
+
+	protected clearSearchAndTags() {
+		this.tagFilter.clearSilently();
+		this.onSearch("");
 	}
 
 	protected openAddModal() {
@@ -299,7 +316,8 @@ export class QueueView implements OnInit {
 			this.queueService.getMyQueuePaged({
 				limit: this.limit,
 				offset: this.offset(),
-				search: this.searchQuery().trim() || undefined
+				search: this.searchQuery().trim() || undefined,
+				mood_tags: this.tagFilter.param()
 			}),
 			{
 				next: res => {

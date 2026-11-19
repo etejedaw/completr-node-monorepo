@@ -28,10 +28,11 @@
 <app-queue-browser
 	noMatchesScope="Up Next"
 	[entries]="entries()"
-	[queueIsEmpty]="entries().length === 0 && !searchQuery().trim()"
+	[queueIsEmpty]="entries().length === 0 && !isFiltered()"
 	[isLoading]="isLoading()"
 	[loadFailed]="queueLoader.failed()"
 	[searchQuery]="searchQuery()"
+	[moodTags]="tagFilter.selected()"
 	[offset]="offset()"
 	[limit]="limit"
 	[total]="total()"
@@ -41,6 +42,7 @@
 	[movingToTop]="movingToTop()"
 	[(sortBy)]="sortBy"
 	(searchChange)="onSearch($event)"
+	(filtersCleared)="clearSearchAndTags()"
 	(offsetChange)="onOffsetChange($event)"
 	(retried)="loadQueue()"
 	(saveOrder)="saveCurrentOrder($event)"
@@ -52,6 +54,12 @@
 	(moveDown)="moveDown($event)"
 	(entryMove)="moveEntry($event)"
 >
+	<app-my-tag-filter
+		toolbarFilters
+		[options]="tagFilter.options()"
+		[values]="tagFilter.selected()"
+		(valuesChange)="tagFilter.select($event)"
+	/>
 	<ng-template #emptyQueue>
 		<ui-empty-state
 			icon="playlist_play"

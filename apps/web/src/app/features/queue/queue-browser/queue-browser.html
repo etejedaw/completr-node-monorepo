@@ -9,6 +9,7 @@
 		[value]="searchQuery()"
 		(valueChange)="searchChange.emit($event)"
 	/>
+	<ng-content select="[toolbarFilters]" />
 	<app-queue-sort-control [(value)]="sortBy" [manualLabel]="manualLabel()" />
 	@if (!readonly() && !isLoading()) {
 	<app-export-actions
@@ -48,8 +49,8 @@
 	[message]="noMatchesMessage()"
 	[compact]="true"
 >
-	<button uiButton variant="secondary" (click)="searchChange.emit('')">
-		Clear search
+	<button uiButton variant="secondary" (click)="clearNoMatches()">
+		{{ hasTagFilter() ? 'Clear search & tags' : 'Clear search' }}
 	</button>
 </ui-plain-empty-state>
 } @else if (readonly()) { @if (featured(); as next) {
