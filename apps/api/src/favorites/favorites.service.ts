@@ -2,8 +2,6 @@ import { Op, QueryTypes, type Transaction } from "sequelize";
 
 import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type ExportSearchQuery } from "../common/schemas/export-search-query.schema";
-import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
 import { compactPositions as compactPositionsOf } from "../common/utils/compact-positions.util";
 import { splitByPresence } from "../common/utils/split-by-presence.util";
@@ -12,12 +10,15 @@ import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
 import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import * as favoritesServiceError from "./errors/favorites.service-error";
 import { Favorite } from "./favorite.model";
 import { FAVORITES_ORDER, FREE_FAVORITE_LIMIT } from "./favorites.constants";
 import { type FeaturedFavoriteRow } from "./favorites.interface";
 import { type FeaturedFavorite } from "./favorites.types";
+import { type FavoritesExportQuery } from "./schemas/favorites-export-query.schema";
+import { type FavoritesQuery } from "./schemas/favorites-query.schema";
 
 export async function replaceFavorites(user: RequestUser, gameIds: string[]) {
 	if (gameIds.length > 0) {
@@ -197,7 +198,7 @@ export async function findGameEntriesByUserId(
 
 export async function findFavoritesByUserIdPaginated(
 	userId: string,
-	pagination: PaginatedSearchQuery = {}
+	pagination: FavoritesQuery = {}
 ) {
 	const gameInclude: Record<string, unknown> = {
 		...gamesService.gameInclude()
@@ -211,7 +212,15 @@ export async function findFavoritesByUserIdPaginated(
 	}
 
 	const query: Record<string, unknown> = {
-		where: { userId },
+		where: {
+			userId,
+			...(pagination.mood_tags && {
+				gameId: moodTagsService.taggedGameIdsFilter(
+					userId,
+					pagination.mood_tags
+				)
+			})
+		},
 		include: [gameInclude],
 		order: FAVORITES_ORDER
 	};
@@ -224,14 +233,22 @@ export async function findFavoritesByUserIdPaginated(
 
 export async function findFavoritesForExport(
 	userId: string,
-	filters: ExportSearchQuery = {}
+	filters: FavoritesExportQuery = {}
 ) {
 	const titleWhere = filters.search
 		? buildTextSearchWhere(filters.search, ["Game.title"])
 		: null;
 
 	return Favorite.findAll({
-		where: { userId },
+		where: {
+			userId,
+			...(filters.mood_tags && {
+				gameId: moodTagsService.taggedGameIdsFilter(
+					userId,
+					filters.mood_tags
+				)
+			})
+		},
 		include: [
 			{
 				...gamesService.gameInclude(),

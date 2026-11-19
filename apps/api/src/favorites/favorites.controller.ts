@@ -3,7 +3,6 @@ import { type Request, type Response } from "express";
 import * as activityService from "../activity/activity.service";
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type ExportSearchQuery } from "../common/schemas/export-search-query.schema";
 import { type ExportFormat } from "../common/types/export-format.types";
 import { sendExport } from "../common/utils/send-export.util";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
@@ -17,6 +16,8 @@ import {
 import { favoriteSerializer } from "./favorites.serializer";
 import * as favoritesService from "./favorites.service";
 import { type FavoritesBulkQuery } from "./schemas/favorites-bulk-query.schema";
+import { type FavoritesExportQuery } from "./schemas/favorites-export-query.schema";
+import { type FavoritesQuery } from "./schemas/favorites-query.schema";
 
 export async function putFavorites(request: Request, response: Response) {
 	const body = request.locals.body as ReplaceFavoritesDto;
@@ -64,7 +65,7 @@ export async function getMeFavoriteGameIds(
 
 export async function getMeFavorites(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
-	const query = request.locals.query ?? {};
+	const query = request.locals.query as FavoritesQuery;
 
 	const { rows, total } =
 		await favoritesService.findFavoritesByUserIdPaginated(user.id, query);
@@ -123,7 +124,7 @@ export async function getMeFavoritesExport(
 ) {
 	const user = request.locals.user as RequestUser;
 	const format = request.locals.exportFormat as ExportFormat;
-	const query = request.locals.query as ExportSearchQuery;
+	const query = request.locals.query as FavoritesExportQuery;
 
 	const entries = await favoritesService.findFavoritesForExport(
 		user.id,
