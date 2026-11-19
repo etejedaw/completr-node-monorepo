@@ -15,6 +15,10 @@ http:
           value: ""
           type: query
           disabled: true
+        - name: mood_tags
+          value: "cozy,short"
+          type: query
+          disabled: true
     headers:
         - name: Accept
           value: text/csv
@@ -37,6 +41,7 @@ docs: |-
     |-------|------|----------|-------------|
     | search | string | No | 1–100 characters, matched against the game title (same rules as the listing) |
     | sort | `manual` \| `ratio` \| `score` \| `duration` | No | Default `manual`: `position` ascending. `ratio` / `score`: descending, rows without value last. `duration`: ascending, rows without duration last. Ties keep the `position` order |
+    | mood_tags | string | No | Same as the listing: comma-separated tags of the authenticated user, 1–10 after normalization, AND semantics (only rows whose game has every tag) |
 
     ### Format (content negotiation)
 
