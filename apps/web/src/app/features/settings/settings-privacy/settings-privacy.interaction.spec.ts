@@ -36,6 +36,7 @@ const privateProfileUser = {
 	platinumVisibility: "public",
 	franchiseVisibility: "private",
 	rewindVisibility: "public",
+	tagVisibility: "private",
 	acceptFollowRequests: true
 } as unknown as User;
 

@@ -116,8 +116,21 @@ export async function findGamesByIds(ids: string[]) {
 	return Game.findAll({ where: { id: ids } });
 }
 
+export async function findActiveGamesWithRatioByIds(ids: string[]) {
+	if (ids.length === 0) return [];
+	return Game.findAll({
+		where: { id: ids, isActive: true },
+		attributes: ["id", "code", "title", "coverUrl", "backgroundUrl"],
+		include: [{ association: "GameScores" }, { association: "GameTimes" }]
+	});
+}
+
 export async function findGameRecordById(id: string) {
 	return Game.findOne({ where: { id } });
+}
+
+export async function existsActiveGameById(id: string) {
+	return (await Game.count({ where: { id, isActive: true } })) > 0;
 }
 
 export async function existsGameById(id: string, transaction?: Transaction) {

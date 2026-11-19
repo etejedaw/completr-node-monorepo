@@ -45,11 +45,13 @@ import {
 	LibraryPageEmptyAction,
 	LibraryPageToolbar
 } from "../../../shared/components/library-page/library-page-slots";
+import { MyTagFilter } from "../../../shared/components/my-tag-filter/my-tag-filter";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import { UiButton, UiPremiumBadge } from "../../../shared/ui";
 import { gameArtUrl } from "../../../shared/utils/game-art";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
+import { injectMyTagFilter } from "../../../shared/utils/inject-my-tag-filter";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
 import { FavoriteReorderCard } from "../components/favorite-reorder-card/favorite-reorder-card";
 import { type FavoriteReorderAction } from "../components/favorite-reorder-card/favorite-reorder-card.model";
@@ -69,6 +71,7 @@ import { type FavoriteReorderAction } from "../components/favorite-reorder-card/
 		LibraryPageContent,
 		LibraryPageEmptyAction,
 		LibraryPageToolbar,
+		MyTagFilter,
 		PremiumOnly,
 		UiButton,
 		UiPremiumBadge,
@@ -92,8 +95,19 @@ export class FavoritesView implements OnInit {
 	protected readonly entries = signal<FavoriteEntry[]>([]);
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
+	protected readonly tagFilter = injectMyTagFilter({
+		changed: () => {
+			this.reordering.set(false);
+			this.offset.set(0);
+			this.loadFavorites();
+		}
+	});
+	protected readonly isFiltered = computed(
+		() => !!this.searchQuery().trim() || this.tagFilter.active()
+	);
 	protected readonly exportParams = computed<ExportParams>(() => ({
-		search: this.searchQuery().trim() || undefined
+		search: this.searchQuery().trim() || undefined,
+		mood_tags: this.tagFilter.param()
 	}));
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
@@ -102,7 +116,7 @@ export class FavoritesView implements OnInit {
 	protected readonly reorderAnnouncement = signal("");
 	protected readonly canReorder = computed(
 		() =>
-			!this.searchQuery().trim() &&
+			!this.isFiltered() &&
 			this.offset() === 0 &&
 			this.entries().length > 1 &&
 			this.entries().length === this.total()
@@ -112,7 +126,7 @@ export class FavoritesView implements OnInit {
 		if (this.isLoading()) return "loading";
 		if (this.favoritesLoader.failed()) return "error";
 		if (this.entries().length > 0) return "ready";
-		return this.searchQuery().trim() ? "no-matches" : "empty";
+		return this.isFiltered() ? "no-matches" : "empty";
 	});
 	protected readonly heroPosters = computed(() =>
 		this.entries().map(entry => ({
@@ -166,6 +180,11 @@ export class FavoritesView implements OnInit {
 			return;
 		}
 		this.searchSubject.next(query);
+	}
+
+	protected clearSearchAndTags() {
+		this.tagFilter.clearSilently();
+		this.onSearch("");
 	}
 
 	protected remove(entry: FavoriteEntry) {
@@ -265,7 +284,8 @@ export class FavoritesView implements OnInit {
 			this.favoritesService.load({
 				limit: this.limit,
 				offset: this.offset(),
-				search: this.searchQuery().trim() || undefined
+				search: this.searchQuery().trim() || undefined,
+				mood_tags: this.tagFilter.param()
 			}),
 			{
 				next: res => {

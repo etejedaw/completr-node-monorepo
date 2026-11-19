@@ -6,7 +6,9 @@ title: "Cleaner forms and dialogs across the app"
 icon: dashboard_customize
 tint: brand
 landing:
-    pitch: "Los formularios y ventanas de Completr se renovaron: campos del mismo tamaño, etiquetas más claras y un encabezado que te dice de un vistazo qué estás haciendo. Además, cambias el estado de un juego directo desde su pastilla."
+    pitch:
+        es: "Los formularios y ventanas de Completr se renovaron: campos del mismo tamaño, etiquetas más claras y un encabezado que te dice de un vistazo qué estás haciendo. Además, cambias el estado de un juego directo desde su pastilla."
+        en: "Completr's forms and windows were renewed: fields of the same size, clearer labels and a header that tells you at a glance what you're doing. Plus, you change a game's status straight from its pill."
 highlights:
     - icon: web_asset
       tint: brand

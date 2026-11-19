@@ -10,6 +10,14 @@ http:
         - name: filterId
           value: ""
           type: path
+        - name: status
+          value: playing,not_started
+          type: query
+          disabled: true
+        - name: mood_tags
+          value: cozy,short
+          type: query
+          disabled: true
     auth: inherit
 
 settings:
@@ -19,6 +27,8 @@ docs: |-
     ## Get Saved Filter Stats
 
     Returns aggregated statistics over the backlog entries that match the saved filter's stored query. The same WHERE used by `GET /users/me/backlog` is applied, but no rows are returned — only aggregations computed in SQL.
+
+    The request can also send the filters currently applied on top of the view (a modified view in My Games). When any query param of `GET /users/me/backlog` arrives, the stats are computed with those params instead of the stored filters, and the saved filter is not changed.
 
     Only the owner of the saved filter can read its stats.
 
@@ -30,6 +40,14 @@ docs: |-
     | Param    | Type | Required | Description           |
     |----------|------|----------|-----------------------|
     | filterId | uuid | Yes      | The saved filter UUID |
+
+    ### Query Parameters
+
+    Optional. The same params, validation and semantics as `GET /users/me/backlog` (`status`, `platforms`, `genres`, `release_year_from`, `started_from`, `min_ratio`, `mood_tags`, `coop_only`, `platinumed_only`, `search`, `sort_by`…). `mood_tags` keeps only entries whose game has every listed tag set by the owner.
+
+    - Without any of these params, the stored filters are used.
+    - With at least one of them, the stored filters are ignored entirely: a param missing from the query is not taken from the view. Params that filter nothing (`sort_by`, `sort_order`, `limit`, `offset`, or an empty `platforms=`) still replace the stored filters, so `?sort_by=createdAt` computes over the whole library. This is how a client asks for a view whose applied filters were all removed.
+    - Params the backlog does not know (for example `savedFilterId`) are ignored and do not replace the stored filters.
 
     ### Response (200)
 
@@ -104,5 +122,6 @@ docs: |-
 
     | Code                          | HTTP | Description                          |
     |-------------------------------|------|--------------------------------------|
-    | SAVED_FILTER_NOT_FOUND        | 404  | Filter missing or not the caller's   |
-    | SAVED_FILTER_VALIDATION_ERROR | 422  | Stored filters JSON is not valid     |
+    | SAVED_FILTER_NOT_FOUND        | 404  | Filter missing or not the caller's, also when query params are sent |
+    | COMMON_SCHEMA_INVALID         | 422  | A query param is invalid (unknown status, non-numeric range, empty tag list, repeated param…) |
+    | SAVED_FILTER_VALIDATION_ERROR | 422  | Stored filters JSON is not valid and no query params were sent |

@@ -7,7 +7,9 @@ icon: all_inclusive
 tint: purple
 landing:
     featured: true
-    pitch: "Para juegos sin final natural (Vampire Survivors, Tetris) ahora tienes un estado dedicado: Endless. Sin distorsionar tus métricas de completitud."
+    pitch:
+        es: "Para juegos sin final natural (Vampire Survivors, Tetris) ahora tienes un estado dedicado: Endless. Sin distorsionar tus métricas de completitud."
+        en: "For games with no natural ending (Vampire Survivors, Tetris) you now have a dedicated status: Endless. No more skewing your completion stats."
 highlights:
     - icon: all_inclusive
       tint: brand

@@ -6,7 +6,9 @@ title: "Simpler settings and privacy"
 icon: tune
 tint: purple
 landing:
-    pitch: "Configura tu privacidad con un solo toque o sección por sección, mira cómo queda cada tema antes de elegirlo y revisa tus sesiones abiertas."
+    pitch:
+        es: "Configura tu privacidad con un solo toque o sección por sección, mira cómo queda cada tema antes de elegirlo y revisa tus sesiones abiertas."
+        en: "Set up your privacy with a single tap or section by section, preview each theme before choosing it and review your open sessions."
 highlights:
     - icon: lock
       tint: purple

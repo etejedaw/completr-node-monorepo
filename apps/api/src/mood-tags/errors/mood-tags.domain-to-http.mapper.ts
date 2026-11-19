@@ -31,5 +31,12 @@ export function moodTagsDomainToHttpMapper(
 	if (error.code === "MOOD_TAGS_LIMIT_REACHED")
 		return new HttpError({ ...baseOptions, status: 402 });
 
+	if (
+		error.code === "MOOD_TAGS_TOO_MANY_FAVORITES" ||
+		error.code === "MOOD_TAGS_DUPLICATED_FAVORITE" ||
+		error.code === "MOOD_TAGS_FAVORITE_UNKNOWN_TAG"
+	)
+		return new HttpError({ ...baseOptions, status: 422 });
+
 	return new HttpError({ ...baseOptions, status: 500 });
 }

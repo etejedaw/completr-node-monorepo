@@ -6,7 +6,9 @@ title: Compare your progress with the list owner
 icon: compare_arrows
 tint: warning
 landing:
-    pitch: "Cuando abres una lista desde el perfil de otra persona queda claro qué progreso estás viendo. El modo Compare muestra ambos avances lado a lado."
+    pitch:
+        es: "Cuando abres una lista desde el perfil de otra persona queda claro qué progreso estás viendo. El modo Compare muestra ambos avances lado a lado."
+        en: "When you open a list from someone else's profile, it's clear whose progress you're looking at. Compare mode shows both progress bars side by side."
 highlights:
     - icon: visibility
       tint: brand

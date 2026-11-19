@@ -6,7 +6,9 @@ title: "Picking a date no longer blocks saving"
 icon: build
 tint: warning
 landing:
-    pitch: "Elegir la fecha de inicio o de fin de una run, o la fecha en que conseguiste un juego en My Shelf, ya no impide guardar cuando el campo estaba vacío."
+    pitch:
+        es: "Elegir la fecha de inicio o de fin de una run, o la fecha en que conseguiste un juego en My Shelf, ya no impide guardar cuando el campo estaba vacío."
+        en: "Picking the start or end date of a run, or the date you got a game in My Shelf, no longer blocks saving when the field was empty."
 highlights:
     - icon: event_available
       tint: brand

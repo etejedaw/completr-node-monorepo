@@ -6,7 +6,9 @@ title: "Double-clicking no longer closes the window you just opened"
 icon: build
 tint: warning
 landing:
-    pitch: "Hacer doble clic en un botón que abre una ventana ya no la cierra al instante, y los listados largos mantienen su orden entre páginas sin repetir ni saltarse juegos."
+    pitch:
+        es: "Hacer doble clic en un botón que abre una ventana ya no la cierra al instante, y los listados largos mantienen su orden entre páginas sin repetir ni saltarse juegos."
+        en: "Double-clicking a button that opens a window no longer closes it instantly, and long listings keep their order across pages without repeating or skipping games."
 highlights:
     - icon: ads_click
       tint: brand

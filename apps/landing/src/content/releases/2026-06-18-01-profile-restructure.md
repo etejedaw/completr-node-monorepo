@@ -6,7 +6,9 @@ title: "Profile restructure: Highlights first, activity timeline at the bottom"
 icon: person
 tint: brand
 landing:
-    pitch: "Los perfiles públicos ahora abren en Highlights por defecto y la actividad reciente baja al final como timeline. Lo más relevante primero, el historial al alcance."
+    pitch:
+        es: "Los perfiles públicos ahora abren en Highlights por defecto y la actividad reciente baja al final como timeline. Lo más relevante primero, el historial al alcance."
+        en: "Public profiles now open on Highlights by default, and recent activity moves to the bottom as a timeline. The most relevant first, with the history within reach."
 highlights:
     - icon: insights
       tint: brand

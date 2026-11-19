@@ -190,68 +190,18 @@
 
 		<app-game-section
 			sectionId="tags"
-			heading="Your tags"
-			subheading="Private labels to find this game later."
+			heading="Tags"
+			[subheading]="isLoggedIn() ? 'Tap a tag to add or remove your vote. A tag goes public once 2 players use it.' : 'What players tag this game with.'"
 		>
-			<div sectionActions class="flex items-center gap-1">
-				@if (!editingMoodTags()) {
-				<button
-					uiButton
-					variant="ghost"
-					size="sm"
-					(click)="startEditMoodTags()"
-				>
-					<span aria-hidden="true" class="material-icons text-sm"
-						>{{ moodTags().length > 0 ? 'edit' : 'add' }}</span
-					>
-					{{ moodTags().length > 0 ? 'Edit' : 'Add tags' }}
-				</button>
-				}
-				<a
-					routerLink="/tags"
-					class="inline-flex items-center h-8 tap:min-h-[44px] px-2 text-xs text-fg-muted no-underline hover:text-brand"
-					>Manage</a
-				>
-			</div>
-			@if (editingMoodTags()) {
-			<app-mood-tags-input
-				[tags]="moodTagsDraft()"
-				[suggestions]="moodTagsSuggestions()"
-				placeholder="e.g. relajante, podcast game…"
-				(tagsChange)="updateMoodTagsDraft($event)"
-			/>
-			<div class="flex justify-end gap-1.5 mt-2">
-				<button
-					uiButton
-					variant="ghost"
-					size="sm"
-					(click)="cancelEditMoodTags()"
-					[disabled]="savingMoodTags()"
-				>
-					Cancel
-				</button>
-				<button
-					uiButton
-					variant="primary"
-					size="sm"
-					(click)="commitMoodTags()"
-					[disabled]="savingMoodTags()"
-				>
-					{{ savingMoodTags() ? 'Saving…' : 'Save' }}
-				</button>
-			</div>
-			} @else if (moodTags().length > 0) {
-			<ul class="list-none m-0 p-0 flex flex-wrap gap-1.5">
-				@for (tag of moodTags(); track tag) {
-				<li><ui-badge tone="brand">{{ tag }}</ui-badge></li>
-				}
-			</ul>
-			} @else {
-			<p class="m-0 text-sm text-fg-muted">
-				Label it your way — "comfort game", "with friends", "podcast
-				game"…
-			</p>
+			@if (isLoggedIn()) {
+			<a
+				sectionActions
+				routerLink="/tags"
+				class="inline-flex items-center h-8 tap:min-h-[44px] px-2 text-xs text-fg-muted no-underline hover:text-brand"
+				>Manage</a
+			>
 			}
+			<app-game-tags [gameId]="g.id" [readonly]="!isLoggedIn()" />
 		</app-game-section>
 
 		<app-game-social-activity class="empty:hidden" [gameId]="g.id" />

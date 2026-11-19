@@ -1,0 +1,103 @@
+<div class="flex flex-col gap-2">
+	@if (hasSelection()) {
+	<button
+		uiButton
+		type="button"
+		variant="link"
+		size="sm"
+		class="self-start tap:min-h-[44px]"
+		[attr.aria-label]="'Clear ' + selected().length + ' selected ' + (selected().length === 1 ? 'tag' : 'tags')"
+		(click)="clear()"
+	>
+		Clear tags
+	</button>
+	} @switch (status()) { @case ('loading') {
+	<div
+		class="flex flex-wrap gap-2"
+		aria-busy="true"
+		aria-label="Loading tags"
+	>
+		@for (width of skeletonWidths; track $index) {
+		<ui-skeleton variant="rect" class="h-7 rounded-full" [class]="width" />
+		}
+	</div>
+	} @case ('error') {
+	<p
+		role="alert"
+		class="m-0 flex flex-wrap items-center gap-x-2 text-sm text-fg-muted"
+	>
+		Couldn't load these tags.
+		<button
+			uiButton
+			type="button"
+			variant="link"
+			size="sm"
+			class="tap:min-h-[44px]"
+			(click)="retried.emit()"
+		>
+			Try again
+		</button>
+	</p>
+	} @default { @if (visibleOptions().length === 0) {
+	<p class="m-0 text-sm text-fg-muted">
+		No tags yet. Tag your games to filter by them here.
+		<a
+			routerLink="/tags"
+			class="tap-area font-medium text-brand no-underline hover:underline"
+			(click)="manageOpened.emit()"
+			>Manage tags</a
+		>
+	</p>
+	} @else {
+	<div
+		role="group"
+		class="flex flex-wrap gap-2"
+		aria-label="Filter by your tags"
+	>
+		@for (option of visibleOptions(); track option.value) { @let pressed =
+		isSelected(option.value);
+		<button
+			type="button"
+			[class]="chipClass(pressed)"
+			[attr.aria-pressed]="pressed"
+			[attr.data-chip-value]="option.value"
+			[attr.data-selected]="pressed ? '' : null"
+			[attr.title]="option.hint ?? null"
+			(click)="toggle(option.value)"
+		>
+			<span
+				aria-hidden="true"
+				[class]="chipIconClass(pressed)"
+				[style.color]="pressed ? null : (option.iconColor ?? null)"
+				[style.background-color]="
+					pressed || !option.iconColor
+						? null
+						: 'color-mix(in srgb, ' + option.iconColor + ' 16%, transparent)'
+				"
+			>
+				<span class="material-icons text-sm"
+					>{{ option.icon ?? 'sell' }}</span
+				>
+			</span>
+			{{ option.label }} @if (option.count !== undefined && option.count
+			!== null) {
+			<span [class]="chipCountClass(pressed)">{{ option.count }}</span>
+			}
+		</button>
+		}
+	</div>
+	@if (hiddenCount() > 0) {
+	<button
+		uiButton
+		type="button"
+		variant="link"
+		size="sm"
+		class="self-start tap:min-h-[44px]"
+		[attr.aria-expanded]="expanded()"
+		(click)="expanded.set(!expanded())"
+	>
+		@if (expanded()) { Show fewer tags } @else { Show all {{ totalCount() }}
+		tags }
+	</button>
+	} } } }
+</div>

@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
+import { Op } from "sequelize";
+
 import { sequelize } from "../../src/database/sequelize.database";
 import { Game } from "../../src/games/game.model";
 import { MoodTagMeta } from "../../src/mood-tags/mood-tag-meta.model";
@@ -174,10 +176,10 @@ void describe("moodTagsService.createTag", () => {
 
 	void it("rejects empty and too long tag names", async () => {
 		const empty = await captureRejection(
-			moodTagsService.createTag(FREE_USER, "   ", null)
+			moodTagsService.createTag(FREE_USER, "   ", {})
 		);
 		const tooLong = await captureRejection(
-			moodTagsService.createTag(FREE_USER, "a".repeat(41), null)
+			moodTagsService.createTag(FREE_USER, "a".repeat(41), {})
 		);
 
 		assert.equal((empty as { code: string }).code, "MOOD_TAGS_INVALID_TAG");
@@ -189,21 +191,23 @@ void describe("moodTagsService.createTag", () => {
 
 	void it("returns the existing tag without creating it nor checking the limit", async () => {
 		stub(MoodTagMeta, "findOne", async () =>
-			asModel({ description: "kept" })
+			asModel({ description: "kept", icon: "star", color: "rose" })
 		);
 		const query = stubExistingTagNames(numberedTags(99));
 		const create = stub(MoodTagMeta, "create", async () => ({}));
 		stubTransaction();
 
-		const result = await moodTagsService.createTag(
-			FREE_USER,
-			"Cozy",
-			"new text"
-		);
+		const result = await moodTagsService.createTag(FREE_USER, "Cozy", {
+			description: "new text",
+			icon: "bolt",
+			color: "sky"
+		});
 
 		assert.deepEqual(result, {
 			tag: "cozy",
 			description: "kept",
+			icon: "star",
+			color: "rose",
 			created: false
 		});
 		assert.ok(
@@ -224,18 +228,18 @@ void describe("moodTagsService.createTag", () => {
 		stubExistingTagNames([]);
 		const create = stub(MoodTagMeta, "create", async () => ({}));
 
-		const result = await moodTagsService.createTag(
-			FREE_USER,
-			"Cozy",
-			`  ${"x".repeat(300)}  `
-		);
+		const result = await moodTagsService.createTag(FREE_USER, "Cozy", {
+			description: `  ${"x".repeat(300)}  `
+		});
 
 		assert.equal(result.created, true);
 		assert.equal(result.description?.length, 255);
 		assert.deepEqual(create.mock.calls[0]?.arguments[0], {
 			userId: "user-1",
 			tag: "cozy",
-			description: "x".repeat(255)
+			description: "x".repeat(255),
+			icon: null,
+			color: null
 		});
 	});
 
@@ -244,11 +248,9 @@ void describe("moodTagsService.createTag", () => {
 		stubExistingTagNames([]);
 		stub(MoodTagMeta, "create", async () => ({}));
 
-		const result = await moodTagsService.createTag(
-			FREE_USER,
-			"Cozy",
-			"   "
-		);
+		const result = await moodTagsService.createTag(FREE_USER, "Cozy", {
+			description: "   "
+		});
 
 		assert.equal(result.description, null);
 	});
@@ -259,7 +261,7 @@ void describe("moodTagsService.createTag", () => {
 		const create = stub(MoodTagMeta, "create", async () => ({}));
 
 		const error = await captureRejection(
-			moodTagsService.createTag(FREE_USER, "extra", null)
+			moodTagsService.createTag(FREE_USER, "extra", {})
 		);
 
 		assert.equal(
@@ -336,7 +338,7 @@ void describe("moodTagsService.renameTag", () => {
 		assert.deepEqual(update.mock.calls[0]?.arguments[0], { tag: "new" });
 	});
 
-	void it("merges metadata into an existing target tag keeping the target description", async () => {
+	void it("merges metadata into an existing target tag keeping the target description, icon and color", async () => {
 		stub(UserGameTag, "count", async () => 2);
 		stubTransaction();
 		stub(sequelize, "query", async () => []);
@@ -350,18 +352,32 @@ void describe("moodTagsService.renameTag", () => {
 				options.where.tag === "old"
 					? asModel({
 							description: "from old",
+							icon: "bolt",
+							color: "sky",
+							favoriteOrder: null,
 							destroy: sourceDestroy
 						})
-					: asModel({ description: "from new", update: targetUpdate })
+					: asModel({
+							description: "from new",
+							icon: "star",
+							color: "rose",
+							favoriteOrder: null,
+							update: targetUpdate
+						})
 		);
 
 		await moodTagsService.renameTag("u", "old", "new");
 
-		assert.equal(targetUpdate.mock.callCount(), 0);
+		assert.deepEqual(targetUpdate.mock.calls[0]?.arguments[0], {
+			description: "from new",
+			icon: "star",
+			color: "rose",
+			favoriteOrder: null
+		});
 		assert.equal(sourceDestroy.mock.callCount(), 1);
 	});
 
-	void it("moves the old description to the target tag when the target has none", async () => {
+	void it("moves the old description, icon and color to the target tag when the target has none", async () => {
 		stub(UserGameTag, "count", async () => 2);
 		stubTransaction();
 		stub(sequelize, "query", async () => []);
@@ -374,15 +390,27 @@ void describe("moodTagsService.renameTag", () => {
 				options.where.tag === "old"
 					? asModel({
 							description: "from old",
+							icon: "bolt",
+							color: "sky",
+							favoriteOrder: 3,
 							destroy: async () => undefined
 						})
-					: asModel({ description: null, update: targetUpdate })
+					: asModel({
+							description: null,
+							icon: null,
+							color: null,
+							favoriteOrder: null,
+							update: targetUpdate
+						})
 		);
 
 		await moodTagsService.renameTag("u", "old", "new");
 
 		assert.deepEqual(targetUpdate.mock.calls[0]?.arguments[0], {
-			description: "from old"
+			description: "from old",
+			icon: "bolt",
+			color: "sky",
+			favoriteOrder: 3
 		});
 	});
 });
@@ -418,6 +446,7 @@ void describe("moodTagsService.deleteTag", () => {
 		stub(UserGameTag, "count", async () => 1);
 		stub(MoodTagMeta, "count", async () => 0);
 		const { transaction } = stubTransaction();
+		stub(sequelize, "query", async () => []);
 		const destroyAssignments = stub(UserGameTag, "destroy", async () => 1);
 		const destroyMeta = stub(MoodTagMeta, "destroy", async () => 0);
 
@@ -461,6 +490,43 @@ void describe("moodTagsService.findGameIdsByTags", () => {
 		};
 		assert.deepEqual(options.replacements.tags, ["cozy", "rpg"]);
 		assert.equal(options.replacements.tagCount, 2);
+	});
+});
+
+void describe("moodTagsService.taggedGameIdsFilter", () => {
+	function subquerySql(filter: Record<symbol, unknown>) {
+		return (filter[Op.in] as { val: string }).val;
+	}
+
+	void it("requires every distinct normalized tag of the owner", () => {
+		const sql = subquerySql(
+			moodTagsService.taggedGameIdsFilter("user-1", [
+				" Cózy ",
+				"cozy",
+				"RPG"
+			]) as Record<symbol, unknown>
+		);
+
+		assert.match(sql, /"userId" = 'user-1'/);
+		assert.match(sql, /"tag" IN \('cozy', 'rpg'\)/);
+		assert.match(sql, /HAVING COUNT\(DISTINCT "tag"\) = 2/);
+	});
+
+	void it("escapes quotes so a tag cannot break out of the subquery", () => {
+		const sql = subquerySql(
+			moodTagsService.taggedGameIdsFilter("user-1", [
+				'x\'); DROP TABLE "Users"; --'
+			]) as Record<symbol, unknown>
+		);
+
+		assert.match(sql, /"tag" IN \('x''\); drop table "users"; --'\)/);
+	});
+
+	void it("matches no game when every tag is blank", () => {
+		assert.deepEqual(
+			moodTagsService.taggedGameIdsFilter("user-1", [" ", ""]),
+			{ [Op.in]: [] }
+		);
 	});
 });
 

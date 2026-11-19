@@ -64,6 +64,11 @@
 				(valueChange)="onSearch($event)"
 			/>
 
+			<app-my-tag-filter
+				[options]="tagPickerOptions()"
+				[values]="selectedMoodTags()"
+				(valuesChange)="setTagSelection($event)"
+			/>
 			@if (viewPickerViews().length > 0) {
 			<ui-option-picker
 				variant="compact"
@@ -73,6 +78,7 @@
 				placeholderIcon="bookmark_border"
 				[options]="viewPickerOptions()"
 				[value]="activeFilterId() ?? ''"
+				[modified]="viewModified()"
 				[actions]="viewPickerActions()"
 				(valueChange)="pickView($event)"
 				(actionSelected)="runViewAction($event)"
@@ -87,7 +93,7 @@
 						label="Filters & stats"
 						heading="Filters & stats"
 						eyebrow="My Games"
-						[subheading]="activeView()?.name ?? null"
+						[subheading]="mobileToolsSubheading()"
 						icon="tune"
 						size="md"
 						[count]="activeFiltersCount() + viewStats.enabledCount()"
@@ -126,7 +132,7 @@
 					class="h-10 shrink-0"
 					[title]="action.description"
 					[attr.aria-label]="action.description"
-					(click)="clearFilters()"
+					(click)="runClearAction()"
 				>
 					<span aria-hidden="true" class="material-icons text-base"
 						>{{ action.icon }}</span
@@ -188,7 +194,10 @@
 	<app-backlog-filters-panel
 		[allPlatforms]="allPlatforms()"
 		[allGenres]="allGenres()"
-		[moodTagsSuggestions]="moodTagsSuggestions()"
+		[tagOptions]="tagOptions()"
+		[tagStatus]="tagStatus()"
+		(tagLimitReached)="warnTagLimit($event)"
+		(tagsRetried)="retryTagFilter()"
 		[activeFiltersCount]="activeFiltersCount()"
 		[advancedFiltersActive]="hasAdvancedFiltersActive()"
 		[hasActiveView]="!!activeFilterId()"
@@ -334,6 +343,7 @@
 					[flipped]="isFlipped(entry.id)"
 					[statusUpdating]="isStatusUpdating(entry)"
 					[coarsePointer]="pointer.isCoarse()"
+					[tagAppearance]="tagAppearance()"
 					(opened)="openEdit(entry, $event)"
 					(favoriteToggled)="toggleFavorite(entry.game.id, $event)"
 					(queueToggled)="toggleQueue(entry); $event.stopPropagation()"
@@ -362,6 +372,7 @@
 		[queuedBacklogIds]="queueBacklogIds()"
 		[updatingStatusIds]="updatingStatusIds()"
 		[selection]="bulk.selection"
+		[tagAppearance]="tagAppearance()"
 		(sortChange)="sort($event)"
 		(entryOpen)="openEdit($event.entry, $event.event)"
 		(statusChange)="selectNewStatus($event.entry, $event.status)"

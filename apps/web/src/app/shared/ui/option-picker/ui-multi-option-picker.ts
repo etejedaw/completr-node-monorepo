@@ -18,7 +18,12 @@ import { UiBottomSheet } from "../bottom-sheet/ui-bottom-sheet";
 import { UiButton } from "../button/ui-button";
 import { UiInput } from "../input/ui-input";
 import { UiEyebrow } from "../label/ui-eyebrow";
-import { type UiPickerOption } from "./ui-option-picker.model";
+import { compactPickerTriggerClass } from "./ui-compact-picker-trigger";
+import {
+	type UiMultiPickerVariant,
+	type UiPickerOption,
+	type UiPickerTriggerSize
+} from "./ui-option-picker.model";
 
 const MAX_NAMED_OPTIONS = 3;
 
@@ -44,13 +49,17 @@ export class UiMultiOptionPicker {
 	readonly heading = input.required<string>();
 	readonly options = input.required<readonly UiPickerOption[]>();
 	readonly values = model<readonly string[]>([]);
+	readonly variant = input<UiMultiPickerVariant>("field");
+	readonly size = input<UiPickerTriggerSize>("sm");
 	readonly placeholder = input("None");
 	readonly placeholderIcon = input("tune");
 	readonly noun = input("selected");
+	readonly nounSingular = input<string | null>(null);
 	readonly searchLabel = input("Search");
 	readonly searchThreshold = input(8);
 
 	protected readonly isMobile = inject(ViewportService).isMobile;
+	protected readonly compactTriggerClass = compactPickerTriggerClass;
 	protected readonly sheetOpen = signal(false);
 	protected readonly query = signal("");
 	private readonly list = viewChild<ElementRef<HTMLElement>>("list");
@@ -73,7 +82,7 @@ export class UiMultiOptionPicker {
 			return picked
 				.map(option => option.shortLabel ?? option.label)
 				.join(", ");
-		return `${total} ${this.noun()}`;
+		return `${total} ${this.nounFor(total)}`;
 	});
 
 	protected readonly searchable = computed(
@@ -89,6 +98,10 @@ export class UiMultiOptionPicker {
 			)
 		);
 	});
+
+	protected nounFor(total: number) {
+		return total === 1 ? (this.nounSingular() ?? this.noun()) : this.noun();
+	}
 
 	protected openSheet() {
 		if (this.isMobile()) this.sheetOpen.set(true);

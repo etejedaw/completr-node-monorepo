@@ -6,7 +6,9 @@ title: "Surprise me, notes when you finish or drop a game, and more"
 icon: casino
 tint: brand
 landing:
-    pitch: "¿No sabes qué jugar? Surprise me elige un juego al azar de My Games según tus filtros. Además: notas al terminar o abandonar un juego, descripciones más cortas, iconos con color y notas de crítica bien convertidas a escala 5."
+    pitch:
+        es: "¿No sabes qué jugar? Surprise me elige un juego al azar de My Games según tus filtros. Además: notas al terminar o abandonar un juego, descripciones más cortas, iconos con color y notas de crítica bien convertidas a escala 5."
+        en: "Not sure what to play? Surprise me picks a random game from My Games based on your filters. Plus: notes when you finish or abandon a game, shorter descriptions, colored icons and critic scores correctly converted to a 5-point scale."
 highlights:
     - icon: casino
       tint: brand

@@ -6,7 +6,9 @@ title: "Export shows when your JSON backup is unlocked"
 icon: workspace_premium
 tint: warning
 landing:
-    pitch: "Si tienes Premium o el regalo de exportación JSON, el botón Export se pinta dorado y lleva al lado el listón Premium: tócalo para ver qué incluye."
+    pitch:
+        es: "Si tienes Premium o el regalo de exportación JSON, el botón Export se pinta dorado y lleva al lado el listón Premium: tócalo para ver qué incluye."
+        en: "If you have Premium or the JSON export gift, the Export button turns gold and gets the Premium ribbon next to it: tap it to see what it includes."
 highlights:
     - icon: download
       tint: warning

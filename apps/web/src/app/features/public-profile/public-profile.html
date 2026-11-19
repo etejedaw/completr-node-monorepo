@@ -102,6 +102,8 @@
 		}
 	</ol>
 </section>
+} @if (visibility().tags && favoriteTags().length > 0) {
+<app-profile-favorite-tags class="mt-10" [tags]="favoriteTags()" />
 } @if (visibility().platinums && (platinumsData()?.length ?? 0) > 0) {
 <app-profile-platinums
 	class="mt-10"

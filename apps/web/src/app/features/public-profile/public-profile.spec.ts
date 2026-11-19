@@ -34,7 +34,8 @@ const openAccess: ProfileSectionAccess = {
 	list: true,
 	platinum: true,
 	franchise: true,
-	rewind: true
+	rewind: true,
+	tag: true
 };
 
 const closedAccess: ProfileSectionAccess = {
@@ -48,7 +49,8 @@ const closedAccess: ProfileSectionAccess = {
 	list: false,
 	platinum: false,
 	franchise: false,
-	rewind: false
+	rewind: false,
+	tag: false
 };
 
 const recentActivity = [
@@ -132,6 +134,7 @@ describe("PublicProfileComponent", () => {
 	const getUserReviews = vi.fn();
 	const getHighlights = vi.fn();
 	const getRewindYears = vi.fn();
+	const getFavoriteTags = vi.fn();
 	const listOffers = vi.fn();
 	const claimOffer = vi.fn();
 	const toast = {
@@ -173,6 +176,7 @@ describe("PublicProfileComponent", () => {
 			getUserReviews,
 			getHighlights,
 			getRewindYears,
+			getFavoriteTags,
 			listOffers,
 			claimOffer
 		]) {
@@ -190,6 +194,7 @@ describe("PublicProfileComponent", () => {
 		getHighlights.mockReturnValue(of(emptyHighlights));
 		getRewindYears.mockReturnValue(of({ spotlightYear: null, years: [] }));
 		listOffers.mockReturnValue(of([]));
+		getFavoriteTags.mockReturnValue(of([]));
 		getComparison.mockReturnValue(
 			of({ inCommon: [], counts: { inCommon: 0 } })
 		);
@@ -247,7 +252,10 @@ describe("PublicProfileComponent", () => {
 					provide: FeedService,
 					useValue: { deleteActivity: vi.fn(() => of({})) }
 				},
-				{ provide: PublicProfileService, useValue: { getProfile } },
+				{
+					provide: PublicProfileService,
+					useValue: { getProfile, getFavoriteTags }
+				},
 				{
 					provide: RewindService,
 					useValue: { getYears: getRewindYears }
@@ -484,6 +492,7 @@ describe("PublicProfileComponent", () => {
 			expect(getUserPlatinums).not.toHaveBeenCalled();
 			expect(getUserQueue).not.toHaveBeenCalled();
 			expect(getUserFranchises).not.toHaveBeenCalled();
+			expect(getFavoriteTags).not.toHaveBeenCalled();
 		});
 
 		it("hides the library counters when the backlog is hidden", async () => {
@@ -621,6 +630,81 @@ describe("PublicProfileComponent", () => {
 				expect(getUserPlatinums).not.toHaveBeenCalled();
 				expect(
 					screen.queryByRole("heading", { name: "Platinums" })
+				).not.toBeInTheDocument();
+			});
+		});
+
+		describe("favorite tags", () => {
+			const favoriteTags = [
+				{ tag: "relaxing", description: "Games to unwind with" },
+				{ tag: "co-op", description: null }
+			];
+
+			it("shows the favorite tags in order, each linking to its tag page", async () => {
+				getFavoriteTags.mockReturnValue(of(favoriteTags));
+				await renderProfile({ data: profile() });
+
+				const section = await screen.findByRole("region", {
+					name: "Favorite tags"
+				});
+				const links = within(section).getAllByRole("link");
+				expect(links.map(link => link.getAttribute("href"))).toEqual([
+					"/tags/relaxing",
+					"/tags/co-op"
+				]);
+				expect(links[0]).toHaveTextContent("Games to unwind with");
+				expect(getFavoriteTags).toHaveBeenCalledWith("ada");
+			});
+
+			it("hides the section when the owner has no favorite tags", async () => {
+				await renderProfile({ data: profile() });
+
+				await waitFor(() =>
+					expect(getFavoriteTags).toHaveBeenCalledWith("ada")
+				);
+				expect(
+					screen.queryByRole("heading", { name: "Favorite tags" })
+				).not.toBeInTheDocument();
+			});
+
+			it("neither requests nor shows the tags when their section is hidden", async () => {
+				getFavoriteTags.mockReturnValue(of(favoriteTags));
+				await renderProfile({
+					data: profile({ access: { ...openAccess, tag: false } })
+				});
+
+				await screen.findByLabelText("Profile stats");
+				expect(getFavoriteTags).not.toHaveBeenCalled();
+				expect(screen.queryByText("relaxing")).not.toBeInTheDocument();
+			});
+
+			it("treats an API without the tag section as hidden", async () => {
+				const legacyAccess: Partial<ProfileSectionAccess> = {
+					...openAccess
+				};
+				delete legacyAccess.tag;
+				getFavoriteTags.mockReturnValue(of(favoriteTags));
+				await renderProfile({
+					data: profile({
+						access: legacyAccess as ProfileSectionAccess
+					})
+				});
+
+				await screen.findByLabelText("Profile stats");
+				expect(getFavoriteTags).not.toHaveBeenCalled();
+			});
+
+			it("keeps the rest of the profile when the tags request fails", async () => {
+				getFavoriteTags.mockReturnValue(
+					throwError(() => new Error("offline"))
+				);
+				await renderProfile({ data: profile() });
+
+				expect(
+					await screen.findByLabelText("Profile stats")
+				).toBeInTheDocument();
+				expect(
+					screen.queryByRole("heading", { name: "Favorite tags" })
 				).not.toBeInTheDocument();
 			});
 		});

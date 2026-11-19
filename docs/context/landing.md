@@ -40,6 +40,19 @@ El contenido editable (changelog, textos legales) vive en content collections, c
 - Cuando un documento legal tiene secciones declaradas en el frontmatter y secciones en el cuerpo, un helper de `utils/` las une y el build falla si la cantidad no coincide.
 - Un documento publicado en varios idiomas se edita en todos los archivos a la vez, con la misma versión, la misma fecha y los mismos ids de sección en el mismo orden, para que los enlaces directos a una sección apunten al mismo lugar.
 
+## Idiomas
+
+La landing usa el i18n nativo de Astro: `i18n` en `astro.config.mjs` con `prefixDefaultLocale: true`, así que cada idioma tiene su prefijo de ruta (`/es/`, `/en/`). Las páginas viven en `src/pages/[lang]/`, con `getStaticPaths` armado desde la lista de idiomas de la config (`astro:config/client`, vía `src/i18n/locales.ts`). Las páginas paginadas llaman a `paginate` una vez por idioma con `params: { lang }`.
+
+- Cada componente lee el idioma con `Astro.currentLocale`, sin recibirlo como prop, y guarda sus textos en un objeto `copy = { es: {...}, en: {...} } satisfies Record<Locale, unknown>` al principio del frontmatter; la plantilla lee `copy[lang]`. Los dos idiomas tienen la misma forma, y los datos que no son texto (íconos, ids) van junto a su etiqueta en cada idioma.
+- Un texto con un resaltado dentro (un `span`, un enlace) se parte en trozos, y el marcado queda en la plantilla.
+- Los enlaces internos se arman con `getRelativeLocaleUrl` de `astro:i18n` y las URL absolutas con `getAbsoluteLocaleUrl`. Esas funciones agregan una barra final a todo lo que reciben, también a un ancla (`/en/#ratio/`), así que un enlace a una sección se arma como `getRelativeLocaleUrl(lang)` seguido del ancla.
+- `Layout` toma el idioma y la ruta de la URL, y con eso arma `<html lang>`, la URL canónica y los `hreflang` de cada idioma más `x-default`, que apunta a la ruta sin prefijo.
+- Los textos de los scripts del cliente llegan en atributos `data-*` renderizados desde `copy`, nunca escritos en el script.
+- Las fechas se formatean con `Intl.DateTimeFormat(lang, …)`.
+- En un sitio estático, `Astro.preferredLocale` no existe: el servidor elige el idioma de las rutas sin prefijo y redirige. El sitemap se genera con la opción `i18n` de `@astrojs/sitemap`.
+- **Espacios entre una expresión y un elemento.** Cuando `{t.algo}` y un elemento en línea (`<a>`, `<span>`, `<strong>`) quedan en líneas distintas, Astro descarta el espacio entre ellos y las palabras se pegan. Prettier corta esas líneas al formatear, así que el espacio se escribe explícito: `{t.leadStart}{" "}`.
+
 ## Variables de entorno
 
 Todas se leen en el build: el sitio es estático y no hay runtime de Node en producción.

@@ -38,6 +38,15 @@ describe("BacklogService", () => {
 		expect(result).toEqual(body);
 	});
 
+	it("sends the selected tags as one comma-separated param", () => {
+		service.getMyBacklog({ mood_tags: "cozy,short" }).subscribe();
+
+		const req = httpTesting.expectOne(r => r.url === url);
+		expect(req.request.params.get("mood_tags")).toBe("cozy,short");
+		expect(req.request.params.has("community_tags")).toBe(false);
+		req.flush({ data: { backlog: [], total: 0 } });
+	});
+
 	it("sends the filters as query params and skips empty ones", () => {
 		service
 			.getMyBacklog({

@@ -1,5 +1,6 @@
 import { type Request, type Response } from "express";
 
+import { type BacklogQuery } from "../backlog/schemas/backlog-query.schema";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
 import { type RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
 import { type ReorderSavedFiltersDto } from "./dtos/reorder-saved-filters.dto";
@@ -79,11 +80,13 @@ export async function getSavedFilterStats(
 	response: Response
 ) {
 	const params = request.locals.params as SavedFilterIdParams;
+	const query = request.locals.query as BacklogQuery;
 	const user = request.locals.user as RequestUser;
 
 	const stats = await savedFiltersService.getSavedFilterStats(
 		params.filterId,
-		user.id
+		user.id,
+		query
 	);
 
 	return response.status(200).json({ data: { stats } });

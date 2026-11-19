@@ -15,6 +15,12 @@ export interface ListResult {
 	description?: string;
 }
 
+export interface TagResult {
+	tag: string;
+	games: number;
+	players: number;
+}
+
 export interface LibraryResults {
 	entries: BacklogEntry[];
 	total: number;
@@ -25,4 +31,5 @@ export interface SearchResults {
 	users: UserResult[];
 	games: GameResult[];
 	lists: ListResult[];
+	tags: TagResult[];
 }

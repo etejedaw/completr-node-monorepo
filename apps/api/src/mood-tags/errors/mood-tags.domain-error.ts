@@ -47,6 +47,33 @@ export function limitReached(context?: Record<string, unknown>) {
 	);
 }
 
+export function tooManyFavorites(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"MOOD_TAGS_TOO_MANY_FAVORITES",
+		"Too many favorite mood tags",
+		context
+	);
+}
+
+export function duplicatedFavorite(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"MOOD_TAGS_DUPLICATED_FAVORITE",
+		"The same mood tag appears twice among favorites",
+		context
+	);
+}
+
+export function unknownFavoriteTag(context?: Record<string, unknown>) {
+	return new DomainError(
+		MODULE_NAME,
+		"MOOD_TAGS_FAVORITE_UNKNOWN_TAG",
+		"A favorite must be one of your mood tags",
+		context
+	);
+}
+
 export function moodTagsInternalError(context?: Record<string, unknown>) {
 	return new DomainError(
 		MODULE_NAME,

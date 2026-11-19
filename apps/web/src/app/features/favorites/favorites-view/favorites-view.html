@@ -41,7 +41,7 @@
 			uiButton
 			variant="glass"
 			[disabled]="!canReorder()"
-			[title]="canReorder() ? 'Change the order of your favorites' : 'Clear the search to reorder'"
+			[title]="canReorder() ? 'Change the order of your favorites' : 'Clear the search and tags to reorder'"
 			(click)="startReordering()"
 		>
 			<span aria-hidden="true" class="material-icons text-base"
@@ -55,10 +55,11 @@
 
 <app-library-page
 	[state]="pageState()"
-	[showToolbar]="isLoading() || entries().length > 0 || !!searchQuery().trim()"
+	[showToolbar]="isLoading() || entries().length > 0 || isFiltered()"
 	[liveAnnouncement]="reorderAnnouncement()"
 	loadingLabel="Loading favorites"
-	noMatchesHint="No favorites match your search."
+	noMatchesHint="No favorites match your search or tags."
+	[noMatchesClearLabel]="tagFilter.active() ? 'Clear search & tags' : 'Clear search'"
 	emptyIcon="favorite"
 	emptyTitle="No favorites yet"
 	emptyHint="Mark your all-time favorite games. Visit a game's page and tap the heart to add it here — your top pick leads your public profile."
@@ -66,7 +67,7 @@
 	[offset]="offset()"
 	[limit]="limit"
 	[total]="total()"
-	(cleared)="onSearch('')"
+	(cleared)="clearSearchAndTags()"
 	(retried)="loadFavorites()"
 	(offsetChange)="onOffsetChange($event)"
 >
@@ -92,6 +93,11 @@
 			class="flex-1 min-w-[12rem] max-w-2xl"
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"
+		/>
+		<app-my-tag-filter
+			[options]="tagFilter.options()"
+			[values]="tagFilter.selected()"
+			(valuesChange)="tagFilter.select($event)"
 		/>
 		@if (!isLoading()) {
 		<app-export-actions

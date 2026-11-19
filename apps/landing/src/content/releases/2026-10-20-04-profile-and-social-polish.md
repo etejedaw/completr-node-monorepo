@@ -6,7 +6,9 @@ title: "Cleaner profiles and safer unfollows"
 icon: person
 tint: purple
 landing:
-    pitch: "Tu vista previa en Ajustes ahora se ve igual que tu perfil, con tu juego favorito de fondo, y dejar de seguir a alguien desde la lista de usuarios pide confirmación."
+    pitch:
+        es: "Tu vista previa en Ajustes ahora se ve igual que tu perfil, con tu juego favorito de fondo, y dejar de seguir a alguien desde la lista de usuarios pide confirmación."
+        en: "Your preview in Settings now looks just like your profile, with your favorite game in the background, and unfollowing someone from the users list asks for confirmation."
 highlights:
     - icon: wallpaper
       tint: purple

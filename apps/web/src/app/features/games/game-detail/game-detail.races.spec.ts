@@ -64,6 +64,7 @@ describe("GameDetail response ordering", () => {
 			return req.flush({ data: { gameIds: [] } });
 		if (url.endsWith("/mood-tags"))
 			return req.flush({ data: { tags: [] } });
+		if (url.endsWith("/tags")) return req.flush({ data: { tags: [] } });
 		if (url === `${api}/users/me/backlog`)
 			return req.flush({ data: { backlog: [], total: 0 } });
 		if (url === `${api}/users/me/game-shelf`)

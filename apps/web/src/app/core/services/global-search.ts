@@ -1,23 +1,27 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { forkJoin, map, of } from "rxjs";
+import { catchError, forkJoin, map, of } from "rxjs";
 
 import { environment } from "../../../environments/environment";
 import { type BacklogEntry } from "../models";
 import {
 	type GameResult,
 	type ListResult,
-	type SearchResults
+	type SearchResults,
+	type TagResult
 } from "./global-search.model";
 import { type UserResult } from "./users.model";
 
 const LIBRARY_RESULTS_LIMIT = 10;
+const TAG_RESULTS_LIMIT = 10;
+const TAG_SEARCH_MAX_LENGTH = 40;
 
 const EMPTY_RESULTS: SearchResults = {
 	library: { entries: [], total: 0 },
 	users: [],
 	games: [],
-	lists: []
+	lists: [],
+	tags: []
 };
 
 @Injectable({ providedIn: "root" })
@@ -57,7 +61,24 @@ export class GlobalSearchService {
 				.get<{
 					data: { lists: ListResult[] };
 				}>(`${environment.apiUrl}/lists/search?search=${search}`)
-				.pipe(map(res => res.data.lists))
+				.pipe(map(res => res.data.lists)),
+			tags: this.searchTags(query)
 		});
+	}
+
+	private searchTags(query: string) {
+		const search = encodeURIComponent(
+			query.slice(0, TAG_SEARCH_MAX_LENGTH)
+		);
+		return this.http
+			.get<{
+				data: { tags: TagResult[] };
+			}>(
+				`${environment.apiUrl}/tags/search?search=${search}&limit=${TAG_RESULTS_LIMIT}`
+			)
+			.pipe(
+				map(res => res.data.tags),
+				catchError(() => of([]))
+			);
 	}
 }

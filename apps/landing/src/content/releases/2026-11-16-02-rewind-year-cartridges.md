@@ -6,7 +6,9 @@ title: "Your Rewinds, collected like cartridges"
 icon: sports_esports
 tint: purple
 landing:
-    pitch: "Cada año de tu Rewind ahora se guarda como un cartucho de consola con el arte de ese año, en tu perfil y en tu archivo de Rewinds."
+    pitch:
+        es: "Cada año de tu Rewind ahora se guarda como un cartucho de consola con el arte de ese año, en tu perfil y en tu archivo de Rewinds."
+        en: "Each year of your Rewind is now saved as a console cartridge with that year's art, on your profile and in your Rewind archive."
 highlights:
     - icon: sports_esports
       tint: purple

@@ -6,7 +6,9 @@ title: "Move to top in Up Next and quicker lists and runs"
 icon: vertical_align_top
 tint: brand
 landing:
-    pitch: "Ahora puedes llevar cualquier juego de Up Next directo al primer lugar, una lista nueva se abre apenas la creas y desde una partida puedes empezar otra del mismo juego."
+    pitch:
+        es: "Ahora puedes llevar cualquier juego de Up Next directo al primer lugar, una lista nueva se abre apenas la creas y desde una partida puedes empezar otra del mismo juego."
+        en: "You can now move any game in Up Next straight to first place, a new list opens as soon as you create it, and from a run you can start another one of the same game."
 highlights:
     - icon: vertical_align_top
       tint: brand

@@ -5,6 +5,7 @@ import { Op } from "sequelize";
 
 import {
 	buildTextSearchRelevanceOrder,
+	buildTextSearchSqlCondition,
 	buildTextSearchWhere,
 	tokenizeSearchQuery
 } from "../../../src/common/utils/text-search.util";
@@ -135,5 +136,36 @@ void describe("buildTextSearchRelevanceOrder", () => {
 		const order = buildTextSearchRelevanceOrder("%_", "Game.title");
 		assert.equal(order.length, 2);
 		assert.deepEqual(order[1], ["id", "ASC"]);
+	});
+});
+
+void describe("buildTextSearchSqlCondition", () => {
+	void it("requires every token inside the normalized column", () => {
+		const sql = buildTextSearchSqlCondition("Relajación Co-op", "vote.tag");
+
+		assert.equal(
+			sql,
+			[
+				`regexp_replace(lower(unaccent("vote"."tag")), '[^a-z0-9]', '', 'g') LIKE '%relajacion%'`,
+				`regexp_replace(lower(unaccent("vote"."tag")), '[^a-z0-9]', '', 'g') LIKE '%co%'`,
+				`regexp_replace(lower(unaccent("vote"."tag")), '[^a-z0-9]', '', 'g') LIKE '%op%'`
+			].join(" AND ")
+		);
+	});
+
+	void it("never lets quotes or wildcards reach the SQL", () => {
+		const sql = buildTextSearchSqlCondition(
+			"x'; DROP TABLE %_",
+			"vote.tag"
+		);
+
+		assert.ok(sql);
+		assert.equal(sql.includes("DROP TABLE"), false);
+		assert.match(sql, /LIKE '%droptable%'|LIKE '%drop%'/);
+		assert.equal(sql.includes("'%_"), false);
+	});
+
+	void it("answers null when the query has no searchable characters", () => {
+		assert.equal(buildTextSearchSqlCondition("%_!", "vote.tag"), null);
 	});
 });

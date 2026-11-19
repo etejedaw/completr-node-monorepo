@@ -25,5 +25,14 @@ export function moodTagsServiceToDomainMapper(
 	if (error.code === "MOOD_TAGS_LIMIT_REACHED")
 		return moodTagsDomainError.limitReached(context);
 
+	if (error.code === "MOOD_TAGS_TOO_MANY_FAVORITES")
+		return moodTagsDomainError.tooManyFavorites(context);
+
+	if (error.code === "MOOD_TAGS_DUPLICATED_FAVORITE")
+		return moodTagsDomainError.duplicatedFavorite(context);
+
+	if (error.code === "MOOD_TAGS_FAVORITE_UNKNOWN_TAG")
+		return moodTagsDomainError.unknownFavoriteTag(context);
+
 	return moodTagsDomainError.moodTagsInternalError(context);
 }

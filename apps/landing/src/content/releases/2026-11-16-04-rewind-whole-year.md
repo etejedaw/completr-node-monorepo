@@ -6,7 +6,9 @@ title: "Your Rewind now remembers what you left behind"
 icon: history
 tint: brand
 landing:
-    pitch: "Tu Rewind ahora muestra también los juegos que abandonaste, en gris dentro de su mes. Además, el resumen con IA conoce tu Up Next, tus etiquetas y tus platinos, y el reto del año siguiente puede proponerte un juego de tu Up Next."
+    pitch:
+        es: "Tu Rewind ahora muestra también los juegos que abandonaste, en gris dentro de su mes. Además, el resumen con IA conoce tu Up Next, tus etiquetas y tus platinos, y el reto del año siguiente puede proponerte un juego de tu Up Next."
+        en: "Your Rewind now also shows the games you abandoned, in gray within their month. Plus, the AI summary knows your Up Next, your tags and your platinums, and next year's challenge can suggest a game from your Up Next."
 highlights:
     - icon: event_busy
       tint: brand

@@ -1,5 +1,43 @@
 ---
+import { type Locale, toLocale } from "../i18n/locales";
 import BetaSignupForm from "./BetaSignupForm.astro";
+
+const lang = toLocale(Astro.currentLocale);
+
+const copy = {
+	es: {
+		eyebrow: "Sobre el proyecto",
+		titleStart: "Empezó como",
+		titleHighlight: "un Excel",
+		story: "Ahí anotaba mis juegos para no perder el hilo. Con el tiempo se volvió una app que armé solo para mí. Con la 1.0 la abro de a poco, por invitación, para crecer sin perder el cuidado.",
+		storyEnd:
+			"Sin promesas grandes ni roadmap inflado. Es el tracker que me hubiera gustado tener.",
+		creatorRole: "Creador de Completr",
+		catalogBackedBy: "Catálogo respaldado por",
+		badge: "Acceso por invitación",
+		inviteStart: "Pide tu",
+		inviteHighlight: "invitación",
+		inviteText:
+			"Te escribo con tu invitación. Sin spam ni newsletter: solo ese aviso."
+	},
+	en: {
+		eyebrow: "About the project",
+		titleStart: "It started as",
+		titleHighlight: "a spreadsheet",
+		story: "That's where I kept track of my games so I wouldn't lose the thread. Over time it became an app I built just for myself. With 1.0 I'm opening it up little by little, by invitation, so it can grow without losing the care.",
+		storyEnd:
+			"No big promises or inflated roadmap. It's the tracker I wish I'd had.",
+		creatorRole: "Creator of Completr",
+		catalogBackedBy: "Catalog powered by",
+		badge: "Invite-only access",
+		inviteStart: "Request your",
+		inviteHighlight: "invitation",
+		inviteText:
+			"I'll write to you with your invitation. No spam, no newsletter: just that one message."
+	}
+} satisfies Record<Locale, unknown>;
+
+const t = copy[lang];
 ---
 
 <section
@@ -17,25 +55,18 @@ import BetaSignupForm from "./BetaSignupForm.astro";
 		class="relative max-w-6xl mx-auto grid gap-12 lg:grid-cols-2 lg:gap-16 items-center"
 	>
 		<div>
-			<span class="eyebrow">Sobre el proyecto</span>
+			<span class="eyebrow">{t.eyebrow}</span>
 			<h2
 				class="font-display mt-3 mb-5 text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance"
 			>
-				Empezó como <span class="text-gradient">un Excel</span>.
+				{t.titleStart}{" "}
+				<span class="text-gradient">{t.titleHighlight}</span>.
 			</h2>
 			<div
 				class="flex flex-col gap-4 text-[var(--color-fg-secondary)] leading-relaxed"
 			>
-				<p class="m-0">
-					Ahí anotaba mis juegos para no perder el hilo. Con el tiempo
-					se volvió una app que armé solo para mí. Con la 1.0 la abro
-					de a poco, por invitación, para crecer sin perder el
-					cuidado.
-				</p>
-				<p class="m-0">
-					Sin promesas grandes ni roadmap inflado. Es el tracker que
-					me hubiera gustado tener.
-				</p>
+				<p class="m-0">{t.story}</p>
+				<p class="m-0">{t.storyEnd}</p>
 			</div>
 			<div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
 				<a
@@ -58,14 +89,14 @@ import BetaSignupForm from "./BetaSignupForm.astro";
 							></strong
 						>
 						<span class="text-[var(--color-fg-muted)]"
-							>Creador de Completr</span
+							>{t.creatorRole}</span
 						>
 					</span>
 				</a>
 				<p
 					class="m-0 inline-flex items-center gap-1 pl-4 pr-2 min-h-[44px] rounded-full border border-[var(--color-line)] bg-[var(--color-surface)] text-xs text-[var(--color-fg-muted)]"
 				>
-					Catálogo respaldado por
+					{t.catalogBackedBy}{" "}
 					<a
 						href="https://rawg.io"
 						target="_blank"
@@ -87,18 +118,18 @@ import BetaSignupForm from "./BetaSignupForm.astro";
 				<span
 					class="w-1.5 h-1.5 rounded-full bg-[var(--color-brand)] animate-pulse"
 					aria-hidden="true"></span>
-				Acceso por invitación
+				{t.badge}
 			</span>
 			<h2
 				class="font-display mt-4 mb-3 text-2xl md:text-4xl font-bold tracking-tight leading-tight text-balance"
 			>
-				Pide tu <span class="text-gradient">invitación</span>.
+				{t.inviteStart}{" "}
+				<span class="text-gradient">{t.inviteHighlight}</span>.
 			</h2>
 			<p
 				class="m-0 mb-8 text-[var(--color-fg-secondary)] leading-relaxed"
 			>
-				Te escribo cuando haya un cupo. Sin spam ni newsletter: solo el
-				aviso.
+				{t.inviteText}
 			</p>
 			<div class="[&_form]:mx-0 [&_p]:text-left">
 				<BetaSignupForm />

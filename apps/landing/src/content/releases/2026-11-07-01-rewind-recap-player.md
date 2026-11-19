@@ -6,7 +6,9 @@ title: "An AI recap that's about you, not just your year"
 icon: auto_awesome
 tint: brand
 landing:
-    pitch: "El resumen con IA de tu Rewind ahora habla de ti como jugador: quién eres, qué te engancha y qué te hace soltar un juego. Lee tus reseñas y sabe qué jugaste en co-op, sin nombrar nunca a quienes jugaron contigo."
+    pitch:
+        es: "El resumen con IA de tu Rewind ahora habla de ti como jugador: quién eres, qué te engancha y qué te hace soltar un juego. Lee tus reseñas y sabe qué jugaste en co-op, sin nombrar nunca a quienes jugaron contigo."
+        en: "The AI summary of your Rewind now talks about you as a player: who you are, what hooks you and what makes you drop a game. It reads your reviews and knows what you played in co-op, without ever naming the people who played with you."
 highlights:
     - icon: psychology
       tint: brand

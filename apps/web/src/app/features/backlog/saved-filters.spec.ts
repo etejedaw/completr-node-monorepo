@@ -111,4 +111,38 @@ describe("SavedFiltersService", () => {
 		req.flush({ data: { stats: { totalEntries: 4 } } });
 		expect(result).toEqual({ totalEntries: 4 });
 	});
+
+	it("sends no query params when the stats follow the saved filters", () => {
+		service.getStats("v1", null).subscribe();
+
+		const req = httpTesting.expectOne(
+			request => request.url === `${url}/v1/stats`
+		);
+		expect(req.request.params.keys()).toEqual([]);
+		req.flush({ data: { stats: { totalEntries: 4 } } });
+	});
+
+	it("sends the applied filters as query params", () => {
+		let result: unknown;
+
+		service
+			.getStats("v1", {
+				status: "playing",
+				mood_tags: "cozy,short",
+				sort_by: "createdAt",
+				sort_order: "desc"
+			})
+			.subscribe(r => (result = r));
+
+		const req = httpTesting.expectOne(
+			request => request.url === `${url}/v1/stats`
+		);
+		expect(req.request.method).toBe("GET");
+		expect(req.request.params.get("status")).toBe("playing");
+		expect(req.request.params.get("mood_tags")).toBe("cozy,short");
+		expect(req.request.params.get("sort_by")).toBe("createdAt");
+		expect(req.request.params.get("sort_order")).toBe("desc");
+		req.flush({ data: { stats: { totalEntries: 1 } } });
+		expect(result).toEqual({ totalEntries: 1 });
+	});
 });

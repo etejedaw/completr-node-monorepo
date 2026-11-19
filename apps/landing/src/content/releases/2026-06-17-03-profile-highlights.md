@@ -6,7 +6,9 @@ title: Profile highlights and better forms
 icon: insights
 tint: success
 landing:
-    pitch: "Nueva sección Highlights en los perfiles públicos con tus completados recientes y resumen mensual. Errores de validación inline y un botón para deshacer al eliminar del feed."
+    pitch:
+        es: "Nueva sección Highlights en los perfiles públicos con tus completados recientes y resumen mensual. Errores de validación inline y un botón para deshacer al eliminar del feed."
+        en: "A new Highlights section on public profiles with your recent completions and a monthly summary. Inline validation errors and an undo button when you delete from the feed."
 highlights:
     - icon: insights
       tint: success

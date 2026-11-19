@@ -6,7 +6,9 @@ title: "IGDB images load again and scores drop the decimals"
 icon: build
 tint: warning
 landing:
-    pitch: "Las imágenes de juegos que vienen de IGDB vuelven a cargar, también en la app instalada, sin borrar nada del navegador. Y la nota de IGDB se muestra como número entero, igual que Metacritic."
+    pitch:
+        es: "Las imágenes de juegos que vienen de IGDB vuelven a cargar, también en la app instalada, sin borrar nada del navegador. Y la nota de IGDB se muestra como número entero, igual que Metacritic."
+        en: "Game images that come from IGDB load again, also in the installed app, without clearing anything from the browser. And the IGDB score is shown as a whole number, just like Metacritic."
 highlights:
     - icon: image
       tint: success

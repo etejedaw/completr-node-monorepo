@@ -1,0 +1,51 @@
+info:
+    name: Get Popular Community Tags
+    type: http
+    seq: 9
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/tags/popular?limit=20"
+    params:
+        - name: limit
+          value: "20"
+          type: query
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Get Popular Community Tags
+
+    Returns the community tags that are public on at least one active game (used by at least 2 distinct players with an active account on that game). Computed on every read.
+
+    `games` is the number of active games where the tag is public; `players` is the number of distinct active players across those public tag and game pairs. Order: `games` descending, `players` descending, `tag` ascending.
+
+    **Authentication:** Optional.
+    **Rate Limit:** public limiter.
+
+    ### Query Parameters
+
+    | Param | Type    | Required | Description               |
+    |-------|---------|----------|---------------------------|
+    | limit | integer | No       | 1 to 50 (default: 20)     |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "tags": [
+          { "tag": "relajante", "games": 12, "players": 30 },
+          { "tag": "co-op", "games": 8, "players": 19 }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Type                    | Reason                                   |
+    |--------|-------------------------|------------------------------------------|
+    | 422    | `COMMON_SCHEMA_INVALID` | `limit` out of range or unknown param    |

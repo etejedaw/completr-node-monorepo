@@ -8,7 +8,6 @@ import { exportFormatNegotiationMiddleware } from "../common/middlewares/export-
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateBulkBodyMiddleware } from "../common/middlewares/validate-bulk-body.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
 import * as queueController from "./queue.controller";
 import { AddQueueBodySchema } from "./schemas/add-queue-body.schema";
 import { AddQueueQuerySchema } from "./schemas/add-queue-query.schema";
@@ -20,6 +19,7 @@ import {
 	QueueBulkQuerySchema
 } from "./schemas/queue-bulk-query.schema";
 import { QueueExportQuerySchema } from "./schemas/queue-export-query.schema";
+import { QueueQuerySchema } from "./schemas/queue-query.schema";
 import { ReplaceQueueSchema } from "./schemas/replace-queue.schema";
 
 const router = Router({ mergeParams: true });
@@ -84,7 +84,7 @@ router.get(
 	[
 		authMiddleware("user", "premium", "moderator"),
 		rateLimiterMiddleware(userLimiter),
-		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
+		validateSchemaMiddleware(QueueQuerySchema, "query")
 	],
 	queueController.getMeQueue
 );

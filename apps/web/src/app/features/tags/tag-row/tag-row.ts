@@ -13,6 +13,13 @@ import {
 import { form, FormField, maxLength, validate } from "@angular/forms/signals";
 import { RouterLink } from "@angular/router";
 
+import { type UserTag } from "../../../core/services/mood-tags.model";
+import { AppearancePicker } from "../../../shared/components/appearance-picker/appearance-picker";
+import { TagIcon } from "../../../shared/components/tag-icon/tag-icon";
+import {
+	DEFAULT_TAG_ICON,
+	MAX_FAVORITE_TAGS
+} from "../../../shared/constants/mood-tags";
 import {
 	UiActionMenu,
 	type UiActionMenuItem,
@@ -27,7 +34,8 @@ import {
 	UiLabel,
 	UiProgress
 } from "../../../shared/ui";
-import { type UserTag } from "../../mood-tags/mood-tags.model";
+import { supportedAppearanceColor } from "../../../shared/utils/appearance";
+import { tagColorOf } from "../../../shared/utils/tag-appearance";
 import { type TagEdit } from "./tag-row.model";
 
 const MOBILE_ACTIONS: readonly UiActionMenuItem[] = [
@@ -56,7 +64,9 @@ let nextRowId = 0;
 		UiFormField,
 		UiInput,
 		UiLabel,
-		UiFieldError
+		UiFieldError,
+		AppearancePicker,
+		TagIcon
 	],
 	templateUrl: "./tag-row.html",
 	host: { class: "block" },
@@ -67,12 +77,15 @@ export class TagRow {
 	readonly maxUsage = input(1);
 	readonly editing = input(false);
 	readonly saving = input(false);
+	readonly favorite = input(false);
+	readonly favoriteLocked = input(false);
 
 	readonly editRequested = output<void>();
 	readonly deleteRequested = output<void>();
 	readonly showGamesRequested = output<void>();
 	readonly saved = output<TagEdit>();
 	readonly cancelled = output<void>();
+	readonly favoriteToggled = output<void>();
 
 	private readonly injector = inject(Injector);
 
@@ -81,6 +94,12 @@ export class TagRow {
 		name: this.tag().tag,
 		description: this.tag().description ?? ""
 	}));
+	protected readonly draftIcon = linkedSignal(() => this.tag().icon);
+	protected readonly draftColor = linkedSignal(() =>
+		supportedAppearanceColor(this.tag().color)
+	);
+	protected readonly defaultIcon = DEFAULT_TAG_ICON;
+	protected readonly accent = computed(() => tagColorOf(this.tag().color));
 	protected readonly form = form(this.draft, path => {
 		validate(path.name, ({ value }) =>
 			value().trim()
@@ -115,6 +134,18 @@ export class TagRow {
 		});
 	}
 
+	protected readonly favoriteTitle = computed(() => {
+		if (this.favorite()) return "Remove from favorites";
+		return this.favoriteLocked()
+			? `You can pick up to ${MAX_FAVORITE_TAGS} favorites`
+			: "Add to favorites";
+	});
+
+	protected toggleFavorite() {
+		if (!this.favorite() && this.favoriteLocked()) return;
+		this.favoriteToggled.emit();
+	}
+
 	protected runMobileAction(id: string) {
 		if (id === "games") this.showGamesRequested.emit();
 		else if (id === "edit") this.editRequested.emit();
@@ -132,7 +163,12 @@ export class TagRow {
 			return;
 		}
 		const { name, description } = this.draft();
-		this.saved.emit({ name: name.trim(), description });
+		this.saved.emit({
+			name: name.trim(),
+			description,
+			icon: this.draftIcon(),
+			color: this.draftColor()
+		});
 	}
 
 	protected cancel() {
@@ -140,6 +176,8 @@ export class TagRow {
 			name: this.tag().tag,
 			description: this.tag().description ?? ""
 		});
+		this.draftIcon.set(this.tag().icon);
+		this.draftColor.set(supportedAppearanceColor(this.tag().color));
 		this.cancelled.emit();
 	}
 }

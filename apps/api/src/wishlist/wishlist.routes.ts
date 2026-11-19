@@ -6,11 +6,11 @@ import { exportFormatAccessMiddleware } from "../common/middlewares/export-forma
 import { exportFormatNegotiationMiddleware } from "../common/middlewares/export-format-negotiation.middleware";
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { ExportPlatformSearchQuerySchema } from "../common/schemas/export-platform-search-query.schema";
-import { PaginatedSearchQuerySchema } from "../common/schemas/paginated-search-query.schema";
 import { AddWishlistSchema } from "./schemas/add-wishlist.schema";
 import { ReplaceWishlistSchema } from "./schemas/replace-wishlist.schema";
+import { WishlistExportQuerySchema } from "./schemas/wishlist-export-query.schema";
 import { WishlistGameParamsSchema } from "./schemas/wishlist-game-params.schema";
+import { WishlistQuerySchema } from "./schemas/wishlist-query.schema";
 import * as wishlistController from "./wishlist.controller";
 
 const router = Router({ mergeParams: true });
@@ -59,7 +59,7 @@ router.get(
 	[
 		authMiddleware("user", "premium", "moderator"),
 		rateLimiterMiddleware(userLimiter),
-		validateSchemaMiddleware(PaginatedSearchQuerySchema, "query")
+		validateSchemaMiddleware(WishlistQuerySchema, "query")
 	],
 	wishlistController.getMeWishlist
 );
@@ -69,7 +69,7 @@ router.get(
 	[
 		authMiddleware("user", "premium", "moderator"),
 		rateLimiterMiddleware(userLimiter),
-		validateSchemaMiddleware(ExportPlatformSearchQuerySchema, "query"),
+		validateSchemaMiddleware(WishlistExportQuerySchema, "query"),
 		exportFormatNegotiationMiddleware,
 		exportFormatAccessMiddleware
 	],

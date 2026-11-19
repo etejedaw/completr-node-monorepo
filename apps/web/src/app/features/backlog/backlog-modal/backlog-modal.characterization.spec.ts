@@ -213,6 +213,8 @@ describe("BacklogModal characterization", () => {
 						.map(tag => ({ tag, count: 1 }))
 				}
 			});
+		if (method === "GET" && /\/games\/[^/]+\/tags$/.test(url))
+			return ok({ data: { tags: [] } });
 		const gameTagsMatch = url.match(
 			/\/users\/me\/games\/([^/]+)\/mood-tags$/
 		);

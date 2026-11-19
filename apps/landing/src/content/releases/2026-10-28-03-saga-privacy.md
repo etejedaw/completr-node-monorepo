@@ -6,7 +6,9 @@ title: "Choose who sees the sagas you track"
 icon: lock
 tint: purple
 landing:
-    pitch: "Ahora puedes decidir quién ve en tu perfil las sagas que sigues, sin tocar la privacidad de tus juegos. Y si seguir una saga desde la ficha de un juego falla, te avisamos."
+    pitch:
+        es: "Ahora puedes decidir quién ve en tu perfil las sagas que sigues, sin tocar la privacidad de tus juegos. Y si seguir una saga desde la ficha de un juego falla, te avisamos."
+        en: "You can now decide who sees the sagas you follow on your profile, without touching the privacy of your games. And if following a saga from a game page fails, we let you know."
 highlights:
     - icon: collections_bookmark
       tint: brand

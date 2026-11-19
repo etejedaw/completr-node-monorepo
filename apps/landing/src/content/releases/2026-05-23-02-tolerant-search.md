@@ -6,7 +6,9 @@ title: Smarter game search — words in any order, accents optional
 icon: search
 tint: brand
 landing:
-    pitch: "Busca juegos como hablas: palabras en cualquier orden y con o sin acentos. Encuentra Pokémon escribiendo Pokemon y Final Fantasy 7 buscando 7 fantasy."
+    pitch:
+        es: "Busca juegos como hablas: palabras en cualquier orden y con o sin acentos. Encuentra Pokémon escribiendo Pokemon y Final Fantasy 7 buscando 7 fantasy."
+        en: "Search for games the way you talk: words in any order, with or without accents. Find Pokémon by typing Pokemon, and Final Fantasy 7 by searching 7 fantasy."
 highlights:
     - icon: search
       tint: brand

@@ -42,6 +42,7 @@
 			placeholder="All platforms"
 			placeholderIcon="devices"
 			noun="platforms"
+			nounSingular="platform"
 			searchLabel="Search platforms"
 			[options]="platformPickerOptions()"
 			[values]="platformValues()"
@@ -141,6 +142,7 @@
 			label="Tags"
 			hint="Entries that match all selected tags."
 		>
+			@if (!hasNoOwnTags()) {
 			<a
 				sectionAction
 				routerLink="/tags"
@@ -148,11 +150,15 @@
 				(click)="closed.emit()"
 				>Manage tags →</a
 			>
-			<app-mood-tags-input
-				[tags]="selectedMoodTags()"
-				[suggestions]="moodTagsSuggestions()"
-				placeholder="e.g. relajante, corto…"
-				(tagsChange)="selectedMoodTags.set($event)"
+			}
+			<app-backlog-tag-filter
+				[options]="tagOptions()"
+				[selected]="selectedMoodTags()"
+				[status]="tagStatus()"
+				(selectedChange)="setTags($event)"
+				(limitReached)="tagLimitReached.emit($event)"
+				(retried)="tagsRetried.emit()"
+				(manageOpened)="closed.emit()"
 			/>
 		</app-filter-section>
 

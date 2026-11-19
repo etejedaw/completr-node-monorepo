@@ -6,7 +6,9 @@ title: "Safer reordering in Up Next and lists"
 icon: build
 tint: warning
 landing:
-    pitch: "Reordenar o quitar juegos en Up Next mientras buscas ya no afecta al resto de tu cola, y deshacer un quitado funciona aunque hayas movido otros juegos."
+    pitch:
+        es: "Reordenar o quitar juegos en Up Next mientras buscas ya no afecta al resto de tu cola, y deshacer un quitado funciona aunque hayas movido otros juegos."
+        en: "Reordering or removing games in Up Next while searching no longer affects the rest of your queue, and undoing a removal works even if you moved other games."
 highlights:
     - icon: low_priority
       tint: warning

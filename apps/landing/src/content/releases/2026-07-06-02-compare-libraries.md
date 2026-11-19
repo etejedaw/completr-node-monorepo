@@ -6,7 +6,9 @@ title: Compare libraries with other players
 icon: compare_arrows
 tint: brand
 landing:
-    pitch: "Compara tu librería con la de otro usuario directamente desde su perfil: mira qué juegos tienen en común entre completados, por jugar, en la estantería, favoritos o wishlist."
+    pitch:
+        es: "Compara tu librería con la de otro usuario directamente desde su perfil: mira qué juegos tienen en común entre completados, por jugar, en la estantería, favoritos o wishlist."
+        en: "Compare your library with another user's straight from their profile: see which games you share among completed, to play, shelf, favorites or wishlist."
 highlights:
     - icon: compare_arrows
       tint: brand

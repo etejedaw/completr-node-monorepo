@@ -6,7 +6,9 @@ title: "What the user gets, in one line"
 icon: material_icon_name
 tint: brand
 landing:
-    pitch: "Una o dos frases en español: qué puede hacer ahora el usuario y por qué le sirve."
+    pitch:
+        es: "Una o dos frases en español: qué puede hacer ahora el usuario y por qué le sirve."
+        en: "The same one or two sentences, in English."
 highlights:
     - icon: material_icon_name
       tint: success

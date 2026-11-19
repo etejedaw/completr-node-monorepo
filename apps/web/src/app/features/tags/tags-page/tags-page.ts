@@ -7,20 +7,29 @@ import {
 	type OnInit,
 	signal
 } from "@angular/core";
-import { Router } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 
 import { AuthService } from "../../../core/services/auth";
+import { MoodTagsService } from "../../../core/services/mood-tags";
+import {
+	type PopularTag,
+	type UpdateTagDto,
+	type UserTag
+} from "../../../core/services/mood-tags.model";
 import { ToastService } from "../../../core/services/toast";
 import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
+import { TagIcon } from "../../../shared/components/tag-icon/tag-icon";
+import { MAX_FAVORITE_TAGS } from "../../../shared/constants/mood-tags";
 import { PremiumOnly } from "../../../shared/directives/premium-only";
 import {
 	UiBadge,
 	UiButton,
 	UiDialog,
 	UiEmptyState,
+	UiIconButton,
 	UiLoadError,
 	UiNoMatches,
 	UiOptionPicker,
@@ -29,17 +38,22 @@ import {
 	UiSkeleton
 } from "../../../shared/ui";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
+import { injectTagListSync } from "../../../shared/utils/inject-tag-list-sync";
 import { injectLibraryPosters } from "../../backlog/library-posters";
-import { MoodTagsService } from "../../mood-tags/mood-tags";
-import {
-	type UpdateTagDto,
-	type UserTag
-} from "../../mood-tags/mood-tags.model";
 import { TagCreateDialog } from "../tag-create-dialog/tag-create-dialog";
 import { TagRow } from "../tag-row/tag-row";
 import { type TagEdit } from "../tag-row/tag-row.model";
 
 type TagSort = "usage" | "name";
+
+const POPULAR_TAGS_SHOWN = 30;
+
+function favoriteTagsOf(tags: readonly UserTag[]) {
+	return tags
+		.filter(tag => tag.favoriteOrder !== null)
+		.sort((a, b) => (a.favoriteOrder ?? 0) - (b.favoriteOrder ?? 0))
+		.map(tag => tag.tag);
+}
 
 const SORT_PICKER_OPTIONS: readonly (UiPickerOption & { value: TagSort })[] = [
 	{ value: "usage", label: "Most used", icon: "trending_up" },
@@ -57,13 +71,16 @@ const SORT_PICKER_OPTIONS: readonly (UiPickerOption & { value: TagSort })[] = [
 		UiBadge,
 		UiButton,
 		UiEmptyState,
+		UiIconButton,
 		UiLoadError,
 		UiNoMatches,
 		UiSkeleton,
 		UiDialog,
 		PremiumOnly,
 		UiPremiumBadge,
-		PageSearch
+		PageSearch,
+		RouterLink,
+		TagIcon
 	],
 	templateUrl: "./tags-page.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -71,6 +88,7 @@ const SORT_PICKER_OPTIONS: readonly (UiPickerOption & { value: TagSort })[] = [
 export default class TagsPage implements OnInit {
 	private readonly moodTagsService = inject(MoodTagsService);
 	protected readonly tagsLoader = injectLatestLoader();
+	protected readonly popularLoader = injectLatestLoader();
 	private readonly toast = inject(ToastService);
 	private readonly router = inject(Router);
 
@@ -85,6 +103,27 @@ export default class TagsPage implements OnInit {
 	protected readonly sortPickerOptions = SORT_PICKER_OPTIONS;
 	protected readonly skeletonRange = [0, 1, 2, 3, 4];
 	protected readonly heroPosters = injectLibraryPosters();
+	protected readonly maxFavorites = MAX_FAVORITE_TAGS;
+	protected readonly popularTags = signal<PopularTag[]>([]);
+	protected readonly popularLoading = signal(true);
+	protected readonly favoritesAnnouncement = signal("");
+
+	protected readonly favorites = injectTagListSync({
+		save: tags => this.moodTagsService.replaceFavoriteTags(tags),
+		failureMessage: "Couldn't save your favorite tags. Try again.",
+		onFailed: () =>
+			this.favoritesAnnouncement.set("Your favorite tags weren't saved.")
+	});
+	protected readonly favoriteSet = computed(
+		() => new Set(this.favorites.desired())
+	);
+	protected readonly favoritesFull = computed(
+		() => this.favorites.desired().length >= MAX_FAVORITE_TAGS
+	);
+
+	protected readonly tagsByName = computed(
+		() => new Map(this.tags().map(tag => [tag.tag, tag]))
+	);
 
 	protected readonly totalUsage = computed(() =>
 		this.tags().reduce((sum, tag) => sum + tag.usageCount, 0)
@@ -124,6 +163,7 @@ export default class TagsPage implements OnInit {
 
 	ngOnInit() {
 		this.load();
+		this.loadPopular();
 	}
 
 	protected load() {
@@ -131,10 +171,49 @@ export default class TagsPage implements OnInit {
 		this.tagsLoader.load(this.moodTagsService.getMyTags(), {
 			next: tags => {
 				this.tags.set(tags);
+				this.favorites.reset(favoriteTagsOf(tags));
 				this.loading.set(false);
 			},
 			error: () => this.loading.set(false)
 		});
+	}
+
+	protected loadPopular() {
+		this.popularLoading.set(true);
+		this.popularLoader.load(
+			this.moodTagsService.getPopularTags(POPULAR_TAGS_SHOWN),
+			{
+				next: tags => {
+					this.popularTags.set(tags);
+					this.popularLoading.set(false);
+				},
+				error: () => this.popularLoading.set(false)
+			}
+		);
+	}
+
+	protected toggleFavorite(tag: string) {
+		if (this.favorites.isPending(tag)) return;
+		const current = this.favorites.desired();
+		if (current.includes(tag)) {
+			this.favorites.set(current.filter(item => item !== tag));
+			this.favoritesAnnouncement.set(`Removed ${tag} from favorites.`);
+			return;
+		}
+		if (this.favoritesFull()) return;
+		this.favorites.set([...current, tag]);
+		this.favoritesAnnouncement.set(`Added ${tag} to favorites.`);
+	}
+
+	protected moveFavorite(index: number, step: -1 | 1) {
+		const current = [...this.favorites.desired()];
+		const target = index + step;
+		if (target < 0 || target >= current.length) return;
+		[current[index], current[target]] = [current[target], current[index]];
+		this.favorites.set(current);
+		this.favoritesAnnouncement.set(
+			`${current[target]} moved to position ${target + 1} of ${current.length}.`
+		);
 	}
 
 	startEdit(tag: UserTag) {
@@ -146,12 +225,15 @@ export default class TagsPage implements OnInit {
 	}
 
 	commitEdit(tag: UserTag, edit: TagEdit) {
+		if (this.saving()) return;
 		const dto: UpdateTagDto = {};
 		if (edit.name !== tag.tag) dto.newTag = edit.name;
 		const description = edit.description.trim();
 		if (description !== (tag.description ?? "")) {
 			dto.description = description || null;
 		}
+		if (edit.icon !== tag.icon) dto.icon = edit.icon;
+		if (edit.color !== tag.color) dto.color = edit.color;
 		if (Object.keys(dto).length === 0) {
 			this.cancelEdit();
 			return;

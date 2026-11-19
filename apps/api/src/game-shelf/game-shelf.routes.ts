@@ -8,13 +8,13 @@ import { exportFormatNegotiationMiddleware } from "../common/middlewares/export-
 import { rateLimiterMiddleware } from "../common/middlewares/rate-limiter.middleware";
 import { validateBulkBodyMiddleware } from "../common/middlewares/validate-bulk-body.middleware";
 import { validateSchemaMiddleware } from "../common/middlewares/validate-schema.middleware";
-import { ExportPlatformSearchQuerySchema } from "../common/schemas/export-platform-search-query.schema";
 import * as gameShelfController from "./game-shelf.controller";
 import { BulkDeleteGameShelfSchema } from "./schemas/bulk-delete-game-shelf.schema";
 import {
 	type GameShelfBulkQuery,
 	GameShelfBulkQuerySchema
 } from "./schemas/game-shelf-bulk-query.schema";
+import { GameShelfExportQuerySchema } from "./schemas/game-shelf-export-query.schema";
 import { GameShelfIdParamSchema } from "./schemas/game-shelf-id-params.schema";
 import { GameShelfQuerySchema } from "./schemas/game-shelf-query.schema";
 import { RegisterGameShelfSchema } from "./schemas/register-game-shelf.schema";
@@ -81,7 +81,7 @@ router.get(
 	[
 		authMiddleware("user", "premium", "moderator"),
 		rateLimiterMiddleware(userLimiter),
-		validateSchemaMiddleware(ExportPlatformSearchQuerySchema, "query"),
+		validateSchemaMiddleware(GameShelfExportQuerySchema, "query"),
 		exportFormatNegotiationMiddleware,
 		exportFormatAccessMiddleware
 	],

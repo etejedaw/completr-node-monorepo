@@ -6,7 +6,9 @@ title: "Generate your Rewind, in English or Spanish, with an AI recap"
 icon: auto_awesome
 tint: brand
 landing:
-    pitch: "Ahora tú decides cuándo sale tu Rewind: lo generas desde tu perfil, eliges si lo quieres en inglés o en español y nadie lo ve hasta que lo activas. Con Premium suma un resumen escrito por IA y gráficas de tu año."
+    pitch:
+        es: "Ahora tú decides cuándo sale tu Rewind: lo generas desde tu perfil, eliges si lo quieres en inglés o en español y nadie lo ve hasta que lo activas. Con Premium suma un resumen escrito por IA y gráficas de tu año."
+        en: "You now decide when your Rewind comes out: you generate it from your profile, choose whether you want it in English or Spanish and nobody sees it until you activate it. With Premium it adds an AI-written summary and charts of your year."
 highlights:
     - icon: fast_rewind
       tint: brand

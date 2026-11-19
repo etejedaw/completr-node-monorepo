@@ -6,7 +6,9 @@ title: "Online search tells you when it can't connect"
 icon: build
 tint: warning
 landing:
-    pitch: "Si la búsqueda online de juegos falla, ahora te avisa en vez de mostrar que no hay resultados, y puedes reintentar al instante."
+    pitch:
+        es: "Si la búsqueda online de juegos falla, ahora te avisa en vez de mostrar que no hay resultados, y puedes reintentar al instante."
+        en: "If the online game search fails, it now tells you instead of showing no results, and you can retry instantly."
 highlights:
     - icon: travel_explore
       tint: brand

@@ -1,7 +1,7 @@
 ---
 lang: en
-version: "2.6"
-updated: 2026-11-16
+version: "2.7"
+updated: 2026-11-18
 title: Privacy Policy
 summary: "The idea is simple: I collect the minimum needed for the app to work, I never sell your data or share it for commercial purposes, and you can ask for a copy or for everything to be deleted whenever you want."
 highlights:
@@ -82,18 +82,19 @@ The app uses a single cookie: the one strictly necessary so you don't have to si
 
 Completr is a social app: part of what you track is meant to be seen by others. You decide how much, but it's worth knowing how it works.
 
-Each section of your account (profile, My Games, My Shelf, Platinums, Sagas, Rewind, Up Next, Want to Get, Favorites, Lists and your activity feed) has its own visibility level, and you can change each one separately whenever you want:
+Each section of your account (profile, My Games, My Shelf, Platinums, Sagas, Rewind, Up Next, Want to Get, Favorites, Lists, Tags and your activity feed) has its own visibility level, and you can change each one separately whenever you want:
 
 - **Everyone:** anyone can see it, even someone without a Completr account.
 - **Friends:** only people you follow who also follow you back can see it.
 - **Only you:** nobody else can see it.
 
-**By default those eleven sections are visible to everyone.** It's a design decision: an app for sharing backlogs with nothing visible isn't much use. But it means that if you don't change anything, your profile and what you track are visible on the internet. If you'd rather have the opposite, you can set everything to Only you from the settings.
+**By default those twelve sections are visible to everyone.** It's a design decision: an app for sharing backlogs with nothing visible isn't much use. But it means that if you don't change anything, your profile and what you track are visible on the internet. If you'd rather have the opposite, you can set everything to Only you from the settings.
 
 There are a few exceptions, and they go in opposite directions:
 
 - **Lists start private.** Every list you create starts out as yours alone; you publish it separately when you decide to.
 - **A Rewind stays hidden until you generate it.** Even with its section set to Everyone, nobody sees a year's Rewind until you create it from your profile. Whoever can see it also sees its AI summary, which may paraphrase your reviews and tags, and your notes if you included them, but never quotes them. Its challenge for next year may name a game from your Up Next list.
+- **Your tags count anonymously.** When at least two people put the same tag on a game, that tag shows up on the game's page, on the tag's own page and in search, with the number of players who use it, never their names. A tag that only you use is seen by no one else, whatever level your sections have. The favorite tags you choose to show on your profile do follow the level of the Tags section.
 - **Reviews have no visibility control.** If you write a review or rate a game, anyone with a Completr account can see it on that game's page, even if the rest of your profile is private. If you don't want something to be seen, don't post it as a review.
 
 ## Where your data goes

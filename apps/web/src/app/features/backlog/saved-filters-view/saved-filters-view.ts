@@ -13,6 +13,7 @@ import { debounceTime, distinctUntilChanged, Subject } from "rxjs";
 
 import { AuthService } from "../../../core/services/auth";
 import { ToastService } from "../../../core/services/toast";
+import { AppearancePicker } from "../../../shared/components/appearance-picker/appearance-picker";
 import { DialogDeleteAction } from "../../../shared/components/dialog-delete-action/dialog-delete-action";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
 import { LibraryToolbar } from "../../../shared/components/library-toolbar/library-toolbar";
@@ -33,22 +34,15 @@ import {
 	type UiPickerOption,
 	UiPremiumBadge,
 	UiSkeleton,
-	UiSwatchButton,
 	UiSwitch,
 	UiTextarea
 } from "../../../shared/ui";
+import { supportedAppearanceColor } from "../../../shared/utils/appearance";
 import {
 	isNotFound,
 	reportHttpFailure
 } from "../../../shared/utils/http-failure";
 import { injectLibraryPosters } from "../library-posters";
-import {
-	SAVED_FILTER_COLORS,
-	SAVED_FILTER_ICONS,
-	savedFilterColorHex,
-	savedFilterIconLabel,
-	supportedSavedFilterColor
-} from "../saved-filter-appearance";
 import { SavedFiltersService } from "../saved-filters";
 import { type SavedFilter } from "../saved-filters.model";
 import { SavedViewCard } from "../saved-view-card/saved-view-card";
@@ -89,7 +83,6 @@ const SORT_PICKER_OPTIONS: readonly (UiPickerOption & { value: SortMode })[] = [
 		UiEmptyState,
 		UiEyebrow,
 		UiNoMatches,
-		UiSwatchButton,
 		UiPagination,
 		UiPremiumBadge,
 		UiSkeleton,
@@ -99,6 +92,7 @@ const SORT_PICKER_OPTIONS: readonly (UiPickerOption & { value: SortMode })[] = [
 		UiInput,
 		UiSwitch,
 		DialogDeleteAction,
+		AppearancePicker,
 		PageSearch
 	],
 	templateUrl: "./saved-filters-view.html",
@@ -183,10 +177,6 @@ export class SavedFiltersView implements OnInit {
 	protected readonly editIsDefault = signal(false);
 	protected readonly editIcon = signal<string | null>(null);
 	protected readonly editColor = signal<string | null>(null);
-	protected readonly iconOptions = SAVED_FILTER_ICONS;
-	protected readonly colorOptions = SAVED_FILTER_COLORS;
-	protected readonly iconLabel = savedFilterIconLabel;
-	protected readonly colorHex = savedFilterColorHex;
 	protected readonly saving = signal(false);
 	protected readonly deleting = signal(false);
 	protected readonly showDuplicateModal = signal(false);
@@ -317,7 +307,7 @@ export class SavedFiltersView implements OnInit {
 		this.editShowInBacklog.set(filter.showInBacklog);
 		this.editIsDefault.set(filter.isDefault);
 		this.editIcon.set(filter.icon);
-		this.editColor.set(supportedSavedFilterColor(filter.color));
+		this.editColor.set(supportedAppearanceColor(filter.color));
 		this.showModal.set(true);
 	}
 

@@ -9,8 +9,6 @@ import * as backlogService from "../backlog/backlog.service";
 import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type BulkResult } from "../common/interfaces/bulk-result.interface";
-import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
-import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { buildPlatformFilterWhere } from "../common/utils/platform-filter-where.util";
 import { splitByPresence } from "../common/utils/split-by-presence.util";
 import { buildTextSearchWhere } from "../common/utils/text-search.util";
@@ -19,6 +17,7 @@ import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
 import * as gamesService from "../games/games.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 import { Platform } from "../platforms/platform.model";
 import * as platformsService from "../platforms/platforms.service";
 import { type UpsertGamePlatinumDto } from "./dtos/upsert-game-platinum.dto";
@@ -32,6 +31,8 @@ import {
 } from "./game-platinum.constants";
 import { type UpsertedGamePlatinum } from "./game-platinum.interface";
 import { GamePlatinum } from "./game-platinum.model";
+import { type PlatinumsExportQuery } from "./schemas/platinums-export-query.schema";
+import { type PlatinumsQuery } from "./schemas/platinums-query.schema";
 
 async function resolveRunPlatformId(
 	userId: string,
@@ -186,7 +187,7 @@ export async function findPlatinumsForGames(
 
 export async function findPlatinumsByUserIdPaginated(
 	userId: string,
-	pagination: PaginatedSearchQuery = {}
+	pagination: PlatinumsQuery = {}
 ) {
 	const titleWhere = pagination.search
 		? buildTextSearchWhere(pagination.search, ["Game.title"])
@@ -205,7 +206,15 @@ export async function findPlatinumsByUserIdPaginated(
 	};
 
 	const query: FindAndCountOptions = {
-		where: { userId },
+		where: {
+			userId,
+			...(pagination.mood_tags && {
+				gameId: moodTagsService.taggedGameIdsFilter(
+					userId,
+					pagination.mood_tags
+				)
+			})
+		},
 		include: [
 			gameInclude,
 			{
@@ -226,14 +235,23 @@ export async function findPlatinumsByUserIdPaginated(
 
 export async function findPlatinumsForExport(
 	userId: string,
-	filters: ExportPlatformSearchQuery = {}
+	filters: PlatinumsExportQuery = {}
 ) {
 	const titleWhere = filters.search
 		? buildTextSearchWhere(filters.search, ["Game.title"])
 		: null;
 
 	return GamePlatinum.findAll({
-		where: { userId, ...buildPlatformFilterWhere(filters.platform) },
+		where: {
+			userId,
+			...buildPlatformFilterWhere(filters.platform),
+			...(filters.mood_tags && {
+				gameId: moodTagsService.taggedGameIdsFilter(
+					userId,
+					filters.mood_tags
+				)
+			})
+		},
 		include: [
 			{
 				model: Game,

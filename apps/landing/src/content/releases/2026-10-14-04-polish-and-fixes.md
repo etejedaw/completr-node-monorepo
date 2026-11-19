@@ -6,7 +6,9 @@ title: "A fresh Feed header and smoother details"
 icon: build
 tint: warning
 landing:
-    pitch: "El Feed estrena portada con los juegos de tu actividad, los botones se tocan mejor en el celular y varios detalles visuales quedan pulidos."
+    pitch:
+        es: "El Feed estrena portada con los juegos de tu actividad, los botones se tocan mejor en el celular y varios detalles visuales quedan pulidos."
+        en: "The Feed gets a cover with the games from your activity, buttons are easier to tap on mobile and several visual details are polished."
 highlights:
     - icon: dynamic_feed
       tint: brand

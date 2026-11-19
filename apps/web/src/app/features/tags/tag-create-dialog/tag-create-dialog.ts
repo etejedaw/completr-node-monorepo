@@ -9,7 +9,10 @@ import {
 } from "@angular/core";
 import { form, FormField, maxLength, validate } from "@angular/forms/signals";
 
+import { MoodTagsService } from "../../../core/services/mood-tags";
 import { isToastedByErrorInterceptor } from "../../../core/utils/toasted-error-statuses";
+import { AppearancePicker } from "../../../shared/components/appearance-picker/appearance-picker";
+import { DEFAULT_TAG_ICON } from "../../../shared/constants/mood-tags";
 import {
 	UiAlert,
 	UiButton,
@@ -22,7 +25,6 @@ import {
 	UiInput,
 	UiLabel
 } from "../../../shared/ui";
-import { MoodTagsService } from "../../mood-tags/mood-tags";
 
 const TAG_NAME_MAX_LENGTH = 40;
 const TAG_DESCRIPTION_MAX_LENGTH = 255;
@@ -40,7 +42,8 @@ const TAG_DESCRIPTION_MAX_LENGTH = 255;
 		UiFormField,
 		UiInput,
 		UiLabel,
-		UiFieldError
+		UiFieldError,
+		AppearancePicker
 	],
 	templateUrl: "./tag-create-dialog.html",
 	changeDetection: ChangeDetectionStrategy.OnPush
@@ -55,6 +58,9 @@ export class TagCreateDialog {
 	protected readonly error = signal("");
 
 	protected readonly model = signal({ name: "", description: "" });
+	protected readonly icon = signal<string | null>(null);
+	protected readonly color = signal<string | null>(null);
+	protected readonly defaultIcon = DEFAULT_TAG_ICON;
 
 	protected readonly form = form(this.model, path => {
 		validate(path.name, ({ value }) =>
@@ -91,7 +97,9 @@ export class TagCreateDialog {
 		this.moodTagsService
 			.createTag({
 				tag: this.model().name.trim(),
-				description: description || null
+				description: description || null,
+				icon: this.icon(),
+				color: this.color()
 			})
 			.subscribe({
 				next: () => {

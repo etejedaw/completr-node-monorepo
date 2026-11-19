@@ -2,14 +2,15 @@ import { type Request, type Response } from "express";
 
 import * as activityService from "../activity/activity.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
 import { type ExportFormat } from "../common/types/export-format.types";
 import { sendExport } from "../common/utils/send-export.util";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
 import { type User } from "../users/user.model";
 import { type AddWishlistDto } from "./dtos/add-wishlist.dto";
 import { type ReplaceWishlistDto } from "./dtos/replace-wishlist.dto";
+import { type WishlistExportQuery } from "./schemas/wishlist-export-query.schema";
 import { type WishlistGameParams } from "./schemas/wishlist-game-params.schema";
+import { type WishlistQuery } from "./schemas/wishlist-query.schema";
 import {
 	WISHLIST_EXPORT_COLUMNS,
 	wishlistToExportRow
@@ -86,7 +87,7 @@ export async function deleteWishlistItem(request: Request, response: Response) {
 
 export async function getMeWishlist(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
-	const query = request.locals.query ?? {};
+	const query = request.locals.query as WishlistQuery;
 
 	const { rows, total } = await wishlistService.findWishlistByUserIdPaginated(
 		user.id,
@@ -142,7 +143,7 @@ export async function getMeWishlistExport(
 ) {
 	const user = request.locals.user as RequestUser;
 	const format = request.locals.exportFormat as ExportFormat;
-	const query = request.locals.query as ExportPlatformSearchQuery;
+	const query = request.locals.query as WishlistExportQuery;
 
 	const entries = await wishlistService.findWishlistForExport(user.id, query);
 

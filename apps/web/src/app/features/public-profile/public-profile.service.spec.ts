@@ -49,4 +49,35 @@ describe("PublicProfileService", () => {
 
 		expect(status).toBe(404);
 	});
+
+	it("unwraps the favorite tags of the requested player in order", () => {
+		let result: unknown;
+		service.getFavoriteTags("ada").subscribe(tags => (result = tags));
+
+		const request = httpTesting.expectOne(req =>
+			req.url.endsWith("/users/ada/tags")
+		);
+		expect(request.request.method).toBe("GET");
+		request.flush({
+			data: {
+				tags: [
+					{ tag: "relaxing", description: null },
+					{ tag: "co-op", description: "With friends" }
+				]
+			}
+		});
+
+		expect(result).toEqual([
+			{ tag: "relaxing", description: null },
+			{ tag: "co-op", description: "With friends" }
+		]);
+	});
+
+	it("escapes a username with reserved characters in the tags URL", () => {
+		service.getFavoriteTags("ada/../admin").subscribe();
+
+		httpTesting
+			.expectOne(req => req.url.endsWith("/users/ada%2F..%2Fadmin/tags"))
+			.flush({ data: { tags: [] } });
+	});
 });

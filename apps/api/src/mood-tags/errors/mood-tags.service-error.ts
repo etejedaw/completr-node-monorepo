@@ -36,3 +36,24 @@ export function limitReachedError(max: number) {
 		raw: { max }
 	});
 }
+
+export function tooManyFavoritesError(max: number) {
+	return new ServiceError("MOOD_TAGS_TOO_MANY_FAVORITES", {
+		...BASE_OPTIONS,
+		raw: { max }
+	});
+}
+
+export function duplicatedFavoriteError(tag: string) {
+	return new ServiceError("MOOD_TAGS_DUPLICATED_FAVORITE", {
+		...BASE_OPTIONS,
+		raw: { tag }
+	});
+}
+
+export function unknownFavoriteTagError(tags: string[]) {
+	return new ServiceError("MOOD_TAGS_FAVORITE_UNKNOWN_TAG", {
+		...BASE_OPTIONS,
+		raw: { tags }
+	});
+}

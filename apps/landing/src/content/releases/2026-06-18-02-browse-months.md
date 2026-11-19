@@ -6,7 +6,9 @@ title: Browse past months and see every completion
 icon: calendar_month
 tint: purple
 landing:
-    pitch: "Navega por meses anteriores en Highlights con flechas y URL compartible. Una vista nueva tipo timeline lista todos tus completados con score, duración y reseña."
+    pitch:
+        es: "Navega por meses anteriores en Highlights con flechas y URL compartible. Una vista nueva tipo timeline lista todos tus completados con score, duración y reseña."
+        en: "Browse previous months in Highlights with arrows and a shareable URL. A new timeline view lists all your completions with score, length and review."
 highlights:
     - icon: chevron_left
       tint: brand

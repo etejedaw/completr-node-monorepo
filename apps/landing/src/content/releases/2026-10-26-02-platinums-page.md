@@ -6,7 +6,9 @@ title: "All your platinums in one place"
 icon: emoji_events
 tint: brand
 landing:
-    pitch: "Tus platinos tienen su propia sección en la biblioteca. Puedes verlos en cuadrícula, en tabla o en un calendario, y agregar uno nuevo buscando el juego directamente."
+    pitch:
+        es: "Tus platinos tienen su propia sección en la biblioteca. Puedes verlos en cuadrícula, en tabla o en un calendario, y agregar uno nuevo buscando el juego directamente."
+        en: "Your platinums have their own section in the library. You can see them as a grid, a table or a calendar, and add a new one by searching for the game directly."
 highlights:
     - icon: emoji_events
       tint: brand

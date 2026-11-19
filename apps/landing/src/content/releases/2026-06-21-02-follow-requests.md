@@ -6,7 +6,9 @@ title: Follow requests inbox and clearer privacy settings
 icon: person_add
 tint: success
 landing:
-    pitch: "Un buzón de solicitudes de seguimiento al inicio del feed, con aceptar y rechazar en un clic. Los botones reflejan el estado real para que sepas si tu solicitud llegó."
+    pitch:
+        es: "Un buzón de solicitudes de seguimiento al inicio del feed, con aceptar y rechazar en un clic. Los botones reflejan el estado real para que sepas si tu solicitud llegó."
+        en: "A follow request inbox at the top of the feed, with accept and decline in one click. Buttons show the real status so you know your request arrived."
 highlights:
     - icon: campaign
       tint: success

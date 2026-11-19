@@ -1,10 +1,39 @@
-import { signal } from "@angular/core";
+import "@testing-library/jest-dom/vitest";
+
+import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
-import { provideRouter } from "@angular/router";
+import { provideRouter, Router } from "@angular/router";
+import {
+	render as renderPicker,
+	screen,
+	waitFor,
+	within
+} from "@testing-library/angular";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
 
 import { ViewportService } from "../../../core/services/viewport";
 import { UiOptionPicker } from "./ui-option-picker";
-import { type UiPickerOption } from "./ui-option-picker.model";
+import {
+	type UiPickerAction,
+	type UiPickerOption
+} from "./ui-option-picker.model";
+
+@Component({
+	selector: "ui-blank-page",
+	template: "",
+	changeDetection: ChangeDetectionStrategy.OnPush
+})
+class BlankPage {}
+
+const linkActions: UiPickerAction[] = [
+	{ id: "reorder", label: "Reorder pinned views", icon: "swap_vert" },
+	{
+		id: "manage",
+		label: "Manage saved views",
+		icon: "settings",
+		link: { routerLink: ["/saved-views"], queryParams: { from: "games" } }
+	}
+];
 
 const options: UiPickerOption[] = [
 	{ value: "", label: "All", icon: "apps", count: 10 },
@@ -99,6 +128,56 @@ describe("UiOptionPicker", () => {
 			expect(trigger(fixture).getAttribute("aria-describedby")).toBe(
 				"err"
 			);
+		});
+
+		it("marks a modified selection with a dot and says so in its accessible name", () => {
+			const fixture = render({
+				value: "playing",
+				variant: "compact",
+				modified: true
+			});
+
+			expect(trigger(fixture).getAttribute("aria-label")).toBe(
+				"Status: Playing (modified)"
+			);
+			const dot = trigger(fixture).querySelector(
+				"[data-modified-indicator]"
+			);
+			expect(dot).not.toBeNull();
+			expect(dot?.getAttribute("aria-hidden")).toBe("true");
+		});
+
+		it("shows no modified mark when nothing is selected or nothing changed", () => {
+			const placeholder = render({ value: "unknown", modified: true });
+			expect(trigger(placeholder).getAttribute("aria-label")).toBe(
+				"Status: None"
+			);
+			expect(
+				trigger(placeholder).querySelector("[data-modified-indicator]")
+			).toBeNull();
+			TestBed.resetTestingModule();
+
+			const untouched = render({ value: "playing" });
+			expect(trigger(untouched).getAttribute("aria-label")).toBe(
+				"Status: Playing"
+			);
+			expect(
+				trigger(untouched).querySelector("[data-modified-indicator]")
+			).toBeNull();
+		});
+
+		it("drops the modified mark as soon as the input turns off", () => {
+			const fixture = render({ value: "playing", modified: true });
+
+			fixture.componentRef.setInput("modified", false);
+			fixture.detectChanges();
+
+			expect(trigger(fixture).getAttribute("aria-label")).toBe(
+				"Status: Playing"
+			);
+			expect(
+				trigger(fixture).querySelector("[data-modified-indicator]")
+			).toBeNull();
 		});
 
 		it("announces a menu on desktop and a dialog on mobile", () => {
@@ -197,6 +276,20 @@ describe("UiOptionPicker", () => {
 			expect(sheet()).toBeNull();
 		});
 
+		it("labels the modified option in the sheet and keeps its hint", () => {
+			const fixture = render({ value: "playing", modified: true }, true);
+
+			trigger(fixture).click();
+			fixture.detectChanges();
+
+			const playing = sheetOption(fixture, "Playing");
+			expect(playing.textContent).toContain("Modified");
+			expect(playing.textContent).toContain("Now");
+			expect(sheetOption(fixture, "All").textContent).not.toContain(
+				"Modified"
+			);
+		});
+
 		it("runs an action and closes the sheet", () => {
 			const fixture = render(
 				{
@@ -260,6 +353,107 @@ describe("UiOptionPicker", () => {
 
 			const anchor = document.body.querySelector("ui-bottom-sheet li a");
 			expect(anchor?.getAttribute("href")).toBe("/help#a");
+		});
+	});
+
+	describe("action links", () => {
+		async function renderWithLinks(mobile: boolean) {
+			const actionSelected = vi.fn();
+			await renderPicker(UiOptionPicker, {
+				inputs: {
+					label: "View",
+					heading: "Saved views",
+					options,
+					actions: linkActions
+				},
+				on: { actionSelected },
+				providers: [
+					{
+						provide: ViewportService,
+						useValue: { isMobile: signal(mobile) }
+					}
+				],
+				routes: [{ path: "**", component: BlankPage }]
+			});
+			return { actionSelected, router: TestBed.inject(Router) };
+		}
+
+		async function clickTwiceWherePointerIs(
+			user: UserEvent,
+			target: HTMLElement
+		) {
+			await user.click(target);
+			await user.click(target.isConnected ? target : document.body);
+		}
+
+		function pickerTrigger() {
+			return screen.getByRole("button", { name: /^View:/ });
+		}
+
+		it("navigates from the desktop menu with a real link and closes it", async () => {
+			const user = userEvent.setup();
+			const { actionSelected, router } = await renderWithLinks(false);
+
+			await user.click(pickerTrigger());
+			const menu = await screen.findByRole("menu");
+			const manage = within(menu).getByRole("menuitem", {
+				name: "Manage saved views"
+			});
+			expect(manage.tagName).toBe("A");
+			expect(manage).toHaveAttribute("href", "/saved-views?from=games");
+			await clickTwiceWherePointerIs(user, manage);
+
+			await waitFor(() =>
+				expect(router.url).toBe("/saved-views?from=games")
+			);
+			await waitFor(() =>
+				expect(screen.queryByRole("menu")).not.toBeInTheDocument()
+			);
+			expect(actionSelected).not.toHaveBeenCalled();
+		});
+
+		it("still emits a plain action next to a link in the desktop menu", async () => {
+			const user = userEvent.setup();
+			const { actionSelected, router } = await renderWithLinks(false);
+
+			await user.click(pickerTrigger());
+			const menu = await screen.findByRole("menu");
+			await user.click(
+				within(menu).getByRole("menuitem", {
+					name: "Reorder pinned views"
+				})
+			);
+
+			expect(actionSelected).toHaveBeenCalledExactlyOnceWith("reorder");
+			expect(router.url).toBe("/");
+		});
+
+		it("navigates from the mobile sheet with a real link and closes it, even on a double tap", async () => {
+			const user = userEvent.setup();
+			const { actionSelected, router } = await renderWithLinks(true);
+
+			await user.click(pickerTrigger());
+			const sheet = await screen.findByRole("dialog", {
+				name: "Saved views"
+			});
+			const manage = within(sheet).getByRole("link", {
+				name: "Manage saved views"
+			});
+			expect(manage).toHaveAttribute("href", "/saved-views?from=games");
+			expect(
+				within(sheet).getByRole("button", {
+					name: "Reorder pinned views"
+				})
+			).toBeInTheDocument();
+			await clickTwiceWherePointerIs(user, manage);
+
+			await waitFor(() =>
+				expect(router.url).toBe("/saved-views?from=games")
+			);
+			await waitFor(() =>
+				expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+			);
+			expect(actionSelected).not.toHaveBeenCalled();
 		});
 	});
 

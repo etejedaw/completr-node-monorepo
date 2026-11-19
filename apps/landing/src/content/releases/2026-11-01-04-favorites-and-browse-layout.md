@@ -6,7 +6,9 @@ title: "Favorites and Browse follow the same layout"
 icon: dashboard_customize
 tint: purple
 landing:
-    pitch: "Favorites y Browse ordenan sus botones igual que el resto: reordenar tus favoritos está arriba, junto al título, y en Browse los filtros van antes que el orden."
+    pitch:
+        es: "Favorites y Browse ordenan sus botones igual que el resto: reordenar tus favoritos está arriba, junto al título, y en Browse los filtros van antes que el orden."
+        en: "Favorites and Browse order their buttons like everything else: reordering your favorites is at the top, next to the title, and in Browse the filters come before the sorting."
 highlights:
     - icon: swap_horiz
       tint: brand

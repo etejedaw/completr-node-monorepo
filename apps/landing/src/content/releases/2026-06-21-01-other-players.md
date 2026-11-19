@@ -7,7 +7,9 @@ icon: groups
 tint: brand
 landing:
     featured: true
-    pitch: "Descubre a otros jugadores que también tienen el juego en su backlog. Una forma simple de salir de tu círculo."
+    pitch:
+        es: "Descubre a otros jugadores que también tienen el juego en su backlog. Una forma simple de salir de tu círculo."
+        en: "Discover other players who also have the game in their backlog. A simple way to step outside your circle."
 highlights:
     - icon: diversity_3
       tint: brand

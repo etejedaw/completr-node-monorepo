@@ -6,7 +6,9 @@ title: "More games come with HowLongToBeat times and Metacritic scores"
 icon: schedule
 tint: brand
 landing:
-    pitch: "El catálogo completa solo la duración de HowLongToBeat y la nota de Metacritic de los juegos, también de los que agregas al buscar, así que más juegos llegan con duración y nota para calcular su ratio."
+    pitch:
+        es: "El catálogo completa solo la duración de HowLongToBeat y la nota de Metacritic de los juegos, también de los que agregas al buscar, así que más juegos llegan con duración y nota para calcular su ratio."
+        en: "The catalog fills in the HowLongToBeat length and the Metacritic score of games on its own, including the ones you add while searching, so more games arrive with a length and a score to calculate their Ratio."
 highlights:
     - icon: schedule
       tint: brand

@@ -7,7 +7,9 @@ icon: fast_rewind
 tint: brand
 landing:
     featured: true
-    pitch: "Llega el Rewind: cada diciembre, un resumen de tu año en juegos con lo que terminaste, tus horas, tus mejores momentos y un título que te define como jugador. Lo puedes ver en tu perfil y compartir como imagen en tus historias."
+    pitch:
+        es: "Llega el Rewind: cada diciembre, un resumen de tu año en juegos con lo que terminaste, tus horas, tus mejores momentos y un título que te define como jugador. Lo puedes ver en tu perfil y compartir como imagen en tus historias."
+        en: "Rewind is here: every December, a summary of your year in games with what you finished, your hours, your best moments and a title that defines you as a player. You can see it on your profile and share it as an image in your stories."
 highlights:
     - icon: fast_rewind
       tint: brand

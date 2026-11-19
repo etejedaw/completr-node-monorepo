@@ -6,7 +6,9 @@ title: "Browse pages forward and searches calmly"
 icon: build
 tint: warning
 landing:
-    pitch: "En el catálogo ya puedes pasar de página con filtros activos sin volver a la primera, y la búsqueda espera a que termines de escribir."
+    pitch:
+        es: "En el catálogo ya puedes pasar de página con filtros activos sin volver a la primera, y la búsqueda espera a que termines de escribir."
+        en: "In the catalog you can now change pages with active filters without going back to the first one, and the search waits until you finish typing."
 highlights:
     - icon: last_page
       tint: brand

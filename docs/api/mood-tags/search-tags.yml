@@ -1,0 +1,52 @@
+info:
+    name: Search Community Tags
+    type: http
+    seq: 10
+
+http:
+    method: GET
+    url: "{{BASE_URL}}/tags/search?search=rel&limit=10"
+    params:
+        - name: search
+          value: rel
+          type: query
+        - name: limit
+          value: "10"
+          type: query
+    auth: inherit
+
+settings:
+    encodeUrl: true
+
+docs: |-
+    ## Search Community Tags
+
+    Same items and order as `GET /tags/popular`, restricted to tags whose text matches `search`. The match follows the shared text search of the API: case, accents and punctuation are ignored and every word of the search must appear in the tag (`co op` finds `co-op`). A search without letters or digits returns an empty list.
+
+    **Authentication:** Optional.
+    **Rate Limit:** public limiter.
+
+    ### Query Parameters
+
+    | Param  | Type    | Required | Description           |
+    |--------|---------|----------|-----------------------|
+    | search | string  | Yes      | 1 to 40 chars         |
+    | limit  | integer | No       | 1 to 20 (default: 10) |
+
+    ### Response (200)
+
+    ```json
+    {
+      "data": {
+        "tags": [
+          { "tag": "relajante", "games": 12, "players": 30 }
+        ]
+      }
+    }
+    ```
+
+    ### Errors
+
+    | Status | Type                    | Reason                                                  |
+    |--------|-------------------------|---------------------------------------------------------|
+    | 422    | `COMMON_SCHEMA_INVALID` | `search` missing, empty or too long, or `limit` out of range |

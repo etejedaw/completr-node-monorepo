@@ -1,11 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 
-import { Component, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, signal } from "@angular/core";
 import { render, screen, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 
 import { ViewportService } from "../../../core/services/viewport";
 import { UiMultiOptionPicker } from "./ui-multi-option-picker";
+import { UiOptionPicker } from "./ui-option-picker";
 import { type UiPickerOption } from "./ui-option-picker.model";
 
 const platforms: UiPickerOption[] = [
@@ -31,6 +32,7 @@ const manyPlatforms: UiPickerOption[] = [
 		heading="Filter by platform"
 		placeholder="All platforms"
 		noun="platforms"
+		nounSingular="platform"
 		searchLabel="Search platforms"
 		[options]="options()"
 		[(values)]="values"
@@ -39,6 +41,47 @@ const manyPlatforms: UiPickerOption[] = [
 class Host {
 	readonly options = signal<UiPickerOption[]>(platforms);
 	readonly values = signal<readonly string[]>([]);
+}
+
+const tags: UiPickerOption[] = [
+	{ value: "cozy", label: "cozy", count: 12 },
+	{ value: "short", label: "short", count: 3 },
+	{ value: "co-op", label: "co-op", count: 1 }
+];
+
+@Component({
+	imports: [UiMultiOptionPicker, UiOptionPicker],
+	template: `<ui-multi-option-picker
+			variant="compact"
+			[size]="size()"
+			label="Tags"
+			heading="Filter by your tags"
+			placeholder="Any"
+			placeholderIcon="sell"
+			noun="tags"
+			[options]="options()"
+			[(values)]="values"
+		/>
+		<ui-option-picker
+			variant="compact"
+			[size]="size()"
+			label="View"
+			heading="Saved views"
+			placeholderIcon="bookmark_border"
+			[options]="views"
+			[(value)]="view"
+		/>`,
+	changeDetection: ChangeDetectionStrategy.OnPush
+})
+class CompactHost {
+	readonly size = signal<"sm" | "md">("md");
+	readonly options = signal<UiPickerOption[]>(tags);
+	readonly values = signal<readonly string[]>([]);
+	readonly views: UiPickerOption[] = [
+		{ value: "", label: "None" },
+		{ value: "v1", label: "Short ones" }
+	];
+	readonly view = signal("");
 }
 
 describe("UiMultiOptionPicker", () => {
@@ -110,7 +153,46 @@ describe("UiMultiOptionPicker", () => {
 		it("counts selections that are not in the options yet", async () => {
 			await renderPicker(["ps2"], []);
 
-			expect(trigger()).toHaveAccessibleName("Platform: 1 platforms");
+			expect(trigger()).toHaveAccessibleName("Platform: 1 platform");
+		});
+
+		it("uses the singular noun for one selection and the plural for more", async () => {
+			const { user, openPopover } = await renderPicker(["ps2", "ps3"]);
+			await openPopover();
+			const header = () =>
+				document
+					.querySelector<HTMLElement>("p[aria-live]")
+					?.textContent?.trim();
+			expect(header()).toBe("2 platforms");
+
+			await user.click(option("PlayStation 3"));
+
+			expect(header()).toBe("1 platform");
+			expect(trigger()).toHaveAccessibleName("Platform: PlayStation 2");
+		});
+	});
+
+	describe("option icons", () => {
+		it("shows each option's icon in its color and keeps the plain label as the name", async () => {
+			const { openPopover } = await renderPicker(
+				[],
+				[
+					{
+						value: "cozy",
+						label: "cozy",
+						icon: "bolt",
+						iconColor: "var(--color-view-sky)"
+					},
+					{ value: "short", label: "short" }
+				]
+			);
+			await openPopover();
+
+			const cozy = option("cozy");
+			const icon = within(cozy).getByText("bolt");
+			expect(icon).toHaveAttribute("aria-hidden", "true");
+			expect(icon.style.color).toBe("var(--color-view-sky)");
+			expect(within(option("short")).queryByText("bolt")).toBeNull();
 		});
 	});
 
@@ -263,6 +345,138 @@ describe("UiMultiOptionPicker", () => {
 			await user.keyboard("{ArrowDown}");
 
 			expect(screen.getByRole("listbox")).toHaveFocus();
+		});
+	});
+
+	describe("compact variant", () => {
+		async function renderCompact(mobile = false) {
+			const result = await render(CompactHost, {
+				providers: [
+					{
+						provide: ViewportService,
+						useValue: { isMobile: signal(mobile) }
+					}
+				]
+			});
+			return {
+				user: userEvent.setup(),
+				fixture: result.fixture,
+				host: result.fixture.componentInstance
+			};
+		}
+
+		function tagsTrigger() {
+			return screen.getByRole("button", { name: /^Tags:/ });
+		}
+
+		function viewTrigger() {
+			return screen.getByRole("button", { name: /^View:/ });
+		}
+
+		function lookOf(button: HTMLElement) {
+			return [...button.classList]
+				.filter(name => !name.startsWith("aria-invalid:"))
+				.sort();
+		}
+
+		function iconOf(button: HTMLElement) {
+			return button.querySelector(".material-icons")!;
+		}
+
+		it("uses exactly the compact trigger of the single picker when nothing is selected", async () => {
+			await renderCompact();
+
+			expect(lookOf(tagsTrigger())).toEqual(lookOf(viewTrigger()));
+			expect(tagsTrigger()).toHaveAccessibleName("Tags: Any");
+			expect(tagsTrigger()).toHaveTextContent(/sell\s*Tags\s*Any/);
+			expect(iconOf(tagsTrigger()).className).toBe(
+				iconOf(viewTrigger()).className
+			);
+			expect(tagsTrigger().className).toContain("border-line");
+			expect(tagsTrigger().querySelector("[uiEyebrow]")).toBeNull();
+		});
+
+		it("matches the active compact trigger once something is selected", async () => {
+			const { host, fixture } = await renderCompact();
+
+			host.values.set(["short"]);
+			host.view.set("v1");
+			fixture.detectChanges();
+
+			expect(lookOf(tagsTrigger())).toEqual(lookOf(viewTrigger()));
+			expect(tagsTrigger().className).toContain("border-brand");
+			expect(tagsTrigger()).toHaveAccessibleName("Tags: short");
+		});
+
+		it("follows the size of the single picker", async () => {
+			const { host, fixture } = await renderCompact();
+
+			expect(tagsTrigger().className).toContain("h-10");
+			host.size.set("sm");
+			fixture.detectChanges();
+
+			expect(tagsTrigger().className).toContain("h-9");
+			expect(lookOf(tagsTrigger())).toEqual(lookOf(viewTrigger()));
+		});
+
+		it("shows how many games use each option next to its label", async () => {
+			const { user, fixture } = await renderCompact();
+
+			await user.click(tagsTrigger());
+			await fixture.whenStable();
+
+			const counts = screen
+				.getAllByRole("option")
+				.map(option => option.textContent?.match(/\d+/)?.[0]);
+			expect(counts).toEqual(["12", "3", "1"]);
+		});
+
+		it("survives opening and closing over and over without changing the selection", async () => {
+			const { user, fixture, host } = await renderCompact();
+
+			for (let round = 0; round < 3; round++) {
+				await user.click(tagsTrigger());
+				await fixture.whenStable();
+				await user.keyboard("{Escape}");
+			}
+			await user.dblClick(tagsTrigger());
+			await user.keyboard("{Escape}");
+
+			expect(host.values()).toEqual([]);
+			expect(tagsTrigger()).toHaveAccessibleName("Tags: Any");
+		});
+
+		it("ends with the last state after a rapid select, double click and clear", async () => {
+			const { user, fixture, host } = await renderCompact();
+			await user.click(tagsTrigger());
+			await fixture.whenStable();
+
+			await user.click(screen.getByRole("option", { name: /^cozy/ }));
+			await user.dblClick(screen.getByRole("option", { name: /^short/ }));
+			await user.click(screen.getByRole("button", { name: "Clear" }));
+			await user.click(screen.getByRole("option", { name: /^co-op/ }));
+			await user.click(screen.getByRole("option", { name: /^cozy/ }));
+
+			expect(host.values()).toEqual(["cozy", "co-op"]);
+			expect(tagsTrigger()).toHaveAccessibleName("Tags: cozy, co-op");
+		});
+
+		it("opens the same bottom sheet on mobile", async () => {
+			const { user, host } = await renderCompact(true);
+
+			await user.click(tagsTrigger());
+			const sheet = screen.getByRole("dialog", {
+				name: "Filter by your tags"
+			});
+			await user.click(
+				within(sheet).getByRole("option", { name: /^short/ })
+			);
+			await user.click(
+				within(sheet).getByRole("button", { name: "Done" })
+			);
+
+			expect(host.values()).toEqual(["short"]);
+			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 		});
 	});
 

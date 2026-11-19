@@ -37,9 +37,9 @@
 
 <app-library-page
 	[state]="pageState()"
-	[showToolbar]="isLoading() || allEntries().length > 0 || !!searchQuery().trim()"
+	[showToolbar]="isLoading() || allEntries().length > 0 || !!searchQuery().trim() || tagFilter.active()"
 	loadingLabel="Loading wishlist"
-	noMatchesHint="Nothing in Want to Get matches your search or platform."
+	noMatchesHint="Nothing in Want to Get matches your search, platform or tags."
 	noMatchesClearLabel="Clear search & filter"
 	emptyIcon="redeem"
 	emptyTitle="Nothing wanted yet"
@@ -61,6 +61,11 @@
 			ariaLabel="Search Want to Get"
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"
+		/>
+		<app-my-tag-filter
+			[options]="tagFilter.options()"
+			[values]="tagFilter.selected()"
+			(valuesChange)="tagFilter.select($event)"
 		/>
 		@if (!isLoading()) {
 		<app-export-actions

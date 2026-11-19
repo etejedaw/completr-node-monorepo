@@ -64,6 +64,19 @@ current.entry;
 <span class="flex-1 min-w-0 text-sm font-medium truncate"
 	><app-highlight-match [text]="list.name" [query]="query()"
 /></span>
+} @case ("tag") { @let tag = current.tag;
+<span
+	aria-hidden="true"
+	class="w-8 h-8 rounded-md bg-nav-tags/15 text-nav-tags inline-flex items-center justify-center shrink-0"
+>
+	<span class="material-icons text-base">label</span>
+</span>
+<span class="flex-1 min-w-0 text-sm font-medium truncate"
+	><app-highlight-match [text]="tag.tag" [query]="query()"
+/></span>
+<span class="shrink-0 text-xs text-fg-muted tabular-nums"
+	>{{ tag.games }} {{ tag.games === 1 ? "game" : "games" }}</span
+>
 } @default {
 <span
 	aria-hidden="true"

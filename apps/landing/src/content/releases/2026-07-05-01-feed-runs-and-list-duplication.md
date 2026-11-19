@@ -6,7 +6,9 @@ title: Feed filters, your runs, and list duplication
 icon: new_releases
 tint: brand
 landing:
-    pitch: "Tres mejoras en una: filtra tu feed de actividad por tipo (premium), abre tus runs del backlog directamente desde la ficha del juego, y duplica cualquier lista pública u oficial en un click para tener tu propia copia editable."
+    pitch:
+        es: "Tres mejoras en una: filtra tu feed de actividad por tipo (premium), abre tus runs del backlog directamente desde la ficha del juego, y duplica cualquier lista pública u oficial en un click para tener tu propia copia editable."
+        en: "Three improvements in one: filter your activity feed by type (premium), open your backlog runs straight from the game page, and duplicate any public or official list in one click to get your own editable copy."
 highlights:
     - icon: filter_list
       tint: brand

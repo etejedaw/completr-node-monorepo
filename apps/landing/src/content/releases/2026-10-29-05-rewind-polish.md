@@ -6,7 +6,9 @@ title: "A cleaner Rewind page and your past years always on your profile"
 icon: auto_fix_high
 tint: purple
 landing:
-    pitch: "La página del Rewind ordena mejor la imagen para compartir, y tu perfil sigue mostrando tus Rewind anteriores aunque el año nuevo esté destacado."
+    pitch:
+        es: "La página del Rewind ordena mejor la imagen para compartir, y tu perfil sigue mostrando tus Rewind anteriores aunque el año nuevo esté destacado."
+        en: "The Rewind page lays out the shareable image better, and your profile keeps showing your previous Rewinds even when the new year is featured."
 highlights:
     - icon: ios_share
       tint: brand

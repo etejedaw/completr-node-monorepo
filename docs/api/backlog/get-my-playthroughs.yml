@@ -52,7 +52,7 @@ docs: |-
     | max_ratio     | number | No       | Filter by community ratio (score / duration) <= value                       |
     | min_personal_ratio | number | No  | Filter by personal ratio (score / realDuration) >= value                    |
     | max_personal_ratio | number | No  | Filter by personal ratio (score / realDuration) <= value                    |
-    | mood_tags     | string | No       | Comma-separated mood tags. AND semantics: entry must match all tags (e.g. `relajante,corto`) |
+    | mood_tags     | string | No       | Comma-separated tags of the list owner, 1–10 after normalization (case, accents and spaces; duplicates and empty items are dropped). AND semantics: entry must match all tags (e.g. `relajante,corto`). Empty or more than 10 tags: 422 `COMMON_SCHEMA_INVALID` |
     | sort_by       | string | No       | Sort field: `title`, `status`, `score`, `duration`, `startedAt`, `finishedAt`, `realDuration`, `userRating`, `createdAt`, `ratio`, `personalRatio` (default: `createdAt`) |
     | sort_order    | string | No       | Sort direction: `asc` or `desc` (default: `desc`)                          |
 

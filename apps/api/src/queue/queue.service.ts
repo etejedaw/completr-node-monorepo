@@ -5,19 +5,20 @@ import * as backlogServiceError from "../backlog/errors/backlog.service-error";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
 import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
 import { compactPositions as compactPositionsOf } from "../common/utils/compact-positions.util";
 import { splitByPresence } from "../common/utils/split-by-presence.util";
 import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
 import * as gamesService from "../games/games.service";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 import * as platformsService from "../platforms/platforms.service";
 import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import * as queueServiceError from "./errors/queue.service-error";
 import { FREE_QUEUE_LIMIT, QUEUE_ORDER } from "./queue.constants";
 import { Queue } from "./queue.model";
 import { type QueueExportQuery } from "./schemas/queue-export-query.schema";
+import { type QueueQuery } from "./schemas/queue-query.schema";
 import { moveInOrder } from "./utils/move-in-order.util";
 import { sortQueueExport } from "./utils/sort-queue-export.util";
 
@@ -272,9 +273,21 @@ export async function findQueueByUserId(userId: string) {
 	});
 }
 
+function queueWhere(userId: string, moodTags?: readonly string[]) {
+	return {
+		userId,
+		...(moodTags && {
+			"$Backlog.gameId$": moodTagsService.taggedGameIdsFilter(
+				userId,
+				moodTags
+			)
+		})
+	};
+}
+
 export async function findQueueByUserIdPaginated(
 	userId: string,
-	pagination: PaginatedSearchQuery = {},
+	pagination: QueueQuery = {},
 	publicOnly = false
 ) {
 	const include = backlogService.buildQueueBacklogInclude(
@@ -283,7 +296,7 @@ export async function findQueueByUserIdPaginated(
 	);
 
 	const query: Record<string, unknown> = {
-		where: { userId },
+		where: queueWhere(userId, pagination.mood_tags),
 		include,
 		order: QUEUE_ORDER
 	};
@@ -417,7 +430,7 @@ export async function findQueueForExport(
 	filters: QueueExportQuery
 ) {
 	const entries = await Queue.findAll({
-		where: { userId },
+		where: queueWhere(userId, filters.mood_tags),
 		include: backlogService.buildQueueExportBacklogInclude(filters.search),
 		order: QUEUE_ORDER
 	});

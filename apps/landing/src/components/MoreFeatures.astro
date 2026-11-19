@@ -1,59 +1,136 @@
 ---
-const features = [
-	{
-		icon: "shelves",
-		title: "My Shelf",
-		description:
-			"Los juegos que tienes, físicos o digitales, con plataforma, edición y fecha de compra."
+import { type Locale, toLocale } from "../i18n/locales";
+
+const lang = toLocale(Astro.currentLocale);
+
+const copy = {
+	es: {
+		eyebrow: "Y además",
+		titleStart: "Lo que no cabía",
+		titleHighlight: "en un Excel",
+		lead: "Herramientas para ordenar lo que tienes, lo que quieres y lo que ya jugaste.",
+		features: [
+			{
+				icon: "shelves",
+				title: "My Shelf",
+				description:
+					"Los juegos que tienes, físicos o digitales, con plataforma, edición y fecha de compra."
+			},
+			{
+				icon: "redeem",
+				title: "Want to Get",
+				description:
+					"Lo que quieres comprar, separado de lo que ya tienes y con la plataforma que te interesa."
+			},
+			{
+				icon: "favorite",
+				title: "Favoritos",
+				description:
+					"Tu top personal, ordenado a tu gusto, como vitrina de tu perfil."
+			},
+			{
+				icon: "bookmark",
+				title: "Vistas guardadas",
+				description:
+					"Guarda filtros con nombre y color, y míralos con sus propias estadísticas."
+			},
+			{
+				icon: "military_tech",
+				title: "Platinos",
+				description:
+					"Los juegos que completaste al cien por cien, juntos en un mismo lugar."
+			},
+			{
+				icon: "group",
+				title: "Runs en co-op",
+				description:
+					"Registra las partidas compartidas y con quién las jugaste."
+			},
+			{
+				icon: "rate_review",
+				title: "Reseñas",
+				description:
+					"Tu nota, lo que pensaste y las horas reales que te tomó terminarlo."
+			},
+			{
+				icon: "palette",
+				title: "Temas",
+				description:
+					"Tres temas oscuros para que la app se vea como te guste."
+			},
+			{
+				icon: "lock",
+				title: "Privacidad por sección",
+				description:
+					"Cada parte de tu perfil puede ser pública, solo para amigos o privada."
+			}
+		]
 	},
-	{
-		icon: "redeem",
-		title: "Want to Get",
-		description:
-			"Lo que quieres comprar, separado de lo que ya tienes y con la plataforma que te interesa."
-	},
-	{
-		icon: "favorite",
-		title: "Favoritos",
-		description:
-			"Tu top personal, ordenado a tu gusto, como vitrina de tu perfil."
-	},
-	{
-		icon: "bookmark",
-		title: "Vistas guardadas",
-		description:
-			"Guarda filtros con nombre y color, y míralos con sus propias estadísticas."
-	},
-	{
-		icon: "sell",
-		title: "Tags de ánimo",
-		description:
-			"Etiqueta tus juegos por cómo te sientes: corto, relajado, para jugar acompañado."
-	},
-	{
-		icon: "group",
-		title: "Runs en co-op",
-		description:
-			"Registra las partidas compartidas y con quién las jugaste."
-	},
-	{
-		icon: "rate_review",
-		title: "Reseñas",
-		description:
-			"Tu nota, lo que pensaste y las horas reales que te tomó terminarlo."
-	},
-	{
-		icon: "palette",
-		title: "Temas",
-		description: "Tres temas oscuros para que la app se vea como te guste."
-	},
-	{
-		icon: "lock",
-		title: "Privacidad por sección",
-		description:
-			"Cada parte de tu perfil puede ser pública, solo para amigos o privada."
+	en: {
+		eyebrow: "And more",
+		titleStart: "What didn't fit",
+		titleHighlight: "in a spreadsheet",
+		lead: "Tools to organize what you own, what you want and what you've already played.",
+		features: [
+			{
+				icon: "shelves",
+				title: "My Shelf",
+				description:
+					"The games you own, physical or digital, with platform, edition and purchase date."
+			},
+			{
+				icon: "redeem",
+				title: "Want to Get",
+				description:
+					"What you want to buy, kept apart from what you already own and tied to the platform you want."
+			},
+			{
+				icon: "favorite",
+				title: "Favorites",
+				description:
+					"Your personal top, ordered your way, as a showcase on your profile."
+			},
+			{
+				icon: "bookmark",
+				title: "Saved views",
+				description:
+					"Save filters with a name and a color, and see them with their own stats."
+			},
+			{
+				icon: "military_tech",
+				title: "Platinums",
+				description:
+					"The games you completed at 100%, all in one place."
+			},
+			{
+				icon: "group",
+				title: "Co-op runs",
+				description:
+					"Log shared playthroughs and who you played them with."
+			},
+			{
+				icon: "rate_review",
+				title: "Reviews",
+				description:
+					"Your rating, what you thought and the real hours it took you to finish."
+			},
+			{
+				icon: "palette",
+				title: "Themes",
+				description:
+					"Three dark themes so the app looks the way you like."
+			},
+			{
+				icon: "lock",
+				title: "Privacy by section",
+				description:
+					"Each part of your profile can be public, friends-only or private."
+			}
+		]
 	}
-];
+} satisfies Record<Locale, unknown>;
+
+const t = copy[lang];
 ---
 
 <section
@@ -62,15 +139,15 @@ const features = [
 >
 	<div class="max-w-6xl mx-auto">
 		<div class="max-w-2xl mb-12">
-			<span class="eyebrow">Y además</span>
+			<span class="eyebrow">{t.eyebrow}</span>
 			<h2
 				class="font-display mt-3 mb-4 text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance"
 			>
-				Lo que no cabía <span class="text-gradient">en un Excel</span>.
+				{t.titleStart}{" "}
+				<span class="text-gradient">{t.titleHighlight}</span>.
 			</h2>
 			<p class="m-0 text-[var(--color-fg-secondary)] leading-relaxed">
-				Herramientas para ordenar lo que tienes, lo que quieres y lo que
-				ya jugaste.
+				{t.lead}
 			</p>
 		</div>
 
@@ -78,7 +155,7 @@ const features = [
 			class="m-0 p-0 list-none grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px rounded-2xl overflow-hidden bg-[var(--color-line)] border border-[var(--color-line)]"
 		>
 			{
-				features.map(feature => (
+				t.features.map(feature => (
 					<li class="flex gap-4 p-6 bg-[var(--color-canvas)] transition-colors hover:bg-[var(--color-surface)]">
 						<span
 							class="material-icons text-[1.5rem] text-[var(--color-brand)] shrink-0"
@@ -98,27 +175,5 @@ const features = [
 				))
 			}
 		</ul>
-
-		<div
-			class="mt-12 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-8 rounded-2xl border border-[var(--color-brand)]/30"
-			style="background: linear-gradient(135deg, color-mix(in srgb, var(--color-brand) 14%, transparent), transparent 70%), var(--color-surface);"
-		>
-			<div>
-				<p
-					class="m-0 font-display text-xl font-bold text-[var(--color-fg)]"
-				>
-					¿Quieres probarlo?
-				</p>
-				<p class="m-0 mt-1 text-sm text-[var(--color-fg-secondary)]">
-					El acceso es por invitación. Pide la tuya.
-				</p>
-			</div>
-			<a href="#beta-signup" class="btn-primary shrink-0">
-				Pedir invitación
-				<span class="material-icons text-[1.125rem]" aria-hidden="true"
-					>arrow_forward</span
-				>
-			</a>
-		</div>
 	</div>
 </section>

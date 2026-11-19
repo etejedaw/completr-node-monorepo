@@ -548,6 +548,43 @@
 						Personal labels you can later use to filter the backlog.
 						Up to 10.
 					</p>
+					@if (communityTags.suggestions().length > 0) {
+					<div
+						role="group"
+						aria-labelledby="backlog-community-tags-label"
+						class="mt-2 flex flex-wrap items-center gap-1.5"
+					>
+						<span
+							id="backlog-community-tags-label"
+							class="text-caption text-fg-muted"
+							>Players tag it</span
+						>
+						@for (suggestion of communityTags.suggestions(); track
+						suggestion.tag) { @let added =
+						moodTags().includes(suggestion.tag);
+						<button
+							uiFilterChip
+							[selected]="added"
+							[attr.aria-pressed]="added"
+							[attr.aria-label]="suggestion.tag + ', ' + suggestion.players + (suggestion.players === 1 ? ' player' : ' players')"
+							[disabled]="!added && moodTagsFull()"
+							(click)="toggleCommunityTag(suggestion.tag, $event)"
+						>
+							<span
+								aria-hidden="true"
+								class="material-icons text-sm"
+								>{{ added ? 'check' : 'add' }}</span
+							>
+							{{ suggestion.tag }}
+							<span
+								aria-hidden="true"
+								class="tabular-nums opacity-70"
+								>{{ suggestion.players }}</span
+							>
+						</button>
+						}
+					</div>
+					}
 				</div>
 
 				<div class="mb-4">

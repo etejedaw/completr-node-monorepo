@@ -34,7 +34,7 @@ docs: |-
 
     ### Response (204)
 
-    No content.
+    No content. If the tag was a favorite, it leaves the favorites and the remaining ones close the gap.
 
     ### Errors
 

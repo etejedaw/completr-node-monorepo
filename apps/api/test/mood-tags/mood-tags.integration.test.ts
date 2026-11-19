@@ -38,6 +38,9 @@ async function getMyTags(authorization: string) {
 		tag: string;
 		usageCount: number;
 		description: string | null;
+		favoriteOrder: number | null;
+		icon: string | null;
+		color: string | null;
 	}[];
 }
 
@@ -217,7 +220,9 @@ void describe("POST /users/me/mood-tags", () => {
 		assert.equal(response.status, 201);
 		assert.deepEqual(response.body.data, {
 			tag,
-			description: "For bad days"
+			description: "For bad days",
+			icon: null,
+			color: null
 		});
 		const tags = await getOwnTags(owner.authorization, [tag]);
 		assert.deepEqual(
@@ -425,6 +430,509 @@ void describe("GET /users/me/mood-tags", () => {
 
 		const tags = await getMyTags(owner.authorization);
 
-		assert.deepEqual(tags, [{ tag, usageCount: 1, description: null }]);
+		assert.deepEqual(tags, [
+			{
+				tag,
+				usageCount: 1,
+				description: null,
+				favoriteOrder: null,
+				icon: null,
+				color: null
+			}
+		]);
+	});
+});
+
+function postTag(authorization: string, body: Record<string, unknown>) {
+	return api()
+		.post(MY_TAGS_PATH)
+		.set("Authorization", authorization)
+		.send(body);
+}
+
+function patchTag(
+	authorization: string,
+	tag: string,
+	body: Record<string, unknown>
+) {
+	return api()
+		.patch(`${MY_TAGS_PATH}/${encodeURIComponent(tag)}`)
+		.set("Authorization", authorization)
+		.send(body);
+}
+
+async function getOwnTag(authorization: string, tag: string) {
+	const [entry] = await getOwnTags(authorization, [tag]);
+	return entry;
+}
+
+function appearanceOf(
+	entry: { icon: string | null; color: string | null } | undefined
+) {
+	return entry ? { icon: entry.icon, color: entry.color } : undefined;
+}
+
+const INVALID_APPEARANCES = [
+	["an unknown icon", { icon: "rocket" }],
+	["an icon in another case", { icon: "BOLT" }],
+	["an empty icon", { icon: "" }],
+	["a numeric icon", { icon: 7 }],
+	["a hex color", { color: "#ff0000" }],
+	["a color in another case", { color: "Rose" }],
+	["an empty color", { color: "" }],
+	["a color array", { color: ["rose"] }]
+] as const;
+
+void describe("Tag icon and color", () => {
+	void it("creates a tag with an icon and a color and lists them", async () => {
+		const owner = await createUserWithSession();
+		const tag = uniqueTag("styled");
+
+		const response = await postTag(owner.authorization, {
+			tag,
+			icon: "bolt",
+			color: "rose"
+		});
+
+		assert.equal(response.status, 201);
+		assert.deepEqual(response.body.data, {
+			tag,
+			description: null,
+			icon: "bolt",
+			color: "rose"
+		});
+		assert.deepEqual(
+			appearanceOf(await getOwnTag(owner.authorization, tag)),
+			{
+				icon: "bolt",
+				color: "rose"
+			}
+		);
+	});
+
+	void it("accepts explicit nulls on create", async () => {
+		const owner = await createUserWithSession();
+		const tag = uniqueTag("plain");
+
+		const response = await postTag(owner.authorization, {
+			tag,
+			icon: null,
+			color: null
+		});
+
+		assert.equal(response.status, 201);
+		assert.equal(response.body.data.icon, null);
+		assert.equal(response.body.data.color, null);
+	});
+
+	void it("keeps the stored icon and color when the tag already exists", async () => {
+		const owner = await createUserWithSession();
+		const tag = uniqueTag("existing");
+		await postTag(owner.authorization, {
+			tag,
+			icon: "star",
+			color: "sky"
+		}).expect(201);
+
+		const response = await postTag(owner.authorization, {
+			tag,
+			icon: "flag",
+			color: null
+		});
+
+		assert.equal(response.status, 200);
+		assert.deepEqual(appearanceOf(response.body.data), {
+			icon: "star",
+			color: "sky"
+		});
+		assert.deepEqual(
+			appearanceOf(await getOwnTag(owner.authorization, tag)),
+			{
+				icon: "star",
+				color: "sky"
+			}
+		);
+	});
+
+	for (const [description, appearance] of INVALID_APPEARANCES) {
+		void it(`rejects ${description} on create and on update with 422 COMMON_SCHEMA_INVALID`, async () => {
+			const owner = await createUserWithSession();
+			const tag = uniqueTag("invalid");
+			await postTag(owner.authorization, {
+				tag,
+				icon: "list",
+				color: "teal"
+			}).expect(201);
+
+			const created = await postTag(owner.authorization, {
+				tag: uniqueTag("never"),
+				...appearance
+			});
+			const updated = await patchTag(
+				owner.authorization,
+				tag,
+				appearance
+			);
+
+			for (const response of [created, updated]) {
+				assert.equal(response.status, 422);
+				assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+			}
+			const tags = await getMyTags(owner.authorization);
+			assert.deepEqual(
+				tags.map(entry => [entry.tag, entry.icon, entry.color]),
+				[[tag, "list", "teal"]]
+			);
+		});
+	}
+
+	void it("updates the icon and the color independently, keeping the rest", async () => {
+		const owner = await createUserWithSession();
+		const tag = uniqueTag("partial");
+		await postTag(owner.authorization, {
+			tag,
+			description: "Kept",
+			icon: "star",
+			color: "sky"
+		}).expect(201);
+
+		await patchTag(owner.authorization, tag, { icon: "bolt" }).expect(200);
+		const afterIcon = await getOwnTag(owner.authorization, tag);
+		await patchTag(owner.authorization, tag, { color: "emerald" }).expect(
+			200
+		);
+		const afterColor = await getOwnTag(owner.authorization, tag);
+		await patchTag(owner.authorization, tag, {
+			description: "Changed"
+		}).expect(200);
+		const afterDescription = await getOwnTag(owner.authorization, tag);
+
+		assert.deepEqual(appearanceOf(afterIcon), {
+			icon: "bolt",
+			color: "sky"
+		});
+		assert.deepEqual(appearanceOf(afterColor), {
+			icon: "bolt",
+			color: "emerald"
+		});
+		assert.deepEqual(appearanceOf(afterDescription), {
+			icon: "bolt",
+			color: "emerald"
+		});
+		assert.equal(afterDescription?.description, "Changed");
+	});
+
+	void it("clears the icon or the color with null", async () => {
+		const owner = await createUserWithSession();
+		const tag = uniqueTag("clear");
+		await postTag(owner.authorization, {
+			tag,
+			icon: "star",
+			color: "sky"
+		}).expect(201);
+
+		await patchTag(owner.authorization, tag, { icon: null }).expect(200);
+		const withoutIcon = await getOwnTag(owner.authorization, tag);
+		await patchTag(owner.authorization, tag, { color: null }).expect(200);
+		const withoutBoth = await getOwnTag(owner.authorization, tag);
+
+		assert.deepEqual(appearanceOf(withoutIcon), {
+			icon: null,
+			color: "sky"
+		});
+		assert.deepEqual(appearanceOf(withoutBoth), {
+			icon: null,
+			color: null
+		});
+	});
+
+	void it("creates the metadata of a tag that only exists on games", async () => {
+		const owner = await createUserWithSession();
+		const game = await createGame();
+		const tag = uniqueTag("on games");
+		await replaceGameTags(owner.authorization, game.id, [tag]).expect(200);
+
+		const response = await patchTag(owner.authorization, tag, {
+			icon: "sports_esports",
+			color: "purple"
+		});
+
+		assert.equal(response.status, 200);
+		const metas = await MoodTagMeta.findAll({
+			where: { userId: owner.user.id, tag }
+		});
+		assert.equal(metas.length, 1);
+		const entry = await getOwnTag(owner.authorization, tag);
+		assert.deepEqual(
+			[entry?.usageCount, entry?.description, entry?.icon, entry?.color],
+			[1, null, "sports_esports", "purple"]
+		);
+	});
+
+	void it("renames and sets the icon in the same request", async () => {
+		const owner = await createUserWithSession();
+		const game = await createGame();
+		const oldTag = uniqueTag("before");
+		const newTag = uniqueTag("after");
+		await replaceGameTags(owner.authorization, game.id, [oldTag]).expect(
+			200
+		);
+
+		await patchTag(owner.authorization, oldTag, {
+			newTag,
+			icon: "flag"
+		}).expect(200);
+
+		const tags = await getOwnTags(owner.authorization, [oldTag, newTag]);
+		assert.deepEqual(
+			tags.map(entry => [
+				entry.tag,
+				entry.usageCount,
+				entry.icon,
+				entry.color
+			]),
+			[[newTag, 1, "flag", null]]
+		);
+	});
+
+	void it("keeps the icon and the color when renaming", async () => {
+		const owner = await createUserWithSession();
+		const oldTag = uniqueTag("old");
+		const newTag = uniqueTag("new");
+		await postTag(owner.authorization, {
+			tag: oldTag,
+			icon: "schedule",
+			color: "slate"
+		}).expect(201);
+
+		await patchTag(owner.authorization, oldTag, { newTag }).expect(200);
+
+		const tags = await getOwnTags(owner.authorization, [oldTag, newTag]);
+		assert.deepEqual(
+			tags.map(entry => [entry.tag, entry.icon, entry.color]),
+			[[newTag, "schedule", "slate"]]
+		);
+	});
+
+	for (const [description, target, expected] of [
+		[
+			"keeps the target icon and color when merging into a styled tag",
+			{ icon: "star", color: "sky" },
+			{ icon: "star", color: "sky" }
+		],
+		[
+			"takes the source icon and color when the target has none",
+			{ icon: null, color: null },
+			{ icon: "bolt", color: "rose" }
+		],
+		[
+			"fills only what the target is missing when merging",
+			{ icon: "star", color: null },
+			{ icon: "star", color: "rose" }
+		]
+	] as const) {
+		void it(description, async () => {
+			const owner = await createUserWithSession();
+			const game = await createGame();
+			const source = uniqueTag("source");
+			const destination = uniqueTag("destination");
+			await postTag(owner.authorization, {
+				tag: source,
+				icon: "bolt",
+				color: "rose"
+			}).expect(201);
+			await postTag(owner.authorization, {
+				tag: destination,
+				...target
+			}).expect(201);
+			await replaceGameTags(owner.authorization, game.id, [
+				source,
+				destination
+			]).expect(200);
+
+			await patchTag(owner.authorization, source, {
+				newTag: destination
+			}).expect(200);
+
+			const tags = await getOwnTags(owner.authorization, [
+				source,
+				destination
+			]);
+			assert.deepEqual(
+				tags.map(entry => [
+					entry.tag,
+					entry.usageCount,
+					entry.icon,
+					entry.color
+				]),
+				[[destination, 1, expected.icon, expected.color]]
+			);
+		});
+	}
+
+	void it("takes the source icon and color when merging into a tag that only exists on games", async () => {
+		const owner = await createUserWithSession();
+		const game = await createGame();
+		const source = uniqueTag("styled source");
+		const destination = uniqueTag("bare destination");
+		await postTag(owner.authorization, {
+			tag: source,
+			icon: "military_tech",
+			color: "teal"
+		}).expect(201);
+		await replaceGameTags(owner.authorization, game.id, [
+			destination
+		]).expect(200);
+
+		await patchTag(owner.authorization, source, {
+			newTag: destination
+		}).expect(200);
+
+		assert.deepEqual(
+			appearanceOf(await getOwnTag(owner.authorization, destination)),
+			{
+				icon: "military_tech",
+				color: "teal"
+			}
+		);
+	});
+
+	void it("forgets the icon and the color after deleting and recreating a tag", async () => {
+		const owner = await createUserWithSession();
+		const tag = uniqueTag("reborn");
+		await postTag(owner.authorization, {
+			tag,
+			icon: "star",
+			color: "sky"
+		}).expect(201);
+		await api()
+			.delete(`${MY_TAGS_PATH}/${encodeURIComponent(tag)}`)
+			.set("Authorization", owner.authorization)
+			.expect(204);
+
+		const response = await postTag(owner.authorization, { tag });
+
+		assert.equal(response.status, 201);
+		assert.deepEqual(appearanceOf(response.body.data), {
+			icon: null,
+			color: null
+		});
+	});
+
+	void it("does not touch another user's tag with the same name", async () => {
+		const owner = await createUserWithSession();
+		const other = await createUserWithSession();
+		const tag = uniqueTag("shared name");
+		await postTag(owner.authorization, {
+			tag,
+			icon: "star",
+			color: "sky"
+		}).expect(201);
+		await postTag(other.authorization, { tag }).expect(201);
+
+		await patchTag(other.authorization, tag, {
+			icon: "bolt",
+			color: "rose"
+		}).expect(200);
+
+		assert.deepEqual(
+			appearanceOf(await getOwnTag(owner.authorization, tag)),
+			{
+				icon: "star",
+				color: "sky"
+			}
+		);
+	});
+
+	void it("stops a free user over the limit from creating a new tag through its icon", async () => {
+		const owner = await createUserWithSession("user");
+		await seedTagNames(owner.user.id, FREE_TAG_LIMIT);
+
+		const fresh = await patchTag(owner.authorization, uniqueTag("fresh"), {
+			icon: "star"
+		});
+		const existing = await patchTag(owner.authorization, "seeded 0", {
+			icon: "star"
+		});
+
+		assert.equal(fresh.status, 402);
+		assert.equal(fresh.body.type, "MOOD_TAGS_LIMIT_REACHED");
+		assert.equal(existing.status, 200);
+		assert.equal(
+			await MoodTagMeta.count({ where: { userId: owner.user.id } }),
+			FREE_TAG_LIMIT
+		);
+	});
+
+	void it("settles repeated and simultaneous updates on a tag without metadata into one row", async () => {
+		const owner = await createUserWithSession();
+		const game = await createGame();
+		const tag = uniqueTag("racing");
+		await replaceGameTags(owner.authorization, game.id, [tag]).expect(200);
+		const icons = ["bolt", "star", "flag", "list", "tv"] as const;
+
+		const responses = await Promise.all([
+			...icons.map(icon => patchTag(owner.authorization, tag, { icon })),
+			patchTag(owner.authorization, tag, { color: "purple" }),
+			patchTag(owner.authorization, tag, { color: "purple" })
+		]);
+
+		for (const response of responses) assert.equal(response.status, 200);
+		const metas = await MoodTagMeta.findAll({
+			where: { userId: owner.user.id, tag }
+		});
+		assert.equal(metas.length, 1);
+		assert.ok(icons.includes(metas[0]!.icon as (typeof icons)[number]));
+		assert.equal(metas[0]!.color, "purple");
+	});
+
+	void it("leaves the same values after the same update is sent several times in a row", async () => {
+		const owner = await createUserWithSession();
+		const tag = uniqueTag("double click");
+		await postTag(owner.authorization, { tag }).expect(201);
+
+		for (let attempt = 0; attempt < 3; attempt++)
+			await patchTag(owner.authorization, tag, {
+				icon: "check_circle",
+				color: "brand"
+			}).expect(200);
+
+		const tags = await getMyTags(owner.authorization);
+		assert.deepEqual(
+			tags.map(entry => [entry.tag, entry.icon, entry.color]),
+			[[tag, "check_circle", "brand"]]
+		);
+	});
+
+	void it("survives a rename racing an icon update without duplicating the tag", async () => {
+		const owner = await createUserWithSession();
+		const game = await createGame();
+		const oldTag = uniqueTag("racer");
+		const newTag = uniqueTag("renamed racer");
+		await postTag(owner.authorization, {
+			tag: oldTag,
+			color: "sky"
+		}).expect(201);
+		await replaceGameTags(owner.authorization, game.id, [oldTag]).expect(
+			200
+		);
+
+		const [renamed, styled] = await Promise.all([
+			patchTag(owner.authorization, oldTag, { newTag }),
+			patchTag(owner.authorization, newTag, { icon: "bolt" })
+		]);
+
+		assert.equal(renamed.status, 200);
+		assert.equal(styled.status, 200);
+		const tags = await getOwnTags(owner.authorization, [oldTag, newTag]);
+		assert.deepEqual(
+			tags.map(entry => [
+				entry.tag,
+				entry.usageCount,
+				entry.icon,
+				entry.color
+			]),
+			[[newTag, 1, "bolt", "sky"]]
+		);
 	});
 });

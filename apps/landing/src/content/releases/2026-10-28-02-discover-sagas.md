@@ -6,7 +6,9 @@ title: "Browse every saga and track the ones you follow"
 icon: collections_bookmark
 tint: brand
 landing:
-    pitch: "Ahora puedes explorar todas las sagas del catálogo desde Discover, buscarlas por nombre y seguir las que te interesan con un toque. Las que sigues aparecen en tu perfil."
+    pitch:
+        es: "Ahora puedes explorar todas las sagas del catálogo desde Discover, buscarlas por nombre y seguir las que te interesan con un toque. Las que sigues aparecen en tu perfil."
+        en: "You can now explore every saga in the catalog from Discover, search them by name and follow the ones you're interested in with one tap. The ones you follow appear on your profile."
 highlights:
     - icon: collections_bookmark
       tint: brand

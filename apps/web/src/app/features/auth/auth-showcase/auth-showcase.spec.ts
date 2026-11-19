@@ -79,7 +79,7 @@ describe("AuthShowcase", () => {
 		await answer({ data: { games: [] } });
 
 		expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
-			/Play what's\s*worth your time\./
+			/You'll always know\s*what to play\./
 		);
 		expect(
 			screen.getByText(/ranks your backlog by score per hour/i)

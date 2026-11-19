@@ -45,14 +45,16 @@ const CASTLE_RESULTS: SearchResults = {
 	},
 	games: [{ id: "g9", title: "Castlevania: Rondo of Blood", code: "rondo" }],
 	users: [player("u1", "castlemaster")],
-	lists: [{ id: "l1", name: "Every Castlevania ranked" }]
+	lists: [{ id: "l1", name: "Every Castlevania ranked" }],
+	tags: [{ tag: "castle crawl", games: 3, players: 7 }]
 };
 
 const EMPTY_RESULTS: SearchResults = {
 	library: { entries: [], total: 0 },
 	games: [],
 	users: [],
-	lists: []
+	lists: [],
+	tags: []
 };
 
 describe("SearchPalette", () => {
@@ -106,7 +108,7 @@ describe("SearchPalette", () => {
 		expect(options()).toHaveLength(0);
 	});
 
-	it("lists your library first, then games, players and lists, with the catalog last", async () => {
+	it("lists your library first, then games, players, lists and tags, with the catalog last", async () => {
 		const user = userEvent.setup();
 		await renderPalette();
 
@@ -117,7 +119,7 @@ describe("SearchPalette", () => {
 			screen
 				.getAllByRole("heading", { level: 3 })
 				.map(heading => heading.textContent?.trim())
-		).toEqual(["In your library", "Games", "Players", "Lists"]);
+		).toEqual(["In your library", "Games", "Players", "Lists", "Tags"]);
 		expect(options().at(-1)).toHaveTextContent(
 			'Search the full catalog for "castle"'
 		);
@@ -194,7 +196,7 @@ describe("SearchPalette", () => {
 
 		await user.keyboard("{Enter}");
 
-		expect(navigate).toHaveBeenCalledWith(["/games/castlevania sotn"], {
+		expect(navigate).toHaveBeenCalledWith(["/games", "castlevania sotn"], {
 			queryParams: undefined
 		});
 		expect(closed).toHaveBeenCalledTimes(1);
@@ -280,5 +282,56 @@ describe("SearchPalette", () => {
 		expect(
 			screen.getByText(/Type at least 2 characters/)
 		).toBeInTheDocument();
+	});
+
+	it("links each tag to its page, even when the tag has spaces or slashes", async () => {
+		const user = userEvent.setup();
+		const { navigate, closed } = await renderPalette(() =>
+			of({
+				...EMPTY_RESULTS,
+				tags: [
+					{ tag: "with friends", games: 12, players: 30 },
+					{ tag: "co-op/local", games: 1, players: 2 }
+				]
+			})
+		);
+
+		await user.type(field(), "fri");
+
+		const tags = await screen.findByRole("group", { name: "Tags" });
+		expect(
+			within(tags).getByRole("option", { name: /friends/ })
+		).toHaveAttribute("href", "/tags/with%20friends");
+		expect(within(tags).getByText("12 games")).toBeInTheDocument();
+		expect(within(tags).getByText("1 game")).toBeInTheDocument();
+		expect(
+			within(tags).getByRole("option", { name: /local/ })
+		).toHaveAttribute("href", "/tags/co-op%2Flocal");
+
+		await user.keyboard("{ArrowDown}{Enter}{Enter}");
+
+		expect(navigate).toHaveBeenCalledWith(["/tags", "co-op/local"], {
+			queryParams: undefined
+		});
+		expect(closed).toHaveBeenCalledTimes(1);
+	});
+
+	it("narrows to tags with the Tags chip and hides the catalog row", async () => {
+		const user = userEvent.setup();
+		await renderPalette();
+		await user.type(field(), "castle");
+		await screen.findByText("castlemaster");
+
+		await user.click(screen.getByRole("radio", { name: /Tags/ }));
+
+		expect(
+			screen
+				.getAllByRole("option")
+				.map(option => option.textContent?.trim())
+		).toEqual([expect.stringContaining("castle crawl")]);
+		expect(
+			screen.queryByRole("option", { name: /full catalog/ })
+		).not.toBeInTheDocument();
+		expect(search).toHaveBeenCalledTimes(1);
 	});
 });

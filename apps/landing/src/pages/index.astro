@@ -1,28 +1,52 @@
 ---
-import BetaSignup from "../components/BetaSignup.astro";
-import Changelog from "../components/Changelog.astro";
-import Footer from "../components/Footer.astro";
-import Hero from "../components/Hero.astro";
-import MoreFeatures from "../components/MoreFeatures.astro";
-import OpenSource from "../components/OpenSource.astro";
-import ProductTour from "../components/ProductTour.astro";
-import Ratio from "../components/Ratio.astro";
-import ReleaseHighlights from "../components/ReleaseHighlights.astro";
-import SiteHeader from "../components/SiteHeader.astro";
-import Layout from "../layouts/Layout.astro";
+import { getAbsoluteLocaleUrl, getRelativeLocaleUrl } from "astro:i18n";
+
+import { localeNames, locales } from "../i18n/locales";
 ---
 
-<Layout>
-	<SiteHeader />
-	<main id="main-content" class="relative overflow-x-clip">
-		<Hero />
-		<ReleaseHighlights />
-		<Ratio />
-		<ProductTour />
-		<MoreFeatures />
-		<Changelog />
-		<OpenSource />
-		<BetaSignup />
-		<Footer />
-	</main>
-</Layout>
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="robots" content="noindex" />
+		<meta name="theme-color" content="#0a0a0c" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		{
+			locales.map(locale => (
+				<link
+					rel="alternate"
+					hreflang={locale}
+					href={getAbsoluteLocaleUrl(locale)}
+				/>
+			))
+		}
+		<title>Completr</title>
+	</head>
+	<body>
+		<main>
+			<ul>
+				{
+					locales.map(locale => (
+						<li>
+							<a
+								href={getRelativeLocaleUrl(locale)}
+								hreflang={locale}
+								lang={locale}
+							>
+								{localeNames[locale]}
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</main>
+		<script>
+			import { preferredLocale } from "../i18n/preferred-locale";
+
+			window.location.replace(
+				`/${preferredLocale(navigator.languages)}/${window.location.hash}`
+			);
+		</script>
+	</body>
+</html>

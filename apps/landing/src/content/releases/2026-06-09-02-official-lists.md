@@ -6,7 +6,9 @@ title: Verified badge on Completr's official lists
 icon: verified
 tint: success
 landing:
-    pitch: "Las listas curadas por Completr ahora se distinguen con un badge verificado y un carril propio en el catálogo. Más fácil reconocer las recomendaciones oficiales."
+    pitch:
+        es: "Las listas curadas por Completr ahora se distinguen con un badge verificado y un carril propio en el catálogo. Más fácil reconocer las recomendaciones oficiales."
+        en: "Lists curated by Completr now stand out with a verified badge and their own row in the catalog. Official recommendations are easier to spot."
 highlights:
     - icon: verified
       tint: success

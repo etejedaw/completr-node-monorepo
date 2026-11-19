@@ -21,7 +21,10 @@ const releases = defineCollection({
 			.object({
 				featured: z.boolean().default(false),
 				image: z.string().optional(),
-				pitch: z.string()
+				pitch: z.object({
+					es: z.string(),
+					en: z.string()
+				})
 			})
 			.optional(),
 		highlights: z.array(

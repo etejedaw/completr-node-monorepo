@@ -6,7 +6,9 @@ title: Faster navigation and small fixes
 icon: speed
 tint: warning
 landing:
-    pitch: "Moverte por la app se siente más rápido, ahora puedes deshacer al borrar una actividad del feed y corregimos varios detalles en perfiles, favoritos y el inicio de sesión."
+    pitch:
+        es: "Moverte por la app se siente más rápido, ahora puedes deshacer al borrar una actividad del feed y corregimos varios detalles en perfiles, favoritos y el inicio de sesión."
+        en: "Moving around the app feels faster, you can now undo when you delete an activity from the feed, and we fixed several details in profiles, favorites and sign-in."
 highlights:
     - icon: speed
       tint: brand

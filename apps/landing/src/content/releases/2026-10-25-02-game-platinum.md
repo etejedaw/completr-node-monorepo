@@ -6,7 +6,9 @@ title: "Mark the games you platinumed"
 icon: emoji_events
 tint: brand
 landing:
-    pitch: "Ahora puedes marcar los juegos que platinaste y en qué partida lo lograste. Un trofeo aparece junto al título en tus juegos, en la ficha y en tu perfil."
+    pitch:
+        es: "Ahora puedes marcar los juegos que platinaste y en qué partida lo lograste. Un trofeo aparece junto al título en tus juegos, en la ficha y en tu perfil."
+        en: "You can now mark the games you platinumed and the run where you did it. A trophy appears next to the title in your games, on the game page and on your profile."
 highlights:
     - icon: emoji_events
       tint: brand

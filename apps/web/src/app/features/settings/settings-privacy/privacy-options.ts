@@ -130,6 +130,12 @@ const PRIVACY_SECTION_CONFIG: PrivacySectionGroup<PrivacySectionConfig>[] = [
 				key: "listVisibility",
 				route: "/lists",
 				description: "The lists you create and follow."
+			},
+			{
+				key: "tagVisibility",
+				route: "/tags",
+				description:
+					"Who sees the favorite tags on your profile. Tags on your games still count anonymously toward community tags."
 			}
 		]
 	},

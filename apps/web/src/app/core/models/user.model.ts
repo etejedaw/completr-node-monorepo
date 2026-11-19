@@ -40,6 +40,7 @@ export interface User {
 	platinumVisibility: VisibilityLevel;
 	franchiseVisibility: VisibilityLevel;
 	rewindVisibility: VisibilityLevel;
+	tagVisibility: VisibilityLevel;
 	acceptFollowRequests: boolean;
 	theme?: string;
 	isActive: boolean;

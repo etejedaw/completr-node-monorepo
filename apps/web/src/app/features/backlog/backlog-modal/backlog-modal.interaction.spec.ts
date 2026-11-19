@@ -7,12 +7,13 @@ import {
 	type TestRequest
 } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { render, screen, waitFor } from "@testing-library/angular";
+import { render, screen, waitFor, within } from "@testing-library/angular";
 import userEvent from "@testing-library/user-event";
 import { NgpDialogRef } from "ng-primitives/dialog";
 
 import { environment } from "../../../../environments/environment";
 import { type Game } from "../../../core/models";
+import { type CommunityTag } from "../../../core/services/mood-tags.model";
 import { BacklogModal } from "./backlog-modal";
 import { type BacklogModalData } from "./backlog-modal.model";
 
@@ -38,6 +39,8 @@ describe("BacklogModal interaction", () => {
 	let close: ReturnType<typeof vi.fn>;
 	const writes: { method: string; url: string; body: unknown }[] = [];
 	let createResponse: (req: TestRequest) => void;
+	let communityTags: CommunityTag[];
+	let gameTags: string[];
 
 	function answer(req: TestRequest) {
 		const { method, url, body } = req.request;
@@ -63,7 +66,9 @@ describe("BacklogModal interaction", () => {
 		if (url === `${api}/users/me/mood-tags`)
 			return req.flush({ data: { tags: [] } });
 		if (url === `${api}/users/me/games/g1/mood-tags`)
-			return req.flush({ data: { tags: ["cozy"] } });
+			return req.flush({ data: { tags: gameTags } });
+		if (url === `${api}/games/g1/tags`)
+			return req.flush({ data: { tags: communityTags } });
 		throw new Error(`Unexpected request: ${method} ${url}`);
 	}
 
@@ -114,6 +119,8 @@ describe("BacklogModal interaction", () => {
 	beforeEach(() => {
 		writes.length = 0;
 		close = vi.fn();
+		communityTags = [];
+		gameTags = ["cozy"];
 		createResponse = req =>
 			req.flush(
 				{ data: { backlog: { id: "b1" } } },
@@ -257,5 +264,79 @@ describe("BacklogModal interaction", () => {
 		expect(writes).toHaveLength(1);
 		expect(close).not.toHaveBeenCalled();
 		expect(addButton()).toBeEnabled();
+	});
+
+	it("suggests the game's community tags as chips that add or drop a tag with one tap", async () => {
+		const user = userEvent.setup();
+		communityTags = [
+			{ tag: "relaxing", players: 4, mine: false },
+			{ tag: "short", players: 3, mine: false },
+			{ tag: "cozy", players: 2, mine: true }
+		];
+		await renderModal();
+		await user.click(screen.getByRole("tab", { name: /Notes/ }));
+
+		const suggestions = screen.getByRole("group", {
+			name: "Players tag it"
+		});
+		expect(
+			within(suggestions).getByRole("button", { name: "cozy, 2 players" })
+		).toHaveAttribute("aria-pressed", "true");
+
+		await user.dblClick(
+			within(suggestions).getByRole("button", {
+				name: "relaxing, 4 players"
+			})
+		);
+		await user.click(
+			within(suggestions).getByRole("button", {
+				name: "short, 3 players"
+			})
+		);
+		await user.click(
+			within(suggestions).getByRole("button", { name: "cozy, 2 players" })
+		);
+
+		expect(
+			within(suggestions).getByRole("button", {
+				name: "relaxing, 4 players"
+			})
+		).toHaveAttribute("aria-pressed", "true");
+		expect(
+			screen.getByRole("button", { name: "Remove relaxing" })
+		).toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: "Remove cozy" })
+		).not.toBeInTheDocument();
+
+		await submit();
+		expect(writes[0].body).toEqual(
+			expect.objectContaining({ moodTags: ["relaxing", "short"] })
+		);
+	});
+
+	it("disables the suggestions that would go over 10 tags on the game", async () => {
+		const user = userEvent.setup();
+		gameTags = Array.from({ length: 10 }, (_, i) => `tag ${i}`);
+		communityTags = [
+			{ tag: "relaxing", players: 4, mine: false },
+			{ tag: "tag 0", players: 2, mine: true }
+		];
+		await renderModal();
+		await user.click(screen.getByRole("tab", { name: /Notes/ }));
+
+		const suggestions = screen.getByRole("group", {
+			name: "Players tag it"
+		});
+		expect(
+			within(suggestions).getByRole("button", {
+				name: "relaxing, 4 players"
+			})
+		).toBeDisabled();
+		expect(
+			within(suggestions).getByRole("button", {
+				name: "tag 0, 2 players"
+			})
+		).toBeEnabled();
 	});
 });

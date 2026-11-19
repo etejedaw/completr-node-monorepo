@@ -6,7 +6,9 @@ title: "Smoother bulk actions and search"
 icon: build_circle
 tint: warning
 landing:
-    pitch: "Pulimos las acciones masivas y la búsqueda: los avisos ya no tapan la barra de acciones y elegir un resultado de la búsqueda funciona a la primera en todos los navegadores."
+    pitch:
+        es: "Pulimos las acciones masivas y la búsqueda: los avisos ya no tapan la barra de acciones y elegir un resultado de la búsqueda funciona a la primera en todos los navegadores."
+        en: "We polished bulk actions and search: notices no longer cover the actions bar, and picking a search result works the first time in every browser."
 highlights:
     - icon: layers
       tint: warning

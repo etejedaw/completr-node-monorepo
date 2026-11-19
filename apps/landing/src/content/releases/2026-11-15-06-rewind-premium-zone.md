@@ -6,7 +6,9 @@ title: "Your Rewind's premium tools, all in one place"
 icon: workspace_premium
 tint: brand
 landing:
-    pitch: "Todo lo que usa la IA en tu Rewind ahora está junto en una sección premium: las generaciones que te quedan, regenerar, sumar el resumen con IA y qué datos lee. Toca el listón para saber qué hace cada generación."
+    pitch:
+        es: "Todo lo que usa la IA en tu Rewind ahora está junto en una sección premium: las generaciones que te quedan, regenerar, sumar el resumen con IA y qué datos lee. Toca el listón para saber qué hace cada generación."
+        en: "Everything that uses AI in your Rewind is now together in a premium section: the generations you have left, regenerating, adding the AI summary and what data it reads. Tap the ribbon to learn what each generation does."
 highlights:
     - icon: workspace_premium
       tint: warning

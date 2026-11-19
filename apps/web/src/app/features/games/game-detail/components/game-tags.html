@@ -1,0 +1,99 @@
+@switch (status()) { @case ("loading") {
+<ul
+	class="list-none m-0 p-0 flex flex-wrap gap-2"
+	aria-busy="true"
+	aria-label="Loading tags"
+>
+	@for (i of chipSkeletons; track i) {
+	<li><ui-skeleton class="block h-9 w-24 rounded-full" /></li>
+	}
+</ul>
+} @case ("error") {
+<p
+	role="alert"
+	class="m-0 flex flex-wrap items-center gap-x-2 text-sm text-fg-muted"
+>
+	Couldn't load the tags for this game.
+	<button uiButton variant="link" type="button" (click)="retry()">
+		Try again
+	</button>
+</p>
+} @default { @if (chips().length > 0) {
+<ul
+	class="list-none m-0 p-0 flex flex-wrap gap-2"
+	aria-label="Tags on this game"
+>
+	@for (chip of chips(); track chip.tag) {
+	<li
+		class="inline-flex max-w-full items-stretch rounded-full border text-sm font-medium transition-colors"
+		[class]="chip.mine ? 'border-brand bg-brand-subtle text-brand' : 'border-line bg-input-bg text-fg-secondary hover:border-line-hover'"
+	>
+		@if (readonly()) {
+		<a
+			class="inline-flex min-w-0 items-center gap-1.5 h-9 tap:min-h-[44px] px-3 rounded-full text-inherit no-underline hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			[routerLink]="['/tags', chip.tag]"
+			[attr.aria-label]="'Games tagged ' + chipLabel(chip)"
+		>
+			<span class="truncate">{{ chip.tag }}</span>
+			<span class="text-xs tabular-nums text-fg-muted"
+				>{{ chip.players }}</span
+			>
+		</a>
+		} @else {
+		<button
+			type="button"
+			class="inline-flex min-w-0 items-center gap-1.5 h-9 tap:min-h-[44px] pl-2.5 pr-2 rounded-l-full bg-transparent border-0 font-[inherit] text-inherit cursor-pointer hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60"
+			[attr.aria-pressed]="chip.mine"
+			[attr.aria-label]="chipLabel(chip)"
+			[attr.aria-busy]="votes.isPending(chip.tag)"
+			[title]="chipTitle(chip)"
+			[disabled]="!chip.mine && atLimit()"
+			(click)="toggle(chip)"
+		>
+			<span aria-hidden="true" class="material-icons text-sm shrink-0"
+				>{{ chip.mine ? 'check' : 'add' }}</span
+			>
+			<span class="truncate">{{ chip.tag }}</span>
+			<span
+				aria-hidden="true"
+				class="min-w-5 px-1.5 rounded-full text-xs text-center tabular-nums"
+				[class]="chip.mine ? 'bg-brand/15' : 'bg-surface-hover text-fg-muted'"
+				>{{ chip.players }}</span
+			>
+		</button>
+		<a
+			class="inline-flex shrink-0 items-center justify-center w-8 tap:min-w-[44px] tap:min-h-[44px] rounded-r-full border-l text-inherit no-underline hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+			[class]="chip.mine ? 'border-brand/30' : 'border-line'"
+			[routerLink]="['/tags', chip.tag]"
+			[attr.aria-label]="'Games tagged ' + chip.tag"
+			[title]="'Games tagged ' + chip.tag"
+		>
+			<span aria-hidden="true" class="material-icons text-sm"
+				>arrow_outward</span
+			>
+		</a>
+		}
+	</li>
+	}
+</ul>
+} @else {
+<p class="m-0 text-sm text-fg-muted text-pretty">
+	@if (readonly()) { No public tags yet. } @else { No tags yet. Add one — it
+	shows up for everyone once another player uses it too. }
+</p>
+} @if (!readonly()) {
+<div class="mt-4 flex flex-col gap-1.5">
+	<app-game-tag-input
+		[taken]="votes.desired()"
+		[disabled]="atLimit()"
+		(tagPicked)="add($event)"
+	/>
+	<p class="m-0 text-caption text-fg-muted text-pretty">
+		<span class="tabular-nums">{{ mineCount() }}/{{ maxTags }}</span> yours
+		on this game. @if (atLimit()) { Remove one to add another. } @else {
+		Counts are anonymous: nobody sees who tagged what. }
+	</p>
+</div>
+}
+<p class="sr-only" role="status">{{ announcement() }}</p>
+} }

@@ -26,6 +26,17 @@ export function gameListSerializer(
 	};
 }
 
+export function gameRatioSummarySerializer(game: Game) {
+	return {
+		id: game.id,
+		code: game.code,
+		title: game.title,
+		coverUrl: game.coverUrl,
+		backgroundUrl: game.backgroundUrl,
+		ratio: calculateRatio(game.GameScores, game.GameTimes)
+	};
+}
+
 export function gameAdminListSerializer(game: Game) {
 	return {
 		id: game.id,

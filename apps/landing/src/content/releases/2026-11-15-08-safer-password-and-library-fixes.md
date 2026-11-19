@@ -6,7 +6,9 @@ title: "Safer password changes and a library that never looks empty by mistake"
 icon: verified_user
 tint: warning
 landing:
-    pitch: "Cambiar tu contraseña ahora pide la actual, para que nadie más pueda hacerlo por ti. Además, si tu biblioteca no llega a cargar verás un aviso con reintento en vez de una lista vacía, y quien oculta que sigue una lista deja de aparecer entre sus seguidores."
+    pitch:
+        es: "Cambiar tu contraseña ahora pide la actual, para que nadie más pueda hacerlo por ti. Además, si tu biblioteca no llega a cargar verás un aviso con reintento en vez de una lista vacía, y quien oculta que sigue una lista deja de aparecer entre sus seguidores."
+        en: "Changing your password now asks for the current one, so nobody else can do it for you. Plus, if your library doesn't load you'll see a notice with a retry instead of an empty list, and people who hide that they follow a list no longer appear among its followers."
 highlights:
     - icon: password
       tint: success

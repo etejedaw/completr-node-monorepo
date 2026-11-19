@@ -63,7 +63,8 @@ export type ProfileSection =
 	| "list"
 	| "platinum"
 	| "franchise"
-	| "rewind";
+	| "rewind"
+	| "tag";
 
 export type ProfileSectionAccess = Record<ProfileSection, boolean>;
 
@@ -82,4 +83,15 @@ export interface PublicProfile {
 	listsTotal: number;
 	recentActivity: PublicActivity[];
 	access?: ProfileSectionAccess;
+}
+
+export interface PublicFavoriteTag {
+	tag: string;
+	description: string | null;
+	icon: string | null;
+	color: string | null;
+}
+
+export interface PublicFavoriteTagsResponse {
+	data: { tags: PublicFavoriteTag[] };
 }

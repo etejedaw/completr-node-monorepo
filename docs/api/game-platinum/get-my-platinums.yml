@@ -10,6 +10,10 @@ http:
         - name: limit
           value: "100"
           type: query
+        - name: mood_tags
+          value: "cozy,short"
+          type: query
+          disabled: true
     auth: inherit
 
 settings:
@@ -32,6 +36,7 @@ docs: |-
     | limit  | int    | No       | Max items per page (1–100)                       |
     | offset | int    | No       | Items to skip (>= 0)                             |
     | search | string | No       | 1–100 characters, matched against the game title |
+    | mood_tags | string | No | Comma-separated tags of the authenticated user (e.g. `cozy,short`). Normalized like the tags themselves (case, accents and spaces; duplicates and empty items are dropped) and limited to 1–10 tags. AND semantics: only entries whose game has every tag, as set by this user; other users' tags never count. Combines with `search` and pagination, and `total` counts the filtered entries |
 
     ### Response (200)
 
@@ -65,11 +70,11 @@ docs: |-
     }
     ```
 
-    `platinumedAt`, `notes`, `backlogId` and `platform` can be `null`. `total` counts every platinum matching `search`.
+    `platinumedAt`, `notes`, `backlogId` and `platform` can be `null`. `total` counts every platinum matching `search` and `mood_tags`.
 
     ### Errors
 
     | Status | Type                    | Reason |
     |--------|-------------------------|--------|
     | 401    | `AUTH_INVALID_TOKEN`    | Invalid or expired token |
-    | 422    | `COMMON_SCHEMA_INVALID` | `limit`, `offset` or `search` out of range |
+    | 422    | `COMMON_SCHEMA_INVALID` | `limit`, `offset` or `search` out of range, or `mood_tags` empty or with more than 10 tags |

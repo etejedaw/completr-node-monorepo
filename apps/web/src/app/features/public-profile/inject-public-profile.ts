@@ -25,7 +25,10 @@ import {
 	pickProfileBackdrop,
 	PROFILE_FAVORITES_LIMIT
 } from "./profile-backdrop";
-import { type PublicProfile } from "./public-profile.model";
+import {
+	type PublicFavoriteTag,
+	type PublicProfile
+} from "./public-profile.model";
 import { PublicProfileService } from "./public-profile.service";
 import { errorStatusOf } from "./services/profile-access-error";
 import {
@@ -211,7 +214,8 @@ export function injectPublicProfile() {
 			feed: !!access?.feed,
 			platinums: !!access?.platinum,
 			sagas: !!access?.franchise,
-			rewind: !!access?.rewind
+			rewind: !!access?.rewind,
+			tags: !!access?.tag
 		};
 	});
 
@@ -273,6 +277,17 @@ export function injectPublicProfile() {
 	});
 	const favoritesData = computed(() =>
 		favoritesResource.hasValue() ? favoritesResource.value() : null
+	);
+
+	const favoriteTagsResource = rxResource({
+		params: () => (visibility().tags ? openProfileOf() : undefined),
+		stream: ({ params: name }) =>
+			profileService
+				.getFavoriteTags(name)
+				.pipe(catchError(() => of([] as PublicFavoriteTag[])))
+	});
+	const favoriteTags = computed(() =>
+		favoriteTagsResource.hasValue() ? favoriteTagsResource.value() : []
 	);
 
 	const platinumsResource = rxResource({
@@ -500,6 +515,7 @@ export function injectPublicProfile() {
 		retry: () => profileResource.reload(),
 		queueData,
 		favoritesData,
+		favoriteTags,
 		platinumsData,
 		platinumsTotal,
 		sagas,

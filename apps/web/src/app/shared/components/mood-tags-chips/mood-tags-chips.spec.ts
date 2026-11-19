@@ -16,8 +16,23 @@ describe("MoodTagsChips", () => {
 		const element = render({ tags: ["cozy", "short"] });
 
 		expect(
-			Array.from(element.querySelectorAll("span")).map(s => s.textContent)
+			Array.from(element.querySelectorAll("span")).map(s =>
+				s.textContent?.trim()
+			)
 		).toEqual(["cozy", "short"]);
+	});
+
+	it("shows the icon and color of the tags that have an appearance", () => {
+		const element = render({
+			tags: ["cozy", "short"],
+			appearance: new Map([["cozy", { icon: "bolt", color: "sky" }]])
+		});
+
+		const chips = Array.from(element.querySelectorAll("span"));
+		const icon = chips[0].querySelector<HTMLElement>("app-tag-icon");
+		expect(icon?.textContent?.trim()).toBe("bolt");
+		expect(icon?.style.color).toBe("var(--color-view-sky)");
+		expect(chips[1].querySelector("app-tag-icon")).toBeNull();
 	});
 
 	it.each([[[]], [null], [undefined]])("renders nothing for %j", tags => {

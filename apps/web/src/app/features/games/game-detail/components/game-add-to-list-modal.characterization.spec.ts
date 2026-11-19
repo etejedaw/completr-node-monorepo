@@ -179,6 +179,7 @@ describe("GameAddToListModal characterization", () => {
 		if (url === `${api}/users/me/queue`)
 			return ok({ data: { queue: [], total: 0 } });
 		if (url.endsWith("/mood-tags")) return ok({ data: { tags: [] } });
+		if (url.endsWith("/tags")) return ok({ data: { tags: [] } });
 		const addMatch = url.match(/\/lists\/([^/]+)\/items$/);
 		if (method === "POST" && addMatch)
 			return addItem(addMatch[1], body.gameId);

@@ -6,6 +6,11 @@ info:
 http:
     method: GET
     url: "{{BASE_URL}}/users/me/queue"
+    params:
+        - name: mood_tags
+          value: "cozy,short"
+          type: query
+          disabled: true
     auth: inherit
 
 settings:
@@ -18,6 +23,15 @@ docs: |-
 
     **Authentication:** Bearer token required.
     **Rate Limit:** 50 requests per minute.
+
+    ### Query Params
+
+    | Param | Type | Required | Description |
+    |-------|------|----------|-------------|
+    | limit | int | No | Max items per page (1–100) |
+    | offset | int | No | Items to skip (>= 0) |
+    | search | string | No | 1–100 characters, matched against the game title |
+    | mood_tags | string | No | Comma-separated tags of the authenticated user (e.g. `cozy,short`). Normalized like the tags themselves (case, accents and spaces; duplicates and empty items are dropped) and limited to 1–10 tags. AND semantics: only entries whose game has every tag, as set by this user; other users' tags never count. Combines with `search` and pagination, and `total` counts the filtered entries |
 
     ### Response (200)
 
@@ -39,7 +53,14 @@ docs: |-
               "platform": { "id": "uuid", "abbreviation": "..." }
             }
           }
-        ]
+        ],
+        "total": 1
       }
     }
     ```
+
+    ### Errors
+
+    - 401 `AUTH_INVALID_TOKEN` — Invalid or expired token
+    - 422 `AUTH_SCHEMA_INVALID` — Missing `Authorization` header
+    - 422 `COMMON_SCHEMA_INVALID` — `limit`, `offset` or `search` out of range, or `mood_tags` empty or with more than 10 tags

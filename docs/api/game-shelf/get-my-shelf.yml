@@ -6,6 +6,11 @@ info:
 http:
     method: GET
     url: "{{BASE_URL}}/users/me/game-shelf"
+    params:
+        - name: mood_tags
+          value: "cozy,short"
+          type: query
+          disabled: true
     auth: inherit
 
 settings:
@@ -27,8 +32,9 @@ docs: |-
     | offset | integer | No       | Pagination offset (default 0)|
     | search | string  | No       | Filter by game title. Accent-, case- and punctuation-insensitive; every word must match, in any order; `%`, `_` and `\` are matched literally. A value without letters or digits does not filter |
     | game_id | uuid   | No       | Only the entries of that game (any platform). Combines with `limit`, `offset` and `search`; `total` counts the filtered entries. A game that is not on the shelf returns an empty list |
+    | mood_tags | string | No | Comma-separated tags of the authenticated user (e.g. `cozy,short`). Normalized like the tags themselves (case, accents and spaces; duplicates and empty items are dropped) and limited to 1–10 tags. AND semantics: only entries whose game has every tag, as set by this user; other users' tags never count. Combines with `search` and pagination, and `total` counts the filtered entries |
 
-    Any other query parameter, or a `game_id` that is not a UUID, answers 422 `COMMON_SCHEMA_INVALID`.
+    Any other query parameter, a `game_id` that is not a UUID, or a `mood_tags` that is empty or has more than 10 tags answers 422 `COMMON_SCHEMA_INVALID`.
 
     ### Response (200)
 

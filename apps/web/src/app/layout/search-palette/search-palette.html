@@ -24,7 +24,7 @@
 			autocapitalize="off"
 			spellcheck="false"
 			enterkeyhint="search"
-			placeholder="Search games, players, lists..."
+			placeholder="Search games, players, lists, tags..."
 			class="flex-1 min-w-0 h-14 bg-transparent border-0 outline-none text-fg text-[16px] md:text-[1.05rem] placeholder:text-fg-muted"
 			[attr.aria-expanded]="items().length > 0"
 			[attr.aria-controls]="listboxId"
@@ -121,8 +121,8 @@
 
 		@if (!hasQuery()) {
 		<p class="m-0 px-4 py-8 text-sm text-fg-muted text-center text-pretty">
-			Find a run in your library, a game, a player or a list. Type at
-			least 2 characters.
+			Find a run in your library, a game, a player, a list or a tag. Type
+			at least 2 characters.
 		</p>
 		} @else if (showsNoMatches()) {
 		<p

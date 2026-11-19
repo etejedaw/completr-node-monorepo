@@ -3,6 +3,11 @@ import { randomUUID } from "node:crypto";
 import { describe, it } from "node:test";
 
 import { Backlog } from "../../src/backlog/backlog.model";
+import {
+	APPEARANCE_COLORS,
+	APPEARANCE_ICONS
+} from "../../src/common/constants/appearance.constants";
+import { UserGameTag } from "../../src/mood-tags/user-game-tag.model";
 import { SavedFilter } from "../../src/saved-filters/saved-filter.model";
 import { api } from "../helpers/app.helper";
 import { createUserWithSession } from "../helpers/auth.helper";
@@ -236,6 +241,50 @@ void describe("PATCH /users/me/saved-filters/:filterId", () => {
 		assert.equal(response.body.data.savedFilter.name, "Hidden view");
 		assert.equal(response.body.data.savedFilter.showInBacklog, false);
 		assert.equal(response.body.data.savedFilter.isDefault, false);
+	});
+
+	void it("accepts every shared appearance icon and color on update", async () => {
+		const owner = await createUserWithSession();
+		const filter = await createSavedFilter(owner.user.id);
+
+		for (const icon of APPEARANCE_ICONS) {
+			const response = await api()
+				.patch(`${FILTERS_PATH}/${filter.id}`)
+				.set("Authorization", owner.authorization)
+				.send({ icon });
+			assert.equal(response.status, 200, icon);
+			assert.equal(response.body.data.savedFilter.icon, icon);
+		}
+		for (const color of APPEARANCE_COLORS) {
+			const response = await api()
+				.patch(`${FILTERS_PATH}/${filter.id}`)
+				.set("Authorization", owner.authorization)
+				.send({ color });
+			assert.equal(response.status, 200, color);
+			assert.equal(response.body.data.savedFilter.color, color);
+		}
+	});
+
+	void it("rejects an icon or a color outside the shared appearance lists on update", async () => {
+		const owner = await createUserWithSession();
+		const filter = await createSavedFilter(owner.user.id);
+		await filter.update({ icon: "star", color: "sky" });
+
+		for (const body of [
+			{ icon: "rocket" },
+			{ icon: "" },
+			{ color: "#ff0000" },
+			{ color: "Rose" }
+		]) {
+			const response = await api()
+				.patch(`${FILTERS_PATH}/${filter.id}`)
+				.set("Authorization", owner.authorization)
+				.send(body);
+			assert.equal(response.status, 422, JSON.stringify(body));
+			assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		}
+		const stored = await SavedFilter.findByPk(filter.id);
+		assert.deepEqual([stored?.icon, stored?.color], ["star", "sky"]);
 	});
 
 	void it("accepts a platform icon on update", async () => {
@@ -486,6 +535,229 @@ void describe("GET /users/me/saved-filters/:filterId/stats", () => {
 
 		assert.equal(response.status, 422);
 		assert.equal(response.body.type, "SAVED_FILTER_VALIDATION_ERROR");
+	});
+});
+
+void describe("GET /users/me/saved-filters/:filterId/stats with applied filters", () => {
+	async function seedLibrary() {
+		const owner = await createUserWithSession();
+		const platform = await createPlatform();
+		const [cozy, grim, idle, fresh] = await Promise.all([
+			createGame(),
+			createGame(),
+			createGame(),
+			createGame()
+		]);
+		await createBacklog(owner.user.id, cozy.id, platform.id, {
+			status: "completed"
+		});
+		await createBacklog(owner.user.id, grim.id, platform.id, {
+			status: "completed"
+		});
+		await createBacklog(owner.user.id, idle.id, platform.id, {
+			status: "playing"
+		});
+		await createBacklog(owner.user.id, fresh.id, platform.id, {
+			status: "not_started"
+		});
+		await UserGameTag.bulkCreate([
+			{ userId: owner.user.id, gameId: cozy.id, tag: "cozy" },
+			{ userId: owner.user.id, gameId: cozy.id, tag: "short" },
+			{ userId: owner.user.id, gameId: grim.id, tag: "short" },
+			{ userId: owner.user.id, gameId: idle.id, tag: "cozy" }
+		]);
+		const view = await postFilter(owner.authorization, {
+			name: "Completed",
+			filters: { status: "completed" }
+		}).expect(201);
+		return {
+			owner,
+			platform,
+			viewId: view.body.data.savedFilter.id as string
+		};
+	}
+
+	function getStats(
+		authorization: string,
+		viewId: string,
+		query: Record<string, string | string[]> = {}
+	) {
+		return api()
+			.get(`${FILTERS_PATH}/${viewId}/stats`)
+			.query(query)
+			.set("Authorization", authorization);
+	}
+
+	void it("uses the saved filters when no filter params arrive", async () => {
+		const { owner, viewId } = await seedLibrary();
+
+		const response = await getStats(owner.authorization, viewId);
+
+		assert.equal(response.status, 200);
+		assert.equal(response.body.data.stats.totalEntries, 2);
+		assert.equal(response.body.data.stats.countByStatus.completed, 2);
+	});
+
+	void it("uses the applied filters instead of the saved ones", async () => {
+		const { owner, viewId } = await seedLibrary();
+
+		const response = await getStats(owner.authorization, viewId, {
+			status: "playing,not_started"
+		});
+
+		assert.equal(response.status, 200);
+		const { stats } = response.body.data;
+		assert.equal(stats.totalEntries, 2);
+		assert.equal(stats.countByStatus.completed, 0);
+		assert.equal(stats.countByStatus.playing, 1);
+		assert.equal(stats.countByStatus.not_started, 1);
+	});
+
+	void it("keeps only entries whose game has every applied tag", async () => {
+		const { owner, viewId } = await seedLibrary();
+
+		const both = await getStats(owner.authorization, viewId, {
+			mood_tags: "cozy,short"
+		});
+		const cozyCompleted = await getStats(owner.authorization, viewId, {
+			status: "completed",
+			mood_tags: "cozy"
+		});
+
+		assert.equal(both.status, 200);
+		assert.equal(both.body.data.stats.totalEntries, 1);
+		assert.equal(both.body.data.stats.countByStatus.completed, 1);
+		assert.equal(cozyCompleted.status, 200);
+		assert.equal(cozyCompleted.body.data.stats.totalEntries, 1);
+	});
+
+	void it("computes over the whole library when the applied params filter nothing", async () => {
+		const { owner, viewId } = await seedLibrary();
+
+		const onlySort = await getStats(owner.authorization, viewId, {
+			sort_by: "title",
+			sort_order: "asc"
+		});
+		const blankPlatforms = await getStats(owner.authorization, viewId, {
+			platforms: ""
+		});
+
+		assert.equal(onlySort.status, 200);
+		assert.equal(onlySort.body.data.stats.totalEntries, 4);
+		assert.equal(blankPlatforms.status, 200);
+		assert.equal(blankPlatforms.body.data.stats.totalEntries, 4);
+	});
+
+	void it("ignores params the backlog does not know and keeps the saved filters", async () => {
+		const { owner, viewId } = await seedLibrary();
+
+		const response = await getStats(owner.authorization, viewId, {
+			foo: "bar",
+			savedFilterId: viewId
+		});
+
+		assert.equal(response.status, 200);
+		assert.equal(response.body.data.stats.totalEntries, 2);
+	});
+
+	void it("computes with the applied filters even when the stored ones are invalid", async () => {
+		const owner = await createUserWithSession();
+		const platform = await createPlatform();
+		const game = await createGame();
+		await createBacklog(owner.user.id, game.id, platform.id, {
+			status: "playing"
+		});
+		const broken = await SavedFilter.create({
+			userId: owner.user.id,
+			name: "Broken",
+			filters: { status: "paused" },
+			position: 1
+		});
+
+		const response = await getStats(owner.authorization, broken.id, {
+			status: "playing"
+		});
+
+		assert.equal(response.status, 200);
+		assert.equal(response.body.data.stats.totalEntries, 1);
+	});
+
+	void it("rejects garbage filter params with 422 COMMON_SCHEMA_INVALID", async () => {
+		const { owner, viewId } = await seedLibrary();
+		const garbage: Record<string, string | string[]>[] = [
+			{ status: "paused" },
+			{ status: "" },
+			{ status: ["playing", "completed"] },
+			{ min_ratio: "lots" },
+			{ release_year_from: "1999.5" },
+			{ started_from: "yesterday" },
+			{ coop_only: "maybe" },
+			{ sort_by: "DROP TABLE" },
+			{ mood_tags: "," },
+			{ search: "x".repeat(101) },
+			{ limit: "0" }
+		];
+
+		for (const query of garbage) {
+			const response = await getStats(owner.authorization, viewId, query);
+			assert.equal(response.status, 422, JSON.stringify(query));
+			assert.equal(response.body.type, "COMMON_SCHEMA_INVALID");
+		}
+	});
+
+	void it("answers 404 SAVED_FILTER_NOT_FOUND for another user's view or a missing one, with or without applied filters", async () => {
+		const { viewId } = await seedLibrary();
+		const intruder = await createUserWithSession();
+
+		const requests = [
+			getStats(intruder.authorization, viewId),
+			getStats(intruder.authorization, viewId, { status: "completed" }),
+			getStats(intruder.authorization, viewId, { platforms: "" }),
+			getStats(intruder.authorization, randomUUID(), {
+				status: "playing"
+			})
+		];
+
+		for (const response of await Promise.all(requests)) {
+			assert.equal(response.status, 404);
+			assert.equal(response.body.type, "SAVED_FILTER_NOT_FOUND");
+		}
+	});
+
+	void it("answers each of many overlapping requests with its own filters and never changes the view", async () => {
+		const { owner, viewId } = await seedLibrary();
+		const overrides: { query: Record<string, string>; total: number }[] = [
+			{ query: {}, total: 2 },
+			{ query: { status: "playing" }, total: 1 },
+			{ query: { mood_tags: "short" }, total: 2 },
+			{ query: { sort_by: "title" }, total: 4 },
+			{ query: { status: "completed", mood_tags: "cozy" }, total: 1 },
+			{ query: { mood_tags: "cozy,short,nope" }, total: 0 }
+		];
+		const repeated = [
+			...overrides,
+			...overrides.toReversed(),
+			...overrides
+		];
+
+		const results = await Promise.all(
+			repeated.map(async ({ query, total }) => ({
+				query,
+				total,
+				response: await getStats(owner.authorization, viewId, query)
+			}))
+		);
+
+		for (const { query, total, response } of results) {
+			assert.equal(response.status, 200);
+			assert.equal(
+				response.body.data.stats.totalEntries,
+				total,
+				JSON.stringify(query)
+			);
+		}
+		const stored = await SavedFilter.findByPk(viewId);
+		assert.deepEqual(stored?.filters, { status: "completed" });
 	});
 });
 

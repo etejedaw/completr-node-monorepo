@@ -6,7 +6,9 @@ title: "Quicker actions in My Games and a fresh run view"
 icon: bolt
 tint: brand
 landing:
-    pitch: "Ahora puedes completar un juego con un toque desde My Games, mandar a Up Next una partida que ya tienes desde la página del juego y ver cada partida con un resumen renovado."
+    pitch:
+        es: "Ahora puedes completar un juego con un toque desde My Games, mandar a Up Next una partida que ya tienes desde la página del juego y ver cada partida con un resumen renovado."
+        en: "You can now complete a game with one tap from My Games, send a run you already have to Up Next from the game page and see each run with a renewed summary."
 highlights:
     - icon: check_circle
       tint: success

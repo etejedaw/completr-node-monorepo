@@ -1,6 +1,9 @@
 import { type Transaction } from "sequelize";
 
-import { BacklogQuerySchema } from "../backlog/schemas/backlog-query.schema";
+import {
+	type BacklogQuery,
+	BacklogQuerySchema
+} from "../backlog/schemas/backlog-query.schema";
 import * as backlogStatsService from "../backlog/services/backlog-stats.service";
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type PaginatedSearchQuery } from "../common/schemas/paginated-search-query.schema";
@@ -12,7 +15,10 @@ import { type RegisterSavedFilterDto } from "./dtos/register-saved-filter.dto";
 import { type UpdateSavedFilterDto } from "./dtos/update-saved-filter.dto";
 import * as savedFilterServiceError from "./errors/saved-filters.service-error";
 import { SavedFilter } from "./saved-filter.model";
-import { FREE_FILTER_LIMIT, SAVED_FILTER_ORDER } from "./saved-filters.constants";
+import {
+	FREE_FILTER_LIMIT,
+	SAVED_FILTER_ORDER
+} from "./saved-filters.constants";
 
 async function hasPremiumAccess(userId: string, role: string) {
 	return resolvePremiumAccess(
@@ -204,16 +210,28 @@ async function clearDefault(userId: string, transaction: Transaction) {
 	);
 }
 
-export async function getSavedFilterStats(id: string, userId: string) {
+function parseStoredFilters(filter: SavedFilter) {
+	const parsed = BacklogQuerySchema.safeParse(filter.filters);
+	if (!parsed.success)
+		throw savedFilterServiceError.validationError(parsed.error);
+	return parsed.data;
+}
+
+export async function getSavedFilterStats(
+	id: string,
+	userId: string,
+	appliedFilters: BacklogQuery = {}
+) {
 	const filter = await findSavedFilterById(id);
 	if (!filter || filter.userId !== userId)
 		throw savedFilterServiceError.notFoundError();
 
-	const parsed = BacklogQuerySchema.safeParse(filter.filters);
-	if (!parsed.success)
-		throw savedFilterServiceError.validationError(parsed.error);
+	const hasAppliedFilters = Object.keys(appliedFilters).length > 0;
+	const filters = hasAppliedFilters
+		? appliedFilters
+		: parseStoredFilters(filter);
 
-	return backlogStatsService.computeBacklogStats(userId, parsed.data);
+	return backlogStatsService.computeBacklogStats(userId, filters);
 }
 
 export async function removeSavedFilter(id: string, userId: string) {

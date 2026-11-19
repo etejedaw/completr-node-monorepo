@@ -35,6 +35,7 @@ const publicUser = {
 	platinumVisibility: "public",
 	franchiseVisibility: "public",
 	rewindVisibility: "public",
+	tagVisibility: "public",
 	acceptFollowRequests: true
 } as unknown as User;
 
@@ -130,7 +131,8 @@ describe("SettingsPrivacy", () => {
 			feedVisibility: "friends",
 			platinumVisibility: "friends",
 			franchiseVisibility: "friends",
-			rewindVisibility: "friends"
+			rewindVisibility: "friends",
+			tagVisibility: "friends"
 		});
 
 		expect(selectedOption(radioGroup("Privacy level"))).toContain(
@@ -235,6 +237,7 @@ describe("SettingsPrivacy", () => {
 			platinumVisibility: "friends",
 			franchiseVisibility: "friends",
 			rewindVisibility: "friends",
+			tagVisibility: "friends",
 			acceptFollowRequests: true
 		});
 		patch.flush({ data: { user: publicUser } });
@@ -250,6 +253,75 @@ describe("SettingsPrivacy", () => {
 		expect(toast.success).toHaveBeenCalledWith("Privacy settings updated.");
 		expect(loadUser).toHaveBeenCalled();
 		expect(screen.queryByText("Unsaved changes")).not.toBeInTheDocument();
+	});
+
+	it("explains that the Tags level decides who sees the favorite tags on the profile", async () => {
+		const userInteraction = userEvent.setup();
+		await renderPrivacy();
+
+		await userInteraction.click(
+			screen.getByRole("button", { name: /customize/i })
+		);
+
+		expect(radioGroup("Tags visibility")).toBeInTheDocument();
+		expect(
+			screen.getByText(/Who sees the favorite tags on your profile/)
+		).toBeInTheDocument();
+	});
+
+	it("saves only the last Tags level picked after changing it several times", async () => {
+		const userInteraction = userEvent.setup();
+		await renderPrivacy();
+
+		await userInteraction.click(
+			screen.getByRole("button", { name: /customize/i })
+		);
+		const tags = radioGroup("Tags visibility");
+		await userInteraction.click(
+			within(tags).getByRole("radio", { name: /only you/i })
+		);
+		await userInteraction.click(
+			within(tags).getByRole("radio", { name: /everyone/i })
+		);
+		await userInteraction.click(
+			within(tags).getByRole("radio", { name: /friends/i })
+		);
+		await userInteraction.dblClick(
+			screen.getByRole("button", { name: /save changes/i })
+		);
+
+		const patches = httpTesting.match(`${api}/users/me`);
+		expect(patches).toHaveLength(1);
+		expect(patches[0].request.body).toMatchObject({
+			tagVisibility: "friends",
+			favoriteVisibility: "public"
+		});
+		patches[0].flush({
+			data: { user: { ...publicUser, tagVisibility: "friends" } }
+		});
+		httpTesting
+			.match(`${api}/users/me/follow-requests`)
+			.forEach(req => req.flush({ data: { requests: [] } }));
+	});
+
+	it("discards an unsaved Tags change", async () => {
+		const userInteraction = userEvent.setup();
+		await renderPrivacy({ tagVisibility: "private" });
+
+		expect(selectedOption(radioGroup("Privacy level"))).toContain("Custom");
+		await userInteraction.click(
+			within(radioGroup("Tags visibility")).getByRole("radio", {
+				name: /everyone/i
+			})
+		);
+		await userInteraction.click(
+			screen.getByRole("button", { name: /discard/i })
+		);
+
+		expect(selectedOption(radioGroup("Tags visibility"))).toContain(
+			"Only you"
+		);
+		expect(httpTesting.match(`${api}/users/me`)).toHaveLength(0);
 	});
 
 	it("sends one save request when the save button is double clicked", async () => {

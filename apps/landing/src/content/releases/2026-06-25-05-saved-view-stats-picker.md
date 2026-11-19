@@ -6,7 +6,9 @@ title: Pick which stats each saved view shows
 icon: tune
 tint: brand
 landing:
-    pitch: "Tu librería, tus métricas. Cada vista guardada decide qué estadísticas le importan: elige entre 15 cards y tu selección viaja con tu cuenta."
+    pitch:
+        es: "Tu librería, tus métricas. Cada vista guardada decide qué estadísticas le importan: elige entre 15 cards y tu selección viaja con tu cuenta."
+        en: "Your library, your stats. Each saved view decides which numbers matter to it: choose from 15 cards and your selection travels with your account."
 highlights:
     - icon: checklist
       tint: brand

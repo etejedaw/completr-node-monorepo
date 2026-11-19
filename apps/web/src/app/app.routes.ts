@@ -369,6 +369,13 @@ export const routes: Routes = [
 					import("./features/tags/tags-page/tags-page")
 			},
 			{
+				path: "tags/:tag",
+				loadComponent: () =>
+					import("./features/tags/tag-games/tag-games").then(
+						m => m.TagGames
+					)
+			},
+			{
 				path: "admin/users",
 				canActivate: [adminGuard],
 				loadComponent: () =>

@@ -1,49 +1,162 @@
 ---
+import { type Locale, toLocale } from "../i18n/locales";
+
+const lang = toLocale(Astro.currentLocale);
+
 const ratioScale = 20;
 const score = 4.75;
 const stars = ["star", "star", "star", "star", "star_half"];
-const weekends = ["primer", "segundo", "tercer", "cuarto"];
 const blockBackground =
 	"background: linear-gradient(90deg, var(--color-brand-deep), var(--color-brand));";
 const ratioOf = (hours: number) =>
 	(Math.round((score / hours) * ratioScale * 10) / 10).toFixed(1);
-const examples = [
-	{
-		when: "Para las vacaciones",
-		label: "Una gran aventura",
-		blocks: 1,
-		ratio: ratioOf(80),
-		ratioNote: "Bajo, porque dura mucho."
-	},
-	{
-		when: "Para tus fines de semana",
-		label: "Un juego corto cada uno",
-		blocks: 4,
-		ratio: ratioOf(12),
-		ratioNote: "Alto, porque se terminan pronto."
-	}
-];
 
-const steps = [
-	{
-		icon: "add_circle",
-		title: "Agrega un juego",
-		description:
-			"Búscalo en el catálogo y elige la plataforma. La nota y la duración vienen de Metacritic, RAWG y HowLongToBeat."
+const copy = {
+	es: {
+		eyebrow: "El Ratio",
+		titleStart: "Lo que cabe en",
+		titleHighlight: "tu tiempo",
+		introStart: "El",
+		introAnswer: "responde la pregunta de cada noche:",
+		introQuestion: "¿qué juego ahora?",
+		introPoints: "No dice qué juego es mejor: te señala",
+		introHighlight: "los buenos que se terminan pronto",
+		introEnd: ", para que elijas según el tiempo que tengas.",
+		afterFinish:
+			"Y cuando terminas un juego, te cuenta si te rindió más o menos de lo que esperabas.",
+		formulaRating: "Nota",
+		formulaHours: "Horas",
+		dividedBy: "dividido por",
+		times: "por",
+		equals: "igual a",
+		ratingTermTitle: "Nota, en escala 1–5",
+		ratingTermBody:
+			"Cada fuente puntúa en su propia escala, así que la nota se normaliza primero: 82/100 pasa a 4.1.",
+		scaleTermTitle: "Por qué × 20",
+		scaleTermBody:
+			"Deja el resultado como un número de 0 a 100: un juego de cinco estrellas que terminas en una hora queda en 100.",
+		figureLabel: "Misma nota, distinto tiempo",
+		figureTitle: "Una gran aventura, o un juego corto cada fin de semana",
+		scoreLabel: `Nota ${score} de 5`,
+		oneGame: "Un juego",
+		weekendLabel: (weekend: string) =>
+			`Un juego corto el ${weekend} fin de semana`,
+		weekends: ["primer", "segundo", "tercer", "cuarto"],
+		examples: [
+			{
+				when: "Para las vacaciones",
+				label: "Una gran aventura",
+				blocks: 1,
+				ratio: ratioOf(80),
+				ratioNote: "Bajo, porque dura mucho."
+			},
+			{
+				when: "Para tus fines de semana",
+				label: "Un juego corto cada uno",
+				blocks: 4,
+				ratio: ratioOf(12),
+				ratioNote: "Alto, porque se terminan pronto."
+			}
+		],
+		closingStrong: "Los dos son grandes juegos.",
+		closingText:
+			"La aventura tiene un Ratio más bajo solo porque dura más, no porque sea peor. Completr te ayuda a elegir el que mejor encaja en el tiempo que tienes ahora.",
+		stepLabel: (number: number) => `Paso ${number}`,
+		steps: [
+			{
+				icon: "add_circle",
+				title: "Agrega un juego",
+				description:
+					"Búscalo en el catálogo y elige la plataforma. La nota y la duración vienen de Metacritic, RAWG y HowLongToBeat."
+			},
+			{
+				icon: "speed",
+				title: "Mira el Ratio",
+				description:
+					"Completr cruza qué tan bueno es cada juego con lo que toma terminarlo y te señala los buenos que se terminan pronto."
+			},
+			{
+				icon: "sports_esports",
+				title: "Decide qué jugar",
+				description:
+					"Ordena por Ratio y da con esa joya corta y bien valorada que encaja con el rato que tienes hoy."
+			}
+		]
 	},
-	{
-		icon: "speed",
-		title: "Mira el Ratio",
-		description:
-			"Completr cruza qué tan bueno es cada juego con lo que toma terminarlo y te señala los buenos que se terminan pronto."
-	},
-	{
-		icon: "sports_esports",
-		title: "Decide qué jugar",
-		description:
-			"Ordena por Ratio y encuentra esa joya corta y bien valorada que llevas meses postergando."
+	en: {
+		eyebrow: "The Ratio",
+		titleStart: "What fits in",
+		titleHighlight: "your time",
+		introStart: "The",
+		introAnswer: "answers the question you ask every night:",
+		introQuestion: "what should I play now?",
+		introPoints: "It doesn't say which game is better: it points you to",
+		introHighlight: "the good ones that are quick to finish",
+		introEnd: ", so you can pick based on the time you have.",
+		afterFinish:
+			"And when you finish a game, it tells you whether it paid off more or less than you expected.",
+		formulaRating: "Rating",
+		formulaHours: "Hours",
+		dividedBy: "divided by",
+		times: "times",
+		equals: "equals",
+		ratingTermTitle: "Rating, on a 1–5 scale",
+		ratingTermBody:
+			"Each source scores on its own scale, so the rating is normalized first: 82/100 becomes 4.1.",
+		scaleTermTitle: "Why × 20",
+		scaleTermBody:
+			"It turns the result into a number from 0 to 100: a five-star game you finish in one hour lands at 100.",
+		figureLabel: "Same rating, different time",
+		figureTitle: "One big adventure, or a short game every weekend",
+		scoreLabel: `Rating ${score} out of 5`,
+		oneGame: "One game",
+		weekendLabel: (weekend: string) =>
+			`A short game on the ${weekend} weekend`,
+		weekends: ["first", "second", "third", "fourth"],
+		examples: [
+			{
+				when: "For the holidays",
+				label: "One big adventure",
+				blocks: 1,
+				ratio: ratioOf(80),
+				ratioNote: "Low, because it's long."
+			},
+			{
+				when: "For your weekends",
+				label: "A short game each",
+				blocks: 4,
+				ratio: ratioOf(12),
+				ratioNote: "High, because they're quick to finish."
+			}
+		],
+		closingStrong: "Both are great games.",
+		closingText:
+			"The adventure has a lower Ratio only because it takes longer, not because it's worse. Completr helps you pick the one that best fits the time you have right now.",
+		stepLabel: (number: number) => `Step ${number}`,
+		steps: [
+			{
+				icon: "add_circle",
+				title: "Add a game",
+				description:
+					"Find it in the catalog and pick the platform. The rating and length come from Metacritic, RAWG and HowLongToBeat."
+			},
+			{
+				icon: "speed",
+				title: "Check the Ratio",
+				description:
+					"Completr weighs how good each game is against how long it takes to finish and points out the good ones that wrap up quickly."
+			},
+			{
+				icon: "sports_esports",
+				title: "Decide what to play",
+				description:
+					"Sort by Ratio and find that short, well-rated gem that fits the time you have today."
+			}
+		]
 	}
-];
+} satisfies Record<Locale, unknown>;
+
+const t = copy[lang];
 ---
 
 <section
@@ -62,31 +175,29 @@ const steps = [
 			class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 lg:items-stretch"
 		>
 			<div>
-				<span class="eyebrow">El Ratio</span>
+				<span class="eyebrow">{t.eyebrow}</span>
 				<h2
 					class="font-display mt-3 mb-5 text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance"
 				>
-					Lo que cabe en <span class="text-gradient">tu tiempo</span>.
+					{t.titleStart}{" "}
+					<span class="text-gradient">{t.titleHighlight}</span>.
 				</h2>
 				<p
 					class="m-0 mb-4 text-[var(--color-fg-secondary)] leading-relaxed"
 				>
-					El <strong class="text-[var(--color-fg)]">Ratio</strong>{
-						" "
-					}
-					responde la pregunta de cada noche:{" "}
-					<em>¿qué juego ahora?</em> No dice qué juego es mejor: te señala{
-						" "
-					}
+					{t.introStart}{" "}
+					<strong class="text-[var(--color-fg)]">Ratio</strong>{" "}
+					{t.introAnswer}{" "}
+					<em>{t.introQuestion}</em>{" "}
+					{t.introPoints}{" "}
 					<strong class="text-[var(--color-fg)]"
-						>los buenos que se terminan pronto</strong
-					>, para que elijas según el tiempo que tengas.
+						>{t.introHighlight}</strong
+					>{t.introEnd}
 				</p>
 				<p
 					class="m-0 mb-6 text-[var(--color-fg-secondary)] leading-relaxed"
 				>
-					Y cuando terminas un juego, te cuenta si te rindió más o
-					menos de lo que esperabas.
+					{t.afterFinish}
 				</p>
 
 				<div
@@ -97,7 +208,7 @@ const steps = [
 							class="m-0 flex flex-wrap items-baseline gap-x-3 gap-y-1 font-display text-2xl sm:text-3xl font-bold tracking-tight text-[var(--color-fg)]"
 						>
 							<span
-								>Nota{" "}
+								>{t.formulaRating}{" "}
 								<span
 									class="font-sans text-xs sm:text-sm font-medium tracking-normal text-[var(--color-fg-muted)] tabular-nums"
 									>(1–5)</span
@@ -107,19 +218,19 @@ const steps = [
 								aria-hidden="true"
 								class="text-[var(--color-fg-muted)]">÷</span
 							>
-							<span class="sr-only">dividido por</span>
-							<span>Horas</span>
+							<span class="sr-only">{t.dividedBy}</span>
+							<span>{t.formulaHours}</span>
 							<span
 								aria-hidden="true"
 								class="text-[var(--color-fg-muted)]">×</span
 							>
-							<span class="sr-only">por</span>
+							<span class="sr-only">{t.times}</span>
 							<span class="tabular-nums">{ratioScale}</span>
 							<span
 								aria-hidden="true"
 								class="text-[var(--color-fg-muted)]">=</span
 							>
-							<span class="sr-only">igual a</span>
+							<span class="sr-only">{t.equals}</span>
 							<span class="text-[var(--color-brand)]">Ratio</span>
 						</p>
 						<dl
@@ -129,28 +240,24 @@ const steps = [
 								<dt
 									class="font-semibold text-[var(--color-fg)]"
 								>
-									Nota, en escala 1–5
+									{t.ratingTermTitle}
 								</dt>
 								<dd
 									class="m-0 mt-1 text-[var(--color-fg-secondary)]"
 								>
-									Cada fuente puntúa en su propia escala, así
-									que la nota se normaliza primero: 82/100
-									pasa a 4.1.
+									{t.ratingTermBody}
 								</dd>
 							</div>
 							<div>
 								<dt
 									class="font-semibold text-[var(--color-fg)]"
 								>
-									Por qué × 20
+									{t.scaleTermTitle}
 								</dt>
 								<dd
 									class="m-0 mt-1 text-[var(--color-fg-secondary)]"
 								>
-									Deja el resultado como un número de 0 a 100:
-									un juego de cinco estrellas que terminas en
-									una hora queda en 100.
+									{t.scaleTermBody}
 								</dd>
 							</div>
 						</dl>
@@ -165,17 +272,17 @@ const steps = [
 				<figcaption class="mb-7">
 					<span
 						class="block text-xs font-semibold uppercase tracking-wider text-[var(--color-fg-muted)]"
-						>Misma nota, distinto tiempo</span
+						>{t.figureLabel}</span
 					>
 					<span
 						class="block mt-1 font-display text-xl font-bold text-[var(--color-fg)] text-balance"
-						>Una gran aventura, o un juego corto cada fin de semana</span
+						>{t.figureTitle}</span
 					>
 				</figcaption>
 
 				<div class="mb-7 flex flex-col gap-7">
 					{
-						examples.map(example => (
+						t.examples.map(example => (
 							<div>
 								<div class="mb-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
 									<p class="m-0 text-sm font-semibold text-[var(--color-fg)]">
@@ -184,7 +291,7 @@ const steps = [
 									<span
 										class="inline-flex text-[var(--color-brand)]"
 										role="img"
-										aria-label={`Nota ${score} de 5`}
+										aria-label={t.scoreLabel}
 									>
 										{stars.map(icon => (
 											<span
@@ -211,7 +318,7 @@ const steps = [
 									</div>
 								) : (
 									<ul class="m-0 grid h-14 list-none grid-cols-4 gap-2 p-0">
-										{weekends.map(weekend => (
+										{t.weekends.map(weekend => (
 											<li
 												class="flex items-center justify-center gap-1.5 rounded-xl text-xs font-semibold text-white"
 												style={blockBackground}
@@ -226,11 +333,10 @@ const steps = [
 													class="max-sm:hidden"
 													aria-hidden="true"
 												>
-													Un juego
+													{t.oneGame}
 												</span>
 												<span class="sr-only">
-													Un juego corto el {weekend}{" "}
-													fin de semana
+													{t.weekendLabel(weekend)}
 												</span>
 											</li>
 										))}
@@ -251,11 +357,9 @@ const steps = [
 					class="m-0 mt-auto pt-5 border-t border-[var(--color-line)] text-sm text-[var(--color-fg-secondary)] leading-relaxed"
 				>
 					<strong class="text-[var(--color-fg)]"
-						>Los dos son grandes juegos.</strong
+						>{t.closingStrong}</strong
 					>{" "}
-					La aventura tiene un Ratio más bajo solo porque dura más, no porque
-					sea peor. Completr te ayuda a elegir el que mejor encaja en el
-					tiempo que tienes ahora.
+					{t.closingText}
 				</p>
 			</figure>
 		</div>
@@ -264,7 +368,7 @@ const steps = [
 			class="m-0 mt-20 p-0 list-none grid grid-cols-1 md:grid-cols-3 gap-4"
 		>
 			{
-				steps.map((step, index) => (
+				t.steps.map((step, index) => (
 					<li class="relative flex gap-4 p-6 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-line)]">
 						<span
 							class="flex items-center justify-center w-11 h-11 shrink-0 rounded-xl bg-[var(--color-brand)]/15 text-[var(--color-brand)]"
@@ -276,7 +380,7 @@ const steps = [
 						</span>
 						<div>
 							<span class="block text-xs font-semibold text-[var(--color-fg-muted)]">
-								Paso {index + 1}
+								{t.stepLabel(index + 1)}
 							</span>
 							<h3 class="font-display m-0 mt-0.5 mb-1.5 text-lg font-bold text-[var(--color-fg)]">
 								{step.title}

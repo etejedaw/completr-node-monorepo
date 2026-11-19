@@ -1,3 +1,5 @@
+import { type UiActionMenuLink } from "../action-menu/ui-action-menu.model";
+
 export interface UiPickerOption {
 	value: string;
 	label: string;
@@ -16,4 +18,9 @@ export interface UiPickerAction {
 	id: string;
 	label: string;
 	icon: string;
+	link?: UiActionMenuLink;
 }
+
+export type UiPickerTriggerSize = "sm" | "md";
+
+export type UiMultiPickerVariant = "field" | "compact";

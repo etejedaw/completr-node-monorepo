@@ -36,6 +36,23 @@ void describe("BacklogQuerySchema", () => {
 		);
 	});
 
+	void it("normalizes mood_tags like the rest of the tag filters", () => {
+		assert.deepEqual(
+			BacklogQuerySchema.parse({ mood_tags: " Cózy ,rpg,COZY" })
+				.mood_tags,
+			["cozy", "rpg"]
+		);
+	});
+
+	void it("rejects more than ten distinct mood_tags", () => {
+		const tags = Array.from({ length: 11 }, (_, index) => `tag${index}`);
+
+		assert.equal(
+			BacklogQuerySchema.safeParse({ mood_tags: tags.join(",") }).success,
+			false
+		);
+	});
+
 	void it("parses boolean flags from query strings", () => {
 		const parsed = BacklogQuerySchema.parse({
 			undated: "true",

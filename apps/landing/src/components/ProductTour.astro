@@ -13,102 +13,235 @@ import listDetailMobile from "../assets/screenshots/list-detail-mobile.webp";
 import profileDesktop from "../assets/screenshots/profile-desktop.webp";
 import queueDesktop from "../assets/screenshots/queue-desktop.webp";
 import queueMobile from "../assets/screenshots/queue-mobile.webp";
+import { type Locale, toLocale } from "../i18n/locales";
 import DeviceFrames from "./DeviceFrames.astro";
 
-const libraryViews = [
-	{
-		id: "diary",
-		label: "Diary",
-		icon: "view_agenda",
-		image: backlogDiaryDesktop,
-		alt: "Vista Diary de My Games: tarjetas con portada, estado, nota, run y Ratio"
-	},
-	{
-		id: "hardcore",
-		label: "Hardcore",
-		icon: "table_rows",
-		image: backlogTableDesktop,
-		alt: "Vista Hardcore de My Games: tabla ordenable por score, duración y Ratio"
-	},
-	{
-		id: "calendar",
-		label: "Calendar",
-		icon: "calendar_month",
-		image: backlogCalendarDesktop,
-		alt: "Vista Calendar de My Games: qué jugaste cada día del mes"
-	}
-];
+const lang = toLocale(Astro.currentLocale);
 
-const chapters = [
-	{
-		id: "up-next",
-		eyebrow: "Up Next",
-		title: "Qué jugar después, decidido.",
-		body: "Arma tu cola con los juegos que vienen. Ordénala a mano o por Ratio y empieza el siguiente con un toque.",
-		points: [
-			"El próximo juego, destacado arriba",
-			"Orden manual con arrastre o por Ratio",
-			"Start playing lo pasa a jugando"
+const copy = {
+	es: {
+		eyebrow: "La app por dentro",
+		titleStart: "Todo tu backlog,",
+		titleHighlight: "en un solo lugar",
+		lead: "Capturas reales de Completr, en escritorio y en el celular.",
+		libraryEyebrow: "My Games",
+		libraryTitle: "Tu biblioteca, como la quieras ver.",
+		libraryBody:
+			"Cada juego con su estado, tu nota, tus horas reales y el Ratio a la vista. Cambia de vista según lo que necesites.",
+		viewsLabel: "Vista de My Games",
+		libraryMobileAlt: "My Games en el celular",
+		libraryPoints: [
+			"Filtros, vistas guardadas y tags de ánimo",
+			"Surprise me elige por ti entre tus filtros",
+			"Runs en co-op con tus amigos"
 		],
-		desktop: queueDesktop,
-		desktopAlt:
-			"Up Next en escritorio: el próximo juego destacado y la cola con su Ratio",
-		mobile: queueMobile,
-		mobileAlt: "Up Next en el celular",
-		windowTitle: "Up Next · Completr"
+		libraryViews: [
+			{
+				id: "diary",
+				label: "Diary",
+				icon: "view_agenda",
+				image: backlogDiaryDesktop,
+				alt: "Vista Diary de My Games: tarjetas con portada, estado, nota, run y Ratio"
+			},
+			{
+				id: "hardcore",
+				label: "Hardcore",
+				icon: "table_rows",
+				image: backlogTableDesktop,
+				alt: "Vista Hardcore de My Games: tabla ordenable por score, duración y Ratio"
+			},
+			{
+				id: "calendar",
+				label: "Calendar",
+				icon: "calendar_month",
+				image: backlogCalendarDesktop,
+				alt: "Vista Calendar de My Games: qué jugaste cada día del mes"
+			}
+		],
+		chapters: [
+			{
+				id: "up-next",
+				eyebrow: "Up Next",
+				title: "Qué jugar después, decidido.",
+				body: "Arma tu cola con los juegos que vienen. Ordénala a mano o por Ratio y empieza el siguiente con un toque.",
+				points: [
+					"El próximo juego, destacado arriba",
+					"Orden manual con arrastre o por Ratio",
+					"Start playing lo pasa a jugando"
+				],
+				desktop: queueDesktop,
+				desktopAlt:
+					"Up Next en escritorio: el próximo juego destacado y la cola con su Ratio",
+				mobile: queueMobile,
+				mobileAlt: "Up Next en el celular",
+				windowTitle: "Up Next · Completr"
+			},
+			{
+				id: "game",
+				eyebrow: "Ficha del juego",
+				title: "Cada juego, con su Ratio.",
+				body: "Metacritic, RAWG y HowLongToBeat en una sola ficha, con el Ratio calculado y tus runs anteriores a mano.",
+				points: [
+					"Score y duración de varias fuentes",
+					"Tus runs: veces jugado, completado y horas",
+					"Favorito, Up Next, My Shelf y listas desde la ficha"
+				],
+				desktop: gameDetailDesktop,
+				desktopAlt:
+					"Ficha de Resident Evil 4 con Ratio, scores, duración y tus runs",
+				mobile: gameDetailMobile,
+				mobileAlt: "Ficha del juego en el celular",
+				windowTitle: "Resident Evil 4 · Completr"
+			},
+			{
+				id: "lists",
+				eyebrow: "Listas y sagas",
+				title: "Sigue cada saga a tu ritmo.",
+				body: "Sigue listas curadas o arma las tuyas y mira tu avance juego por juego. Descubre las sagas del catálogo y sigue las que te importan.",
+				points: [
+					"Tu avance en cada lista",
+					"Compara tu avance con el de un amigo",
+					"Duplica una lista pública para hacerla tuya"
+				],
+				desktop: listDetailDesktop,
+				desktopAlt:
+					"Lista de la saga Resident Evil con el progreso y el Ratio de cada entrega",
+				mobile: listDetailMobile,
+				mobileAlt: "Lista de Resident Evil en el celular con tu avance",
+				windowTitle: "Resident Evil · Completr"
+			},
+			{
+				id: "profile",
+				eyebrow: "Perfil y amigos",
+				title: "Tu perfil, tu vitrina.",
+				body: "Tus favoritos, lo que estás jugando, tus reseñas y tus números. Sigue a tus amigos y mira qué terminan en el feed.",
+				points: [
+					"Top de favoritos y resumen de tu biblioteca",
+					"Feed con la actividad de quienes sigues",
+					"Privacidad por sección: tú decides qué se ve"
+				],
+				desktop: profileDesktop,
+				desktopAlt:
+					"Perfil público con favoritos, estadísticas y resumen de la biblioteca",
+				mobile: feedMobile,
+				mobileAlt: "Feed de actividad en el celular",
+				windowTitle: "@etejedaw · Completr"
+			}
+		]
 	},
-	{
-		id: "game",
-		eyebrow: "Ficha del juego",
-		title: "Cada juego, con su Ratio.",
-		body: "Metacritic, RAWG y HowLongToBeat en una sola ficha, con el Ratio calculado y tus runs anteriores a mano.",
-		points: [
-			"Score y duración de varias fuentes",
-			"Tus runs: veces jugado, completado y horas",
-			"Favorito, Up Next, My Shelf y listas desde la ficha"
+	en: {
+		eyebrow: "Inside the app",
+		titleStart: "Your whole backlog,",
+		titleHighlight: "in one place",
+		lead: "Real Completr screenshots, on desktop and on mobile.",
+		libraryEyebrow: "My Games",
+		libraryTitle: "Your library, the way you want to see it.",
+		libraryBody:
+			"Every game with its status, your rating, your real hours and the Ratio in plain sight. Switch views depending on what you need.",
+		viewsLabel: "My Games view",
+		libraryMobileAlt: "My Games on a phone",
+		libraryPoints: [
+			"Filters, saved views and mood tags",
+			"Surprise me picks for you among your filters",
+			"Co-op runs with your friends"
 		],
-		desktop: gameDetailDesktop,
-		desktopAlt:
-			"Ficha de Resident Evil 4 con Ratio, scores, duración y tus runs",
-		mobile: gameDetailMobile,
-		mobileAlt: "Ficha del juego en el celular",
-		windowTitle: "Resident Evil 4 · Completr"
-	},
-	{
-		id: "lists",
-		eyebrow: "Listas y sagas",
-		title: "Termina la saga que empezaste.",
-		body: "Sigue listas curadas o arma las tuyas y mira tu avance juego por juego. Descubre las sagas del catálogo y sigue las que te importan.",
-		points: [
-			"Tu avance en cada lista",
-			"Compara tu avance con el de un amigo",
-			"Duplica una lista pública para hacerla tuya"
+		libraryViews: [
+			{
+				id: "diary",
+				label: "Diary",
+				icon: "view_agenda",
+				image: backlogDiaryDesktop,
+				alt: "My Games Diary view: cards with cover, status, rating, run and Ratio"
+			},
+			{
+				id: "hardcore",
+				label: "Hardcore",
+				icon: "table_rows",
+				image: backlogTableDesktop,
+				alt: "My Games Hardcore view: a table sortable by score, length and Ratio"
+			},
+			{
+				id: "calendar",
+				label: "Calendar",
+				icon: "calendar_month",
+				image: backlogCalendarDesktop,
+				alt: "My Games Calendar view: what you played each day of the month"
+			}
 		],
-		desktop: listDetailDesktop,
-		desktopAlt:
-			"Lista de la saga Resident Evil con el progreso y el Ratio de cada entrega",
-		mobile: listDetailMobile,
-		mobileAlt: "Lista de Resident Evil en el celular con tu avance",
-		windowTitle: "Resident Evil · Completr"
-	},
-	{
-		id: "profile",
-		eyebrow: "Perfil y amigos",
-		title: "Tu perfil, tu vitrina.",
-		body: "Tus favoritos, lo que estás jugando, tus reseñas y tus números. Sigue a tus amigos y mira qué terminan en el feed.",
-		points: [
-			"Top de favoritos y resumen de tu biblioteca",
-			"Feed con la actividad de quienes sigues",
-			"Privacidad por sección: tú decides qué se ve"
-		],
-		desktop: profileDesktop,
-		desktopAlt:
-			"Perfil público con favoritos, estadísticas y resumen de la biblioteca",
-		mobile: feedMobile,
-		mobileAlt: "Feed de actividad en el celular",
-		windowTitle: "@etejedaw · Completr"
+		chapters: [
+			{
+				id: "up-next",
+				eyebrow: "Up Next",
+				title: "What to play next, decided.",
+				body: "Build your queue with the games coming up. Sort it by hand or by Ratio and start the next one with a tap.",
+				points: [
+					"The next game, highlighted on top",
+					"Manual order by dragging, or by Ratio",
+					"Start playing moves it to Playing"
+				],
+				desktop: queueDesktop,
+				desktopAlt:
+					"Up Next on desktop: the highlighted next game and the queue with its Ratio",
+				mobile: queueMobile,
+				mobileAlt: "Up Next on a phone",
+				windowTitle: "Up Next · Completr"
+			},
+			{
+				id: "game",
+				eyebrow: "Game page",
+				title: "Every game, with its Ratio.",
+				body: "Metacritic, RAWG and HowLongToBeat on a single page, with the Ratio calculated and your past runs at hand.",
+				points: [
+					"Score and length from several sources",
+					"Your runs: times played, completed and hours",
+					"Favorite, Up Next, My Shelf and lists from the game page"
+				],
+				desktop: gameDetailDesktop,
+				desktopAlt:
+					"Resident Evil 4 game page with Ratio, scores, length and your runs",
+				mobile: gameDetailMobile,
+				mobileAlt: "Game page on a phone",
+				windowTitle: "Resident Evil 4 · Completr"
+			},
+			{
+				id: "lists",
+				eyebrow: "Lists and sagas",
+				title: "Follow every saga at your own pace.",
+				body: "Follow curated lists or build your own and see your progress game by game. Discover the sagas in the catalog and follow the ones you care about.",
+				points: [
+					"Your progress in every list",
+					"Compare your progress with a friend's",
+					"Duplicate a public list to make it yours"
+				],
+				desktop: listDetailDesktop,
+				desktopAlt:
+					"Resident Evil saga list with the progress and Ratio of each entry",
+				mobile: listDetailMobile,
+				mobileAlt: "Resident Evil list on a phone with your progress",
+				windowTitle: "Resident Evil · Completr"
+			},
+			{
+				id: "profile",
+				eyebrow: "Profile and friends",
+				title: "Your profile, your showcase.",
+				body: "Your favorites, what you're playing, your reviews and your numbers. Follow your friends and see what they finish in the feed.",
+				points: [
+					"Top favorites and a summary of your library",
+					"A feed with the activity of the people you follow",
+					"Privacy per section: you decide what's visible"
+				],
+				desktop: profileDesktop,
+				desktopAlt:
+					"Public profile with favorites, stats and a library summary",
+				mobile: feedMobile,
+				mobileAlt: "Activity feed on a phone",
+				windowTitle: "@etejedaw · Completr"
+			}
+		]
 	}
-];
+} satisfies Record<Locale, unknown>;
+
+const t = copy[lang];
 ---
 
 <section
@@ -117,16 +250,15 @@ const chapters = [
 >
 	<div class="max-w-6xl mx-auto">
 		<div class="max-w-2xl mb-14">
-			<span class="eyebrow">La app por dentro</span>
+			<span class="eyebrow">{t.eyebrow}</span>
 			<h2
 				class="font-display mt-3 mb-4 text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance"
 			>
-				Todo tu backlog, <span class="text-gradient"
-					>en un solo lugar</span
-				>.
+				{t.titleStart}{" "}
+				<span class="text-gradient">{t.titleHighlight}</span>.
 			</h2>
 			<p class="m-0 text-[var(--color-fg-secondary)] leading-relaxed">
-				Capturas reales de Completr, en escritorio y en el celular.
+				{t.lead}
 			</p>
 		</div>
 
@@ -134,23 +266,22 @@ const chapters = [
 			class="library-tour grid gap-10 lg:grid-cols-12 lg:gap-12 items-center"
 		>
 			<div class="min-w-0 lg:col-span-4 flex flex-col gap-5">
-				<span class="eyebrow">My Games</span>
+				<span class="eyebrow">{t.libraryEyebrow}</span>
 				<h3
 					class="font-display m-0 text-2xl md:text-3xl font-bold tracking-tight leading-tight"
 				>
-					Tu biblioteca, como la quieras ver.
+					{t.libraryTitle}
 				</h3>
 				<p class="m-0 text-[var(--color-fg-secondary)] leading-relaxed">
-					Cada juego con su estado, tu nota, tus horas reales y el
-					Ratio a la vista. Cambia de vista según lo que necesites.
+					{t.libraryBody}
 				</p>
 				<div
 					role="radiogroup"
-					aria-label="Vista de My Games"
+					aria-label={t.viewsLabel}
 					class="inline-flex self-start gap-1 p-1 rounded-xl bg-[var(--color-surface)] border border-[var(--color-line)]"
 				>
 					{
-						libraryViews.map((view, index) => (
+						t.libraryViews.map((view, index) => (
 							<label class="library-tab relative inline-flex items-center gap-1.5 min-h-[44px] px-3.5 rounded-lg text-sm font-medium text-[var(--color-fg-muted)] cursor-pointer transition-colors hover:text-[var(--color-fg)]">
 								<input
 									type="radio"
@@ -177,19 +308,19 @@ const chapters = [
 						<span
 							class="material-icons text-[1.125rem] text-[var(--color-brand)]"
 							aria-hidden="true">check</span
-						>Filtros, vistas guardadas y tags de ánimo
+						>{t.libraryPoints[0]}
 					</li>
 					<li class="flex gap-2">
 						<span
 							class="material-icons text-[1.125rem] text-[var(--color-brand)]"
 							aria-hidden="true">check</span
-						>Surprise me elige por ti entre tus filtros
+						>{t.libraryPoints[1]}
 					</li>
 					<li class="flex gap-2">
 						<span
 							class="material-icons text-[1.125rem] text-[var(--color-brand)]"
 							aria-hidden="true">check</span
-						>Runs en co-op con tus amigos
+						>{t.libraryPoints[2]}
 					</li>
 				</ul>
 			</div>
@@ -199,12 +330,12 @@ const chapters = [
 					desktop={backlogDiaryDesktop}
 					desktopAlt=""
 					mobile={backlogMobile}
-					mobileAlt="My Games en el celular"
+					mobileAlt={t.libraryMobileAlt}
 					windowTitle="My Games · Completr"
 				>
 					<div slot="desktop" class="grid">
 						{
-							libraryViews.map(view => (
+							t.libraryViews.map(view => (
 								<div
 									class="library-view [grid-area:1/1]"
 									data-view={view.id}
@@ -227,7 +358,7 @@ const chapters = [
 		</div>
 
 		{
-			chapters.map((chapter, index) => (
+			t.chapters.map((chapter, index) => (
 				<div
 					id={chapter.id}
 					class="grid gap-10 lg:grid-cols-12 lg:gap-12 items-center mt-28"

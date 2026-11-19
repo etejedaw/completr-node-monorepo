@@ -6,7 +6,9 @@ title: Saved views now show backlog stats
 icon: insights
 tint: brand
 landing:
-    pitch: "Cada vista guardada muestra su propio panel de estadísticas: totales, completitud, ratio y los juegos destacados del set. Las métricas se ajustan al filtro activo."
+    pitch:
+        es: "Cada vista guardada muestra su propio panel de estadísticas: totales, completitud, ratio y los juegos destacados del set. Las métricas se ajustan al filtro activo."
+        en: "Each saved view shows its own stats panel: totals, completion, Ratio and the standout games in the set. The numbers follow the active filter."
 highlights:
     - icon: bar_chart
       tint: brand

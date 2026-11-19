@@ -14,7 +14,6 @@ import { type Genre, type Platform } from "../../../../core/models";
 import { ViewportService } from "../../../../core/services/viewport";
 import { FilterSection } from "../../../../shared/components/filter-section/filter-section";
 import { GameFilterPanel } from "../../../../shared/components/game-filter-panel/game-filter-panel";
-import { MoodTagsInput } from "../../../../shared/components/mood-tags-input/mood-tags-input";
 import { RangeInputs } from "../../../../shared/components/range-inputs/range-inputs";
 import { StarRating } from "../../../../shared/components/star-rating/star-rating";
 import {
@@ -31,6 +30,8 @@ import {
 	UiSwitch
 } from "../../../../shared/ui";
 import { BACKLOG_STATUS_FILTERS } from "../../../../shared/utils/backlog-status";
+import { BacklogTagFilter } from "../backlog-tag-filter/backlog-tag-filter";
+import { type BacklogTagFilterStatus } from "../backlog-tag-filter/backlog-tag-filter.model";
 
 export type SortOrder = "asc" | "desc";
 
@@ -57,10 +58,10 @@ const SORT_ORDER_OPTIONS: readonly UiPickerOption[] = [
 	imports: [
 		NgTemplateOutlet,
 		RouterLink,
+		BacklogTagFilter,
 		UiChipGroup,
 		FilterSection,
 		GameFilterPanel,
-		MoodTagsInput,
 		UiMultiOptionPicker,
 		UiOptionPicker,
 		RangeInputs,
@@ -85,7 +86,8 @@ export class BacklogFiltersPanel {
 
 	readonly allPlatforms = input<Platform[]>([]);
 	readonly allGenres = input<Genre[]>([]);
-	readonly moodTagsSuggestions = input<string[]>([]);
+	readonly tagOptions = input<readonly UiPickerOption[]>([]);
+	readonly tagStatus = input<BacklogTagFilterStatus>("ready");
 	readonly activeFiltersCount = input(0);
 	readonly advancedFiltersActive = input(false);
 	readonly hasActiveView = input(false);
@@ -124,6 +126,15 @@ export class BacklogFiltersPanel {
 	readonly cleared = output<void>();
 	readonly applied = output<void>();
 	readonly closed = output<void>();
+	readonly tagLimitReached = output<number>();
+	readonly tagsRetried = output<void>();
+
+	protected readonly hasNoOwnTags = computed(
+		() =>
+			this.tagStatus() === "ready" &&
+			this.tagOptions().length === 0 &&
+			this.selectedMoodTags().length === 0
+	);
 
 	protected readonly hasActiveFilters = computed(
 		() => this.activeFiltersCount() > 0
@@ -164,6 +175,10 @@ export class BacklogFiltersPanel {
 			? `Save & show ${total} ${noun}`
 			: `Show ${total} ${noun}`;
 	});
+
+	protected setTags(tags: string[]) {
+		this.selectedMoodTags.set(tags);
+	}
 
 	protected setPlatforms(codes: readonly string[]) {
 		this.selectedPlatforms.set(new Set(codes));

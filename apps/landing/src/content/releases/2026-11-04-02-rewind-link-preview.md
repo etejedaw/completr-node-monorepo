@@ -6,7 +6,9 @@ title: "Rewind links with a matching preview"
 icon: link
 tint: purple
 landing:
-    pitch: "Cuando pegas el enlace de tu Rewind en una red social o en un chat, la vista previa ahora tiene el mismo estilo que la imagen para historias: tus portadas del año, los juegos que terminaste y tu tipo de jugador."
+    pitch:
+        es: "Cuando pegas el enlace de tu Rewind en una red social o en un chat, la vista previa ahora tiene el mismo estilo que la imagen para historias: tus portadas del año, los juegos que terminaste y tu tipo de jugador."
+        en: "When you paste your Rewind link into a social network or a chat, the preview now has the same style as the story image: your year's covers, the games you finished and your player type."
 highlights:
     - icon: link
       tint: purple

@@ -12,8 +12,9 @@ import {
 	Component
 } from "@angular/core";
 import { TestBed } from "@angular/core/testing";
+import { Router } from "@angular/router";
 import { render, screen, waitFor, within } from "@testing-library/angular";
-import userEvent from "@testing-library/user-event";
+import userEvent, { type UserEvent } from "@testing-library/user-event";
 
 import { environment } from "../../../../environments/environment";
 import { type BacklogEntry, type Platform } from "../../../core/models";
@@ -119,6 +120,27 @@ describe("BacklogList interaction", () => {
 	let favoriteGameIds: string[];
 	let reportedTotal: number | null;
 	let secondPage: BacklogEntry[];
+	let myTags: {
+		tag: string;
+		usageCount: number;
+		description: string | null;
+	}[];
+	let myTagsStatus: number;
+	let myTagsRequests: number;
+	let holdViewPatches: boolean;
+	let viewPatchFailure: number | null;
+	const heldViewPatches: TestRequest[] = [];
+	let statsStatus: number;
+	let holdStats: boolean;
+	const statsRequests: TestRequest[] = [];
+	const heldStats: TestRequest[] = [];
+
+	function hasAllTags(
+		owned: readonly string[] | undefined,
+		wanted: string[]
+	) {
+		return wanted.every(tag => owned?.includes(tag));
+	}
 
 	function listBacklog(req: TestRequest) {
 		const params = req.request.params;
@@ -126,6 +148,7 @@ describe("BacklogList interaction", () => {
 		const statuses = params.get("status")?.split(",");
 		const search = params.get("search")?.toLowerCase();
 		const platinumedOnly = params.get("platinumed_only") === "true";
+		const moodTags = params.get("mood_tags")?.split(",") ?? [];
 		if (Number(params.get("offset") ?? 0) > 0) {
 			return req.flush({
 				data: {
@@ -138,7 +161,8 @@ describe("BacklogList interaction", () => {
 			item =>
 				(!statuses || statuses.includes(item.status)) &&
 				(!search || item.game.title.toLowerCase().includes(search)) &&
-				(!platinumedOnly || !!item.platinum)
+				(!platinumedOnly || !!item.platinum) &&
+				hasAllTags(item.moodTags, moodTags)
 		);
 		req.flush({
 			data: { backlog, total: reportedTotal ?? backlog.length }
@@ -221,6 +245,92 @@ describe("BacklogList interaction", () => {
 
 	const exportRequests: TestRequest["request"][] = [];
 
+	function statsFiltersOf(req: TestRequest): Record<string, string> {
+		const { params, url } = req.request;
+		if (params.keys().length > 0)
+			return Object.fromEntries(
+				params.keys().map(key => [key, params.get(key) ?? ""])
+			);
+		const viewId = url.split("/").at(-2);
+		const view = savedViews.find(item => item.id === viewId);
+		return (view?.filters ?? {}) as Record<string, string>;
+	}
+
+	function respondToStats(req: TestRequest) {
+		if (statsStatus !== 200)
+			return req.flush(
+				{ title: "Failed" },
+				{ status: statsStatus, statusText: "Failed" }
+			);
+		const filters = statsFiltersOf(req);
+		const statuses = filters["status"]?.split(",");
+		const moodTags = filters["mood_tags"]?.split(",") ?? [];
+		const matching = library.filter(
+			item =>
+				(!statuses || statuses.includes(item.status)) &&
+				hasAllTags(item.moodTags, moodTags)
+		);
+		const countOf = (status: string) =>
+			matching.filter(item => item.status === status).length;
+		req.flush({
+			data: {
+				stats: {
+					totalEntries: matching.length,
+					totalRealHours: null,
+					avgRatio: null,
+					avgPersonalRatio: null,
+					countByStatus: {
+						not_started: countOf("not_started"),
+						playing: countOf("playing"),
+						completed: countOf("completed"),
+						abandoned: countOf("abandoned"),
+						endless: countOf("endless")
+					}
+				}
+			}
+		});
+	}
+
+	function answerStats(req: TestRequest) {
+		statsRequests.push(req);
+		if (holdStats) {
+			heldStats.push(req);
+			return;
+		}
+		respondToStats(req);
+	}
+
+	function respondToViewPatch(req: TestRequest, failWith: number | null) {
+		const id = req.request.url.split("/").at(-1)!;
+		if (failWith !== null)
+			return req.flush(
+				{ title: "Failed", status: failWith },
+				{ status: failWith, statusText: "Failed" }
+			);
+		savedViews = savedViews.map(view =>
+			view.id === id
+				? { ...view, ...(req.request.body as Partial<SavedFilter>) }
+				: view
+		);
+		req.flush({
+			data: {
+				savedFilter:
+					savedViews.find(view => view.id === id) ??
+					savedView(req.request.body as Partial<SavedFilter>)
+			}
+		});
+	}
+
+	function patchSavedView(req: TestRequest) {
+		const { method, url, body } = req.request;
+		savedViewWrites.push({ method, url, body });
+		if (holdViewPatches) {
+			heldViewPatches.push(req);
+			return;
+		}
+		respondToViewPatch(req, viewPatchFailure);
+	}
+
 	function answer(req: TestRequest) {
 		const { method, url } = req.request;
 		const platinumMatch = url.match(
@@ -246,8 +356,16 @@ describe("BacklogList interaction", () => {
 		}
 		if (url.endsWith("/progress") || url.endsWith("/coop"))
 			return req.flush({ data: { progress: [], members: [] } });
-		if (url.endsWith("/stats"))
-			return req.flush({}, { status: 500, statusText: "Server Error" });
+		if (url.endsWith("/stats")) return answerStats(req);
+		if (url === `${api}/users/me/mood-tags`) {
+			myTagsRequests++;
+			if (myTagsStatus !== 200)
+				return req.flush(
+					{ title: "Failed" },
+					{ status: myTagsStatus, statusText: "Failed" }
+				);
+			return req.flush({ data: { tags: myTags } });
+		}
 		if (url.endsWith("/mood-tags"))
 			return req.flush({ data: { tags: [] } });
 		if (url === `${api}/users/me/queue/backlog-ids`)
@@ -267,6 +385,11 @@ describe("BacklogList interaction", () => {
 			);
 		if (url === `${api}/users/me/saved-filters` && method === "GET")
 			return req.flush({ data: { savedFilters: savedViews } });
+		if (
+			method === "PATCH" &&
+			/\/users\/me\/saved-filters\/[^/]+$/.test(url)
+		)
+			return patchSavedView(req);
 		if (
 			url.startsWith(`${api}/users/me/saved-filters`) &&
 			method !== "GET"
@@ -367,6 +490,16 @@ describe("BacklogList interaction", () => {
 		favoriteGameIds = [];
 		reportedTotal = null;
 		secondPage = [];
+		myTags = [];
+		myTagsStatus = 200;
+		myTagsRequests = 0;
+		holdViewPatches = false;
+		viewPatchFailure = null;
+		heldViewPatches.length = 0;
+		statsStatus = 500;
+		holdStats = false;
+		statsRequests.length = 0;
+		heldStats.length = 0;
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -1645,6 +1778,1231 @@ describe("BacklogList interaction", () => {
 				"true"
 			);
 			expect(bulkCalls).toHaveLength(1);
+		});
+	});
+
+	describe("tags picker", () => {
+		function tagLibrary(): BacklogEntry[] {
+			return initialLibrary().map(item => ({
+				...item,
+				moodTags:
+					{
+						b1: ["cozy", "short"],
+						b2: ["cozy"],
+						b3: []
+					}[item.id] ?? []
+			}));
+		}
+
+		function tagsPicker() {
+			return screen.getByRole("button", { name: /^Tags:/ });
+		}
+
+		function tagsList() {
+			return within(
+				screen.getByRole("listbox", { name: "Filter by your tags" })
+			);
+		}
+
+		async function openTagsPicker(user: UserEvent) {
+			await user.click(tagsPicker());
+			await screen.findByRole("listbox", { name: "Filter by your tags" });
+		}
+
+		function tagOption(name: string) {
+			return tagsList().getByRole("option", {
+				name: new RegExp(`^${name}\\b`)
+			});
+		}
+
+		function panelTags() {
+			return within(
+				within(screen.getByRole("dialog")).getByRole("group", {
+					name: "Tags"
+				})
+			);
+		}
+
+		function filtersButton() {
+			return screen
+				.getAllByRole("button", { name: /^Filters/ })
+				.find(button => button.classList.contains("max-sm:!hidden"))!;
+		}
+
+		function libraryQueries() {
+			return backlogQueries.filter(query => query.get("limit") !== "1");
+		}
+
+		function lastLibraryQuery() {
+			return libraryQueries().at(-1)!;
+		}
+
+		function currentUrl() {
+			return new URL(TestBed.inject(Router).url, "http://app.test");
+		}
+
+		beforeEach(() => {
+			library = tagLibrary();
+			myTags = [
+				{ tag: "short", usageCount: 1, description: "Under 5 hours" },
+				{ tag: "cozy", usageCount: 2, description: null }
+			];
+		});
+
+		it("sits in the toolbar left of View and no tag row is left above the list", async () => {
+			savedViews = [savedView({ id: "v1", name: "Short ones" })];
+			await renderBacklog();
+
+			const toolbarButtons = screen
+				.getAllByRole("button")
+				.filter(button => /^(Tags|View):/.test(button.ariaLabel ?? ""));
+			expect(toolbarButtons.map(button => button.ariaLabel)).toEqual([
+				"Tags: Any",
+				"View: None"
+			]);
+			expect(
+				screen.queryByRole("radiogroup", { name: "Tag source" })
+			).not.toBeInTheDocument();
+			expect(
+				screen.queryByRole("group", { name: "Filter by your tags" })
+			).not.toBeInTheDocument();
+			expect(screen.queryByText(/Community/)).not.toBeInTheDocument();
+		});
+
+		it("lists only your tags, most used first, with how many games use each", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+
+			await openTagsPicker(user);
+
+			const [first, second, ...rest] = tagsList().getAllByRole("option");
+			expect(first).toHaveAccessibleName("cozy");
+			expect(first).toHaveTextContent(/2$/);
+			expect(second).toHaveAccessibleName("short");
+			expect(second).toHaveTextContent(/1$/);
+			expect(rest).toEqual([]);
+		});
+
+		it("filters by several of your tags at once and keeps them in the URL", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			await openTagsPicker(user);
+
+			await user.click(tagOption("cozy"));
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades", "Hollow Knight"])
+			);
+			await user.click(tagOption("short"));
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+			expect(lastLibraryQuery().get("mood_tags")).toBe("cozy,short");
+			expect(lastLibraryQuery().has("community_tags")).toBe(false);
+			await waitFor(() =>
+				expect(currentUrl().searchParams.get("mood_tags")).toBe(
+					"cozy,short"
+				)
+			);
+			expect(tagsPicker()).toHaveAccessibleName("Tags: cozy, short");
+			expect(within(filtersButton()).getByText("1")).toBeInTheDocument();
+		});
+
+		it("ends unfiltered after a double click on the same tag", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			await openTagsPicker(user);
+
+			await user.dblClick(tagOption("cozy"));
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual([
+					"Hades",
+					"Hollow Knight",
+					"Celeste"
+				])
+			);
+			expect(tagOption("cozy")).toHaveAttribute("aria-selected", "false");
+			expect(lastLibraryQuery().has("mood_tags")).toBe(false);
+			await waitFor(() =>
+				expect(currentUrl().searchParams.has("mood_tags")).toBe(false)
+			);
+		});
+
+		it("opening and closing the picker over and over changes nothing", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			const queriesBefore = libraryQueries().length;
+
+			for (let round = 0; round < 3; round++) {
+				await openTagsPicker(user);
+				await user.keyboard("{Escape}");
+				await waitFor(() =>
+					expect(
+						screen.queryByRole("listbox", {
+							name: "Filter by your tags"
+						})
+					).not.toBeInTheDocument()
+				);
+			}
+			await user.dblClick(tagsPicker());
+			await user.keyboard("{Escape}");
+			answerPending();
+
+			expect(libraryQueries()).toHaveLength(queriesBefore);
+			expect(tagsPicker()).toHaveAccessibleName("Tags: Any");
+			expect(currentUrl().searchParams.has("mood_tags")).toBe(false);
+		});
+
+		it("selects and clears in a rapid burst and ends with the last choice", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			await openTagsPicker(user);
+
+			await user.click(tagOption("cozy"));
+			await user.click(tagOption("short"));
+			await user.click(
+				tagsList().getByRole("option", { name: /^short/ })
+			);
+			await user.click(screen.getByRole("button", { name: "Clear" }));
+			await user.click(tagOption("short"));
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+			expect(lastLibraryQuery().get("mood_tags")).toBe("short");
+			expect(tagOption("short")).toHaveAttribute("aria-selected", "true");
+			expect(tagOption("cozy")).toHaveAttribute("aria-selected", "false");
+			await waitFor(() =>
+				expect(currentUrl().searchParams.get("mood_tags")).toBe("short")
+			);
+		});
+
+		it("refuses an eleventh tag and keeps the previous ten", async () => {
+			const user = userEvent.setup();
+			myTags = Array.from({ length: 11 }, (_, index) => ({
+				tag: `t${index + 1}`,
+				usageCount: 11 - index,
+				description: null
+			}));
+			await render(BacklogList, {
+				providers: [provideHttpClient(), provideHttpClientTesting()],
+				routes: [{ path: "**", component: BacklogList }],
+				initialRoute: `/?mood_tags=${myTags
+					.slice(0, 10)
+					.map(tag => tag.tag)
+					.join(",")}`
+			});
+			httpTesting = TestBed.inject(HttpTestingController);
+			await untilVisible(() =>
+				expect(tagsPicker()).toHaveAccessibleName("Tags: 10 tags")
+			);
+			await openTagsPicker(user);
+
+			await user.click(tagOption("t11"));
+			answerPending();
+
+			expect(tagOption("t11")).toHaveAttribute("aria-selected", "false");
+			expect(
+				lastLibraryQuery().get("mood_tags")?.split(",")
+			).toHaveLength(10);
+			expect(tagsPicker()).toHaveAccessibleName("Tags: 10 tags");
+		});
+
+		it("lets Surprise me inherit the selected tags", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			await openTagsPicker(user);
+			await user.click(tagOption("cozy"));
+			await user.keyboard("{Escape}");
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades", "Hollow Knight"])
+			);
+
+			backlogQueries.length = 0;
+			await user.click(
+				screen.getByRole("button", { name: /Surprise me/ })
+			);
+			await untilVisible(() =>
+				expect(backlogQueries.length).toBeGreaterThan(0)
+			);
+			expect(
+				backlogQueries.every(
+					query =>
+						query.get("mood_tags") === "cozy" &&
+						!query.has("community_tags")
+				)
+			).toBe(true);
+		});
+
+		it("cleans up garbage tags in the URL before asking the API", async () => {
+			await render(BacklogList, {
+				providers: [provideHttpClient(), provideHttpClientTesting()],
+				routes: [{ path: "**", component: BacklogList }],
+				initialRoute: "/?mood_tags=,, COZY ,cozy,,"
+			});
+			httpTesting = TestBed.inject(HttpTestingController);
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades", "Hollow Knight"])
+			);
+			expect(
+				libraryQueries().every(
+					query => query.get("mood_tags") === "cozy"
+				)
+			).toBe(true);
+			await waitFor(() =>
+				expect(currentUrl().searchParams.get("mood_tags")).toBe("cozy")
+			);
+			expect(tagsPicker()).toHaveAccessibleName("Tags: cozy");
+		});
+
+		it("ignores the community tags of an old link", async () => {
+			await render(BacklogList, {
+				providers: [provideHttpClient(), provideHttpClientTesting()],
+				routes: [{ path: "**", component: BacklogList }],
+				initialRoute: "/?community_tags=metroidvania"
+			});
+			httpTesting = TestBed.inject(HttpTestingController);
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual([
+					"Hades",
+					"Hollow Knight",
+					"Celeste"
+				])
+			);
+			expect(
+				libraryQueries().every(
+					query =>
+						!query.has("community_tags") && !query.has("mood_tags")
+				)
+			).toBe(true);
+			expect(tagsPicker()).toHaveAccessibleName("Tags: Any");
+		});
+
+		it("keeps a linked tag you no longer use selectable so it can be removed", async () => {
+			const user = userEvent.setup();
+			await render(BacklogList, {
+				providers: [provideHttpClient(), provideHttpClientTesting()],
+				routes: [{ path: "**", component: BacklogList }],
+				initialRoute: "/?mood_tags=gone"
+			});
+			httpTesting = TestBed.inject(HttpTestingController);
+			await untilVisible(() => expect(visibleTitles()).toEqual([]));
+
+			await openTagsPicker(user);
+			expect(tagOption("gone")).toHaveAttribute("aria-selected", "true");
+			await user.click(tagOption("gone"));
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual([
+					"Hades",
+					"Hollow Knight",
+					"Celeste"
+				])
+			);
+			await waitFor(() =>
+				expect(currentUrl().searchParams.has("mood_tags")).toBe(false)
+			);
+		});
+
+		it("hides the picker when you have no tags and invites you to manage them in the panel", async () => {
+			const user = userEvent.setup();
+			myTags = [];
+			await renderBacklog();
+
+			expect(
+				screen.queryByRole("button", { name: /^Tags:/ })
+			).not.toBeInTheDocument();
+			await user.click(filtersButton());
+			expect(panelTags().getByText(/No tags yet/)).toBeInTheDocument();
+			expect(
+				panelTags().getByRole("link", { name: "Manage tags" })
+			).toHaveAttribute("href", "/tags");
+		});
+
+		it("shows your tags in the filters panel as chips, most used first", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+
+			await user.click(filtersButton());
+			const chips = panelTags()
+				.getAllByRole("button")
+				.filter(button => button.hasAttribute("data-chip-value"));
+
+			expect(
+				chips.map(chip => chip.getAttribute("data-chip-value"))
+			).toEqual(["cozy", "short"]);
+			expect(panelTags().queryByRole("textbox")).not.toBeInTheDocument();
+			expect(
+				panelTags().queryByRole("radiogroup", { name: "Tag source" })
+			).not.toBeInTheDocument();
+		});
+
+		it("shares the selection between the picker, the filters panel and the URL", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			await openTagsPicker(user);
+			await user.click(tagOption("cozy"));
+			await user.keyboard("{Escape}");
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades", "Hollow Knight"])
+			);
+
+			await user.click(filtersButton());
+			const panelCozy = panelTags().getByRole("button", {
+				name: /^cozy\b/
+			});
+			expect(panelCozy).toHaveAttribute("aria-pressed", "true");
+
+			await user.click(panelCozy);
+			await user.click(
+				panelTags().getByRole("button", { name: /^short\b/ })
+			);
+			expect(tagsPicker()).toHaveAccessibleName("Tags: short");
+			await user.click(
+				screen.getByRole("button", { name: /^(Save & )?[Ss]how/ })
+			);
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+			expect(lastLibraryQuery().get("mood_tags")).toBe("short");
+			await waitFor(() =>
+				expect(currentUrl().searchParams.get("mood_tags")).toBe("short")
+			);
+		});
+
+		it("clears the tags with the Clear button of the toolbar", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			await openTagsPicker(user);
+			await user.click(tagOption("cozy"));
+			await user.keyboard("{Escape}");
+
+			await user.click(
+				await screen.findByRole("button", {
+					name: "Clear 1 active filter"
+				})
+			);
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual([
+					"Hades",
+					"Hollow Knight",
+					"Celeste"
+				])
+			);
+			expect(lastLibraryQuery().has("mood_tags")).toBe(false);
+			expect(tagsPicker()).toHaveAccessibleName("Tags: Any");
+			await waitFor(() =>
+				expect(currentUrl().searchParams.has("mood_tags")).toBe(false)
+			);
+		});
+
+		it("lets the user retry when the tags fail to load, and then shows the picker", async () => {
+			const user = userEvent.setup();
+			myTagsStatus = 503;
+			await renderBacklog();
+
+			expect(
+				screen.queryByRole("button", { name: /^Tags:/ })
+			).not.toBeInTheDocument();
+			await user.click(filtersButton());
+			expect(
+				panelTags().getByText("Couldn't load these tags.")
+			).toBeInTheDocument();
+			myTagsStatus = 200;
+			await user.click(
+				panelTags().getByRole("button", { name: "Try again" })
+			);
+
+			await untilVisible(() =>
+				expect(
+					panelTags().getByRole("button", { name: /^cozy\b/ })
+				).toBeInTheDocument()
+			);
+			expect(tagsPicker()).toHaveAccessibleName("Tags: Any");
+			expect(myTagsRequests).toBe(2);
+		});
+
+		it("saves the selected tags with a new view", async () => {
+			const user = userEvent.setup();
+			await renderBacklog();
+			await openTagsPicker(user);
+			await user.click(tagOption("cozy"));
+			await user.keyboard("{Escape}");
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades", "Hollow Knight"])
+			);
+
+			await user.click(filtersButton());
+			await user.type(
+				await screen.findByRole("textbox", { name: "View name" }),
+				"Chill"
+			);
+			await user.click(
+				screen.getByRole("button", { name: /^Save & [Ss]how/ })
+			);
+			answerPending();
+
+			const created = savedViewWrites.find(
+				write => write.method === "POST"
+			);
+			expect(created?.body).toMatchObject({
+				name: "Chill",
+				filters: { mood_tags: "cozy" }
+			});
+			expect(
+				(created?.body as { filters: Record<string, string> }).filters
+			).not.toHaveProperty("community_tags");
+		});
+
+		it("shows the tags of each entry on its Diary card", async () => {
+			await renderBacklog();
+
+			expect(within(card("Hades")).getByText("cozy")).toBeInTheDocument();
+			expect(
+				within(card("Hades")).getByText("short")
+			).toBeInTheDocument();
+		});
+	});
+
+	describe("modified saved views", () => {
+		function viewLibrary(): BacklogEntry[] {
+			return initialLibrary().map(item => ({
+				...item,
+				moodTags:
+					{
+						b1: ["cozy", "short"],
+						b2: ["cozy"],
+						b3: []
+					}[item.id] ?? [],
+				platinum:
+					item.id === "b2"
+						? {
+								id: "platinum-g2",
+								backlogId: "b2",
+								platformId: null,
+								platinumedAt: null,
+								notes: null
+							}
+						: undefined
+			}));
+		}
+
+		function toPlay(overrides: Partial<SavedFilter> = {}) {
+			return savedView({
+				id: "v1",
+				name: "To play",
+				filters: { status: "not_started" },
+				sortBy: "createdAt",
+				sortOrder: "desc",
+				icon: "flag",
+				color: "blue",
+				...overrides
+			});
+		}
+
+		function playingNow() {
+			return savedView({
+				id: "v2",
+				name: "Playing now",
+				filters: { status: "playing" }
+			});
+		}
+
+		async function renderViews(initialRoute = "/") {
+			const { fixture } = await render(BacklogHost, {
+				providers: [provideHttpClient(), provideHttpClientTesting()],
+				routes: [],
+				initialRoute
+			});
+			TestBed.inject(ApplicationRef).components.push(
+				fixture.componentRef
+			);
+			httpTesting = TestBed.inject(HttpTestingController);
+			await untilVisible(() =>
+				expect(visibleTitles().length).toBeGreaterThan(0)
+			);
+		}
+
+		function viewPicker() {
+			return screen.getByRole("button", { name: /^View:/ });
+		}
+
+		async function openViewMenu(user: UserEvent) {
+			await user.click(viewPicker());
+			return screen.findByRole("menu");
+		}
+
+		async function chooseView(user: UserEvent, name: string) {
+			const menu = await openViewMenu(user);
+			await user.click(
+				within(menu).getByRole("menuitemradio", {
+					name: new RegExp(`^${name}`)
+				})
+			);
+			answerPending();
+		}
+
+		async function runViewAction(user: UserEvent, label: string) {
+			const menu = await openViewMenu(user);
+			await user.click(
+				within(menu).getByRole("menuitem", { name: label })
+			);
+		}
+
+		async function pickStatusPill(user: UserEvent, name: RegExp) {
+			await user.click(statusPills().getByRole("button", { name }));
+			answerPending();
+		}
+
+		function libraryQueries() {
+			return backlogQueries.filter(query => query.get("limit") !== "1");
+		}
+
+		function lastLibraryQuery() {
+			return libraryQueries().at(-1)!;
+		}
+
+		function currentUrl() {
+			return new URL(TestBed.inject(Router).url, "http://app.test");
+		}
+
+		function viewPatches() {
+			return savedViewWrites.filter(write => write.method === "PATCH");
+		}
+
+		function filtersButton() {
+			return screen
+				.getAllByRole("button", { name: /^Filters/ })
+				.find(button => button.classList.contains("max-sm:!hidden"))!;
+		}
+
+		beforeEach(() => {
+			library = viewLibrary();
+			myTags = [
+				{ tag: "short", usageCount: 1, description: null },
+				{ tag: "cozy", usageCount: 2, description: null }
+			];
+		});
+
+		it("keeps the view when a status chip changes and stops being modified once back to the saved filters", async () => {
+			const user = userEvent.setup();
+			savedViews = [toPlay()];
+			await renderViews();
+			await chooseView(user, "To play");
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+
+			await pickStatusPill(user, /Playing/);
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+			expect(viewPicker()).toHaveAccessibleName(
+				"View: To play (modified)"
+			);
+			expect(
+				viewPicker().querySelector("[data-modified-indicator]")
+			).not.toBeNull();
+			expect(lastLibraryQuery().get("status")).toBe("playing");
+			await waitFor(() => {
+				expect(currentUrl().searchParams.get("savedFilterId")).toBe(
+					"v1"
+				);
+				expect(currentUrl().searchParams.get("status")).toBe("playing");
+			});
+
+			await pickStatusPill(user, /Not Started/);
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+			expect(
+				viewPicker().querySelector("[data-modified-indicator]")
+			).toBeNull();
+			await waitFor(() =>
+				expect(currentUrl().searchParams.has("status")).toBe(false)
+			);
+			expect(currentUrl().searchParams.get("savedFilterId")).toBe("v1");
+			expect(
+				screen.getByRole("button", {
+					name: "Exit the saved view and show all games"
+				})
+			).toBeInTheDocument();
+		});
+
+		it("adds tags and panel filters on top of the view and saves them all with Save to view", async () => {
+			const user = userEvent.setup();
+			savedViews = [toPlay()];
+			await renderViews();
+			await chooseView(user, "To play");
+
+			await user.click(screen.getByRole("button", { name: /^Tags:/ }));
+			await user.click(
+				within(
+					await screen.findByRole("listbox", {
+						name: "Filter by your tags"
+					})
+				).getByRole("option", { name: /^cozy\b/ })
+			);
+			await user.keyboard("{Escape}");
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight"])
+			);
+			expect(viewPicker()).toHaveAccessibleName(
+				"View: To play (modified)"
+			);
+
+			await user.click(filtersButton());
+			await user.click(
+				await screen.findByRole("switch", {
+					name: "Only platinumed games"
+				})
+			);
+			await user.click(
+				screen.getByRole("button", { name: /^(Save & )?[Ss]how/ })
+			);
+			answerPending();
+
+			await untilVisible(() =>
+				expect(lastLibraryQuery().get("platinumed_only")).toBe("true")
+			);
+			expect(lastLibraryQuery().get("status")).toBe("not_started");
+			expect(lastLibraryQuery().get("mood_tags")).toBe("cozy");
+			expect(viewPicker()).toHaveAccessibleName(
+				"View: To play (modified)"
+			);
+
+			await runViewAction(user, "Save to view");
+			answerPending();
+
+			expect(viewPatches()).toEqual([
+				{
+					method: "PATCH",
+					url: `${api}/users/me/saved-filters/v1`,
+					body: {
+						filters: {
+							status: "not_started",
+							mood_tags: "cozy",
+							platinumed_only: "true"
+						},
+						sortBy: "createdAt",
+						sortOrder: "desc"
+					}
+				}
+			]);
+			expect(savedViews[0]).toMatchObject({
+				name: "To play",
+				icon: "flag",
+				color: "blue",
+				showInBacklog: true,
+				isDefault: false
+			});
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+			expect(
+				await screen.findByText("Saved your changes to To play.")
+			).toBeInTheDocument();
+			await waitFor(() => {
+				expect(currentUrl().searchParams.has("mood_tags")).toBe(false);
+				expect(currentUrl().searchParams.has("platinumed_only")).toBe(
+					false
+				);
+			});
+			expect(currentUrl().searchParams.get("savedFilterId")).toBe("v1");
+		});
+
+		it("sends a single PATCH when Save to view or Update current view is double clicked", async () => {
+			const user = userEvent.setup();
+			holdViewPatches = true;
+			savedViews = [toPlay()];
+			await renderViews();
+			await chooseView(user, "To play");
+			await pickStatusPill(user, /Playing/);
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+
+			const menu = await openViewMenu(user);
+			await user.dblClick(
+				within(menu).getByRole("menuitem", { name: "Save to view" })
+			);
+			answerPending();
+			expect(viewPatches()).toHaveLength(1);
+
+			heldViewPatches
+				.splice(0)
+				.forEach(req => respondToViewPatch(req, null));
+			await pickStatusPill(user, /^All/);
+			await user.click(filtersButton());
+			await user.dblClick(
+				await screen.findByRole("button", {
+					name: /Update current view/
+				})
+			);
+			answerPending();
+
+			expect(viewPatches()).toHaveLength(2);
+			heldViewPatches
+				.splice(0)
+				.forEach(req => respondToViewPatch(req, null));
+			answerPending();
+			expect(savedViews[0].filters).toEqual({});
+		});
+
+		it("resets to the filters being saved when Reset is pressed during a save", async () => {
+			const user = userEvent.setup();
+			holdViewPatches = true;
+			savedViews = [toPlay()];
+			await renderViews();
+			await chooseView(user, "To play");
+			await pickStatusPill(user, /Playing/);
+			await runViewAction(user, "Save to view");
+			answerPending();
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+
+			await pickStatusPill(user, /Not Started/);
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(viewPicker()).toHaveAccessibleName(
+				"View: To play (modified)"
+			);
+			await runViewAction(user, "Reset view");
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+
+			heldViewPatches
+				.splice(0)
+				.forEach(req => respondToViewPatch(req, null));
+			answerPending();
+
+			expect(viewPatches()).toHaveLength(1);
+			expect(savedViews[0].filters).toEqual({ status: "playing" });
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+			expect(visibleTitles()).toEqual(["Hades"]);
+		});
+
+		it("rolls the view back and warns when Save to view fails, keeping the changes on screen", async () => {
+			const user = userEvent.setup();
+			viewPatchFailure = 500;
+			savedViews = [toPlay()];
+			await renderViews();
+			await chooseView(user, "To play");
+			await pickStatusPill(user, /Playing/);
+
+			await runViewAction(user, "Save to view");
+			answerPending();
+
+			expect(
+				await screen.findByText(
+					"Couldn't save your changes to To play. Try again."
+				)
+			).toBeInTheDocument();
+			expect(viewPicker()).toHaveAccessibleName(
+				"View: To play (modified)"
+			);
+			expect(visibleTitles()).toEqual(["Hades"]);
+			expect(savedViews[0].filters).toEqual({ status: "not_started" });
+			await waitFor(() =>
+				expect(currentUrl().searchParams.get("status")).toBe("playing")
+			);
+
+			await runViewAction(user, "Reset view");
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+		});
+
+		it("discards the pending changes when another view or None is picked", async () => {
+			const user = userEvent.setup();
+			savedViews = [toPlay(), playingNow()];
+			await renderViews();
+			await chooseView(user, "To play");
+			await pickStatusPill(user, /Playing/);
+			expect(viewPicker()).toHaveAccessibleName(
+				"View: To play (modified)"
+			);
+
+			await chooseView(user, "Playing now");
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: Playing now");
+
+			await chooseView(user, "To play");
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+
+			await pickStatusPill(user, /Playing/);
+			await chooseView(user, "None");
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual([
+					"Hades",
+					"Hollow Knight",
+					"Celeste"
+				])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: None");
+			expect(viewPatches()).toEqual([]);
+			await waitFor(() => expect(currentUrl().search).toBe(""));
+		});
+
+		it("turns the toolbar Clear into Reset view while the view is modified and into Exit view otherwise", async () => {
+			const user = userEvent.setup();
+			savedViews = [toPlay()];
+			await renderViews();
+			await chooseView(user, "To play");
+			await pickStatusPill(user, /Playing/);
+
+			await user.click(
+				screen.getByRole("button", {
+					name: "Discard your changes and go back to the saved view"
+				})
+			);
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+
+			await user.click(
+				screen.getByRole("button", {
+					name: "Exit the saved view and show all games"
+				})
+			);
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual([
+					"Hades",
+					"Hollow Knight",
+					"Celeste"
+				])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: None");
+		});
+
+		it("restores the changes of a reloaded link once, replacing the view filters instead of adding to them", async () => {
+			savedViews = [
+				toPlay({
+					filters: { status: "not_started", mood_tags: "cozy" }
+				})
+			];
+			await renderViews("/?savedFilterId=v1&mood_tags=short&status=");
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+			expect(lastLibraryQuery().get("mood_tags")).toBe("short");
+			expect(lastLibraryQuery().has("status")).toBe(false);
+			expect(viewPicker()).toHaveAccessibleName(
+				"View: To play (modified)"
+			);
+			expect(
+				screen.getByRole("button", { name: /^Tags:/ })
+			).toHaveAccessibleName("Tags: short");
+			expect(
+				libraryQueries().filter(
+					query => query.get("mood_tags") === "cozy"
+				)
+			).toEqual([]);
+		});
+
+		it("keeps the URL of an untouched default view clean and names the view once it changes", async () => {
+			const user = userEvent.setup();
+			savedViews = [toPlay({ isDefault: true })];
+			await renderViews();
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(currentUrl().search).toBe("");
+
+			await pickStatusPill(user, /Playing/);
+
+			await waitFor(() =>
+				expect(currentUrl().searchParams.get("savedFilterId")).toBe(
+					"v1"
+				)
+			);
+			expect(currentUrl().searchParams.get("status")).toBe("playing");
+
+			await pickStatusPill(user, /Not Started/);
+			await waitFor(() => expect(currentUrl().search).toBe(""));
+		});
+
+		it("links Manage saved views in the View menu to the saved views page", async () => {
+			const user = userEvent.setup();
+			savedViews = [toPlay()];
+			await renderViews();
+
+			const menu = await openViewMenu(user);
+			const manage = within(menu).getByRole("menuitem", {
+				name: "Manage saved views"
+			});
+
+			expect(manage.tagName).toBe("A");
+			expect(manage).toHaveAttribute("href", "/saved-views");
+		});
+
+		describe("stats", () => {
+			function entriesTile() {
+				const stats = screen.getByRole("region", { name: "Stats" });
+				return within(stats).getByText("Entries").closest("li")!;
+			}
+
+			function statsQuery(index = -1) {
+				const req = statsRequests.at(index)!;
+				return Object.fromEntries(
+					req.request.params
+						.keys()
+						.map(key => [key, req.request.params.get(key)])
+				);
+			}
+
+			beforeEach(() => {
+				statsStatus = 200;
+			});
+
+			it("computes the stats of a modified view with the applied filters, without any notice", async () => {
+				const user = userEvent.setup();
+				savedViews = [toPlay()];
+				await renderViews();
+				await chooseView(user, "To play");
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("2")
+				);
+				expect(statsRequests).toHaveLength(1);
+				expect(statsQuery()).toEqual({});
+
+				await pickStatusPill(user, /Playing/);
+
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("1")
+				);
+				expect(statsRequests).toHaveLength(2);
+				expect(statsRequests[1].request.url).toBe(
+					`${api}/users/me/saved-filters/v1/stats`
+				);
+				expect(statsQuery()).toEqual({
+					status: "playing",
+					sort_by: "createdAt",
+					sort_order: "desc"
+				});
+				expect(
+					screen.queryByText(/These stats are for the saved filters/)
+				).not.toBeInTheDocument();
+			});
+
+			it("keeps a removed filter out of the stats instead of falling back to the saved ones", async () => {
+				const user = userEvent.setup();
+				savedViews = [toPlay()];
+				await renderViews();
+				await chooseView(user, "To play");
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("2")
+				);
+
+				await pickStatusPill(user, /^All/);
+
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("3")
+				);
+				expect(statsQuery()).toEqual({
+					sort_by: "createdAt",
+					sort_order: "desc"
+				});
+			});
+
+			it("asks again without the applied filters only once Save to view is confirmed", async () => {
+				const user = userEvent.setup();
+				holdViewPatches = true;
+				savedViews = [toPlay()];
+				await renderViews();
+				await chooseView(user, "To play");
+				await pickStatusPill(user, /Playing/);
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("1")
+				);
+				expect(statsRequests).toHaveLength(2);
+
+				const menu = await openViewMenu(user);
+				await user.dblClick(
+					within(menu).getByRole("menuitem", {
+						name: "Save to view"
+					})
+				);
+				answerPending();
+				expect(viewPatches()).toHaveLength(1);
+				expect(statsRequests).toHaveLength(2);
+
+				heldViewPatches
+					.splice(0)
+					.forEach(req => respondToViewPatch(req, null));
+				answerPending();
+
+				await untilVisible(() => expect(statsRequests).toHaveLength(3));
+				expect(statsQuery()).toEqual({});
+				expect(entriesTile()).toHaveTextContent("1");
+				answerPending();
+				expect(statsRequests).toHaveLength(3);
+			});
+
+			it("keeps the applied filters in the stats when Save to view fails", async () => {
+				const user = userEvent.setup();
+				viewPatchFailure = 500;
+				savedViews = [toPlay()];
+				await renderViews();
+				await chooseView(user, "To play");
+				await pickStatusPill(user, /Playing/);
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("1")
+				);
+
+				await runViewAction(user, "Save to view");
+				answerPending();
+
+				await untilVisible(() =>
+					expect(viewPicker()).toHaveAccessibleName(
+						"View: To play (modified)"
+					)
+				);
+				expect(statsRequests).toHaveLength(2);
+				expect(entriesTile()).toHaveTextContent("1");
+			});
+
+			it("goes back to the saved stats with Reset view and drops an answer that arrives too late", async () => {
+				const user = userEvent.setup();
+				savedViews = [toPlay()];
+				await renderViews();
+				await chooseView(user, "To play");
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("2")
+				);
+
+				holdStats = true;
+				await pickStatusPill(user, /Playing/);
+				await pickStatusPill(user, /^All/);
+				await runViewAction(user, "Reset view");
+				answerPending();
+
+				const [playing, all, reset] = heldStats.splice(0);
+				expect(heldStats).toEqual([]);
+				expect(playing.cancelled).toBe(true);
+				expect(all.cancelled).toBe(true);
+				expect(reset.request.params.keys()).toEqual([]);
+				respondToStats(reset);
+
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("2")
+				);
+				expect(viewPicker()).toHaveAccessibleName("View: To play");
+			});
+
+			it("sends one stats request per change even when a status chip is double clicked", async () => {
+				const user = userEvent.setup();
+				savedViews = [toPlay()];
+				await renderViews();
+				await chooseView(user, "To play");
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("2")
+				);
+
+				await user.dblClick(
+					statusPills().getByRole("button", { name: /Playing/ })
+				);
+				answerPending();
+				await user.click(
+					screen.getByRole("button", { name: /^Tags:/ })
+				);
+				await user.click(
+					within(
+						await screen.findByRole("listbox", {
+							name: "Filter by your tags"
+						})
+					).getByRole("option", { name: /^cozy\b/ })
+				);
+				await user.keyboard("{Escape}");
+
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("1")
+				);
+				expect(
+					statsRequests.map(req =>
+						req.request.params.get("mood_tags")
+					)
+				).toEqual([null, null, "cozy"]);
+				expect(statsQuery()).toMatchObject({
+					status: "playing",
+					mood_tags: "cozy"
+				});
+			});
+		});
+
+		it("offers Save to view and Reset view on mobile, in Filters & stats and in the View sheet", async () => {
+			vi.stubGlobal(
+				"matchMedia",
+				vi.fn(() => ({
+					matches: true,
+					addEventListener: vi.fn(),
+					removeEventListener: vi.fn()
+				}))
+			);
+			const user = userEvent.setup();
+			savedViews = [toPlay({ isDefault: true })];
+			await renderViews();
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			await pickStatusPill(user, /Playing/);
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+
+			await user.click(
+				screen.getByRole("button", { name: /^Filters & stats/ })
+			);
+			const tools = await screen.findByRole("dialog", {
+				name: "Filters & stats"
+			});
+			expect(tools).toHaveTextContent("To play · Modified");
+			await user.click(
+				within(tools).getByRole("button", { name: /^Reset view/ })
+			);
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+
+			await pickStatusPill(user, /Playing/);
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+			await user.click(viewPicker());
+			const sheet = await screen.findByRole("dialog", {
+				name: "Saved views"
+			});
+			expect(
+				within(sheet).getByRole("button", { name: /^To play/ })
+			).toHaveTextContent("Modified");
+			await user.dblClick(
+				within(sheet).getByRole("button", { name: /Save to view/ })
+			);
+			answerPending();
+
+			expect(viewPatches()).toHaveLength(1);
+			expect(savedViews[0].filters).toEqual({ status: "playing" });
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
 		});
 	});
 });

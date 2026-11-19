@@ -6,7 +6,9 @@ title: "A different featured game every time you sign in"
 icon: casino
 tint: purple
 landing:
-    pitch: "La pantalla de inicio de sesión ya no muestra siempre el mismo juego: cada visita destaca uno distinto del catálogo, con su año y géneros, y un clic te lleva a su ficha al entrar."
+    pitch:
+        es: "La pantalla de inicio de sesión ya no muestra siempre el mismo juego: cada visita destaca uno distinto del catálogo, con su año y géneros, y un clic te lleva a su ficha al entrar."
+        en: "The sign-in screen no longer always shows the same game: each visit features a different one from the catalog, with its year and genres, and one click takes you to its page once you're in."
 highlights:
     - icon: shuffle
       tint: purple

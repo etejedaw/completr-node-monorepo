@@ -33,7 +33,8 @@ const favoritesOnly: ProfileSectionAccess = {
 	list: false,
 	platinum: false,
 	franchise: false,
-	rewind: false
+	rewind: false,
+	tag: false
 };
 
 const backlogOnly: ProfileSectionAccess = {

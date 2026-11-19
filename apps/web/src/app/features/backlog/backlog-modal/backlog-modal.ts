@@ -21,6 +21,7 @@ import { type GamePlatinum } from "../../../core/models";
 import { type Game } from "../../../core/models";
 import { AuthService } from "../../../core/services/auth";
 import { GamesService } from "../../../core/services/games";
+import { MoodTagsService } from "../../../core/services/mood-tags";
 import { PlatinumService } from "../../../core/services/platinum";
 import { QueueService } from "../../../core/services/queue";
 import { ReviewsService } from "../../../core/services/reviews";
@@ -35,6 +36,7 @@ import { SelectedGameRow } from "../../../shared/components/game-search/selected
 import { MoodTagsInput } from "../../../shared/components/mood-tags-input/mood-tags-input";
 import { PlatinumTrophy } from "../../../shared/components/platinum-trophy/platinum-trophy";
 import { StarRating } from "../../../shared/components/star-rating/star-rating";
+import { MAX_TAGS_PER_GAME } from "../../../shared/constants/mood-tags";
 import { GameArtPipe } from "../../../shared/pipes/game-art";
 import {
 	UiAlert,
@@ -46,6 +48,7 @@ import {
 	UiFieldError,
 	UiFieldLabel,
 	UiFieldOptional,
+	UiFilterChip,
 	UiIconButton,
 	UiInput,
 	UiOptionPicker,
@@ -69,7 +72,6 @@ import {
 	reportHttpFailure
 } from "../../../shared/utils/http-failure";
 import { injectGameSearch } from "../../../shared/utils/inject-game-search";
-import { MoodTagsService } from "../../mood-tags/mood-tags";
 import { BacklogService } from "../backlog";
 import {
 	type BacklogReviewDraft,
@@ -83,6 +85,7 @@ import {
 	type MissingReferenceCategory
 } from "./components/backlog-reference-fields";
 import { scrollIntoViewAndFocus } from "./focus-field";
+import { injectCommunityTagSuggestions } from "./inject-community-tag-suggestions";
 import { injectCoopRun } from "./inject-coop-run";
 import { injectProgressNotes } from "./inject-progress-notes";
 import {
@@ -149,6 +152,7 @@ const MISSING_FIELD_LABELS: Record<MissingField, string> = {
 		UiFieldError,
 		UiFieldLabel,
 		UiFieldOptional,
+		UiFilterChip,
 		UiIconButton,
 		UiInput,
 		UiSelectableRow,
@@ -386,8 +390,26 @@ export class BacklogModal implements OnInit {
 	protected readonly moodTags = signal<string[]>([]);
 	protected readonly moodTagsSuggestions = signal<string[]>([]);
 
+	protected readonly communityTags = injectCommunityTagSuggestions({
+		gameId: () => this.selectedGame()?.id
+	});
+	protected readonly moodTagsFull = computed(
+		() => this.moodTags().length >= MAX_TAGS_PER_GAME
+	);
+
 	protected updateMoodTags(tags: string[]) {
 		this.moodTags.set(tags);
+	}
+
+	protected toggleCommunityTag(tag: string, event: MouseEvent) {
+		if (event.detail > 1) return;
+		const current = this.moodTags();
+		if (current.includes(tag)) {
+			this.moodTags.set(current.filter(item => item !== tag));
+			return;
+		}
+		if (this.moodTagsFull()) return;
+		this.moodTags.set([...current, tag]);
 	}
 
 	protected readonly hasExistingReview = computed(
@@ -575,6 +597,7 @@ export class BacklogModal implements OnInit {
 		this.selectedGame.set(game);
 		this.refreshAvailableCompilationParents(game);
 		this.fetchExistingReview(game.id);
+		this.communityTags.load(game.id);
 		this.moodTagsService
 			.getGameTags(game.id)
 			.pipe(takeUntilDestroyed(this.destroyRef))

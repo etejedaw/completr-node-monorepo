@@ -17,4 +17,5 @@ export interface WishlistPagination extends Record<string, Appendable> {
 	limit?: number;
 	offset?: number;
 	search?: string;
+	mood_tags?: string;
 }

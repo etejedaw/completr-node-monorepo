@@ -1,0 +1,258 @@
+---
+import Footer from "../../components/Footer.astro";
+import SiteHeader from "../../components/SiteHeader.astro";
+import {
+	getLocaleStaticPaths,
+	type Locale,
+	toLocale
+} from "../../i18n/locales";
+import Layout from "../../layouts/Layout.astro";
+import { loadPrivacyPolicy } from "../../utils/privacy-policy";
+
+export const getStaticPaths = getLocaleStaticPaths;
+
+const lang = toLocale(Astro.currentLocale);
+
+const copy = {
+	es: {
+		pageTitle: "Privacidad — Completr",
+		description:
+			"Qué datos recojo en Completr, para qué los uso, quiénes más los ven, cuánto los conservo y qué control tienes sobre ellos.",
+		version: "Versión",
+		updated: "última actualización:",
+		sectionsLabel: "Secciones de la política",
+		summaryLabel: "En resumen"
+	},
+	en: {
+		pageTitle: "Privacy — Completr",
+		description:
+			"What data I collect in Completr, what I use it for, who else sees it, how long I keep it and what control you have over it.",
+		version: "Version",
+		updated: "last updated:",
+		sectionsLabel: "Policy sections",
+		summaryLabel: "In short"
+	}
+} satisfies Record<Locale, unknown>;
+
+const t = copy[lang];
+
+const policy = await loadPrivacyPolicy(lang);
+
+const updatedLabel = new Intl.DateTimeFormat(lang, {
+	day: "numeric",
+	month: "long",
+	year: "numeric",
+	timeZone: "UTC"
+}).format(new Date(`${policy.updated}T00:00:00Z`));
+
+const sectionNumber = (index: number) => String(index + 1).padStart(2, "0");
+
+const policyBodyClass =
+	"mt-4 max-w-[68ch] flex flex-col gap-4 text-[1.0625rem] leading-relaxed text-[var(--color-fg-secondary)] [&_p]:m-0 [&_strong]:text-[var(--color-fg)] [&_strong]:font-semibold [&_ul]:m-0 [&_ul]:pl-5 [&_ul]:list-disc [&_ul]:flex [&_ul]:flex-col [&_ul]:gap-2 [&_a]:text-[var(--color-brand)] [&_a]:underline-offset-2 [&_a:hover]:underline";
+const tocLinkClass =
+	"toc-link flex items-center gap-2.5 min-h-[44px] px-3 rounded-lg text-sm text-[var(--color-fg-secondary)] no-underline transition-colors hover:text-[var(--color-fg)] hover:bg-[var(--color-surface)]";
+---
+
+<Layout title={t.pageTitle} description={t.description}>
+	<SiteHeader />
+	<main id="main-content" class="relative overflow-x-clip">
+		<section
+			class="relative px-6 pt-16 pb-12 border-b border-[var(--color-line)] overflow-hidden"
+		>
+			<div
+				class="absolute -top-56 left-1/4 w-[800px] h-[600px] rounded-full blur-3xl opacity-20 pointer-events-none"
+				style="background: radial-gradient(circle, var(--color-brand) 0%, transparent 60%);"
+				aria-hidden="true"
+			>
+			</div>
+			<div class="relative max-w-6xl mx-auto">
+				<span class="eyebrow inline-flex items-center gap-1.5">
+					<span class="material-icons text-sm" aria-hidden="true"
+						>policy</span
+					>
+					Legal
+				</span>
+				<h1
+					class="font-display mt-3 mb-4 text-4xl md:text-5xl font-bold tracking-tight"
+				>
+					{policy.title}
+				</h1>
+				<p
+					class="m-0 max-w-2xl text-base md:text-lg text-[var(--color-fg-secondary)] leading-relaxed"
+				>
+					{policy.summary}
+				</p>
+				<p class="m-0 mt-4 text-sm text-[var(--color-fg-muted)]">
+					{t.version}{" "}
+					{policy.version} · {t.updated}{" "}
+					<time datetime={policy.updated}>{updatedLabel}</time>
+				</p>
+			</div>
+		</section>
+
+		<div
+			class="max-w-6xl mx-auto px-6 py-12 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-12 xl:gap-16"
+		>
+			<aside class="hidden lg:block">
+				<nav aria-label={t.sectionsLabel} class="sticky top-24">
+					<ul class="m-0 p-0 list-none flex flex-col">
+						{
+							policy.sections.map(section => (
+								<li>
+									<a
+										href={`#${section.id}`}
+										class={tocLinkClass}
+									>
+										<span
+											class="material-icons text-[1.125rem] text-[var(--color-fg-muted)]"
+											aria-hidden="true"
+										>
+											{section.icon}
+										</span>
+										{section.label}
+									</a>
+								</li>
+							))
+						}
+					</ul>
+				</nav>
+			</aside>
+
+			<div class="min-w-0 flex flex-col gap-12 sm:gap-14">
+				<details
+					class="lg:hidden rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] [&[open]_.toc-chevron]:rotate-180"
+				>
+					<summary
+						class="flex items-center justify-between gap-3 min-h-[52px] px-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden font-semibold text-[var(--color-fg)]"
+					>
+						<span class="inline-flex items-center gap-2">
+							<span
+								class="material-icons text-[1.25rem] text-[var(--color-brand)]"
+								aria-hidden="true">toc</span
+							>
+							{t.sectionsLabel}
+						</span>
+						<span
+							class="toc-chevron material-icons text-[var(--color-fg-muted)] transition-transform"
+							aria-hidden="true">expand_more</span
+						>
+					</summary>
+					<nav aria-label={t.sectionsLabel} class="px-2 pb-2">
+						<ul class="m-0 p-0 list-none grid sm:grid-cols-2">
+							{
+								policy.sections.map(section => (
+									<li>
+										<a
+											href={`#${section.id}`}
+											class={tocLinkClass}
+										>
+											<span
+												class="material-icons text-[1.125rem] text-[var(--color-fg-muted)]"
+												aria-hidden="true"
+											>
+												{section.icon}
+											</span>
+											{section.label}
+										</a>
+									</li>
+								))
+							}
+						</ul>
+					</nav>
+				</details>
+
+				<ul
+					aria-label={t.summaryLabel}
+					class="m-0 p-0 list-none grid gap-3 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4"
+				>
+					{
+						policy.highlights.map(highlight => (
+							<li>
+								<a
+									href={`#${highlight.section}`}
+									class="h-full grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-0.5 p-4 sm:flex sm:flex-col sm:gap-2 rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] no-underline transition-colors hover:border-[var(--color-line-strong)] hover:bg-[var(--color-surface-raised)]"
+								>
+									<span
+										class="row-span-2 inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[var(--color-success)]/10 text-[var(--color-success)]"
+										aria-hidden="true"
+									>
+										<span class="material-icons text-lg">
+											{highlight.icon}
+										</span>
+									</span>
+									<span class="text-sm font-semibold text-[var(--color-fg)]">
+										{highlight.title}
+									</span>
+									<span class="text-xs text-[var(--color-fg-secondary)] leading-relaxed">
+										{highlight.text}
+									</span>
+								</a>
+							</li>
+						))
+					}
+				</ul>
+
+				{
+					policy.sections.map((section, index) => (
+						<section
+							id={section.id}
+							aria-labelledby={`${section.id}-title`}
+							class="policy-section scroll-mt-24"
+						>
+							<span class="eyebrow">
+								{sectionNumber(index)} · {section.label}
+							</span>
+							<h2
+								id={`${section.id}-title`}
+								class="font-display m-0 mt-1 text-xl sm:text-2xl font-bold tracking-tight text-[var(--color-fg)]"
+							>
+								{section.title}
+							</h2>
+							<div
+								class={policyBodyClass}
+								set:html={section.html}
+							/>
+						</section>
+					))
+				}
+			</div>
+		</div>
+	</main>
+	<Footer />
+</Layout>
+
+<style>
+	.toc-link[aria-current="location"] {
+		color: var(--color-fg);
+		background: var(--color-surface);
+		box-shadow: inset 2px 0 0 var(--color-brand);
+	}
+</style>
+
+<script>
+	const links = [
+		...document.querySelectorAll<HTMLAnchorElement>("a.toc-link")
+	];
+	const sections = [
+		...document.querySelectorAll<HTMLElement>("section.policy-section")
+	];
+
+	function markActive(id: string) {
+		for (const link of links) {
+			if (link.hash === `#${id}`)
+				link.setAttribute("aria-current", "location");
+			else link.removeAttribute("aria-current");
+		}
+	}
+
+	const observer = new IntersectionObserver(
+		entries => {
+			const visible = entries.find(entry => entry.isIntersecting);
+			if (visible) markActive(visible.target.id);
+		},
+		{ rootMargin: "-30% 0px -65% 0px" }
+	);
+
+	sections.forEach(section => observer.observe(section));
+	if (location.hash) markActive(location.hash.slice(1));
+</script>
