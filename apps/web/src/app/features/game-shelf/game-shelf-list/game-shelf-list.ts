@@ -34,6 +34,7 @@ import {
 	LibraryPageEmptyAction,
 	LibraryPageToolbar
 } from "../../../shared/components/library-page/library-page-slots";
+import { MyTagFilter } from "../../../shared/components/my-tag-filter/my-tag-filter";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import {
 	countByPlatform,
@@ -60,6 +61,7 @@ import { injectBulkRemoval } from "../../../shared/utils/bulk-removal";
 import { injectBulkRunner } from "../../../shared/utils/bulk-runner";
 import { gameArtUrl } from "../../../shared/utils/game-art";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
+import { injectMyTagFilter } from "../../../shared/utils/inject-my-tag-filter";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { injectRowSelection } from "../../../shared/utils/row-selection";
 import { injectBacklogQuickAdd } from "../../backlog/backlog-quick-add";
@@ -110,6 +112,7 @@ function readStoredViewMode(storage: StorageService): ShelfViewMode {
 		LibraryPageContent,
 		LibraryPageEmptyAction,
 		LibraryPageToolbar,
+		MyTagFilter,
 		PlatformFilter,
 		PremiumOnly,
 		UiPremiumBadge,
@@ -139,9 +142,16 @@ export class GameShelfList implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
 	protected readonly selectedPlatform = signal("");
+	protected readonly tagFilter = injectMyTagFilter({
+		changed: () => {
+			this.offset.set(0);
+			this.loadShelf();
+		}
+	});
 	protected readonly exportParams = computed<ExportParams>(() => ({
 		search: this.searchQuery().trim() || undefined,
-		platform: this.selectedPlatform() || undefined
+		platform: this.selectedPlatform() || undefined,
+		mood_tags: this.tagFilter.param()
 	}));
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
@@ -226,7 +236,9 @@ export class GameShelfList implements OnInit {
 		if (this.isLoading()) return "loading";
 		if (this.shelfLoader.failed()) return "error";
 		if (this.entries().length > 0) return "ready";
-		return this.searchQuery().trim() || this.selectedPlatform()
+		return this.searchQuery().trim() ||
+			this.selectedPlatform() ||
+			this.tagFilter.active()
 			? "no-matches"
 			: "empty";
 	});
@@ -337,6 +349,7 @@ export class GameShelfList implements OnInit {
 	protected clearSearchAndFilter() {
 		this.searchQuery.set("");
 		this.selectedPlatform.set("");
+		this.tagFilter.clearSilently();
 		this.offset.set(0);
 		this.loadShelf();
 	}
@@ -370,7 +383,8 @@ export class GameShelfList implements OnInit {
 			this.shelfService.getMyShelf({
 				limit: this.limit,
 				offset: this.offset(),
-				search: this.searchQuery().trim() || undefined
+				search: this.searchQuery().trim() || undefined,
+				mood_tags: this.tagFilter.param()
 			}),
 			{
 				next: res => {

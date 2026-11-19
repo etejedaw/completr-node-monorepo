@@ -39,9 +39,9 @@
 
 <app-library-page
 	[state]="pageState()"
-	[showToolbar]="isLoading() || allEntries().length > 0 || !!searchQuery().trim()"
+	[showToolbar]="isLoading() || allEntries().length > 0 || !!searchQuery().trim() || tagFilter.active()"
 	loadingLabel="Loading shelf"
-	noMatchesHint="Nothing on your shelf matches your current search or platform."
+	noMatchesHint="Nothing on your shelf matches your current search, platform or tags."
 	noMatchesClearLabel="Clear search & filter"
 	emptyIcon="shelves"
 	emptyTitle="Your shelf is empty"
@@ -63,6 +63,11 @@
 			class="flex-1 min-w-[12rem]"
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"
+		/>
+		<app-my-tag-filter
+			[options]="tagFilter.options()"
+			[values]="tagFilter.selected()"
+			(valuesChange)="tagFilter.select($event)"
 		/>
 		<app-view-mode-toggle
 			[options]="viewModes"
