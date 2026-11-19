@@ -85,6 +85,8 @@ describe("WishlistView erratic interaction", () => {
 			if (removeStatus !== 204) return fail(req, removeStatus);
 			return req.flush(null);
 		}
+		if (method === "GET" && url === `${api}/users/me/mood-tags`)
+			return req.flush({ data: { tags: [] } });
 		throw new Error(`Unexpected request: ${method} ${url}`);
 	}
 

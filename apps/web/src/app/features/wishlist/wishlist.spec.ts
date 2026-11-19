@@ -75,6 +75,17 @@ describe("WishlistService", () => {
 		expect(service.wishlist().map(w => w.game.id)).toEqual(["g1"]);
 	});
 
+	it("sends the tag filter and keeps the known ids when loading a tag-filtered slice", () => {
+		loadWishlist("g1", "g2");
+
+		service.load({ mood_tags: "cozy,short" }).subscribe();
+		const req = httpTesting.expectOne(r => r.url === url);
+		expect(req.request.params.get("mood_tags")).toBe("cozy,short");
+		req.flush({ data: { wishlist: [entry("g1")] } });
+
+		expect(service.isInWishlist("g2")).toBe(true);
+	});
+
 	it("fetches the game ids once and emits the cached set afterwards", () => {
 		let ids: Set<string> | undefined;
 

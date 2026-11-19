@@ -110,6 +110,8 @@ describe("WishlistView interaction", () => {
 			);
 			return req.flush(null);
 		}
+		if (method === "GET" && url === `${api}/users/me/mood-tags`)
+			return req.flush({ data: { tags: [] } });
 		throw new Error(`Unexpected request: ${method} ${url}`);
 	}
 
@@ -299,7 +301,7 @@ describe("WishlistView interaction", () => {
 		await untilVisible(() =>
 			expect(
 				screen.getByText(
-					"Nothing in Want to Get matches your search or platform."
+					"Nothing in Want to Get matches your search, platform or tags."
 				)
 			).toBeInTheDocument()
 		);

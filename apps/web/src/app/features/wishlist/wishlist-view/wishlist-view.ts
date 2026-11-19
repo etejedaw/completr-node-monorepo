@@ -29,6 +29,7 @@ import {
 	LibraryPageEmptyAction,
 	LibraryPageToolbar
 } from "../../../shared/components/library-page/library-page-slots";
+import { MyTagFilter } from "../../../shared/components/my-tag-filter/my-tag-filter";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import {
 	countByPlatform,
@@ -40,6 +41,7 @@ import { UiButton, UiPremiumBadge } from "../../../shared/ui";
 import { gameArtUrl } from "../../../shared/utils/game-art";
 import { isNotFound } from "../../../shared/utils/http-failure";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
+import { injectMyTagFilter } from "../../../shared/utils/inject-my-tag-filter";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
 import { WishlistService } from "../wishlist";
 import {
@@ -58,6 +60,7 @@ import {
 		LibraryPageContent,
 		LibraryPageEmptyAction,
 		LibraryPageToolbar,
+		MyTagFilter,
 		PlatformFilter,
 		PremiumOnly,
 		UiButton,
@@ -81,9 +84,16 @@ export class WishlistView implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
 	protected readonly selectedPlatform = signal("");
+	protected readonly tagFilter = injectMyTagFilter({
+		changed: () => {
+			this.offset.set(0);
+			this.loadWishlist();
+		}
+	});
 	protected readonly exportParams = computed<ExportParams>(() => ({
 		search: this.searchQuery().trim() || undefined,
-		platform: this.selectedPlatform() || undefined
+		platform: this.selectedPlatform() || undefined,
+		mood_tags: this.tagFilter.param()
 	}));
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
@@ -101,7 +111,9 @@ export class WishlistView implements OnInit {
 		if (this.isLoading()) return "loading";
 		if (this.wishlistLoader.failed()) return "error";
 		if (this.entries().length > 0) return "ready";
-		return this.searchQuery().trim() || this.selectedPlatform()
+		return this.searchQuery().trim() ||
+			this.selectedPlatform() ||
+			this.tagFilter.active()
 			? "no-matches"
 			: "empty";
 	});
@@ -153,6 +165,7 @@ export class WishlistView implements OnInit {
 
 	protected clearSearchAndFilter() {
 		this.selectedPlatform.set("");
+		this.tagFilter.clearSilently();
 		this.onSearch("");
 	}
 
@@ -199,7 +212,8 @@ export class WishlistView implements OnInit {
 			this.wishlistService.load({
 				limit: this.limit,
 				offset: this.offset(),
-				search: this.searchQuery().trim() || undefined
+				search: this.searchQuery().trim() || undefined,
+				mood_tags: this.tagFilter.param()
 			}),
 			{
 				next: res => {

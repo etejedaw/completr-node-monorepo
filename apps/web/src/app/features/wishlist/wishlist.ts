@@ -46,7 +46,11 @@ export class WishlistService {
 		return this.http.get<WishlistResponse>(this.baseUrl, { params }).pipe(
 			tap(res => {
 				this._wishlist.set(res.data.wishlist);
-				if (!pagination.search && !pagination.offset) {
+				if (
+					!pagination.search &&
+					!pagination.offset &&
+					!pagination.mood_tags
+				) {
 					this.idsLoaded = true;
 					this._gameIds.set(
 						new Set(res.data.wishlist.map(w => w.game.id))
