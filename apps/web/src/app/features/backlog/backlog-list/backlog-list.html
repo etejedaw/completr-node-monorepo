@@ -64,22 +64,12 @@
 				(valueChange)="onSearch($event)"
 			/>
 
-			@if (tagPickerOptions().length > 0) {
-			<ui-multi-option-picker
-				variant="compact"
-				size="md"
-				label="Tags"
-				heading="Filter by your tags"
-				placeholder="Any"
-				placeholderIcon="sell"
-				noun="tags"
-				nounSingular="tag"
-				searchLabel="Search your tags"
+			<app-my-tag-filter
 				[options]="tagPickerOptions()"
 				[values]="selectedMoodTags()"
 				(valuesChange)="setTagSelection($event)"
 			/>
-			} @if (viewPickerViews().length > 0) {
+			@if (viewPickerViews().length > 0) {
 			<ui-option-picker
 				variant="compact"
 				size="md"

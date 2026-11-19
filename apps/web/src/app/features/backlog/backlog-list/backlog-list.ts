@@ -56,6 +56,7 @@ import { BacklogStatusPills } from "../../../shared/components/backlog-status-pi
 import { BulkActionBar } from "../../../shared/components/bulk-action-bar/bulk-action-bar";
 import { ExportActions } from "../../../shared/components/export-actions/export-actions";
 import { LibraryHero } from "../../../shared/components/library-hero/library-hero";
+import { MyTagFilter } from "../../../shared/components/my-tag-filter/my-tag-filter";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import { ViewModeToggle } from "../../../shared/components/view-mode-toggle/view-mode-toggle";
 import { type ViewModeOption } from "../../../shared/components/view-mode-toggle/view-mode-toggle.model";
@@ -68,7 +69,6 @@ import {
 	UiEmptyState,
 	UiFiltersButton,
 	UiLoadError,
-	UiMultiOptionPicker,
 	UiNoMatches,
 	UiOptionPicker,
 	UiPagination,
@@ -90,6 +90,11 @@ import {
 } from "../../../shared/utils/http-failure";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
 import { injectToggleAction } from "../../../shared/utils/inject-toggle-action";
+import {
+	myTagOptions,
+	parseTagList,
+	TAG_FILTER_LIMIT
+} from "../../../shared/utils/tag-filter-params";
 import { BacklogService } from "../backlog";
 import { type BacklogFilters } from "../backlog.model";
 import {
@@ -102,11 +107,6 @@ import {
 	type BacklogModalResult
 } from "../backlog-modal/backlog-modal";
 import { type BacklogModalData } from "../backlog-modal/backlog-modal.model";
-import {
-	myTagOption,
-	parseTagList,
-	TAG_FILTER_LIMIT
-} from "../backlog-tag-params";
 import {
 	BacklogFiltersPanel,
 	type SortOrder
@@ -210,7 +210,7 @@ function numberOrNull(value: string | undefined): number | null {
 		ViewModeToggle,
 		BacklogTable,
 		BacklogStatusPills,
-		UiMultiOptionPicker,
+		MyTagFilter,
 		UiOptionPicker,
 		BacklogCalendar,
 		SurpriseMe,
@@ -468,12 +468,7 @@ export class BacklogList implements OnInit {
 	protected readonly selectedMoodTags = signal<string[]>([]);
 	private readonly myTags = signal<readonly UserTag[]>([]);
 	protected readonly tagOptions = computed<UiPickerOption[]>(() =>
-		[...this.myTags()]
-			.sort(
-				(a, b) =>
-					b.usageCount - a.usageCount || a.tag.localeCompare(b.tag)
-			)
-			.map(myTagOption)
+		myTagOptions(this.myTags(), [])
 	);
 	protected readonly tagAppearance = computed<
 		ReadonlyMap<string, TagAppearance>
@@ -487,13 +482,9 @@ export class BacklogList implements OnInit {
 			)
 	);
 	protected readonly tagStatus = signal<BacklogTagFilterStatus>("loading");
-	protected readonly tagPickerOptions = computed<UiPickerOption[]>(() => {
-		const known = new Set(this.tagOptions().map(option => option.value));
-		const missingSelected = this.selectedMoodTags()
-			.filter(tag => !known.has(tag))
-			.map(tag => ({ value: tag, label: tag }));
-		return [...missingSelected, ...this.tagOptions()];
-	});
+	protected readonly tagPickerOptions = computed<UiPickerOption[]>(() =>
+		myTagOptions(this.myTags(), this.selectedMoodTags())
+	);
 	protected readonly coopOnly = signal(false);
 	protected readonly platinumedOnly = signal(false);
 

@@ -14,7 +14,7 @@ import {
 	type UiPickerOption,
 	UiSkeleton
 } from "../../../../shared/ui";
-import { TAG_FILTER_LIMIT } from "../../backlog-tag-params";
+import { TAG_FILTER_LIMIT } from "../../../../shared/utils/tag-filter-params";
 import {
 	tagChipClass,
 	tagChipCountClass,
