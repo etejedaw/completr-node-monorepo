@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
 
+import { Op } from "sequelize";
+
 import { sequelize } from "../../src/database/sequelize.database";
 import { Game } from "../../src/games/game.model";
 import { MoodTagMeta } from "../../src/mood-tags/mood-tag-meta.model";
@@ -488,6 +490,43 @@ void describe("moodTagsService.findGameIdsByTags", () => {
 		};
 		assert.deepEqual(options.replacements.tags, ["cozy", "rpg"]);
 		assert.equal(options.replacements.tagCount, 2);
+	});
+});
+
+void describe("moodTagsService.taggedGameIdsFilter", () => {
+	function subquerySql(filter: Record<symbol, unknown>) {
+		return (filter[Op.in] as { val: string }).val;
+	}
+
+	void it("requires every distinct normalized tag of the owner", () => {
+		const sql = subquerySql(
+			moodTagsService.taggedGameIdsFilter("user-1", [
+				" Cózy ",
+				"cozy",
+				"RPG"
+			]) as Record<symbol, unknown>
+		);
+
+		assert.match(sql, /"userId" = 'user-1'/);
+		assert.match(sql, /"tag" IN \('cozy', 'rpg'\)/);
+		assert.match(sql, /HAVING COUNT\(DISTINCT "tag"\) = 2/);
+	});
+
+	void it("escapes quotes so a tag cannot break out of the subquery", () => {
+		const sql = subquerySql(
+			moodTagsService.taggedGameIdsFilter("user-1", [
+				'x\'); DROP TABLE "Users"; --'
+			]) as Record<symbol, unknown>
+		);
+
+		assert.match(sql, /"tag" IN \('x''\); drop table "users"; --'\)/);
+	});
+
+	void it("matches no game when every tag is blank", () => {
+		assert.deepEqual(
+			moodTagsService.taggedGameIdsFilter("user-1", [" ", ""]),
+			{ [Op.in]: [] }
+		);
 	});
 });
 

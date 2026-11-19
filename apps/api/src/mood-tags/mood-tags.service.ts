@@ -1,4 +1,10 @@
-import { Op, QueryTypes, type Transaction } from "sequelize";
+import {
+	literal,
+	Op,
+	QueryTypes,
+	type Transaction,
+	type WhereOperators
+} from "sequelize";
 
 import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.constants";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
@@ -360,6 +366,21 @@ export async function findGameIdsByTags(
 	)) as { gameId: string }[];
 
 	return rows.map(r => r.gameId);
+}
+
+export function taggedGameIdsFilter(
+	userId: string,
+	tags: readonly string[]
+): WhereOperators {
+	const normalized = normalizeTags(tags);
+	if (normalized.length === 0) return { [Op.in]: [] };
+
+	const escapedTags = normalized.map(tag => sequelize.escape(tag)).join(", ");
+	return {
+		[Op.in]: literal(
+			`(SELECT "gameId" FROM "UserGameTags" WHERE "userId" = ${sequelize.escape(userId)} AND "tag" IN (${escapedTags}) GROUP BY "gameId" HAVING COUNT(DISTINCT "tag") = ${normalized.length})`
+		)
+	};
 }
 
 export async function findTagsForGames(
