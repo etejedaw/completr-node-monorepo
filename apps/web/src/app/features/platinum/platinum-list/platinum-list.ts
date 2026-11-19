@@ -30,6 +30,7 @@ import {
 	LibraryPageEmptyAction,
 	LibraryPageToolbar
 } from "../../../shared/components/library-page/library-page-slots";
+import { MyTagFilter } from "../../../shared/components/my-tag-filter/my-tag-filter";
 import { PageSearch } from "../../../shared/components/page-search/page-search";
 import {
 	countByPlatform,
@@ -42,6 +43,7 @@ import { countOf } from "../../../shared/utils/bulk-feedback";
 import { injectBulkRemoval } from "../../../shared/utils/bulk-removal";
 import { gameArtUrl } from "../../../shared/utils/game-art";
 import { injectLatestLoader } from "../../../shared/utils/inject-latest-loader";
+import { injectMyTagFilter } from "../../../shared/utils/inject-my-tag-filter";
 import { injectRowSelection } from "../../../shared/utils/row-selection";
 import {
 	PLATINUM_VIEW_MODES,
@@ -68,6 +70,7 @@ const PLATINUM_NOUN = { one: "platinum", other: "platinums" };
 		LibraryPageContent,
 		LibraryPageEmptyAction,
 		LibraryPageToolbar,
+		MyTagFilter,
 		PlatformFilter,
 		PlatinumCollection,
 		UiButton,
@@ -93,9 +96,16 @@ export class PlatinumList implements OnInit {
 	protected readonly isLoading = signal(true);
 	protected readonly searchQuery = signal("");
 	protected readonly selectedPlatform = signal("");
+	protected readonly tagFilter = injectMyTagFilter({
+		changed: () => {
+			this.offset.set(0);
+			this.loadPlatinums();
+		}
+	});
 	protected readonly exportParams = computed<ExportParams>(() => ({
 		search: this.searchQuery().trim() || undefined,
-		platform: this.selectedPlatform() || undefined
+		platform: this.selectedPlatform() || undefined,
+		mood_tags: this.tagFilter.param()
 	}));
 	protected readonly total = signal(0);
 	protected readonly offset = signal(0);
@@ -137,7 +147,9 @@ export class PlatinumList implements OnInit {
 		if (this.isLoading()) return "loading";
 		if (this.platinumsLoader.failed()) return "error";
 		if (this.platinums().length > 0) return "ready";
-		return this.searchQuery().trim() || this.selectedPlatform()
+		return this.searchQuery().trim() ||
+			this.selectedPlatform() ||
+			this.tagFilter.active()
 			? "no-matches"
 			: "empty";
 	});
@@ -191,6 +203,7 @@ export class PlatinumList implements OnInit {
 	protected clearSearchAndFilter() {
 		this.searchQuery.set("");
 		this.selectedPlatform.set("");
+		this.tagFilter.clearSilently();
 		this.offset.set(0);
 		this.loadPlatinums();
 	}
@@ -230,7 +243,8 @@ export class PlatinumList implements OnInit {
 			this.platinumService.getMine({
 				limit: this.limit,
 				offset: this.offset(),
-				search: this.searchQuery().trim() || undefined
+				search: this.searchQuery().trim() || undefined,
+				mood_tags: this.tagFilter.param()
 			}),
 			{
 				next: res => {

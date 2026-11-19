@@ -83,6 +83,8 @@ describe("PlatinumList bulk interaction", () => {
 		}
 		if (url === `${api}/users/me/gift-offers`)
 			return req.flush({ data: { offers: [] } });
+		if (method === "GET" && url === `${api}/users/me/mood-tags`)
+			return req.flush({ data: { tags: [] } });
 		throw new Error(`Unexpected request: ${method} ${url}`);
 	}
 

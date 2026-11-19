@@ -28,9 +28,9 @@
 
 <app-library-page
 	[state]="pageState()"
-	[showToolbar]="isLoading() || allPlatinums().length > 0 || !!searchQuery().trim()"
+	[showToolbar]="isLoading() || allPlatinums().length > 0 || !!searchQuery().trim() || tagFilter.active()"
 	loadingLabel="Loading platinums"
-	noMatchesHint="None of your platinums matches your current search or platform."
+	noMatchesHint="None of your platinums matches your current search, platform or tags."
 	noMatchesClearLabel="Clear search & filter"
 	emptyIcon="emoji_events"
 	emptyTitle="No platinums yet"
@@ -52,6 +52,11 @@
 			class="flex-1 min-w-[12rem]"
 			[value]="searchQuery()"
 			(valueChange)="onSearch($event)"
+		/>
+		<app-my-tag-filter
+			[options]="tagFilter.options()"
+			[values]="tagFilter.selected()"
+			(valuesChange)="tagFilter.select($event)"
 		/>
 		<app-view-mode-toggle
 			[options]="viewModes"
