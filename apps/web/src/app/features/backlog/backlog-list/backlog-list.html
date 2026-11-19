@@ -88,6 +88,7 @@
 				placeholderIcon="bookmark_border"
 				[options]="viewPickerOptions()"
 				[value]="activeFilterId() ?? ''"
+				[modified]="viewModified()"
 				[actions]="viewPickerActions()"
 				(valueChange)="pickView($event)"
 				(actionSelected)="runViewAction($event)"
@@ -102,7 +103,7 @@
 						label="Filters & stats"
 						heading="Filters & stats"
 						eyebrow="My Games"
-						[subheading]="activeView()?.name ?? null"
+						[subheading]="mobileToolsSubheading()"
 						icon="tune"
 						size="md"
 						[count]="activeFiltersCount() + viewStats.enabledCount()"
@@ -141,7 +142,7 @@
 					class="h-10 shrink-0"
 					[title]="action.description"
 					[attr.aria-label]="action.description"
-					(click)="clearFilters()"
+					(click)="runClearAction()"
 				>
 					<span aria-hidden="true" class="material-icons text-base"
 						>{{ action.icon }}</span
@@ -199,7 +200,12 @@
 		(expandedToggle)="viewStats.toggleExpanded()"
 		(retryRequested)="viewStats.retry()"
 	/>
-	} @if (showFilters()) {
+	@if (viewModified()) {
+	<p class="-mt-2 mb-4 text-xs text-fg-muted">
+		These stats are for the saved filters of this view. Save to view to
+		include your changes.
+	</p>
+	} } @if (showFilters()) {
 	<app-backlog-filters-panel
 		[allPlatforms]="allPlatforms()"
 		[allGenres]="allGenres()"

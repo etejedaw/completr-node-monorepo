@@ -127,6 +127,9 @@ describe("BacklogList interaction", () => {
 	}[];
 	let myTagsStatus: number;
 	let myTagsRequests: number;
+	let holdViewPatches: boolean;
+	let viewPatchFailure: number | null;
+	const heldViewPatches: TestRequest[] = [];
 
 	function hasAllTags(
 		owned: readonly string[] | undefined,
@@ -238,6 +241,37 @@ describe("BacklogList interaction", () => {
 
 	const exportRequests: TestRequest["request"][] = [];
 
+	function respondToViewPatch(req: TestRequest, failWith: number | null) {
+		const id = req.request.url.split("/").at(-1)!;
+		if (failWith !== null)
+			return req.flush(
+				{ title: "Failed", status: failWith },
+				{ status: failWith, statusText: "Failed" }
+			);
+		savedViews = savedViews.map(view =>
+			view.id === id
+				? { ...view, ...(req.request.body as Partial<SavedFilter>) }
+				: view
+		);
+		req.flush({
+			data: {
+				savedFilter:
+					savedViews.find(view => view.id === id) ??
+					savedView(req.request.body as Partial<SavedFilter>)
+			}
+		});
+	}
+
+	function patchSavedView(req: TestRequest) {
+		const { method, url, body } = req.request;
+		savedViewWrites.push({ method, url, body });
+		if (holdViewPatches) {
+			heldViewPatches.push(req);
+			return;
+		}
+		respondToViewPatch(req, viewPatchFailure);
+	}
+
 	function answer(req: TestRequest) {
 		const { method, url } = req.request;
 		const platinumMatch = url.match(
@@ -293,6 +327,11 @@ describe("BacklogList interaction", () => {
 			);
 		if (url === `${api}/users/me/saved-filters` && method === "GET")
 			return req.flush({ data: { savedFilters: savedViews } });
+		if (
+			method === "PATCH" &&
+			/\/users\/me\/saved-filters\/[^/]+$/.test(url)
+		)
+			return patchSavedView(req);
 		if (
 			url.startsWith(`${api}/users/me/saved-filters`) &&
 			method !== "GET"
@@ -396,6 +435,9 @@ describe("BacklogList interaction", () => {
 		myTags = [];
 		myTagsStatus = 200;
 		myTagsRequests = 0;
+		holdViewPatches = false;
+		viewPatchFailure = null;
+		heldViewPatches.length = 0;
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -2162,6 +2204,535 @@ describe("BacklogList interaction", () => {
 			expect(
 				within(card("Hades")).getByText("short")
 			).toBeInTheDocument();
+		});
+	});
+
+	describe("modified saved views", () => {
+		function viewLibrary(): BacklogEntry[] {
+			return initialLibrary().map(item => ({
+				...item,
+				moodTags:
+					{
+						b1: ["cozy", "short"],
+						b2: ["cozy"],
+						b3: []
+					}[item.id] ?? [],
+				platinum:
+					item.id === "b2"
+						? {
+								id: "platinum-g2",
+								backlogId: "b2",
+								platformId: null,
+								platinumedAt: null,
+								notes: null
+							}
+						: undefined
+			}));
+		}
+
+		function toPlay(overrides: Partial<SavedFilter> = {}) {
+			return savedView({
+				id: "v1",
+				name: "To play",
+				filters: { status: "not_started" },
+				sortBy: "createdAt",
+				sortOrder: "desc",
+				icon: "flag",
+				color: "blue",
+				...overrides
+			});
+		}
+
+		function playingNow() {
+			return savedView({
+				id: "v2",
+				name: "Playing now",
+				filters: { status: "playing" }
+			});
+		}
+
+		async function renderViews(initialRoute = "/") {
+			const { fixture } = await render(BacklogHost, {
+				providers: [provideHttpClient(), provideHttpClientTesting()],
+				routes: [],
+				initialRoute
+			});
+			TestBed.inject(ApplicationRef).components.push(
+				fixture.componentRef
+			);
+			httpTesting = TestBed.inject(HttpTestingController);
+			await untilVisible(() =>
+				expect(visibleTitles().length).toBeGreaterThan(0)
+			);
+		}
+
+		function viewPicker() {
+			return screen.getByRole("button", { name: /^View:/ });
+		}
+
+		async function openViewMenu(user: UserEvent) {
+			await user.click(viewPicker());
+			return screen.findByRole("menu");
+		}
+
+		async function chooseView(user: UserEvent, name: string) {
+			const menu = await openViewMenu(user);
+			await user.click(
+				within(menu).getByRole("menuitemradio", {
+					name: new RegExp(`^${name}`)
+				})
+			);
+			answerPending();
+		}
+
+		async function runViewAction(user: UserEvent, label: string) {
+			const menu = await openViewMenu(user);
+			await user.click(
+				within(menu).getByRole("menuitem", { name: label })
+			);
+		}
+
+		async function pickStatusPill(user: UserEvent, name: RegExp) {
+			await user.click(statusPills().getByRole("button", { name }));
+			answerPending();
+		}
+
+		function libraryQueries() {
+			return backlogQueries.filter(query => query.get("limit") !== "1");
+		}
+
+		function lastLibraryQuery() {
+			return libraryQueries().at(-1)!;
+		}
+
+		function currentUrl() {
+			return new URL(TestBed.inject(Router).url, "http://app.test");
+		}
+
+		function viewPatches() {
+			return savedViewWrites.filter(write => write.method === "PATCH");
+		}
+
+		function filtersButton() {
+			return screen
+				.getAllByRole("button", { name: /^Filters/ })
+				.find(button => button.classList.contains("max-sm:!hidden"))!;
+		}
+
+		beforeEach(() => {
+			library = viewLibrary();
+			myTags = [
+				{ tag: "short", usageCount: 1, description: null },
+				{ tag: "cozy", usageCount: 2, description: null }
+			];
+		});
+
+		it("keeps the view when a status chip changes and stops being modified once back to the saved filters", async () => {
+			const user = userEvent.setup();
+			savedViews = [toPlay()];
+			await renderViews();
+			await chooseView(user, "To play");
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+
+			await pickStatusPill(user, /Playing/);
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+			expect(viewPicker()).toHaveAccessibleName(
+				"View: To play (modified)"
+			);
+			expect(
+				viewPicker().querySelector("[data-modified-indicator]")
+			).not.toBeNull();
+			expect(lastLibraryQuery().get("status")).toBe("playing");
+			await waitFor(() => {
+				expect(currentUrl().searchParams.get("savedFilterId")).toBe(
+					"v1"
+				);
+				expect(currentUrl().searchParams.get("status")).toBe("playing");
+			});
+
+			await pickStatusPill(user, /Not Started/);
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+			expect(
+				viewPicker().querySelector("[data-modified-indicator]")
+			).toBeNull();
+			await waitFor(() =>
+				expect(currentUrl().searchParams.has("status")).toBe(false)
+			);
+			expect(currentUrl().searchParams.get("savedFilterId")).toBe("v1");
+			expect(
+				screen.getByRole("button", {
+					name: "Exit the saved view and show all games"
+				})
+			).toBeInTheDocument();
+		});
+
+		it("adds tags and panel filters on top of the view and saves them all with Save to view", async () => {
+			const user = userEvent.setup();
+			savedViews = [toPlay()];
+			await renderViews();
+			await chooseView(user, "To play");
+
+			await user.click(screen.getByRole("button", { name: /^Tags:/ }));
+			await user.click(
+				within(
+					await screen.findByRole("listbox", {
+						name: "Filter by your tags"
+					})
+				).getByRole("option", { name: /^cozy\b/ })
+			);
+			await user.keyboard("{Escape}");
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight"])
+			);
+			expect(viewPicker()).toHaveAccessibleName(
+				"View: To play (modified)"
+			);
+
+			await user.click(filtersButton());
+			await user.click(
+				await screen.findByRole("switch", {
+					name: "Only platinumed games"
+				})
+			);
+			await user.click(
+				screen.getByRole("button", { name: /^(Save & )?[Ss]how/ })
+			);
+			answerPending();
+
+			await untilVisible(() =>
+				expect(lastLibraryQuery().get("platinumed_only")).toBe("true")
+			);
+			expect(lastLibraryQuery().get("status")).toBe("not_started");
+			expect(lastLibraryQuery().get("mood_tags")).toBe("cozy");
+			expect(viewPicker()).toHaveAccessibleName(
+				"View: To play (modified)"
+			);
+
+			await runViewAction(user, "Save to view");
+			answerPending();
+
+			expect(viewPatches()).toEqual([
+				{
+					method: "PATCH",
+					url: `${api}/users/me/saved-filters/v1`,
+					body: {
+						filters: {
+							status: "not_started",
+							mood_tags: "cozy",
+							platinumed_only: "true"
+						},
+						sortBy: "createdAt",
+						sortOrder: "desc"
+					}
+				}
+			]);
+			expect(savedViews[0]).toMatchObject({
+				name: "To play",
+				icon: "flag",
+				color: "blue",
+				showInBacklog: true,
+				isDefault: false
+			});
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+			expect(
+				await screen.findByText("Saved your changes to To play.")
+			).toBeInTheDocument();
+			await waitFor(() => {
+				expect(currentUrl().searchParams.has("mood_tags")).toBe(false);
+				expect(currentUrl().searchParams.has("platinumed_only")).toBe(
+					false
+				);
+			});
+			expect(currentUrl().searchParams.get("savedFilterId")).toBe("v1");
+		});
+
+		it("sends a single PATCH when Save to view or Update current view is double clicked", async () => {
+			const user = userEvent.setup();
+			holdViewPatches = true;
+			savedViews = [toPlay()];
+			await renderViews();
+			await chooseView(user, "To play");
+			await pickStatusPill(user, /Playing/);
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+
+			const menu = await openViewMenu(user);
+			await user.dblClick(
+				within(menu).getByRole("menuitem", { name: "Save to view" })
+			);
+			answerPending();
+			expect(viewPatches()).toHaveLength(1);
+
+			heldViewPatches
+				.splice(0)
+				.forEach(req => respondToViewPatch(req, null));
+			await pickStatusPill(user, /^All/);
+			await user.click(filtersButton());
+			await user.dblClick(
+				await screen.findByRole("button", {
+					name: /Update current view/
+				})
+			);
+			answerPending();
+
+			expect(viewPatches()).toHaveLength(2);
+			heldViewPatches
+				.splice(0)
+				.forEach(req => respondToViewPatch(req, null));
+			answerPending();
+			expect(savedViews[0].filters).toEqual({});
+		});
+
+		it("resets to the filters being saved when Reset is pressed during a save", async () => {
+			const user = userEvent.setup();
+			holdViewPatches = true;
+			savedViews = [toPlay()];
+			await renderViews();
+			await chooseView(user, "To play");
+			await pickStatusPill(user, /Playing/);
+			await runViewAction(user, "Save to view");
+			answerPending();
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+
+			await pickStatusPill(user, /Not Started/);
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(viewPicker()).toHaveAccessibleName(
+				"View: To play (modified)"
+			);
+			await runViewAction(user, "Reset view");
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+
+			heldViewPatches
+				.splice(0)
+				.forEach(req => respondToViewPatch(req, null));
+			answerPending();
+
+			expect(viewPatches()).toHaveLength(1);
+			expect(savedViews[0].filters).toEqual({ status: "playing" });
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+			expect(visibleTitles()).toEqual(["Hades"]);
+		});
+
+		it("rolls the view back and warns when Save to view fails, keeping the changes on screen", async () => {
+			const user = userEvent.setup();
+			viewPatchFailure = 500;
+			savedViews = [toPlay()];
+			await renderViews();
+			await chooseView(user, "To play");
+			await pickStatusPill(user, /Playing/);
+
+			await runViewAction(user, "Save to view");
+			answerPending();
+
+			expect(
+				await screen.findByText(
+					"Couldn't save your changes to To play. Try again."
+				)
+			).toBeInTheDocument();
+			expect(viewPicker()).toHaveAccessibleName(
+				"View: To play (modified)"
+			);
+			expect(visibleTitles()).toEqual(["Hades"]);
+			expect(savedViews[0].filters).toEqual({ status: "not_started" });
+			await waitFor(() =>
+				expect(currentUrl().searchParams.get("status")).toBe("playing")
+			);
+
+			await runViewAction(user, "Reset view");
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+		});
+
+		it("discards the pending changes when another view or None is picked", async () => {
+			const user = userEvent.setup();
+			savedViews = [toPlay(), playingNow()];
+			await renderViews();
+			await chooseView(user, "To play");
+			await pickStatusPill(user, /Playing/);
+			expect(viewPicker()).toHaveAccessibleName(
+				"View: To play (modified)"
+			);
+
+			await chooseView(user, "Playing now");
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: Playing now");
+
+			await chooseView(user, "To play");
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+
+			await pickStatusPill(user, /Playing/);
+			await chooseView(user, "None");
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual([
+					"Hades",
+					"Hollow Knight",
+					"Celeste"
+				])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: None");
+			expect(viewPatches()).toEqual([]);
+			await waitFor(() => expect(currentUrl().search).toBe(""));
+		});
+
+		it("turns the toolbar Clear into Reset view while the view is modified and into Exit view otherwise", async () => {
+			const user = userEvent.setup();
+			savedViews = [toPlay()];
+			await renderViews();
+			await chooseView(user, "To play");
+			await pickStatusPill(user, /Playing/);
+
+			await user.click(
+				screen.getByRole("button", {
+					name: "Discard your changes and go back to the saved view"
+				})
+			);
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+
+			await user.click(
+				screen.getByRole("button", {
+					name: "Exit the saved view and show all games"
+				})
+			);
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual([
+					"Hades",
+					"Hollow Knight",
+					"Celeste"
+				])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: None");
+		});
+
+		it("restores the changes of a reloaded link once, replacing the view filters instead of adding to them", async () => {
+			savedViews = [
+				toPlay({
+					filters: { status: "not_started", mood_tags: "cozy" }
+				})
+			];
+			await renderViews("/?savedFilterId=v1&mood_tags=short&status=");
+
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+			expect(lastLibraryQuery().get("mood_tags")).toBe("short");
+			expect(lastLibraryQuery().has("status")).toBe(false);
+			expect(viewPicker()).toHaveAccessibleName(
+				"View: To play (modified)"
+			);
+			expect(
+				screen.getByRole("button", { name: /^Tags:/ })
+			).toHaveAccessibleName("Tags: short");
+			expect(
+				libraryQueries().filter(
+					query => query.get("mood_tags") === "cozy"
+				)
+			).toEqual([]);
+		});
+
+		it("keeps the URL of an untouched default view clean and names the view once it changes", async () => {
+			const user = userEvent.setup();
+			savedViews = [toPlay({ isDefault: true })];
+			await renderViews();
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(currentUrl().search).toBe("");
+
+			await pickStatusPill(user, /Playing/);
+
+			await waitFor(() =>
+				expect(currentUrl().searchParams.get("savedFilterId")).toBe(
+					"v1"
+				)
+			);
+			expect(currentUrl().searchParams.get("status")).toBe("playing");
+
+			await pickStatusPill(user, /Not Started/);
+			await waitFor(() => expect(currentUrl().search).toBe(""));
+		});
+
+		it("offers Save to view and Reset view on mobile, in Filters & stats and in the View sheet", async () => {
+			vi.stubGlobal(
+				"matchMedia",
+				vi.fn(() => ({
+					matches: true,
+					addEventListener: vi.fn(),
+					removeEventListener: vi.fn()
+				}))
+			);
+			const user = userEvent.setup();
+			savedViews = [toPlay({ isDefault: true })];
+			await renderViews();
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			await pickStatusPill(user, /Playing/);
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+
+			await user.click(
+				screen.getByRole("button", { name: /^Filters & stats/ })
+			);
+			const tools = await screen.findByRole("dialog", {
+				name: "Filters & stats"
+			});
+			expect(tools).toHaveTextContent("To play · Modified");
+			await user.click(
+				within(tools).getByRole("button", { name: /^Reset view/ })
+			);
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hollow Knight", "Celeste"])
+			);
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
+
+			await pickStatusPill(user, /Playing/);
+			await untilVisible(() =>
+				expect(visibleTitles()).toEqual(["Hades"])
+			);
+			await user.click(viewPicker());
+			const sheet = await screen.findByRole("dialog", {
+				name: "Saved views"
+			});
+			expect(
+				within(sheet).getByRole("button", { name: /^To play/ })
+			).toHaveTextContent("Modified");
+			await user.dblClick(
+				within(sheet).getByRole("button", { name: /Save to view/ })
+			);
+			answerPending();
+
+			expect(viewPatches()).toHaveLength(1);
+			expect(savedViews[0].filters).toEqual({ status: "playing" });
+			expect(viewPicker()).toHaveAccessibleName("View: To play");
 		});
 	});
 });

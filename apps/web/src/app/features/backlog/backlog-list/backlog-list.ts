@@ -103,7 +103,6 @@ import {
 } from "../backlog-modal/backlog-modal";
 import { type BacklogModalData } from "../backlog-modal/backlog-modal.model";
 import {
-	joinTagList,
 	myTagOption,
 	parseTagList,
 	TAG_FILTER_LIMIT
@@ -125,8 +124,22 @@ import { type PendingStatusUpdate } from "../components/status-change-dialog/sta
 import { SavedFiltersService } from "../saved-filters";
 import { type SavedFilter } from "../saved-filters.model";
 import { SurpriseMe } from "../surprise-me/surprise-me";
-import { type ClearAction } from "./backlog-list.model";
+import { type ClearAction, type ViewSnapshot } from "./backlog-list.model";
 import { injectViewStats } from "./inject-view-stats";
+import {
+	differsOnlyInUrlState,
+	hasFilterParams,
+	overlayFilterParams,
+	plainUrlState,
+	readUrlState,
+	sameSnapshot,
+	SAVED_VIEW_PARAM,
+	SORT_BY_PARAM,
+	SORT_ORDER_PARAM,
+	type UrlState,
+	urlStateKey,
+	viewUrlState
+} from "./view-url-state";
 
 const MIXED_STATUS_VALUE = "__mixed__";
 
@@ -139,6 +152,16 @@ const EXIT_VIEW_ACTION: ClearAction = {
 	description: "Exit the saved view and show all games",
 	icon: "bookmark_remove"
 };
+
+const RESET_VIEW_ACTION: ClearAction = {
+	label: "Reset view",
+	description: "Discard your changes and go back to the saved view",
+	icon: "restart_alt"
+};
+
+const SAVE_TO_VIEW_ID = "save-view";
+const RESET_VIEW_ID = "reset-view";
+const SORT_BY_PATTERN = /^[A-Za-z_]{1,50}$/;
 
 const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 	{
@@ -164,14 +187,10 @@ const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 const VIEW_MODE_STORAGE_KEY = "completr.backlog.viewMode";
 const MOOD_TAGS_PARAM = "mood_tags";
 
-function differsOnlyInTagParams(previous: ParamMap, next: ParamMap) {
-	const keys = new Set([...previous.keys, ...next.keys]);
-	return [...keys].every(
-		key =>
-			key === MOOD_TAGS_PARAM ||
-			JSON.stringify(previous.getAll(key)) ===
-				JSON.stringify(next.getAll(key))
-	);
+function numberOrNull(value: string | undefined): number | null {
+	if (!value) return null;
+	const parsed = Number(value);
+	return Number.isFinite(parsed) ? parsed : null;
 }
 
 @Component({
@@ -298,6 +317,20 @@ export class BacklogList implements OnInit {
 	]);
 
 	protected readonly viewPickerActions = computed<UiPickerAction[]>(() => [
+		...(this.viewModified()
+			? [
+					{
+						id: SAVE_TO_VIEW_ID,
+						label: "Save to view",
+						icon: "save"
+					},
+					{
+						id: RESET_VIEW_ID,
+						label: "Reset view",
+						icon: "restart_alt"
+					}
+				]
+			: []),
 		...(this.backlogFilters().length > 1
 			? [
 					{
@@ -347,6 +380,7 @@ export class BacklogList implements OnInit {
 	private eagerlyAppliedParams: ParamMap | null = null;
 	private lastQueryParams: ParamMap | null = null;
 	private newViewPending = false;
+	private readonly pendingUrlStates: string[] = [];
 
 	private readonly applyFromUrlEffect = effect(() => {
 		const params = this.queryParamMap();
@@ -355,7 +389,7 @@ export class BacklogList implements OnInit {
 		untracked(() => {
 			const previous = this.lastQueryParams;
 			this.lastQueryParams = params;
-			if (previous && this.isOwnTagSync(previous, params)) {
+			if (previous && this.isOwnUrlSync(previous, params)) {
 				if (this.eagerlyAppliedParams === previous)
 					this.eagerlyAppliedParams = params;
 				return;
@@ -369,7 +403,7 @@ export class BacklogList implements OnInit {
 				return;
 			}
 			if (!filtersLoaded) {
-				if (params.get("savedFilterId")) return;
+				if (params.get(SAVED_VIEW_PARAM)) return;
 				this.eagerlyAppliedParams = params;
 				this.applyFiltersFromUrl(params);
 				return;
@@ -377,8 +411,7 @@ export class BacklogList implements OnInit {
 			const hasDefault = this.savedFilters().some(f => f.isDefault);
 			if (
 				this.eagerlyAppliedParams === params &&
-				(params.get("status") !== null ||
-					params.get(MOOD_TAGS_PARAM) !== null ||
+				(hasFilterParams(params) ||
 					params.get("search") !== null ||
 					!hasDefault)
 			) {
@@ -462,6 +495,18 @@ export class BacklogList implements OnInit {
 	protected readonly backlogFilters = signal<SavedFilter[]>([]);
 	protected readonly colorHex = appearanceColorHex;
 	protected readonly activeFilterId = signal<string | null>(null);
+	private readonly viewBaseline = signal<ViewSnapshot | null>(null);
+	private readonly appliedSnapshot = signal<ViewSnapshot | null>(null);
+	protected readonly viewModified = computed(() => {
+		const baseline = this.viewBaseline();
+		const applied = this.appliedSnapshot();
+		return (
+			this.activeView() !== null &&
+			baseline !== null &&
+			applied !== null &&
+			!sameSnapshot(applied, baseline)
+		);
+	});
 	protected readonly activeFilterDescription = signal("");
 	protected readonly newFilterName = signal("");
 	protected readonly newFilterPinned = signal(true);
@@ -501,7 +546,8 @@ export class BacklogList implements OnInit {
 	};
 
 	protected readonly clearAction = computed<ClearAction | null>(() => {
-		if (this.activeFilterId()) return EXIT_VIEW_ACTION;
+		if (this.activeFilterId())
+			return this.viewModified() ? RESET_VIEW_ACTION : EXIT_VIEW_ACTION;
 		const count = this.activeFiltersCount();
 		if (count === 0) return null;
 		return {
@@ -513,12 +559,15 @@ export class BacklogList implements OnInit {
 
 	protected setCoopOnly(value: boolean) {
 		this.coopOnly.set(value);
-		this.activeFilterId.set(null);
 	}
 
 	protected setPlatinumedOnly(value: boolean) {
 		this.platinumedOnly.set(value);
-		this.activeFilterId.set(null);
+	}
+
+	protected runClearAction() {
+		if (this.viewModified()) this.resetView();
+		else this.clearFilters();
 	}
 
 	private readonly previewFilters = computed(
@@ -611,45 +660,56 @@ export class BacklogList implements OnInit {
 		this.toast.warning(`You can filter by up to ${limit} tags at a time.`);
 	}
 
-	private applyTagParams(params: ParamMap) {
-		this.selectedMoodTags.set(parseTagList(params.get(MOOD_TAGS_PARAM)));
-	}
-
-	private hasTagParams(params: ParamMap): boolean {
-		return parseTagList(params.get(MOOD_TAGS_PARAM)).length > 0;
-	}
-
-	private isOwnTagSync(previous: ParamMap, next: ParamMap): boolean {
-		return (
-			previous !== next &&
-			differsOnlyInTagParams(previous, next) &&
-			next.get(MOOD_TAGS_PARAM) === this.tagParamValue()
+	private isOwnUrlSync(previous: ParamMap, next: ParamMap): boolean {
+		if (previous === next || !differsOnlyInUrlState(previous, next))
+			return false;
+		const index = this.pendingUrlStates.indexOf(
+			urlStateKey(readUrlState(next))
 		);
+		if (index < 0) return false;
+		this.pendingUrlStates.splice(0, index + 1);
+		return true;
 	}
 
-	private tagParamValue(): string | null {
-		if (this.activeFilterId()) return null;
-		return joinTagList(this.selectedMoodTags());
+	private currentSnapshot(): ViewSnapshot {
+		return {
+			filters: this.buildFiltersObject(),
+			sortBy: this.sortBy(),
+			sortOrder: this.sortOrder()
+		};
 	}
 
-	private syncTagParamsToUrl() {
-		const moodTags = this.tagParamValue();
-		if (this.route.snapshot.queryParamMap.get(MOOD_TAGS_PARAM) === moodTags)
-			return;
+	private desiredUrlState(): UrlState {
+		const current = this.currentSnapshot();
+		const view = this.activeView();
+		const baseline = this.viewBaseline();
+		if (view && baseline)
+			return viewUrlState(view.id, view.isDefault, current, baseline);
+		return plainUrlState(current);
+	}
+
+	private syncFiltersToUrl() {
+		const desired = this.desiredUrlState();
+		const desiredKey = urlStateKey(desired);
+		const latestKey =
+			this.pendingUrlStates.at(-1) ??
+			urlStateKey(readUrlState(this.route.snapshot.queryParamMap));
+		if (desiredKey === latestKey) return;
+		this.pendingUrlStates.push(desiredKey);
 		void this.router.navigate([], {
 			relativeTo: this.route,
-			queryParams: { [MOOD_TAGS_PARAM]: moodTags },
+			queryParams: desired,
 			queryParamsHandling: "merge",
 			replaceUrl: true
 		});
 	}
 
 	private applyFiltersFromUrl(params: ParamMap) {
-		const filterId = params.get("savedFilterId");
+		const filterId = params.get(SAVED_VIEW_PARAM);
 		if (filterId) {
 			const match = this.savedFilters().find(f => f.id === filterId);
 			if (match) {
-				this.applySavedFilterFromUrl(match);
+				this.applySavedFilterFromUrl(match, params);
 				return;
 			}
 		}
@@ -663,12 +723,10 @@ export class BacklogList implements OnInit {
 			return;
 		}
 
-		const statusParam = params.get("status");
-		if (statusParam || this.hasTagParams(params)) {
+		if (hasFilterParams(params)) {
 			this.resetFilterState();
-			if (statusParam)
-				this.activeStatuses.set(new Set(statusParam.split(",")));
-			this.applyTagParams(params);
+			this.applyFilterRecord(overlayFilterParams({}, params));
+			this.applySortParams(params);
 			this.offset.set(0);
 			this.loadBacklog();
 			return;
@@ -686,57 +744,67 @@ export class BacklogList implements OnInit {
 		}
 	}
 
-	private applySavedFilterFromUrl(filter: SavedFilter) {
-		this.applySavedFilterState(filter);
-		this.activeFilterId.set(filter.id);
-		this.activeFilterDescription.set(filter.description ?? "");
+	private applySavedFilterFromUrl(filter: SavedFilter, params?: ParamMap) {
+		this.enterView(filter);
+		const baseline = this.viewBaseline();
+		if (params && baseline && hasFilterParams(params)) {
+			this.applyFilterRecord(
+				overlayFilterParams(baseline.filters, params)
+			);
+			this.applySortParams(params);
+		}
 		this.offset.set(0);
 		this.loadBacklog();
 	}
 
+	private enterView(filter: SavedFilter) {
+		this.applySavedFilterState(filter);
+		this.activeFilterId.set(filter.id);
+		this.activeFilterDescription.set(filter.description ?? "");
+		this.viewBaseline.set(this.currentSnapshot());
+	}
+
+	private applySortParams(params: ParamMap) {
+		const sortBy = params.get(SORT_BY_PARAM);
+		const sortOrder = params.get(SORT_ORDER_PARAM);
+		if (sortBy && SORT_BY_PATTERN.test(sortBy)) this.sortBy.set(sortBy);
+		if (sortOrder === "asc" || sortOrder === "desc")
+			this.sortOrder.set(sortOrder);
+	}
+
 	private applySavedFilterState(filter: SavedFilter) {
-		const f = filter.filters as Record<string, string>;
+		this.applyFilterRecord(filter.filters as Record<string, string>);
+		if (filter.sortBy) this.sortBy.set(filter.sortBy);
+		if (filter.sortOrder) this.sortOrder.set(filter.sortOrder as SortOrder);
+	}
+
+	private applyFilterRecord(f: Record<string, string>) {
 		this.selectedPlatforms.set(this.platformCodesOf(f));
 		this.selectedGenres.set(
 			f["genres"] ? new Set(f["genres"].split(",")) : new Set()
 		);
-		this.yearFrom.set(
-			f["release_year_from"] ? Number(f["release_year_from"]) : null
-		);
-		this.yearTo.set(
-			f["release_year_to"] ? Number(f["release_year_to"]) : null
-		);
+		this.yearFrom.set(numberOrNull(f["release_year_from"]));
+		this.yearTo.set(numberOrNull(f["release_year_to"]));
 		this.startedFrom.set(f["started_from"] ?? "");
 		this.startedTo.set(f["started_to"] ?? "");
 		this.finishedFrom.set(f["finished_from"] ?? "");
 		this.finishedTo.set(f["finished_to"] ?? "");
-		this.minRating.set(f["min_rating"] ? Number(f["min_rating"]) : null);
-		this.maxRating.set(f["max_rating"] ? Number(f["max_rating"]) : null);
-		this.minRealDuration.set(
-			f["min_real_duration"] ? Number(f["min_real_duration"]) : null
-		);
-		this.maxRealDuration.set(
-			f["max_real_duration"] ? Number(f["max_real_duration"]) : null
-		);
-		this.minRatio.set(f["min_ratio"] ? Number(f["min_ratio"]) : null);
-		this.maxRatio.set(f["max_ratio"] ? Number(f["max_ratio"]) : null);
-		this.minPersonalRatio.set(
-			f["min_personal_ratio"] ? Number(f["min_personal_ratio"]) : null
-		);
-		this.maxPersonalRatio.set(
-			f["max_personal_ratio"] ? Number(f["max_personal_ratio"]) : null
-		);
+		this.minRating.set(numberOrNull(f["min_rating"]));
+		this.maxRating.set(numberOrNull(f["max_rating"]));
+		this.minRealDuration.set(numberOrNull(f["min_real_duration"]));
+		this.maxRealDuration.set(numberOrNull(f["max_real_duration"]));
+		this.minRatio.set(numberOrNull(f["min_ratio"]));
+		this.maxRatio.set(numberOrNull(f["max_ratio"]));
+		this.minPersonalRatio.set(numberOrNull(f["min_personal_ratio"]));
+		this.maxPersonalRatio.set(numberOrNull(f["max_personal_ratio"]));
 		this.selectedMoodTags.set(parseTagList(f[MOOD_TAGS_PARAM]));
 		this.coopOnly.set(f["coop_only"] === "true");
 		this.platinumedOnly.set(f["platinumed_only"] === "true");
 
 		const status = f["status"];
 		this.activeStatuses.set(
-			status ? new Set(status.split(",")) : new Set()
+			new Set(status ? status.split(",").filter(Boolean) : [])
 		);
-
-		if (filter.sortBy) this.sortBy.set(filter.sortBy);
-		if (filter.sortOrder) this.sortOrder.set(filter.sortOrder as SortOrder);
 
 		if (this.hasAdvancedFiltersActive()) this.showAdvancedFilters.set(true);
 	}
@@ -775,6 +843,7 @@ export class BacklogList implements OnInit {
 		this.platinumedOnly.set(false);
 		this.activeFilterId.set(null);
 		this.activeFilterDescription.set("");
+		this.viewBaseline.set(null);
 		this.sortBy.set("createdAt");
 		this.sortOrder.set("desc");
 	}
@@ -893,9 +962,33 @@ export class BacklogList implements OnInit {
 		this.closeFilters();
 	}
 
+	protected readonly mobileToolsSubheading = computed(() => {
+		const name = this.activeView()?.name ?? null;
+		if (!name) return null;
+		return this.viewModified() ? `${name} · Modified` : name;
+	});
+
 	protected readonly mobileToolsItems = computed<UiActionMenuItem[]>(() => {
 		const filters = this.activeFiltersCount();
 		const stats = this.viewStats.enabledCount();
+		const viewActions: UiActionMenuItem[] = this.viewModified()
+			? [
+					{
+						id: SAVE_TO_VIEW_ID,
+						label: "Save to view",
+						icon: "save",
+						iconClass: "text-brand",
+						hint: `Keep these filters in ${this.activeView()?.name}`,
+						separated: true
+					},
+					{
+						id: RESET_VIEW_ID,
+						label: "Reset view",
+						icon: "restart_alt",
+						hint: "Go back to the saved filters"
+					}
+				]
+			: [];
 		return [
 			{
 				id: "filters",
@@ -916,18 +1009,19 @@ export class BacklogList implements OnInit {
 					stats > 0
 						? `${stats} visible`
 						: "Choose which stats to show"
-			}
+			},
+			...viewActions
 		];
 	});
 
 	protected runMobileTool(id: string) {
 		if (id === "filters") this.openFiltersFromSheet();
 		else if (id === "stats") this.openStatsFromSheet();
+		else this.runViewAction(id);
 	}
 
 	protected setStatuses(values: readonly string[]) {
 		this.activeStatuses.set(new Set(values));
-		this.activeFilterId.set(null);
 	}
 
 	private startNewView() {
@@ -947,7 +1041,6 @@ export class BacklogList implements OnInit {
 
 	private applyFilters() {
 		if (!this.activeFilterId()) this.saveCurrentFilter();
-		this.activeFilterId.set(null);
 		this.offset.set(0);
 		this.loadBacklog();
 	}
@@ -976,6 +1069,7 @@ export class BacklogList implements OnInit {
 		this.platinumedOnly.set(false);
 		this.activeFilterId.set(null);
 		this.activeFilterDescription.set("");
+		this.viewBaseline.set(null);
 		this.sortBy.set("createdAt");
 		this.sortOrder.set("desc");
 		this.offset.set(0);
@@ -989,41 +1083,75 @@ export class BacklogList implements OnInit {
 			return;
 		}
 
-		this.applySavedFilterState(filter);
-
-		this.activeFilterId.set(filter.id);
-		this.activeFilterDescription.set(filter.description ?? "");
+		this.enterView(filter);
 		this.offset.set(0);
 		this.loadBacklog();
 	}
 
 	protected updateCurrentFilter() {
-		const id = this.activeFilterId();
-		if (!id) return;
+		if (!this.activeView() || this.savingFilter()) return;
+		this.offset.set(0);
+		this.loadBacklog();
+		this.saveToView();
+	}
 
+	private saveToView() {
+		const view = this.activeView();
+		const snapshot = this.appliedSnapshot();
+		if (!view || !snapshot || this.savingFilter()) return;
+		const previousBaseline = this.viewBaseline();
+		const changes = {
+			filters: snapshot.filters,
+			sortBy: snapshot.sortBy,
+			sortOrder: snapshot.sortOrder
+		};
 		this.savingFilter.set(true);
-		const filters = this.buildFiltersObject();
-
+		this.viewBaseline.set(snapshot);
+		this.replaceView({ ...view, ...changes });
+		this.syncFiltersToUrl();
 		this.savedFiltersService
-			.update(id, {
-				filters,
-				sortBy: this.sortBy(),
-				sortOrder: this.sortOrder()
-			})
+			.update(view.id, changes)
+			.pipe(takeUntilDestroyed(this.destroyRef))
 			.subscribe({
-				next: () => {
+				next: updated => {
 					this.savingFilter.set(false);
-					this.loadSavedFilters();
-					this.viewStats.load(id);
+					this.replaceView(updated);
+					if (this.activeFilterId() === view.id)
+						this.viewStats.load(view.id);
+					this.toast.success(`Saved your changes to ${view.name}.`);
 				},
 				error: (error: unknown) => {
 					this.savingFilter.set(false);
+					this.replaceView(view);
+					if (this.activeFilterId() === view.id) {
+						this.viewBaseline.set(previousBaseline);
+						this.syncFiltersToUrl();
+					}
 					this.reportViewWriteFailure(
 						error,
-						"Couldn't update this view."
+						`Couldn't save your changes to ${view.name}. Try again.`
 					);
 				}
 			});
+	}
+
+	private resetView() {
+		const baseline = this.viewBaseline();
+		if (!this.activeView() || !baseline) return;
+		this.applyFilterRecord(baseline.filters);
+		this.sortBy.set(baseline.sortBy);
+		this.sortOrder.set(baseline.sortOrder);
+		this.offset.set(0);
+		this.loadBacklog();
+	}
+
+	private replaceView(replacement: SavedFilter) {
+		const swap = (views: SavedFilter[]) =>
+			views.map(view =>
+				view.id === replacement.id ? replacement : view
+			);
+		this.savedFilters.update(swap);
+		this.backlogFilters.update(swap);
 	}
 
 	private reportViewWriteFailure(error: unknown, message: string) {
@@ -1444,6 +1572,8 @@ export class BacklogList implements OnInit {
 
 	protected runViewAction(id: string) {
 		if (id === "reorder") this.openReorderModal();
+		else if (id === SAVE_TO_VIEW_ID) this.saveToView();
+		else if (id === RESET_VIEW_ID) this.resetView();
 	}
 
 	protected isFlipped(entryId: string): boolean {
@@ -1547,7 +1677,8 @@ export class BacklogList implements OnInit {
 		this.isLoading.set(true);
 		const base = this.buildBaseFilters();
 		this.appliedFilters.set(base);
-		this.syncTagParamsToUrl();
+		this.appliedSnapshot.set(this.currentSnapshot());
+		this.syncFiltersToUrl();
 		const filters: BacklogFilters = {
 			...this.withSort(base),
 			limit: this.limit,
