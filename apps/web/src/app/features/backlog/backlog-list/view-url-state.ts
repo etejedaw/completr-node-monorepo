@@ -51,7 +51,7 @@ export function sameFilterValue(
 	return asSet(a) === asSet(b);
 }
 
-function sameFilters(
+export function sameFilters(
 	a: Record<string, string>,
 	b: Record<string, string>
 ): boolean {
@@ -64,6 +64,14 @@ export function sameSnapshot(a: ViewSnapshot, b: ViewSnapshot): boolean {
 		a.sortBy === b.sortBy &&
 		a.sortOrder === b.sortOrder
 	);
+}
+
+export function snapshotQuery(snapshot: ViewSnapshot): Record<string, string> {
+	return {
+		...snapshot.filters,
+		[SORT_BY_PARAM]: snapshot.sortBy,
+		[SORT_ORDER_PARAM]: snapshot.sortOrder
+	};
 }
 
 function emptyUrlState(): UrlState {

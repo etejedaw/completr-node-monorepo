@@ -130,6 +130,10 @@ describe("BacklogList interaction", () => {
 	let holdViewPatches: boolean;
 	let viewPatchFailure: number | null;
 	const heldViewPatches: TestRequest[] = [];
+	let statsStatus: number;
+	let holdStats: boolean;
+	const statsRequests: TestRequest[] = [];
+	const heldStats: TestRequest[] = [];
 
 	function hasAllTags(
 		owned: readonly string[] | undefined,
@@ -241,6 +245,61 @@ describe("BacklogList interaction", () => {
 
 	const exportRequests: TestRequest["request"][] = [];
 
+	function statsFiltersOf(req: TestRequest): Record<string, string> {
+		const { params, url } = req.request;
+		if (params.keys().length > 0)
+			return Object.fromEntries(
+				params.keys().map(key => [key, params.get(key) ?? ""])
+			);
+		const viewId = url.split("/").at(-2);
+		const view = savedViews.find(item => item.id === viewId);
+		return (view?.filters ?? {}) as Record<string, string>;
+	}
+
+	function respondToStats(req: TestRequest) {
+		if (statsStatus !== 200)
+			return req.flush(
+				{ title: "Failed" },
+				{ status: statsStatus, statusText: "Failed" }
+			);
+		const filters = statsFiltersOf(req);
+		const statuses = filters["status"]?.split(",");
+		const moodTags = filters["mood_tags"]?.split(",") ?? [];
+		const matching = library.filter(
+			item =>
+				(!statuses || statuses.includes(item.status)) &&
+				hasAllTags(item.moodTags, moodTags)
+		);
+		const countOf = (status: string) =>
+			matching.filter(item => item.status === status).length;
+		req.flush({
+			data: {
+				stats: {
+					totalEntries: matching.length,
+					totalRealHours: null,
+					avgRatio: null,
+					avgPersonalRatio: null,
+					countByStatus: {
+						not_started: countOf("not_started"),
+						playing: countOf("playing"),
+						completed: countOf("completed"),
+						abandoned: countOf("abandoned"),
+						endless: countOf("endless")
+					}
+				}
+			}
+		});
+	}
+
+	function answerStats(req: TestRequest) {
+		statsRequests.push(req);
+		if (holdStats) {
+			heldStats.push(req);
+			return;
+		}
+		respondToStats(req);
+	}
+
 	function respondToViewPatch(req: TestRequest, failWith: number | null) {
 		const id = req.request.url.split("/").at(-1)!;
 		if (failWith !== null)
@@ -297,8 +356,7 @@ describe("BacklogList interaction", () => {
 		}
 		if (url.endsWith("/progress") || url.endsWith("/coop"))
 			return req.flush({ data: { progress: [], members: [] } });
-		if (url.endsWith("/stats"))
-			return req.flush({}, { status: 500, statusText: "Server Error" });
+		if (url.endsWith("/stats")) return answerStats(req);
 		if (url === `${api}/users/me/mood-tags`) {
 			myTagsRequests++;
 			if (myTagsStatus !== 200)
@@ -438,6 +496,10 @@ describe("BacklogList interaction", () => {
 		holdViewPatches = false;
 		viewPatchFailure = null;
 		heldViewPatches.length = 0;
+		statsStatus = 500;
+		holdStats = false;
+		statsRequests.length = 0;
+		heldStats.length = 0;
 		vi.stubGlobal(
 			"matchMedia",
 			vi.fn(() => ({
@@ -2677,6 +2739,214 @@ describe("BacklogList interaction", () => {
 
 			await pickStatusPill(user, /Not Started/);
 			await waitFor(() => expect(currentUrl().search).toBe(""));
+		});
+
+		it("links Manage saved views in the View menu to the saved views page", async () => {
+			const user = userEvent.setup();
+			savedViews = [toPlay()];
+			await renderViews();
+
+			const menu = await openViewMenu(user);
+			const manage = within(menu).getByRole("menuitem", {
+				name: "Manage saved views"
+			});
+
+			expect(manage.tagName).toBe("A");
+			expect(manage).toHaveAttribute("href", "/saved-views");
+		});
+
+		describe("stats", () => {
+			function entriesTile() {
+				const stats = screen.getByRole("region", { name: "Stats" });
+				return within(stats).getByText("Entries").closest("li")!;
+			}
+
+			function statsQuery(index = -1) {
+				const req = statsRequests.at(index)!;
+				return Object.fromEntries(
+					req.request.params
+						.keys()
+						.map(key => [key, req.request.params.get(key)])
+				);
+			}
+
+			beforeEach(() => {
+				statsStatus = 200;
+			});
+
+			it("computes the stats of a modified view with the applied filters, without any notice", async () => {
+				const user = userEvent.setup();
+				savedViews = [toPlay()];
+				await renderViews();
+				await chooseView(user, "To play");
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("2")
+				);
+				expect(statsRequests).toHaveLength(1);
+				expect(statsQuery()).toEqual({});
+
+				await pickStatusPill(user, /Playing/);
+
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("1")
+				);
+				expect(statsRequests).toHaveLength(2);
+				expect(statsRequests[1].request.url).toBe(
+					`${api}/users/me/saved-filters/v1/stats`
+				);
+				expect(statsQuery()).toEqual({
+					status: "playing",
+					sort_by: "createdAt",
+					sort_order: "desc"
+				});
+				expect(
+					screen.queryByText(/These stats are for the saved filters/)
+				).not.toBeInTheDocument();
+			});
+
+			it("keeps a removed filter out of the stats instead of falling back to the saved ones", async () => {
+				const user = userEvent.setup();
+				savedViews = [toPlay()];
+				await renderViews();
+				await chooseView(user, "To play");
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("2")
+				);
+
+				await pickStatusPill(user, /^All/);
+
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("3")
+				);
+				expect(statsQuery()).toEqual({
+					sort_by: "createdAt",
+					sort_order: "desc"
+				});
+			});
+
+			it("asks again without the applied filters only once Save to view is confirmed", async () => {
+				const user = userEvent.setup();
+				holdViewPatches = true;
+				savedViews = [toPlay()];
+				await renderViews();
+				await chooseView(user, "To play");
+				await pickStatusPill(user, /Playing/);
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("1")
+				);
+				expect(statsRequests).toHaveLength(2);
+
+				const menu = await openViewMenu(user);
+				await user.dblClick(
+					within(menu).getByRole("menuitem", {
+						name: "Save to view"
+					})
+				);
+				answerPending();
+				expect(viewPatches()).toHaveLength(1);
+				expect(statsRequests).toHaveLength(2);
+
+				heldViewPatches
+					.splice(0)
+					.forEach(req => respondToViewPatch(req, null));
+				answerPending();
+
+				await untilVisible(() => expect(statsRequests).toHaveLength(3));
+				expect(statsQuery()).toEqual({});
+				expect(entriesTile()).toHaveTextContent("1");
+				answerPending();
+				expect(statsRequests).toHaveLength(3);
+			});
+
+			it("keeps the applied filters in the stats when Save to view fails", async () => {
+				const user = userEvent.setup();
+				viewPatchFailure = 500;
+				savedViews = [toPlay()];
+				await renderViews();
+				await chooseView(user, "To play");
+				await pickStatusPill(user, /Playing/);
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("1")
+				);
+
+				await runViewAction(user, "Save to view");
+				answerPending();
+
+				await untilVisible(() =>
+					expect(viewPicker()).toHaveAccessibleName(
+						"View: To play (modified)"
+					)
+				);
+				expect(statsRequests).toHaveLength(2);
+				expect(entriesTile()).toHaveTextContent("1");
+			});
+
+			it("goes back to the saved stats with Reset view and drops an answer that arrives too late", async () => {
+				const user = userEvent.setup();
+				savedViews = [toPlay()];
+				await renderViews();
+				await chooseView(user, "To play");
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("2")
+				);
+
+				holdStats = true;
+				await pickStatusPill(user, /Playing/);
+				await pickStatusPill(user, /^All/);
+				await runViewAction(user, "Reset view");
+				answerPending();
+
+				const [playing, all, reset] = heldStats.splice(0);
+				expect(heldStats).toEqual([]);
+				expect(playing.cancelled).toBe(true);
+				expect(all.cancelled).toBe(true);
+				expect(reset.request.params.keys()).toEqual([]);
+				respondToStats(reset);
+
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("2")
+				);
+				expect(viewPicker()).toHaveAccessibleName("View: To play");
+			});
+
+			it("sends one stats request per change even when a status chip is double clicked", async () => {
+				const user = userEvent.setup();
+				savedViews = [toPlay()];
+				await renderViews();
+				await chooseView(user, "To play");
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("2")
+				);
+
+				await user.dblClick(
+					statusPills().getByRole("button", { name: /Playing/ })
+				);
+				answerPending();
+				await user.click(
+					screen.getByRole("button", { name: /^Tags:/ })
+				);
+				await user.click(
+					within(
+						await screen.findByRole("listbox", {
+							name: "Filter by your tags"
+						})
+					).getByRole("option", { name: /^cozy\b/ })
+				);
+				await user.keyboard("{Escape}");
+
+				await untilVisible(() =>
+					expect(entriesTile()).toHaveTextContent("1")
+				);
+				expect(
+					statsRequests.map(req =>
+						req.request.params.get("mood_tags")
+					)
+				).toEqual([null, null, "cozy"]);
+				expect(statsQuery()).toMatchObject({
+					status: "playing",
+					mood_tags: "cozy"
+				});
+			});
 		});
 
 		it("offers Save to view and Reset view on mobile, in Filters & stats and in the View sheet", async () => {

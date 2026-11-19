@@ -4,6 +4,7 @@ import { type SavedFilter } from "../saved-filters.model";
 
 export interface ViewStatsOptions {
 	activeFilterId: Signal<string | null>;
+	appliedFilters: Signal<Record<string, string> | null>;
 	savedFilters: WritableSignal<SavedFilter[]>;
 	backlogFilters: WritableSignal<SavedFilter[]>;
 }

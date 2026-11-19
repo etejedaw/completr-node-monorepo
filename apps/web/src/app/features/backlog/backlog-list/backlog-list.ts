@@ -132,8 +132,10 @@ import {
 	overlayFilterParams,
 	plainUrlState,
 	readUrlState,
+	sameFilters,
 	sameSnapshot,
 	SAVED_VIEW_PARAM,
+	snapshotQuery,
 	SORT_BY_PARAM,
 	SORT_ORDER_PARAM,
 	type UrlState,
@@ -162,6 +164,14 @@ const RESET_VIEW_ACTION: ClearAction = {
 const SAVE_TO_VIEW_ID = "save-view";
 const RESET_VIEW_ID = "reset-view";
 const SORT_BY_PATTERN = /^[A-Za-z_]{1,50}$/;
+
+function sameStatsFilters(
+	a: Record<string, string> | null,
+	b: Record<string, string> | null
+): boolean {
+	if (a === null || b === null) return a === b;
+	return sameFilters(a, b);
+}
 
 const BACKLOG_VIEW_MODES: readonly ViewModeOption<BacklogViewMode>[] = [
 	{
@@ -507,6 +517,19 @@ export class BacklogList implements OnInit {
 			!sameSnapshot(applied, baseline)
 		);
 	});
+	private readonly storedViewFilters = signal<Record<string, string> | null>(
+		null
+	);
+	private readonly statsAppliedFilters = computed(
+		() => {
+			const stored = this.storedViewFilters();
+			const applied = this.appliedSnapshot();
+			if (!this.activeView() || !stored || !applied) return null;
+			if (sameFilters(applied.filters, stored)) return null;
+			return snapshotQuery(applied);
+		},
+		{ equal: sameStatsFilters }
+	);
 	protected readonly activeFilterDescription = signal("");
 	protected readonly newFilterName = signal("");
 	protected readonly newFilterPinned = signal(true);
@@ -516,6 +539,7 @@ export class BacklogList implements OnInit {
 
 	protected readonly viewStats = injectViewStats({
 		activeFilterId: this.activeFilterId,
+		appliedFilters: this.statsAppliedFilters,
 		savedFilters: this.savedFilters,
 		backlogFilters: this.backlogFilters
 	});
@@ -761,7 +785,9 @@ export class BacklogList implements OnInit {
 		this.applySavedFilterState(filter);
 		this.activeFilterId.set(filter.id);
 		this.activeFilterDescription.set(filter.description ?? "");
-		this.viewBaseline.set(this.currentSnapshot());
+		const baseline = this.currentSnapshot();
+		this.viewBaseline.set(baseline);
+		this.storedViewFilters.set(baseline.filters);
 	}
 
 	private applySortParams(params: ParamMap) {
@@ -1117,7 +1143,7 @@ export class BacklogList implements OnInit {
 					this.savingFilter.set(false);
 					this.replaceView(updated);
 					if (this.activeFilterId() === view.id)
-						this.viewStats.load(view.id);
+						this.storedViewFilters.set(changes.filters);
 					this.toast.success(`Saved your changes to ${view.name}.`);
 				},
 				error: (error: unknown) => {

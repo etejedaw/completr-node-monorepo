@@ -73,10 +73,13 @@ export function injectViewStats(options: ViewStatsOptions) {
 
 	const hasAnyEnabled = () => enabledKeys().size > 0;
 
-	const load = (id: string) => {
+	const load = (
+		id: string,
+		appliedFilters: Record<string, string> | null
+	) => {
 		loading.set(true);
 		loadFailed.set(false);
-		statsLoader.load(savedFiltersService.getStats(id), {
+		statsLoader.load(savedFiltersService.getStats(id, appliedFilters), {
 			next: loaded => {
 				stats.set(loaded);
 				loading.set(false);
@@ -91,6 +94,7 @@ export function injectViewStats(options: ViewStatsOptions) {
 
 	effect(() => {
 		const id = options.activeFilterId();
+		const appliedFilters = options.appliedFilters();
 		if (!id) {
 			untracked(() => {
 				statsLoader.cancel();
@@ -101,12 +105,12 @@ export function injectViewStats(options: ViewStatsOptions) {
 			});
 			return;
 		}
-		untracked(() => load(id));
+		untracked(() => load(id, appliedFilters));
 	});
 
 	const retry = () => {
 		const id = options.activeFilterId();
-		if (id) load(id);
+		if (id) load(id, options.appliedFilters());
 	};
 
 	const toggleExpanded = () => {
@@ -173,7 +177,6 @@ export function injectViewStats(options: ViewStatsOptions) {
 		isCustom,
 		enabledKeys,
 		hasAnyEnabled,
-		load,
 		retry,
 		toggleExpanded,
 		togglePanel,

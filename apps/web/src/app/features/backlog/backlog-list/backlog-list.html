@@ -200,12 +200,7 @@
 		(expandedToggle)="viewStats.toggleExpanded()"
 		(retryRequested)="viewStats.retry()"
 	/>
-	@if (viewModified()) {
-	<p class="-mt-2 mb-4 text-xs text-fg-muted">
-		These stats are for the saved filters of this view. Save to view to
-		include your changes.
-	</p>
-	} } @if (showFilters()) {
+	} @if (showFilters()) {
 	<app-backlog-filters-panel
 		[allPlatforms]="allPlatforms()"
 		[allGenres]="allGenres()"

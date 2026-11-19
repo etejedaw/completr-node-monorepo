@@ -139,9 +139,12 @@ export class SavedFiltersService {
 		return this.http.delete(`${this.baseUrl}/${id}`);
 	}
 
-	getStats(id: string) {
+	getStats(id: string, appliedFilters: Record<string, string> | null = null) {
+		const params = buildHttpParams(appliedFilters);
 		return this.http
-			.get<SavedFilterStatsResponse>(`${this.baseUrl}/${id}/stats`)
+			.get<SavedFilterStatsResponse>(`${this.baseUrl}/${id}/stats`, {
+				params
+			})
 			.pipe(map(res => res.data.stats));
 	}
 }
