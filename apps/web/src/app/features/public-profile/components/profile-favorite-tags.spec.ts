@@ -12,11 +12,10 @@ describe("ProfileFavoriteTags", () => {
 				tags: [
 					{
 						tag: "co-op",
-						description: "With friends",
 						icon: "sports_esports",
 						color: "purple"
 					},
-					{ tag: "cozy", description: null, icon: null, color: null }
+					{ tag: "cozy", icon: null, color: null }
 				]
 			},
 			providers: [provideRouter([])]

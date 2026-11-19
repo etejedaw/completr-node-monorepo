@@ -32,12 +32,6 @@ import { type PublicFavoriteTag } from "../public-profile.model";
 								/>
 								<span class="truncate">{{ favorite.tag }}</span>
 							</span>
-							@if (favorite.description) {
-								<span
-									class="text-caption text-fg-muted line-clamp-2"
-									>{{ favorite.description }}</span
-								>
-							}
 						</a>
 					</li>
 				}
