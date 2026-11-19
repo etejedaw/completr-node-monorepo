@@ -3,7 +3,6 @@ import { type Request, type Response } from "express";
 import * as activityService from "../activity/activity.service";
 import * as backlogService from "../backlog/backlog.service";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
 import { type ExportFormat } from "../common/types/export-format.types";
 import { sendExport } from "../common/utils/send-export.util";
 import * as moodTagsService from "../mood-tags/mood-tags.service";
@@ -17,7 +16,9 @@ import {
 } from "./game-shelf.export-row.mapper";
 import * as gameShelfService from "./game-shelf.service";
 import { type GameShelfBulkQuery } from "./schemas/game-shelf-bulk-query.schema";
+import { type GameShelfExportQuery } from "./schemas/game-shelf-export-query.schema";
 import { type GameShelfIdParam } from "./schemas/game-shelf-id-params.schema";
+import { type GameShelfQuery } from "./schemas/game-shelf-query.schema";
 import {
 	gameShelfMeSerializer,
 	gameShelfSerializer,
@@ -43,7 +44,7 @@ export async function postGameShelf(request: Request, response: Response) {
 
 export async function getMeGameShelf(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
-	const query = request.locals.query ?? {};
+	const query = request.locals.query as GameShelfQuery;
 
 	const { rows, total } =
 		await gameShelfService.findGameShelfByUserIdPaginated(user.id, query);
@@ -132,7 +133,7 @@ export async function getMeGameShelfExport(
 ) {
 	const user = request.locals.user as RequestUser;
 	const format = request.locals.exportFormat as ExportFormat;
-	const query = request.locals.query as ExportPlatformSearchQuery;
+	const query = request.locals.query as GameShelfExportQuery;
 
 	const entries = await gameShelfService.findGameShelfForExport(
 		user.id,

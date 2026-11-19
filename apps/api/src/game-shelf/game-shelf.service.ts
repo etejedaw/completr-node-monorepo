@@ -4,7 +4,6 @@ import { CHRONOLOGICAL_ORDER } from "../common/constants/chronological-order.con
 import { rethrowSequelizeError } from "../common/errors/sequelize-error.mapper";
 import { type BulkResult } from "../common/interfaces/bulk-result.interface";
 import { type RequestUser } from "../common/interfaces/request-user.interface";
-import { type ExportPlatformSearchQuery } from "../common/schemas/export-platform-search-query.schema";
 import { type PaginationQuery } from "../common/schemas/pagination-query.schema";
 import { acquireAdvisoryLock } from "../common/utils/acquire-advisory-lock.util";
 import { buildPlatformFilterWhere } from "../common/utils/platform-filter-where.util";
@@ -14,6 +13,7 @@ import { toBulkSkipped } from "../common/utils/to-bulk-skipped.util";
 import { sequelize } from "../database/sequelize.database";
 import { Game } from "../games/game.model";
 import { GAME_REFERENCE_ATTRS } from "../games/games.constants";
+import * as moodTagsService from "../mood-tags/mood-tags.service";
 import { Platform } from "../platforms/platform.model";
 import { resolvePremiumAccess } from "../premium-access/services/premium-access.service";
 import { type RegisterGameShelfDto } from "./dtos/register-game-shelf.dto";
@@ -21,6 +21,7 @@ import { type UpdateGameShelfDto } from "./dtos/update-game-shelf.dto";
 import * as gameShelfServiceError from "./errors/game-shelf.service-error";
 import { FREE_SHELF_LIMIT, SHELF_ORDER } from "./game-shelf.constants";
 import { GameShelf } from "./game-shelf.model";
+import { type GameShelfExportQuery } from "./schemas/game-shelf-export-query.schema";
 import { type GameShelfQuery } from "./schemas/game-shelf-query.schema";
 
 const GAME_ATTRS = [
@@ -149,6 +150,15 @@ export async function findGameEntriesByUserId(
 	});
 }
 
+function taggedGamesWhere(userId: string, moodTags?: readonly string[]) {
+	if (!moodTags) return {};
+	return {
+		[Op.and]: [
+			{ gameId: moodTagsService.taggedGameIdsFilter(userId, moodTags) }
+		]
+	};
+}
+
 export async function findGameShelfByUserIdPaginated(
 	userId: string,
 	pagination: GameShelfQuery = {}
@@ -163,9 +173,11 @@ export async function findGameShelfByUserIdPaginated(
 	if (titleWhere) gameInclude.where = titleWhere;
 
 	const query: Record<string, unknown> = {
-		where: pagination.game_id
-			? { userId, gameId: pagination.game_id }
-			: { userId },
+		where: {
+			userId,
+			...(pagination.game_id && { gameId: pagination.game_id }),
+			...taggedGamesWhere(userId, pagination.mood_tags)
+		},
 		include: [gameInclude, { model: Platform, attributes: PLATFORM_ATTRS }],
 		order: SHELF_ORDER,
 		distinct: true
@@ -250,14 +262,18 @@ export async function bulkDeleteGameShelf(
 
 export async function findGameShelfForExport(
 	userId: string,
-	filters: ExportPlatformSearchQuery = {}
+	filters: GameShelfExportQuery = {}
 ) {
 	const titleWhere = filters.search
 		? buildTextSearchWhere(filters.search, ["Game.title"])
 		: null;
 
 	return GameShelf.findAll({
-		where: { userId, ...buildPlatformFilterWhere(filters.platform) },
+		where: {
+			userId,
+			...buildPlatformFilterWhere(filters.platform),
+			...taggedGamesWhere(userId, filters.mood_tags)
+		},
 		include: [
 			{
 				model: Game,
