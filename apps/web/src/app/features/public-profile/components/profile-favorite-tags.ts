@@ -17,27 +17,17 @@ import { type PublicFavoriteTag } from "../public-profile.model";
 			/>
 			<ol class="list-none m-0 p-0 flex flex-wrap gap-2 sm:gap-3">
 				@for (favorite of tags(); track favorite.tag) {
-					<li class="min-w-0 max-w-full sm:max-w-[18rem]">
+					<li class="min-w-0 max-w-full">
 						<a
-							class="group flex flex-col justify-center gap-0.5 min-w-0 min-h-[44px] px-3.5 py-2 rounded-card border border-line bg-surface no-underline transition hover:border-line-hover hover:bg-surface-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+							class="inline-flex items-center gap-2 min-w-0 max-w-full min-h-[44px] pl-3 pr-4 rounded-full border border-line bg-surface text-[0.9375rem] font-medium text-fg-secondary no-underline transition-colors hover:border-brand/50 hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
 							[routerLink]="['/tags', favorite.tag]"
 						>
-							<span
-								class="inline-flex items-center gap-1.5 min-w-0 text-sm font-semibold text-fg group-hover:text-brand"
-							>
-								<app-tag-icon
-									class="text-base"
-									[icon]="favorite.icon"
-									[color]="favorite.color"
-								/>
-								<span class="truncate">{{ favorite.tag }}</span>
-							</span>
-							@if (favorite.description) {
-								<span
-									class="text-caption text-fg-muted line-clamp-2"
-									>{{ favorite.description }}</span
-								>
-							}
+							<app-tag-icon
+								class="shrink-0 !text-[1.25rem]"
+								[icon]="favorite.icon"
+								[color]="favorite.color"
+							/>
+							<span class="truncate">{{ favorite.tag }}</span>
 						</a>
 					</li>
 				}

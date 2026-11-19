@@ -636,8 +636,8 @@ describe("PublicProfileComponent", () => {
 
 		describe("favorite tags", () => {
 			const favoriteTags = [
-				{ tag: "relaxing", description: "Games to unwind with" },
-				{ tag: "co-op", description: null }
+				{ tag: "relaxing", icon: null, color: null },
+				{ tag: "co-op", icon: null, color: null }
 			];
 
 			it("shows the favorite tags in order, each linking to its tag page", async () => {
@@ -652,7 +652,10 @@ describe("PublicProfileComponent", () => {
 					"/tags/relaxing",
 					"/tags/co-op"
 				]);
-				expect(links[0]).toHaveTextContent("Games to unwind with");
+				expect(links[0]).toHaveTextContent("relaxing");
+				expect(
+					within(section).queryByText("Games to unwind with")
+				).not.toBeInTheDocument();
 				expect(getFavoriteTags).toHaveBeenCalledWith("ada");
 			});
 
