@@ -5,6 +5,7 @@ import {
 	buildRangeWhere
 } from "../../common/utils/sequelize-range.util";
 import { sequelize } from "../../database/sequelize.database";
+import * as moodTagsService from "../../mood-tags/mood-tags.service";
 import { type BacklogQuery } from "../schemas/backlog-query.schema";
 
 export function buildBacklogWhere(
@@ -148,20 +149,15 @@ export function buildBacklogWhere(
 			)
 		);
 
-	if (filters.mood_tags && filters.mood_tags.length > 0) {
+	if (filters.mood_tags) {
 		const ownerId = base.userId as string | undefined;
-		if (ownerId) {
-			const escapedTags = filters.mood_tags
-				.map(t => sequelize.escape(t.toLowerCase().trim()))
-				.join(", ");
+		if (ownerId)
 			andConditions.push({
-				gameId: {
-					[Op.in]: literal(
-						`(SELECT "gameId" FROM "UserGameTags" WHERE "userId" = ${sequelize.escape(ownerId)} AND "tag" IN (${escapedTags}) GROUP BY "gameId" HAVING COUNT(DISTINCT "tag") = ${filters.mood_tags.length})`
-					)
-				}
+				gameId: moodTagsService.taggedGameIdsFilter(
+					ownerId,
+					filters.mood_tags
+				)
 			});
-		}
 	}
 
 	if (filters.platinumed_only) {
