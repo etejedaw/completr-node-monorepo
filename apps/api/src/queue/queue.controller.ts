@@ -22,6 +22,7 @@ import { type AddQueueQuery } from "./schemas/add-queue-query.schema";
 import { type QueueBacklogIdParams } from "./schemas/queue-backlog-id-params.schema";
 import { type QueueBulkQuery } from "./schemas/queue-bulk-query.schema";
 import { type QueueExportQuery } from "./schemas/queue-export-query.schema";
+import { type QueueQuery } from "./schemas/queue-query.schema";
 
 export async function postQueue(request: Request, response: Response) {
 	const body = request.locals.body as AddQueueDto;
@@ -109,7 +110,7 @@ export async function getMeQueueBacklogIds(
 
 export async function getMeQueue(request: Request, response: Response) {
 	const user = request.locals.user as RequestUser;
-	const query = request.locals.query ?? {};
+	const query = request.locals.query as QueueQuery;
 
 	const { rows, total } = await queueService.findQueueByUserIdPaginated(
 		user.id,
