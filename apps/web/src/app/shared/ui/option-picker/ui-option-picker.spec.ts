@@ -101,6 +101,56 @@ describe("UiOptionPicker", () => {
 			);
 		});
 
+		it("marks a modified selection with a dot and says so in its accessible name", () => {
+			const fixture = render({
+				value: "playing",
+				variant: "compact",
+				modified: true
+			});
+
+			expect(trigger(fixture).getAttribute("aria-label")).toBe(
+				"Status: Playing (modified)"
+			);
+			const dot = trigger(fixture).querySelector(
+				"[data-modified-indicator]"
+			);
+			expect(dot).not.toBeNull();
+			expect(dot?.getAttribute("aria-hidden")).toBe("true");
+		});
+
+		it("shows no modified mark when nothing is selected or nothing changed", () => {
+			const placeholder = render({ value: "unknown", modified: true });
+			expect(trigger(placeholder).getAttribute("aria-label")).toBe(
+				"Status: None"
+			);
+			expect(
+				trigger(placeholder).querySelector("[data-modified-indicator]")
+			).toBeNull();
+			TestBed.resetTestingModule();
+
+			const untouched = render({ value: "playing" });
+			expect(trigger(untouched).getAttribute("aria-label")).toBe(
+				"Status: Playing"
+			);
+			expect(
+				trigger(untouched).querySelector("[data-modified-indicator]")
+			).toBeNull();
+		});
+
+		it("drops the modified mark as soon as the input turns off", () => {
+			const fixture = render({ value: "playing", modified: true });
+
+			fixture.componentRef.setInput("modified", false);
+			fixture.detectChanges();
+
+			expect(trigger(fixture).getAttribute("aria-label")).toBe(
+				"Status: Playing"
+			);
+			expect(
+				trigger(fixture).querySelector("[data-modified-indicator]")
+			).toBeNull();
+		});
+
 		it("announces a menu on desktop and a dialog on mobile", () => {
 			expect(trigger(render()).getAttribute("aria-haspopup")).toBe(
 				"menu"
@@ -195,6 +245,20 @@ describe("UiOptionPicker", () => {
 			);
 			expect(fixture.componentInstance.value()).toBe("");
 			expect(sheet()).toBeNull();
+		});
+
+		it("labels the modified option in the sheet and keeps its hint", () => {
+			const fixture = render({ value: "playing", modified: true }, true);
+
+			trigger(fixture).click();
+			fixture.detectChanges();
+
+			const playing = sheetOption(fixture, "Playing");
+			expect(playing.textContent).toContain("Modified");
+			expect(playing.textContent).toContain("Now");
+			expect(sheetOption(fixture, "All").textContent).not.toContain(
+				"Modified"
+			);
 		});
 
 		it("runs an action and closes the sheet", () => {

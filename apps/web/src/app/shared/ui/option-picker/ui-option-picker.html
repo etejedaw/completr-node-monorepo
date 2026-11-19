@@ -6,7 +6,7 @@
 	ngpMenuTriggerPlacement="bottom-start"
 	[ngpMenuTriggerOffset]="6"
 	[attr.aria-haspopup]="isMobile() ? 'dialog' : 'menu'"
-	[attr.aria-label]="label() + ': ' + (current?.label ?? placeholder())"
+	[attr.aria-label]="triggerLabel()"
 	[attr.aria-invalid]="invalid() || null"
 	[attr.aria-describedby]="describedBy()"
 	[attr.id]="triggerId()"
@@ -49,6 +49,12 @@
 	<span class="max-w-[10rem] truncate" [class.text-fg]="!value()"
 		>{{ current?.label ?? placeholder() }}</span
 	>
+	} @if (showsModified()) {
+	<span
+		aria-hidden="true"
+		data-modified-indicator
+		class="size-[7px] shrink-0 rounded-full bg-brand"
+	></span>
 	}
 	<span
 		aria-hidden="true"
@@ -127,7 +133,9 @@
 		>{{ option.icon ?? 'radio_button_unchecked' }}</span
 	>
 	<span class="flex-1 min-w-0 truncate">{{ option.label }}</span>
-	@if (option.locked) {
+	@if (showsModified() && option.value === value()) {
+	<span class="text-xs font-medium text-brand">Modified</span>
+	} @if (option.locked) {
 	<span aria-hidden="true" class="material-icons text-sm text-premium"
 		>lock</span
 	>
@@ -179,7 +187,7 @@
 	@for (action of actions(); track action.id) {
 	<button
 		type="button"
-		class="mt-2 w-full min-h-12 flex items-center justify-center gap-2 rounded-card bg-transparent border border-line text-sm font-medium text-fg-secondary cursor-pointer transition active:bg-surface"
+		class="mt-2 w-full min-h-[48px] flex items-center justify-center gap-2 rounded-card bg-transparent border border-line text-sm font-medium text-fg-secondary cursor-pointer transition active:bg-surface"
 		(click)="runAction(action.id)"
 	>
 		<span aria-hidden="true" class="material-icons text-lg"
@@ -201,7 +209,12 @@
 	>
 	<span class="flex-1 min-w-0">
 		<span class="block truncate">{{ option.label }}</span>
-		@if (option.hint) {
+		@if (showsModified() && option.value === value()) {
+		<span class="block text-xs font-normal text-fg-muted"
+			><span class="font-medium text-brand">Modified</span>@if
+			(option.hint) { · {{ option.hint }} }</span
+		>
+		} @else if (option.hint) {
 		<span class="block text-xs font-normal text-fg-muted"
 			>{{ option.hint }}</span
 		>

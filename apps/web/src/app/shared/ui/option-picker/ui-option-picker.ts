@@ -59,6 +59,7 @@ export class UiOptionPicker {
 	readonly placeholderIcon = input("tune");
 	readonly invalid = input(false);
 	readonly describedBy = input<string | null>(null);
+	readonly modified = input(false);
 	readonly actionSelected = output<string>();
 	readonly lockedSelected = output<UiPickerOption>();
 
@@ -66,6 +67,16 @@ export class UiOptionPicker {
 	protected readonly compactTriggerClass = compactPickerTriggerClass;
 	protected readonly sheetOpen = signal(false);
 	private readonly menuTrigger = viewChild(NgpMenuTrigger);
+
+	protected readonly triggerLabel = computed(() => {
+		const current = this.selected();
+		const name = `${this.label()}: ${current?.label ?? this.placeholder()}`;
+		return this.showsModified() ? `${name} (modified)` : name;
+	});
+
+	protected readonly showsModified = computed(
+		() => this.modified() && this.selected() !== null
+	);
 
 	protected readonly selected = computed(
 		() =>
